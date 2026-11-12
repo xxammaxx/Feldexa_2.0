@@ -1,0 +1,8 @@
+# Visible analyzer entry point (T004).
+#
+# The task specifies `.analysis_options.yaml` as the configuration file and
+# `dart format` discovers that hidden file. The Dart analyzer only discovers
+# `analysis_options.yaml`, so this shim includes the canonical hidden file.
+# Keep all rules and formatter settings in `.analysis_options.yaml`; do not
+# duplicate them here. `tools/gate.sh` verifies both files exist.
+include: .analysis_options.yaml
