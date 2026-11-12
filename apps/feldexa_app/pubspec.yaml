@@ -65,5 +65,10 @@ flutter:
   # The OFL text ships as an asset so the later third-party licence surface
   # (T003 C-T003-3) can expose the exact bundled licence. The licence UI is a
   # later task; T006 only guarantees the file and its availability.
+  #
+  # T007: metrics.json is the generated advance table consumed by
+  # `feldexa_export` for deterministic layout and clip detection. It is
+  # declared here so Dart reads it through rootBundle, not from a build path.
   assets:
     - assets/fonts/OFL.txt
+    - assets/fonts/metrics.json
