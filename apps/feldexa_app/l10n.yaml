@@ -1,0 +1,16 @@
+# Feldexa 2.0 localization configuration (T005, plan.md §Project Structure;
+# research.md D-15; FR-090).
+#
+# German (de) is the only release locale. The template ARB is the single
+# source of user-facing strings; generated Dart lives next to the ARBs under
+# lib/l10n/ so it is reviewed and committed with the source. The deprecated
+# synthetic-package mode is intentionally not enabled: generated code is normal
+# application source, and tests import it directly.
+arb-dir: lib/l10n
+template-arb-file: app_de.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+nullable-getter: false
+# Keep the committed generated files byte-stable: regeneration runs the
+# formatter, so a fresh checkout and a developer regeneration agree.
+format: true

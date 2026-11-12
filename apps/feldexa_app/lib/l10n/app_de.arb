@@ -1,0 +1,11 @@
+{
+  "@@locale": "de",
+  "appTitle": "Feldexa",
+  "@appTitle": {
+    "description": "Application name, used for the app bar and the browser document title."
+  },
+  "startTitle": "Meine Dokumente",
+  "@startTitle": {
+    "description": "Heading of the start area (contracts/error-catalog.de.md §8)."
+  }
+}
