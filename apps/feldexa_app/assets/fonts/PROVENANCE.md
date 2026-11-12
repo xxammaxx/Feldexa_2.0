@@ -34,6 +34,7 @@ metrics table is generated from these exact static bytes.
 | `NotoSans-Regular.ttf` | 790,500 | `97eaf07030b89da4eceace86b12f4d7debb3cb212082c3938803eac7111221c9` | Regular 400, export text and UI family |
 | `NotoSans-Bold.ttf` | 802,504 | `53b53721b1910c7e058c4f012126b41273d493b04d69c1ac50924f7eff8e8039` | Bold 700 |
 | `OFL.txt` | 4,396 | `cee9892f9f0cc8fe882c9e9537ee6a89621d86ee7ceaf70b02e2b2b1c25c061a` | Unmodified SIL OFL 1.1 licence |
+| `metrics.json` | 129,971 | `d3306e4a08ffdf534f88a49a7b0f1a7f880b2513e39b791035b68a98340cadab` | T007 generated advance table (schema v1, `noto-sans-2.013-v1`) |
 
 Observed metadata (verified by `tools/fonts/verify_fonts.py`): 4,671 glyphs
 each, 17 tables, `unitsPerEm` 1000, ascender 1069, descender −293, cmap formats
@@ -66,6 +67,12 @@ NOTO_SANS_ZIP=/path/to/NotoSans-v2.013.zip bash tools/fonts/fetch_noto_sans.sh
 # Static verification: pinned bytes, sfnt/table checksums, required tables,
 # German glyph coverage and advances, OFL text, and the Flutter declaration:
 python3 tools/fonts/verify_fonts.py
+
+# T007: fail unless metrics.json is byte-for-byte current with these TTFs:
+dart run tools/metrics/generate_font_metrics.dart --check
+
+# T007: independent cross-check of the committed table against the TTF bytes:
+(cd apps/feldexa_app && flutter test --no-pub test/font_metrics_bundle_test.dart)
 ```
 
 The fetch script never resolves "latest"; it is hard-pinned to the release tag
@@ -76,17 +83,21 @@ library only) and fails closed.
 
 `apps/feldexa_app/pubspec.yaml` declares family `NotoSans` with weight 400
 (`NotoSans-Regular.ttf`) and weight 700 (`NotoSans-Bold.ttf`) at the contract
-paths, and declares `assets/fonts/OFL.txt` as an asset. The host-VM test
-`apps/feldexa_app/test/font_bundle_test.dart` loads both fonts and the licence
-through `rootBundle`, asserting the pinned byte sizes, TrueType sfnt header,
-required/absent tables, and OFL markers. `flutter build web` produced a
-`FontManifest.json` entry for `NotoSans` with both weights and packaged the
-three files with the exact SHA-256 values above.
+paths, and declares `assets/fonts/OFL.txt` and the generated
+`assets/fonts/metrics.json` as assets. The host-VM tests
+`apps/feldexa_app/test/font_bundle_test.dart` and
+`apps/feldexa_app/test/font_metrics_bundle_test.dart` load both fonts, the
+licence, and the advance table through `rootBundle`, asserting the pinned byte
+sizes, TrueType sfnt header, required/absent tables, OFL markers, and the full
+codepoint-to-advance agreement with the TTF bytes. `flutter build web` produced
+a `FontManifest.json` entry for `NotoSans` with both weights and packaged the
+font and licence files with the exact SHA-256 values above.
 
 ## What this does not prove
 
-Byte and configuration validity is not rendering evidence. T007 still
-generates `metrics.json` from these TTFs; T030 owns the Dart/PDFBox metric
-contract; PDFBox embedding and PDF rendering are later export tasks. This
-directory produces no `SIMULATED`, `EMULATOR`, or `DEVICE` evidence class and
-does not satisfy any Android or device acceptance criterion.
+Byte, configuration, and metrics validity is not rendering evidence. T007
+generates `metrics.json` from these TTFs and cross-checks it against the same
+bytes; T030 owns the `feldexa_export` Dart/PDFBox metric contract; PDFBox
+embedding and PDF rendering are later export tasks. This directory produces no
+`SIMULATED`, `EMULATOR`, or `DEVICE` evidence class and does not satisfy any
+Android or device acceptance criterion.
