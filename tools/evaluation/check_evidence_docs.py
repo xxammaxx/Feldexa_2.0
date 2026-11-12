@@ -19,7 +19,7 @@ import subprocess
 import sys
 
 README = "specs/001-scanned-form-workflow/reports/README.md"
-REPORT = "specs/001-scanned-form-workflow/reports/2026-11-12-t010-evidence.md"
+REPORT = "specs/001-scanned-form-workflow/reports/2026-11-13-t010-evidence.md"
 ATTESTATION = "specs/001-scanned-form-workflow/reports/2026-11-12-t010-candidate-attestation.json"
 
 TOKENS = [

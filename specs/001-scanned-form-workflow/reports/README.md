@@ -236,7 +236,7 @@ the GitHub issue for live state.
 | [2026-11-12-t005-evidence.md](./2026-11-12-t005-evidence.md) | `NONE` | Task evidence | T005 German scaffold |
 | [2026-11-12-t006-evidence.md](./2026-11-12-t006-evidence.md) | `NONE` | Task evidence | T006 Noto Sans/OFL |
 | [2026-11-12-t007-evidence.md](./2026-11-12-t007-evidence.md) | `NONE` | Task evidence | T007 font metrics |
-| [2026-11-12-t010-evidence.md](./2026-11-12-t010-evidence.md) | `NONE` | Task evidence | T010 template/index |
+| [2026-11-13-t010-evidence.md](./2026-11-13-t010-evidence.md) | `NONE` | Task evidence | T010 template/index; created 2026-11-12 23:51 |
 | [2026-11-12-task-issue-mapping.md](./2026-11-12-task-issue-mapping.md) | `NONE` | Historical snapshot | 2026-11-12T15:50Z all-open mapping; not live issue state |
 | [2026-11-12-task-issue-mapping.json](./2026-11-12-task-issue-mapping.json) | `NONE` | Historical snapshot | Machine-readable dated snapshot; do not overwrite with current state |
 | `backups/` | — | Not evidence | Pre-edit snapshots |
