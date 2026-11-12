@@ -8,7 +8,7 @@
 - **Coordinator session**: `orca_session_id:codex_c47f7c54_2eef_4baa_a246_5426e6043cd4`
 - **Base revision**: `6a5f705844d661ed882a2233c87f3b39763028b2` (integrated `main`)
 - **Date**: 2026-11-12 (Europe/Berlin)
-- **Result**: OD-T003-1 resolved with a pinned, OSV-clean BouncyCastle 1.87 override; a real Flutter debug APK built; the release merged manifest was corrected to remove ML Kit's DataTransport network permissions. No push, merge or self-approval; the exact candidate is a local self-contained commit in `.dsh-git`/`.dsh-t003-candidate.bundle`.
+- **Result**: OD-T003-1 resolved with a pinned, OSV-clean BouncyCastle 1.87 override; real Flutter debug and release APKs built; the release merged manifest was corrected to remove ML Kit's DataTransport network permissions and the release APK check passes. No push, merge or self-approval; the exact candidate is a local self-contained commit in `.dsh-git`/`.dsh-t003-candidate.bundle`.
 
 This report is the follow-up to `2026-11-12-t003-evidence.md` and is the authoritative evidence for the Android/BC part of T003. The review is `tools/dependency_review.md`.
 
@@ -151,15 +151,16 @@ Base revision: `6a5f705844d661ed882a2233c87f3b39763028b2`. The shared worktree g
 | `pubspec.lock` | Regenerated lockfile | `00a5b9fbc59e6038a1a93fd4cd2c24244f63dffa99b0b44a12f7e8f0d1a21163` |
 | `apps/feldexa_app/android/app/build.gradle.kts` | PDFBox pin + BC 1.87 constraint/rule | `6f59795de7cdf2c69253034198280f92bb96a0d6e02322ac83d3245e37d4c8db` |
 | `apps/feldexa_app/android/app/src/release/AndroidManifest.xml` | Release-only DataTransport permission/service removal | `d0e486133dde1eed950bb3064766aae6c0e09dae4cc356892158a7af1cbc15fc` |
+| `apps/feldexa_app/android/app/proguard-rules.pro` | Exactly the eight AGP-generated `-dontwarn` rules for optional compile-only non-Latin ML Kit classes | `76cab1040628705c1ee6e231ed1d772987c57364d8d39017f053d33df9629b0b` |
 | `tools/android/check_release_manifest.sh` | Automated release-manifest privacy check (self-test + merged manifest/APK modes) | `7056eb42198e05a56256b404b8edd103081ec0b8037a77e1de1e24a1112da9f1` |
-| `tools/dependency_review.md` | Review updated with BC resolution, build evidence, DataTransport correction, release gate and check | `792898e59ed97a2b024da16ce689326104b2836b07b1f8ee0978824849b66847` |
+| `tools/dependency_review.md` | Review updated with BC resolution, build evidence, DataTransport correction, release build and check | `13a80f17dce751dfa5ee4764cf0c11ff0cc1b2a6aca853f515cf08e55df911e4` |
 | `specs/001-scanned-form-workflow/tasks.md` | T003 checkbox `[x]`; no other task changed | `286784a9ae3e9a2d420ee5967f62b8e7600edc4fc92ab080811f2c6e67787d69` |
 | `specs/001-scanned-form-workflow/reports/2026-11-12-t003-evidence.md` | Prior T003 execution report; historical follow-up note added | `9dfa965c384977f8635e7f8ac63b489befd78b4807cf0989af05d745c2aec15f` |
 | `specs/001-scanned-form-workflow/reports/2026-11-12-t003-bc-override-evidence.md` | This report | `—` (self hash omitted) |
 
-Candidate content fingerprint (SHA-256 of the seven sorted `path:sha256` lines for pubspec, lock, Gradle, release manifest, manifest-check script, review and tasks): `ada92ab51849021dc7622b00a7cf92ae2e93255a63c08013258ddf2edbdb30d6`. The same value is recorded in `.dsh-git/T003-CANDIDATE-EVIDENCE.md` after the candidate is frozen.
+Candidate content fingerprint (SHA-256 of the eight sorted `path:sha256` lines for pubspec, lock, Gradle, release manifest, ProGuard rules, manifest-check script, review and tasks): `80e9fc66bde9f4a2f93d4fcb00d7460dcc13eef7a304f4bac1fb5308320d9e1c`. The same value is recorded in `.dsh-git/T003-CANDIDATE-EVIDENCE.md` after the candidate is frozen.
 
-Working-tree status at the time of writing: `M apps/feldexa_app/android/app/build.gradle.kts`, `M apps/feldexa_app/android/gradlew.bat` (pre-existing, not T003), `M apps/feldexa_app/pubspec.yaml`, `M pubspec.lock`, `M specs/001-scanned-form-workflow/tasks.md`, `?? apps/feldexa_app/android/app/src/release/`, `?? tools/android/check_release_manifest.sh`, `?? tools/dependency_review.md`, `?? specs/001-scanned-form-workflow/reports/2026-11-12-t003-evidence.md`, `?? specs/001-scanned-form-workflow/reports/2026-11-12-t003-bc-override-evidence.md`. Temporary `.tmp-t003bc/`, `.dsh-git/` and `.dsh-t003-candidate.bundle` are outside the candidate source tree.
+Working-tree status at the time of writing: `M apps/feldexa_app/android/app/build.gradle.kts`, `M apps/feldexa_app/android/gradlew.bat` (pre-existing, not T003), `M apps/feldexa_app/pubspec.yaml`, `M pubspec.lock`, `M specs/001-scanned-form-workflow/tasks.md`, `?? apps/feldexa_app/android/app/proguard-rules.pro`, `?? apps/feldexa_app/android/app/src/release/`, `?? tools/android/check_release_manifest.sh`, `?? tools/dependency_review.md`, `?? specs/001-scanned-form-workflow/reports/2026-11-12-t003-evidence.md`, `?? specs/001-scanned-form-workflow/reports/2026-11-12-t003-bc-override-evidence.md`. Temporary `.tmp-t003bc/`, `.tmp-t003fix/`, `.dsh-git/` and `.dsh-t003-candidate.bundle` are outside the candidate source tree.
 
 ## 7. Pre-existing `gradlew.bat` line-ending issue
 
@@ -178,41 +179,40 @@ cmp(index blob, worktree): 0
 
 The committed/index blob is CRLF; the `text` attribute makes `git diff` compare a clean-filtered LF view against the CRLF index, so all 90 lines appear changed although the raw worktree bytes are identical (`cmp` 0). The correct maintenance fix is a one-time `git add --renormalize -- apps/feldexa_app/android/gradlew.bat` commit; T003 does not perform it.
 
-## 8. Release build attempt and manifest regression check
+## 8. Release build and manifest regression check
 
-Command:
+### 8.1 Root cause and minimal fix
+
+The wrapper's `android/build.gradle` declares `com.google.mlkit:text-recognition:16.0.1` (Latin) as `implementation` and the Chinese/Devanagari/Japanese/Korean artifacts as `compileOnly`. Its Kotlin `TextRecognizer.initialize` switches on the script index (0 = Latin, 1–4 = optional scripts); the Dart API defaults to `TextRecognitionScript.latin`. The plugin README and the official ML Kit Text Recognition v2 documentation say the base Android package bundles Latin only and that the other scripts are separate implementation dependencies (about 4 MB per script per architecture), to be added only if needed. Feldexa is German/Latin-only.
+
+The smallest safe fix is `apps/feldexa_app/android/app/proguard-rules.pro` with exactly the eight `-dontwarn` rules AGP generated for those optional classes. Flutter's Gradle plugin automatically adds `app/proguard-rules.pro` to the release build when present (`FlutterPlugin.kt` lines 224–226). No language dependency, keep rule, broad wildcard or network permission was added.
+
+### 8.2 Release build result
 
 ```sh
 flutter --no-version-check build apk --release --target-platform android-x64
 ```
 
-Result: **failed after 541.2 s** at `:app:minifyReleaseWithR8`. R8 reported missing optional ML Kit language classes referenced by the Latin-only wrapper:
+Result: **success after 526.2 s**; `✓ Built build/app/outputs/flutter-apk/app-release.apk (57.0MB)`. `missing_rules.txt` is absent after the fix.
 
-```text
-com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
-com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions$Builder
-com.google.mlkit.vision.text.devanagari.DevanagariTextRecognizerOptions
-com.google.mlkit.vision.text.devanagari.DevanagariTextRecognizerOptions$Builder
-com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions
-com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions$Builder
-com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
-com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions$Builder
-```
+- APK: 57,015,925 bytes (Flutter reports 57.0 MB), SHA-256 `3a4c4b6d32fcf37404baea71beffe6836983835c1a3bdd8ccfef1bc5e6346cdc`.
+- Three ABI payloads: arm64-v8a, armeabi-v7a, x86_64. This is below the plan's 120 MB release budget for this artifact.
+- `apksigner verify --print-certs`: `DOES NOT VERIFY`, `ERROR: Missing META-INF/MANIFEST.MF` — the release artifact is unsigned, as T002 intentionally configures no production signing identity. Production signing remains an owner-supplied release step.
 
-AGP generated `apps/feldexa_app/build/app/outputs/mapping/release/missing_rules.txt` (SHA-256 `049f0b2b11b64983a03d2f28b04675715c9dbebfe3100b3461ea3cb545a0f2eb`) with eight `-dontwarn` rules. **No release APK exists.** This is an unavailable gate, recorded as C-T003-12; it is not a BC/PDFBox failure and it is not hidden.
+### 8.3 APK and manifest inspection
 
-What *is* available:
-
-- The release **merged manifest** was generated and is clean: `apps/feldexa_app/build/app/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml`, SHA-256 `6129b31211489284e4d96d48305685c88bed21c57d9de8a8182c899b3d93285c`. It contains only `de.feldexa.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`; no `INTERNET`, no `ACCESS_NETWORK_STATE`, no DataTransport component.
-- The automated check is implemented at `tools/android/check_release_manifest.sh`:
+- Release merged manifest: `apps/feldexa_app/build/app/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml`, SHA-256 `6129b31211489284e4d96d48305685c88bed21c57d9de8a8182c899b3d93285c`. It contains only `de.feldexa.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`; no `INTERNET`, no `ACCESS_NETWORK_STATE`, no DataTransport component.
+- `tools/android/check_release_manifest.sh`:
   - `--self-test` → `SELF-TEST PASS: clean manifest accepted; INTERNET, ACCESS_NETWORK_STATE and DataTransport manifests rejected.`
-  - default release merged manifest → `PASS`.
-  - APK mode was exercised against the debug APK, which correctly fails because debug retains `INTERNET` for Flutter tooling.
-- The debug APK remains the only built APK; it is not a release artifact.
+  - release merged manifest → `PASS`.
+  - release APK → `PASS`.
+- APK DEX audit: the optional non-Latin option classes are **referenced** (`C r`, e.g. `ChineseTextRecognizerOptions$Builder`) but **not defined** (`C d` absent); the wrapper's non-Latin branches are not used. The Latin ML Kit model assets and `libmlkit_google_ocr_pipeline.so` are present. R8 strips the currently unused PDFBox/BC classes (`PDDocument`, `CMSEnvelopedData`, `XWingKEMGenerator`, `SQIsignSigner` are not defined in the release APK).
+- `flutter test`: 4/4 passed; `flutter analyze`: no issues (14.7 s).
 
 ## 9. Residual risk and no self-approval
 
 - PDFBox-Android 2.0.27.0 is old (upstream PDFBox is 2.0.37) and has no newer Android port. BC 1.87 was proven on PDFBox's actual BC path (public-key CMS), not every BC API. T039/T143 must run the full PDFBox regression and re-scan advisories (C-T003-10).
 - ML Kit's DataTransport classes remain packaged; release permissions/services are removed. T056 must prove offline OCR after the removal (C-T003-1).
-- The release APK was not produced: the release build attempt failed at R8 on optional ML Kit language classes (C-T003-12); the release merged manifest was still generated and checked. Release artifact, R8 shrinking and APK size remain release-gate work (C-T003-9).
+- The release APK is built and its manifest is clean, but it is unsigned; production signing remains an owner-supplied release step (C-T003-9).
+- C-T003-12 is resolved for the current wrapper: the exactly eight AGP-generated `-dontwarn` rules are in `apps/feldexa_app/android/app/proguard-rules.pro`, and `missing_rules.txt` is absent. Keep the rules in sync if the wrapper changes; add a non-Latin implementation dependency only if that script is actually needed.
 - No push, merge, tag, PR, issue edit/close or self-approval was performed. The local candidate commit exists only in `.dsh-git` and `.dsh-t003-candidate.bundle`. Gate 7 independent review, gate 8 integration and gate 9 convergence remain outside T003.
