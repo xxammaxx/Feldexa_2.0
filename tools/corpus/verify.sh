@@ -204,6 +204,31 @@ def _check_string(value: object, schema: dict, path: str, errors: list[str]) -> 
                 errors.append(f"{path}: must be a valid RFC 3339 date-time")
 
 
+def json_equal(left: object, right: object) -> bool:
+    """JSON value equality: booleans never equal numbers; 1 and 1.0 are equal."""
+    if isinstance(left, bool) or isinstance(right, bool):
+        return isinstance(left, bool) and isinstance(right, bool) and left == right
+    if isinstance(left, (int, float)) or isinstance(right, (int, float)):
+        return (
+            isinstance(left, (int, float))
+            and isinstance(right, (int, float))
+            and left == right
+        )
+    if isinstance(left, dict) or isinstance(right, dict):
+        if not isinstance(left, dict) or not isinstance(right, dict):
+            return False
+        if set(left.keys()) != set(right.keys()):
+            return False
+        return all(json_equal(left[key], right[key]) for key in left)
+    if isinstance(left, list) or isinstance(right, list):
+        if not isinstance(left, list) or not isinstance(right, list):
+            return False
+        return len(left) == len(right) and all(
+            json_equal(left_item, right_item) for left_item, right_item in zip(left, right)
+        )
+    return type(left) is type(right) and left == right
+
+
 def schema_errors(instance: object, schema: object, root: dict, path: str = "$") -> list[str]:
     """Return validation errors for instance against the supported schema subset."""
     errors: list[str] = []
@@ -226,9 +251,9 @@ def schema_errors(instance: object, schema: object, root: dict, path: str = "$")
             )
             return errors
 
-    if "const" in schema and instance != schema["const"]:
+    if "const" in schema and not json_equal(instance, schema["const"]):
         errors.append(f"{path}: must equal {schema['const']!r}")
-    if "enum" in schema and instance not in schema["enum"]:
+    if "enum" in schema and not any(json_equal(instance, allowed) for allowed in schema["enum"]):
         errors.append(f"{path}: must be one of {schema['enum']!r}")
 
     if isinstance(instance, dict):
@@ -251,13 +276,19 @@ def schema_errors(instance: object, schema: object, root: dict, path: str = "$")
         if "maxItems" in schema and len(instance) > schema["maxItems"]:
             errors.append(f"{path}: must contain at most {schema['maxItems']} item(s)")
         if schema.get("uniqueItems"):
-            seen: dict[str, int] = {}
             for index, item in enumerate(instance):
-                canonical = json.dumps(item, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
-                if canonical in seen:
-                    errors.append(f"{path}: duplicate item at positions {seen[canonical]} and {index}")
-                else:
-                    seen[canonical] = index
+                duplicate_of = next(
+                    (
+                        earlier
+                        for earlier in range(index)
+                        if json_equal(item, instance[earlier])
+                    ),
+                    None,
+                )
+                if duplicate_of is not None:
+                    errors.append(
+                        f"{path}: duplicate item at positions {duplicate_of} and {index}"
+                    )
         items = schema.get("items")
         if isinstance(items, dict):
             for index, item in enumerate(instance):
@@ -498,7 +529,11 @@ def verify(
         if isinstance(pages, list):
             counts["pages"] += len(pages)
             declared_page_count = form.get("pageCount")
-            if isinstance(declared_page_count, int) and declared_page_count != len(pages):
+            if (
+                isinstance(declared_page_count, int)
+                and not isinstance(declared_page_count, bool)
+                and declared_page_count != len(pages)
+            ):
                 fail(
                     f"{label}: pageCount is {declared_page_count} but {len(pages)} page(s) are recorded"
                 )
@@ -535,7 +570,11 @@ def verify(
                         fail(f"{label}: duplicate ground-truth field id {field_id!r}")
                     seen_field_ids.add(field_id)
                 page_index = field.get("pageIndex")
-                page = page_by_index.get(page_index) if isinstance(page_index, int) else None
+                page = (
+                    page_by_index.get(page_index)
+                    if isinstance(page_index, int) and not isinstance(page_index, bool)
+                    else None
+                )
                 if page is None:
                     fail(
                         f"{label}: ground-truth field {field_id!r} references unknown page "

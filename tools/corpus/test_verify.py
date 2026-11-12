@@ -370,6 +370,98 @@ class VerifyTests(unittest.TestCase):
         self.builder.write()
         self.assert_fails(self.run_verify("--min-real-forms", "0"), "non-finite")
 
+    # -- JSON type-aware const/enum equality -------------------------------
+
+    def test_numeric_rights_cleared_fails(self) -> None:
+        form = self.builder.add_form("real")
+        form["provenance"]["rightsCleared"] = 1
+        self.builder.write()
+        self.assert_fails(self.run_verify("--min-real-forms", "0"), "rightsCleared")
+
+    def test_numeric_contains_personal_data_fails(self) -> None:
+        form = self.builder.add_form("real")
+        form["provenance"]["containsPersonalData"] = 0
+        self.builder.write()
+        self.assert_fails(self.run_verify("--min-real-forms", "0"), "containsPersonalData")
+
+    def test_numeric_freeze_independence_fails(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.manifest["freeze"]["groundTruthIndependentOfDetector"] = 1
+        self.builder.write()
+        self.assert_fails(
+            self.run_verify("--min-real-forms", "0"), "groundTruthIndependentOfDetector"
+        )
+
+    def test_numeric_freeze_dispute_resolution_fails(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.manifest["freeze"]["disputedFieldsResolvedBeforeScoring"] = 0
+        self.builder.write()
+        self.assert_fails(
+            self.run_verify("--min-real-forms", "0"),
+            "disputedFieldsResolvedBeforeScoring",
+        )
+
+    def test_numeric_verification_independence_fails(self) -> None:
+        form = self.builder.add_form("real")
+        form["verification"]["independentOfDetector"] = 1
+        self.builder.write()
+        self.assert_fails(
+            self.run_verify("--min-real-forms", "0"), "independentOfDetector"
+        )
+
+    def test_numeric_verification_dispute_resolution_fails(self) -> None:
+        form = self.builder.add_form("real")
+        form["verification"]["disputedFieldsResolved"] = 0
+        self.builder.write()
+        self.assert_fails(
+            self.run_verify("--min-real-forms", "0"), "disputedFieldsResolved"
+        )
+
+    def test_boolean_rotation_zero_fails(self) -> None:
+        form = self.builder.add_form("synthetic")
+        form["pages"][0]["rotation"] = False
+        self.builder.write()
+        self.assert_fails(self.run_verify("--min-real-forms", "0"), "rotation")
+
+    def test_boolean_page_count_fails(self) -> None:
+        form = self.builder.add_form("synthetic")
+        form["pageCount"] = True
+        self.builder.write()
+        self.assert_fails(self.run_verify("--min-real-forms", "0"), "expected integer")
+
+    def test_boolean_size_bytes_fails(self) -> None:
+        form = self.builder.add_form("synthetic")
+        form["sizeBytes"] = True
+        self.builder.write()
+        self.assert_fails(self.run_verify("--min-real-forms", "0"), "expected integer")
+
+    def test_unique_items_uses_numeric_json_equality(self) -> None:
+        form = self.builder.add_form("synthetic")
+        form["strata"] = [1, 1.0]
+        self.builder.write()
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        schema["$defs"]["form"]["properties"]["strata"]["items"] = {"type": "number"}
+        schema_path = self.root / "numeric-strata-schema.json"
+        schema_path.write_text(json.dumps(schema), encoding="utf-8")
+        process = subprocess.run(
+            [
+                "bash",
+                str(VERIFY),
+                "--manifest",
+                str(self.manifest_path),
+                "--corpus-dir",
+                str(self.root),
+                "--schema",
+                str(schema_path),
+                "--min-real-forms",
+                "0",
+            ],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assert_fails(process, "duplicate item")
+
     # -- provenance and freeze failures ------------------------------------
 
     def test_real_form_with_personal_data_fails(self) -> None:
