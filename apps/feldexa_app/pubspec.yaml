@@ -8,9 +8,30 @@ environment:
   sdk: ^3.13.0
   flutter: ">=3.47.0 <4.0.0"
 
+# T003: exact versions approved by plan.md §Primary Dependencies / research.md
+# D-19. Versions are exact (not ranges) so pubspec.lock and the review record
+# stay reproducible. Any version change requires the D-19 review again.
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  # State injection / observable providers (MIT).
+  flutter_riverpod: 2.6.1
+  # Web-addressable navigation (BSD-3-Clause).
+  go_router: 16.3.0
+  # PDFium page rendering on Android and Web (MIT; PDFium BSD-3-Clause).
+  pdfrx: 2.12.0
+  # Pure-Dart page-raster analysis (MIT).
+  image: 4.12.0
+  # SIMULATED Web export artifact only (Apache-2.0).
+  pdf: 3.13.1
+  # Android print preview (Apache-2.0).
+  printing: 5.15.1
+  # Android share sheet (BSD-3-Clause).
+  share_plus: 12.0.2
+  # Bundled on-device ML Kit Latin OCR wrapper (MIT; Google model terms).
+  google_mlkit_text_recognition: 1.0.2
 
 dev_dependencies:
   flutter_test:

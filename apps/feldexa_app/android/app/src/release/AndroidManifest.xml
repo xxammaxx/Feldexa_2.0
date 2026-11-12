@@ -1,0 +1,39 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      T003 privacy correction (found by the actual merged-manifest check).
+
+      ML Kit's transitive Google DataTransport CCT backend
+      (com.google.android.datatransport:transport-backend-cct:2.3.3, pulled by
+      com.google.mlkit:common/vision-common) adds INTERNET and
+      ACCESS_NETWORK_STATE permissions plus telemetry scheduling components to
+      the release manifest. Feldexa is offline-only: the release manifest must
+      not request INTERNET (FR-079, plan Constraints).
+
+      The debug/profile manifests keep INTERNET for the Flutter tool; this
+      release-only overlay removes the dependency contributions from release.
+      ML Kit's bundled OCR still runs on-device; T056 must prove it with radios
+      disabled and no sockets. If ML Kit requires the transport classes at
+      runtime, the classes remain on the classpath, but without these
+      permissions/services no telemetry can leave the device.
+    -->
+    <uses-permission
+        android:name="android.permission.INTERNET"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.ACCESS_NETWORK_STATE"
+        tools:node="remove" />
+
+    <application>
+        <service
+            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+            tools:node="remove" />
+        <service
+            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+            tools:node="remove" />
+        <receiver
+            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+            tools:node="remove" />
+    </application>
+</manifest>

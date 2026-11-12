@@ -46,6 +46,40 @@ kotlin {
     }
 }
 
+// T003: Android-native PDF engine pin. T039/T143 consume this; no current
+// application code calls PDFBox yet.
+dependencies {
+    implementation("com.tom-roush:pdfbox-android:2.0.27.0")
+
+    constraints {
+        implementation("org.bouncycastle:bcprov-jdk15to18:1.87")
+        implementation("org.bouncycastle:bcpkix-jdk15to18:1.87")
+        implementation("org.bouncycastle:bcutil-jdk15to18:1.87")
+    }
+}
+
+// T003/OD-T003-1: pdfbox-android 2.0.27.0 requests BouncyCastle 1.72, which
+// has 12 OSV advisories. Pin the maintained, OSV-clean 1.87 line. Verified
+// with the PDFBox public-key encryption/decryption path (JVM regression) and
+// an actual Android debug build/dex; see tools/dependency_review.md.
+configurations.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.bouncycastle" &&
+            requested.name in setOf(
+                "bcprov-jdk15to18",
+                "bcpkix-jdk15to18",
+                "bcutil-jdk15to18",
+            )
+        ) {
+            useVersion("1.87")
+            because(
+                "T003 security pin: pdfbox-android 2.0.27.0 requests BC 1.72; " +
+                    "BC 1.87 is the maintained OSV-clean line",
+            )
+        }
+    }
+}
+
 flutter {
     source = "../.."
 }
