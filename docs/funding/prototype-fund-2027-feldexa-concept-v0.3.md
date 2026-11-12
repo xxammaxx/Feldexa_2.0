@@ -2,7 +2,7 @@
 
 **Status:** ENTWURF v0.3 / NICHT EINGEREICHT / KEIN FÖRDERBESCHEID  
 **Aktualisierung:** 12.11.2026, verständliche Nutzenbotschaft und neu validierte Herkunfts-, Signatur-, Form- und Übermittlungsprüfung. Die geltende Produktverfassung bleibt unangetastet.  
-**Stand der Bestandsaufnahme:** 12. November 2026, GitHub main: `6a5f705844d661ed882a2233c87f3b39763028b2`  
+**Stand der Bestandsaufnahme:** Erstaufnahme 12. November 2026, main `6a5f705844d661ed882a2233c87f3b39763028b2`; erneuter Abgleich 12. November 2026, main `f7de9e4212b67a1390bdc9a4b3d0d697ecd3cb6d` (PR #153/T003: Abhängigkeiten, Gradle-/Release-Konfiguration; kein ProofLayer-Verifikationssystem). Die laufende Entwicklung erfordert vor Einreichung und Förderbeginn erneut eine Baseline-Prüfung.  
 **Bewerbungsfrist:** 30. November 2026 (genaue Uhrzeit vor verbindlicher Einreichung im Portal kontrollieren)  
 **Förderzeitraum:** geplant 1. Juni–30. November 2027  
 **Förderlinie:** Innovation (Arbeitshypothese; Resilienz als Alternative prüfen)  
