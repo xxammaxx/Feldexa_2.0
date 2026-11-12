@@ -1,7 +1,7 @@
 # Feldexa 2.0 – Prototype Fund 2027: Förderkonzept v0.1
 
 **Status:** ENTWURF / NICHT EINGEREICHT / KEIN FÖRDERBESCHEID  
-**Stand der Bestandsaufnahme:** 12. November 2026, GitHub main: \`6a5f705844d661ed882a2233c87f3b39763028b2\`  
+**Stand der Bestandsaufnahme:** 12. November 2026, GitHub main: `6a5f705844d661ed882a2233c87f3b39763028b2`  
 **Bewerbungsfrist:** 30. November 2026 (genaue Uhrzeit vor verbindlicher Einreichung im Portal kontrollieren)  
 **Förderzeitraum:** geplant 1. Juni–30. November 2027  
 **Förderlinie:** Innovation (Arbeitshypothese; Resilienz als Alternative prüfen)  
