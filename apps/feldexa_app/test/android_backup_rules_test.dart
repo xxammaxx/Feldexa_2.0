@@ -18,11 +18,7 @@ const _domains = <String>[
   'device_database',
   'device_sharedpref',
 ];
-const _transferSections = <String>[
-  'cloud-backup',
-  'device-transfer',
-  'cross-platform-transfer',
-];
+const _transferSections = <String>['cloud-backup', 'device-transfer'];
 
 void main() {
   final appRoot = _findAppRoot();
@@ -53,15 +49,13 @@ void main() {
     }
   });
 
-  test('cross-platform section targets iOS without fabricating identity', () {
-    final section = _section(rules, 'cross-platform-transfer');
-    expect(section, isNotNull);
-    expect(section, contains('platform="ios"'));
-    expect(
-      section,
-      isNot(contains('platform-specific-params')),
-      reason: 'Feldexa has no iOS counterpart, so no bundle/team IDs are set',
-    );
+  test('cross-platform transfer is not declared without an iOS identity', () {
+    // Android's BackupEligibilityRules only allows cross-platform transfer when
+    // allowBackup is true and platform-specific-params exist for a matching iOS
+    // app. Feldexa has no iOS identity, so allowBackup=false makes the mode
+    // ineligible; an incomplete section is not a valid opt-in and is omitted.
+    expect(rules, isNot(contains('<cross-platform-transfer')));
+    expect(rules, isNot(contains('<platform-specific-params')));
   });
 }
 
