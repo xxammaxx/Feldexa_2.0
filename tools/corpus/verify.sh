@@ -6,8 +6,8 @@
 # (constitution Principle IV, plan research decision D-18). It fails closed:
 # a missing manifest, an unreadable form, a byte-size drift, a SHA-256 mismatch,
 # an unsafe path, an incomplete rights record, a ground-truth rectangle that
-# falls outside its source page, or any non-finite/overflowing JSON number is a
-# verification failure.
+# falls outside its source page, any non-finite/overflowing JSON number, a
+# duplicate JSON object key, or a malformed schema is a verification failure.
 #
 # Usage:
 #   tools/corpus/verify.sh
@@ -96,6 +96,8 @@ def type_matches(value: object, expected: str) -> bool:
 
 
 def resolve_ref(root: dict, ref: str) -> dict:
+    if ref == "#":
+        raise ValueError("root self-reference is unsupported")
     if not ref.startswith("#/"):
         raise ValueError(f"only local JSON pointers are supported, got {ref!r}")
     node: object = root
@@ -122,6 +124,16 @@ def finite_number(value: object) -> bool:
 def reject_json_constant(token: str) -> None:
     """Reject the non-standard NaN/Infinity/-Infinity tokens accepted by Python's json."""
     raise ValueError(f"non-finite JSON number {token!r} is not allowed")
+
+
+def reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    """Build a JSON object while rejecting duplicate names at every nesting level."""
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON object key {key!r}")
+        result[key] = value
+    return result
 
 
 def reject_non_finite_numbers(value: object, path: str = "$") -> None:
@@ -227,6 +239,136 @@ def json_equal(left: object, right: object) -> bool:
             json_equal(left_item, right_item) for left_item, right_item in zip(left, right)
         )
     return type(left) is type(right) and left == right
+
+
+_SUPPORTED_TYPES = {"object", "array", "string", "number", "integer", "boolean", "null"}
+
+# Assertion keywords this verifier does not implement. Ignoring them would
+# silently weaken a custom schema, so their presence fails closed.
+_UNSUPPORTED_ASSERTIONS = (
+    "$dynamicRef",
+    "$recursiveRef",
+    "additionalItems",
+    "contains",
+    "dependencies",
+    "dependentRequired",
+    "dependentSchemas",
+    "maxContains",
+    "maxProperties",
+    "minContains",
+    "minProperties",
+    "multipleOf",
+    "patternProperties",
+    "prefixItems",
+    "propertyNames",
+    "unevaluatedItems",
+    "unevaluatedProperties",
+)
+
+
+def schema_shape_problem(schema: object, path: str = "$") -> str | None:
+    """Return a problem string if the schema uses a malformed or unsupported keyword."""
+    if not isinstance(schema, dict):
+        return f"{path}: schema must be an object"
+    for keyword in ("$schema", "$id", "title", "description"):
+        if keyword in schema and not isinstance(schema[keyword], str):
+            return f"{path}.{keyword}: must be a string"
+    if "$ref" in schema and not isinstance(schema["$ref"], str):
+        return f"{path}.$ref: must be a string"
+    for keyword in _UNSUPPORTED_ASSERTIONS:
+        if keyword in schema:
+            return f"{path}.{keyword}: unsupported schema keyword (verifier fails closed)"
+    if "type" in schema:
+        declared = schema["type"]
+        if isinstance(declared, str):
+            if declared not in _SUPPORTED_TYPES:
+                return f"{path}.type: unsupported type {declared!r}"
+        elif isinstance(declared, list):
+            if not declared or not all(
+                isinstance(item, str) and item in _SUPPORTED_TYPES for item in declared
+            ):
+                return f"{path}.type: must be a non-empty array of supported type names"
+        else:
+            return f"{path}.type: must be a string or an array of strings"
+    if "enum" in schema:
+        if not isinstance(schema["enum"], list) or not schema["enum"]:
+            return f"{path}.enum: must be a non-empty array"
+    if "required" in schema:
+        required = schema["required"]
+        if not isinstance(required, list) or not all(
+            isinstance(item, str) for item in required
+        ):
+            return f"{path}.required: must be an array of strings"
+    if "properties" in schema:
+        properties = schema["properties"]
+        if not isinstance(properties, dict):
+            return f"{path}.properties: must be an object"
+        for name, sub_schema in properties.items():
+            problem = schema_shape_problem(sub_schema, f"{path}.properties.{name}")
+            if problem is not None:
+                return problem
+    if "additionalProperties" in schema:
+        additional = schema["additionalProperties"]
+        if not isinstance(additional, bool):
+            if not isinstance(additional, dict):
+                return f"{path}.additionalProperties: must be a boolean or a schema object"
+            problem = schema_shape_problem(additional, f"{path}.additionalProperties")
+            if problem is not None:
+                return problem
+    if "items" in schema:
+        items = schema["items"]
+        if not isinstance(items, dict):
+            return f"{path}.items: must be a schema object (tuple-form items are unsupported)"
+        problem = schema_shape_problem(items, f"{path}.items")
+        if problem is not None:
+            return problem
+    for keyword in ("minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum"):
+        if keyword in schema and not finite_number(schema[keyword]):
+            return f"{path}.{keyword}: must be a finite number"
+    for keyword in ("minItems", "maxItems", "minLength", "maxLength"):
+        if keyword in schema:
+            value = schema[keyword]
+            if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+                return f"{path}.{keyword}: must be a non-negative integer"
+    if "uniqueItems" in schema and not isinstance(schema["uniqueItems"], bool):
+        return f"{path}.uniqueItems: must be a boolean"
+    if "pattern" in schema:
+        pattern = schema["pattern"]
+        if not isinstance(pattern, str):
+            return f"{path}.pattern: must be a string"
+        try:
+            re.compile(pattern)
+        except re.error as exc:
+            return f"{path}.pattern: invalid regular expression: {exc}"
+    if "format" in schema and not isinstance(schema["format"], str):
+        return f"{path}.format: must be a string"
+    for keyword in ("allOf", "anyOf", "oneOf"):
+        if keyword in schema:
+            branches = schema[keyword]
+            if not isinstance(branches, list) or not branches:
+                return f"{path}.{keyword}: must be a non-empty array of schema objects"
+            for index, branch in enumerate(branches):
+                problem = schema_shape_problem(branch, f"{path}.{keyword}[{index}]")
+                if problem is not None:
+                    return problem
+    for keyword in ("not", "if", "then", "else"):
+        if keyword in schema:
+            branch = schema[keyword]
+            if not isinstance(branch, dict):
+                return f"{path}.{keyword}: must be a schema object"
+            problem = schema_shape_problem(branch, f"{path}.{keyword}")
+            if problem is not None:
+                return problem
+    for keyword in ("$defs", "definitions"):
+        if keyword in schema:
+            definitions = schema[keyword]
+            if not isinstance(definitions, dict):
+                return f"{path}.{keyword}: must be an object of schema objects"
+            for name, sub_schema in definitions.items():
+                problem = schema_shape_problem(sub_schema, f"{path}.{keyword}.{name}")
+                if problem is not None:
+                    return problem
+    return None
 
 
 def schema_errors(instance: object, schema: object, root: dict, path: str = "$") -> list[str]:
@@ -391,7 +533,11 @@ def verify(
     except UnicodeDecodeError as exc:
         return None, [f"manifest is not valid UTF-8: {exc}"]
     try:
-        manifest = json.loads(manifest_text, parse_constant=reject_json_constant)
+        manifest = json.loads(
+            manifest_text,
+            parse_constant=reject_json_constant,
+            object_pairs_hook=reject_duplicate_keys,
+        )
     except ValueError as exc:
         return None, [f"manifest is not valid JSON: {exc}"]
     try:
@@ -406,7 +552,11 @@ def verify(
     except UnicodeDecodeError as exc:
         return None, [f"manifest schema is not valid UTF-8: {exc}"]
     try:
-        schema = json.loads(schema_text, parse_constant=reject_json_constant)
+        schema = json.loads(
+            schema_text,
+            parse_constant=reject_json_constant,
+            object_pairs_hook=reject_duplicate_keys,
+        )
     except ValueError as exc:
         return None, [f"manifest schema is not valid JSON: {exc}"]
     try:
@@ -414,10 +564,25 @@ def verify(
     except ValueError as exc:
         return None, [f"manifest schema contains an invalid number: {exc}"]
 
+    try:
+        shape_problem = schema_shape_problem(schema)
+    except (AttributeError, KeyError, TypeError, ValueError, OverflowError, RecursionError) as exc:
+        return None, [
+            f"manifest schema is malformed or unsupported: {type(exc).__name__}: {exc}"
+        ]
+    if shape_problem is not None:
+        return None, [f"manifest schema is malformed or unsupported: {shape_problem}"]
+
     if not isinstance(manifest, dict):
         return None, ["manifest root must be a JSON object"]
 
-    for error in schema_errors(manifest, schema, schema):
+    try:
+        manifest_schema_errors = schema_errors(manifest, schema, schema)
+    except (AttributeError, KeyError, TypeError, ValueError, OverflowError, RecursionError) as exc:
+        return None, [
+            f"manifest schema is malformed or unsupported: {type(exc).__name__}: {exc}"
+        ]
+    for error in manifest_schema_errors:
         fail(f"schema: {error}")
 
     corpus_version = manifest.get("corpusVersion")
@@ -482,14 +647,15 @@ def verify(
                     target = root.joinpath(*relative.parts)
                     try:
                         resolved = target.resolve(strict=False)
-                    except OSError as exc:
-                        fail(f"{label}: cannot resolve path {path_value!r}: {exc}")
+                        is_symlink = target.is_symlink()
+                    except (OSError, ValueError) as exc:
+                        fail(f"{label}: invalid or unreadable path {path_value!r}: {exc}")
                         target = None
                     else:
                         if resolved != root and root not in resolved.parents:
                             fail(f"{label}: path {path_value!r} escapes the corpus directory")
                             target = None
-                        elif target.is_symlink():
+                        elif is_symlink:
                             fail(f"{label}: path {path_value!r} must not be a symlink")
 
         size_bytes = form.get("sizeBytes")
@@ -501,22 +667,36 @@ def verify(
                 seen_digests[digest] = index
 
         if target is not None:
-            if not target.is_file():
+            try:
+                is_file = target.is_file()
+            except (OSError, ValueError) as exc:
+                fail(f"{label}: cannot inspect {path_value!r}: {exc}")
+                is_file = False
+            if not is_file:
                 fail(f"{label}: file not found: {path_value!r}")
             else:
-                actual_size = target.stat().st_size
-                if isinstance(size_bytes, int) and not isinstance(size_bytes, bool):
-                    if actual_size != size_bytes:
-                        fail(
-                            f"{label}: size mismatch for {path_value!r}: "
-                            f"manifest {size_bytes}, actual {actual_size}"
-                        )
-                else:
-                    fail(f"{label}: sizeBytes must be an integer")
+                try:
+                    actual_size = target.stat().st_size
+                except (OSError, ValueError) as exc:
+                    fail(f"{label}: cannot stat {path_value!r}: {exc}")
+                    actual_size = None
+                if actual_size is not None:
+                    if isinstance(size_bytes, int) and not isinstance(size_bytes, bool):
+                        if actual_size != size_bytes:
+                            fail(
+                                f"{label}: size mismatch for {path_value!r}: "
+                                f"manifest {size_bytes}, actual {actual_size}"
+                            )
+                    else:
+                        fail(f"{label}: sizeBytes must be an integer")
 
                 if isinstance(digest, str):
-                    actual_digest = sha256_file(target)
-                    if actual_digest != digest:
+                    try:
+                        actual_digest = sha256_file(target)
+                    except (OSError, ValueError) as exc:
+                        fail(f"{label}: cannot hash {path_value!r}: {exc}")
+                        actual_digest = None
+                    if actual_digest is not None and actual_digest != digest:
                         fail(
                             f"{label}: checksum mismatch for {path_value!r}: "
                             f"manifest {digest}, actual {actual_digest}"
@@ -644,8 +824,8 @@ def main(argv: list[str]) -> int:
         prog="verify.sh",
         description=(
             "Validate a frozen Feldexa corpus manifest and verify every referenced "
-            "SHA-256 checksum and byte size. Non-finite and overflowing JSON numbers "
-            "are rejected."
+            "SHA-256 checksum and byte size. Non-finite/overflowing numbers, duplicate "
+            "JSON keys, and malformed schemas are rejected."
         ),
     )
     parser.add_argument(

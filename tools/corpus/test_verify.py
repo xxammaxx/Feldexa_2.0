@@ -191,6 +191,17 @@ class VerifyTests(unittest.TestCase):
         self.assertIn(needle.lower(), output)
         self.assertIn("fail", output)
 
+    def assert_clean_schema_failure(
+        self, schema: object, needle: str = "malformed"
+    ) -> None:
+        schema_path = self.root / "custom-schema.json"
+        schema_path.write_text(json.dumps(schema), encoding="utf-8")
+        process = self.run_verify(
+            "--min-real-forms", "0", "--schema", str(schema_path)
+        )
+        self.assert_fails(process, needle)
+        self.assertNotIn("Traceback", process.stdout + process.stderr)
+
     # -- passing cases ------------------------------------------------------
 
     def test_valid_synthetic_corpus_passes(self) -> None:
@@ -536,6 +547,175 @@ class VerifyTests(unittest.TestCase):
         form["groundTruth"]["fields"][0]["type"] = "radio"
         self.builder.write()
         self.assert_fails(self.run_verify("--min-real-forms", "0"), "must be one of")
+
+    # -- duplicate keys and malformed schemas ------------------------------
+
+    def test_duplicate_manifest_key_fails(self) -> None:
+        self.builder.add_form("real")
+        self.builder.write()
+        text = self.manifest_path.read_text(encoding="utf-8")
+        self.assertIn('"rightsCleared": true', text)
+        self.manifest_path.write_text(
+            text.replace(
+                '"rightsCleared": true',
+                '"rightsCleared": false, "rightsCleared": true',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        self.assert_fails(
+            self.run_verify("--min-real-forms", "0"), "duplicate JSON object key"
+        )
+
+    def test_duplicate_nested_manifest_key_fails(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        text = self.manifest_path.read_text(encoding="utf-8")
+        self.assertIn('"xPt": 50.0', text)
+        self.manifest_path.write_text(
+            text.replace(
+                '"xPt": 50.0',
+                '"xPt": 50.0, "xPt": 50.0',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        self.assert_fails(
+            self.run_verify("--min-real-forms", "0"), "duplicate JSON object key"
+        )
+
+    def test_duplicate_schema_key_fails(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        schema_path = self.root / "duplicate-key-schema.json"
+        schema_path.write_text(
+            '{"type": "object", "properties": {"x": {"type": "string", "type": "number"}}}',
+            encoding="utf-8",
+        )
+        process = self.run_verify(
+            "--min-real-forms", "0", "--schema", str(schema_path)
+        )
+        self.assert_fails(process, "duplicate JSON object key")
+        self.assertNotIn("Traceback", process.stdout + process.stderr)
+
+    def test_schema_properties_null_fails_closed(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        schema["properties"] = None
+        self.assert_clean_schema_failure(schema)
+
+    def test_malformed_schema_keywords_fail_closed(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        mutations = [
+            ("required", None),
+            ("items", None),
+            ("enum", None),
+            ("allOf", None),
+            ("additionalProperties", None),
+            ("pattern", 5),
+            ("type", 5),
+            ("minimum", "0"),
+            ("$ref", 5),
+            ("format", 5),
+            ("uniqueItems", None),
+            ("minItems", "1"),
+            ("$defs", None),
+            ("properties", []),
+        ]
+        for keyword, value in mutations:
+            with self.subTest(keyword=keyword):
+                schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+                schema[keyword] = value
+                self.assert_clean_schema_failure(schema)
+
+    def test_nested_malformed_schema_fails_closed(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        schema["$defs"]["form"]["properties"]["pages"]["items"]["properties"] = None
+        self.assert_clean_schema_failure(schema)
+
+    def test_schema_root_not_object_fails_closed(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        schema_path = self.root / "array-schema.json"
+        schema_path.write_text("[]", encoding="utf-8")
+        process = self.run_verify(
+            "--min-real-forms", "0", "--schema", str(schema_path)
+        )
+        self.assert_fails(process, "malformed")
+        self.assertNotIn("Traceback", process.stdout + process.stderr)
+
+    def test_unresolvable_schema_ref_fails_closed(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        schema["$ref"] = "#/$defs/does-not-exist"
+        schema_path = self.root / "unresolvable-ref-schema.json"
+        schema_path.write_text(json.dumps(schema), encoding="utf-8")
+        process = self.run_verify(
+            "--min-real-forms", "0", "--schema", str(schema_path)
+        )
+        self.assert_fails(process, "unresolvable $ref")
+        self.assertNotIn("Traceback", process.stdout + process.stderr)
+
+    def test_manifest_root_not_object_fails_closed(self) -> None:
+        self.manifest_path.write_text("[]", encoding="utf-8")
+        process = self.run_verify("--min-real-forms", "0")
+        self.assert_fails(process, "root must be a JSON object")
+        self.assertNotIn("Traceback", process.stdout + process.stderr)
+
+    def test_manifest_forms_null_fails_closed(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        data = json.loads(self.manifest_path.read_text(encoding="utf-8"))
+        data["forms"] = None
+        self.manifest_path.write_text(json.dumps(data), encoding="utf-8")
+        process = self.run_verify("--min-real-forms", "0")
+        self.assert_fails(process, "forms")
+        self.assertNotIn("Traceback", process.stdout + process.stderr)
+
+    def test_unsupported_schema_assertion_fails_closed(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        schema["patternProperties"] = {"^x$": {"type": "string"}}
+        self.assert_clean_schema_failure(schema)
+
+    def test_recursive_schema_ref_fails_closed(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        schema_path = self.root / "recursive-ref-schema.json"
+        schema_path.write_text(
+            '{"$ref": "#/$defs/a", "$defs": {"a": {"$ref": "#/$defs/a"}}}',
+            encoding="utf-8",
+        )
+        process = self.run_verify(
+            "--min-real-forms", "0", "--schema", str(schema_path)
+        )
+        self.assert_fails(process, "malformed")
+        self.assertNotIn("Traceback", process.stdout + process.stderr)
+
+    def test_root_self_ref_fails_closed(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        schema_path = self.root / "root-self-ref-schema.json"
+        schema_path.write_text('{"$ref": "#"}', encoding="utf-8")
+        process = self.run_verify(
+            "--min-real-forms", "0", "--schema", str(schema_path)
+        )
+        self.assert_fails(process, "self-reference")
+        self.assertNotIn("Traceback", process.stdout + process.stderr)
+
+    def test_nul_path_fails_closed(self) -> None:
+        form = self.builder.add_form("synthetic")
+        form["path"] = "forms/\x00bad.pdf"
+        self.builder.write()
+        process = self.run_verify("--min-real-forms", "0")
+        self.assert_fails(process, "invalid or unreadable path")
+        self.assertNotIn("Traceback", process.stdout + process.stderr)
 
     # -- machine-readable failure output -----------------------------------
 
