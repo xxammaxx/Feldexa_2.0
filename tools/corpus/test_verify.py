@@ -381,6 +381,44 @@ class VerifyTests(unittest.TestCase):
         self.builder.write()
         self.assert_fails(self.run_verify("--min-real-forms", "0"), "non-finite")
 
+    # -- JSON Schema integer semantics -------------------------------------
+
+    def test_integral_float_integer_fields_pass(self) -> None:
+        form = self.builder.add_form("real")
+        form["pageCount"] = 1.0
+        form["sizeBytes"] = float(form["sizeBytes"])
+        form["pages"][0]["index"] = 0.0
+        form["groundTruth"]["fields"][0]["pageIndex"] = 0.0
+        self.builder.write()
+        process = self.run_verify("--min-real-forms", "0")
+        self.assertEqual(process.returncode, 0, process.stdout + process.stderr)
+        self.assertIn("PASS", process.stdout)
+
+    def test_fractional_float_integer_fields_fail(self) -> None:
+        form = self.builder.add_form("real")
+        form["pageCount"] = 1.5
+        form["sizeBytes"] = float(form["sizeBytes"]) + 0.5
+        form["pages"][0]["index"] = 0.5
+        form["groundTruth"]["fields"][0]["pageIndex"] = 0.5
+        self.builder.write()
+        process = self.run_verify("--min-real-forms", "0")
+        self.assert_fails(process, "expected integer")
+        self.assertNotIn("Traceback", process.stdout + process.stderr)
+
+    def test_integral_float_schema_min_items_passes(self) -> None:
+        form = self.builder.add_form("synthetic")
+        form["strata"] = ["layout:test"]
+        self.builder.write()
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        schema["$defs"]["form"]["properties"]["strata"]["minItems"] = 1.0
+        schema_path = self.root / "integral-min-items-schema.json"
+        schema_path.write_text(json.dumps(schema), encoding="utf-8")
+        process = self.run_verify(
+            "--min-real-forms", "0", "--schema", str(schema_path)
+        )
+        self.assertEqual(process.returncode, 0, process.stdout + process.stderr)
+        self.assertIn("PASS", process.stdout)
+
     # -- JSON type-aware const/enum equality -------------------------------
 
     def test_numeric_rights_cleared_fails(self) -> None:

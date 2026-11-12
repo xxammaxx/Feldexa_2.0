@@ -77,6 +77,17 @@ def json_type_name(value: object) -> str:
     return type(value).__name__
 
 
+def integral_int(value: object) -> int | None:
+    """Return the integer value of a JSON number with zero fractional part, else None."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and math.isfinite(value) and value.is_integer():
+        return int(value)
+    return None
+
+
 def type_matches(value: object, expected: str) -> bool:
     if expected == "object":
         return isinstance(value, dict)
@@ -89,7 +100,7 @@ def type_matches(value: object, expected: str) -> bool:
     if expected == "null":
         return value is None
     if expected == "integer":
-        return isinstance(value, int) and not isinstance(value, bool)
+        return integral_int(value) is not None
     if expected == "number":
         return isinstance(value, (int, float)) and not isinstance(value, bool)
     return False
@@ -327,8 +338,8 @@ def schema_shape_problem(schema: object, path: str = "$") -> str | None:
             return f"{path}.{keyword}: must be a finite number"
     for keyword in ("minItems", "maxItems", "minLength", "maxLength"):
         if keyword in schema:
-            value = schema[keyword]
-            if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+            value = integral_int(schema[keyword])
+            if value is None or value < 0:
                 return f"{path}.{keyword}: must be a non-negative integer"
     if "uniqueItems" in schema and not isinstance(schema["uniqueItems"], bool):
         return f"{path}.uniqueItems: must be a boolean"
@@ -681,8 +692,9 @@ def verify(
                     fail(f"{label}: cannot stat {path_value!r}: {exc}")
                     actual_size = None
                 if actual_size is not None:
-                    if isinstance(size_bytes, int) and not isinstance(size_bytes, bool):
-                        if actual_size != size_bytes:
+                    size_value = integral_int(size_bytes)
+                    if size_value is not None:
+                        if actual_size != size_value:
                             fail(
                                 f"{label}: size mismatch for {path_value!r}: "
                                 f"manifest {size_bytes}, actual {actual_size}"
@@ -709,11 +721,8 @@ def verify(
         if isinstance(pages, list):
             counts["pages"] += len(pages)
             declared_page_count = form.get("pageCount")
-            if (
-                isinstance(declared_page_count, int)
-                and not isinstance(declared_page_count, bool)
-                and declared_page_count != len(pages)
-            ):
+            page_count_value = integral_int(declared_page_count)
+            if page_count_value is not None and page_count_value != len(pages):
                 fail(
                     f"{label}: pageCount is {declared_page_count} but {len(pages)} page(s) are recorded"
                 )
@@ -722,8 +731,8 @@ def verify(
                 if not isinstance(page, dict):
                     fail(f"{label}: page entry must be an object")
                     continue
-                page_index = page.get("index")
-                if isinstance(page_index, int) and not isinstance(page_index, bool):
+                page_index = integral_int(page.get("index"))
+                if page_index is not None:
                     indices.append(page_index)
                     page_by_index[page_index] = page
             expected_indices = list(range(len(pages)))
@@ -749,12 +758,8 @@ def verify(
                     if field_id in seen_field_ids:
                         fail(f"{label}: duplicate ground-truth field id {field_id!r}")
                     seen_field_ids.add(field_id)
-                page_index = field.get("pageIndex")
-                page = (
-                    page_by_index.get(page_index)
-                    if isinstance(page_index, int) and not isinstance(page_index, bool)
-                    else None
-                )
+                page_index = integral_int(field.get("pageIndex"))
+                page = page_by_index.get(page_index) if page_index is not None else None
                 if page is None:
                     fail(
                         f"{label}: ground-truth field {field_id!r} references unknown page "
