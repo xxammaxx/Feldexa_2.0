@@ -9,6 +9,11 @@
 # falls outside its source page, any non-finite/overflowing JSON number, a
 # duplicate JSON object key, or a malformed schema is a verification failure.
 #
+# Schema validation uses a documented, offline JSON Schema 2020-12 profile, not
+# a general Draft 2020-12 validator. Unsupported assertion keywords fail closed,
+# and a schema other than the declared manifest.schema.json requires
+# --allow-custom-schema.
+#
 # Usage:
 #   tools/corpus/verify.sh
 #   tools/corpus/verify.sh --manifest tools/corpus/manifest.json --corpus-dir tools/corpus
@@ -52,6 +57,7 @@ from datetime import date, datetime
 from pathlib import Path, PurePosixPath
 
 SCRIPT_DIR = Path(os.environ["CORPUS_VERIFY_DIR"]).resolve()
+SCHEMA_PROFILE = "feldexa-json-schema-2020-12-subset-v1"
 
 
 # ---------------------------------------------------------------------------
@@ -252,6 +258,16 @@ def json_equal(left: object, right: object) -> bool:
     return type(left) is type(right) and left == right
 
 
+# Supported JSON Schema 2020-12 profile for corpus manifests.
+#
+# This is a strict, documented subset, not a general Draft 2020-12 validator.
+# It checks the declared manifest.schema.json — and any explicit custom schema
+# — against every keyword in this profile, including meta-schema constraints
+# such as unique required/enum/type entries, keyword value types, and local
+# $ref resolution. Assertion keywords whose semantics are not implemented are
+# rejected rather than ignored, so a custom schema cannot silently weaken
+# verification. The offline project does not vendor a third-party validator;
+# adding one would require its own dependency and licence review.
 _SUPPORTED_TYPES = {"object", "array", "string", "number", "integer", "boolean", "null"}
 
 # Assertion keywords this verifier does not implement. Ignoring them would
@@ -277,13 +293,51 @@ _UNSUPPORTED_ASSERTIONS = (
 )
 
 
+def has_json_duplicates(values: list) -> bool:
+    """True when two entries are equal under JSON value equality."""
+    for index, value in enumerate(values):
+        for earlier in range(index):
+            if json_equal(value, values[earlier]):
+                return True
+    return False
+
+
 def schema_shape_problem(schema: object, path: str = "$") -> str | None:
     """Return a problem string if the schema uses a malformed or unsupported keyword."""
     if not isinstance(schema, dict):
         return f"{path}: schema must be an object"
-    for keyword in ("$schema", "$id", "title", "description"):
+    for keyword in (
+        "$schema",
+        "$id",
+        "title",
+        "description",
+        "$comment",
+        "contentEncoding",
+        "contentMediaType",
+    ):
         if keyword in schema and not isinstance(schema[keyword], str):
             return f"{path}.{keyword}: must be a string"
+    for keyword in ("readOnly", "writeOnly", "deprecated"):
+        if keyword in schema and not isinstance(schema[keyword], bool):
+            return f"{path}.{keyword}: must be a boolean"
+    if "examples" in schema and not isinstance(schema["examples"], list):
+        return f"{path}.examples: must be an array"
+    if "$vocabulary" in schema:
+        vocabulary = schema["$vocabulary"]
+        if (
+            not isinstance(vocabulary, dict)
+            or not all(isinstance(key, str) and key for key in vocabulary)
+            or not all(isinstance(value, bool) for value in vocabulary.values())
+        ):
+            return f"{path}.$vocabulary: must be an object of URI keys and boolean values"
+    for keyword in ("$anchor", "$dynamicAnchor"):
+        if keyword in schema:
+            value = schema[keyword]
+            if (
+                not isinstance(value, str)
+                or re.fullmatch(r"[A-Za-z_][A-Za-z0-9._-]*", value) is None
+            ):
+                return f"{path}.{keyword}: must be a valid anchor name"
     if "$ref" in schema and not isinstance(schema["$ref"], str):
         return f"{path}.$ref: must be a string"
     for keyword in _UNSUPPORTED_ASSERTIONS:
@@ -299,17 +353,24 @@ def schema_shape_problem(schema: object, path: str = "$") -> str | None:
                 isinstance(item, str) and item in _SUPPORTED_TYPES for item in declared
             ):
                 return f"{path}.type: must be a non-empty array of supported type names"
+            if len(set(declared)) != len(declared):
+                return f"{path}.type: must not contain duplicate type names"
         else:
             return f"{path}.type: must be a string or an array of strings"
     if "enum" in schema:
-        if not isinstance(schema["enum"], list) or not schema["enum"]:
+        enum = schema["enum"]
+        if not isinstance(enum, list) or not enum:
             return f"{path}.enum: must be a non-empty array"
+        if has_json_duplicates(enum):
+            return f"{path}.enum: must not contain duplicate values"
     if "required" in schema:
         required = schema["required"]
         if not isinstance(required, list) or not all(
             isinstance(item, str) for item in required
         ):
             return f"{path}.required: must be an array of strings"
+        if has_json_duplicates(required):
+            return f"{path}.required: must not contain duplicate entries"
     if "properties" in schema:
         properties = schema["properties"]
         if not isinstance(properties, dict):
@@ -377,6 +438,41 @@ def schema_shape_problem(schema: object, path: str = "$") -> str | None:
                 return f"{path}.{keyword}: must be an object of schema objects"
             for name, sub_schema in definitions.items():
                 problem = schema_shape_problem(sub_schema, f"{path}.{keyword}.{name}")
+                if problem is not None:
+                    return problem
+    return None
+
+
+def schema_refs_problem(schema: object, root: dict, path: str = "$") -> str | None:
+    """Return a problem string if any local $ref is unresolved or not a schema object."""
+    if not isinstance(schema, dict):
+        return None
+    ref = schema.get("$ref")
+    if isinstance(ref, str):
+        try:
+            target = resolve_ref(root, ref)
+        except (KeyError, ValueError) as exc:
+            return f"{path}.$ref: unresolvable $ref {ref!r}: {exc}"
+        if not isinstance(target, dict):
+            return f"{path}.$ref: target {ref!r} is not a schema object"
+    for keyword in ("properties", "$defs", "definitions"):
+        container = schema.get(keyword)
+        if isinstance(container, dict):
+            for name, sub_schema in container.items():
+                problem = schema_refs_problem(sub_schema, root, f"{path}.{keyword}.{name}")
+                if problem is not None:
+                    return problem
+    for keyword in ("items", "additionalProperties", "not", "if", "then", "else"):
+        sub_schema = schema.get(keyword)
+        if isinstance(sub_schema, dict):
+            problem = schema_refs_problem(sub_schema, root, f"{path}.{keyword}")
+            if problem is not None:
+                return problem
+    for keyword in ("allOf", "anyOf", "oneOf"):
+        branches = schema.get(keyword)
+        if isinstance(branches, list):
+            for index, branch in enumerate(branches):
+                problem = schema_refs_problem(branch, root, f"{path}.{keyword}[{index}]")
                 if problem is not None:
                     return problem
     return None
@@ -583,6 +679,15 @@ def verify(
         ]
     if shape_problem is not None:
         return None, [f"manifest schema is malformed or unsupported: {shape_problem}"]
+
+    try:
+        refs_problem = schema_refs_problem(schema, schema)
+    except (AttributeError, KeyError, TypeError, ValueError, OverflowError, RecursionError) as exc:
+        return None, [
+            f"manifest schema is malformed or unsupported: {type(exc).__name__}: {exc}"
+        ]
+    if refs_problem is not None:
+        return None, [f"manifest schema is malformed or unsupported: {refs_problem}"]
 
     if not isinstance(manifest, dict):
         return None, ["manifest root must be a JSON object"]
@@ -829,8 +934,10 @@ def main(argv: list[str]) -> int:
         prog="verify.sh",
         description=(
             "Validate a frozen Feldexa corpus manifest and verify every referenced "
-            "SHA-256 checksum and byte size. Non-finite/overflowing numbers, duplicate "
-            "JSON keys, and malformed schemas are rejected."
+            "SHA-256 checksum and byte size. Uses a documented offline JSON Schema "
+            "2020-12 profile, not a general Draft 2020-12 validator: unsupported "
+            "keywords, duplicate JSON keys, non-finite/overflowing numbers, and "
+            "malformed schemas fail closed."
         ),
     )
     parser.add_argument(
@@ -846,7 +953,20 @@ def main(argv: list[str]) -> int:
     parser.add_argument(
         "--schema",
         default=str(SCRIPT_DIR / "manifest.schema.json"),
-        help="JSON Schema path (default: tools/corpus/manifest.schema.json)",
+        help=(
+            "JSON Schema path (default: tools/corpus/manifest.schema.json). "
+            "Custom schemas must stay within the supported offline Draft 2020-12 "
+            "profile; unsupported keywords fail closed."
+        ),
+    )
+    parser.add_argument(
+        "--allow-custom-schema",
+        action="store_true",
+        help=(
+            "allow --schema to point outside the declared "
+            "tools/corpus/manifest.schema.json; the custom schema is still "
+            "restricted to the supported profile"
+        ),
     )
     parser.add_argument(
         "--min-real-forms",
@@ -872,6 +992,12 @@ def main(argv: list[str]) -> int:
 
     manifest_path = Path(args.manifest).expanduser().resolve()
     schema_path = Path(args.schema).expanduser().resolve()
+    declared_schema = (SCRIPT_DIR / "manifest.schema.json").resolve()
+    if schema_path != declared_schema and not args.allow_custom_schema:
+        parser.error(
+            "--schema requires --allow-custom-schema; by default the verifier "
+            "fully validates only the declared tools/corpus/manifest.schema.json"
+        )
     if args.corpus_dir is None:
         corpus_dir = manifest_path.parent
     else:
@@ -889,6 +1015,7 @@ def main(argv: list[str]) -> int:
         payload = {
             "ok": not failures,
             "schemaVersion": summary.get("schemaVersion") if summary else None,
+            "schemaProfile": SCHEMA_PROFILE,
             "manifest": str(manifest_path),
             "corpusDir": str(corpus_dir),
             "counts": summary["counts"] if summary else {},
@@ -904,6 +1031,7 @@ def main(argv: list[str]) -> int:
         if summary:
             counts = summary["counts"]
             print(f"  version:  {summary.get('corpusVersion')}")
+            print(f"  profile:  {SCHEMA_PROFILE}")
             print(
                 "  forms:    "
                 f"{counts['forms']} ({counts['real']} real, {counts['synthetic']} synthetic)"

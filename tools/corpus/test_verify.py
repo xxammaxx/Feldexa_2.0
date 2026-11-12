@@ -197,7 +197,7 @@ class VerifyTests(unittest.TestCase):
         schema_path = self.root / "custom-schema.json"
         schema_path.write_text(json.dumps(schema), encoding="utf-8")
         process = self.run_verify(
-            "--min-real-forms", "0", "--schema", str(schema_path)
+            "--min-real-forms", "0", "--schema", str(schema_path), "--allow-custom-schema"
         )
         self.assert_fails(process, needle)
         self.assertNotIn("Traceback", process.stdout + process.stderr)
@@ -225,6 +225,7 @@ class VerifyTests(unittest.TestCase):
         self.assertEqual(process.returncode, 0, process.stdout + process.stderr)
         payload = json.loads(process.stdout)
         self.assertTrue(payload["ok"])
+        self.assertEqual(payload["schemaProfile"], "feldexa-json-schema-2020-12-subset-v1")
         self.assertEqual(payload["counts"]["forms"], 1)
         self.assertEqual(payload["counts"]["fields"], 1)
         self.assertEqual(payload["failures"], [])
@@ -414,7 +415,7 @@ class VerifyTests(unittest.TestCase):
         schema_path = self.root / "integral-min-items-schema.json"
         schema_path.write_text(json.dumps(schema), encoding="utf-8")
         process = self.run_verify(
-            "--min-real-forms", "0", "--schema", str(schema_path)
+            "--min-real-forms", "0", "--schema", str(schema_path), "--allow-custom-schema"
         )
         self.assertEqual(process.returncode, 0, process.stdout + process.stderr)
         self.assertIn("PASS", process.stdout)
@@ -502,6 +503,7 @@ class VerifyTests(unittest.TestCase):
                 str(self.root),
                 "--schema",
                 str(schema_path),
+                "--allow-custom-schema",
                 "--min-real-forms",
                 "0",
             ],
@@ -631,7 +633,7 @@ class VerifyTests(unittest.TestCase):
             encoding="utf-8",
         )
         process = self.run_verify(
-            "--min-real-forms", "0", "--schema", str(schema_path)
+            "--min-real-forms", "0", "--schema", str(schema_path), "--allow-custom-schema"
         )
         self.assert_fails(process, "duplicate JSON object key")
         self.assertNotIn("Traceback", process.stdout + process.stderr)
@@ -642,6 +644,81 @@ class VerifyTests(unittest.TestCase):
         schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
         schema["properties"] = None
         self.assert_clean_schema_failure(schema)
+
+    def test_duplicate_required_entries_fail_closed(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        schema["required"].append("forms")
+        self.assert_clean_schema_failure(schema)
+
+    def test_duplicate_enum_entries_fail_closed(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        schema["$defs"]["fieldType"]["enum"].append("text")
+        self.assert_clean_schema_failure(schema)
+
+    def test_duplicate_enum_numeric_equality_fails_closed(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        schema["$defs"]["numericEnum"] = {"enum": [1, 1.0]}
+        self.assert_clean_schema_failure(schema)
+
+    def test_enum_boolean_and_number_are_distinct(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        schema["$defs"]["mixedEnum"] = {"enum": [True, 1]}
+        schema_path = self.root / "mixed-enum-schema.json"
+        schema_path.write_text(json.dumps(schema), encoding="utf-8")
+        process = self.run_verify(
+            "--min-real-forms",
+            "0",
+            "--schema",
+            str(schema_path),
+            "--allow-custom-schema",
+        )
+        self.assertEqual(process.returncode, 0, process.stdout + process.stderr)
+        self.assertIn("PASS", process.stdout)
+
+    def test_duplicate_type_entries_fail_closed(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        schema["type"] = ["object", "object"]
+        self.assert_clean_schema_failure(schema)
+
+    def test_unresolved_ref_in_unused_defs_fails_closed(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        schema["$defs"]["unused"] = {"$ref": "#/$defs/does-not-exist"}
+        self.assert_clean_schema_failure(schema)
+
+    def test_custom_schema_requires_explicit_opt_in(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+        schema["properties"] = None
+        schema_path = self.root / "custom-schema-without-opt-in.json"
+        schema_path.write_text(json.dumps(schema), encoding="utf-8")
+        process = self.run_verify(
+            "--min-real-forms", "0", "--schema", str(schema_path)
+        )
+        self.assertEqual(process.returncode, 2, process.stdout + process.stderr)
+        self.assertIn("--allow-custom-schema", process.stderr)
+        self.assertNotIn("Traceback", process.stdout + process.stderr)
+
+    def test_declared_schema_explicit_path_passes(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        process = self.run_verify(
+            "--min-real-forms", "0", "--schema", str(SCHEMA)
+        )
+        self.assertEqual(process.returncode, 0, process.stdout + process.stderr)
+        self.assertIn("PASS", process.stdout)
 
     def test_malformed_schema_keywords_fail_closed(self) -> None:
         self.builder.add_form("synthetic")
@@ -661,6 +738,12 @@ class VerifyTests(unittest.TestCase):
             ("minItems", "1"),
             ("$defs", None),
             ("properties", []),
+            ("examples", "not-an-array"),
+            ("readOnly", "yes"),
+            ("$comment", 5),
+            ("$anchor", 5),
+            ("$dynamicAnchor", 5),
+            ("$vocabulary", {"https://example.invalid/vocab": "yes"}),
         ]
         for keyword, value in mutations:
             with self.subTest(keyword=keyword):
@@ -681,7 +764,7 @@ class VerifyTests(unittest.TestCase):
         schema_path = self.root / "array-schema.json"
         schema_path.write_text("[]", encoding="utf-8")
         process = self.run_verify(
-            "--min-real-forms", "0", "--schema", str(schema_path)
+            "--min-real-forms", "0", "--schema", str(schema_path), "--allow-custom-schema"
         )
         self.assert_fails(process, "malformed")
         self.assertNotIn("Traceback", process.stdout + process.stderr)
@@ -694,7 +777,7 @@ class VerifyTests(unittest.TestCase):
         schema_path = self.root / "unresolvable-ref-schema.json"
         schema_path.write_text(json.dumps(schema), encoding="utf-8")
         process = self.run_verify(
-            "--min-real-forms", "0", "--schema", str(schema_path)
+            "--min-real-forms", "0", "--schema", str(schema_path), "--allow-custom-schema"
         )
         self.assert_fails(process, "unresolvable $ref")
         self.assertNotIn("Traceback", process.stdout + process.stderr)
@@ -731,7 +814,7 @@ class VerifyTests(unittest.TestCase):
             encoding="utf-8",
         )
         process = self.run_verify(
-            "--min-real-forms", "0", "--schema", str(schema_path)
+            "--min-real-forms", "0", "--schema", str(schema_path), "--allow-custom-schema"
         )
         self.assert_fails(process, "malformed")
         self.assertNotIn("Traceback", process.stdout + process.stderr)
@@ -742,7 +825,7 @@ class VerifyTests(unittest.TestCase):
         schema_path = self.root / "root-self-ref-schema.json"
         schema_path.write_text('{"$ref": "#"}', encoding="utf-8")
         process = self.run_verify(
-            "--min-real-forms", "0", "--schema", str(schema_path)
+            "--min-real-forms", "0", "--schema", str(schema_path), "--allow-custom-schema"
         )
         self.assert_fails(process, "self-reference")
         self.assertNotIn("Traceback", process.stdout + process.stderr)
