@@ -1,0 +1,1149 @@
+{
+  "schemaVersion": 1,
+  "fixtureId": "sf-003",
+  "language": "de",
+  "evidenceClass": "simulated",
+  "generatorVersion": "1.0.0",
+  "pages": [
+    {
+      "pageIndex": 0,
+      "widthPt": 595.28,
+      "heightPt": 841.89,
+      "rotation": 0,
+      "blocks": [
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 34.0,
+            "width": 140.01819999999998,
+            "height": 16.8
+          },
+          "text": "Geometrie-Referenz",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 34.0,
+                "width": 140.01819999999998,
+                "height": 16.8
+              },
+              "text": "Geometrie-Referenz",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 56.0,
+            "width": 118.34999999999995,
+            "height": 10.799999999999999
+          },
+          "text": "Seite 1 – A4 hoch, /Rotate 0",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 56.0,
+                "width": 118.34999999999995,
+                "height": 10.799999999999999
+              },
+              "text": "Seite 1 – A4 hoch, /Rotate 0",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 70.0,
+            "width": 139.68,
+            "height": 10.799999999999999
+          },
+          "text": "Anzeigefläche: 595.28 × 841.89 pt",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 70.0,
+                "width": 139.68,
+                "height": 10.799999999999999
+              },
+              "text": "Anzeigefläche: 595.28 × 841.89 pt",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 83.0,
+            "width": 53.2,
+            "height": 9.6
+          },
+          "text": "Feld oben links",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 83.0,
+                "width": 53.2,
+                "height": 9.6
+              },
+              "text": "Feld oben links",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 419.28,
+            "y": 83.0,
+            "width": 61.67999999999999,
+            "height": 9.6
+          },
+          "text": "Feld oben rechts",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 419.28,
+                "y": 83.0,
+                "width": 61.67999999999999,
+                "height": 9.6
+              },
+              "text": "Feld oben rechts",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 308.64,
+            "y": 419.945,
+            "width": 24.03,
+            "height": 10.799999999999999
+          },
+          "text": "Mitte",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 308.64,
+                "y": 419.945,
+                "width": 24.03,
+                "height": 10.799999999999999
+              },
+              "text": "Mitte",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 736.89,
+            "width": 57.36,
+            "height": 9.6
+          },
+          "text": "Feld unten links",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 736.89,
+                "width": 57.36,
+                "height": 9.6
+              },
+              "text": "Feld unten links",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 419.28,
+            "y": 736.89,
+            "width": 65.83999999999999,
+            "height": 9.6
+          },
+          "text": "Feld unten rechts",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 419.28,
+                "y": 736.89,
+                "width": 65.83999999999999,
+                "height": 9.6
+              },
+              "text": "Feld unten rechts",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 803.89,
+            "width": 290.3600000000003,
+            "height": 8.4
+          },
+          "text": "Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 803.89,
+                "width": 290.3600000000003,
+                "height": 8.4
+              },
+              "text": "Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 490.65999999999997,
+            "y": 803.89,
+            "width": 47.91999999999999,
+            "height": 9.6
+          },
+          "text": "Seite 1 von 5",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 490.65999999999997,
+                "y": 803.89,
+                "width": 47.91999999999999,
+                "height": 9.6
+              },
+              "text": "Seite 1 von 5",
+              "confidence": 0.97
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "pageIndex": 1,
+      "widthPt": 841.89,
+      "heightPt": 595.28,
+      "rotation": 0,
+      "blocks": [
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 34.0,
+            "width": 140.01819999999998,
+            "height": 16.8
+          },
+          "text": "Geometrie-Referenz",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 34.0,
+                "width": 140.01819999999998,
+                "height": 16.8
+              },
+              "text": "Geometrie-Referenz",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 56.0,
+            "width": 118.34999999999995,
+            "height": 10.799999999999999
+          },
+          "text": "Seite 2 – A4 quer, /Rotate 0",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 56.0,
+                "width": 118.34999999999995,
+                "height": 10.799999999999999
+              },
+              "text": "Seite 2 – A4 quer, /Rotate 0",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 70.0,
+            "width": 139.68,
+            "height": 10.799999999999999
+          },
+          "text": "Anzeigefläche: 841.89 × 595.28 pt",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 70.0,
+                "width": 139.68,
+                "height": 10.799999999999999
+              },
+              "text": "Anzeigefläche: 841.89 × 595.28 pt",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 83.0,
+            "width": 53.2,
+            "height": 9.6
+          },
+          "text": "Feld oben links",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 83.0,
+                "width": 53.2,
+                "height": 9.6
+              },
+              "text": "Feld oben links",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 665.89,
+            "y": 83.0,
+            "width": 61.67999999999999,
+            "height": 9.6
+          },
+          "text": "Feld oben rechts",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 665.89,
+                "y": 83.0,
+                "width": 61.67999999999999,
+                "height": 9.6
+              },
+              "text": "Feld oben rechts",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 431.945,
+            "y": 296.64,
+            "width": 24.03,
+            "height": 10.799999999999999
+          },
+          "text": "Mitte",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 431.945,
+                "y": 296.64,
+                "width": 24.03,
+                "height": 10.799999999999999
+              },
+              "text": "Mitte",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 490.28,
+            "width": 57.36,
+            "height": 9.6
+          },
+          "text": "Feld unten links",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 490.28,
+                "width": 57.36,
+                "height": 9.6
+              },
+              "text": "Feld unten links",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 665.89,
+            "y": 490.28,
+            "width": 65.83999999999999,
+            "height": 9.6
+          },
+          "text": "Feld unten rechts",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 665.89,
+                "y": 490.28,
+                "width": 65.83999999999999,
+                "height": 9.6
+              },
+              "text": "Feld unten rechts",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 557.28,
+            "width": 290.3600000000003,
+            "height": 8.4
+          },
+          "text": "Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 557.28,
+                "width": 290.3600000000003,
+                "height": 8.4
+              },
+              "text": "Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 737.27,
+            "y": 557.28,
+            "width": 47.91999999999999,
+            "height": 9.6
+          },
+          "text": "Seite 2 von 5",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 737.27,
+                "y": 557.28,
+                "width": 47.91999999999999,
+                "height": 9.6
+              },
+              "text": "Seite 2 von 5",
+              "confidence": 0.97
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "pageIndex": 2,
+      "widthPt": 841.89,
+      "heightPt": 595.28,
+      "rotation": 90,
+      "blocks": [
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 34.0,
+            "width": 140.01819999999998,
+            "height": 16.8
+          },
+          "text": "Geometrie-Referenz",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 34.0,
+                "width": 140.01819999999998,
+                "height": 16.8
+              },
+              "text": "Geometrie-Referenz",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 56.0,
+            "width": 188.0999999999999,
+            "height": 10.799999999999999
+          },
+          "text": "Seite 3 – A4 hoch, /Rotate 90 (Anzeige quer)",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 56.0,
+                "width": 188.0999999999999,
+                "height": 10.799999999999999
+              },
+              "text": "Seite 3 – A4 hoch, /Rotate 90 (Anzeige quer)",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 70.0,
+            "width": 139.68,
+            "height": 10.799999999999999
+          },
+          "text": "Anzeigefläche: 841.89 × 595.28 pt",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 70.0,
+                "width": 139.68,
+                "height": 10.799999999999999
+              },
+              "text": "Anzeigefläche: 841.89 × 595.28 pt",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 83.0,
+            "width": 53.2,
+            "height": 9.6
+          },
+          "text": "Feld oben links",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 83.0,
+                "width": 53.2,
+                "height": 9.6
+              },
+              "text": "Feld oben links",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 665.89,
+            "y": 83.0,
+            "width": 61.67999999999999,
+            "height": 9.6
+          },
+          "text": "Feld oben rechts",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 665.89,
+                "y": 83.0,
+                "width": 61.67999999999999,
+                "height": 9.6
+              },
+              "text": "Feld oben rechts",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 431.945,
+            "y": 296.64,
+            "width": 24.03,
+            "height": 10.799999999999999
+          },
+          "text": "Mitte",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 431.945,
+                "y": 296.64,
+                "width": 24.03,
+                "height": 10.799999999999999
+              },
+              "text": "Mitte",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 490.28,
+            "width": 57.36,
+            "height": 9.6
+          },
+          "text": "Feld unten links",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 490.28,
+                "width": 57.36,
+                "height": 9.6
+              },
+              "text": "Feld unten links",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 665.89,
+            "y": 490.28,
+            "width": 65.83999999999999,
+            "height": 9.6
+          },
+          "text": "Feld unten rechts",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 665.89,
+                "y": 490.28,
+                "width": 65.83999999999999,
+                "height": 9.6
+              },
+              "text": "Feld unten rechts",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 557.28,
+            "width": 290.3600000000003,
+            "height": 8.4
+          },
+          "text": "Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 557.28,
+                "width": 290.3600000000003,
+                "height": 8.4
+              },
+              "text": "Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 737.27,
+            "y": 557.28,
+            "width": 47.91999999999999,
+            "height": 9.6
+          },
+          "text": "Seite 3 von 5",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 737.27,
+                "y": 557.28,
+                "width": 47.91999999999999,
+                "height": 9.6
+              },
+              "text": "Seite 3 von 5",
+              "confidence": 0.97
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "pageIndex": 3,
+      "widthPt": 595.28,
+      "heightPt": 841.89,
+      "rotation": 180,
+      "blocks": [
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 34.0,
+            "width": 140.01819999999998,
+            "height": 16.8
+          },
+          "text": "Geometrie-Referenz",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 34.0,
+                "width": 140.01819999999998,
+                "height": 16.8
+              },
+              "text": "Geometrie-Referenz",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 56.0,
+            "width": 128.42999999999995,
+            "height": 10.799999999999999
+          },
+          "text": "Seite 4 – A4 hoch, /Rotate 180",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 56.0,
+                "width": 128.42999999999995,
+                "height": 10.799999999999999
+              },
+              "text": "Seite 4 – A4 hoch, /Rotate 180",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 70.0,
+            "width": 139.68,
+            "height": 10.799999999999999
+          },
+          "text": "Anzeigefläche: 595.28 × 841.89 pt",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 70.0,
+                "width": 139.68,
+                "height": 10.799999999999999
+              },
+              "text": "Anzeigefläche: 595.28 × 841.89 pt",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 83.0,
+            "width": 53.2,
+            "height": 9.6
+          },
+          "text": "Feld oben links",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 83.0,
+                "width": 53.2,
+                "height": 9.6
+              },
+              "text": "Feld oben links",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 419.28,
+            "y": 83.0,
+            "width": 61.67999999999999,
+            "height": 9.6
+          },
+          "text": "Feld oben rechts",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 419.28,
+                "y": 83.0,
+                "width": 61.67999999999999,
+                "height": 9.6
+              },
+              "text": "Feld oben rechts",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 308.64,
+            "y": 419.945,
+            "width": 24.03,
+            "height": 10.799999999999999
+          },
+          "text": "Mitte",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 308.64,
+                "y": 419.945,
+                "width": 24.03,
+                "height": 10.799999999999999
+              },
+              "text": "Mitte",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 736.89,
+            "width": 57.36,
+            "height": 9.6
+          },
+          "text": "Feld unten links",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 736.89,
+                "width": 57.36,
+                "height": 9.6
+              },
+              "text": "Feld unten links",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 419.28,
+            "y": 736.89,
+            "width": 65.83999999999999,
+            "height": 9.6
+          },
+          "text": "Feld unten rechts",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 419.28,
+                "y": 736.89,
+                "width": 65.83999999999999,
+                "height": 9.6
+              },
+              "text": "Feld unten rechts",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 803.89,
+            "width": 290.3600000000003,
+            "height": 8.4
+          },
+          "text": "Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 803.89,
+                "width": 290.3600000000003,
+                "height": 8.4
+              },
+              "text": "Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 490.65999999999997,
+            "y": 803.89,
+            "width": 47.91999999999999,
+            "height": 9.6
+          },
+          "text": "Seite 4 von 5",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 490.65999999999997,
+                "y": 803.89,
+                "width": 47.91999999999999,
+                "height": 9.6
+              },
+              "text": "Seite 4 von 5",
+              "confidence": 0.97
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "pageIndex": 4,
+      "widthPt": 595.28,
+      "heightPt": 419.53,
+      "rotation": 270,
+      "blocks": [
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 34.0,
+            "width": 140.01819999999998,
+            "height": 16.8
+          },
+          "text": "Geometrie-Referenz",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 34.0,
+                "width": 140.01819999999998,
+                "height": 16.8
+              },
+              "text": "Geometrie-Referenz",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 56.0,
+            "width": 193.13999999999993,
+            "height": 10.799999999999999
+          },
+          "text": "Seite 5 – A5 hoch, /Rotate 270 (Anzeige quer)",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 56.0,
+                "width": 193.13999999999993,
+                "height": 10.799999999999999
+              },
+              "text": "Seite 5 – A5 hoch, /Rotate 270 (Anzeige quer)",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 70.0,
+            "width": 139.68,
+            "height": 10.799999999999999
+          },
+          "text": "Anzeigefläche: 595.28 × 419.53 pt",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 70.0,
+                "width": 139.68,
+                "height": 10.799999999999999
+              },
+              "text": "Anzeigefläche: 595.28 × 419.53 pt",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 83.0,
+            "width": 53.2,
+            "height": 9.6
+          },
+          "text": "Feld oben links",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 83.0,
+                "width": 53.2,
+                "height": 9.6
+              },
+              "text": "Feld oben links",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 419.28,
+            "y": 83.0,
+            "width": 61.67999999999999,
+            "height": 9.6
+          },
+          "text": "Feld oben rechts",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 419.28,
+                "y": 83.0,
+                "width": 61.67999999999999,
+                "height": 9.6
+              },
+              "text": "Feld oben rechts",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 308.64,
+            "y": 208.765,
+            "width": 24.03,
+            "height": 10.799999999999999
+          },
+          "text": "Mitte",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 308.64,
+                "y": 208.765,
+                "width": 24.03,
+                "height": 10.799999999999999
+              },
+              "text": "Mitte",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 36.0,
+            "y": 314.53,
+            "width": 57.36,
+            "height": 9.6
+          },
+          "text": "Feld unten links",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 36.0,
+                "y": 314.53,
+                "width": 57.36,
+                "height": 9.6
+              },
+              "text": "Feld unten links",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 419.28,
+            "y": 314.53,
+            "width": 65.83999999999999,
+            "height": 9.6
+          },
+          "text": "Feld unten rechts",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 419.28,
+                "y": 314.53,
+                "width": 65.83999999999999,
+                "height": 9.6
+              },
+              "text": "Feld unten rechts",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 381.53,
+            "width": 290.3600000000003,
+            "height": 8.4
+          },
+          "text": "Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 381.53,
+                "width": 290.3600000000003,
+                "height": 8.4
+              },
+              "text": "Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 490.65999999999997,
+            "y": 381.53,
+            "width": 47.91999999999999,
+            "height": 9.6
+          },
+          "text": "Seite 5 von 5",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 490.65999999999997,
+                "y": 381.53,
+                "width": 47.91999999999999,
+                "height": 9.6
+              },
+              "text": "Seite 5 von 5",
+              "confidence": 0.97
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

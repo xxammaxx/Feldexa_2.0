@@ -1,0 +1,1191 @@
+{
+  "schemaVersion": 1,
+  "fixtureId": "sf-001",
+  "language": "de",
+  "evidenceClass": "simulated",
+  "generatorVersion": "1.0.0",
+  "pages": [
+    {
+      "pageIndex": 0,
+      "widthPt": 595.28,
+      "heightPt": 841.89,
+      "rotation": 0,
+      "blocks": [
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 32.0,
+            "width": 69.15420000000002,
+            "height": 10.799999999999999
+          },
+          "text": "MUSTERSTADT",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 32.0,
+                "width": 69.15420000000002,
+                "height": 10.799999999999999
+              },
+              "text": "MUSTERSTADT",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 44.0,
+            "width": 127.70999999999997,
+            "height": 10.799999999999999
+          },
+          "text": "Musteramt für Bürgerdienste",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 44.0,
+                "width": 127.70999999999997,
+                "height": 10.799999999999999
+              },
+              "text": "Musteramt für Bürgerdienste",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 330.0,
+            "y": 44.0,
+            "width": 202.08999999999997,
+            "height": 8.4
+          },
+          "text": "SYNTHETISCHES TESTDOKUMENT – kein amtliches Formular",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 330.0,
+                "y": 44.0,
+                "width": 202.08999999999997,
+                "height": 8.4
+              },
+              "text": "SYNTHETISCHES TESTDOKUMENT – kein amtliches Formular",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 76.0,
+            "width": 347.3159999999998,
+            "height": 18.0
+          },
+          "text": "Antrag auf Ausstellung einer Meldebescheinigung",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 76.0,
+                "width": 347.3159999999998,
+                "height": 18.0
+              },
+              "text": "Antrag auf Ausstellung einer Meldebescheinigung",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 98.0,
+            "width": 148.31999999999994,
+            "height": 10.799999999999999
+          },
+          "text": "Bitte in Druckbuchstaben ausfüllen.",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 98.0,
+                "width": 148.31999999999994,
+                "height": 10.799999999999999
+              },
+              "text": "Bitte in Druckbuchstaben ausfüllen.",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 124.0,
+            "width": 116.47240000000001,
+            "height": 13.2
+          },
+          "text": "1. Angaben zur Person",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 124.0,
+                "width": 116.47240000000001,
+                "height": 13.2
+              },
+              "text": "1. Angaben zur Person",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 150.0,
+            "width": 62.5,
+            "height": 12.0
+          },
+          "text": "Familienname",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 150.0,
+                "width": 62.5,
+                "height": 12.0
+              },
+              "text": "Familienname",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 184.0,
+            "width": 41.2,
+            "height": 12.0
+          },
+          "text": "Vorname",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 184.0,
+                "width": 41.2,
+                "height": 12.0
+              },
+              "text": "Vorname",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 218.0,
+            "width": 67.2,
+            "height": 12.0
+          },
+          "text": "Geburtsdatum",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 218.0,
+                "width": 67.2,
+                "height": 12.0
+              },
+              "text": "Geburtsdatum",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 497.0,
+            "y": 221.0,
+            "width": 43.68,
+            "height": 8.4
+          },
+          "text": "TT.MM.JJJJ",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 497.0,
+                "y": 221.0,
+                "width": 43.68,
+                "height": 8.4
+              },
+              "text": "TT.MM.JJJJ",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 252.0,
+            "width": 53.4,
+            "height": 12.0
+          },
+          "text": "Geburtsort",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 252.0,
+                "width": 53.4,
+                "height": 12.0
+              },
+              "text": "Geburtsort",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 286.0,
+            "width": 95.19999999999997,
+            "height": 12.0
+          },
+          "text": "Staatsangehörigkeit",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 286.0,
+                "width": 95.19999999999997,
+                "height": 12.0
+              },
+              "text": "Staatsangehörigkeit",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 330.0,
+            "width": 64.2411,
+            "height": 13.2
+          },
+          "text": "2. Anschrift",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 330.0,
+                "width": 64.2411,
+                "height": 13.2
+              },
+              "text": "2. Anschrift",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 356.0,
+            "width": 114.39999999999996,
+            "height": 12.0
+          },
+          "text": "Straße und Hausnummer",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 356.0,
+                "width": 114.39999999999996,
+                "height": 12.0
+              },
+              "text": "Straße und Hausnummer",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 390.0,
+            "width": 55.7,
+            "height": 12.0
+          },
+          "text": "Postleitzahl",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 390.0,
+                "width": 55.7,
+                "height": 12.0
+              },
+              "text": "Postleitzahl",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 424.0,
+            "width": 17.0,
+            "height": 12.0
+          },
+          "text": "Ort",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 424.0,
+                "width": 17.0,
+                "height": 12.0
+              },
+              "text": "Ort",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 474.0,
+            "width": 100.7237,
+            "height": 13.2
+          },
+          "text": "3. Weitere Angaben",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 474.0,
+                "width": 100.7237,
+                "height": 13.2
+              },
+              "text": "3. Weitere Angaben",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 206.0,
+            "y": 501.0,
+            "width": 30.150000000000002,
+            "height": 10.799999999999999
+          },
+          "text": "weiblich",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 206.0,
+                "y": 501.0,
+                "width": 30.150000000000002,
+                "height": 10.799999999999999
+              },
+              "text": "weiblich",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 316.0,
+            "y": 501.0,
+            "width": 36.0,
+            "height": 10.799999999999999
+          },
+          "text": "männlich",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 316.0,
+                "y": 501.0,
+                "width": 36.0,
+                "height": 10.799999999999999
+              },
+              "text": "männlich",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 426.0,
+            "y": 501.0,
+            "width": 25.650000000000002,
+            "height": 10.799999999999999
+          },
+          "text": "divers",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 426.0,
+                "y": 501.0,
+                "width": 25.650000000000002,
+                "height": 10.799999999999999
+              },
+              "text": "divers",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 502.0,
+            "width": 50.7,
+            "height": 12.0
+          },
+          "text": "Geschlecht",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 502.0,
+                "width": 50.7,
+                "height": 12.0
+              },
+              "text": "Geschlecht",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 550.0,
+            "width": 30.8,
+            "height": 12.0
+          },
+          "text": "Datum",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 550.0,
+                "width": 30.8,
+                "height": 12.0
+              },
+              "text": "Datum",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 614.0,
+            "width": 61.099999999999994,
+            "height": 12.0
+          },
+          "text": "Unterschrift",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 614.0,
+                "width": 61.099999999999994,
+                "height": 12.0
+              },
+              "text": "Unterschrift",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 803.89,
+            "width": 290.3600000000003,
+            "height": 8.4
+          },
+          "text": "Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 803.89,
+                "width": 290.3600000000003,
+                "height": 8.4
+              },
+              "text": "Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 490.65999999999997,
+            "y": 803.89,
+            "width": 47.91999999999999,
+            "height": 9.6
+          },
+          "text": "Seite 1 von 2",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 490.65999999999997,
+                "y": 803.89,
+                "width": 47.91999999999999,
+                "height": 9.6
+              },
+              "text": "Seite 1 von 2",
+              "confidence": 0.97
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "pageIndex": 1,
+      "widthPt": 595.28,
+      "heightPt": 841.89,
+      "rotation": 0,
+      "blocks": [
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 32.0,
+            "width": 69.15420000000002,
+            "height": 10.799999999999999
+          },
+          "text": "MUSTERSTADT",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 32.0,
+                "width": 69.15420000000002,
+                "height": 10.799999999999999
+              },
+              "text": "MUSTERSTADT",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 44.0,
+            "width": 127.70999999999997,
+            "height": 10.799999999999999
+          },
+          "text": "Musteramt für Bürgerdienste",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 44.0,
+                "width": 127.70999999999997,
+                "height": 10.799999999999999
+              },
+              "text": "Musteramt für Bürgerdienste",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 330.0,
+            "y": 44.0,
+            "width": 202.08999999999997,
+            "height": 8.4
+          },
+          "text": "SYNTHETISCHES TESTDOKUMENT – kein amtliches Formular",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 330.0,
+                "y": 44.0,
+                "width": 202.08999999999997,
+                "height": 8.4
+              },
+              "text": "SYNTHETISCHES TESTDOKUMENT – kein amtliches Formular",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 76.0,
+            "width": 347.3159999999998,
+            "height": 18.0
+          },
+          "text": "Antrag auf Ausstellung einer Meldebescheinigung",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 76.0,
+                "width": 347.3159999999998,
+                "height": 18.0
+              },
+              "text": "Antrag auf Ausstellung einer Meldebescheinigung",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 98.0,
+            "width": 180.17999999999992,
+            "height": 10.799999999999999
+          },
+          "text": "Seite 2 – Grund, Gebühren und Zahlungsart.",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 98.0,
+                "width": 180.17999999999992,
+                "height": 10.799999999999999
+              },
+              "text": "Seite 2 – Grund, Gebühren und Zahlungsart.",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 130.0,
+            "width": 134.14719999999994,
+            "height": 13.2
+          },
+          "text": "4. Grund der Beantragung",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 130.0,
+                "width": 134.14719999999994,
+                "height": 13.2
+              },
+              "text": "4. Grund der Beantragung",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 154.0,
+            "width": 53.79999999999999,
+            "height": 12.0
+          },
+          "text": "Begründung",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 154.0,
+                "width": 53.79999999999999,
+                "height": 12.0
+              },
+              "text": "Begründung",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 262.0,
+            "width": 146.15699999999998,
+            "height": 13.2
+          },
+          "text": "5. Aufstellung der Gebühren",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 262.0,
+                "width": 146.15699999999998,
+                "height": 13.2
+              },
+              "text": "5. Aufstellung der Gebühren",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 64.7,
+            "y": 294.0,
+            "width": 34.8552,
+            "height": 10.799999999999999
+          },
+          "text": "Position",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 64.7,
+                "y": 294.0,
+                "width": 34.8552,
+                "height": 10.799999999999999
+              },
+              "text": "Position",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 124.7,
+            "y": 294.0,
+            "width": 37.35810000000001,
+            "height": 10.799999999999999
+          },
+          "text": "Leistung",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 124.7,
+                "y": 294.0,
+                "width": 37.35810000000001,
+                "height": 10.799999999999999
+              },
+              "text": "Leistung",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 427.0,
+            "y": 294.0,
+            "width": 30.220200000000006,
+            "height": 10.799999999999999
+          },
+          "text": "Betrag",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 427.0,
+                "y": 294.0,
+                "width": 30.220200000000006,
+                "height": 10.799999999999999
+              },
+              "text": "Betrag",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 64.7,
+            "y": 320.0,
+            "width": 5.040000000000001,
+            "height": 10.799999999999999
+          },
+          "text": "1",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 64.7,
+                "y": 320.0,
+                "width": 5.040000000000001,
+                "height": 10.799999999999999
+              },
+              "text": "1",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 124.7,
+            "y": 320.0,
+            "width": 80.00999999999998,
+            "height": 10.799999999999999
+          },
+          "text": "Meldebescheinigung",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 124.7,
+                "y": 320.0,
+                "width": 80.00999999999998,
+                "height": 10.799999999999999
+              },
+              "text": "Meldebescheinigung",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 64.7,
+            "y": 346.0,
+            "width": 5.040000000000001,
+            "height": 10.799999999999999
+          },
+          "text": "2",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 64.7,
+                "y": 346.0,
+                "width": 5.040000000000001,
+                "height": 10.799999999999999
+              },
+              "text": "2",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 124.7,
+            "y": 346.0,
+            "width": 100.79999999999998,
+            "height": 10.799999999999999
+          },
+          "text": "Beglaubigung einer Kopie",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 124.7,
+                "y": 346.0,
+                "width": 100.79999999999998,
+                "height": 10.799999999999999
+              },
+              "text": "Beglaubigung einer Kopie",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 64.7,
+            "y": 372.0,
+            "width": 5.040000000000001,
+            "height": 10.799999999999999
+          },
+          "text": "3",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 64.7,
+                "y": 372.0,
+                "width": 5.040000000000001,
+                "height": 10.799999999999999
+              },
+              "text": "3",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 124.7,
+            "y": 372.0,
+            "width": 112.13999999999997,
+            "height": 10.799999999999999
+          },
+          "text": "Versand mit Rückumschlag",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 124.7,
+                "y": 372.0,
+                "width": 112.13999999999997,
+                "height": 10.799999999999999
+              },
+              "text": "Versand mit Rückumschlag",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 64.7,
+            "y": 398.0,
+            "width": 5.040000000000001,
+            "height": 10.799999999999999
+          },
+          "text": "4",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 64.7,
+                "y": 398.0,
+                "width": 5.040000000000001,
+                "height": 10.799999999999999
+              },
+              "text": "4",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 124.7,
+            "y": 398.0,
+            "width": 30.78,
+            "height": 10.799999999999999
+          },
+          "text": "Summe",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 124.7,
+                "y": 398.0,
+                "width": 30.78,
+                "height": 10.799999999999999
+              },
+              "text": "Summe",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 452.0,
+            "width": 76.0243,
+            "height": 13.2
+          },
+          "text": "6. Zahlungsart",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 452.0,
+                "width": 76.0243,
+                "height": 13.2
+              },
+              "text": "6. Zahlungsart",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 206.0,
+            "y": 479.0,
+            "width": 45.63,
+            "height": 10.799999999999999
+          },
+          "text": "Barzahlung",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 206.0,
+                "y": 479.0,
+                "width": 45.63,
+                "height": 10.799999999999999
+              },
+              "text": "Barzahlung",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 346.0,
+            "y": 479.0,
+            "width": 49.410000000000004,
+            "height": 10.799999999999999
+          },
+          "text": "Überweisung",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 346.0,
+                "y": 479.0,
+                "width": 49.410000000000004,
+                "height": 10.799999999999999
+              },
+              "text": "Überweisung",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 530.0,
+            "width": 166.43769999999995,
+            "height": 13.2
+          },
+          "text": "7. Ort, Datum und Unterschrift",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 530.0,
+                "width": 166.43769999999995,
+                "height": 13.2
+              },
+              "text": "7. Ort, Datum und Unterschrift",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 556.0,
+            "width": 17.0,
+            "height": 12.0
+          },
+          "text": "Ort",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 556.0,
+                "width": 17.0,
+                "height": 12.0
+              },
+              "text": "Ort",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 590.0,
+            "width": 30.8,
+            "height": 12.0
+          },
+          "text": "Datum",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 590.0,
+                "width": 30.8,
+                "height": 12.0
+              },
+              "text": "Datum",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 628.0,
+            "width": 61.099999999999994,
+            "height": 12.0
+          },
+          "text": "Unterschrift",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 628.0,
+                "width": 61.099999999999994,
+                "height": 12.0
+              },
+              "text": "Unterschrift",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 803.89,
+            "width": 290.3600000000003,
+            "height": 8.4
+          },
+          "text": "Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 803.89,
+                "width": 290.3600000000003,
+                "height": 8.4
+              },
+              "text": "Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 490.65999999999997,
+            "y": 803.89,
+            "width": 47.91999999999999,
+            "height": 9.6
+          },
+          "text": "Seite 2 von 2",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 490.65999999999997,
+                "y": 803.89,
+                "width": 47.91999999999999,
+                "height": 9.6
+              },
+              "text": "Seite 2 von 2",
+              "confidence": 0.97
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
