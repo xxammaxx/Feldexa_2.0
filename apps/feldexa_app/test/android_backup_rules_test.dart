@@ -50,10 +50,11 @@ void main() {
   });
 
   test('cross-platform transfer is not declared without an iOS identity', () {
-    // Android's BackupEligibilityRules only allows cross-platform transfer when
-    // allowBackup is true and platform-specific-params exist for a matching iOS
-    // app. Feldexa has no iOS identity, so allowBackup=false makes the mode
-    // ineligible; an incomplete section is not a valid opt-in and is omitted.
+    // AOSP android16-release (API 36) has only CLOUD and DEVICE_TRANSFER.
+    // android16-qpr2-release (API 36.1) adds CROSS_PLATFORM_TRANSFER and gates
+    // it on allowBackup && non-empty platform-specific-params. Before API 36.1
+    // the mode does not exist; on QPR2+ allowBackup=false makes it ineligible.
+    // Feldexa has no iOS identity, so no incomplete opt-in is declared.
     expect(rules, isNot(contains('<cross-platform-transfer')));
     expect(rules, isNot(contains('<platform-specific-params')));
   });

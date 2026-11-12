@@ -1,8 +1,6 @@
-gradle-wrapper.jar
+# The Gradle wrapper is committed for reproducible Android builds.
 /.gradle
 /captures/
-/gradlew
-/gradlew.bat
 /local.properties
 GeneratedPluginRegistrant.java
 .cxx/
