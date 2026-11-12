@@ -5,8 +5,9 @@
 # This is the T008 checksum verifier for the frozen recognition corpus
 # (constitution Principle IV, plan research decision D-18). It fails closed:
 # a missing manifest, an unreadable form, a byte-size drift, a SHA-256 mismatch,
-# an unsafe path, an incomplete rights record, or a ground-truth rectangle that
-# falls outside its source page is a verification failure.
+# an unsafe path, an incomplete rights record, a ground-truth rectangle that
+# falls outside its source page, or any non-finite/overflowing JSON number is a
+# verification failure.
 #
 # Usage:
 #   tools/corpus/verify.sh
@@ -43,6 +44,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import re
 import sys
@@ -107,8 +109,55 @@ def resolve_ref(root: dict, ref: str) -> dict:
     return node
 
 
+def finite_number(value: object) -> bool:
+    """Return True only for numbers representable as a finite IEEE-754 double."""
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return False
+    try:
+        return math.isfinite(float(value))
+    except (OverflowError, ValueError):
+        return False
+
+
+def reject_json_constant(token: str) -> None:
+    """Reject the non-standard NaN/Infinity/-Infinity tokens accepted by Python's json."""
+    raise ValueError(f"non-finite JSON number {token!r} is not allowed")
+
+
+def reject_non_finite_numbers(value: object, path: str = "$") -> None:
+    """Reject non-finite floats and integers that overflow a finite double, recursively."""
+    if isinstance(value, bool) or value is None or isinstance(value, str):
+        return
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            raise ValueError(f"{path}: non-finite number {value!r} is not allowed")
+        return
+    if isinstance(value, int):
+        try:
+            converted = float(value)
+        except OverflowError as exc:
+            raise ValueError(
+                f"{path}: integer is too large to represent as a finite JSON number"
+            ) from exc
+        if not math.isfinite(converted):
+            raise ValueError(
+                f"{path}: integer is too large to represent as a finite JSON number"
+            )
+        return
+    if isinstance(value, dict):
+        for key, item in value.items():
+            reject_non_finite_numbers(item, f"{path}.{key}")
+        return
+    if isinstance(value, list):
+        for index, item in enumerate(value):
+            reject_non_finite_numbers(item, f"{path}[{index}]")
+
+
 def _check_number(value: object, schema: dict, path: str, errors: list[str]) -> None:
     if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return
+    if not finite_number(value):
+        errors.append(f"{path}: must be a finite number representable as an IEEE-754 double")
         return
     if "minimum" in schema and value < schema["minimum"]:
         errors.append(f"{path}: must be >= {schema['minimum']}")
@@ -272,10 +321,14 @@ def rect_outside_page(rect: object, page: object) -> str | None:
     values = [rect.get(key) for key in ("xPt", "yPt", "widthPt", "heightPt")]
     if not all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in values):
         return "non-numeric rectangle"
+    if not all(finite_number(v) for v in values):
+        return "non-finite or overflowing rectangle coordinate"
     width = page.get("widthPt")
     height = page.get("heightPt")
     if not isinstance(width, (int, float)) or not isinstance(height, (int, float)):
         return "non-numeric page size"
+    if not finite_number(width) or not finite_number(height):
+        return "non-finite or overflowing page size"
     x, y, w, h = (float(v) for v in values)
     epsilon = 1e-6
     if x < -epsilon or y < -epsilon:
@@ -301,20 +354,34 @@ def verify(
         return None, [f"manifest not found: {manifest_path}"]
 
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest_text = manifest_path.read_text(encoding="utf-8")
     except OSError as exc:
         return None, [f"cannot read manifest: {exc}"]
     except UnicodeDecodeError as exc:
         return None, [f"manifest is not valid UTF-8: {exc}"]
-    except json.JSONDecodeError as exc:
+    try:
+        manifest = json.loads(manifest_text, parse_constant=reject_json_constant)
+    except ValueError as exc:
         return None, [f"manifest is not valid JSON: {exc}"]
+    try:
+        reject_non_finite_numbers(manifest)
+    except ValueError as exc:
+        return None, [f"manifest contains an invalid number: {exc}"]
 
     try:
-        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        schema_text = schema_path.read_text(encoding="utf-8")
     except OSError as exc:
         return None, [f"cannot read manifest schema: {exc}"]
-    except json.JSONDecodeError as exc:
+    except UnicodeDecodeError as exc:
+        return None, [f"manifest schema is not valid UTF-8: {exc}"]
+    try:
+        schema = json.loads(schema_text, parse_constant=reject_json_constant)
+    except ValueError as exc:
         return None, [f"manifest schema is not valid JSON: {exc}"]
+    try:
+        reject_non_finite_numbers(schema)
+    except ValueError as exc:
+        return None, [f"manifest schema contains an invalid number: {exc}"]
 
     if not isinstance(manifest, dict):
         return None, ["manifest root must be a JSON object"]
@@ -538,7 +605,8 @@ def main(argv: list[str]) -> int:
         prog="verify.sh",
         description=(
             "Validate a frozen Feldexa corpus manifest and verify every referenced "
-            "SHA-256 checksum and byte size."
+            "SHA-256 checksum and byte size. Non-finite and overflowing JSON numbers "
+            "are rejected."
         ),
     )
     parser.add_argument(

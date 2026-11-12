@@ -316,6 +316,60 @@ class VerifyTests(unittest.TestCase):
         self.builder.write()
         self.assert_fails(self.run_verify("--min-real-forms", "0"), "no ground-truth fields")
 
+    # -- non-finite and overflowing numbers --------------------------------
+
+    def test_nan_rectangle_fails(self) -> None:
+        form = self.builder.add_form("synthetic")
+        form["groundTruth"]["fields"][0]["rect"]["xPt"] = float("nan")
+        self.builder.write()
+        self.assert_fails(self.run_verify("--min-real-forms", "0"), "non-finite")
+
+    def test_positive_infinity_rectangle_fails(self) -> None:
+        form = self.builder.add_form("synthetic")
+        form["groundTruth"]["fields"][0]["rect"]["widthPt"] = float("inf")
+        self.builder.write()
+        self.assert_fails(self.run_verify("--min-real-forms", "0"), "non-finite")
+
+    def test_negative_infinity_rectangle_fails(self) -> None:
+        form = self.builder.add_form("synthetic")
+        form["groundTruth"]["fields"][0]["rect"]["yPt"] = float("-inf")
+        self.builder.write()
+        self.assert_fails(self.run_verify("--min-real-forms", "0"), "non-finite")
+
+    def test_float_overflow_in_rectangle_fails(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.write()
+        text = self.manifest_path.read_text(encoding="utf-8")
+        self.assertIn('"xPt": 50.0', text)
+        self.manifest_path.write_text(
+            text.replace('"xPt": 50.0', '"xPt": 1e400', 1), encoding="utf-8"
+        )
+        self.assert_fails(self.run_verify("--min-real-forms", "0"), "non-finite")
+
+    def test_huge_integer_rectangle_fails(self) -> None:
+        form = self.builder.add_form("synthetic")
+        form["groundTruth"]["fields"][0]["rect"]["xPt"] = 10**400
+        self.builder.write()
+        self.assert_fails(self.run_verify("--min-real-forms", "0"), "too large")
+
+    def test_huge_integer_size_bytes_fails(self) -> None:
+        form = self.builder.add_form("synthetic")
+        form["sizeBytes"] = 10**400
+        self.builder.write()
+        self.assert_fails(self.run_verify("--min-real-forms", "0"), "too large")
+
+    def test_nan_outside_geometry_fails(self) -> None:
+        self.builder.add_form("synthetic")
+        self.builder.manifest["description"] = float("nan")
+        self.builder.write()
+        self.assert_fails(self.run_verify("--min-real-forms", "0"), "non-finite")
+
+    def test_nan_size_bytes_fails(self) -> None:
+        form = self.builder.add_form("synthetic")
+        form["sizeBytes"] = float("nan")
+        self.builder.write()
+        self.assert_fails(self.run_verify("--min-real-forms", "0"), "non-finite")
+
     # -- provenance and freeze failures ------------------------------------
 
     def test_real_form_with_personal_data_fails(self) -> None:
