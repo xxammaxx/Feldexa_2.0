@@ -221,6 +221,10 @@ machine-readable schema and full validator.
 
 ## 9. Index
 
+The task-to-issue mapping is a dated historical snapshot. Its `OPEN` states
+reflect `2026-11-12T15:50:00Z` and are not updated when issues later close; use
+the GitHub issue for live state.
+
 | Report | Class | Kind | Notes |
 | --- | --- | --- | --- |
 | [README.md](./README.md) | — | Index and template | This file; T010 |
@@ -233,8 +237,8 @@ machine-readable schema and full validator.
 | [2026-11-12-t006-evidence.md](./2026-11-12-t006-evidence.md) | `NONE` | Task evidence | T006 Noto Sans/OFL |
 | [2026-11-12-t007-evidence.md](./2026-11-12-t007-evidence.md) | `NONE` | Task evidence | T007 font metrics |
 | [2026-11-12-t010-evidence.md](./2026-11-12-t010-evidence.md) | `NONE` | Task evidence | T010 template/index |
-| [2026-11-12-task-issue-mapping.md](./2026-11-12-task-issue-mapping.md) | `NONE` | Index data | Human-readable mapping |
-| [2026-11-12-task-issue-mapping.json](./2026-11-12-task-issue-mapping.json) | `NONE` | Index data | Machine-readable mapping |
+| [2026-11-12-task-issue-mapping.md](./2026-11-12-task-issue-mapping.md) | `NONE` | Historical snapshot | 2026-11-12T15:50Z all-open mapping; not live issue state |
+| [2026-11-12-task-issue-mapping.json](./2026-11-12-task-issue-mapping.json) | `NONE` | Historical snapshot | Machine-readable dated snapshot; do not overwrite with current state |
 | `backups/` | — | Not evidence | Pre-edit snapshots |
 
 New reports append a row here in the same change. Results are run outcomes, not
