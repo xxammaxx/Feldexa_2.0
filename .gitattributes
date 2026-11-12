@@ -1,0 +1,2 @@
+# Gradle's Windows wrapper is intentionally CRLF; CR at EOL is not whitespace.
+*.bat text eol=crlf whitespace=cr-at-eol

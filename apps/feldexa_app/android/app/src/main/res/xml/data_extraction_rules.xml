@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- T002: no Feldexa app data may leave the device through cloud backup or
+     device-to-device transfer. allowBackup=false is the API 26-30 guard.
+     Cross-platform transfer exists only from Android 16 QPR2 (API 36.1+).
+     On QPR2+, AOSP android16-qpr2-release BackupEligibilityRules requires
+     allowBackup and non-empty platform-specific-params before the mode is
+     eligible, so allowBackup=false disables it; before API 36.1 the mode does
+     not exist. No cross-platform section is declared because a valid opt-in
+     would require a real iOS bundleId/teamId that Feldexa does not have.
+     The device-transfer excludes remain because AOSP force-allows D2D for
+     non-system apps under a compatibility change. This conclusion is
+     source-based; no API 36.1 runtime transfer was run. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="external" path="." />
+        <exclude domain="device_root" path="." />
+        <exclude domain="device_file" path="." />
+        <exclude domain="device_database" path="." />
+        <exclude domain="device_sharedpref" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="external" path="." />
+        <exclude domain="device_root" path="." />
+        <exclude domain="device_file" path="." />
+        <exclude domain="device_database" path="." />
+        <exclude domain="device_sharedpref" path="." />
+    </device-transfer>
+</data-extraction-rules>
