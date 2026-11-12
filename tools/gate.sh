@@ -326,11 +326,17 @@ info ""
 
 resolve_dependencies() {
   "$FLUTTER_BIN" "${FLUTTER_FLAGS[@]}" pub get "${PUB_FLAGS[@]}"
+  local pub_rc=$?
+  if [ "$pub_rc" -ne 0 ]; then
+    # Do not let the later lockfile check mask a failed package resolution.
+    return "$pub_rc"
+  fi
   if command -v git >/dev/null 2>&1 && git rev-parse --git-dir >/dev/null 2>&1; then
     if [ -f pubspec.lock ]; then
-      git diff --exit-code -- pubspec.lock
+      git diff --exit-code -- pubspec.lock || return $?
     fi
   fi
+  return 0
 }
 
 check_format() {
