@@ -3,3 +3,17 @@ specs/**/reports/backups/**/ses_*-messages.json
 
 # Regenerable Spec Kit extension catalog cache.
 .specify/extensions/.cache/
+
+# Flutter/Dart build output, tool state, and IDE metadata (T001 workspace).
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.gradle/
+local.properties
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+*.swp

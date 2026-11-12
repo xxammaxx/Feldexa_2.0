@@ -1,0 +1,8 @@
+name: feldexa_adapters_simulated
+description: Deterministic SIMULATED adapters for the Feldexa Web development surface.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
