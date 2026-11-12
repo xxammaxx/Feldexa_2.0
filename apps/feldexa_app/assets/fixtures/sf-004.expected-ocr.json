@@ -1,0 +1,545 @@
+{
+  "schemaVersion": 1,
+  "fixtureId": "sf-004",
+  "language": "de",
+  "evidenceClass": "simulated",
+  "generatorVersion": "1.0.0",
+  "pages": [
+    {
+      "pageIndex": 0,
+      "widthPt": 595.28,
+      "heightPt": 841.89,
+      "rotation": 0,
+      "blocks": [
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 32.0,
+            "width": 69.15420000000002,
+            "height": 10.799999999999999
+          },
+          "text": "MUSTERSTADT",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 32.0,
+                "width": 69.15420000000002,
+                "height": 10.799999999999999
+              },
+              "text": "MUSTERSTADT",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 44.0,
+            "width": 127.70999999999997,
+            "height": 10.799999999999999
+          },
+          "text": "Musteramt für Bürgerdienste",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 44.0,
+                "width": 127.70999999999997,
+                "height": 10.799999999999999
+              },
+              "text": "Musteramt für Bürgerdienste",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 330.0,
+            "y": 44.0,
+            "width": 202.08999999999997,
+            "height": 8.4
+          },
+          "text": "SYNTHETISCHES TESTDOKUMENT – kein amtliches Formular",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 330.0,
+                "y": 44.0,
+                "width": 202.08999999999997,
+                "height": 8.4
+              },
+              "text": "SYNTHETISCHES TESTDOKUMENT – kein amtliches Formular",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 76.0,
+            "width": 247.81799999999996,
+            "height": 18.0
+          },
+          "text": "Felder- und Zeichensatz-Referenz",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 76.0,
+                "width": 247.81799999999996,
+                "height": 18.0
+              },
+              "text": "Felder- und Zeichensatz-Referenz",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 98.0,
+            "width": 253.34999999999985,
+            "height": 10.799999999999999
+          },
+          "text": "Alle Feldarten, deutsche Sonderzeichen und Überlaufprüfung.",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 98.0,
+                "width": 253.34999999999985,
+                "height": 10.799999999999999
+              },
+              "text": "Alle Feldarten, deutsche Sonderzeichen und Überlaufprüfung.",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 126.0,
+            "width": 64.2411,
+            "height": 13.2
+          },
+          "text": "1. Feldarten",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 126.0,
+                "width": 64.2411,
+                "height": 13.2
+              },
+              "text": "1. Feldarten",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 152.0,
+            "width": 114.39999999999996,
+            "height": 12.0
+          },
+          "text": "Straße und Hausnummer",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 152.0,
+                "width": 114.39999999999996,
+                "height": 12.0
+              },
+              "text": "Straße und Hausnummer",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 188.0,
+            "width": 55.300000000000004,
+            "height": 12.0
+          },
+          "text": "Größe in cm",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 188.0,
+                "width": 55.300000000000004,
+                "height": 12.0
+              },
+              "text": "Größe in cm",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 224.0,
+            "width": 51.5,
+            "height": 12.0
+          },
+          "text": "Betrag in €",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 224.0,
+                "width": 51.5,
+                "height": 12.0
+              },
+              "text": "Betrag in €",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 260.0,
+            "width": 67.2,
+            "height": 12.0
+          },
+          "text": "Geburtsdatum",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 260.0,
+                "width": 67.2,
+                "height": 12.0
+              },
+              "text": "Geburtsdatum",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 497.0,
+            "y": 263.0,
+            "width": 43.68,
+            "height": 8.4
+          },
+          "text": "TT.MM.JJJJ",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 497.0,
+                "y": 263.0,
+                "width": 43.68,
+                "height": 8.4
+              },
+              "text": "TT.MM.JJJJ",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 296.0,
+            "width": 35.1,
+            "height": 12.0
+          },
+          "text": "Telefon",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 296.0,
+                "width": 35.1,
+                "height": 12.0
+              },
+              "text": "Telefon",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 332.0,
+            "width": 132.29999999999995,
+            "height": 12.0
+          },
+          "text": "Langtext (Überlaufprüfung)",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 332.0,
+                "width": 132.29999999999995,
+                "height": 12.0
+              },
+              "text": "Langtext (Überlaufprüfung)",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 392.0,
+            "width": 133.80729999999997,
+            "height": 13.2
+          },
+          "text": "2. Mehrzeilige Anmerkung",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 392.0,
+                "width": 133.80729999999997,
+                "height": 13.2
+              },
+              "text": "2. Mehrzeilige Anmerkung",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 416.0,
+            "width": 106.99999999999997,
+            "height": 12.0
+          },
+          "text": "Begründung / Äußerung",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 416.0,
+                "width": 106.99999999999997,
+                "height": 12.0
+              },
+              "text": "Begründung / Äußerung",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 506.0,
+            "width": 91.0932,
+            "height": 13.2
+          },
+          "text": "3. Einverständnis",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 506.0,
+                "width": 91.0932,
+                "height": 13.2
+              },
+              "text": "3. Einverständnis",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 206.0,
+            "y": 529.0,
+            "width": 92.69999999999997,
+            "height": 10.799999999999999
+          },
+          "text": "Einverständnis erteilt",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 206.0,
+                "y": 529.0,
+                "width": 92.69999999999997,
+                "height": 10.799999999999999
+              },
+              "text": "Einverständnis erteilt",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 386.0,
+            "y": 529.0,
+            "width": 67.22999999999999,
+            "height": 10.799999999999999
+          },
+          "text": "Kopie gewünscht",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 386.0,
+                "y": 529.0,
+                "width": 67.22999999999999,
+                "height": 10.799999999999999
+              },
+              "text": "Kopie gewünscht",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 584.0,
+            "width": 61.099999999999994,
+            "height": 12.0
+          },
+          "text": "Unterschrift",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 584.0,
+                "width": 61.099999999999994,
+                "height": 12.0
+              },
+              "text": "Unterschrift",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 660.0,
+            "width": 413.0600000000005,
+            "height": 11.4
+          },
+          "text": "Sonderzeichen: ÄÖÜäöüß € „Deutsch“ – — … und ein längerer Satz zur Prüfung der Zeilenbreite.",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 660.0,
+                "width": 413.0600000000005,
+                "height": 11.4
+              },
+              "text": "Sonderzeichen: ÄÖÜäöüß € „Deutsch“ – — … und ein längerer Satz zur Prüfung der Zeilenbreite.",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 690.0,
+            "width": 339.6600000000002,
+            "height": 10.799999999999999
+          },
+          "text": "Hinweis: Dieses Dokument ist synthetisch und enthält keine realen Personendaten.",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 690.0,
+                "width": 339.6600000000002,
+                "height": 10.799999999999999
+              },
+              "text": "Hinweis: Dieses Dokument ist synthetisch und enthält keine realen Personendaten.",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 706.0,
+            "width": 266.39999999999986,
+            "height": 10.799999999999999
+          },
+          "text": "Es dient ausschließlich der Entwicklung und Prüfung des Editors.",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 706.0,
+                "width": 266.39999999999986,
+                "height": 10.799999999999999
+              },
+              "text": "Es dient ausschließlich der Entwicklung und Prüfung des Editors.",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 56.7,
+            "y": 803.89,
+            "width": 290.3600000000003,
+            "height": 8.4
+          },
+          "text": "Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 56.7,
+                "y": 803.89,
+                "width": 290.3600000000003,
+                "height": 8.4
+              },
+              "text": "Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+              "confidence": 0.97
+            }
+          ]
+        },
+        {
+          "rect": {
+            "x": 490.65999999999997,
+            "y": 803.89,
+            "width": 47.91999999999999,
+            "height": 9.6
+          },
+          "text": "Seite 1 von 1",
+          "confidence": 0.97,
+          "lines": [
+            {
+              "rect": {
+                "x": 490.65999999999997,
+                "y": 803.89,
+                "width": 47.91999999999999,
+                "height": 9.6
+              },
+              "text": "Seite 1 von 1",
+              "confidence": 0.97
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

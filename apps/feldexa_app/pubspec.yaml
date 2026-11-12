@@ -72,3 +72,10 @@ flutter:
   assets:
     - assets/fonts/OFL.txt
     - assets/fonts/metrics.json
+  # T009: synthetic development fixtures are intentionally NOT Flutter assets.
+  # Pubspec assets are packaged into every Android build, including release.
+  # The canonical generated files stay undeclared under assets/fixtures/ and
+  # are mirrored to web/fixtures/ for the Flutter Web dev server and
+  # `flutter build web` at `/fixtures/...`; Android import tests use
+  # `adb push tools/corpus/synthetic/sf-*.pdf`. See
+  # assets/fixtures/README.md and tools/corpus/synthetic/generate.dart.

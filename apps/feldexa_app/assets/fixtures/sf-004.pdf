@@ -1,0 +1,73 @@
+%PDF-1.7
+%FELDEXA-SYNTHETIC-FIXTURE
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 1 /Kids [5 0 R] >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Rotate 0 /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 2450 >>
+stream
+0 g BT /F2 9 Tf 1 0 0 1 56.7 802.69 Tm (MUSTERSTADT) Tj ET
+0 g BT /F1 9 Tf 1 0 0 1 56.7 790.69 Tm (Musteramt f\374r B\374rgerdienste) Tj ET
+0 g BT /F1 7 Tf 1 0 0 1 330 792.29 Tm (SYNTHETISCHES TESTDOKUMENT \226 kein amtliches Formular) Tj ET
+0 g 1.2 w 56.7 779.89 m 538.58 779.89 l S
+0 g BT /F2 15 Tf 1 0 0 1 56.7 753.89 Tm (Felder- und Zeichensatz-Referenz) Tj ET
+0 g BT /F1 9 Tf 1 0 0 1 56.7 736.69 Tm (Alle Feldarten, deutsche Sonderzeichen und \334berlaufpr\374fung.) Tj ET
+0 g BT /F2 11 Tf 1 0 0 1 56.7 707.09 Tm (1. Feldarten) Tj ET
+0 g BT /F1 10 Tf 1 0 0 1 56.7 681.89 Tm (Stra\337e und Hausnummer) Tj ET
+0 g 0.7 w 190 673.89 m 490 673.89 l S
+0 g BT /F1 10 Tf 1 0 0 1 56.7 645.89 Tm (Gr\366\337e in cm) Tj ET
+0 g 0.7 w 190 637.89 m 490 637.89 l S
+0 g BT /F1 10 Tf 1 0 0 1 56.7 609.89 Tm (Betrag in \200) Tj ET
+0 g 0.7 w 190 601.89 m 490 601.89 l S
+0 g BT /F1 10 Tf 1 0 0 1 56.7 573.89 Tm (Geburtsdatum) Tj ET
+0 g 0.7 w 190 565.89 m 490 565.89 l S
+0 g BT /F1 7 Tf 1 0 0 1 497 573.29 Tm (TT.MM.JJJJ) Tj ET
+0 g BT /F1 10 Tf 1 0 0 1 56.7 537.89 Tm (Telefon) Tj ET
+0 g 0.7 w 190 529.89 m 490 529.89 l S
+0 g BT /F1 10 Tf 1 0 0 1 56.7 501.89 Tm (Langtext \(\334berlaufpr\374fung\)) Tj ET
+0 g 0.7 w 260 493.89 m 350 493.89 l S
+0 g BT /F2 11 Tf 1 0 0 1 56.7 441.09 Tm (2. Mehrzeilige Anmerkung) Tj ET
+0 g BT /F1 10 Tf 1 0 0 1 56.7 417.89 Tm (Begr\374ndung / \304u\337erung) Tj ET
+0 g 0.6 w 190 361.89 348.58 66 re S
+0 g BT /F2 11 Tf 1 0 0 1 56.7 327.09 Tm (3. Einverst\344ndnis) Tj ET
+0 g 0.6 w 190 301.89 10 10 re S
+0 g BT /F1 9 Tf 1 0 0 1 206 305.69 Tm (Einverst\344ndnis erteilt) Tj ET
+0 g 0.6 w 370 301.89 10 10 re S
+0 g BT /F1 9 Tf 1 0 0 1 386 305.69 Tm (Kopie gew\374nscht) Tj ET
+0 g BT /F1 10 Tf 1 0 0 1 56.7 249.89 Tm (Unterschrift) Tj ET
+0 g 0.7 w 190 229.89 m 490 229.89 l S
+0 g BT /F1 9.5 Tf 1 0 0 1 56.7 174.29 Tm (Sonderzeichen: \304\326\334\344\366\374\337 \200 \204Deutsch\223 \226 \227 \205 und ein l\344ngerer Satz zur Pr\374fung der Zeilenbreite.) Tj ET
+0 g BT /F1 9 Tf 1 0 0 1 56.7 144.69 Tm (Hinweis: Dieses Dokument ist synthetisch und enth\344lt keine realen Personendaten.) Tj ET
+0 g BT /F1 9 Tf 1 0 0 1 56.7 128.69 Tm (Es dient ausschlie\337lich der Entwicklung und Pr\374fung des Editors.) Tj ET
+0 g 0.6 w 56.7 46 m 538.58 46 l S
+0 g BT /F1 7 Tf 1 0 0 1 56.7 32.4 Tm (Synthetisches Testdokument \226 kein amtliches Formular \226 keine personenbezogenen Daten) Tj ET
+0 g BT /F1 8 Tf 1 0 0 1 490.66 31.6 Tm (Seite 1 von 1) Tj ET
+
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000036 00000 n 
+0000000085 00000 n 
+0000000142 00000 n 
+0000000239 00000 n 
+0000000341 00000 n 
+0000000493 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R /ID [<46454C44455841464958545552453031> <46454C44455841464958545552453031>] >>
+startxref
+2995
+%%EOF
