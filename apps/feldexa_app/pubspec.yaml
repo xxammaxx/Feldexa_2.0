@@ -48,3 +48,22 @@ flutter:
   # depend on a prior generation step.
   generate: true
   uses-material-design: true
+
+  # T006: Noto Sans is the single bundled text font (plan §Architecture
+  # Decisions 6; contracts/export-plan.md §2 uses family "NotoSans" and these
+  # exact asset paths). The static Regular/Bold TTFs are pinned by SHA-256 in
+  # assets/fonts/PROVENANCE.md and checked by tools/fonts/verify_fonts.py.
+  # T007 derives metrics.json from these same bytes.
+  fonts:
+    - family: NotoSans
+      fonts:
+        - asset: assets/fonts/NotoSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/NotoSans-Bold.ttf
+          weight: 700
+
+  # The OFL text ships as an asset so the later third-party licence surface
+  # (T003 C-T003-3) can expose the exact bundled licence. The licence UI is a
+  # later task; T006 only guarantees the file and its availability.
+  assets:
+    - assets/fonts/OFL.txt

@@ -116,7 +116,7 @@ These are the only genuine artifact contradictions found; each is resolved by th
 - [x] T003 Pin the dependencies and record the privacy/licence review in `apps/feldexa_app/pubspec.yaml` and `tools/dependency_review.md` per `plan.md` §Primary Dependencies
 - [x] T004 [P] Configure analysis, formatting, and the local gate in `.analysis_options.yaml` and `tools/gate.sh` per `plan.md` §Testing and constitution Principle VIII (enables FR-088 evidence separation)
 - [x] T005 [P] Create the German localization scaffold in `apps/feldexa_app/l10n.yaml` and `apps/feldexa_app/lib/l10n/app_de.arb` with `de` as the only release locale (FR-090)
-- [ ] T006 [P] Bundle Noto Sans Regular/Bold and the OFL licence in `apps/feldexa_app/assets/fonts/` (FR-067; plan §Architecture Decisions 6)
+- [x] T006 [P] Bundle Noto Sans Regular/Bold and the OFL licence in `apps/feldexa_app/assets/fonts/` (FR-067; plan §Architecture Decisions 6)
 - [ ] T007 Implement the font-advance metrics generator in `tools/metrics/generate_font_metrics.dart` and emit `apps/feldexa_app/assets/fonts/metrics.json` (enables FR-064 text layout and FR-068 clip detection)
 - [X] T008 [P] Create the corpus manifest schema and checksum verifier in `tools/corpus/manifest.schema.json` and `tools/corpus/verify.sh` (constitution Principle IV)
 - [ ] T009 Create the deterministic synthetic fixture generator in `tools/corpus/synthetic/generate.dart` and its fixtures under `apps/feldexa_app/assets/fixtures/` (US9; FR-086)
