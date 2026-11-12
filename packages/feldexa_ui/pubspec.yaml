@@ -1,0 +1,8 @@
+name: feldexa_ui
+description: Shared Feldexa editor widgets, overlay painting, semantics, and SIMULATED banner.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0

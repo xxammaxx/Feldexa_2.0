@@ -111,7 +111,7 @@ These are the only genuine artifact contradictions found; each is resolved by th
 
 **Purpose**: Create the monorepo, toolchain, assets, and evidence scaffolding.
 
-- [ ] T001 Create the Flutter monorepo workspace and directory skeleton in `pubspec.yaml`, `apps/feldexa_app/`, `packages/`, and `tools/` per `plan.md` §Project Structure
+- [x] T001 Create the Flutter monorepo workspace and directory skeleton in `pubspec.yaml`, `apps/feldexa_app/`, `packages/`, and `tools/` per `plan.md` §Project Structure
 - [ ] T002 Initialize the Flutter application and Android host in `apps/feldexa_app/pubspec.yaml` and `apps/feldexa_app/android/app/build.gradle.kts` with `minSdk 26` and target/compile SDK 36 (enables FR-001 Android import runtime and FR-086 browser surface; constitution Architecture and Platform Constraints)
 - [ ] T003 Pin the dependencies and record the privacy/licence review in `apps/feldexa_app/pubspec.yaml` and `tools/dependency_review.md` per `plan.md` §Primary Dependencies
 - [ ] T004 [P] Configure analysis, formatting, and the local gate in `.analysis_options.yaml` and `tools/gate.sh` per `plan.md` §Testing and constitution Principle VIII (enables FR-088 evidence separation)

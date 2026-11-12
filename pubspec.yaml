@@ -1,0 +1,22 @@
+name: feldexa_workspace
+description: Dart pub workspace for the Feldexa 2.0 Flutter monorepo.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.13.0
+
+# Flutter monorepo layout from specs/001-scanned-form-workflow/plan.md
+# §Project Structure. Every member declares `resolution: workspace` and shares
+# the single root pubspec.lock.
+workspace:
+  - apps/feldexa_app
+  - packages/feldexa_core
+  - packages/feldexa_ports
+  - packages/feldexa_recognition
+  - packages/feldexa_export
+  - packages/feldexa_application
+  - packages/feldexa_adapters_android
+  - packages/feldexa_adapters_simulated
+  - packages/feldexa_ui
+  - packages/feldexa_testkit

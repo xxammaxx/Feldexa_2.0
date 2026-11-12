@@ -1,0 +1,8 @@
+name: feldexa_adapters_android
+description: Dart thin clients for the Feldexa Android platform channel and renderer.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0

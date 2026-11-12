@@ -1,0 +1,8 @@
+name: feldexa_recognition
+description: Pure-Dart page raster preprocessing, form-field detection, and type inference.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
