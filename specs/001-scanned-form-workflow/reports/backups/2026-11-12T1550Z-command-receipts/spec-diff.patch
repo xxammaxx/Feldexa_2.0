@@ -1,0 +1,75 @@
+--- specs/001-scanned-form-workflow/reports/backups/2026-11-12T1520Z-pre-regeneration/spec.md	2026-11-12 15:24:23.257304054 +0100
++++ specs/001-scanned-form-workflow/spec.md	2026-11-12 15:42:51.693006242 +0100
+@@ -536,8 +536,8 @@
+ - **FR-044**: The system MUST preserve confirmed field geometry, types, values, signatures, and
+   verification states across save and reopen.
+ - **FR-045**: The system MUST preserve progress durably without requiring a manual save, using
+-  these checkpoints: approximately 2 seconds after the last committed change, whenever the app
+-  leaves the foreground, and on an explicit save action.
++  these checkpoints: a 2-second debounce after the last committed change, never longer than
++  2 seconds, whenever the app leaves the foreground, and on an explicit save action.
+ - **FR-046**: The system MUST distinguish saved state from unsaved state in every status surface
+   and MUST NOT claim that unsaved in-memory edits are durably stored.
+ - **FR-047**: A save MUST be reported as successful only after the stored state is confirmed
+@@ -561,7 +561,8 @@
+ 
+ - **FR-054**: The system MUST offer an explicit "Als Vorlage speichern" action.
+ - **FR-055**: The action MUST be available for a document whose field structure has been
+-  reviewed.
++  reviewed, meaning every field suggestion has been confirmed or rejected and every user-added
++  field has a verification state other than unreviewed.
+ - **FR-056**: A saved template MUST contain the original pages and the confirmed field
+   definitions.
+ - **FR-057**: A saved template MUST NOT contain entered values, answers, or handwritten
+@@ -576,7 +577,8 @@
+ **Export**
+ 
+ - **FR-062**: Users MUST be able to export a document as a completed PDF once its fields are
+-  confirmed and filled.
++  confirmed; empty fields MUST NOT block export. Handling of unresolved overlapping
++  suggestions remains subject to the documented provisional export preflight policy.
+ - **FR-063**: The exported PDF MUST contain every original page in the original order with the
+   original visual appearance.
+ - **FR-064**: Entered values MUST be rendered at their field positions in a readable size and
+@@ -623,15 +625,17 @@
+ - **FR-081**: Diagnostic information, if any, MUST remain on the device and MUST exclude document
+   content, file names, recognized text, field values, and signatures.
+ - **FR-082**: The system MUST NOT create, copy, or retain plaintext document data in logs,
+-  caches, thumbnails, temporary shared locations, or backups beyond what the user explicitly
+-  exports or shares.
++  caches, thumbnails, temporary shared locations, or backups, except the user-requested
++  export-preview file in app-private cache, which MUST be limited to the preview lifetime and
++  swept on startup and session end.
+ 
+ **Understanding recognition results**
+ 
+ - **FR-083**: The system MUST visibly indicate uncertainty for low-confidence suggestions.
+ - **FR-084**: The system MUST explain failed pages or unsupported structures in German.
+ - **FR-085**: The system MUST allow users to distinguish automatic suggestions from confirmed
+-  fields in the document view and in any summary surface.
++  fields in any summary surface, in addition to the document-view distinction required by
++  FR-028.
+ 
+ **Development and validation surface**
+ 
+@@ -667,7 +671,7 @@
+ **Stored document access**
+ 
+ - **FR-097**: The system MUST provide a start area listing stored documents and stored templates
+-  as separate groups, each entry showing at least its title and last-edited date.
++  as separate groups, each entry showing at least its title, last-edited date, and status.
+ - **FR-098**: Users MUST be able to open any stored document or template from that list.
+ - **FR-099**: Users MUST be able to delete a stored document or template from that list, after a
+   German confirmation that names the item and states what will be removed.
+@@ -766,8 +770,9 @@
+   created from the same template never change each other, in 100% of trials.
+ - **SC-013**: A template created from a filled document contains zero entered values and zero
+   signature marks.
+-- **SC-014**: 100% of user-facing strings in the release build are German, including errors and
+-  recovery guidance.
++- **SC-014**: 100% of translatable user-facing strings in the release build are German, including
++  errors and recovery guidance, with the constitutionally mandated untranslated `SIMULATED`
++  evidence token allowlisted.
+ - **SC-015**: Accessibility checks pass on the primary journey: every control is reachable by
+   screen reader and focus traversal, text scales to 200% without loss of function, text contrast
+   meets the applicable minimum, and touch targets for primary controls meet the minimum usable

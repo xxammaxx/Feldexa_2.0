@@ -1,0 +1,1368 @@
+{
+  "repository": "xxammaxx/Feldexa_2.0",
+  "snapshot_utc": "2026-11-12T15:50:00Z",
+  "source": "gh issue list --state all --limit 200 --json number,title,state",
+  "total_tasks": 147,
+  "total_issues": 147,
+  "unique_task_ids": 147,
+  "unique_issue_numbers": 147,
+  "all_open": true,
+  "exact_title_matches": 119,
+  "stale_title_matches": 28,
+  "stale_task_ids": [
+    "T002",
+    "T004",
+    "T007",
+    "T015",
+    "T016",
+    "T017",
+    "T018",
+    "T024",
+    "T027",
+    "T029",
+    "T030",
+    "T045",
+    "T048",
+    "T060",
+    "T084",
+    "T093",
+    "T095",
+    "T097",
+    "T109",
+    "T113",
+    "T117",
+    "T137",
+    "T140",
+    "T142",
+    "T144",
+    "T145",
+    "T146",
+    "T147"
+  ],
+  "mapping": [
+    {
+      "task_id": "T001",
+      "issue_number": 1,
+      "issue_state": "OPEN",
+      "issue_title": "T001: Create the Flutter monorepo workspace and directory skeleton in `pubspec.yaml`, `apps/feldexa_app/`, `packages/`, and `tools/` per `plan.md` §Project Structure",
+      "current_task": "Create the Flutter monorepo workspace and directory skeleton in `pubspec.yaml`, `apps/feldexa_app/`, `packages/`, and `tools/` per `plan.md` §Project Structure",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T002",
+      "issue_number": 2,
+      "issue_state": "OPEN",
+      "issue_title": "T002: Initialize the Flutter application and Android host in `apps/feldexa_app/pubspec.yaml` and `apps/feldexa_app/android/app/build.gradle.kts` with `minSdk 26` and target/compile SDK 36",
+      "current_task": "Initialize the Flutter application and Android host in `apps/feldexa_app/pubspec.yaml` and `apps/feldexa_app/android/app/build.gradle.kts` with `minSdk 26` and target/compile SDK 36 (enables FR-001 Android import runtime and FR-086 browser surface; constitution Architecture and Platform Constraints)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T003",
+      "issue_number": 3,
+      "issue_state": "OPEN",
+      "issue_title": "T003: Pin the dependencies and record the privacy/licence review in `apps/feldexa_app/pubspec.yaml` and `tools/dependency_review.md` per `plan.md` §Primary Dependencies",
+      "current_task": "Pin the dependencies and record the privacy/licence review in `apps/feldexa_app/pubspec.yaml` and `tools/dependency_review.md` per `plan.md` §Primary Dependencies",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T004",
+      "issue_number": 4,
+      "issue_state": "OPEN",
+      "issue_title": "T004: Configure analysis, formatting, and the local gate in `.analysis_options.yaml` and `tool/gate.sh` per `plan.md` §Testing and constitution Principle VIII",
+      "current_task": "Configure analysis, formatting, and the local gate in `.analysis_options.yaml` and `tools/gate.sh` per `plan.md` §Testing and constitution Principle VIII (enables FR-088 evidence separation)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T005",
+      "issue_number": 5,
+      "issue_state": "OPEN",
+      "issue_title": "T005: Create the German localization scaffold in `apps/feldexa_app/l10n.yaml` and `apps/feldexa_app/lib/l10n/app_de.arb` with `de` as the only release locale (FR-090)",
+      "current_task": "Create the German localization scaffold in `apps/feldexa_app/l10n.yaml` and `apps/feldexa_app/lib/l10n/app_de.arb` with `de` as the only release locale (FR-090)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T006",
+      "issue_number": 6,
+      "issue_state": "OPEN",
+      "issue_title": "T006: Bundle Noto Sans Regular/Bold and the OFL licence in `apps/feldexa_app/assets/fonts/` (FR-067; plan §Architecture Decisions 6)",
+      "current_task": "Bundle Noto Sans Regular/Bold and the OFL licence in `apps/feldexa_app/assets/fonts/` (FR-067; plan §Architecture Decisions 6)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T007",
+      "issue_number": 7,
+      "issue_state": "OPEN",
+      "issue_title": "T007: Implement the font-advance metrics generator in `tools/metrics/generate_font_metrics.dart` and emit `apps/feldexa_app/assets/fonts/metrics.json`",
+      "current_task": "Implement the font-advance metrics generator in `tools/metrics/generate_font_metrics.dart` and emit `apps/feldexa_app/assets/fonts/metrics.json` (enables FR-064 text layout and FR-068 clip detection)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T008",
+      "issue_number": 8,
+      "issue_state": "OPEN",
+      "issue_title": "T008: Create the corpus manifest schema and checksum verifier in `tools/corpus/manifest.schema.json` and `tools/corpus/verify.sh` (constitution Principle IV)",
+      "current_task": "Create the corpus manifest schema and checksum verifier in `tools/corpus/manifest.schema.json` and `tools/corpus/verify.sh` (constitution Principle IV)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T009",
+      "issue_number": 9,
+      "issue_state": "OPEN",
+      "issue_title": "T009: Create the deterministic synthetic fixture generator in `tools/corpus/synthetic/generate.dart` and its fixtures under `apps/feldexa_app/assets/fixtures/` (US9; FR-086)",
+      "current_task": "Create the deterministic synthetic fixture generator in `tools/corpus/synthetic/generate.dart` and its fixtures under `apps/feldexa_app/assets/fixtures/` (US9; FR-086)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T010",
+      "issue_number": 10,
+      "issue_state": "OPEN",
+      "issue_title": "T010: Create the evidence report template and directory in `specs/001-scanned-form-workflow/reports/README.md` for the `SIMULATED`, `EMULATOR`, and `DEVICE` classes (constitution Principle VIII)",
+      "current_task": "Create the evidence report template and directory in `specs/001-scanned-form-workflow/reports/README.md` for the `SIMULATED`, `EMULATOR`, and `DEVICE` classes (constitution Principle VIII)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T011",
+      "issue_number": 11,
+      "issue_state": "OPEN",
+      "issue_title": "T011: Create the test toolkit with a fake clock, fixture loader, and fault hooks in `packages/feldexa_testkit/lib/` (plan §Architecture Decisions 10)",
+      "current_task": "Create the test toolkit with a fake clock, fixture loader, and fault hooks in `packages/feldexa_testkit/lib/` (plan §Architecture Decisions 10)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T012",
+      "issue_number": 12,
+      "issue_state": "OPEN",
+      "issue_title": "T012: Create the shared `SIMULATED` banner and evidence-label widget in `packages/feldexa_ui/lib/src/simulated_banner.dart` (FR-087; constitution Principle II)",
+      "current_task": "Create the shared `SIMULATED` banner and evidence-label widget in `packages/feldexa_ui/lib/src/simulated_banner.dart` (FR-087; constitution Principle II)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T013",
+      "issue_number": 13,
+      "issue_state": "OPEN",
+      "issue_title": "T013: Define every capability interface in `packages/feldexa_ports/lib/` per `contracts/ports.md` (constitution Architecture and Platform Constraints)",
+      "current_task": "Define every capability interface in `packages/feldexa_ports/lib/` per `contracts/ports.md` (constitution Architecture and Platform Constraints)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T014",
+      "issue_number": 14,
+      "issue_state": "OPEN",
+      "issue_title": "T014: Define the error taxonomy and evidence classes in `packages/feldexa_ports/lib/src/errors.dart` and `packages/feldexa_ports/lib/src/evidence.dart` (constitution Principle VIII)",
+      "current_task": "Define the error taxonomy and evidence classes in `packages/feldexa_ports/lib/src/errors.dart` and `packages/feldexa_ports/lib/src/evidence.dart` (constitution Principle VIII)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T015",
+      "issue_number": 15,
+      "issue_state": "OPEN",
+      "issue_title": "T015: Implement `Rect`, `Size`, and `Point` value objects in `packages/feldexa_core/lib/src/geometry/rect.dart` with finite, positive-size invariants (`data-model.md` §2.2)",
+      "current_task": "Implement `Rect`, `Size`, and `Point` value objects in `packages/feldexa_core/lib/src/geometry/rect.dart` with finite, positive-size invariants (`data-model.md` §2.2; enables FR-024 and SC-017)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T016",
+      "issue_number": 16,
+      "issue_state": "OPEN",
+      "issue_title": "T016: Implement `PageGeometry` display-box, rotation, and CropBox mapping in `packages/feldexa_core/lib/src/geometry/page_geometry.dart` with tests in `packages/feldexa_core/test/geometry_test.dart` (`contracts/coordinates-and-geometry.md` §1–§2)",
+      "current_task": "Implement `PageGeometry` display-box, rotation, and CropBox mapping in `packages/feldexa_core/lib/src/geometry/page_geometry.dart` with tests in `packages/feldexa_core/test/geometry_test.dart` (`contracts/coordinates-and-geometry.md` §1–§2; enables FR-003 and SC-017)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T017",
+      "issue_number": 17,
+      "issue_state": "OPEN",
+      "issue_title": "T017: Define the versioned document aggregate and canonical JSON encoding in `packages/feldexa_core/lib/src/model/document.dart` and `packages/feldexa_core/lib/src/model/canonical_json.dart` (`data-model.md` §3.1, §4)",
+      "current_task": "Define the versioned document aggregate and canonical JSON encoding in `packages/feldexa_core/lib/src/model/document.dart` and `packages/feldexa_core/lib/src/model/canonical_json.dart` (`data-model.md` §3.1, §4; enables FR-043 and FR-044)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T018",
+      "issue_number": 18,
+      "issue_state": "OPEN",
+      "issue_title": "T018: Implement `FieldSuggestion`, `ConfirmedField`, `FieldValue`, and `FieldVerification` in `packages/feldexa_core/lib/src/model/field.dart` with the enum and length constraints from `data-model.md` §3.4–§3.8",
+      "current_task": "Implement `FieldSuggestion`, `ConfirmedField`, `FieldValue`, and `FieldVerification` in `packages/feldexa_core/lib/src/model/field.dart` with the enum and length constraints from `data-model.md` §3.4–§3.8 (enables FR-021, FR-028, and FR-031)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T019",
+      "issue_number": 19,
+      "issue_state": "OPEN",
+      "issue_title": "T019: Implement the reclassification compatibility rules in `packages/feldexa_core/lib/src/model/reclassification.dart` and tests in `packages/feldexa_core/test/reclassification_test.dart` (FR-029; `data-model.md` §3.5)",
+      "current_task": "Implement the reclassification compatibility rules in `packages/feldexa_core/lib/src/model/reclassification.dart` and tests in `packages/feldexa_core/test/reclassification_test.dart` (FR-029; `data-model.md` §3.5)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T020",
+      "issue_number": 20,
+      "issue_state": "OPEN",
+      "issue_title": "T020: Implement `DurabilityStatus`, `Revision`, and `DurablePointer` in `packages/feldexa_core/lib/src/model/persistence.dart` (FR-044/FR-046; `data-model.md` §2.5, §3.12–§3.13)",
+      "current_task": "Implement `DurabilityStatus`, `Revision`, and `DurablePointer` in `packages/feldexa_core/lib/src/model/persistence.dart` (FR-044/FR-046; `data-model.md` §2.5, §3.12–§3.13)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T021",
+      "issue_number": 21,
+      "issue_state": "OPEN",
+      "issue_title": "T021: Implement `Template`, `TemplateVersion`, and `TemplateOrigin` in `packages/feldexa_core/lib/src/model/template.dart` (FR-101–FR-106; `data-model.md` §3.9–§3.11)",
+      "current_task": "Implement `Template`, `TemplateVersion`, and `TemplateOrigin` in `packages/feldexa_core/lib/src/model/template.dart` (FR-101–FR-106; `data-model.md` §3.9–§3.11)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T022",
+      "issue_number": 22,
+      "issue_state": "OPEN",
+      "issue_title": "T022: Implement the `ExportArtifact` state machine in `packages/feldexa_core/lib/src/model/export_artifact.dart` with optimistic states forbidden (FR-072; `data-model.md` §3.15)",
+      "current_task": "Implement the `ExportArtifact` state machine in `packages/feldexa_core/lib/src/model/export_artifact.dart` with optimistic states forbidden (FR-072; `data-model.md` §3.15)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T023",
+      "issue_number": 23,
+      "issue_state": "OPEN",
+      "issue_title": "T023: Implement the explicit adapter registry and release assertion in `apps/feldexa_app/lib/platform/registry.dart`, `registry_android.dart`, `registry_web.dart`, and `registry_unsupported.dart` (constitution Principle II; plan §Architecture Decisions 8)",
+      "current_task": "Implement the explicit adapter registry and release assertion in `apps/feldexa_app/lib/platform/registry.dart`, `registry_android.dart`, `registry_web.dart`, and `registry_unsupported.dart` (constitution Principle II; plan §Architecture Decisions 8)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T024",
+      "issue_number": 24,
+      "issue_state": "OPEN",
+      "issue_title": "T024: Implement the `FeldexaPlugin` MethodChannel/EventChannel facade in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/FeldexaPlugin.kt` per `contracts/platform-channel.md`",
+      "current_task": "Implement the `FeldexaPlugin` MethodChannel/EventChannel facade in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/FeldexaPlugin.kt` per `contracts/platform-channel.md` (enables FR-001, FR-013, and FR-095 platform calls)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T025",
+      "issue_number": 25,
+      "issue_state": "OPEN",
+      "issue_title": "T025: Implement Android Keystore master-key creation and DEK wrap/unwrap in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/storage/KeystoreService.kt` (FR-049/FR-050; plan §Storage)",
+      "current_task": "Implement Android Keystore master-key creation and DEK wrap/unwrap in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/storage/KeystoreService.kt` (FR-049/FR-050; plan §Storage)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T026",
+      "issue_number": 26,
+      "issue_state": "OPEN",
+      "issue_title": "T026: Implement the `FXC1` encrypted store with atomic commit, read-back verification, and stale-temp sweep in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/storage/EncryptedStore.kt` (FR-047; `contracts/storage-format.md`)",
+      "current_task": "Implement the `FXC1` encrypted store with atomic commit, read-back verification, and stale-temp sweep in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/storage/EncryptedStore.kt` (FR-047; `contracts/storage-format.md`)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T027",
+      "issue_number": 27,
+      "issue_state": "OPEN",
+      "issue_title": "T027: Implement the Android Dart thin clients in `packages/feldexa_adapters_android/lib/` for import, OCR, storage, rendering, delivery, and clock ports",
+      "current_task": "Implement the Android Dart thin clients in `packages/feldexa_adapters_android/lib/` for import, OCR, storage, rendering, delivery, and clock ports (enables FR-001, FR-013, FR-043, FR-063, and FR-071)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T028",
+      "issue_number": 28,
+      "issue_state": "OPEN",
+      "issue_title": "T028: Implement deterministic `SIMULATED` adapters in `packages/feldexa_adapters_simulated/lib/` for import, page rasterization, storage, OCR, export, and delivery (FR-087; plan §Architecture Decisions 9)",
+      "current_task": "Implement deterministic `SIMULATED` adapters in `packages/feldexa_adapters_simulated/lib/` for import, page rasterization, storage, OCR, export, and delivery (FR-087; plan §Architecture Decisions 9)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T029",
+      "issue_number": 29,
+      "issue_state": "OPEN",
+      "issue_title": "T029: Build all German ARB keys from `contracts/error-catalog.de.md` in `apps/feldexa_app/lib/l10n/app_de.arb` and add `apps/feldexa_app/test/german_strings_test.dart` (FR-090; SC-014)",
+      "current_task": "Build all German ARB keys from the **corrected** `contracts/error-catalog.de.md` in `apps/feldexa_app/lib/l10n/app_de.arb` and add `apps/feldexa_app/test/german_strings_test.dart` (FR-090; SC-014). The catalog already carries the corrected `IMP-007` (80 MiB / 83.886.080 Bytes) and `FLD-001` (export is stopped) strings; generate the ARB from that corrected text so T045/T084 only have to verify it.",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T030",
+      "issue_number": 30,
+      "issue_state": "OPEN",
+      "issue_title": "T030: Add the font-metrics contract test in `packages/feldexa_export/test/font_metrics_test.dart` comparing Dart advances and glyph coverage against the bundled metrics",
+      "current_task": "Add the font-metrics contract test in `packages/feldexa_export/test/font_metrics_test.dart` comparing Dart advances and glyph coverage against the bundled metrics (FR-067/FR-068)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T031",
+      "issue_number": 31,
+      "issue_state": "OPEN",
+      "issue_title": "T031: Implement startup recovery and temp/export-preview sweeping in `apps/feldexa_app/lib/bootstrap/startup_sweep.dart` (plan §Constraints)",
+      "current_task": "Implement startup recovery and temp/export-preview sweeping in `apps/feldexa_app/lib/bootstrap/startup_sweep.dart` (plan §Constraints)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T032",
+      "issue_number": 32,
+      "issue_state": "OPEN",
+      "issue_title": "T032: Create the evidence report schema and validator in `tools/evaluation/report_schema.json` and `tools/evaluation/validate_report.dart` (constitution Principle VIII)",
+      "current_task": "Create the evidence report schema and validator in `tools/evaluation/report_schema.json` and `tools/evaluation/validate_report.dart` (constitution Principle VIII)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T033",
+      "issue_number": 33,
+      "issue_state": "OPEN",
+      "issue_title": "T033: Assemble the rights-cleared corpus of at least 20 real German authority forms and record provenance in `tools/corpus/manifest.json` (constitution Principle IV; SC-001)",
+      "current_task": "Assemble the rights-cleared corpus of at least 20 real German authority forms and record provenance in `tools/corpus/manifest.json` (constitution Principle IV; SC-001)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T034",
+      "issue_number": 34,
+      "issue_state": "OPEN",
+      "issue_title": "T034: Freeze `corpus-1.0.0` and `metric-definition.v1.md` and implement the scorer in `tools/evaluation/metric-definition.v1.md` and `tools/evaluation/score.dart` before any scoring run (constitution Principle IV; SC-001/SC-002)",
+      "current_task": "Freeze `corpus-1.0.0` and `metric-definition.v1.md` and implement the scorer in `tools/evaluation/metric-definition.v1.md` and `tools/evaluation/score.dart` before any scoring run (constitution Principle IV; SC-001/SC-002)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T035",
+      "issue_number": 35,
+      "issue_state": "OPEN",
+      "issue_title": "T035: Record the manual-baseline protocol in `tools/evaluation/manual-baseline.md` using the add/move/resize/reclassify comparison from `research.md` D-18 (SC-003)",
+      "current_task": "Record the manual-baseline protocol in `tools/evaluation/manual-baseline.md` using the add/move/resize/reclassify comparison from `research.md` D-18 (SC-003)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T036",
+      "issue_number": 36,
+      "issue_state": "OPEN",
+      "issue_title": "T036: Implement the failure-injection harness for clock, quota, keystore, and write interruption in `packages/feldexa_testkit/lib/src/faults.dart` (constitution Principle VIII)",
+      "current_task": "Implement the failure-injection harness for clock, quota, keystore, and write interruption in `packages/feldexa_testkit/lib/src/faults.dart` (constitution Principle VIII)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T037",
+      "issue_number": 37,
+      "issue_state": "OPEN",
+      "issue_title": "T037: Write the import-port and preflight contract tests in `packages/feldexa_ports/test/import_port_test.dart` and `packages/feldexa_core/test/import_contract_test.dart` (FR-001/FR-002)",
+      "current_task": "Write the import-port and preflight contract tests in `packages/feldexa_ports/test/import_port_test.dart` and `packages/feldexa_core/test/import_contract_test.dart` (FR-001/FR-002)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T038",
+      "issue_number": 38,
+      "issue_state": "OPEN",
+      "issue_title": "T038: Implement the SAF `ACTION_OPEN_DOCUMENT` streaming import in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/import/ImportService.kt` (FR-001; FR-095)",
+      "current_task": "Implement the SAF `ACTION_OPEN_DOCUMENT` streaming import in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/import/ImportService.kt` (FR-001; FR-095)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T039",
+      "issue_number": 39,
+      "issue_state": "OPEN",
+      "issue_title": "T039: Implement PDF preflight with page geometry and encryption detection in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/pdf/PdfPreflight.kt` (FR-003/FR-005/FR-006; `contracts/platform-channel.md`)",
+      "current_task": "Implement PDF preflight with page geometry and encryption detection in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/pdf/PdfPreflight.kt` (FR-003/FR-005/FR-006; `contracts/platform-channel.md`)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T040",
+      "issue_number": 40,
+      "issue_state": "OPEN",
+      "issue_title": "T040: Implement the streaming encrypted source copy in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/import/ImportService.kt` and `.../storage/EncryptedStore.kt` (FR-004; FR-095/FR-096)",
+      "current_task": "Implement the streaming encrypted source copy in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/import/ImportService.kt` and `.../storage/EncryptedStore.kt` (FR-004; FR-095/FR-096)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T041",
+      "issue_number": 41,
+      "issue_state": "OPEN",
+      "issue_title": "T041: Map every import failure to the German catalog and suppress document creation in `apps/feldexa_app/lib/features/start/import_error_mapper.dart` (FR-005, FR-006, FR-007, FR-008, FR-009; `contracts/error-catalog.de.md` §1)",
+      "current_task": "Map every import failure to the German catalog and suppress document creation in `apps/feldexa_app/lib/features/start/import_error_mapper.dart` (FR-005, FR-006, FR-007, FR-008, FR-009; `contracts/error-catalog.de.md` §1)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T042",
+      "issue_number": 42,
+      "issue_state": "OPEN",
+      "issue_title": "T042: Implement the pdfrx page viewer and source-point geometry mapping in `apps/feldexa_app/lib/features/editor/page_view.dart` (FR-003; `contracts/coordinates-and-geometry.md`)",
+      "current_task": "Implement the pdfrx page viewer and source-point geometry mapping in `apps/feldexa_app/lib/features/editor/page_view.dart` (FR-003; `contracts/coordinates-and-geometry.md`)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T043",
+      "issue_number": 43,
+      "issue_state": "OPEN",
+      "issue_title": "T043: Implement page-strip navigation that works before analysis finishes in `apps/feldexa_app/lib/features/editor/page_strip.dart` (US1 scenario 2; FR-018)",
+      "current_task": "Implement page-strip navigation that works before analysis finishes in `apps/feldexa_app/lib/features/editor/page_strip.dart` (US1 scenario 2; FR-018)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T044",
+      "issue_number": 44,
+      "issue_state": "OPEN",
+      "issue_title": "T044: Handle partially unreadable pages and the `IMP-006` warning in `apps/feldexa_app/lib/features/editor/page_state.dart` (FR-010)",
+      "current_task": "Handle partially unreadable pages and the `IMP-006` warning in `apps/feldexa_app/lib/features/editor/page_state.dart` (FR-010)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T045",
+      "issue_number": 45,
+      "issue_state": "OPEN",
+      "issue_title": "T045: Enforce the 80 MiB (83,886,080-byte) import cap and align `IMP-007` units in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/import/ImportService.kt` and `contracts/error-catalog.de.md` (plan §Performance Goals; CHK028)",
+      "current_task": "Enforce the 80 MiB (83,886,080-byte) import cap and **verify** the already-corrected `IMP-007` wording (\"80 MiB (83.886.080 Bytes)\") in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/import/ImportService.kt` and `contracts/error-catalog.de.md` (FR-005; plan §Performance Goals; CHK028; CR-3). Assert that the ARB key generated from the T029 corrected catalog and the German rejection message match that text.",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T046",
+      "issue_number": 46,
+      "issue_state": "OPEN",
+      "issue_title": "T046: Add the Android import integration test for single, five-page, protected, truncated, non-PDF, unknown-failure, and partially damaged files in `apps/feldexa_app/integration_test/android_import_test.dart` (US1 Independent Test; SC-011)",
+      "current_task": "Add the Android import integration test for single, five-page, protected, truncated, non-PDF, unknown-failure, and partially damaged files in `apps/feldexa_app/integration_test/android_import_test.dart` (US1 Independent Test; SC-011)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T047",
+      "issue_number": 47,
+      "issue_state": "OPEN",
+      "issue_title": "T047: Add the `SIMULATED` browser import journey in `apps/feldexa_app/integration_test/web_import_test.dart` (FR-086/FR-087)",
+      "current_task": "Add the `SIMULATED` browser import journey in `apps/feldexa_app/integration_test/web_import_test.dart` (FR-086/FR-087)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T048",
+      "issue_number": 48,
+      "issue_state": "OPEN",
+      "issue_title": "T048: Add the byte-identity and modification-time test in `apps/feldexa_app/integration_test/source_integrity_test.dart` (FR-004; SC-019)",
+      "current_task": "Add the source-integrity test in `apps/feldexa_app/integration_test/source_integrity_test.dart`: assert byte identity and unchanged modification time of the picked file, then move/delete the originally picked file, reopen, render, and export the saved document from the protected internal copy (FR-004/FR-095/FR-096; SC-019)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T049",
+      "issue_number": 49,
+      "issue_state": "OPEN",
+      "issue_title": "T049: Add German import-message and error-semantics tests in `apps/feldexa_app/test/import_semantics_test.dart` (FR-006–FR-008; FR-094)",
+      "current_task": "Add German import-message and error-semantics tests in `apps/feldexa_app/test/import_semantics_test.dart` (FR-006–FR-008; FR-094)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T050",
+      "issue_number": 50,
+      "issue_state": "OPEN",
+      "issue_title": "T050: Write the suggestion-envelope contract test in `packages/feldexa_recognition/test/suggestion_schema_test.dart` (`contracts/recognition-output.md` §1–§2)",
+      "current_task": "Write the suggestion-envelope contract test in `packages/feldexa_recognition/test/suggestion_schema_test.dart` (`contracts/recognition-output.md` §1–§2)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T051",
+      "issue_number": 51,
+      "issue_state": "OPEN",
+      "issue_title": "T051: Implement 200 DPI grayscale page raster analysis in `packages/feldexa_recognition/lib/src/raster.dart` (`contracts/coordinates-and-geometry.md` §4)",
+      "current_task": "Implement 200 DPI grayscale page raster analysis in `packages/feldexa_recognition/lib/src/raster.dart` (`contracts/coordinates-and-geometry.md` §4)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T052",
+      "issue_number": 52,
+      "issue_state": "OPEN",
+      "issue_title": "T052: Implement ruling-line, box, table-grid, whitespace, and alignment detectors in `packages/feldexa_recognition/lib/src/geometry_detector.dart` (FR-011/FR-013/FR-016)",
+      "current_task": "Implement ruling-line, box, table-grid, whitespace, and alignment detectors in `packages/feldexa_recognition/lib/src/geometry_detector.dart` (FR-011/FR-013/FR-016)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T053",
+      "issue_number": 53,
+      "issue_state": "OPEN",
+      "issue_title": "T053: Implement label proximity and keyword-driven type inference in `packages/feldexa_recognition/lib/src/type_inference.dart` (FR-012; `contracts/recognition-output.md` §3)",
+      "current_task": "Implement label proximity and keyword-driven type inference in `packages/feldexa_recognition/lib/src/type_inference.dart` (FR-012; `contracts/recognition-output.md` §3)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T054",
+      "issue_number": 54,
+      "issue_state": "OPEN",
+      "issue_title": "T054: Implement the confidence and uncertainty model in `packages/feldexa_recognition/lib/src/confidence.dart` (FR-015/FR-083; `contracts/recognition-output.md` §3.3–§3.4)",
+      "current_task": "Implement the confidence and uncertainty model in `packages/feldexa_recognition/lib/src/confidence.dart` (FR-015/FR-083; `contracts/recognition-output.md` §3.3–§3.4)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T055",
+      "issue_number": 55,
+      "issue_state": "OPEN",
+      "issue_title": "T055: Implement `IoU ≥ 0.5` conflict detection while retaining both candidates in `packages/feldexa_recognition/lib/src/conflicts.dart` (FR-025; `contracts/recognition-output.md` §6)",
+      "current_task": "Implement `IoU ≥ 0.5` conflict detection while retaining both candidates in `packages/feldexa_recognition/lib/src/conflicts.dart` (FR-025; `contracts/recognition-output.md` §6)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T056",
+      "issue_number": 56,
+      "issue_state": "OPEN",
+      "issue_title": "T056: Implement the OCR port and bundled ML Kit adapter in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/ocr/MlKitOcrService.kt` and `packages/feldexa_adapters_android/lib/src/ocr_adapter.dart` (FR-013; constitution Principles IV and VI)",
+      "current_task": "Implement the OCR port and bundled ML Kit adapter in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/ocr/MlKitOcrService.kt` and `packages/feldexa_adapters_android/lib/src/ocr_adapter.dart` (FR-013; constitution Principles IV and VI)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T057",
+      "issue_number": 57,
+      "issue_state": "OPEN",
+      "issue_title": "T057: Implement per-page analysis state and failure isolation in `packages/feldexa_recognition/lib/src/page_analysis.dart` (FR-017, FR-018, FR-019, FR-020; `contracts/recognition-output.md` §4)",
+      "current_task": "Implement per-page analysis state and failure isolation in `packages/feldexa_recognition/lib/src/page_analysis.dart` (FR-017, FR-018, FR-019, FR-020; `contracts/recognition-output.md` §4)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T058",
+      "issue_number": 58,
+      "issue_state": "OPEN",
+      "issue_title": "T058: Persist suggestions, resolution states, and provenance in revisions in `packages/feldexa_core/lib/src/model/document.dart` (FR-014/FR-015; `contracts/recognition-output.md` §7)",
+      "current_task": "Persist suggestions, resolution states, and provenance in revisions in `packages/feldexa_core/lib/src/model/document.dart` (FR-014/FR-015; `contracts/recognition-output.md` §7)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T059",
+      "issue_number": 59,
+      "issue_state": "OPEN",
+      "issue_title": "T059: Add the frozen strict-matching contract test in `tools/evaluation/test/metric_definition_test.dart` using the `IoU ≥ 0.5` and identical-type rule (SC-001/SC-002)",
+      "current_task": "Add the frozen strict-matching contract test in `tools/evaluation/test/metric_definition_test.dart` using the `IoU ≥ 0.5` and identical-type rule (SC-001/SC-002)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T060",
+      "issue_number": 60,
+      "issue_state": "OPEN",
+      "issue_title": "T060: Run the explicitly unscored frozen-metric dry run and record it in `tools/evaluation/reports/corpus-1.0.0-dry-run.md` after T033 and T034 (CHK031; constitution Principle IV)",
+      "current_task": "Run the explicitly unscored frozen-metric dry run and record it in `specs/001-scanned-form-workflow/reports/corpus-1.0.0-dry-run.md` after T033 and T034 (CHK031; constitution Principle IV; SC-001/SC-002; evidence root per this file's Evidence Discipline)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T061",
+      "issue_number": 61,
+      "issue_state": "OPEN",
+      "issue_title": "T061: Add the Android recognition integration test on synthetic and corpus fixtures with per-page failure isolation in `apps/feldexa_app/integration_test/android_recognition_test.dart` (US2 Independent Test)",
+      "current_task": "Add the Android recognition integration test on synthetic and corpus fixtures with per-page failure isolation in `apps/feldexa_app/integration_test/android_recognition_test.dart` (US2 Independent Test)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T062",
+      "issue_number": 62,
+      "issue_state": "OPEN",
+      "issue_title": "T062: Add the `SIMULATED` browser recognition test in `apps/feldexa_app/integration_test/web_recognition_test.dart` (FR-086/FR-087)",
+      "current_task": "Add the `SIMULATED` browser recognition test in `apps/feldexa_app/integration_test/web_recognition_test.dart` (FR-086/FR-087)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T063",
+      "issue_number": 63,
+      "issue_state": "OPEN",
+      "issue_title": "T063: Record per-stage raster/OCR/detection timings in `tools/evaluation/benchmark_recognition.dart` for later SC-004 measurement (SC-004; `research.md` measurement decision)",
+      "current_task": "Record per-stage raster/OCR/detection timings in `tools/evaluation/benchmark_recognition.dart` for later SC-004 measurement (SC-004; `research.md` measurement decision)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T064",
+      "issue_number": 64,
+      "issue_state": "OPEN",
+      "issue_title": "T064: Write the suggestion-lifecycle contract test in `packages/feldexa_core/test/field_lifecycle_test.dart` (FR-021/FR-022/FR-028)",
+      "current_task": "Write the suggestion-lifecycle contract test in `packages/feldexa_core/test/field_lifecycle_test.dart` (FR-021/FR-022/FR-028)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T065",
+      "issue_number": 65,
+      "issue_state": "OPEN",
+      "issue_title": "T065: Implement confirm, reject, and undo lifecycle commands in `packages/feldexa_application/lib/src/review/confirm_suggestion.dart` (FR-021/FR-022/FR-027)",
+      "current_task": "Implement confirm, reject, and undo lifecycle commands in `packages/feldexa_application/lib/src/review/confirm_suggestion.dart` (FR-021/FR-022/FR-027)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T066",
+      "issue_number": 66,
+      "issue_state": "OPEN",
+      "issue_title": "T066: Implement add, remove, move, resize, and reclassify commands in `packages/feldexa_application/lib/src/review/edit_field.dart` (FR-023/FR-024/FR-029)",
+      "current_task": "Implement add, remove, move, resize, and reclassify commands in `packages/feldexa_application/lib/src/review/edit_field.dart` (FR-023/FR-024/FR-029)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T067",
+      "issue_number": 67,
+      "issue_state": "OPEN",
+      "issue_title": "T067: Implement bounded undo/redo with 500 ms command coalescing in `packages/feldexa_application/lib/src/review/command_history.dart` (FR-027; `data-model.md` §3.14)",
+      "current_task": "Implement bounded undo/redo with 500 ms command coalescing in `packages/feldexa_application/lib/src/review/command_history.dart` (FR-027; `data-model.md` §3.14)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T068",
+      "issue_number": 68,
+      "issue_state": "OPEN",
+      "issue_title": "T068: Implement the conflict badge and per-candidate resolution sheet in `apps/feldexa_app/lib/features/editor/review_conflict_sheet.dart` (FR-025; `contracts/editor-interactions.md` §3)",
+      "current_task": "Implement the conflict badge and per-candidate resolution sheet in `apps/feldexa_app/lib/features/editor/review_conflict_sheet.dart` (FR-025; `contracts/editor-interactions.md` §3)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T069",
+      "issue_number": 69,
+      "issue_state": "OPEN",
+      "issue_title": "T069: Implement field-overlay painting from model coordinates in `packages/feldexa_ui/lib/src/field_overlay.dart` (FR-024; SC-017)",
+      "current_task": "Implement field-overlay painting from model coordinates in `packages/feldexa_ui/lib/src/field_overlay.dart` (FR-024; SC-017)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T070",
+      "issue_number": 70,
+      "issue_state": "OPEN",
+      "issue_title": "T070: Property-test geometry round-trips at `0.5, 1, 1.75, 3, 8` zoom and rotations 0/90/180/270 with CropBox offsets in `packages/feldexa_core/test/geometry_roundtrip_test.dart` (SC-017; `contracts/coordinates-and-geometry.md` §6)",
+      "current_task": "Property-test geometry round-trips at `0.5, 1, 1.75, 3, 8` zoom and rotations 0/90/180/270 with CropBox offsets in `packages/feldexa_core/test/geometry_roundtrip_test.dart` (SC-017; `contracts/coordinates-and-geometry.md` §6)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T071",
+      "issue_number": 71,
+      "issue_state": "OPEN",
+      "issue_title": "T071: Add the Android touch drag/resize review test at 0.5×, 1×, 3×, and 8× in `apps/feldexa_app/integration_test/android_review_test.dart` (`contracts/editor-interactions.md` §12)",
+      "current_task": "Add the Android touch drag/resize review test at 0.5×, 1×, 3×, and 8× in `apps/feldexa_app/integration_test/android_review_test.dart` (`contracts/editor-interactions.md` §12)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T072",
+      "issue_number": 72,
+      "issue_state": "OPEN",
+      "issue_title": "T072: Add the `SIMULATED` browser review interaction suite in `apps/feldexa_app/integration_test/web_review_test.dart` (FR-086/FR-089)",
+      "current_task": "Add the `SIMULATED` browser review interaction suite in `apps/feldexa_app/integration_test/web_review_test.dart` (FR-086/FR-089)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T073",
+      "issue_number": 73,
+      "issue_state": "OPEN",
+      "issue_title": "T073: Implement field-order review and reordering in `apps/feldexa_app/lib/features/editor/field_order.dart` (FR-026)",
+      "current_task": "Implement field-order review and reordering in `apps/feldexa_app/lib/features/editor/field_order.dart` (FR-026)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T074",
+      "issue_number": 74,
+      "issue_state": "OPEN",
+      "issue_title": "T074: Implement provenance badges for suggestion, confirmed, and user-created fields in `packages/feldexa_ui/lib/src/provenance_badge.dart` (FR-028)",
+      "current_task": "Implement provenance badges for suggestion, confirmed, and user-created fields in `packages/feldexa_ui/lib/src/provenance_badge.dart` (FR-028)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T075",
+      "issue_number": 75,
+      "issue_state": "OPEN",
+      "issue_title": "T075: Add the degraded-detection review test in `apps/feldexa_app/test/review_degraded_test.dart` (FR-030; US3 Independent Test)",
+      "current_task": "Add the degraded-detection review test in `apps/feldexa_app/test/review_degraded_test.dart` (FR-030; US3 Independent Test)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T076",
+      "issue_number": 76,
+      "issue_state": "OPEN",
+      "issue_title": "T076: Write the type-control contract test in `apps/feldexa_app/test/field_controls_test.dart` (FR-031/FR-032)",
+      "current_task": "Write the type-control contract test in `apps/feldexa_app/test/field_controls_test.dart` (FR-031/FR-032)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T077",
+      "issue_number": 77,
+      "issue_state": "OPEN",
+      "issue_title": "T077: Implement field selection and visual highlight in `packages/feldexa_ui/lib/src/field_selection.dart` (FR-031)",
+      "current_task": "Implement field selection and visual highlight in `packages/feldexa_ui/lib/src/field_selection.dart` (FR-031)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T078",
+      "issue_number": 78,
+      "issue_state": "OPEN",
+      "issue_title": "T078: Implement the zoom-to-field target formula and test in `packages/feldexa_core/lib/src/geometry/zoom.dart` and `packages/feldexa_core/test/zoom_test.dart` (FR-034; CHK005)",
+      "current_task": "Implement the zoom-to-field target formula and test in `packages/feldexa_core/lib/src/geometry/zoom.dart` and `packages/feldexa_core/test/zoom_test.dart` (FR-034; CHK005)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T079",
+      "issue_number": 79,
+      "issue_state": "OPEN",
+      "issue_title": "T079: Implement single-line and multiline text controls with German IME support in `apps/feldexa_app/lib/features/fill/text_control.dart` (FR-033/FR-035/FR-039/FR-040)",
+      "current_task": "Implement single-line and multiline text controls with German IME support in `apps/feldexa_app/lib/features/fill/text_control.dart` (FR-033/FR-035/FR-039/FR-040)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T080",
+      "issue_number": 80,
+      "issue_state": "OPEN",
+      "issue_title": "T080: Implement number parsing, German decimal comma, optional thousands separators, negative sign, and canonical storage in `packages/feldexa_core/lib/src/validation/number.dart` (FR-032; `data-model.md` §3.6; CHK007)",
+      "current_task": "Implement number parsing, German decimal comma, optional thousands separators, negative sign, and canonical storage in `packages/feldexa_core/lib/src/validation/number.dart` (FR-032; `data-model.md` §3.6; CHK007)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T081",
+      "issue_number": 81,
+      "issue_state": "OPEN",
+      "issue_title": "T081: Implement strict `Tag.Monat.Jahr` date validation and `DATE-001`/`DATE-002` handling in `packages/feldexa_core/lib/src/validation/date.dart` (FR-107, FR-108, FR-109, FR-110; SC-022; clarification 5)",
+      "current_task": "Implement strict `Tag.Monat.Jahr` date validation and `DATE-001`/`DATE-002` handling in `packages/feldexa_core/lib/src/validation/date.dart` (FR-107, FR-108, FR-109, FR-110; SC-022; clarification 5)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T082",
+      "issue_number": 82,
+      "issue_state": "OPEN",
+      "issue_title": "T082: Implement the checkbox control with a 48 dp hit slop independent of the exported mark in `apps/feldexa_app/lib/features/fill/checkbox_control.dart` (FR-042; `contracts/editor-interactions.md` §5)",
+      "current_task": "Implement the checkbox control with a 48 dp hit slop independent of the exported mark in `apps/feldexa_app/lib/features/fill/checkbox_control.dart` (FR-042; `contracts/editor-interactions.md` §5)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T083",
+      "issue_number": 83,
+      "issue_state": "OPEN",
+      "issue_title": "T083: Implement the signature sheet bound to the current document only in `apps/feldexa_app/lib/features/fill/signature_sheet.dart` (FR-036)",
+      "current_task": "Implement the signature sheet bound to the current document only in `apps/feldexa_app/lib/features/fill/signature_sheet.dart` (FR-036)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T084",
+      "issue_number": 84,
+      "issue_state": "OPEN",
+      "issue_title": "T084: Implement overflow warning and align `FLD-001` wording with blocking `EXP-001` in `apps/feldexa_app/lib/features/fill/overflow_warning.dart` and `contracts/error-catalog.de.md` (FR-037/FR-038/FR-068; CHK030)",
+      "current_task": "Implement the overflow warning and **verify** the already-corrected `FLD-001` wording (export is stopped until the text is shortened or the field enlarged) against blocking `EXP-001` in `apps/feldexa_app/lib/features/fill/overflow_warning.dart` and `contracts/error-catalog.de.md` (FR-037/FR-038/FR-068; CHK030; CR-4). Assert that the ARB key generated from the T029 corrected catalog and the warning text match that string.",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T085",
+      "issue_number": 85,
+      "issue_state": "OPEN",
+      "issue_title": "T085: Implement per-field completion state for optional and empty fields in `apps/feldexa_app/lib/features/editor/field_completion.dart` (FR-041; CHK008)",
+      "current_task": "Implement per-field completion state for optional and empty fields in `apps/feldexa_app/lib/features/editor/field_completion.dart` (FR-041; CHK008)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T086",
+      "issue_number": 86,
+      "issue_state": "OPEN",
+      "issue_title": "T086: Add the Android two-page touch fill test in `apps/feldexa_app/integration_test/android_fill_test.dart` (US4 Independent Test)",
+      "current_task": "Add the Android two-page touch fill test in `apps/feldexa_app/integration_test/android_fill_test.dart` (US4 Independent Test)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T087",
+      "issue_number": 87,
+      "issue_state": "OPEN",
+      "issue_title": "T087: Add the `SIMULATED` browser fill test in `apps/feldexa_app/integration_test/web_fill_test.dart` (FR-086/FR-087)",
+      "current_task": "Add the `SIMULATED` browser fill test in `apps/feldexa_app/integration_test/web_fill_test.dart` (FR-086/FR-087)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T088",
+      "issue_number": 88,
+      "issue_state": "OPEN",
+      "issue_title": "T088: Write the durability-state contract test in `packages/feldexa_core/test/durability_test.dart` (FR-046; `data-model.md` §2.5)",
+      "current_task": "Write the durability-state contract test in `packages/feldexa_core/test/durability_test.dart` (FR-046; `data-model.md` §2.5)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T089",
+      "issue_number": 89,
+      "issue_state": "OPEN",
+      "issue_title": "T089: Implement the 2 s debounced autosave, foreground flush, and explicit save in `packages/feldexa_application/lib/src/persistence/autosave.dart` (FR-045; SC-020; clarification 2; CHK001)",
+      "current_task": "Implement the 2 s debounced autosave, foreground flush, and explicit save in `packages/feldexa_application/lib/src/persistence/autosave.dart` (FR-045; SC-020; clarification 2; CHK001)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T090",
+      "issue_number": 90,
+      "issue_state": "OPEN",
+      "issue_title": "T090: Implement atomic save orchestration with read-back verification in `packages/feldexa_application/lib/src/persistence/save_document.dart` (FR-043/FR-047/FR-048; FR-106 pattern)",
+      "current_task": "Implement atomic save orchestration with read-back verification in `packages/feldexa_application/lib/src/persistence/save_document.dart` (FR-043/FR-047/FR-048; FR-106 pattern)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T091",
+      "issue_number": 91,
+      "issue_state": "OPEN",
+      "issue_title": "T091: Implement the durability labels, status surfaces, and the pre-emptive PRIV-001 key/backup disclosure in `apps/feldexa_app/lib/features/editor/durability_status.dart` (FR-046/FR-051; `contracts/error-catalog.de.md` §3)",
+      "current_task": "Implement the durability labels, status surfaces, and the pre-emptive PRIV-001 key/backup disclosure in `apps/feldexa_app/lib/features/editor/durability_status.dart` (FR-046/FR-051; `contracts/error-catalog.de.md` §3)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T092",
+      "issue_number": 92,
+      "issue_state": "OPEN",
+      "issue_title": "T092: Add the force-stop recovery test for edits older and newer than 2 seconds in `apps/feldexa_app/integration_test/android_autosave_recovery_test.dart` (SC-009/SC-020)",
+      "current_task": "Add the force-stop recovery test for edits older and newer than 2 seconds in `apps/feldexa_app/integration_test/android_autosave_recovery_test.dart` (SC-009/SC-020)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T093",
+      "issue_number": 93,
+      "issue_state": "OPEN",
+      "issue_title": "T093: Add the key-loss isolation test in `apps/feldexa_app/integration_test/key_loss_test.dart` (FR-052; `quickstart.md` §8)",
+      "current_task": "Add the key-loss isolation test in `apps/feldexa_app/integration_test/key_loss_test.dart`, and assert in the same suite that opening a saved document requires no separate app password and no mandatory biometric unlock (FR-052/FR-050; `quickstart.md` §8)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T094",
+      "issue_number": 94,
+      "issue_state": "OPEN",
+      "issue_title": "T094: Add the storage-exhaustion and no-success-report test in `apps/feldexa_app/integration_test/storage_full_test.dart` (FR-074/FR-075/FR-076; SC-010)",
+      "current_task": "Add the storage-exhaustion and no-success-report test in `apps/feldexa_app/integration_test/storage_full_test.dart` (FR-074/FR-075/FR-076; SC-010)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T095",
+      "issue_number": 95,
+      "issue_state": "OPEN",
+      "issue_title": "T095: Implement the start area with separate document and template groups in `apps/feldexa_app/lib/features/start/stored_items.dart` (FR-058/FR-097/FR-098; clarification 3)",
+      "current_task": "Implement the start area with separate document and template groups in `apps/feldexa_app/lib/features/start/stored_items.dart`, showing each entry's title, last-edited date, and status (FR-058/FR-097/FR-098; clarification 3)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T096",
+      "issue_number": 96,
+      "issue_state": "OPEN",
+      "issue_title": "T096: Implement list deletion with a German confirmation naming what remains in `apps/feldexa_app/lib/features/start/delete_item.dart` (FR-053/FR-099)",
+      "current_task": "Implement list deletion with a German confirmation naming what remains in `apps/feldexa_app/lib/features/start/delete_item.dart` (FR-053/FR-099)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T097",
+      "issue_number": 97,
+      "issue_state": "OPEN",
+      "issue_title": "T097: Define and test the 50-item list interaction bound in `apps/feldexa_app/integration_test/stored_list_50_test.dart` (FR-100; CHK024; owner decision OD-4)",
+      "current_task": "Implement the 50-item list test in `apps/feldexa_app/integration_test/stored_list_50_test.dart` and keep it **blocked on owner decision OD-4** for the numeric interaction/latency bound; do not invent a bound, record the measured result as unratified until OD-4 is decided (FR-100; CHK024)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T098",
+      "issue_number": 98,
+      "issue_state": "OPEN",
+      "issue_title": "T098: Verify no plaintext PDF, log, thumbnail, or backup residue in `apps/feldexa_app/integration_test/plaintext_leak_test.dart` (FR-082; CHK029)",
+      "current_task": "Verify no plaintext PDF, log, thumbnail, or backup residue in `apps/feldexa_app/integration_test/plaintext_leak_test.dart` (FR-082; CHK029)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T099",
+      "issue_number": 99,
+      "issue_state": "OPEN",
+      "issue_title": "T099: Verify diagnostics exclude paths, file names, OCR text, values, and signatures in `apps/feldexa_app/test/diagnostics_privacy_test.dart` (FR-081)",
+      "current_task": "Verify diagnostics exclude paths, file names, OCR text, values, and signatures in `apps/feldexa_app/test/diagnostics_privacy_test.dart` (FR-081)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T100",
+      "issue_number": 100,
+      "issue_state": "OPEN",
+      "issue_title": "T100: Verify a blocked storage operation is retryable after space is freed without re-import in `apps/feldexa_app/integration_test/storage_retry_test.dart` (FR-077)",
+      "current_task": "Verify a blocked storage operation is retryable after space is freed without re-import in `apps/feldexa_app/integration_test/storage_retry_test.dart` (FR-077)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T101",
+      "issue_number": 101,
+      "issue_state": "OPEN",
+      "issue_title": "T101: Add the `SIMULATED` browser persistence and recovery test in `apps/feldexa_app/integration_test/web_persistence_test.dart` (FR-086/FR-087)",
+      "current_task": "Add the `SIMULATED` browser persistence and recovery test in `apps/feldexa_app/integration_test/web_persistence_test.dart` (FR-086/FR-087)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T102",
+      "issue_number": 102,
+      "issue_state": "OPEN",
+      "issue_title": "T102: Write the export-plan schema contract test in `packages/feldexa_export/test/export_plan_test.dart` (`contracts/export-plan.md` §2)",
+      "current_task": "Write the export-plan schema contract test in `packages/feldexa_export/test/export_plan_test.dart` (`contracts/export-plan.md` §2)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T103",
+      "issue_number": 103,
+      "issue_state": "OPEN",
+      "issue_title": "T103: Implement text layout, line breaking, baselines, and blocking clip detection in `packages/feldexa_export/lib/src/layout.dart` (FR-062/FR-064/FR-067/FR-068)",
+      "current_task": "Implement text layout, line breaking, baselines, and blocking clip detection in `packages/feldexa_export/lib/src/layout.dart` (FR-062/FR-064/FR-067/FR-068)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T104",
+      "issue_number": 104,
+      "issue_state": "OPEN",
+      "issue_title": "T104: Implement the PDFBox flattening applier that imports original pages and appends text, checkbox, and signature overlays in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export/PdfExportService.kt` (FR-063/FR-065/FR-066/FR-069; `contracts/export-plan.md` §5)",
+      "current_task": "Implement the PDFBox flattening applier that imports original pages and appends text, checkbox, and signature overlays in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export/PdfExportService.kt` (FR-063/FR-065/FR-066/FR-069; `contracts/export-plan.md` §5)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T105",
+      "issue_number": 105,
+      "issue_state": "OPEN",
+      "issue_title": "T105: Implement the independent artifact verification harness in `tools/pdf_verify/verify.sh` using `qpdf`, Poppler, and MuPDF (FR-069; SC-005/SC-006; CHK019)",
+      "current_task": "Implement the independent artifact verification harness in `tools/pdf_verify/verify.sh` using `qpdf`, Poppler, and MuPDF (FR-069; SC-005/SC-006; CHK019)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T106",
+      "issue_number": 106,
+      "issue_state": "OPEN",
+      "issue_title": "T106: Implement the ephemeral export preview and its cleanup lifecycle in `apps/feldexa_app/lib/features/export/preview.dart` (FR-070/FR-072; CHK029)",
+      "current_task": "Implement the ephemeral export preview and its cleanup lifecycle in `apps/feldexa_app/lib/features/export/preview.dart` (FR-070/FR-072; CHK029)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T107",
+      "issue_number": 107,
+      "issue_state": "OPEN",
+      "issue_title": "T107: Implement Android save, share, and print delivery flows in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/delivery/DeliveryService.kt` (FR-071)",
+      "current_task": "Implement Android save, share, and print delivery flows in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/delivery/DeliveryService.kt` (FR-071)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T108",
+      "issue_number": 108,
+      "issue_state": "OPEN",
+      "issue_title": "T108: Add the failed/interrupted export test that asserts no final artifact exists in `apps/feldexa_app/integration_test/export_failure_test.dart` (FR-072; SC-010)",
+      "current_task": "Add the failed/interrupted export test that asserts no final artifact exists in `apps/feldexa_app/integration_test/export_failure_test.dart` (FR-072; SC-010)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T109",
+      "issue_number": 109,
+      "issue_state": "OPEN",
+      "issue_title": "T109: Add the Android two-page export and artifact-verification test in `apps/feldexa_app/integration_test/android_export_test.dart` (US7 Independent Test; FR-073; SC-005/SC-006)",
+      "current_task": "Add the Android two-page export and artifact-verification test in `apps/feldexa_app/integration_test/android_export_test.dart`: verify field placement, checkbox states, and signatures, and assert that suggestion/confirmed/user-created provenance survives save, reopen, and export in the working model while the flattened artifact still contains no interactive form controls (US7 Independent Test; FR-069/FR-073; SC-005/SC-006; constitution Principle IV)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T110",
+      "issue_number": 110,
+      "issue_state": "OPEN",
+      "issue_title": "T110: Add the printability test with the Android print preview and two independent engines in `apps/feldexa_app/integration_test/print_test.dart` (SC-005; CHK019)",
+      "current_task": "Add the printability test with the Android print preview and two independent engines in `apps/feldexa_app/integration_test/print_test.dart` (SC-005; CHK019)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T111",
+      "issue_number": 111,
+      "issue_state": "OPEN",
+      "issue_title": "T111: Add the `SIMULATED` export watermark and non-production-artifact test in `apps/feldexa_app/integration_test/web_export_test.dart` (FR-087; `contracts/export-plan.md` §7)",
+      "current_task": "Add the `SIMULATED` export watermark and non-production-artifact test in `apps/feldexa_app/integration_test/web_export_test.dart` (FR-087; `contracts/export-plan.md` §7)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T112",
+      "issue_number": 112,
+      "issue_state": "OPEN",
+      "issue_title": "T112: Define the full export verification set and its membership in `tools/pdf_verify/verification-set.md` (SC-006; CHK018)",
+      "current_task": "Define the full export verification set and its membership in `tools/pdf_verify/verification-set.md` (SC-006; CHK018)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T113",
+      "issue_number": 113,
+      "issue_state": "OPEN",
+      "issue_title": "T113: Implement the preflight unresolved-suggestion warning per current plan behavior in `apps/feldexa_app/lib/features/export/preflight.dart`; do not change export gating until owner decision OD-1 in `tasks.md` is resolved (FR-025; `contracts/export-plan.md` §3.4; CHK009)",
+      "current_task": "Implement the preflight unresolved-suggestion warning against the explicitly **provisional** `contracts/export-plan.md` §3.4 and the current FR-062 wording in `apps/feldexa_app/lib/features/export/preflight.dart`: empty fields never block export; unresolved overlapping suggestions are excluded and warned only under the provisional policy, and that behavior stays blocked on owner decision OD-1. No task or test may treat the non-blocking behavior as the settled export policy (FR-025/FR-062; CHK009)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T114",
+      "issue_number": 114,
+      "issue_state": "OPEN",
+      "issue_title": "T114: Write the template-invariant contract test in `packages/feldexa_core/test/template_test.dart` (FR-054–FR-057; SC-013)",
+      "current_task": "Write the template-invariant contract test in `packages/feldexa_core/test/template_test.dart` (FR-054–FR-057; SC-013)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T115",
+      "issue_number": 115,
+      "issue_state": "OPEN",
+      "issue_title": "T115: Implement the explicit \"Als Vorlage speichern\" flow with value and signature exclusion in `apps/feldexa_app/lib/features/templates/create_template.dart` (FR-054, FR-055, FR-056, FR-057, FR-061; clarification 4)",
+      "current_task": "Implement the explicit \"Als Vorlage speichern\" flow with value and signature exclusion in `apps/feldexa_app/lib/features/templates/create_template.dart` (FR-054, FR-055, FR-056, FR-057, FR-061; clarification 4)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T116",
+      "issue_number": 116,
+      "issue_state": "OPEN",
+      "issue_title": "T116: Implement the layout-only template editor with disabled value and signature controls in `apps/feldexa_app/lib/features/templates/template_editor.dart` (FR-101/FR-102; clarification 4)",
+      "current_task": "Implement the layout-only template editor with disabled value and signature controls in `apps/feldexa_app/lib/features/templates/template_editor.dart` (FR-101/FR-102; clarification 4)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T117",
+      "issue_number": 117,
+      "issue_state": "OPEN",
+      "issue_title": "T117: Implement immutable template versions and derived-document pinning in `packages/feldexa_application/lib/src/templates/template_versions.dart` (FR-103/FR-104/FR-105; clarification 4)",
+      "current_task": "Implement immutable template versions, derived-document pinning, and the \"use a template\" flow that creates a new independent document with empty values, copied source pages, and the pinned template version in `packages/feldexa_application/lib/src/templates/template_versions.dart` and `apps/feldexa_app/lib/features/templates/use_template.dart` (FR-059/FR-103/FR-104/FR-105; clarification 4)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T118",
+      "issue_number": 118,
+      "issue_state": "OPEN",
+      "issue_title": "T118: Add the template-save atomicity test equivalent to the document-save rule in `apps/feldexa_app/integration_test/template_atomicity_test.dart` (FR-106; CHK035)",
+      "current_task": "Add the template-save atomicity test equivalent to the document-save rule in `apps/feldexa_app/integration_test/template_atomicity_test.dart` (FR-106; CHK035)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T119",
+      "issue_number": 119,
+      "issue_state": "OPEN",
+      "issue_title": "T119: Add the template-deletion independence test in `apps/feldexa_app/integration_test/template_delete_test.dart` (FR-060/FR-099; CHK034)",
+      "current_task": "Add the template-deletion independence test in `apps/feldexa_app/integration_test/template_delete_test.dart` (FR-060/FR-099; CHK034)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T120",
+      "issue_number": 120,
+      "issue_state": "OPEN",
+      "issue_title": "T120: Add the Android template independence and version suite in `apps/feldexa_app/integration_test/template_versions_test.dart` (FR-059; SC-012/SC-021)",
+      "current_task": "Add the Android template independence and version suite in `apps/feldexa_app/integration_test/template_versions_test.dart` (FR-059; SC-012/SC-021)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T121",
+      "issue_number": 121,
+      "issue_state": "OPEN",
+      "issue_title": "T121: Add the `SIMULATED` browser template test in `apps/feldexa_app/integration_test/web_template_test.dart` (FR-086/FR-087)",
+      "current_task": "Add the `SIMULATED` browser template test in `apps/feldexa_app/integration_test/web_template_test.dart` (FR-086/FR-087)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T122",
+      "issue_number": 122,
+      "issue_state": "OPEN",
+      "issue_title": "T122: Implement the confidence/uncertainty badge in `packages/feldexa_ui/lib/src/uncertainty_badge.dart` (FR-083)",
+      "current_task": "Implement the confidence/uncertainty badge in `packages/feldexa_ui/lib/src/uncertainty_badge.dart` (FR-083)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T123",
+      "issue_number": 123,
+      "issue_state": "OPEN",
+      "issue_title": "T123: Implement German failed-page and unsupported-structure explanations in `apps/feldexa_app/lib/features/editor/page_failure.dart` (FR-084; `contracts/error-catalog.de.md` REC-002/REC-003)",
+      "current_task": "Implement German failed-page and unsupported-structure explanations in `apps/feldexa_app/lib/features/editor/page_failure.dart` (FR-084; `contracts/error-catalog.de.md` REC-002/REC-003)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T124",
+      "issue_number": 124,
+      "issue_state": "OPEN",
+      "issue_title": "T124: Implement provenance distinction in the document view and summary in `apps/feldexa_app/lib/features/editor/recognition_summary.dart` (FR-085)",
+      "current_task": "Implement provenance distinction in the document view and summary in `apps/feldexa_app/lib/features/editor/recognition_summary.dart` (FR-085)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T125",
+      "issue_number": 125,
+      "issue_state": "OPEN",
+      "issue_title": "T125: Add the no-completeness-claim audit test in `apps/feldexa_app/test/recognition_honesty_test.dart` (US8 scenario 5; `contracts/error-catalog.de.md` §2)",
+      "current_task": "Add the no-completeness-claim audit test in `apps/feldexa_app/test/recognition_honesty_test.dart` (US8 scenario 5; `contracts/error-catalog.de.md` §2)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T126",
+      "issue_number": 126,
+      "issue_state": "OPEN",
+      "issue_title": "T126: Add the low-contrast, skewed, and damaged-page recognition test in `apps/feldexa_app/integration_test/android_recognition_degraded_test.dart` (US8 Independent Test; FR-083)",
+      "current_task": "Add the low-contrast, skewed, and damaged-page recognition test in `apps/feldexa_app/integration_test/android_recognition_degraded_test.dart` (US8 Independent Test; FR-083)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T127",
+      "issue_number": 127,
+      "issue_state": "OPEN",
+      "issue_title": "T127: Add the `SIMULATED` uncertainty presentation test in `apps/feldexa_app/integration_test/web_uncertainty_test.dart` (FR-086/FR-087)",
+      "current_task": "Add the `SIMULATED` uncertainty presentation test in `apps/feldexa_app/integration_test/web_uncertainty_test.dart` (FR-086/FR-087)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T128",
+      "issue_number": 128,
+      "issue_state": "OPEN",
+      "issue_title": "T128: Implement the Chrome editing journey test in `apps/feldexa_app/integration_test/web_journey_test.dart` (FR-086; US9 Independent Test)",
+      "current_task": "Implement the Chrome editing journey test in `apps/feldexa_app/integration_test/web_journey_test.dart` (FR-086; US9 Independent Test)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T129",
+      "issue_number": 129,
+      "issue_state": "OPEN",
+      "issue_title": "T129: Wire `SIMULATED` labeling through the UI banner, structured logs, and report fields in `packages/feldexa_ui/lib/src/simulated_banner.dart` and `packages/feldexa_ports/lib/src/evidence.dart` (FR-087)",
+      "current_task": "Wire `SIMULATED` labeling through the UI banner, structured logs, and report fields in `packages/feldexa_ui/lib/src/simulated_banner.dart` and `packages/feldexa_ports/lib/src/evidence.dart` (FR-087)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T130",
+      "issue_number": 130,
+      "issue_state": "OPEN",
+      "issue_title": "T130: Add the evidence-separation assertion in `apps/feldexa_app/test/evidence_separation_test.dart` (FR-088; constitution Principle VIII)",
+      "current_task": "Add the evidence-separation assertion in `apps/feldexa_app/test/evidence_separation_test.dart` (FR-088; constitution Principle VIII)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T131",
+      "issue_number": 131,
+      "issue_state": "OPEN",
+      "issue_title": "T131: Add the viewport, responsive-layout, and accessibility-semantics test in `apps/feldexa_app/integration_test/web_viewport_test.dart` (US9 scenario 5; FR-091; SC-015)",
+      "current_task": "Add the viewport, responsive-layout, and accessibility-semantics test in `apps/feldexa_app/integration_test/web_viewport_test.dart` (US9 scenario 5; FR-091; SC-015)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T132",
+      "issue_number": 132,
+      "issue_state": "OPEN",
+      "issue_title": "T132: Add the browser/Android geometry-parity test in `apps/feldexa_app/integration_test/geometry_parity_test.dart` (FR-089; CHK011)",
+      "current_task": "Add the browser/Android geometry-parity test in `apps/feldexa_app/integration_test/geometry_parity_test.dart` (FR-089; CHK011)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T133",
+      "issue_number": 133,
+      "issue_state": "OPEN",
+      "issue_title": "T133: Run the release-only German-string audit with the `SIMULATED` allowlist in `apps/feldexa_app/test/german_release_audit_test.dart` (SC-014; FR-087; CHK023/CHK025; constitution Principles II and VIII)",
+      "current_task": "Run the release-only German-string audit with the `SIMULATED` allowlist in `apps/feldexa_app/test/german_release_audit_test.dart` (SC-014; FR-087; CHK023/CHK025; constitution Principles II and VIII)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T134",
+      "issue_number": 134,
+      "issue_state": "OPEN",
+      "issue_title": "T134: Run the numeric accessibility audit at 200 % text, 4.5:1/3:1 contrast, and 48 dp targets in `apps/feldexa_app/integration_test/accessibility_audit_test.dart` (SC-015; FR-092/FR-093; CHK022)",
+      "current_task": "Run the numeric accessibility audit at 200 % text, 4.5:1/3:1 contrast, and 48 dp targets in `apps/feldexa_app/integration_test/accessibility_audit_test.dart` (SC-015; FR-092/FR-093; CHK022)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T135",
+      "issue_number": 135,
+      "issue_state": "OPEN",
+      "issue_title": "T135: Record the SC-004 performance protocol with ≥20 runs, one warm-up, representative page set, build mode, and device profile in `tools/evaluation/performance_protocol.md` (SC-004; CHK014)",
+      "current_task": "Record the SC-004 performance protocol with ≥20 runs, one warm-up, representative page set, build mode, and device profile in `tools/evaluation/performance_protocol.md` (SC-004; CHK014)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T136",
+      "issue_number": 136,
+      "issue_state": "OPEN",
+      "issue_title": "T136: Execute the Samsung Galaxy A54 5G performance run and record it in `specs/001-scanned-form-workflow/reports/2026-11-12-device-performance.md` (SC-004; CHK014)",
+      "current_task": "Execute the Samsung Galaxy A54 5G performance run and record it in `specs/001-scanned-form-workflow/reports/2026-11-12-device-performance.md` (SC-004; CHK014)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T137",
+      "issue_number": 137,
+      "issue_state": "OPEN",
+      "issue_title": "T137: Record the SC-016 journey-timing and SC-018 first-time-usability protocol in `tools/evaluation/journey_protocol.md`; participant and observation details remain blocked on owner decision OD-2 (SC-016/SC-018; CHK017)",
+      "current_task": "Record the SC-016 journey-timing and SC-018 first-time-usability protocol in `tools/evaluation/journey_protocol.md`; participant and observation details remain blocked on owner decision OD-2. After OD-2 is resolved, execute the SC-016 journey-timing run and the SC-018 5-of-5 first-time usability run and record both results in `specs/001-scanned-form-workflow/reports/2026-11-12-usability.md`. Until OD-2 is decided this task stays explicitly blocked and executes neither run (SC-016/SC-018; CHK017)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T138",
+      "issue_number": 138,
+      "issue_state": "OPEN",
+      "issue_title": "T138: Add the outbound-transmission and socket observation test plus release-manifest audit in `apps/feldexa_app/integration_test/network_observation_test.dart` (SC-007/SC-008; FR-078/FR-079/FR-080; CHK020)",
+      "current_task": "Add the outbound-transmission and socket observation test plus release-manifest audit in `apps/feldexa_app/integration_test/network_observation_test.dart` (SC-007/SC-008; FR-078/FR-079/FR-080; CHK020)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T139",
+      "issue_number": 139,
+      "issue_state": "OPEN",
+      "issue_title": "T139: Record corpus diversity strata and the provenance/rights record in `tools/corpus/manifest.json` and `tools/corpus/README.md` (constitution Principle IV; CHK033)",
+      "current_task": "Record corpus diversity strata and the provenance/rights record in `tools/corpus/manifest.json` and `tools/corpus/README.md` (constitution Principle IV; CHK033)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T140",
+      "issue_number": 140,
+      "issue_state": "OPEN",
+      "issue_title": "T140: Record the plan-budget traceability table and label untraceable values as non-binding engineering budgets in `specs/001-scanned-form-workflow/reports/2026-11-12-budget-traceability.md` (CHK027)",
+      "current_task": "Record the plan-budget traceability table and label untraceable values as non-binding engineering budgets in `specs/001-scanned-form-workflow/reports/2026-11-12-budget-traceability.md` (CHK027; supports SC-004 and SC-016 budget evidence)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T141",
+      "issue_number": 141,
+      "issue_state": "OPEN",
+      "issue_title": "T141: Record the named-device equivalence rule and obtain owner approval for any substitute in `specs/001-scanned-form-workflow/reports/2026-11-12-device-equivalence.md` (SC-004; CHK026; owner decision OD-3)",
+      "current_task": "Record the named-device equivalence rule and obtain owner approval for any substitute in `specs/001-scanned-form-workflow/reports/2026-11-12-device-equivalence.md` (SC-004; CHK026; owner decision OD-3)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T142",
+      "issue_number": 142,
+      "issue_state": "OPEN",
+      "issue_title": "T142: Execute the frozen scored recognition evaluation on the authoritative Android runtime and record TP/FP/FN, type accuracy, position accuracy, and the manual baseline in `tools/evaluation/reports/2026-11-12-recognition.md` (SC-001/SC-002/SC-003; constitution Principle IV)",
+      "current_task": "Execute the frozen scored recognition evaluation on the authoritative Android runtime and record TP/FP/FN, type accuracy, position accuracy, and the manual baseline in `specs/001-scanned-form-workflow/reports/2026-11-12-recognition.md` (SC-001/SC-002/SC-003; constitution Principle IV)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T143",
+      "issue_number": 143,
+      "issue_state": "OPEN",
+      "issue_title": "T143: Execute the full-corpus export verification set and record zero clipped, misplaced, wrong-checkbox, and missing-signature defects in `specs/001-scanned-form-workflow/reports/2026-11-12-export-verification.md` (SC-005/SC-006; CHK018)",
+      "current_task": "Execute the full-corpus export verification set and record zero clipped, misplaced, wrong-checkbox, and missing-signature defects in `specs/001-scanned-form-workflow/reports/2026-11-12-export-verification.md` (SC-005/SC-006; CHK018)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": true
+    },
+    {
+      "task_id": "T144",
+      "issue_number": 144,
+      "issue_state": "OPEN",
+      "issue_title": "T144: Run the cross-artifact consistency analysis through the installed official `speckit-analyze` workflow and record its report in `specs/001-scanned-form-workflow/reports/2026-11-12-analysis.md` (constitution Development Workflow gate 5; CHK032)",
+      "current_task": "**Record** the gate-5 cross-artifact consistency analysis that was already executed through the registered `speckit.analyze` command on 2026-11-12 **before implementation**, archive its report as `specs/001-scanned-form-workflow/reports/2026-11-12-analysis.md`, list which CRITICAL/HIGH findings were resolved and which remain owner decisions, and name the separate post-implementation convergence check (gate 9) instead of re-running gate 5 (constitution Development Workflow gate 5; CHK032)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T145",
+      "issue_number": 145,
+      "issue_state": "OPEN",
+      "issue_title": "T145: Run the complete local gate in `tool/gate.sh` and record zero analyzer failures and separated `SIMULATED` evidence (constitution Principle VIII; plan §Testing)",
+      "current_task": "Run the complete local gate in `tools/gate.sh` and record zero analyzer failures and separated `SIMULATED` evidence in `specs/001-scanned-form-workflow/reports/2026-11-12-local-gate.md` (constitution Principle VIII; plan §Testing; enables FR-088/FR-089)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T146",
+      "issue_number": 146,
+      "issue_state": "OPEN",
+      "issue_title": "T146: Execute the `quickstart.md` Web, emulator, artifact, failure-injection, and performance scenarios and record the outcomes in `specs/001-scanned-form-workflow/reports/2026-11-12-quickstart-validation.md` (constitution Definition of Done)",
+      "current_task": "Execute the `quickstart.md` Web, emulator, artifact, failure-injection, and performance scenarios and record the outcomes in `specs/001-scanned-form-workflow/reports/2026-11-12-quickstart-validation.md` (constitution Definition of Done; supports SC-004–SC-010)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    },
+    {
+      "task_id": "T147",
+      "issue_number": 147,
+      "issue_state": "OPEN",
+      "issue_title": "T147: Assemble the final acceptance report with separated `SIMULATED`, `EMULATOR`, and `DEVICE` evidence in `specs/001-scanned-form-workflow/reports/2026-11-12-acceptance.md` (constitution Principles VIII and X; Definition of Done)",
+      "current_task": "Assemble the final acceptance report with separated `SIMULATED`, `EMULATOR`, and `DEVICE` evidence in `specs/001-scanned-form-workflow/reports/2026-11-12-acceptance.md`, then hand the exact candidate revision to the independent review gate (gate 7), the integration/verification gate (gate 8), and the convergence gate (gate 9) and record their outcomes in the same report. This task does not self-approve; it creates no commit, merge, or publication (constitution Principles VIII and X; Definition of Done; supports SC-001–SC-022)",
+      "markers_stripped_for_comparison": true,
+      "title_matches_current_task": false
+    }
+  ],
+  "actions_taken": "none: no issue created, edited, closed, reopened, or commented; mapping preserved by task ID T001->#1 ... T147->#147"
+}

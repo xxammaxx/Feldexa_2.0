@@ -1,0 +1,4 @@
+0f0c0a7be4ba58190f285969d50c75ddbe81754992545892bcce583cc2930660  specs/001-scanned-form-workflow/tasks.md
+af5a31dbba2dec4918b1b163ecc37b49e66ccb3bf6554facde7a0d9ca9c4630e  specs/001-scanned-form-workflow/spec.md
+eae33532f334af4d16702f10be11644fc671f12fc982c10b7a7b95580a063e9e  specs/001-scanned-form-workflow/plan.md
+e487197fa4ae07491f74049260f61983d1560591d1daaa277b8fd3824ddaa813  .specify/memory/constitution.md

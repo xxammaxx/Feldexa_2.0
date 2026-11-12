@@ -1,0 +1,5 @@
+# Raw agent session transcripts (full conversation logs, not project artifacts).
+specs/**/reports/backups/**/ses_*-messages.json
+
+# Regenerable Spec Kit extension catalog cache.
+.specify/extensions/.cache/

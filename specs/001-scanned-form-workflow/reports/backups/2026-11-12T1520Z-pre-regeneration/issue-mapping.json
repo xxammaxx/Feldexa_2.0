@@ -1,0 +1,889 @@
+{
+  "repository": "xxammaxx/Feldexa_2.0",
+  "snapshot_utc": "2026-11-12T15:20:00Z",
+  "count": 147,
+  "mapping": {
+    "T001": {
+      "issue": 1,
+      "state": "OPEN",
+      "title": "T001: Create the Flutter monorepo workspace and directory skeleton in `pubspec.yaml`, `apps/feldexa_app/`, `packages/`, and `tools/` per `plan.md` §Project Structure",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/1"
+    },
+    "T002": {
+      "issue": 2,
+      "state": "OPEN",
+      "title": "T002: Initialize the Flutter application and Android host in `apps/feldexa_app/pubspec.yaml` and `apps/feldexa_app/android/app/build.gradle.kts` with `minSdk 26` and target/compile SDK 36",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/2"
+    },
+    "T003": {
+      "issue": 3,
+      "state": "OPEN",
+      "title": "T003: Pin the dependencies and record the privacy/licence review in `apps/feldexa_app/pubspec.yaml` and `tools/dependency_review.md` per `plan.md` §Primary Dependencies",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/3"
+    },
+    "T004": {
+      "issue": 4,
+      "state": "OPEN",
+      "title": "T004: Configure analysis, formatting, and the local gate in `.analysis_options.yaml` and `tool/gate.sh` per `plan.md` §Testing and constitution Principle VIII",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/4"
+    },
+    "T005": {
+      "issue": 5,
+      "state": "OPEN",
+      "title": "T005: Create the German localization scaffold in `apps/feldexa_app/l10n.yaml` and `apps/feldexa_app/lib/l10n/app_de.arb` with `de` as the only release locale (FR-090)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/5"
+    },
+    "T006": {
+      "issue": 6,
+      "state": "OPEN",
+      "title": "T006: Bundle Noto Sans Regular/Bold and the OFL licence in `apps/feldexa_app/assets/fonts/` (FR-067; plan §Architecture Decisions 6)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/6"
+    },
+    "T007": {
+      "issue": 7,
+      "state": "OPEN",
+      "title": "T007: Implement the font-advance metrics generator in `tools/metrics/generate_font_metrics.dart` and emit `apps/feldexa_app/assets/fonts/metrics.json`",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/7"
+    },
+    "T008": {
+      "issue": 8,
+      "state": "OPEN",
+      "title": "T008: Create the corpus manifest schema and checksum verifier in `tools/corpus/manifest.schema.json` and `tools/corpus/verify.sh` (constitution Principle IV)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/8"
+    },
+    "T009": {
+      "issue": 9,
+      "state": "OPEN",
+      "title": "T009: Create the deterministic synthetic fixture generator in `tools/corpus/synthetic/generate.dart` and its fixtures under `apps/feldexa_app/assets/fixtures/` (US9; FR-086)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/9"
+    },
+    "T010": {
+      "issue": 10,
+      "state": "OPEN",
+      "title": "T010: Create the evidence report template and directory in `specs/001-scanned-form-workflow/reports/README.md` for the `SIMULATED`, `EMULATOR`, and `DEVICE` classes (constitution Principle VIII)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/10"
+    },
+    "T011": {
+      "issue": 11,
+      "state": "OPEN",
+      "title": "T011: Create the test toolkit with a fake clock, fixture loader, and fault hooks in `packages/feldexa_testkit/lib/` (plan §Architecture Decisions 10)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/11"
+    },
+    "T012": {
+      "issue": 12,
+      "state": "OPEN",
+      "title": "T012: Create the shared `SIMULATED` banner and evidence-label widget in `packages/feldexa_ui/lib/src/simulated_banner.dart` (FR-087; constitution Principle II)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/12"
+    },
+    "T013": {
+      "issue": 13,
+      "state": "OPEN",
+      "title": "T013: Define every capability interface in `packages/feldexa_ports/lib/` per `contracts/ports.md` (constitution Architecture and Platform Constraints)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/13"
+    },
+    "T014": {
+      "issue": 14,
+      "state": "OPEN",
+      "title": "T014: Define the error taxonomy and evidence classes in `packages/feldexa_ports/lib/src/errors.dart` and `packages/feldexa_ports/lib/src/evidence.dart` (constitution Principle VIII)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/14"
+    },
+    "T015": {
+      "issue": 15,
+      "state": "OPEN",
+      "title": "T015: Implement `Rect`, `Size`, and `Point` value objects in `packages/feldexa_core/lib/src/geometry/rect.dart` with finite, positive-size invariants (`data-model.md` §2.2)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/15"
+    },
+    "T016": {
+      "issue": 16,
+      "state": "OPEN",
+      "title": "T016: Implement `PageGeometry` display-box, rotation, and CropBox mapping in `packages/feldexa_core/lib/src/geometry/page_geometry.dart` with tests in `packages/feldexa_core/test/geometry_test.dart` (`contracts/coordinates-and-geometry.md` §1–§2)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/16"
+    },
+    "T017": {
+      "issue": 17,
+      "state": "OPEN",
+      "title": "T017: Define the versioned document aggregate and canonical JSON encoding in `packages/feldexa_core/lib/src/model/document.dart` and `packages/feldexa_core/lib/src/model/canonical_json.dart` (`data-model.md` §3.1, §4)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/17"
+    },
+    "T018": {
+      "issue": 18,
+      "state": "OPEN",
+      "title": "T018: Implement `FieldSuggestion`, `ConfirmedField`, `FieldValue`, and `FieldVerification` in `packages/feldexa_core/lib/src/model/field.dart` with the enum and length constraints from `data-model.md` §3.4–§3.8",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/18"
+    },
+    "T019": {
+      "issue": 19,
+      "state": "OPEN",
+      "title": "T019: Implement the reclassification compatibility rules in `packages/feldexa_core/lib/src/model/reclassification.dart` and tests in `packages/feldexa_core/test/reclassification_test.dart` (FR-029; `data-model.md` §3.5)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/19"
+    },
+    "T020": {
+      "issue": 20,
+      "state": "OPEN",
+      "title": "T020: Implement `DurabilityStatus`, `Revision`, and `DurablePointer` in `packages/feldexa_core/lib/src/model/persistence.dart` (FR-044/FR-046; `data-model.md` §2.5, §3.12–§3.13)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/20"
+    },
+    "T021": {
+      "issue": 21,
+      "state": "OPEN",
+      "title": "T021: Implement `Template`, `TemplateVersion`, and `TemplateOrigin` in `packages/feldexa_core/lib/src/model/template.dart` (FR-101–FR-106; `data-model.md` §3.9–§3.11)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/21"
+    },
+    "T022": {
+      "issue": 22,
+      "state": "OPEN",
+      "title": "T022: Implement the `ExportArtifact` state machine in `packages/feldexa_core/lib/src/model/export_artifact.dart` with optimistic states forbidden (FR-072; `data-model.md` §3.15)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/22"
+    },
+    "T023": {
+      "issue": 23,
+      "state": "OPEN",
+      "title": "T023: Implement the explicit adapter registry and release assertion in `apps/feldexa_app/lib/platform/registry.dart`, `registry_android.dart`, `registry_web.dart`, and `registry_unsupported.dart` (constitution Principle II; plan §Architecture Decisions 8)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/23"
+    },
+    "T024": {
+      "issue": 24,
+      "state": "OPEN",
+      "title": "T024: Implement the `FeldexaPlugin` MethodChannel/EventChannel facade in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/FeldexaPlugin.kt` per `contracts/platform-channel.md`",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/24"
+    },
+    "T025": {
+      "issue": 25,
+      "state": "OPEN",
+      "title": "T025: Implement Android Keystore master-key creation and DEK wrap/unwrap in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/storage/KeystoreService.kt` (FR-049/FR-050; plan §Storage)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/25"
+    },
+    "T026": {
+      "issue": 26,
+      "state": "OPEN",
+      "title": "T026: Implement the `FXC1` encrypted store with atomic commit, read-back verification, and stale-temp sweep in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/storage/EncryptedStore.kt` (FR-047; `contracts/storage-format.md`)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/26"
+    },
+    "T027": {
+      "issue": 27,
+      "state": "OPEN",
+      "title": "T027: Implement the Android Dart thin clients in `packages/feldexa_adapters_android/lib/` for import, OCR, storage, rendering, delivery, and clock ports",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/27"
+    },
+    "T028": {
+      "issue": 28,
+      "state": "OPEN",
+      "title": "T028: Implement deterministic `SIMULATED` adapters in `packages/feldexa_adapters_simulated/lib/` for import, page rasterization, storage, OCR, export, and delivery (FR-087; plan §Architecture Decisions 9)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/28"
+    },
+    "T029": {
+      "issue": 29,
+      "state": "OPEN",
+      "title": "T029: Build all German ARB keys from `contracts/error-catalog.de.md` in `apps/feldexa_app/lib/l10n/app_de.arb` and add `apps/feldexa_app/test/german_strings_test.dart` (FR-090; SC-014)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/29"
+    },
+    "T030": {
+      "issue": 30,
+      "state": "OPEN",
+      "title": "T030: Add the font-metrics contract test in `packages/feldexa_export/test/font_metrics_test.dart` comparing Dart advances and glyph coverage against the bundled metrics",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/30"
+    },
+    "T031": {
+      "issue": 31,
+      "state": "OPEN",
+      "title": "T031: Implement startup recovery and temp/export-preview sweeping in `apps/feldexa_app/lib/bootstrap/startup_sweep.dart` (plan §Constraints)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/31"
+    },
+    "T032": {
+      "issue": 32,
+      "state": "OPEN",
+      "title": "T032: Create the evidence report schema and validator in `tools/evaluation/report_schema.json` and `tools/evaluation/validate_report.dart` (constitution Principle VIII)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/32"
+    },
+    "T033": {
+      "issue": 33,
+      "state": "OPEN",
+      "title": "T033: Assemble the rights-cleared corpus of at least 20 real German authority forms and record provenance in `tools/corpus/manifest.json` (constitution Principle IV; SC-001)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/33"
+    },
+    "T034": {
+      "issue": 34,
+      "state": "OPEN",
+      "title": "T034: Freeze `corpus-1.0.0` and `metric-definition.v1.md` and implement the scorer in `tools/evaluation/metric-definition.v1.md` and `tools/evaluation/score.dart` before any scoring run (constitution Principle IV; SC-001/SC-002)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/34"
+    },
+    "T035": {
+      "issue": 35,
+      "state": "OPEN",
+      "title": "T035: Record the manual-baseline protocol in `tools/evaluation/manual-baseline.md` using the add/move/resize/reclassify comparison from `research.md` D-18 (SC-003)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/35"
+    },
+    "T036": {
+      "issue": 36,
+      "state": "OPEN",
+      "title": "T036: Implement the failure-injection harness for clock, quota, keystore, and write interruption in `packages/feldexa_testkit/lib/src/faults.dart` (constitution Principle VIII)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/36"
+    },
+    "T037": {
+      "issue": 37,
+      "state": "OPEN",
+      "title": "T037: Write the import-port and preflight contract tests in `packages/feldexa_ports/test/import_port_test.dart` and `packages/feldexa_core/test/import_contract_test.dart` (FR-001/FR-002)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/37"
+    },
+    "T038": {
+      "issue": 38,
+      "state": "OPEN",
+      "title": "T038: Implement the SAF `ACTION_OPEN_DOCUMENT` streaming import in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/import/ImportService.kt` (FR-001; FR-095)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/38"
+    },
+    "T039": {
+      "issue": 39,
+      "state": "OPEN",
+      "title": "T039: Implement PDF preflight with page geometry and encryption detection in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/pdf/PdfPreflight.kt` (FR-003/FR-005/FR-006; `contracts/platform-channel.md`)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/39"
+    },
+    "T040": {
+      "issue": 40,
+      "state": "OPEN",
+      "title": "T040: Implement the streaming encrypted source copy in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/import/ImportService.kt` and `.../storage/EncryptedStore.kt` (FR-004; FR-095/FR-096)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/40"
+    },
+    "T041": {
+      "issue": 41,
+      "state": "OPEN",
+      "title": "T041: Map every import failure to the German catalog and suppress document creation in `apps/feldexa_app/lib/features/start/import_error_mapper.dart` (FR-005, FR-006, FR-007, FR-008, FR-009; `contracts/error-catalog.de.md` §1)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/41"
+    },
+    "T042": {
+      "issue": 42,
+      "state": "OPEN",
+      "title": "T042: Implement the pdfrx page viewer and source-point geometry mapping in `apps/feldexa_app/lib/features/editor/page_view.dart` (FR-003; `contracts/coordinates-and-geometry.md`)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/42"
+    },
+    "T043": {
+      "issue": 43,
+      "state": "OPEN",
+      "title": "T043: Implement page-strip navigation that works before analysis finishes in `apps/feldexa_app/lib/features/editor/page_strip.dart` (US1 scenario 2; FR-018)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/43"
+    },
+    "T044": {
+      "issue": 44,
+      "state": "OPEN",
+      "title": "T044: Handle partially unreadable pages and the `IMP-006` warning in `apps/feldexa_app/lib/features/editor/page_state.dart` (FR-010)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/44"
+    },
+    "T045": {
+      "issue": 45,
+      "state": "OPEN",
+      "title": "T045: Enforce the 80 MiB (83,886,080-byte) import cap and align `IMP-007` units in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/import/ImportService.kt` and `contracts/error-catalog.de.md` (plan §Performance Goals; CHK028)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/45"
+    },
+    "T046": {
+      "issue": 46,
+      "state": "OPEN",
+      "title": "T046: Add the Android import integration test for single, five-page, protected, truncated, non-PDF, unknown-failure, and partially damaged files in `apps/feldexa_app/integration_test/android_import_test.dart` (US1 Independent Test; SC-011)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/46"
+    },
+    "T047": {
+      "issue": 47,
+      "state": "OPEN",
+      "title": "T047: Add the `SIMULATED` browser import journey in `apps/feldexa_app/integration_test/web_import_test.dart` (FR-086/FR-087)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/47"
+    },
+    "T048": {
+      "issue": 48,
+      "state": "OPEN",
+      "title": "T048: Add the byte-identity and modification-time test in `apps/feldexa_app/integration_test/source_integrity_test.dart` (FR-004; SC-019)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/48"
+    },
+    "T049": {
+      "issue": 49,
+      "state": "OPEN",
+      "title": "T049: Add German import-message and error-semantics tests in `apps/feldexa_app/test/import_semantics_test.dart` (FR-006–FR-008; FR-094)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/49"
+    },
+    "T050": {
+      "issue": 50,
+      "state": "OPEN",
+      "title": "T050: Write the suggestion-envelope contract test in `packages/feldexa_recognition/test/suggestion_schema_test.dart` (`contracts/recognition-output.md` §1–§2)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/50"
+    },
+    "T051": {
+      "issue": 51,
+      "state": "OPEN",
+      "title": "T051: Implement 200 DPI grayscale page raster analysis in `packages/feldexa_recognition/lib/src/raster.dart` (`contracts/coordinates-and-geometry.md` §4)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/51"
+    },
+    "T052": {
+      "issue": 52,
+      "state": "OPEN",
+      "title": "T052: Implement ruling-line, box, table-grid, whitespace, and alignment detectors in `packages/feldexa_recognition/lib/src/geometry_detector.dart` (FR-011/FR-013/FR-016)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/52"
+    },
+    "T053": {
+      "issue": 53,
+      "state": "OPEN",
+      "title": "T053: Implement label proximity and keyword-driven type inference in `packages/feldexa_recognition/lib/src/type_inference.dart` (FR-012; `contracts/recognition-output.md` §3)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/53"
+    },
+    "T054": {
+      "issue": 54,
+      "state": "OPEN",
+      "title": "T054: Implement the confidence and uncertainty model in `packages/feldexa_recognition/lib/src/confidence.dart` (FR-015/FR-083; `contracts/recognition-output.md` §3.3–§3.4)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/54"
+    },
+    "T055": {
+      "issue": 55,
+      "state": "OPEN",
+      "title": "T055: Implement `IoU ≥ 0.5` conflict detection while retaining both candidates in `packages/feldexa_recognition/lib/src/conflicts.dart` (FR-025; `contracts/recognition-output.md` §6)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/55"
+    },
+    "T056": {
+      "issue": 56,
+      "state": "OPEN",
+      "title": "T056: Implement the OCR port and bundled ML Kit adapter in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/ocr/MlKitOcrService.kt` and `packages/feldexa_adapters_android/lib/src/ocr_adapter.dart` (FR-013; constitution Principles IV and VI)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/56"
+    },
+    "T057": {
+      "issue": 57,
+      "state": "OPEN",
+      "title": "T057: Implement per-page analysis state and failure isolation in `packages/feldexa_recognition/lib/src/page_analysis.dart` (FR-017, FR-018, FR-019, FR-020; `contracts/recognition-output.md` §4)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/57"
+    },
+    "T058": {
+      "issue": 58,
+      "state": "OPEN",
+      "title": "T058: Persist suggestions, resolution states, and provenance in revisions in `packages/feldexa_core/lib/src/model/document.dart` (FR-014/FR-015; `contracts/recognition-output.md` §7)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/58"
+    },
+    "T059": {
+      "issue": 59,
+      "state": "OPEN",
+      "title": "T059: Add the frozen strict-matching contract test in `tools/evaluation/test/metric_definition_test.dart` using the `IoU ≥ 0.5` and identical-type rule (SC-001/SC-002)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/59"
+    },
+    "T060": {
+      "issue": 60,
+      "state": "OPEN",
+      "title": "T060: Run the explicitly unscored frozen-metric dry run and record it in `tools/evaluation/reports/corpus-1.0.0-dry-run.md` after T033 and T034 (CHK031; constitution Principle IV)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/60"
+    },
+    "T061": {
+      "issue": 61,
+      "state": "OPEN",
+      "title": "T061: Add the Android recognition integration test on synthetic and corpus fixtures with per-page failure isolation in `apps/feldexa_app/integration_test/android_recognition_test.dart` (US2 Independent Test)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/61"
+    },
+    "T062": {
+      "issue": 62,
+      "state": "OPEN",
+      "title": "T062: Add the `SIMULATED` browser recognition test in `apps/feldexa_app/integration_test/web_recognition_test.dart` (FR-086/FR-087)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/62"
+    },
+    "T063": {
+      "issue": 63,
+      "state": "OPEN",
+      "title": "T063: Record per-stage raster/OCR/detection timings in `tools/evaluation/benchmark_recognition.dart` for later SC-004 measurement (SC-004; `research.md` measurement decision)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/63"
+    },
+    "T064": {
+      "issue": 64,
+      "state": "OPEN",
+      "title": "T064: Write the suggestion-lifecycle contract test in `packages/feldexa_core/test/field_lifecycle_test.dart` (FR-021/FR-022/FR-028)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/64"
+    },
+    "T065": {
+      "issue": 65,
+      "state": "OPEN",
+      "title": "T065: Implement confirm, reject, and undo lifecycle commands in `packages/feldexa_application/lib/src/review/confirm_suggestion.dart` (FR-021/FR-022/FR-027)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/65"
+    },
+    "T066": {
+      "issue": 66,
+      "state": "OPEN",
+      "title": "T066: Implement add, remove, move, resize, and reclassify commands in `packages/feldexa_application/lib/src/review/edit_field.dart` (FR-023/FR-024/FR-029)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/66"
+    },
+    "T067": {
+      "issue": 67,
+      "state": "OPEN",
+      "title": "T067: Implement bounded undo/redo with 500 ms command coalescing in `packages/feldexa_application/lib/src/review/command_history.dart` (FR-027; `data-model.md` §3.14)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/67"
+    },
+    "T068": {
+      "issue": 68,
+      "state": "OPEN",
+      "title": "T068: Implement the conflict badge and per-candidate resolution sheet in `apps/feldexa_app/lib/features/editor/review_conflict_sheet.dart` (FR-025; `contracts/editor-interactions.md` §3)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/68"
+    },
+    "T069": {
+      "issue": 69,
+      "state": "OPEN",
+      "title": "T069: Implement field-overlay painting from model coordinates in `packages/feldexa_ui/lib/src/field_overlay.dart` (FR-024; SC-017)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/69"
+    },
+    "T070": {
+      "issue": 70,
+      "state": "OPEN",
+      "title": "T070: Property-test geometry round-trips at `0.5, 1, 1.75, 3, 8` zoom and rotations 0/90/180/270 with CropBox offsets in `packages/feldexa_core/test/geometry_roundtrip_test.dart` (SC-017; `contracts/coordinates-and-geometry.md` §6)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/70"
+    },
+    "T071": {
+      "issue": 71,
+      "state": "OPEN",
+      "title": "T071: Add the Android touch drag/resize review test at 0.5×, 1×, 3×, and 8× in `apps/feldexa_app/integration_test/android_review_test.dart` (`contracts/editor-interactions.md` §12)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/71"
+    },
+    "T072": {
+      "issue": 72,
+      "state": "OPEN",
+      "title": "T072: Add the `SIMULATED` browser review interaction suite in `apps/feldexa_app/integration_test/web_review_test.dart` (FR-086/FR-089)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/72"
+    },
+    "T073": {
+      "issue": 73,
+      "state": "OPEN",
+      "title": "T073: Implement field-order review and reordering in `apps/feldexa_app/lib/features/editor/field_order.dart` (FR-026)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/73"
+    },
+    "T074": {
+      "issue": 74,
+      "state": "OPEN",
+      "title": "T074: Implement provenance badges for suggestion, confirmed, and user-created fields in `packages/feldexa_ui/lib/src/provenance_badge.dart` (FR-028)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/74"
+    },
+    "T075": {
+      "issue": 75,
+      "state": "OPEN",
+      "title": "T075: Add the degraded-detection review test in `apps/feldexa_app/test/review_degraded_test.dart` (FR-030; US3 Independent Test)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/75"
+    },
+    "T076": {
+      "issue": 76,
+      "state": "OPEN",
+      "title": "T076: Write the type-control contract test in `apps/feldexa_app/test/field_controls_test.dart` (FR-031/FR-032)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/76"
+    },
+    "T077": {
+      "issue": 77,
+      "state": "OPEN",
+      "title": "T077: Implement field selection and visual highlight in `packages/feldexa_ui/lib/src/field_selection.dart` (FR-031)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/77"
+    },
+    "T078": {
+      "issue": 78,
+      "state": "OPEN",
+      "title": "T078: Implement the zoom-to-field target formula and test in `packages/feldexa_core/lib/src/geometry/zoom.dart` and `packages/feldexa_core/test/zoom_test.dart` (FR-034; CHK005)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/78"
+    },
+    "T079": {
+      "issue": 79,
+      "state": "OPEN",
+      "title": "T079: Implement single-line and multiline text controls with German IME support in `apps/feldexa_app/lib/features/fill/text_control.dart` (FR-033/FR-035/FR-039/FR-040)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/79"
+    },
+    "T080": {
+      "issue": 80,
+      "state": "OPEN",
+      "title": "T080: Implement number parsing, German decimal comma, optional thousands separators, negative sign, and canonical storage in `packages/feldexa_core/lib/src/validation/number.dart` (FR-032; `data-model.md` §3.6; CHK007)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/80"
+    },
+    "T081": {
+      "issue": 81,
+      "state": "OPEN",
+      "title": "T081: Implement strict `Tag.Monat.Jahr` date validation and `DATE-001`/`DATE-002` handling in `packages/feldexa_core/lib/src/validation/date.dart` (FR-107, FR-108, FR-109, FR-110; SC-022; clarification 5)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/81"
+    },
+    "T082": {
+      "issue": 82,
+      "state": "OPEN",
+      "title": "T082: Implement the checkbox control with a 48 dp hit slop independent of the exported mark in `apps/feldexa_app/lib/features/fill/checkbox_control.dart` (FR-042; `contracts/editor-interactions.md` §5)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/82"
+    },
+    "T083": {
+      "issue": 83,
+      "state": "OPEN",
+      "title": "T083: Implement the signature sheet bound to the current document only in `apps/feldexa_app/lib/features/fill/signature_sheet.dart` (FR-036)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/83"
+    },
+    "T084": {
+      "issue": 84,
+      "state": "OPEN",
+      "title": "T084: Implement overflow warning and align `FLD-001` wording with blocking `EXP-001` in `apps/feldexa_app/lib/features/fill/overflow_warning.dart` and `contracts/error-catalog.de.md` (FR-037/FR-038/FR-068; CHK030)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/84"
+    },
+    "T085": {
+      "issue": 85,
+      "state": "OPEN",
+      "title": "T085: Implement per-field completion state for optional and empty fields in `apps/feldexa_app/lib/features/editor/field_completion.dart` (FR-041; CHK008)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/85"
+    },
+    "T086": {
+      "issue": 86,
+      "state": "OPEN",
+      "title": "T086: Add the Android two-page touch fill test in `apps/feldexa_app/integration_test/android_fill_test.dart` (US4 Independent Test)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/86"
+    },
+    "T087": {
+      "issue": 87,
+      "state": "OPEN",
+      "title": "T087: Add the `SIMULATED` browser fill test in `apps/feldexa_app/integration_test/web_fill_test.dart` (FR-086/FR-087)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/87"
+    },
+    "T088": {
+      "issue": 88,
+      "state": "OPEN",
+      "title": "T088: Write the durability-state contract test in `packages/feldexa_core/test/durability_test.dart` (FR-046; `data-model.md` §2.5)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/88"
+    },
+    "T089": {
+      "issue": 89,
+      "state": "OPEN",
+      "title": "T089: Implement the 2 s debounced autosave, foreground flush, and explicit save in `packages/feldexa_application/lib/src/persistence/autosave.dart` (FR-045; SC-020; clarification 2; CHK001)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/89"
+    },
+    "T090": {
+      "issue": 90,
+      "state": "OPEN",
+      "title": "T090: Implement atomic save orchestration with read-back verification in `packages/feldexa_application/lib/src/persistence/save_document.dart` (FR-043/FR-047/FR-048; FR-106 pattern)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/90"
+    },
+    "T091": {
+      "issue": 91,
+      "state": "OPEN",
+      "title": "T091: Implement the durability labels, status surfaces, and the pre-emptive PRIV-001 key/backup disclosure in `apps/feldexa_app/lib/features/editor/durability_status.dart` (FR-046/FR-051; `contracts/error-catalog.de.md` §3)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/91"
+    },
+    "T092": {
+      "issue": 92,
+      "state": "OPEN",
+      "title": "T092: Add the force-stop recovery test for edits older and newer than 2 seconds in `apps/feldexa_app/integration_test/android_autosave_recovery_test.dart` (SC-009/SC-020)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/92"
+    },
+    "T093": {
+      "issue": 93,
+      "state": "OPEN",
+      "title": "T093: Add the key-loss isolation test in `apps/feldexa_app/integration_test/key_loss_test.dart` (FR-052; `quickstart.md` §8)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/93"
+    },
+    "T094": {
+      "issue": 94,
+      "state": "OPEN",
+      "title": "T094: Add the storage-exhaustion and no-success-report test in `apps/feldexa_app/integration_test/storage_full_test.dart` (FR-074/FR-075/FR-076; SC-010)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/94"
+    },
+    "T095": {
+      "issue": 95,
+      "state": "OPEN",
+      "title": "T095: Implement the start area with separate document and template groups in `apps/feldexa_app/lib/features/start/stored_items.dart` (FR-058/FR-097/FR-098; clarification 3)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/95"
+    },
+    "T096": {
+      "issue": 96,
+      "state": "OPEN",
+      "title": "T096: Implement list deletion with a German confirmation naming what remains in `apps/feldexa_app/lib/features/start/delete_item.dart` (FR-053/FR-099)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/96"
+    },
+    "T097": {
+      "issue": 97,
+      "state": "OPEN",
+      "title": "T097: Define and test the 50-item list interaction bound in `apps/feldexa_app/integration_test/stored_list_50_test.dart` (FR-100; CHK024; owner decision OD-4)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/97"
+    },
+    "T098": {
+      "issue": 98,
+      "state": "OPEN",
+      "title": "T098: Verify no plaintext PDF, log, thumbnail, or backup residue in `apps/feldexa_app/integration_test/plaintext_leak_test.dart` (FR-082; CHK029)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/98"
+    },
+    "T099": {
+      "issue": 99,
+      "state": "OPEN",
+      "title": "T099: Verify diagnostics exclude paths, file names, OCR text, values, and signatures in `apps/feldexa_app/test/diagnostics_privacy_test.dart` (FR-081)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/99"
+    },
+    "T100": {
+      "issue": 100,
+      "state": "OPEN",
+      "title": "T100: Verify a blocked storage operation is retryable after space is freed without re-import in `apps/feldexa_app/integration_test/storage_retry_test.dart` (FR-077)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/100"
+    },
+    "T101": {
+      "issue": 101,
+      "state": "OPEN",
+      "title": "T101: Add the `SIMULATED` browser persistence and recovery test in `apps/feldexa_app/integration_test/web_persistence_test.dart` (FR-086/FR-087)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/101"
+    },
+    "T102": {
+      "issue": 102,
+      "state": "OPEN",
+      "title": "T102: Write the export-plan schema contract test in `packages/feldexa_export/test/export_plan_test.dart` (`contracts/export-plan.md` §2)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/102"
+    },
+    "T103": {
+      "issue": 103,
+      "state": "OPEN",
+      "title": "T103: Implement text layout, line breaking, baselines, and blocking clip detection in `packages/feldexa_export/lib/src/layout.dart` (FR-062/FR-064/FR-067/FR-068)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/103"
+    },
+    "T104": {
+      "issue": 104,
+      "state": "OPEN",
+      "title": "T104: Implement the PDFBox flattening applier that imports original pages and appends text, checkbox, and signature overlays in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export/PdfExportService.kt` (FR-063/FR-065/FR-066/FR-069; `contracts/export-plan.md` §5)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/104"
+    },
+    "T105": {
+      "issue": 105,
+      "state": "OPEN",
+      "title": "T105: Implement the independent artifact verification harness in `tools/pdf_verify/verify.sh` using `qpdf`, Poppler, and MuPDF (FR-069; SC-005/SC-006; CHK019)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/105"
+    },
+    "T106": {
+      "issue": 106,
+      "state": "OPEN",
+      "title": "T106: Implement the ephemeral export preview and its cleanup lifecycle in `apps/feldexa_app/lib/features/export/preview.dart` (FR-070/FR-072; CHK029)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/106"
+    },
+    "T107": {
+      "issue": 107,
+      "state": "OPEN",
+      "title": "T107: Implement Android save, share, and print delivery flows in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/delivery/DeliveryService.kt` (FR-071)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/107"
+    },
+    "T108": {
+      "issue": 108,
+      "state": "OPEN",
+      "title": "T108: Add the failed/interrupted export test that asserts no final artifact exists in `apps/feldexa_app/integration_test/export_failure_test.dart` (FR-072; SC-010)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/108"
+    },
+    "T109": {
+      "issue": 109,
+      "state": "OPEN",
+      "title": "T109: Add the Android two-page export and artifact-verification test in `apps/feldexa_app/integration_test/android_export_test.dart` (US7 Independent Test; FR-073; SC-005/SC-006)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/109"
+    },
+    "T110": {
+      "issue": 110,
+      "state": "OPEN",
+      "title": "T110: Add the printability test with the Android print preview and two independent engines in `apps/feldexa_app/integration_test/print_test.dart` (SC-005; CHK019)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/110"
+    },
+    "T111": {
+      "issue": 111,
+      "state": "OPEN",
+      "title": "T111: Add the `SIMULATED` export watermark and non-production-artifact test in `apps/feldexa_app/integration_test/web_export_test.dart` (FR-087; `contracts/export-plan.md` §7)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/111"
+    },
+    "T112": {
+      "issue": 112,
+      "state": "OPEN",
+      "title": "T112: Define the full export verification set and its membership in `tools/pdf_verify/verification-set.md` (SC-006; CHK018)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/112"
+    },
+    "T113": {
+      "issue": 113,
+      "state": "OPEN",
+      "title": "T113: Implement the preflight unresolved-suggestion warning per current plan behavior in `apps/feldexa_app/lib/features/export/preflight.dart`; do not change export gating until owner decision OD-1 in `tasks.md` is resolved (FR-025; `contracts/export-plan.md` §3.4; CHK009)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/113"
+    },
+    "T114": {
+      "issue": 114,
+      "state": "OPEN",
+      "title": "T114: Write the template-invariant contract test in `packages/feldexa_core/test/template_test.dart` (FR-054–FR-057; SC-013)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/114"
+    },
+    "T115": {
+      "issue": 115,
+      "state": "OPEN",
+      "title": "T115: Implement the explicit \"Als Vorlage speichern\" flow with value and signature exclusion in `apps/feldexa_app/lib/features/templates/create_template.dart` (FR-054, FR-055, FR-056, FR-057, FR-061; clarification 4)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/115"
+    },
+    "T116": {
+      "issue": 116,
+      "state": "OPEN",
+      "title": "T116: Implement the layout-only template editor with disabled value and signature controls in `apps/feldexa_app/lib/features/templates/template_editor.dart` (FR-101/FR-102; clarification 4)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/116"
+    },
+    "T117": {
+      "issue": 117,
+      "state": "OPEN",
+      "title": "T117: Implement immutable template versions and derived-document pinning in `packages/feldexa_application/lib/src/templates/template_versions.dart` (FR-103/FR-104/FR-105; clarification 4)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/117"
+    },
+    "T118": {
+      "issue": 118,
+      "state": "OPEN",
+      "title": "T118: Add the template-save atomicity test equivalent to the document-save rule in `apps/feldexa_app/integration_test/template_atomicity_test.dart` (FR-106; CHK035)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/118"
+    },
+    "T119": {
+      "issue": 119,
+      "state": "OPEN",
+      "title": "T119: Add the template-deletion independence test in `apps/feldexa_app/integration_test/template_delete_test.dart` (FR-060/FR-099; CHK034)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/119"
+    },
+    "T120": {
+      "issue": 120,
+      "state": "OPEN",
+      "title": "T120: Add the Android template independence and version suite in `apps/feldexa_app/integration_test/template_versions_test.dart` (FR-059; SC-012/SC-021)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/120"
+    },
+    "T121": {
+      "issue": 121,
+      "state": "OPEN",
+      "title": "T121: Add the `SIMULATED` browser template test in `apps/feldexa_app/integration_test/web_template_test.dart` (FR-086/FR-087)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/121"
+    },
+    "T122": {
+      "issue": 122,
+      "state": "OPEN",
+      "title": "T122: Implement the confidence/uncertainty badge in `packages/feldexa_ui/lib/src/uncertainty_badge.dart` (FR-083)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/122"
+    },
+    "T123": {
+      "issue": 123,
+      "state": "OPEN",
+      "title": "T123: Implement German failed-page and unsupported-structure explanations in `apps/feldexa_app/lib/features/editor/page_failure.dart` (FR-084; `contracts/error-catalog.de.md` REC-002/REC-003)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/123"
+    },
+    "T124": {
+      "issue": 124,
+      "state": "OPEN",
+      "title": "T124: Implement provenance distinction in the document view and summary in `apps/feldexa_app/lib/features/editor/recognition_summary.dart` (FR-085)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/124"
+    },
+    "T125": {
+      "issue": 125,
+      "state": "OPEN",
+      "title": "T125: Add the no-completeness-claim audit test in `apps/feldexa_app/test/recognition_honesty_test.dart` (US8 scenario 5; `contracts/error-catalog.de.md` §2)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/125"
+    },
+    "T126": {
+      "issue": 126,
+      "state": "OPEN",
+      "title": "T126: Add the low-contrast, skewed, and damaged-page recognition test in `apps/feldexa_app/integration_test/android_recognition_degraded_test.dart` (US8 Independent Test; FR-083)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/126"
+    },
+    "T127": {
+      "issue": 127,
+      "state": "OPEN",
+      "title": "T127: Add the `SIMULATED` uncertainty presentation test in `apps/feldexa_app/integration_test/web_uncertainty_test.dart` (FR-086/FR-087)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/127"
+    },
+    "T128": {
+      "issue": 128,
+      "state": "OPEN",
+      "title": "T128: Implement the Chrome editing journey test in `apps/feldexa_app/integration_test/web_journey_test.dart` (FR-086; US9 Independent Test)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/128"
+    },
+    "T129": {
+      "issue": 129,
+      "state": "OPEN",
+      "title": "T129: Wire `SIMULATED` labeling through the UI banner, structured logs, and report fields in `packages/feldexa_ui/lib/src/simulated_banner.dart` and `packages/feldexa_ports/lib/src/evidence.dart` (FR-087)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/129"
+    },
+    "T130": {
+      "issue": 130,
+      "state": "OPEN",
+      "title": "T130: Add the evidence-separation assertion in `apps/feldexa_app/test/evidence_separation_test.dart` (FR-088; constitution Principle VIII)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/130"
+    },
+    "T131": {
+      "issue": 131,
+      "state": "OPEN",
+      "title": "T131: Add the viewport, responsive-layout, and accessibility-semantics test in `apps/feldexa_app/integration_test/web_viewport_test.dart` (US9 scenario 5; FR-091; SC-015)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/131"
+    },
+    "T132": {
+      "issue": 132,
+      "state": "OPEN",
+      "title": "T132: Add the browser/Android geometry-parity test in `apps/feldexa_app/integration_test/geometry_parity_test.dart` (FR-089; CHK011)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/132"
+    },
+    "T133": {
+      "issue": 133,
+      "state": "OPEN",
+      "title": "T133: Run the release-only German-string audit with the `SIMULATED` allowlist in `apps/feldexa_app/test/german_release_audit_test.dart` (SC-014; FR-087; CHK023/CHK025; constitution Principles II and VIII)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/133"
+    },
+    "T134": {
+      "issue": 134,
+      "state": "OPEN",
+      "title": "T134: Run the numeric accessibility audit at 200 % text, 4.5:1/3:1 contrast, and 48 dp targets in `apps/feldexa_app/integration_test/accessibility_audit_test.dart` (SC-015; FR-092/FR-093; CHK022)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/134"
+    },
+    "T135": {
+      "issue": 135,
+      "state": "OPEN",
+      "title": "T135: Record the SC-004 performance protocol with ≥20 runs, one warm-up, representative page set, build mode, and device profile in `tools/evaluation/performance_protocol.md` (SC-004; CHK014)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/135"
+    },
+    "T136": {
+      "issue": 136,
+      "state": "OPEN",
+      "title": "T136: Execute the Samsung Galaxy A54 5G performance run and record it in `specs/001-scanned-form-workflow/reports/2026-11-12-device-performance.md` (SC-004; CHK014)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/136"
+    },
+    "T137": {
+      "issue": 137,
+      "state": "OPEN",
+      "title": "T137: Record the SC-016 journey-timing and SC-018 first-time-usability protocol in `tools/evaluation/journey_protocol.md`; participant and observation details remain blocked on owner decision OD-2 (SC-016/SC-018; CHK017)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/137"
+    },
+    "T138": {
+      "issue": 138,
+      "state": "OPEN",
+      "title": "T138: Add the outbound-transmission and socket observation test plus release-manifest audit in `apps/feldexa_app/integration_test/network_observation_test.dart` (SC-007/SC-008; FR-078/FR-079/FR-080; CHK020)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/138"
+    },
+    "T139": {
+      "issue": 139,
+      "state": "OPEN",
+      "title": "T139: Record corpus diversity strata and the provenance/rights record in `tools/corpus/manifest.json` and `tools/corpus/README.md` (constitution Principle IV; CHK033)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/139"
+    },
+    "T140": {
+      "issue": 140,
+      "state": "OPEN",
+      "title": "T140: Record the plan-budget traceability table and label untraceable values as non-binding engineering budgets in `specs/001-scanned-form-workflow/reports/2026-11-12-budget-traceability.md` (CHK027)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/140"
+    },
+    "T141": {
+      "issue": 141,
+      "state": "OPEN",
+      "title": "T141: Record the named-device equivalence rule and obtain owner approval for any substitute in `specs/001-scanned-form-workflow/reports/2026-11-12-device-equivalence.md` (SC-004; CHK026; owner decision OD-3)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/141"
+    },
+    "T142": {
+      "issue": 142,
+      "state": "OPEN",
+      "title": "T142: Execute the frozen scored recognition evaluation on the authoritative Android runtime and record TP/FP/FN, type accuracy, position accuracy, and the manual baseline in `tools/evaluation/reports/2026-11-12-recognition.md` (SC-001/SC-002/SC-003; constitution Principle IV)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/142"
+    },
+    "T143": {
+      "issue": 143,
+      "state": "OPEN",
+      "title": "T143: Execute the full-corpus export verification set and record zero clipped, misplaced, wrong-checkbox, and missing-signature defects in `specs/001-scanned-form-workflow/reports/2026-11-12-export-verification.md` (SC-005/SC-006; CHK018)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/143"
+    },
+    "T144": {
+      "issue": 144,
+      "state": "OPEN",
+      "title": "T144: Run the cross-artifact consistency analysis through the installed official `speckit-analyze` workflow and record its report in `specs/001-scanned-form-workflow/reports/2026-11-12-analysis.md` (constitution Development Workflow gate 5; CHK032)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/144"
+    },
+    "T145": {
+      "issue": 145,
+      "state": "OPEN",
+      "title": "T145: Run the complete local gate in `tool/gate.sh` and record zero analyzer failures and separated `SIMULATED` evidence (constitution Principle VIII; plan §Testing)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/145"
+    },
+    "T146": {
+      "issue": 146,
+      "state": "OPEN",
+      "title": "T146: Execute the `quickstart.md` Web, emulator, artifact, failure-injection, and performance scenarios and record the outcomes in `specs/001-scanned-form-workflow/reports/2026-11-12-quickstart-validation.md` (constitution Definition of Done)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/146"
+    },
+    "T147": {
+      "issue": 147,
+      "state": "OPEN",
+      "title": "T147: Assemble the final acceptance report with separated `SIMULATED`, `EMULATOR`, and `DEVICE` evidence in `specs/001-scanned-form-workflow/reports/2026-11-12-acceptance.md` (constitution Principles VIII and X; Definition of Done)",
+      "url": "https://github.com/xxammaxx/Feldexa_2.0/issues/147"
+    }
+  }
+}

@@ -1,0 +1,5 @@
+8949d7ea91ecff327354594ea35ffd2a271e86947de5e0df3102be508d238c31  specs/001-scanned-form-workflow/spec.md
+0069d5b7ca61520a44b0313296145fd7e871da44df230cc05089755cb86820d0  specs/001-scanned-form-workflow/plan.md
+6f20f7bcf957e19bca0808655a840538f48f7a483ed8bae8a2284edca4b48d25  specs/001-scanned-form-workflow/tasks.md
+201f4ac5a5ca28a1d303b5731a5615ef2064b44ba217b3585e8f24556f324aea  specs/001-scanned-form-workflow/quickstart.md
+e487197fa4ae07491f74049260f61983d1560591d1daaa277b8fd3824ddaa813  .specify/memory/constitution.md
