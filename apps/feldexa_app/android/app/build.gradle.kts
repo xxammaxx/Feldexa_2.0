@@ -4,6 +4,10 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Kotlin: android.builtInKotlin=false keeps Flutter's supported KGP path.
+// FlutterPluginUtils.detectApplyingKotlinGradlePlugin applies
+// org.jetbrains.kotlin.android to this module because it does not declare KGP;
+// MainActivity.kt is therefore compiled (verified in the APK DEX).
 android {
     namespace = "de.feldexa.app"
     // T002: Android 8.0 (API 26) minimum; Android 16 (API 36) compile/target.
@@ -29,9 +33,9 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Intentionally unsigned: T002 configures no release signing identity
+            // and no credentials are committed. Production signing is a later,
+            // owner-supplied integration step; no release-signing claim is made.
         }
     }
 }
