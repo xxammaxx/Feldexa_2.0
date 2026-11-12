@@ -1,0 +1,456 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://feldexa.invalid/schemas/corpus-manifest.schema.json",
+  "title": "Feldexa 2.0 recognition corpus manifest",
+  "description": "Versioned manifest for the rights-cleared German authority-form corpus. The manifest records provenance, usage rights, content checksums, page geometry, and ground-truth field rectangles/types. It is frozen before the first scored recognition run; any change requires a new corpus version (constitution Principle IV, plan research decision D-18).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "corpusVersion",
+    "metricDefinitionVersion",
+    "freeze",
+    "forms"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "description": "Version of this manifest schema.",
+      "const": "1.0.0"
+    },
+    "corpusVersion": {
+      "description": "Frozen corpus version, for example corpus-1.0.0. Must match the version used in evaluation reports.",
+      "type": "string",
+      "pattern": "^corpus-[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "metricDefinitionVersion": {
+      "description": "Frozen evaluation definition this ground truth is scored with.",
+      "type": "string",
+      "pattern": "^metric-definition\\.v[0-9]+$"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "freeze": {
+      "$ref": "#/$defs/freeze"
+    },
+    "forms": {
+      "description": "Every real and synthetic form counted in this corpus version.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/form"
+      }
+    },
+    "excludedCandidates": {
+      "description": "Candidates inspected but not counted, with the reason. Kept so the 20-form threshold cannot be padded with unusable material.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/excludedCandidate"
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "description": "Lowercase hexadecimal SHA-256 digest of the exact corpus bytes.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "rect": {
+      "description": "Rectangle in source-page points. x/y are the top-left corner in display-box coordinates; width/height are strictly positive.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "xPt",
+        "yPt",
+        "widthPt",
+        "heightPt"
+      ],
+      "properties": {
+        "xPt": {
+          "type": "number",
+          "minimum": 0
+        },
+        "yPt": {
+          "type": "number",
+          "minimum": 0
+        },
+        "widthPt": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "heightPt": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index",
+        "widthPt",
+        "heightPt",
+        "rotation"
+      ],
+      "properties": {
+        "index": {
+          "description": "Zero-based page index in the source document.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "widthPt": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "heightPt": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "rotation": {
+          "description": "Page rotation applied by the source document.",
+          "enum": [
+            0,
+            90,
+            180,
+            270
+          ]
+        },
+        "cropBox": {
+          "description": "Optional source CropBox in points, recorded when it differs from the MediaBox.",
+          "$ref": "#/$defs/rect"
+        }
+      }
+    },
+    "fieldType": {
+      "description": "Supported recognition categories (spec FR-004).",
+      "enum": [
+        "text",
+        "number",
+        "date",
+        "checkbox",
+        "multiline",
+        "signature"
+      ]
+    },
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "pageIndex",
+        "rect"
+      ],
+      "properties": {
+        "id": {
+          "description": "Stable ground-truth field identifier, unique within the form.",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+        },
+        "type": {
+          "$ref": "#/$defs/fieldType"
+        },
+        "pageIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rect": {
+          "$ref": "#/$defs/rect"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "retrievalDate",
+        "legalBasis",
+        "rightsCleared",
+        "containsPersonalData"
+      ],
+      "properties": {
+        "source": {
+          "description": "Issuing authority and public source of the original form.",
+          "type": "string",
+          "minLength": 1
+        },
+        "retrievalDate": {
+          "description": "Date the form was retrieved or generated.",
+          "type": "string",
+          "format": "date"
+        },
+        "legalBasis": {
+          "description": "Usage-rights basis, for example '§ 5 UrhG' or 'synthetic; no third-party content'.",
+          "type": "string",
+          "minLength": 1
+        },
+        "rightsCleared": {
+          "const": true
+        },
+        "containsPersonalData": {
+          "description": "Must stay false: real personal documents are forbidden in the repository (constitution Principle VI).",
+          "const": false
+        },
+        "rightsReference": {
+          "type": "string",
+          "minLength": 1
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "verifiedBy",
+        "verifiedAt",
+        "method",
+        "independentOfDetector",
+        "disputedFieldsResolved"
+      ],
+      "properties": {
+        "verifiedBy": {
+          "description": "Person or agent independent of the detector author.",
+          "type": "string",
+          "minLength": 1
+        },
+        "verifiedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "independentOfDetector": {
+          "const": true
+        },
+        "disputedFieldsResolved": {
+          "const": true
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "synthetic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "generator",
+        "seed"
+      ],
+      "properties": {
+        "generator": {
+          "description": "Path to the deterministic generator that produced this fixture.",
+          "type": "string",
+          "minLength": 1
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "freeze": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "frozenAt",
+        "frozenBy",
+        "groundTruthIndependentOfDetector",
+        "disputedFieldsResolvedBeforeScoring",
+        "changePolicy"
+      ],
+      "properties": {
+        "frozenAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "frozenBy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "groundTruthIndependentOfDetector": {
+          "const": true
+        },
+        "disputedFieldsResolvedBeforeScoring": {
+          "const": true
+        },
+        "changePolicy": {
+          "description": "How later changes are handled; must state that a new corpus version and a separately reported run are required.",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "form": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "path",
+        "sha256",
+        "sizeBytes",
+        "pageCount",
+        "provenance",
+        "pages",
+        "groundTruth"
+      ],
+      "properties": {
+        "id": {
+          "description": "Stable form identifier, unique within the manifest.",
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{1,63}$"
+        },
+        "kind": {
+          "enum": [
+            "real",
+            "synthetic"
+          ]
+        },
+        "path": {
+          "description": "POSIX-style path relative to the corpus directory. Absolute paths, parent traversal, and backslashes are rejected by the verifier.",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*\\.pdf$"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "sizeBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "pageCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "verification": {
+          "$ref": "#/$defs/verification"
+        },
+        "synthetic": {
+          "$ref": "#/$defs/synthetic"
+        },
+        "strata": {
+          "description": "Diversity strata this form represents, for example 'layout:table' or 'authority:municipal'.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "pages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/page"
+          }
+        },
+        "groundTruth": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fields"
+          ],
+          "properties": {
+            "notes": {
+              "type": "string"
+            },
+            "fields": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/field"
+              }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "real"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "verification"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "synthetic"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "synthetic"
+            ]
+          }
+        }
+      ]
+    },
+    "excludedCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate",
+        "reason"
+      ],
+      "properties": {
+        "candidate": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "retrievalDate": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    }
+  }
+}
