@@ -324,6 +324,23 @@ void main() {
       }
     });
 
+    test('enforces the two-decimal confidence from recognition-output §2', () {
+      for (final double valid in <double>[0, 0.01, 0.5, 0.82, 0.99, 1]) {
+        expect(_suggestion(confidence: valid).confidence, valid);
+      }
+      for (final double invalid in <double>[0.825, 0.1234, 0.005, 0.999]) {
+        expect(
+          () => _suggestion(confidence: invalid),
+          throwsArgumentError,
+          reason: 'confidence $invalid',
+        );
+      }
+      // A floating-point two-decimal result is stored in canonical form, not
+      // with a long binary fraction.
+      expect(_suggestion(confidence: 0.1 + 0.2).confidence, 0.3);
+      expect(_suggestion(confidence: 0.82).uncertainty, 0.18);
+    });
+
     test('trims labelText, treats blank as null, and enforces 200 chars', () {
       expect(_suggestion(labelText: '  Name  ').labelText, 'Name');
       expect(_suggestion(labelText: '   ').labelText, isNull);
@@ -386,6 +403,24 @@ void main() {
           reason: alias,
         );
       }
+      // IoU is defined within one page, so a canonical reference to another
+      // page cannot be a conflict, in either direction.
+      expect(
+        () => _suggestion(conflictsWith: <String>['s_p1_0001']),
+        throwsArgumentError,
+      );
+      expect(
+        () => _suggestion(
+          id: 's_p1_0001',
+          pageIndex: 1,
+          conflictsWith: <String>['s_p0_0001'],
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        _suggestion(conflictsWith: <String>['s_p0_0002']).conflictsWith,
+        <String>['s_p0_0002'],
+      );
     });
 
     test('checks page-bounds tolerance without clamping', () {
@@ -526,6 +561,16 @@ void main() {
           reason: alias,
         );
       }
+      // The copied machine confidence follows the recognition-output §2
+      // two-decimal rule as well.
+      expect(
+        () => _field(
+          provenance: Provenance.machine,
+          sourceSuggestionId: 's_p0_0001',
+          suggestionConfidence: 0.825,
+        ),
+        throwsArgumentError,
+      );
     });
 
     test('enforces the 1–120 label rule and preserves German characters', () {
@@ -549,6 +594,35 @@ void main() {
       expect(() => _field(id: ' padded'), throwsArgumentError);
       expect(() => _field(id: 'has space'), throwsArgumentError);
       expect(() => _field(id: _repeat('a', 129)), throwsArgumentError);
+    });
+
+    test('rejects Unicode whitespace and C1 controls in field ids', () {
+      // Machine identifiers must not hide separators that `trim()` and an
+      // ASCII-only check would miss: no-break space, Ogham space, the
+      // U+2000–U+200A quad family, line/paragraph separators, narrow and
+      // medium spaces, ideographic space, and the C1 range.
+      for (final String id in <String>[
+        'field\u00A0id',
+        'field\u1680id',
+        'field\u2000id',
+        'field\u200Aid',
+        'field\u2028id',
+        'field\u2029id',
+        'field\u202Fid',
+        'field\u205Fid',
+        'field\u3000id',
+        'field\u0085id',
+        'field\u009Fid',
+      ]) {
+        expect(() => _field(id: id), throwsArgumentError);
+        expect(() => _mark(fieldId: id), throwsArgumentError);
+      }
+      expect(_field(id: 'feld-1').id, 'feld-1');
+      expect(
+        _field(id: 'Straße').id,
+        'Straße',
+        reason: 'non-ASCII visible identifiers remain valid',
+      );
     });
 
     test('accepts only matching values or preserved incompatible content', () {

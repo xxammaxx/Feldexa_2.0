@@ -380,13 +380,14 @@ final class FieldSuggestion {
   /// [pageIndex] in plain decimal and a one-based ordinal zero-padded to at
   /// least four digits; it must embed [pageIndex]. The contract has exactly
   /// one spelling per suggestion, so padding aliases such as `s_p00_0001` or
-  /// `s_p0_00001` are rejected. [confidence] is on `0.0 … 1.0`. [labelText] is
+  /// `s_p0_00001` are rejected. [confidence] is on `0.0 … 1.0` with at most
+  /// two decimal places (`contracts/recognition-output.md` §2). [labelText] is
   /// trimmed, must contain no control characters, and is at most 200
   /// characters; null or blank means no credible label. A
   /// [FieldType.signature] suggestion requires the
   /// [SuggestionCue.signatureArea] cue. [conflictsWith] must reference other
-  /// canonical suggestion ids with positive ordinals, contain no duplicates,
-  /// and never reference [id].
+  /// canonical same-page suggestion ids with positive ordinals, contain no
+  /// duplicates, and never reference [id].
   ///
   /// Throws [ArgumentError] for every invalid value. The error never echoes a
   /// label or any other document content.
@@ -403,7 +404,7 @@ final class FieldSuggestion {
   }) {
     final int checkedPage = _checkPageIndex(pageIndex);
     final String checkedId = _validateSuggestionId(id, checkedPage);
-    final double checkedConfidence = _checkUnitInterval(
+    final double checkedConfidence = _checkTwoDecimalConfidence(
       confidence,
       'confidence',
     );
@@ -415,6 +416,7 @@ final class FieldSuggestion {
     final List<String> checkedConflicts = _normalizeConflicts(
       conflictsWith,
       checkedId,
+      checkedPage,
     );
     if (proposedType == FieldType.signature && !evidence.hasSignatureCue) {
       throw ArgumentError(
@@ -492,12 +494,13 @@ final class FieldSuggestion {
   /// Cue flags and quality signals supporting the candidate.
   final SuggestionEvidence evidence;
 
-  /// Ids of suggestions with an IoU of at least 0.5.
+  /// Ids of same-page suggestions with an IoU of at least 0.5.
   ///
-  /// Symmetry and the IoU threshold are producer responsibilities
-  /// (`contracts/recognition-output.md` §6); this value object enforces the
-  /// structural invariants: unique, sorted, valid suggestion ids, no self
-  /// reference.
+  /// IoU is defined within one page, so every reference must embed this
+  /// suggestion's [pageIndex] (`contracts/recognition-output.md` §1 and §6).
+  /// Symmetry and the IoU threshold are producer responsibilities; this value
+  /// object enforces the structural invariants: unique, sorted, canonical
+  /// same-page suggestion ids with positive ordinals, and no self reference.
   final List<String> conflictsWith;
 
   /// Current review state; persisted suggestions are [unresolved] until the
@@ -507,9 +510,12 @@ final class FieldSuggestion {
   /// The deterministic suggestion id for [pageIndex] and a one-based
   /// [ordinal].
   ///
-  /// `contracts/recognition-output.md` §2 fixes the spelling
+  /// `contracts/recognition-output.md` §2 fixes the canonical wire spelling
   /// `s_p<pageIndex>_<zero-padded ordinal>`, for example `s_p0_0007`.
-  /// [data-model.md] §3.4 writes the same form as `s_<page>_<ordinal>`.
+  /// `data-model.md` §3.4 writes the same id as `s_<page>_<ordinal>`; that is
+  /// a shorthand placeholder for the recognition contract's spelling, not a
+  /// second accepted wire format. The constructor accepts only the canonical
+  /// form.
   static String idFor({required int pageIndex, required int ordinal}) {
     final int checkedPage = _checkPageIndex(pageIndex);
     if (ordinal < 1) {
@@ -519,8 +525,9 @@ final class FieldSuggestion {
     return 's_p${checkedPage}_$padded';
   }
 
-  /// Uncertainty implied by [confidence]: `1 - confidence`.
-  double get uncertainty => 1 - confidence;
+  /// Uncertainty implied by [confidence]: `1 - confidence`, rounded to the
+  /// two-decimal form required by `contracts/recognition-output.md` §2.
+  double get uncertainty => _roundToTwoDecimals(1 - confidence);
 
   /// Whether [rect] is inside a page display box within the 0.5 pt tolerance
   /// from `data-model.md` §2.1.
@@ -664,7 +671,10 @@ final class ConfirmedField {
         : _validateSuggestionId(sourceSuggestionId, checkedPage);
     final double? checkedSuggestionConfidence = suggestionConfidence == null
         ? null
-        : _checkUnitInterval(suggestionConfidence, 'suggestionConfidence');
+        : _checkTwoDecimalConfidence(
+            suggestionConfidence,
+            'suggestionConfidence',
+          );
     if (provenance == Provenance.machine) {
       if (checkedSuggestionId == null || checkedSuggestionConfidence == null) {
         throw ArgumentError(
@@ -1913,6 +1923,29 @@ double _checkUnitInterval(double value, String name) {
   return value;
 }
 
+/// Validates a confidence on `0.0 … 1.0` with at most two decimal places.
+///
+/// `contracts/recognition-output.md` §2 requires confidence (and its derived
+/// uncertainty) to be rounded to two decimals. A tolerance of `1e-12` absorbs
+/// binary floating-point representation error for values such as `0.29`,
+/// `0.58`, or `0.1 + 0.2`; the stored value is the canonical two-decimal
+/// double, so JSON never emits a longer fraction. A genuine third decimal
+/// (`0.825`, `0.999`) is rejected.
+double _checkTwoDecimalConfidence(double value, String name) {
+  final double checked = _checkUnitInterval(value, name);
+  final double rounded = _roundToTwoDecimals(checked);
+  if ((checked - rounded).abs() > 1e-12) {
+    throw ArgumentError('$name must have at most two decimal places');
+  }
+  return rounded;
+}
+
+double _roundToTwoDecimals(double value) {
+  final double result = (value * 100).roundToDouble() / 100;
+  // Normalize negative zero so canonical JSON and equality see `0.0`.
+  return result == 0 ? 0.0 : result;
+}
+
 DateTime _checkUtc(DateTime value, String name) {
   if (!value.isUtc) {
     throw ArgumentError('$name must be UTC');
@@ -1979,13 +2012,33 @@ String _validateFieldId(String value) {
     throw ArgumentError('id must be at most 128 characters');
   }
   for (final int rune in value.runes) {
-    if (rune <= 0x20 || rune == 0x7F) {
+    if (rune < 0x20 ||
+        (rune >= 0x7F && rune <= 0x9F) ||
+        _isUnicodeWhitespace(rune)) {
       throw ArgumentError(
         'id must not contain whitespace or control characters',
       );
     }
   }
   return value;
+}
+
+/// Whether [rune] has the Unicode `White_Space` property.
+///
+/// `String.trim()` only removes leading and trailing whitespace and the ASCII
+/// check for `0x20` misses the separators a machine id must never hide, so
+/// every Unicode whitespace code point is rejected explicitly. C1 controls
+/// (`U+0080–U+009F`) are rejected by the caller; `U+0085` is also whitespace.
+bool _isUnicodeWhitespace(int rune) {
+  return rune == 0x20 ||
+      rune == 0x00A0 ||
+      rune == 0x1680 ||
+      (rune >= 0x2000 && rune <= 0x200A) ||
+      rune == 0x2028 ||
+      rune == 0x2029 ||
+      rune == 0x202F ||
+      rune == 0x205F ||
+      rune == 0x3000;
 }
 
 String? _normalizeOptionalLabel(
@@ -2023,7 +2076,11 @@ String _normalizeRequiredLabel(
   return trimmed;
 }
 
-List<String> _normalizeConflicts(Iterable<String> values, String ownId) {
+List<String> _normalizeConflicts(
+  Iterable<String> values,
+  String ownId,
+  int pageIndex,
+) {
   final List<String> result = values.toList(growable: false);
   final Set<String> unique = result.toSet();
   if (unique.length != result.length) {
@@ -2037,7 +2094,18 @@ List<String> _normalizeConflicts(Iterable<String> values, String ownId) {
     }
     // The referenced id must be the one canonical spelling with a positive,
     // zero-padded ordinal; padding aliases and zero ordinals are rejected.
-    _parseSuggestionId(id, name: 'conflictsWith');
+    final ({int pageIndex, int ordinal}) parsed = _parseSuggestionId(
+      id,
+      name: 'conflictsWith',
+    );
+    // IoU is only defined within one page, so a cross-page reference could
+    // never satisfy the conflict contract (`contracts/recognition-output.md`
+    // §1 and §6).
+    if (parsed.pageIndex != pageIndex) {
+      throw ArgumentError(
+        'conflictsWith must reference a suggestion on the same page',
+      );
+    }
   }
   return List<String>.unmodifiable(result..sort());
 }
