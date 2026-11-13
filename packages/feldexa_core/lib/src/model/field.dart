@@ -205,15 +205,61 @@ sealed class SuggestionCue implements Comparable<SuggestionCue> {
   /// Data-model §3.4 coarse alias for [gridCell].
   static const SuggestionCue grid = gridCell;
 
+  /// The closed keyword lexicon v1 from `contracts/recognition-output.md`
+  /// §3.1, normalized to lowercase.
+  ///
+  /// [SuggestionCue.keyword] accepts only these keys (case-insensitively), and
+  /// [fromWire] accepts only `keyword_<key>` tokens built from them. A later
+  /// lexicon version must extend this set explicitly; arbitrary keys are not
+  /// valid wire cues.
+  static const Set<String> keywordLexiconV1 = <String>{
+    'name',
+    'vorname',
+    'nachname',
+    'familienname',
+    'geburtsdatum',
+    'geburtsort',
+    'datum',
+    'straße',
+    'strasse',
+    'hausnummer',
+    'plz',
+    'postleitzahl',
+    'ort',
+    'wohnort',
+    'telefon',
+    'telefax',
+    'e-mail',
+    'email',
+    'iban',
+    'bic',
+    'bank',
+    'konto',
+    'steuernummer',
+    'steuer-id',
+    'aktenzeichen',
+    'geschäftszeichen',
+    'antrag',
+    'betrag',
+    'summe',
+    'unterschrift',
+    'datum/unterschrift',
+    'monat',
+    'jahr',
+    'zeitraum',
+    'von',
+    'bis',
+  };
+
   /// Creates a `keyword_<key>` cue.
   ///
   /// [key] is the lexicon key. It is trimmed and lowercased for canonical
-  /// determinism (the §3.1 lexicon is case-insensitive) and must be non-empty,
-  /// at most 64 characters, and free of whitespace, control, and invisible
-  /// characters. Visible German punctuation and letters (`straße`, `e-mail`,
-  /// `datum/unterschrift`) are preserved.
+  /// determinism (the §3.1 lexicon is case-insensitive) and must be a member
+  /// of [keywordLexiconV1]; visible German punctuation and letters (`straße`,
+  /// `e-mail`, `datum/unterschrift`) are part of that closed list.
   ///
-  /// Throws [ArgumentError] for an invalid key.
+  /// Throws [ArgumentError] for a key outside the lexicon or containing
+  /// whitespace, control, or invisible characters.
   factory SuggestionCue.keyword(String key) {
     return _KeywordSuggestionCue(_normalizeKeywordKey(key));
   }
@@ -241,10 +287,10 @@ sealed class SuggestionCue implements Comparable<SuggestionCue> {
 
   /// Parses a wire token.
   ///
-  /// Accepts every exact §3.1 token, including `keyword_<key>`, plus the
-  /// unambiguous data-model aliases `line` and `grid`. Throws
-  /// [FormatException] for a non-string, unknown, ambiguous (`ocr_alignment`),
-  /// or keyless (`keyword`) token.
+  /// Accepts every exact §3.1 token, including `keyword_<key>` for a key in
+  /// [keywordLexiconV1], plus the unambiguous data-model aliases `line` and
+  /// `grid`. Throws [FormatException] for a non-string, unknown, ambiguous
+  /// (`ocr_alignment`), keyless (`keyword`), or out-of-lexicon keyword token.
   static SuggestionCue fromWire(Object? token) {
     if (token is String) {
       for (final SuggestionCue cue in _fixedCues) {
@@ -353,6 +399,9 @@ String _normalizeKeywordKey(String key) {
         'characters',
       );
     }
+  }
+  if (!SuggestionCue.keywordLexiconV1.contains(normalized)) {
+    throw ArgumentError('keyword key is not in the recognition v1 lexicon');
   }
   return normalized;
 }
@@ -692,11 +741,11 @@ final class FieldSuggestion {
         conflictsWith: _readStringList(json, 'conflictsWith'),
         resolution: SuggestionResolution.fromWire(json['resolution']),
       );
-      // `uncertainty` is derived from confidence. The contract requires the
-      // key, so toJson always writes it; older persisted objects without it
-      // remain readable, and a present value must agree with the derivation.
-      final Object? rawUncertainty = json['uncertainty'];
-      if (rawUncertainty != null) {
+      // `uncertainty` is derived from confidence. The contract requires a
+      // numeric key, so toJson always writes it; a missing key is the legacy
+      // boundary for older persisted objects, but an explicit null is not
+      // numeric and is rejected.
+      if (json.containsKey('uncertainty')) {
         final double provided = _readDouble(json, 'uncertainty');
         if ((provided - suggestion.uncertainty).abs() > 1e-12) {
           throw const FormatException(

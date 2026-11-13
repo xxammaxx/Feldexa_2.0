@@ -294,6 +294,22 @@ void main() {
       );
       expect(SuggestionCue.fromWire('line'), SuggestionCue.underline);
       expect(SuggestionCue.fromWire('grid'), SuggestionCue.gridCell);
+      for (final String unknown in <String>[
+        'nickname',
+        'unknown',
+        'vorname2',
+      ]) {
+        expect(
+          () => SuggestionCue.keyword(unknown),
+          throwsArgumentError,
+          reason: unknown,
+        );
+        expect(
+          () => SuggestionCue.fromWire('keyword_$unknown'),
+          throwsFormatException,
+          reason: unknown,
+        );
+      }
       final SuggestionEvidence sorted = _evidence(
         cues: <SuggestionCue>[
           SuggestionCue.keyword('vorname'),
@@ -304,6 +320,19 @@ void main() {
         SuggestionCue.keyword('name'),
         SuggestionCue.keyword('vorname'),
       ]);
+    });
+
+    test('keyword cue keys are the closed recognition-output v1 lexicon', () {
+      expect(SuggestionCue.keywordLexiconV1, hasLength(36));
+      for (final String key in SuggestionCue.keywordLexiconV1) {
+        final SuggestionCue cue = SuggestionCue.keyword(key);
+        expect(cue.wireName, 'keyword_$key', reason: key);
+        expect(SuggestionCue.fromWire('keyword_$key'), cue, reason: key);
+      }
+      expect(
+        SuggestionCue.keyword('VORNAME'),
+        SuggestionCue.keyword('vorname'),
+      );
     });
 
     test('enforces cueAgreement and skew bounds', () {
@@ -754,6 +783,15 @@ void main() {
       final Map<String, Object?> mismatched = Map<String, Object?>.from(json)
         ..['uncertainty'] = 0.17;
       expect(() => FieldSuggestion.fromJson(mismatched), throwsFormatException);
+      final Map<String, Object?> explicitNull = Map<String, Object?>.from(json)
+        ..['uncertainty'] = null;
+      expect(
+        () => FieldSuggestion.fromJson(explicitNull),
+        throwsFormatException,
+      );
+      final Map<String, Object?> nonNumeric = Map<String, Object?>.from(json)
+        ..['uncertainty'] = '0.18';
+      expect(() => FieldSuggestion.fromJson(nonNumeric), throwsFormatException);
     });
 
     test('round-trips the recognition-output §2 suggestion fixture', () {
