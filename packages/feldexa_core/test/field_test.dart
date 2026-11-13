@@ -45,14 +45,14 @@ SuggestionEvidence _evidence({
   Iterable<SuggestionCue> cues = const <SuggestionCue>[SuggestionCue.line],
   int cueAgreement = 1,
   double skewDegrees = 0,
-  bool lowContrast = false,
+  EvidenceContrast contrast = EvidenceContrast.normal,
   bool ocrUsed = true,
 }) {
   return SuggestionEvidence(
     cues: cues,
     cueAgreement: cueAgreement,
     skewDegrees: skewDegrees,
-    lowContrast: lowContrast,
+    contrast: contrast,
     ocrUsed: ocrUsed,
   );
 }
@@ -329,7 +329,7 @@ void main() {
         ],
         cueAgreement: 2,
         skewDegrees: 0.4,
-        lowContrast: true,
+        contrast: EvidenceContrast.low,
         ocrUsed: false,
       );
       expect(signed.hasSignatureCue, isTrue);
@@ -339,6 +339,62 @@ void main() {
       expect(parsed, signed);
       expect(parsed.hashCode, signed.hashCode);
       expect(parsed.hasSignatureCue, isTrue);
+    });
+
+    test('serializes contrast normal|low and migrates the legacy boolean', () {
+      final SuggestionEvidence normal = _evidence();
+      expect(normal.contrast, EvidenceContrast.normal);
+      expect(normal.lowContrast, isFalse);
+      expect(normal.toJson()['contrast'], 'normal');
+      expect(normal.toJson().containsKey('lowContrast'), isFalse);
+
+      final SuggestionEvidence low = _evidence(contrast: EvidenceContrast.low);
+      expect(low.contrast, EvidenceContrast.low);
+      expect(low.lowContrast, isTrue);
+      expect(low.toJson()['contrast'], 'low');
+
+      final SuggestionEvidence migrated = SuggestionEvidence.fromJson(
+        <String, Object?>{
+          'cues': <String>['underline'],
+          'cueAgreement': 1,
+          'skewDegrees': 0,
+          'lowContrast': true,
+          'ocrUsed': true,
+        },
+      );
+      expect(migrated.contrast, EvidenceContrast.low);
+      expect(migrated.toJson()['contrast'], 'low');
+      expect(migrated.toJson().containsKey('lowContrast'), isFalse);
+
+      expect(
+        () => SuggestionEvidence.fromJson(<String, Object?>{
+          'cues': <String>['underline'],
+          'cueAgreement': 1,
+          'skewDegrees': 0,
+          'ocrUsed': true,
+        }),
+        throwsFormatException,
+      );
+      expect(
+        () => SuggestionEvidence.fromJson(<String, Object?>{
+          'cues': <String>['underline'],
+          'cueAgreement': 1,
+          'skewDegrees': 0,
+          'contrast': 'high',
+          'ocrUsed': true,
+        }),
+        throwsFormatException,
+      );
+      expect(
+        () => SuggestionEvidence.fromJson(<String, Object?>{
+          'cues': <String>['underline'],
+          'cueAgreement': 1,
+          'skewDegrees': 0,
+          'contrast': null,
+          'ocrUsed': true,
+        }),
+        throwsFormatException,
+      );
     });
   });
 
@@ -676,6 +732,60 @@ void main() {
       expect(parsed.labelText, 'Geheim');
       expect(parsed.toString(), isNot(contains('Geheim')));
       expect(_suggestion(labelText: 'Other'), isNot(equals(suggestion)));
+    });
+
+    test('matches the recognition-output §2 suggestion wire fields', () {
+      final FieldSuggestion suggestion = _suggestion(confidence: 0.82);
+      final Map<String, Object?> json = suggestion.toJson();
+      expect(json['confidence'], 0.82);
+      expect(json['uncertainty'], 0.18);
+      final Map<String, Object?> evidence =
+          json['evidence']! as Map<String, Object?>;
+      expect(evidence['contrast'], 'normal');
+      expect(evidence.containsKey('lowContrast'), isFalse);
+      final FieldSuggestion parsed = FieldSuggestion.fromJson(
+        _jsonRoundTrip(json),
+      );
+      expect(parsed, suggestion);
+
+      final Map<String, Object?> legacy = Map<String, Object?>.from(json)
+        ..remove('uncertainty');
+      expect(FieldSuggestion.fromJson(legacy), suggestion);
+      final Map<String, Object?> mismatched = Map<String, Object?>.from(json)
+        ..['uncertainty'] = 0.17;
+      expect(() => FieldSuggestion.fromJson(mismatched), throwsFormatException);
+    });
+
+    test('round-trips the recognition-output §2 suggestion fixture', () {
+      final FieldSuggestion fixture = _suggestion(
+        id: 's_p0_0007',
+        confidence: 0.82,
+        labelText: 'Name',
+        evidence: _evidence(
+          cues: <SuggestionCue>[
+            SuggestionCue.underline,
+            SuggestionCue.ocrAlignmentRight,
+            SuggestionCue.keyword('name'),
+          ],
+          cueAgreement: 3,
+          skewDegrees: 0.4,
+        ),
+      );
+      final Map<String, Object?> json = _jsonRoundTrip(fixture.toJson());
+      expect(json['confidence'], 0.82);
+      expect(json['uncertainty'], 0.18);
+      final Map<String, Object?> evidence =
+          json['evidence']! as Map<String, Object?>;
+      expect(evidence['cues'], <String>[
+        'underline',
+        'ocr_alignment_right',
+        'keyword_name',
+      ]);
+      expect(evidence['cueAgreement'], 3);
+      expect(evidence['skewDegrees'], 0.4);
+      expect(evidence['contrast'], 'normal');
+      expect(evidence['ocrUsed'], true);
+      expect(FieldSuggestion.fromJson(json), fixture);
     });
   });
 

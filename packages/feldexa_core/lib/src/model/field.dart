@@ -357,6 +357,32 @@ String _normalizeKeywordKey(String key) {
   return normalized;
 }
 
+/// Page contrast reported by recognition (`contracts/recognition-output.md`
+/// §2–§3).
+enum EvidenceContrast {
+  /// Normal contrast.
+  normal('normal'),
+
+  /// Low contrast; caps suggestion confidence.
+  low('low');
+
+  const EvidenceContrast(this.wireName);
+
+  /// Stable JSON token.
+  final String wireName;
+
+  /// Parses a JSON token.
+  ///
+  /// Throws [FormatException] for a non-string or unknown token.
+  static EvidenceContrast fromWire(Object? token) {
+    return _enumFromWire(
+      values,
+      (EvidenceContrast value) => value.wireName,
+      token,
+    );
+  }
+}
+
 /// A non-blocking field warning (`data-model.md` §3.5 and §3.8).
 ///
 /// Warnings are surfaced to the user and never delete or truncate content
@@ -423,9 +449,9 @@ enum FieldVerificationState {
 ///
 /// [cues] is a non-empty, duplicate-free set. [cueAgreement] counts independent
 /// cue families and is at least one. [skewDegrees] is the estimated page skew
-/// in degrees on the closed interval `-10 … 10`. [lowContrast] is the
-/// contract's `contrast == "low"` flag, and [ocrUsed] is false when OCR failed
-/// and geometry-only detection ran.
+/// in degrees on the closed interval `-10 … 10`. [contrast] is the contract's
+/// `normal | low` page contrast, and [ocrUsed] is false when OCR failed and
+/// geometry-only detection ran.
 final class SuggestionEvidence {
   /// Creates evidence for a candidate.
   ///
@@ -436,7 +462,7 @@ final class SuggestionEvidence {
     required Iterable<SuggestionCue> cues,
     int cueAgreement = 1,
     double skewDegrees = 0,
-    bool lowContrast = false,
+    EvidenceContrast contrast = EvidenceContrast.normal,
     bool ocrUsed = true,
   }) {
     final List<SuggestionCue> cueList = cues.toList(growable: false);
@@ -459,7 +485,7 @@ final class SuggestionEvidence {
       cues: Set<SuggestionCue>.unmodifiable(sorted),
       cueAgreement: cueAgreement,
       skewDegrees: skewDegrees,
-      lowContrast: lowContrast,
+      contrast: contrast,
       ocrUsed: ocrUsed,
     );
   }
@@ -468,7 +494,7 @@ final class SuggestionEvidence {
     required this.cues,
     required this.cueAgreement,
     required this.skewDegrees,
-    required this.lowContrast,
+    required this.contrast,
     required this.ocrUsed,
   });
 
@@ -483,12 +509,13 @@ final class SuggestionEvidence {
     final List<SuggestionCue> cues = <SuggestionCue>[
       for (final Object? cue in rawCues) SuggestionCue.fromWire(cue),
     ];
+    final EvidenceContrast contrast = _readEvidenceContrast(json);
     try {
       return SuggestionEvidence(
         cues: cues,
         cueAgreement: _readInt(json, 'cueAgreement'),
         skewDegrees: _readDouble(json, 'skewDegrees'),
-        lowContrast: _readBool(json, 'lowContrast'),
+        contrast: contrast,
         ocrUsed: _readBool(json, 'ocrUsed'),
       );
     } on ArgumentError catch (error) {
@@ -508,8 +535,11 @@ final class SuggestionEvidence {
   /// Estimated page skew in degrees on `-10 … 10`.
   final double skewDegrees;
 
-  /// Whether the page contrast was low.
-  final bool lowContrast;
+  /// Page contrast as reported by recognition.
+  final EvidenceContrast contrast;
+
+  /// Whether [contrast] is [EvidenceContrast.low].
+  bool get lowContrast => contrast == EvidenceContrast.low;
 
   /// Whether OCR supplied evidence, as opposed to geometry-only detection.
   final bool ocrUsed;
@@ -523,7 +553,7 @@ final class SuggestionEvidence {
       'cues': <String>[for (final SuggestionCue cue in cues) cue.wireName],
       'cueAgreement': cueAgreement,
       'skewDegrees': skewDegrees,
-      'lowContrast': lowContrast,
+      'contrast': contrast.wireName,
       'ocrUsed': ocrUsed,
     };
   }
@@ -533,7 +563,7 @@ final class SuggestionEvidence {
     return other is SuggestionEvidence &&
         other.cueAgreement == cueAgreement &&
         other.skewDegrees == skewDegrees &&
-        other.lowContrast == lowContrast &&
+        other.contrast == contrast &&
         other.ocrUsed == ocrUsed &&
         _setsEqual<SuggestionCue>(other.cues, cues);
   }
@@ -544,7 +574,7 @@ final class SuggestionEvidence {
       Object.hashAllUnordered(cues),
       cueAgreement,
       skewDegrees,
-      lowContrast,
+      contrast,
       ocrUsed,
     );
   }
@@ -562,6 +592,12 @@ final class SuggestionEvidence {
 /// export content (aggregate invariant 4). Confirming one creates a
 /// [ConfirmedField] with [Provenance.machine]; the suggestion record keeps its
 /// original geometry and type for audit.
+///
+/// The JSON form follows `contracts/recognition-output.md` §2 for the shared
+/// suggestion fields: `confidence`, the derived `uncertainty`, the contract cue
+/// vocabulary, and `evidence.contrast` (`normal | low`). Envelope-only fields
+/// (`schemaVersion`, `analysisRunId`, `timings`, `evidenceClass`) belong to
+/// T057's `FieldSuggestionSet` and are not part of this model.
 final class FieldSuggestion {
   /// Creates a suggestion.
   ///
@@ -645,7 +681,7 @@ final class FieldSuggestion {
   /// Throws [FormatException] for missing, mistyped, or invalid fields.
   factory FieldSuggestion.fromJson(Map<String, Object?> json) {
     try {
-      return FieldSuggestion(
+      final FieldSuggestion suggestion = FieldSuggestion(
         id: _readString(json, 'id'),
         pageIndex: _readInt(json, 'pageIndex'),
         rect: Rect.fromJson(_readObject(json, 'rect')),
@@ -656,6 +692,19 @@ final class FieldSuggestion {
         conflictsWith: _readStringList(json, 'conflictsWith'),
         resolution: SuggestionResolution.fromWire(json['resolution']),
       );
+      // `uncertainty` is derived from confidence. The contract requires the
+      // key, so toJson always writes it; older persisted objects without it
+      // remain readable, and a present value must agree with the derivation.
+      final Object? rawUncertainty = json['uncertainty'];
+      if (rawUncertainty != null) {
+        final double provided = _readDouble(json, 'uncertainty');
+        if ((provided - suggestion.uncertainty).abs() > 1e-12) {
+          throw const FormatException(
+            'JSON field "uncertainty" must equal 1 - confidence',
+          );
+        }
+      }
+      return suggestion;
     } on ArgumentError catch (error) {
       throw FormatException('Invalid field suggestion JSON: ${error.message}');
     }
@@ -792,10 +841,11 @@ final class FieldSuggestion {
     );
   }
 
-  /// Serializes to the persisted suggestion object.
+  /// Serializes to the recognition-output §2 suggestion object.
   ///
-  /// Key ordering is not canonical here; the T017 canonical JSON encoder owns
-  /// that.
+  /// `uncertainty` is always written as the two-decimal derived value, and
+  /// `evidence.contrast` is `normal | low`. Key ordering is not canonical
+  /// here; the T017 canonical JSON encoder owns that.
   Map<String, Object?> toJson() {
     return <String, Object?>{
       'id': id,
@@ -803,6 +853,7 @@ final class FieldSuggestion {
       'rect': rect.toJson(),
       'proposedType': proposedType.wireName,
       'confidence': confidence,
+      'uncertainty': uncertainty,
       'labelText': labelText,
       'evidence': evidence.toJson(),
       'conflictsWith': List<String>.unmodifiable(conflictsWith),
@@ -2615,6 +2666,24 @@ bool _readBool(Map<String, Object?> json, String key) {
     throw FormatException('JSON field "$key" must be a boolean');
   }
   return value;
+}
+
+/// Reads the contract `contrast` key.
+///
+/// Falls back to the legacy `lowContrast` boolean only when the canonical
+/// key is absent, so pre-contract persisted evidence stays readable while
+/// every write emits the contract's `normal | low` token.
+EvidenceContrast _readEvidenceContrast(Map<String, Object?> json) {
+  if (json.containsKey('contrast')) {
+    return EvidenceContrast.fromWire(json['contrast']);
+  }
+  final Object? legacy = json['lowContrast'];
+  if (legacy is bool) {
+    return legacy ? EvidenceContrast.low : EvidenceContrast.normal;
+  }
+  throw const FormatException(
+    'JSON field "contrast" must be "normal" or "low"',
+  );
 }
 
 List<String> _readStringList(Map<String, Object?> json, String key) {
