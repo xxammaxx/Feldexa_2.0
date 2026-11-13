@@ -11,7 +11,9 @@ Conventions:
 - Every adapter exposes `CapabilityDescriptor`.
 - Every result that can influence acceptance carries `CapabilityEvidence`.
 
-**Shared types** used in signatures come from `feldexa_core` (`Rect`, `PageGeometry`, `PageFailure`, `DocumentMeta`, `RevisionContent`, `StoredTemplate`) and `feldexa_export` (`ExportPlan`, `ExportArtifact`, `ExportValidation`). `feldexa_ports` depends only on those pure packages; adapter packages depend on ports and platform SDKs.
+**Shared types** used in signatures come from `feldexa_core` (`Rect`, `PageGeometry`, `Page`, `SourceFileRef`, `PageFailure`, `ConfirmedField`, `DocumentMeta`, `RevisionContent`, `RevisionKind`, `StoredTemplate`) and `feldexa_export` (`ExportPlan`, `ExportValidation`, `ExportArtifact`, `ArtifactVerification`). `feldexa_ports` depends only on those two pure packages; `feldexa_export` depends on `feldexa_core`; neither core nor export imports `feldexa_ports`; adapter packages depend on ports and platform SDKs.
+
+**Type ownership (normative).** `feldexa_core` owns every canonical model type above; `feldexa_export` owns the four export contract types above. `packages/feldexa_ports/lib/src/evidence.dart` (T014) owns `EvidenceClass` and `CapabilityEvidence`. `packages/feldexa_ports/lib/src/errors.dart` (T014) owns `FeldexaException`, every typed exception in §3, and `ImportRejectionKind`. `packages/feldexa_ports/lib/src/descriptor.dart` (T013) owns `CapabilityKind`, `CapabilityDescriptor`, and `PlatformCapability`. `packages/feldexa_ports/lib/src/ports/` and `lib/src/dto/` (T013) own all 10 port interfaces, `AdapterRegistry`, and every remaining request/result DTO and enum in §2 and §4. T014 precedes T013; canonical core/export types precede both. No task may declare a second copy of a type owned by another task.
 
 ---
 
@@ -80,19 +82,20 @@ final class ImportedSource {
 
 abstract interface class DocumentImportPort implements PlatformCapability {
   /// Opens the platform document picker and streams the selection into the
-  /// encrypted source store. Throws ImportRejectedException or StorageException.
+  /// encrypted source store. Throws ImportRejectedException,
+  /// StorageFullException, or StorageWriteException.
   Future<ImportedSource> pickAndImport(ImportRequest request);
 
   /// Re-validates an existing stored source without user interaction.
   Future<SourceIntegrity> verifySource(String sourceId);
 }
+```
 
-final class PageFailure {
-  final int pageIndex;
-  final String category;   // rasterization | unreadable | unsupported_structure
-  final String messageKey; // German catalog key, e.g. 'IMP-006'
-}
+`PageFailure` is the canonical `feldexa_core` value object owned by T017 (`data-model.md` §3.3): `pageIndex`, `category` (`rasterization | unreadable | unsupported_structure`), and `messageKey` (German catalog key, e.g. `IMP-006`). It is shown here only because port signatures use it.
 
+`ImportRejectionKind` in the code block above is owned by T014 (`errors.dart`) because the import exceptions use it; T013 imports it and does not redeclare it.
+
+```dart
 final class SourceIntegrity {
   final bool readable;
   final String? actualSha256;
@@ -128,7 +131,7 @@ final class RasterImage {
 }
 
 abstract interface class PageRasterPort implements PlatformCapability {
-  Future<PageDimensions> pageDimensions(String sourceId, int pageIndex);
+  Future<PageGeometry> pageDimensions(String sourceId, int pageIndex);
   Future<RasterImage> renderPage(RasterRequest request);
   Future<void> evict(String sourceId);
 }
@@ -224,6 +227,8 @@ final class RecoveryStamp {
 }
 ```
 
+`StoredMeta` is the single port-level list read model. It is projected from the persisted `DocumentMeta` or `TemplateMeta`; `DocumentSummary` in `data-model.md` is a UI projection of `StoredMeta` plus derived counts, not a second persisted type (T095).
+
 **Contract**
 - `saveRevision` returns success only after the new head is written and read back (FR-047).
 - `delete` requires an explicit `DeleteConfirmation` naming the item; it deletes the aggregate's objects and records the deletion in the operation result. No other document/template is touched (FR-053/FR-099).
@@ -254,6 +259,8 @@ abstract interface class PdfExportPort implements PlatformCapability {
   Future<void> deleteArtifact(String artifactId);
 }
 ```
+
+`ExportPlan`, `ExportValidation`, `ExportArtifact`, and `ArtifactVerification` are canonical `feldexa_export` contract-model types owned by T022; `feldexa_export` builds plans, `feldexa_ports` only consumes them.
 
 **Contract**
 - `validate` returns blocking warnings (overflow/misplacement) before any file is written (FR-068).
@@ -325,11 +332,75 @@ abstract interface class DiagnosticsPort implements PlatformCapability {
 
 **Contract**: on-device only; no document content, names, text, values, or paths; scalar fields limited to enums, counts, durations, and error codes. Size-capped ring buffer. Never transmitted (FR-080/FR-081).
 
+### 2.10 Port-local DTOs and enums
+
+These declarations complete §2. They are owned by T013 and live under `packages/feldexa_ports/lib/src/dto/`. Canonical types (`Page`, `SourceFileRef`, `ConfirmedField`, `RevisionContent`, `RevisionKind`, `StoredTemplate`, `ExportPlan`, `ExportValidation`, `ExportArtifact`, `ArtifactVerification`) come from §1.
+
+```dart
+final class OcrLine {
+  final Rect rect;
+  final String text;
+  final double confidence;
+}
+
+final class LoadedTemplate {
+  final StoredTemplate template;
+  final Uint8List sourceBytes;      // decrypted, bounded; caller must release
+  final CapabilityEvidence evidence;
+}
+
+final class CreateDocumentRequest {
+  final String title;
+  final SourceFileRef source;       // immutable encrypted source already staged
+}
+
+final class SaveRevisionRequest {
+  final String documentId;
+  final String? expectedHead;       // null only before the first revision
+  final RevisionContent content;
+  final RevisionKind kind;          // autosave | explicit | recovery
+}
+
+final class CreateTemplateRequest {
+  final String title;
+  final SourceFileRef source;
+  final List<Page> pages;
+  final List<ConfirmedField> fields;
+  final List<String> fieldOrder;
+}
+
+final class SaveTemplateVersionRequest {
+  final String templateId;
+  final String? expectedHead;
+  final List<Page> pageSnapshot;
+  final List<ConfirmedField> fieldSnapshot;
+}
+
+final class WriteSignatureRequest {
+  final String documentId;
+  final String assetId;
+  final Uint8List bytes;
+  final String sha256;
+}
+
+final class DeleteConfirmation {
+  final String title;
+  final bool acknowledged;
+}
+
+final class ExportOptions {
+  final bool flatten;               // default true
+  final bool embedFonts;            // default true
+}
+```
+
+`RasterFormat` is `enum RasterFormat { rgba8888, gray8 }`. `ImportRejectionKind` is owned by T014 (`errors.dart`) because the import exceptions use it; `StoreKind`, `DeliveryAction`, and `AppLifecycleSignal` retain their declarations in §2.4, §2.6, and §2.7.
+
 ---
 
 ## 3. Error taxonomy
 
-All errors extend `FeldexaException` with `code` (catalog key), `messageKey` (German UI string), `retryable`, and `severity`. The full German text lives in [error-catalog.de.md](./error-catalog.de.md).
+All errors extend `FeldexaException` with `code` (stable catalog code, never shown in the UI), `messageKey` (ARB key resolved to German at the UI boundary), `message` (stable machine key, never a German sentence), `retryable`, and `severity`. The full German text lives in [error-catalog.de.md](./error-catalog.de.md).
 
 | Exception | Code prefix | Retryable | Maps to FR |
 | --- | --- | --- | --- |
@@ -338,13 +409,17 @@ All errors extend `FeldexaException` with `code` (catalog key), `messageKey` (Ge
 | `StorageFullException` | `SAVE-001` | yes after freeing space | FR-074…FR-077 |
 | `KeyUnavailableException` | `SAVE-002` | no | FR-052 |
 | `CorruptDataException` | `SAVE-003` | no | FR-047/FR-052 |
+| `StorageWriteException` | `SAVE-003` | yes | FR-047 |
+| `SecurityException` | `PLT-002` | no | platform guard |
 | `SchemaTooNewException` | `SAVE-005` | no | FR-044 |
-| `ExportBlockedException(fields)` | `EXP-001` | yes | FR-068 |
+| `ExportBlockedException(List<String> fieldIds)` | `EXP-001` | yes | FR-068 |
 | `ExportFailedException` | `EXP-002` | yes | FR-072 |
 | `RenderException` | `PAGE-001` | yes | FR-010/FR-019 |
 | `OcrUnavailableException` | `REC-001` | yes (geometry-only fallback) | FR-017 |
 | `SimulatedInProductionException` | `SIM-001` | no | Principle II |
 | `UnsupportedOperationException` | `PLT-001` | no | platform guard |
+
+Catalog-only codes such as `SAVE-004`, `SAVE-006`, `SAVE-007`, `EXP-003`–`EXP-006`, `REC-002`–`REC-004`, `PLT-003`/`PLT-004`, `TPL-*`, `DEL-*`, `DATE-*`, `NUM-001`, `FLD-*`, and `PRIV-001` are not separate exception classes unless a row appears above; they are carried by the nearest typed exception or the operation result. `SAVE-003` has two concrete causes (`StorageWriteException`, `CorruptDataException`) and must never collapse into an optimistic success.
 
 Rules:
 - Exceptions never include raw bytes, names, text, or paths in `toString()`; structured fields are limited to codes, counts, indices, and durations.
@@ -372,6 +447,8 @@ abstract interface class AdapterRegistry {
   List<CapabilityDescriptor> get descriptors;
 }
 ```
+
+`AdapterRegistry` is owned by T013 (`registry.dart`); it is an interface, not an implementation.
 
 **Selection**
 - `registry_android.dart` — real adapters only (`isDevelopmentEnvironment: false`, `hasSimulatedCapabilities: false`).

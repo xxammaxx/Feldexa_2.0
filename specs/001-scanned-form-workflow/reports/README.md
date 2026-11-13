@@ -236,9 +236,9 @@ machine-readable schema and full validator.
 
 ## 9. Index
 
-The task-to-issue mapping is a dated historical snapshot. Its `OPEN` states
-reflect `2026-11-12T15:50:00Z` and are not updated when issues later close; use
-the GitHub issue for live state.
+The task-to-issue mapping files are dated historical snapshots and are not live
+issue state; use the GitHub issue tracker for live status. They are external to
+the git bundle and are not bundle-verifiable.
 
 | Report | Class | Kind | Notes |
 | --- | --- | --- | --- |
@@ -253,6 +253,7 @@ the GitHub issue for live state.
 | [2026-11-12-t007-evidence.md](./2026-11-12-t007-evidence.md) | `NONE` | Task evidence | T007 font metrics |
 | [2026-11-13-t010-evidence.md](./2026-11-13-t010-evidence.md) | `NONE` | Task evidence | T010 template/index; created 2026-11-12 23:51 |
 | [2026-11-13-t012-evidence.md](./2026-11-13-t012-evidence.md) | `NONE` | Task evidence | T012 shared `SIMULATED` widget; Chrome widget run is `SIMULATED` |
+| [2026-11-13-t013-blocker-correction.md](./2026-11-13-t013-blocker-correction.md) | `NONE` | Gate-5 correction | T013 canonical-type ordering, descriptor/DTO ownership, export boundary; issue mapping external, live states unavailable from the bundle |
 | [2026-11-12-task-issue-mapping.md](./2026-11-12-task-issue-mapping.md) | `NONE` | Historical snapshot | 2026-11-12T15:50Z all-open mapping; not live issue state |
 | [2026-11-12-task-issue-mapping.json](./2026-11-12-task-issue-mapping.json) | `NONE` | Historical snapshot | Machine-readable dated snapshot; do not overwrite with current state |
 | `backups/` | — | Not evidence | Pre-edit snapshots |

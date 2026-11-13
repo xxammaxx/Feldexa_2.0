@@ -122,6 +122,8 @@ Provenance survives save, reopen, template derivation, and export planning (Prin
 
 **Derived read-model `DocumentSummary`**: `id`, `title`, `updatedAt`, `stateLabel` (`Neu`, `In Bearbeitung`, `Exportbereit`, `Gespeichert`, `Nicht lesbar`), `fieldCount`, `filledCount`, `thumbnailRef?` (none in v1 to avoid plaintext thumbnails; list uses a generic icon), `durability` (`saved`/`unsaved`).
 
+`DocumentSummary` is owned by T095 as the start-list projection of the port-level `StoredMeta`; it is derived and never persisted as a second document record.
+
 **State machine — document lifecycle**
 
 ```text
@@ -149,6 +151,8 @@ any state --user delete confirmed--> Deleted (record removed)
 | `importedAt` | `DateTime` | UTC |
 | `integrity` | `"verified" \| "unreadable"` | set after read-back verification |
 
+`SourceFileRef` is owned by T017; it is the immutable source metadata embedded in `Document` and `Template`.
+
 ### 3.3 `Page`
 
 | Field | Type | Rules |
@@ -159,6 +163,8 @@ any state --user delete confirmed--> Deleted (record removed)
 | `failure` | `PageFailure?` | required iff `analysis == failed` |
 | `unreadable` | `bool` | page content could not be decoded at import |
 | `renderCacheKey` | `String?` | derived, not persisted content |
+
+> `PageFailure` is the core value object owned by T017: `pageIndex` (`int`), `category` (`rasterization | unreadable | unsupported_structure`), and `messageKey` (German catalog key). It is the same shape referenced by `contracts/ports.md` §2.1; there is only one definition.
 
 **State machine — page analysis**
 
@@ -268,6 +274,8 @@ Not reusable across documents (FR-036); template creation excludes it (FR-057). 
 | `templateVersionId` | `String` | immutable; pinned forever |
 | `templateVersionNumber` | `int` | ≥ 1, display only |
 
+`TemplateOrigin` is owned by T017 as the document-side reference (`template_origin.dart`), not by the `Template` aggregate. This breaks the former `T017`↔`T021` reference cycle: `Template` does not embed a `TemplateOrigin`; only `Document` does.
+
 ### 3.10 `Template`
 
 | Field | Type | Rules |
@@ -286,6 +294,8 @@ Not reusable across documents (FR-036); template creation excludes it (FR-057). 
 
 **Invariants**: zero values, zero signatures, zero text content beyond field labels. Saving template changes writes a new immutable version; existing versions are never modified (FR-103/FR-104). `TemplateVersion` content = pages (source ref) + field definitions + order + schema version. Creating a document from a template **copies** the template's encrypted source into the new document's own source object; a derived document never references template storage, so deleting the template or any of its versions cannot break derived documents (FR-059/FR-060/FR-099). New documents always use the template's latest version (FR-105).
 
+> `TemplateMeta` (the persisted `meta.fx1` envelope) and `StoredTemplate` (the loaded template plus its pinned `TemplateVersion` content, without values or signatures) are canonical core read models owned by T021.
+
 ### 3.11 `TemplateVersion`
 
 | Field | Type | Rules |
@@ -297,6 +307,8 @@ Not reusable across documents (FR-036); template creation excludes it (FR-057). 
 | `fieldSnapshot` | `List<ConfirmedField>` | no values |
 | `pageSnapshot` | `List<Page>` | geometry + source refs |
 | `sha256` | `String` | hash of canonical plaintext JSON |
+
+> `TemplateVersionContent` is the canonical plaintext payload of `ver/<versionId>.fx1` (`pageSnapshot`, `fieldSnapshot`, `fieldOrder`, `schemaVersion`) and is owned by T021.
 
 ### 3.12 `Revision`
 
@@ -312,9 +324,13 @@ Not reusable across documents (FR-036); template creation excludes it (FR-057). 
 
 Retention: keep last 3 autosave revisions + the newest explicit revision + a recovery revision if present; pruning only after a verified commit.
 
+> `RevisionContent` is the named payload type of `Revision.content`: `{pages, suggestions, fields, fieldOrder, values, signatures, verification, templateOrigin}`. `RevisionKind` is the enum `autosave | explicit | recovery`. Both are canonical core types owned by T020.
+
 ### 3.13 `DurablePointer`
 
 `revisionId`, `parentRevisionId?`, `kind`, `committedAt`, `sha256`, `verifyReadBack: true`.
+
+`DurablePointer` is owned by T017 (`durable_pointer.dart`) because it is embedded in `Document.lastDurable`; T020 owns `Revision`/`RevisionContent` and must not redeclare the pointer. This breaks the former `T017`↔`T020` reference cycle.
 
 ### 3.14 `EditCommand` and `CommandHistory` (transient)
 
@@ -348,6 +364,8 @@ Retention: keep last 3 autosave revisions + the newest explicit revision + a rec
 
 A failed artifact is deleted before the operation reports failure in the place a successful artifact would occupy (`EXP-002`).
 
+`ArtifactVerification` is the canonical export verification record owned by T022: `pageCountMatches` (`bool`), `mediaBoxesMatch` (`bool`), `fontGlyphsPresent` (`bool`), `noInteractiveFields` (`bool`), `overlayBoundsWithinPage` (`bool`), and `checkedAt` (`DateTime`, UTC). `ExportArtifact`, `ExportPlan`, and `ExportValidation` are owned by T022 in `packages/feldexa_export`, because they describe one export attempt and its instruction set, not the stored document aggregate.
+
 **State machine — export**
 
 ```text
@@ -364,6 +382,8 @@ succeeded --preview dismissed/delivered--> deleted
 ### 3.16 `FieldSuggestionSet` (analysis output envelope)
 
 `pageIndex`, `analysisRunId`, `status`, `pageUncertain`, `uncertaintyReason?`, `failure?`, `suggestions[]`, `timings {rasterMs, ocrMs, detectMs}`, `evidenceClass`. See [contracts/recognition-output.md](./contracts/recognition-output.md).
+
+`FieldSuggestionSet` is owned by T057 (with the T050 contract test); it is the per-page recognition envelope, not a second model of `Document.suggestions`.
 
 ### 3.17 `OperationRecord` (transient)
 
@@ -391,6 +411,10 @@ succeeded --preview dismissed/delivered--> deleted
 | Diagnostics | `filesDir/diagnostics/redacted.jsonl` | redacted, size-capped, optional |
 
 The start list reads only `meta.fx1` files (documents and templates in separate directories) plus their heads; it never decrypts source PDFs or revision bodies.
+
+### 4.1 Persisted metadata and read models
+
+`DocumentMeta` is the canonical persisted `docs/<id>/meta.fx1` envelope owned by T017: `id`, `kind` (`"document"`), `title`, `createdAt`, `updatedAt`, `source` (`SourceFileRef`), `latestRevisionId`, `lastDurableAt`, `readable`, and `unreadableReasonCode?`. It contains no page content, values, or signatures. `TemplateMeta` and `TemplateVersionContent` are the corresponding template envelopes owned by T021. `StoredTemplate` is the loaded template read model (meta + pinned version content) owned by T021.
 
 ---
 
