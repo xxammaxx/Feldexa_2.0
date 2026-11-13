@@ -261,6 +261,51 @@ void main() {
       expect(() => _suggestion(id: 's_p0_0007', pageIndex: 0), returnsNormally);
     });
 
+    test('rejects noncanonical page and ordinal aliases', () {
+      // Recognition-output §2 fixes the only spelling: s_p<pageIndex>_<padded
+      // ordinal>. A leading-zero page alias or a wider zero-padded ordinal is
+      // the same logical id and must be rejected, not silently accepted.
+      for (final String alias in <String>[
+        's_p00_0001',
+        's_p000_0001',
+        's_p0_00001',
+        's_p0_000001',
+        's_p00_00000',
+      ]) {
+        expect(
+          () => _suggestion(id: alias),
+          throwsArgumentError,
+          reason: alias,
+        );
+      }
+      expect(
+        () => _suggestion(id: 's_p012_0001', pageIndex: 12),
+        throwsArgumentError,
+      );
+      expect(() => _suggestion(id: 's_p0_0001_extra'), throwsArgumentError);
+      // The canonical spellings remain valid, including ordinals wider than
+      // the four-digit minimum.
+      expect(_suggestion(id: 's_p0_0001').id, 's_p0_0001');
+      expect(_suggestion(id: 's_p12_0001', pageIndex: 12).id, 's_p12_0001');
+      expect(_suggestion(id: 's_p0_9999').id, 's_p0_9999');
+      expect(_suggestion(id: 's_p0_10000').id, 's_p0_10000');
+      // Four-digit zero-padding of a smaller ordinal is canonical.
+      expect(_suggestion(id: 's_p0_0999').id, 's_p0_0999');
+      // Out-of-range digit runs fail closed without throwing a number-format
+      // error from the constructor.
+      expect(
+        () => _suggestion(id: 's_p${_repeat('9', 30)}_0001'),
+        throwsArgumentError,
+      );
+      expect(
+        () => _suggestion(id: 's_p0_${_repeat('9', 30)}'),
+        throwsArgumentError,
+      );
+      expect(FieldSuggestion.idFor(pageIndex: 0, ordinal: 1), 's_p0_0001');
+      expect(FieldSuggestion.idFor(pageIndex: 0, ordinal: 9999), 's_p0_9999');
+      expect(FieldSuggestion.idFor(pageIndex: 0, ordinal: 10000), 's_p0_10000');
+    });
+
     test('enforces the confidence interval', () {
       expect(_suggestion(confidence: 0).confidence, 0);
       expect(_suggestion(confidence: 1).confidence, 1);
@@ -327,6 +372,20 @@ void main() {
         () => _suggestion(conflictsWith: <String>['other']),
         throwsArgumentError,
       );
+      // Conflicts must be canonical suggestion ids with a positive ordinal;
+      // aliases and zero ordinals are rejected.
+      for (final String alias in <String>[
+        's_p0_0000',
+        's_p00_0001',
+        's_p0_00001',
+        's_p012_0001',
+      ]) {
+        expect(
+          () => _suggestion(conflictsWith: <String>[alias]),
+          throwsArgumentError,
+          reason: alias,
+        );
+      }
     });
 
     test('checks page-bounds tolerance without clamping', () {
@@ -456,6 +515,17 @@ void main() {
         ),
         throwsArgumentError,
       );
+      for (final String alias in <String>['s_p00_0001', 's_p0_00001']) {
+        expect(
+          () => _field(
+            provenance: Provenance.machine,
+            sourceSuggestionId: alias,
+            suggestionConfidence: 0.8,
+          ),
+          throwsArgumentError,
+          reason: alias,
+        );
+      }
     });
 
     test('enforces the 1–120 label rule and preserves German characters', () {

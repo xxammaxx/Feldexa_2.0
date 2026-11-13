@@ -376,13 +376,17 @@ final class SuggestionEvidence {
 final class FieldSuggestion {
   /// Creates a suggestion.
   ///
-  /// [id] must use the deterministic `s_p<pageIndex>_<ordinal>` form with a
-  /// one-based ordinal of at least four digits, and it must embed [pageIndex].
-  /// [confidence] is on `0.0 … 1.0`. [labelText] is trimmed, must contain no
-  /// control characters, and is at most 200 characters; null or blank means no
-  /// credible label. A [FieldType.signature] suggestion requires the
+  /// [id] must use the deterministic `s_p<pageIndex>_<ordinal>` form with
+  /// [pageIndex] in plain decimal and a one-based ordinal zero-padded to at
+  /// least four digits; it must embed [pageIndex]. The contract has exactly
+  /// one spelling per suggestion, so padding aliases such as `s_p00_0001` or
+  /// `s_p0_00001` are rejected. [confidence] is on `0.0 … 1.0`. [labelText] is
+  /// trimmed, must contain no control characters, and is at most 200
+  /// characters; null or blank means no credible label. A
+  /// [FieldType.signature] suggestion requires the
   /// [SuggestionCue.signatureArea] cue. [conflictsWith] must reference other
-  /// suggestion ids, contain no duplicates, and never reference [id].
+  /// canonical suggestion ids with positive ordinals, contain no duplicates,
+  /// and never reference [id].
   ///
   /// Throws [ArgumentError] for every invalid value. The error never echoes a
   /// label or any other document content.
@@ -1884,7 +1888,7 @@ const double pageBoundsTolerance = 0.5;
 /// explicit `null`.
 const Object _unset = Object();
 
-final RegExp _suggestionIdPattern = RegExp(r'^s_p(\d+)_(\d{4,})$');
+final RegExp _suggestionIdPattern = RegExp(r'^s_p([0-9]+)_([0-9]+)$');
 final RegExp _canonicalNumberPattern = RegExp(r'^-?\d+(\.\d+)?$');
 final RegExp _canonicalDatePattern = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
 final RegExp _uuidV4Pattern = RegExp(
@@ -1917,18 +1921,54 @@ DateTime _checkUtc(DateTime value, String name) {
 }
 
 String _validateSuggestionId(String value, int pageIndex) {
-  final RegExpMatch? match = _suggestionIdPattern.firstMatch(value);
-  if (match == null) {
-    throw ArgumentError('id must use the s_p<pageIndex>_<ordinal> form');
-  }
-  final int embeddedPage = int.parse(match.group(1)!);
-  if (embeddedPage != pageIndex) {
+  final ({int pageIndex, int ordinal}) parsed = _parseSuggestionId(value);
+  if (parsed.pageIndex != pageIndex) {
     throw ArgumentError('id must embed the suggestion page index');
   }
-  if (int.parse(match.group(2)!) < 1) {
-    throw ArgumentError('id ordinal must be at least 1');
-  }
   return value;
+}
+
+/// Parses the one canonical suggestion-id spelling from
+/// `contracts/recognition-output.md` §2: `s_p<pageIndex>_<ordinal>`.
+///
+/// The page segment is the plain decimal form of the page index (no leading
+/// zeros), and the one-based ordinal is zero-padded to at least four digits
+/// (`s_p0_0001`, `s_p12_0007`, `s_p0_10000`). Every other spelling of the same
+/// pair is an alias and is rejected, so persisted ids remain deterministic and
+/// cannot multiply through padding variants. [name] names the offending field
+/// in the error without echoing the rejected id.
+({int pageIndex, int ordinal}) _parseSuggestionId(
+  String value, {
+  String name = 'id',
+}) {
+  final RegExpMatch? match = _suggestionIdPattern.firstMatch(value);
+  if (match == null) {
+    throw ArgumentError('$name must use the s_p<pageIndex>_<ordinal> form');
+  }
+  final String pageDigits = match.group(1)!;
+  final String ordinalDigits = match.group(2)!;
+  final int? pageIndex = int.tryParse(pageDigits);
+  final int? ordinal = int.tryParse(ordinalDigits);
+  if (pageIndex == null) {
+    throw ArgumentError('$name page index is out of range');
+  }
+  if (pageDigits != pageIndex.toString()) {
+    throw ArgumentError(
+      '$name page index must be canonical decimal without leading zeros',
+    );
+  }
+  if (ordinal == null) {
+    throw ArgumentError('$name ordinal is out of range');
+  }
+  if (ordinal < 1) {
+    throw ArgumentError('$name ordinal must be at least 1');
+  }
+  if (ordinalDigits != ordinal.toString().padLeft(4, '0')) {
+    throw ArgumentError(
+      '$name ordinal must be zero-padded to at least four digits',
+    );
+  }
+  return (pageIndex: pageIndex, ordinal: ordinal);
 }
 
 String _validateFieldId(String value) {
@@ -1995,11 +2035,9 @@ List<String> _normalizeConflicts(Iterable<String> values, String ownId) {
         'conflictsWith must not reference the suggestion itself',
       );
     }
-    if (!_suggestionIdPattern.hasMatch(id)) {
-      throw ArgumentError(
-        'conflictsWith must contain s_p<pageIndex>_<ordinal> ids',
-      );
-    }
+    // The referenced id must be the one canonical spelling with a positive,
+    // zero-padded ordinal; padding aliases and zero ordinals are rejected.
+    _parseSuggestionId(id, name: 'conflictsWith');
   }
   return List<String>.unmodifiable(result..sort());
 }
