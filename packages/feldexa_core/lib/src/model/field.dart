@@ -123,50 +123,238 @@ enum SuggestionResolution {
   }
 }
 
-/// A geometric or OCR cue that supports a suggestion.
+/// A recognition-evidence cue from `contracts/recognition-output.md` §3.1.
 ///
-/// The six values in `data-model.md` §3.4 are the source vocabulary:
-/// `line`, `box`, `grid`, `whitespace`, `ocr_alignment`, and `keyword`.
-/// [signatureArea] is the `signature_area` cue from
-/// `contracts/recognition-output.md` §3.1; it is required before a suggestion
-/// may propose the [FieldType.signature] type.
-enum SuggestionCue {
+/// This type represents the contract's wire vocabulary losslessly. The fixed
+/// cues are constants, and a keyword cue carries its lexicon key, so
+/// `keyword_<key>` is never flattened into a generic token. The data-model
+/// §3.4 list (`line`, `box`, `grid`, `whitespace`, `ocr_alignment`, `keyword`)
+/// is a coarse source taxonomy: [line] and [grid] are aliases for the concrete
+/// [underline] and [gridCell] cues, while the ambiguous `ocr_alignment` and
+/// keyless `keyword` spellings are not accepted wire tokens. Visible non-ASCII
+/// keyword keys such as `straße` remain representable.
+sealed class SuggestionCue implements Comparable<SuggestionCue> {
+  const SuggestionCue._(this.order);
+
   /// A horizontal rule directly below the candidate region.
-  line('line'),
+  static const SuggestionCue underline = _SimpleSuggestionCue('underline', 0);
 
   /// A closed rectangle enclosing the candidate.
-  box('box'),
+  static const SuggestionCue box = _SimpleSuggestionCue('box', 1);
 
   /// A cell of a detected table grid.
-  grid('grid'),
+  static const SuggestionCue gridCell = _SimpleSuggestionCue('grid_cell', 2);
 
   /// Bounded empty background adjacent to printed content.
-  whitespace('whitespace'),
+  static const SuggestionCue whitespace = _SimpleSuggestionCue('whitespace', 3);
 
-  /// The candidate aligns with an OCR label line.
-  ocrAlignment('ocr_alignment'),
+  /// The candidate left edge aligns with sibling candidates or labels.
+  static const SuggestionCue alignmentLeft = _SimpleSuggestionCue(
+    'alignment_left',
+    4,
+  );
 
-  /// A label lexeme implies the inferred type.
-  keyword('keyword'),
+  /// The label is directly below the candidate (for example a signature line).
+  static const SuggestionCue labelBelow = _SimpleSuggestionCue(
+    'label_below',
+    5,
+  );
+
+  /// The candidate is to the right of an OCR label line.
+  static const SuggestionCue ocrAlignmentRight = _SimpleSuggestionCue(
+    'ocr_alignment_right',
+    6,
+  );
+
+  /// The candidate is below an OCR label line.
+  static const SuggestionCue ocrAlignmentBelow = _SimpleSuggestionCue(
+    'ocr_alignment_below',
+    7,
+  );
+
+  /// A near-square 4–20 pt low-ink region.
+  static const SuggestionCue smallSquare = _SimpleSuggestionCue(
+    'small_square',
+    9,
+  );
+
+  /// A cell addressable individually within a detected table grid.
+  static const SuggestionCue tableCell = _SimpleSuggestionCue('table_cell', 10);
 
   /// A large low-ink region labelled as a signature area.
-  signatureArea('signature_area');
+  static const SuggestionCue signatureArea = _SimpleSuggestionCue(
+    'signature_area',
+    11,
+  );
 
-  const SuggestionCue(this.wireName);
+  /// An adjacent label or printed pattern implies digits.
+  static const SuggestionCue numericContext = _SimpleSuggestionCue(
+    'numeric_context',
+    12,
+  );
 
-  /// Stable JSON token.
+  /// An adjacent label or printed date mask (`TT.MM.JJJJ`) implies a date.
+  static const SuggestionCue dateContext = _SimpleSuggestionCue(
+    'date_context',
+    13,
+  );
+
+  /// Data-model §3.4 coarse alias for [underline].
+  static const SuggestionCue line = underline;
+
+  /// Data-model §3.4 coarse alias for [gridCell].
+  static const SuggestionCue grid = gridCell;
+
+  /// Creates a `keyword_<key>` cue.
+  ///
+  /// [key] is the lexicon key. It is trimmed and lowercased for canonical
+  /// determinism (the §3.1 lexicon is case-insensitive) and must be non-empty,
+  /// at most 64 characters, and free of whitespace, control, and invisible
+  /// characters. Visible German punctuation and letters (`straße`, `e-mail`,
+  /// `datum/unterschrift`) are preserved.
+  ///
+  /// Throws [ArgumentError] for an invalid key.
+  factory SuggestionCue.keyword(String key) {
+    return _KeywordSuggestionCue(_normalizeKeywordKey(key));
+  }
+
+  /// Declaration order from `contracts/recognition-output.md` §3.1.
+  ///
+  /// Used for deterministic cue sorting. Keyword cues share order 8 and are
+  /// then ordered by their key.
+  final int order;
+
+  /// Stable wire token from `contracts/recognition-output.md` §3.1.
+  String get wireName;
+
+  /// Tie-breaker after [order]; empty for fixed cues.
+  String get _sortKey;
+
+  @override
+  int compareTo(SuggestionCue other) {
+    final int byOrder = order.compareTo(other.order);
+    if (byOrder != 0) {
+      return byOrder;
+    }
+    return _sortKey.compareTo(other._sortKey);
+  }
+
+  /// Parses a wire token.
+  ///
+  /// Accepts every exact §3.1 token, including `keyword_<key>`, plus the
+  /// unambiguous data-model aliases `line` and `grid`. Throws
+  /// [FormatException] for a non-string, unknown, ambiguous (`ocr_alignment`),
+  /// or keyless (`keyword`) token.
+  static SuggestionCue fromWire(Object? token) {
+    if (token is String) {
+      for (final SuggestionCue cue in _fixedCues) {
+        if (cue.wireName == token) {
+          return cue;
+        }
+      }
+      if (token == 'line') {
+        return underline;
+      }
+      if (token == 'grid') {
+        return gridCell;
+      }
+      if (token.startsWith(_keywordPrefix) &&
+          token.length > _keywordPrefix.length) {
+        try {
+          return SuggestionCue.keyword(token.substring(_keywordPrefix.length));
+        } on ArgumentError {
+          throw const FormatException('Invalid keyword cue token.');
+        }
+      }
+    }
+    throw const FormatException('Unknown suggestion cue token.');
+  }
+
+  static const String _keywordPrefix = 'keyword_';
+
+  static const List<SuggestionCue> _fixedCues = <SuggestionCue>[
+    underline,
+    box,
+    gridCell,
+    whitespace,
+    alignmentLeft,
+    labelBelow,
+    ocrAlignmentRight,
+    ocrAlignmentBelow,
+    smallSquare,
+    tableCell,
+    signatureArea,
+    numericContext,
+    dateContext,
+  ];
+}
+
+const int _keywordCueOrder = 8;
+
+final class _SimpleSuggestionCue extends SuggestionCue {
+  const _SimpleSuggestionCue(this.wireName, int order) : super._(order);
+
+  @override
   final String wireName;
 
-  /// Parses a JSON token.
-  ///
-  /// Throws [FormatException] for a non-string or unknown token.
-  static SuggestionCue fromWire(Object? token) {
-    return _enumFromWire(
-      values,
-      (SuggestionCue value) => value.wireName,
-      token,
-    );
+  @override
+  String get _sortKey => '';
+
+  @override
+  bool operator ==(Object other) {
+    return other is _SimpleSuggestionCue && other.wireName == wireName;
   }
+
+  @override
+  int get hashCode => wireName.hashCode;
+
+  @override
+  String toString() => 'SuggestionCue.$wireName';
+}
+
+final class _KeywordSuggestionCue extends SuggestionCue {
+  const _KeywordSuggestionCue(this.key) : super._(_keywordCueOrder);
+
+  final String key;
+
+  @override
+  String get wireName => 'keyword_$key';
+
+  @override
+  String get _sortKey => key;
+
+  @override
+  bool operator ==(Object other) {
+    return other is _KeywordSuggestionCue && other.key == key;
+  }
+
+  @override
+  int get hashCode => Object.hash('keyword', key);
+
+  @override
+  String toString() => 'SuggestionCue.keyword($key)';
+}
+
+String _normalizeKeywordKey(String key) {
+  final String normalized = key.trim().toLowerCase();
+  if (normalized.isEmpty) {
+    throw ArgumentError('keyword key must not be empty');
+  }
+  if (normalized.runes.length > 64) {
+    throw ArgumentError('keyword key must be at most 64 characters');
+  }
+  for (final int rune in normalized.runes) {
+    if (rune < 0x20 ||
+        (rune >= 0x7F && rune <= 0x9F) ||
+        _isUnicodeWhitespace(rune) ||
+        _isInvisibleCodePoint(rune)) {
+      throw ArgumentError(
+        'keyword key must not contain whitespace, control, or invisible '
+        'characters',
+      );
+    }
+  }
+  return normalized;
 }
 
 /// A non-blocking field warning (`data-model.md` §3.5 and §3.8).
@@ -266,7 +454,7 @@ final class SuggestionEvidence {
       throw ArgumentError('skewDegrees must be finite and between -10 and 10');
     }
     final List<SuggestionCue> sorted = cueSet.toList()
-      ..sort((SuggestionCue a, SuggestionCue b) => a.index.compareTo(b.index));
+      ..sort((SuggestionCue a, SuggestionCue b) => a.compareTo(b));
     return SuggestionEvidence._(
       cues: Set<SuggestionCue>.unmodifiable(sorted),
       cueAgreement: cueAgreement,
@@ -310,7 +498,8 @@ final class SuggestionEvidence {
     }
   }
 
-  /// Unique cue flags, sorted by declaration order.
+  /// Unique cue flags, sorted by §3.1 declaration order and then by keyword
+  /// key.
   final Set<SuggestionCue> cues;
 
   /// Number of independent cue families supporting the candidate; at least 1.
@@ -2064,9 +2253,9 @@ String _validateFieldId(String value) {
     if (rune < 0x20 ||
         (rune >= 0x7F && rune <= 0x9F) ||
         _isUnicodeWhitespace(rune) ||
-        _isUnicodeFormatControl(rune)) {
+        _isInvisibleCodePoint(rune)) {
       throw ArgumentError(
-        'id must not contain whitespace, control, or format characters',
+        'id must not contain whitespace, control, or invisible characters',
       );
     }
   }
@@ -2091,36 +2280,43 @@ bool _isUnicodeWhitespace(int rune) {
       rune == 0x3000;
 }
 
-/// Whether [rune] is an invisible Unicode format control (the `Cf` category).
+/// Whether [rune] is an invisible Unicode code point.
 ///
-/// A machine identifier must not hide zero-width joiners, bidirectional
-/// overrides/isolates, tag characters, or other format controls: they are
-/// invisible to a reviewer and can make two different byte strings look equal.
-/// Visible non-ASCII letters (`ß`, CJK, Arabic) remain valid; only the
-/// `Cf` ranges are rejected. The set follows the assigned Unicode `Cf`
-/// code points, including the deprecated format characters still defined.
-bool _isUnicodeFormatControl(int rune) {
+/// Covers the `Cf` format controls (zero-width joiners, bidirectional
+/// overrides/isolates, tags, soft hyphen, BOM) and the non-`Cf` members of the
+/// Unicode `Default_Ignorable_Code_Point` property, such as U+034F COMBINING
+/// GRAPHEME JOINER, the fillers, and variation selectors. A machine identifier
+/// must not hide such characters: they are invisible to a reviewer and can
+/// make two different strings look equal. Visible combining marks (for example
+/// the decomposed accent U+0301) and visible non-ASCII letters remain valid.
+bool _isInvisibleCodePoint(int rune) {
   return rune == 0x00AD ||
+      rune == 0x034F ||
       (rune >= 0x0600 && rune <= 0x0605) ||
       rune == 0x061C ||
       rune == 0x06DD ||
       rune == 0x070F ||
       (rune >= 0x0890 && rune <= 0x0891) ||
       rune == 0x08E2 ||
-      rune == 0x180E ||
+      (rune >= 0x115F && rune <= 0x1160) ||
+      (rune >= 0x17B4 && rune <= 0x17B5) ||
+      (rune >= 0x180B && rune <= 0x180F) ||
       (rune >= 0x200B && rune <= 0x200F) ||
       (rune >= 0x202A && rune <= 0x202E) ||
       (rune >= 0x2060 && rune <= 0x2064) ||
       (rune >= 0x2066 && rune <= 0x206F) ||
+      rune == 0x3164 ||
+      (rune >= 0xFE00 && rune <= 0xFE0F) ||
       rune == 0xFEFF ||
+      rune == 0xFFA0 ||
+      (rune >= 0xFFF0 && rune <= 0xFFF8) ||
       (rune >= 0xFFF9 && rune <= 0xFFFB) ||
       rune == 0x110BD ||
       rune == 0x110CD ||
       (rune >= 0x13430 && rune <= 0x1343F) ||
       (rune >= 0x1BCA0 && rune <= 0x1BCA3) ||
       (rune >= 0x1D173 && rune <= 0x1D17A) ||
-      rune == 0xE0001 ||
-      (rune >= 0xE0020 && rune <= 0xE007F);
+      (rune >= 0xE0000 && rune <= 0xE0FFF);
 }
 
 String? _normalizeOptionalLabel(

@@ -148,8 +148,8 @@ void main() {
         SuggestionResolution.rejected,
       );
       expect(
-        SuggestionCue.fromWire('ocr_alignment'),
-        SuggestionCue.ocrAlignment,
+        SuggestionCue.fromWire('ocr_alignment_right'),
+        SuggestionCue.ocrAlignmentRight,
       );
       expect(
         SuggestionCue.fromWire('signature_area'),
@@ -165,6 +165,47 @@ void main() {
       );
       expect(() => FieldType.fromWire('unknown'), throwsFormatException);
       expect(() => FieldType.fromWire(3), throwsFormatException);
+    });
+
+    test('represents every recognition-output §3.1 wire cue', () {
+      const List<String> fixedTokens = <String>[
+        'underline',
+        'box',
+        'grid_cell',
+        'whitespace',
+        'alignment_left',
+        'label_below',
+        'ocr_alignment_right',
+        'ocr_alignment_below',
+        'small_square',
+        'table_cell',
+        'signature_area',
+        'numeric_context',
+        'date_context',
+      ];
+      for (final String token in fixedTokens) {
+        expect(SuggestionCue.fromWire(token).wireName, token, reason: token);
+      }
+      final SuggestionCue keyword = SuggestionCue.fromWire('keyword_vorname');
+      expect(keyword.wireName, 'keyword_vorname');
+      expect(keyword, SuggestionCue.fromWire('keyword_vorname'));
+      expect(keyword, isNot(SuggestionCue.fromWire('keyword_name')));
+      final SuggestionEvidence evidence = _evidence(
+        cues: <SuggestionCue>[
+          SuggestionCue.fromWire('underline'),
+          SuggestionCue.fromWire('grid_cell'),
+          SuggestionCue.fromWire('keyword_vorname'),
+        ],
+      );
+      expect(evidence.toJson()['cues'], <String>[
+        'underline',
+        'grid_cell',
+        'keyword_vorname',
+      ]);
+      final SuggestionEvidence parsed = SuggestionEvidence.fromJson(
+        _jsonRoundTrip(evidence.toJson()),
+      );
+      expect(parsed, evidence);
     });
   });
 
@@ -184,8 +225,8 @@ void main() {
 
     test('sorts cues and stores them as an immutable set', () {
       final SuggestionEvidence evidence = _evidence(
-        cues: const <SuggestionCue>[
-          SuggestionCue.keyword,
+        cues: <SuggestionCue>[
+          SuggestionCue.keyword('vorname'),
           SuggestionCue.line,
           SuggestionCue.box,
         ],
@@ -193,13 +234,76 @@ void main() {
       expect(evidence.cues.toList(), <SuggestionCue>[
         SuggestionCue.line,
         SuggestionCue.box,
-        SuggestionCue.keyword,
+        SuggestionCue.keyword('vorname'),
       ]);
       expect(
         () => evidence.cues.add(SuggestionCue.grid),
         throwsUnsupportedError,
       );
-      expect(evidence.toJson()['cues'], <String>['line', 'box', 'keyword']);
+      expect(evidence.toJson()['cues'], <String>[
+        'underline',
+        'box',
+        'keyword_vorname',
+      ]);
+    });
+
+    test('keyword cues are lossless, canonical, and validated', () {
+      expect(SuggestionCue.keyword(' Name ').wireName, 'keyword_name');
+      expect(
+        SuggestionCue.keyword('Datum/Unterschrift').wireName,
+        'keyword_datum/unterschrift',
+      );
+      expect(SuggestionCue.keyword('E-Mail').wireName, 'keyword_e-mail');
+      expect(SuggestionCue.keyword('straße').wireName, 'keyword_straße');
+      expect(SuggestionCue.keyword('name'), SuggestionCue.keyword('NAME'));
+      expect(
+        SuggestionCue.keyword('name').hashCode,
+        SuggestionCue.keyword('NAME').hashCode,
+      );
+      expect(
+        () => _evidence(
+          cues: <SuggestionCue>[
+            SuggestionCue.keyword('name'),
+            SuggestionCue.keyword('NAME'),
+          ],
+        ),
+        throwsArgumentError,
+      );
+      for (final String invalid in <String>[
+        '',
+        '   ',
+        'bad key',
+        'bad\u200Bkey',
+        'bad\u034Fkey',
+      ]) {
+        expect(
+          () => SuggestionCue.keyword(invalid),
+          throwsArgumentError,
+          reason: 'keyword key length ${invalid.runes.length}',
+        );
+      }
+      expect(() => SuggestionCue.fromWire('keyword_'), throwsFormatException);
+      expect(
+        () => SuggestionCue.fromWire('keyword_bad key'),
+        throwsFormatException,
+      );
+      expect(() => SuggestionCue.fromWire('keyword'), throwsFormatException);
+      expect(
+        () => SuggestionCue.fromWire('ocr_alignment'),
+        throwsFormatException,
+      );
+      expect(SuggestionCue.fromWire('line'), SuggestionCue.underline);
+      expect(SuggestionCue.fromWire('grid'), SuggestionCue.gridCell);
+      final SuggestionEvidence sorted = _evidence(
+        cues: <SuggestionCue>[
+          SuggestionCue.keyword('vorname'),
+          SuggestionCue.keyword('name'),
+        ],
+      );
+      expect(sorted.cues.toList(), <SuggestionCue>[
+        SuggestionCue.keyword('name'),
+        SuggestionCue.keyword('vorname'),
+      ]);
     });
 
     test('enforces cueAgreement and skew bounds', () {
@@ -735,6 +839,26 @@ void main() {
       expect(_field(id: 'Straße').id, 'Straße');
       expect(_field(id: '中文').id, '中文');
       expect(_field(id: 'العربية').id, 'العربية');
+    });
+
+    test('rejects default-ignorable non-Cf code points in field ids', () {
+      // U+034F and the other default-ignorable marks/fillers are invisible
+      // even though they are not Cf format controls.
+      for (final String id in <String>[
+        'field\u034Fid',
+        'field\u115Fid',
+        'field\u17B4id',
+        'field\u180Bid',
+        'field\u3164id',
+        'field\uFE00id',
+        'field\uFFA0id',
+      ]) {
+        expect(() => _field(id: id), throwsArgumentError);
+        expect(() => _mark(fieldId: id), throwsArgumentError);
+      }
+      // A visible decomposed accent (U+0301) is not default-ignorable and
+      // remains a valid identifier.
+      expect(_field(id: 'Cafe\u0301').id, 'Cafe\u0301');
     });
 
     test('accepts only matching values or preserved incompatible content', () {
