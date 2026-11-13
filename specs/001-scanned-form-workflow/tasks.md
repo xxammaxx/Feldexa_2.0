@@ -30,6 +30,24 @@ This feature is a Flutter monorepo (see `plan.md` §Project Structure):
 - Constitution v1.0.0 is fixed. No task in this file amends the constitution, expands product scope, commits, or publishes.
 - `checklists/precision-testability.md` remains reviewer-owned. Its 36 markers are intentionally untouched; this file does not claim reviewer approval. See `checklists/precision-testability-assessment.md` for the item-by-item assessment.
 
+## Foundational Type Ownership
+
+The following types are owned exactly once. A later task may consume an earlier task's type but must not redeclare it. This table is normative for T013–T022 and matches `contracts/ports.md` §1 and `data-model.md`.
+
+| Owner | Package / file | Types |
+| --- | --- | --- |
+| T014 | `packages/feldexa_ports/lib/src/evidence.dart`, `errors.dart` | `EvidenceClass`, `CapabilityEvidence`, `FeldexaException` + typed exceptions, `ImportRejectionKind` |
+| T013 | `packages/feldexa_ports/lib/src/descriptor.dart`, `registry.dart`, `ports/`, `dto/` | `CapabilityKind`, `CapabilityDescriptor`, `PlatformCapability`, `AdapterRegistry`, all 10 port interfaces, `ImportRequest`, `ImportedSource`, `SourceIntegrity`, `RasterRequest`, `RasterImage`, `RasterFormat`, `OcrRequest`, `OcrBlock`, `OcrLine`, `StoreKind`, `StoreStatus`, `StoredMeta`, `LoadedDocument`, `LoadedTemplate`, `CreateDocumentRequest`, `SaveRevisionRequest`, `CreateTemplateRequest`, `SaveTemplateVersionRequest`, `WriteSignatureRequest`, `DeleteConfirmation`, `RecoveryStamp`, `ExportRequest`, `ExportResult`, `ExportOptions`, `DeliveryAction`, `DeliveryOutcome`, `AppLifecycleSignal` |
+| T015 | `packages/feldexa_core/lib/src/geometry/rect.dart` | `Rect`, `Size`, `Point` |
+| T016 | `packages/feldexa_core/lib/src/geometry/page_geometry.dart` | `PageGeometry` |
+| T017 | `packages/feldexa_core/lib/src/model/document.dart`, `page_failure.dart`, `template_origin.dart`, `durable_pointer.dart`, `canonical_json.dart` | `Document`, `SourceFileRef`, `Page`, `PageFailure`, `AnalysisState`, `DocumentMeta`, `DocumentStatus`, `DocumentPreferences`, `TemplateOrigin`, `DurablePointer` |
+| T018 | `packages/feldexa_core/lib/src/model/field.dart` | `FieldSuggestion`, `ConfirmedField`, `FieldValue` variants, `FieldVerification`, `SignatureMark`, `FieldType`, `Provenance`, `SuggestionEvidence`, `FieldValidation` |
+| T020 | `packages/feldexa_core/lib/src/model/persistence.dart` | `DurabilityStatus`, `Revision`, `RevisionKind`, `RevisionContent` |
+| T021 | `packages/feldexa_core/lib/src/model/template.dart` | `Template`, `TemplateVersion`, `TemplateVersionPointer`, `TemplateMeta`, `TemplateVersionContent`, `StoredTemplate` |
+| T022 | `packages/feldexa_export/lib/src/model/export_plan.dart`, `export_artifact.dart` | `ExportPlan`, `ExportValidation`, `ExportArtifact`, `ArtifactVerification` |
+| T057 | `packages/feldexa_recognition/lib/src/page_analysis.dart` | `FieldSuggestionSet` |
+| T095 | `apps/feldexa_app/lib/features/start/stored_items.dart` | `DocumentSummary` projection of `StoredMeta` (not persisted) |
+
 ## Gate Order (Constitution Development Workflow)
 
 - Gate 5 (cross-artifact consistency analysis) was executed through the registered `speckit.analyze` command on **2026-11-12, before any implementation**, and produced the report archived at `specs/001-scanned-form-workflow/reports/2026-11-12-analysis.md`. Implementation must not start until the CRITICAL and HIGH findings are either resolved in the artifacts or explicitly recorded as open owner decisions (see below).
@@ -61,6 +79,10 @@ These are the only genuine artifact contradictions found; each is resolved by th
 | CR-4 (CHK030) | FLD-001 said overflow "may be clipped" while FR-068/EXP-001 stop the export. | The contract is corrected before implementation: `FLD-001` already states that export is stopped until the text is shortened or the field enlarged. T084 consumes and verifies that wording. | T084 |
 | CR-5 (CHK031) | Plan Phase C "frozen metric dry run" vs the pre-scoring freeze requirement. | Freeze corpus and metric v1 before any run; the dry run is explicitly unscored; the first scored run is Phase H. | T033, T034, T060, T142 |
 | CR-6 (CHK026) | Named device vs "owner-approved equivalent". | Owner authorization is permitted, but an equivalence rule must be recorded; until then only the named device satisfies SC-004. | T141 |
+| CR-7 | T013 forward-referenced canonical types created by later tasks | Canonical types are implemented first; T013 starts after T014 and T015–T022; no task ID changes. | T013, T014, T015–T022 |
+| CR-8 | T013/T014 descriptor and error ownership overlapped | T014 owns evidence, errors, and `ImportRejectionKind`; T013 owns descriptors, interfaces, registry, and DTOs. | T013, T014 |
+| CR-9 | 30 port/core/export types had no task-level owner and 11 port types were undefined | Added the Foundational Type Ownership table and `contracts/ports.md` §2.10; T022 owns export contract models; T013 owns port DTOs. | T013, T014, T017, T018, T020, T021, T022, T057, T095 |
+| CR-10 | `ExportArtifact` was in core in T022 but in export in the contracts and plan | `feldexa_export` is authoritative; T022's path and scope now match; no second copy remains in core. | T022 |
 
 ## Requirement Traceability Matrix
 
@@ -132,16 +154,24 @@ These are the only genuine artifact contradictions found; each is resolved by th
 
 **⚠️ CRITICAL**: No user-story implementation starts until this phase is complete.
 
-- [ ] T013 Define every capability interface in `packages/feldexa_ports/lib/` per `contracts/ports.md` (constitution Architecture and Platform Constraints)
-- [ ] T014 Define the error taxonomy and evidence classes in `packages/feldexa_ports/lib/src/errors.dart` and `packages/feldexa_ports/lib/src/evidence.dart` (constitution Principle VIII)
-- [x] T015 [P] Implement `Rect`, `Size`, and `Point` value objects in `packages/feldexa_core/lib/src/geometry/rect.dart` with finite, positive-size invariants (`data-model.md` §2.2; enables FR-024 and SC-017)
-- [ ] T016 Implement `PageGeometry` display-box, rotation, and CropBox mapping in `packages/feldexa_core/lib/src/geometry/page_geometry.dart` with tests in `packages/feldexa_core/test/geometry_test.dart` (`contracts/coordinates-and-geometry.md` §1–§2; enables FR-003 and SC-017)
-- [ ] T017 Define the versioned document aggregate and canonical JSON encoding in `packages/feldexa_core/lib/src/model/document.dart` and `packages/feldexa_core/lib/src/model/canonical_json.dart` (`data-model.md` §3.1, §4; enables FR-043 and FR-044)
-- [ ] T018 Implement `FieldSuggestion`, `ConfirmedField`, `FieldValue`, and `FieldVerification` in `packages/feldexa_core/lib/src/model/field.dart` with the enum and length constraints from `data-model.md` §3.4–§3.8 (enables FR-021, FR-028, and FR-031)
+**Execution order (normative; task IDs and phase membership stay unchanged):**
+
+1. `T014` — evidence/error vocabulary; no canonical type dependency.
+2. `T015`/`T016` — geometry, file-disjoint.
+3. `T018` → `T017` → `T020` → `T021`; `T022` can proceed after `T015`/`T016`; `T019` follows `T018`. `TemplateOrigin` is owned by `T017`, which breaks the former `T017`↔`T021` cycle.
+4. `T013` — ports, descriptors, registry, and DTOs; requires `T014` and `T015`–`T022`.
+5. `T023`–`T031` — adapters/registries; `T023` requires `T013`; `T027`/`T028` also require `T014` and `T026`.
+
+- [ ] T013 Define every capability interface, `CapabilityKind`, `CapabilityDescriptor`, `PlatformCapability`, `AdapterRegistry`, and every port-local request/result DTO/enum in `packages/feldexa_ports/lib/feldexa_ports.dart` and `packages/feldexa_ports/lib/src/{ports,dto,descriptor.dart,registry.dart}` per `contracts/ports.md` §1, §2, and §4; add workspace dependencies on `feldexa_core` and `feldexa_export` (constitution Architecture and Platform Constraints; start only after T014 and T015–T022; no second declaration of a canonical type)
+- [ ] T014 Define the error taxonomy and capability evidence vocabulary in `packages/feldexa_ports/lib/src/errors.dart` and `packages/feldexa_ports/lib/src/evidence.dart`: `FeldexaException` plus every typed exception in `contracts/ports.md` §3 (including `StorageWriteException` for `SAVE-003` and the `PLT-002` `SecurityException` mapping), `ImportRejectionKind`, `EvidenceClass`, and `CapabilityEvidence`; cite `contracts/error-catalog.de.md` and `contracts/storage-format.md` §5; reconcile the already-implemented `feldexa_testkit` `EvidenceClass` by making the ports type canonical and having the toolkit consume it (or rename the toolkit type), without changing T011's task ID (constitution Principle VIII; T013 consumes this)
+- [x] T015 [P] Implement `Rect`, `Size`, and `Point` value objects in `packages/feldexa_core/lib/src/geometry/rect.dart` with finite, positive-size invariants (`data-model.md` §2.2; enables FR-024 and SC-017); T015 owns `Rect`, `Size`, and `Point`
+- [ ] T016 Implement `PageGeometry` display-box, rotation, and CropBox mapping in `packages/feldexa_core/lib/src/geometry/page_geometry.dart` with tests in `packages/feldexa_core/test/geometry_test.dart` (`contracts/coordinates-and-geometry.md` §1–§2; enables FR-003 and SC-017); T016 owns `PageGeometry`, the single dimensions type used by the ports
+- [ ] T017 Define the versioned document aggregate, `TemplateOrigin`, `DurablePointer`, and canonical JSON encoding in `packages/feldexa_core/lib/src/model/document.dart`, `packages/feldexa_core/lib/src/model/page_failure.dart`, `packages/feldexa_core/lib/src/model/template_origin.dart`, `packages/feldexa_core/lib/src/model/durable_pointer.dart`, and `packages/feldexa_core/lib/src/model/canonical_json.dart` (`data-model.md` §3.1, §3.9, §3.13, §4; enables FR-043 and FR-044); T017 owns `Document`, `SourceFileRef`, `Page`, `PageFailure`, `AnalysisState`, `DocumentMeta`, `DocumentStatus`, `DocumentPreferences`, `TemplateOrigin`, and `DurablePointer` (`data-model.md` §3.1–§3.3, §3.9, §3.13, and §4.1)
+- [ ] T018 Implement `FieldSuggestion`, `ConfirmedField`, `FieldValue`, and `FieldVerification` in `packages/feldexa_core/lib/src/model/field.dart` with the enum and length constraints from `data-model.md` §3.4–§3.8 (enables FR-021, FR-028, and FR-031); T018 owns `FieldSuggestion`, `ConfirmedField`, `FieldValue` variants, `FieldVerification`, `SignatureMark`, `FieldType`, `Provenance`, `SuggestionEvidence`, and `FieldValidation` (`data-model.md` §3.4–§3.8)
 - [ ] T019 Implement the reclassification compatibility rules in `packages/feldexa_core/lib/src/model/reclassification.dart` and tests in `packages/feldexa_core/test/reclassification_test.dart` (FR-029; `data-model.md` §3.5)
-- [ ] T020 Implement `DurabilityStatus`, `Revision`, and `DurablePointer` in `packages/feldexa_core/lib/src/model/persistence.dart` (FR-044/FR-046; `data-model.md` §2.5, §3.12–§3.13)
-- [ ] T021 Implement `Template`, `TemplateVersion`, and `TemplateOrigin` in `packages/feldexa_core/lib/src/model/template.dart` (FR-101–FR-106; `data-model.md` §3.9–§3.11)
-- [ ] T022 Implement the `ExportArtifact` state machine in `packages/feldexa_core/lib/src/model/export_artifact.dart` with optimistic states forbidden (FR-072; `data-model.md` §3.15)
+- [ ] T020 Implement `DurabilityStatus`, `Revision`, `RevisionKind`, and `RevisionContent` in `packages/feldexa_core/lib/src/model/persistence.dart` (FR-044/FR-046; `data-model.md` §2.5, §3.12); T020 owns these persistence types; `DurablePointer` is owned by T017
+- [ ] T021 Implement `Template`, `TemplateVersion`, `TemplateVersionPointer`, `TemplateMeta`, `TemplateVersionContent`, and `StoredTemplate` in `packages/feldexa_core/lib/src/model/template.dart` (FR-101–FR-106; `data-model.md` §3.10–§3.11); T021 owns these template types
+- [ ] T022 Define the export contract model `ExportPlan`, `ExportValidation`, `ExportArtifact`, and `ArtifactVerification`, and the `ExportArtifact` state machine, in `packages/feldexa_export/lib/src/model/export_plan.dart` and `packages/feldexa_export/lib/src/model/export_artifact.dart` with optimistic states forbidden; add the workspace dependency on `feldexa_core` (FR-072; `data-model.md` §3.15; `contracts/export-plan.md` §2; `contracts/ports.md` §1 and §2.5; T022 owns these export types)
 - [ ] T023 Implement the explicit adapter registry and release assertion in `apps/feldexa_app/lib/platform/registry.dart`, `registry_android.dart`, `registry_web.dart`, and `registry_unsupported.dart` (constitution Principle II; plan §Architecture Decisions 8)
 - [ ] T024 Implement the `FeldexaPlugin` MethodChannel/EventChannel facade in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/FeldexaPlugin.kt` per `contracts/platform-channel.md` (enables FR-001, FR-013, and FR-095 platform calls)
 - [ ] T025 Implement Android Keystore master-key creation and DEK wrap/unwrap in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/storage/KeystoreService.kt` (FR-049/FR-050; plan §Storage)
@@ -155,7 +185,7 @@ These are the only genuine artifact contradictions found; each is resolved by th
 - [ ] T033 Assemble the rights-cleared corpus of at least 20 real German authority forms and record provenance in `tools/corpus/manifest.json` (constitution Principle IV; SC-001)
 - [ ] T034 Freeze `corpus-1.0.0` and `metric-definition.v1.md` and implement the scorer in `tools/evaluation/metric-definition.v1.md` and `tools/evaluation/score.dart` before any scoring run (constitution Principle IV; SC-001/SC-002)
 - [ ] T035 [P] Record the manual-baseline protocol in `tools/evaluation/manual-baseline.md` using the add/move/resize/reclassify comparison from `research.md` D-18 (SC-003)
-- [ ] T036 Implement the failure-injection harness for clock, quota, keystore, and write interruption in `packages/feldexa_testkit/lib/src/faults.dart` (constitution Principle VIII)
+- [ ] T036 Implement the failure-injection harness for clock, quota, keystore, and write interruption in `packages/feldexa_testkit/lib/src/faults.dart` and the `FakeRegistry` test seam from `contracts/ports.md` §4 (constitution Principle VIII)
 
 **Checkpoint**: Contracts, models, ports, encryption, German strings, corpus, frozen metrics, and fault injection are ready. User stories can start after this.
 
@@ -198,7 +228,7 @@ These are the only genuine artifact contradictions found; each is resolved by th
 - [ ] T054 [US2] Implement the confidence and uncertainty model in `packages/feldexa_recognition/lib/src/confidence.dart` (FR-015/FR-083; `contracts/recognition-output.md` §3.3–§3.4)
 - [ ] T055 [US2] Implement `IoU ≥ 0.5` conflict detection while retaining both candidates in `packages/feldexa_recognition/lib/src/conflicts.dart` (FR-025; `contracts/recognition-output.md` §6)
 - [ ] T056 [US2] Implement the OCR port and bundled ML Kit adapter in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/ocr/MlKitOcrService.kt` and `packages/feldexa_adapters_android/lib/src/ocr_adapter.dart` (FR-013; constitution Principles IV and VI)
-- [ ] T057 [US2] Implement per-page analysis state and failure isolation in `packages/feldexa_recognition/lib/src/page_analysis.dart` (FR-017, FR-018, FR-019, FR-020; `contracts/recognition-output.md` §4)
+- [ ] T057 [US2] Implement per-page analysis state and failure isolation in `packages/feldexa_recognition/lib/src/page_analysis.dart` (FR-017, FR-018, FR-019, FR-020; `contracts/recognition-output.md` §4); T057 owns `FieldSuggestionSet`
 - [ ] T058 [US2] Persist suggestions, resolution states, and provenance in revisions in `packages/feldexa_core/lib/src/model/document.dart` (FR-014/FR-015; `contracts/recognition-output.md` §7)
 - [ ] T059 [US2] Add the frozen strict-matching contract test in `tools/evaluation/test/metric_definition_test.dart` using the `IoU ≥ 0.5` and identical-type rule (SC-001/SC-002)
 - [ ] T060 [US2] Run the explicitly unscored frozen-metric dry run and record it in `specs/001-scanned-form-workflow/reports/corpus-1.0.0-dry-run.md` after T033 and T034 (CHK031; constitution Principle IV; SC-001/SC-002; evidence root per this file's Evidence Discipline)
@@ -269,7 +299,7 @@ These are the only genuine artifact contradictions found; each is resolved by th
 - [ ] T092 [US5] Add the force-stop recovery test for edits older and newer than 2 seconds in `apps/feldexa_app/integration_test/android_autosave_recovery_test.dart` (SC-009/SC-020)
 - [ ] T093 [US5] Add the key-loss isolation test in `apps/feldexa_app/integration_test/key_loss_test.dart`, and assert in the same suite that opening a saved document requires no separate app password and no mandatory biometric unlock (FR-052/FR-050; `quickstart.md` §8)
 - [ ] T094 [US5] Add the storage-exhaustion and no-success-report test in `apps/feldexa_app/integration_test/storage_full_test.dart` (FR-074/FR-075/FR-076; SC-010)
-- [ ] T095 [US5] Implement the start area with separate document and template groups in `apps/feldexa_app/lib/features/start/stored_items.dart`, showing each entry's title, last-edited date, and status (FR-058/FR-097/FR-098; clarification 3)
+- [ ] T095 [US5] Implement the start area with separate document and template groups in `apps/feldexa_app/lib/features/start/stored_items.dart`, showing each entry's title, last-edited date, and status (FR-058/FR-097/FR-098; clarification 3); T095 owns `DocumentSummary` as a projection of the port-level `StoredMeta`, not a second persisted type
 - [ ] T096 [US5] Implement list deletion with a German confirmation naming what remains in `apps/feldexa_app/lib/features/start/delete_item.dart` (FR-053/FR-099)
 - [ ] T097 [US5] Implement the 50-item list test in `apps/feldexa_app/integration_test/stored_list_50_test.dart` and keep it **blocked on owner decision OD-4** for the numeric interaction/latency bound; do not invent a bound, record the measured result as unratified until OD-4 is decided (FR-100; CHK024)
 - [ ] T098 [US5] Verify no plaintext PDF, log, thumbnail, or backup residue in `apps/feldexa_app/integration_test/plaintext_leak_test.dart` (FR-082; CHK029)
@@ -287,8 +317,8 @@ These are the only genuine artifact contradictions found; each is resolved by th
 
 **Independent Test**: Complete a two-page reference form with all field types and German characters, export, open in at least two independent readers, verify page count/appearance/placement/checkbox states/no clipping/printability, and verify the source document is unchanged.
 
-- [ ] T102 [P] [US7] Write the export-plan schema contract test in `packages/feldexa_export/test/export_plan_test.dart` (`contracts/export-plan.md` §2)
-- [ ] T103 [US7] Implement text layout, line breaking, baselines, and blocking clip detection in `packages/feldexa_export/lib/src/layout.dart` (FR-062/FR-064/FR-067/FR-068)
+- [ ] T102 [P] [US7] Write the export-plan schema contract test in `packages/feldexa_export/test/export_plan_test.dart` (`contracts/export-plan.md` §2); the test targets the T022 `ExportPlan`/`ExportValidation` models
+- [ ] T103 [US7] Implement text layout, line breaking, baselines, and blocking clip detection in `packages/feldexa_export/lib/src/layout.dart` (FR-062/FR-064/FR-067/FR-068); build the T022 `ExportPlan` values from the confirmed document snapshot
 - [ ] T104 [US7] Implement the PDFBox flattening applier that imports original pages and appends text, checkbox, and signature overlays in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export/PdfExportService.kt` (FR-063/FR-065/FR-066/FR-069; `contracts/export-plan.md` §5)
 - [ ] T105 [US7] Implement the independent artifact verification harness in `tools/pdf_verify/verify.sh` using `qpdf`, Poppler, and MuPDF (FR-069; SC-005/SC-006; CHK019)
 - [ ] T106 [US7] Implement the ephemeral export preview and its cleanup lifecycle in `apps/feldexa_app/lib/features/export/preview.dart` (FR-070/FR-072; CHK029)
@@ -383,7 +413,7 @@ These are the only genuine artifact contradictions found; each is resolved by th
 ### Phase Dependencies
 
 - **Setup (Phase 1)**: No dependencies; starts immediately.
-- **Foundational (Phase 2)**: Depends on Setup; blocks every user story.
+- **Foundational (Phase 2)**: Depends on Setup; blocks every user story. Internal order is T014 → T015/T016 → T017/T018/T020/T021/T022 → T013 → T023… (see the Phase 2 execution-order block).
 - **US1 Import (Phase 3)**: Depends on Foundational. It is the first MVP slice.
 - **US2 Recognition (Phase 4)**: Depends on Foundational and US1 (imported pages are the input).
 - **US3 Review (Phase 5)**: Depends on US2 for suggestions, but its add/move/resize path can be exercised on manually added fields.
@@ -418,7 +448,7 @@ These are the only genuine artifact contradictions found; each is resolved by th
 ### Parallel Opportunities
 
 - Setup tasks `T004`, `T005`, `T006`, `T008`, `T010`, and `T011` are file-disjoint and parallel.
-- Foundational tasks `T015`, `T032`, and `T035` are parallel after their prerequisites. Model tasks `T017`–`T022` are file-disjoint once `T017` exists; `T027`/`T028` wait for `T013`/`T023`, and `T030`/`T031` wait for `T007`/`T029` and `T026` respectively.
+- Foundational tasks `T014`, `T032`, and `T035` can start after Setup. `T015`/`T016` are file-disjoint; after them, `T018` and `T022` are file-disjoint, `T019` follows `T018`, `T017` follows `T018`, `T020` follows `T017`, and `T021` follows `T017`/`T018`/`T020`. `T013` waits for `T014` and `T015`–`T022`; `T027`/`T028` wait for `T013`/`T023` and also need `T014`/`T026`; `T030`/`T031` wait for `T007`/`T029` and `T026` respectively.
 - Within each story, `[P]` tests and file-disjoint components can run concurrently.
 - After Foundational, US1 and the pure-Dart parts of US5 can start in parallel; US2 waits for US1's page input.
 - Polish measurement tasks `T135`, `T137`, `T139`–`T141` can be prepared in parallel, but `T142`–`T147` depend on the implemented stories.
@@ -484,21 +514,21 @@ Task: "Add the SIMULATED export watermark test in apps/feldexa_app/integration_t
 - The five settled clarifications and constitution v1.0.0 are fixed inputs.
 - Owner decisions OD-1 through OD-4 are not silently answered by this task list.
 - Gate 5 ran through the registered `speckit.analyze` command on 2026-11-12 **before implementation**; T144 records it and does not postpone or replace it.
-- The GitHub issue mapping remains exactly `T001`→#1 … `T147`→#147 by task ID. Expanded descriptions may make some issue titles stale; no issue is created, edited, or closed here, and no duplicate issue is produced.
+- The GitHub issue mapping is recorded as `T001`→#1 … `T147`→#147 by task ID in the external issue tracker; this mapping and every live issue state are not verifiable from the git bundle and are unavailable from it. Expanded descriptions may make some issue titles stale; no issue is created, edited, or closed here, and no duplicate issue is produced.
 
 ## Corrective Regeneration Receipt
 
 - **Command path**: registered command `speckit.tasks`, source `.opencode/commands/speckit.tasks.md`; setup via `.specify/scripts/bash/setup-tasks.sh --json`.
 - **Installed manifest hash**: `6754ae39649c8e73a5ed376ad5cfcf04422e321a10e07c5ccd92fd1b9bccf776` (`.specify/integrations/opencode.manifest.json`), matching the on-disk command file.
 - **Date**: 2026-11-12 (corrective regeneration of `specs/001-scanned-form-workflow/tasks.md`).
-- **Base revision**: `specs/001-scanned-form-workflow/reports/backups/2026-11-12T1520Z-pre-regeneration/tasks.md`.
+- **Base revision**: the prior authoring snapshot is not part of this candidate and is not required for verification (unavailable from the bundle); the current candidate is diffed against base `b3dbe29932c8a5bed13696406b6a2bcc80316ffa` with `git diff b3dbe29..HEAD`.
 - **Preserved IDs**: all 147 identifiers `T001`–`T147` are preserved in the same order and the same phase; none added, removed, merged, renumbered, or reordered. Phase structure, dependency/parallel rules, and evidence rules are unchanged.
 - **Analysis findings addressed**: C1 (gate order, T144 rewritten as a record task), C2 (T147 hands the exact revision to gates 7–9 without self-approval), G1 (T137 executes SC-016/SC-018 after OD-2), G2 (T048 deletion-reopen/render/export), G3 (T117 implements the FR-059 use-template flow), A1 (T113 cites the provisional §3.4 and FR-062, OD-1 unresolved), A2 (T097 stays blocked on OD-4, no invented bound), I2 (T095 shows status), I3/I4 (T045/T084 verify the corrected `IMP-007`/`FLD-001`; T029 consumes the corrected catalog), U4 (`tools/gate.sh`), U5 (single evidence root), I7/M1/M2 (traceability matrix and weak task traces corrected; T108 → FR-072), M3 (T093 asserts no app password / no mandatory biometric), U8 (T109 asserts provenance across save/reopen/export with no interactive controls in the flattened artifact), U7 (T029 consumes the corrected catalog; T045/T084 verify it).
 - **Remaining unresolved findings / owner decisions**: OD-1 export conflict gating; OD-2 usability protocol and recruitment (blocks the T137 runs); OD-3 device equivalence; OD-4 50-item interaction bound. The pre-filled-scanned-content overlay edge case has no FR and is recorded as an unresolved documentation gap. `spec.md` status remains **Draft**.
 
 ## Format Validation
 
-Every task line uses `- [ ] T### [P?] [US#?] Description with exact file path`. Setup, Foundational, and Polish tasks omit the story label; every user-story phase task carries its `[US#]` label. No sample placeholder tasks remain.
+Every task line uses `- [x]` or `- [ ]` plus `T### [P?] [US#?] Description with exact file path`. Setup, Foundational, and Polish tasks omit the story label; every user-story phase task carries its `[US#]` label. No sample placeholder tasks remain.
 
 ## Completion Summary
 
@@ -507,4 +537,14 @@ Every task line uses `- [ ] T### [P?] [US#?] Description with exact file path`. 
 - **Parallel opportunities**: 24 tasks carry `[P]`; the remaining dependencies are stated in the phase and dependency sections.
 - **MVP scope**: US1 + US2 + US3 + US4 + US5 + US7 (the complete P1 journey on Android). US6, US8, and US9 follow as P2 increments.
 - **Independent test criteria**: stated at the head of every user-story phase and implemented by that phase's integration test task.
-- **Format validation**: all 147 task lines match `- [ ] T### [P?] [US#?] Description with an exact file path`; IDs are sequential `T001`–`T147`; Setup, Foundational, and Polish tasks have no story label; every user-story task has its `[US#]` label; no template sample tasks remain.
+- **Format validation**: all 147 task lines match `- [x]`/`- [ ]` plus `T### [P?] [US#?] Description with an exact file path`; IDs are sequential `T001`–`T147`; Setup, Foundational, and Polish tasks have no story label; every user-story task has its `[US#]` label; no template sample tasks remain.
+
+## T013 Blocker Correction Receipt
+
+- **Command path**: registered `speckit.analyze` (read-only baseline), registered `speckit.plan` (four design artifacts), and this registered `speckit.tasks` update; OpenCode, 2026-11-13. Exact command list and hashes: `reports/2026-11-13-t013-blocker-correction.md`.
+- **Base/candidate verification**: base `b3dbe29932c8a5bed13696406b6a2bcc80316ffa`; candidate is the commit containing this file. Verify with `git diff --stat b3dbe29..HEAD`, `git diff --name-status b3dbe29..HEAD`, and `git show --stat HEAD`; no backup directory is required or included.
+- **Preserved IDs**: all 147 identifiers `T001`–`T147` remain unique and in the same order; phase counts are unchanged (12/24/13/14/12/12/14/12/8/6/5/15); no task added, removed, merged, or renumbered.
+- **Issue mapping**: `T001`→#1 … `T147`→#147 by task ID as recorded in this task list. Live GitHub issue states are external to this candidate and **unavailable from the bundle**; no issue was created, edited, or closed here.
+- **Corrections**: CR-7 canonical-type ordering, CR-8 descriptor/error ownership, CR-9 DTO ownership and contract completion, CR-10 export-package boundary.
+- **Post-analysis follow-up**: N1 assigns the existing `feldexa_testkit` `EvidenceClass` reconciliation to T014; N2 moves `TemplateOrigin` to T017 to break the `T017`↔`T021` cycle; R1 moves `DurablePointer` to T017 to break the `T017`↔`T020` cycle; N4/N5 complete the canonical-type lists, `StorageException` wording, `ExportBlockedException` payload, `FakeRegistry` ownership, and T017's file list.
+- **Unchanged**: `spec.md`, the five clarifications, OD-1–OD-4, the constitution, and all source code.

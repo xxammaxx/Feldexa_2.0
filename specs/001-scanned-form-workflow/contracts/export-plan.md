@@ -2,6 +2,8 @@
 
 **Feature**: `001-scanned-form-workflow` | **Builder**: `packages/feldexa_export` | **Appliers**: `android/export/PdfExportService.kt` (production), `feldexa_adapters_simulated` (Web, `SIMULATED`)
 
+**Contract-model ownership.** `ExportPlan`, `ExportValidation`, `ExportArtifact`, and `ArtifactVerification` are canonical `packages/feldexa_export` model types owned by T022 (`data-model.md` §3.15, `contracts/ports.md` §1). This package builds and validates plans and records the export attempt; no second copy exists in `feldexa_core`. `ExportPlan.evidenceClass` is the string token (`simulated | emulator | device | none`) shown in §2, not a `feldexa_ports` type, so `feldexa_export` does not import `feldexa_ports`.
+
 The export plan is the complete, deterministic instruction set for producing the final PDF. It contains no PDF bytes and no platform calls. The Android applier must not make layout decisions; the shared builder must not write PDF operators. This separation is what makes Web layout validation meaningful and the artifact independently verifiable.
 
 ---
