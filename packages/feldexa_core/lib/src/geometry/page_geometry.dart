@@ -217,6 +217,16 @@ final class PageGeometry {
   /// outside within the tolerance is translated to the nearest edge so it keeps
   /// its positive size instead of collapsing.
   ///
+  /// A sub-half-point page can be narrower or shorter than the rectangle being
+  /// translated: because the overshoot bound limits an entirely outside
+  /// rectangle to at most 0.5 pt in size, a display dimension below 0.5 pt can
+  /// still be smaller than that rectangle. Translation therefore caps the kept
+  /// size at the display dimension; otherwise the translated far edge would
+  /// land outside the display box (for example, a 0.2 pt wide rectangle on a
+  /// 0.1 pt wide page). The cap can only reduce an edge movement that is
+  /// already inside the 0.5 pt tolerance, and normal PDF page sizes are
+  /// unaffected because their dimensions exceed the tolerance by far.
+  ///
   /// The returned [GeometryValidation.rect] is always inside the display box,
   /// and [GeometryValidation.wasClamped] is the recorded warning the caller
   /// must surface when it persists a clamped rectangle. Clamping is never
@@ -249,9 +259,10 @@ final class PageGeometry {
     if (!(right > left)) {
       // Entirely to the left of, or the right of, the display box within the
       // tolerance: translate it to the nearest edge and keep its width. The
-      // far edge is pinned to the box edge so rounding cannot leave the stored
-      // rectangle outside the display box.
-      final double rectWidth = rect.width;
+      // kept width is capped at the display width: a page narrower than 0.5 pt
+      // can be narrower than the translated rectangle, and an uncapped width
+      // would put the far edge outside the display box.
+      final double rectWidth = math.min(rect.width, width);
       if (rect.left <= 0) {
         left = 0;
         right = rectWidth;
@@ -261,7 +272,7 @@ final class PageGeometry {
       }
     }
     if (!(bottom > top)) {
-      final double rectHeight = rect.height;
+      final double rectHeight = math.min(rect.height, height);
       if (rect.top <= 0) {
         top = 0;
         bottom = rectHeight;

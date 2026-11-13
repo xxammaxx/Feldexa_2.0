@@ -10,6 +10,8 @@
 //   * display → PDF → display round-trips for points and rectangles;
 //   * the normative full-page table and the `(100, 50, 120, 20)` field case;
 //   * validation rejects overshoots above 0.5 pt and reports clamped noise;
+//   * validation keeps every accepted rectangle inside the display box even on
+//     narrow, near-zero, and extreme-aspect-ratio pages for all four rotations;
 //   * persisted JSON round-trips and rejects malformed input.
 
 import 'dart:convert';
@@ -484,6 +486,270 @@ void main() {
     test('the documented tolerance is 0.5 pt', () {
       expect(maxClampTolerancePt, 0.5);
     });
+
+    // Regression for the independent review failure on candidate 85f98ca:
+    // an entirely-left rectangle was translated to the left edge while
+    // preserving its 0.2 pt width on a 0.1 pt wide display box, so the stored
+    // right edge ended at 0.2 instead of at most 0.1.
+    test('the reported narrow-page left regression stays inside the box', () {
+      final PageGeometry geometry = PageGeometry(
+        mediaBox: Rect.fromLTWH(0, 0, 0.1, 10),
+      );
+      final Rect input = Rect.fromLTWH(-0.4, 1, 0.2, 1);
+      final GeometryValidation result = geometry.validate(input);
+      expect(result.wasClamped, isTrue);
+      expect(result.rect, Rect.fromLTWH(0, 1, 0.1, 1));
+      expect(result.rect.right, lessThanOrEqualTo(geometry.displaySize.width));
+      _expectInsideDisplayBox(geometry, result.rect, reason: 'review case');
+    });
+
+    test('normal-size pages still keep a fully outside rectangle width', () {
+      final PageGeometry geometry = _a4Geometry(0);
+      final GeometryValidation result = geometry.validate(
+        Rect.fromLTWH(-0.4, 10, 0.2, 6),
+      );
+      expect(result.wasClamped, isTrue);
+      expect(result.rect, Rect.fromLTWH(0, 10, 0.2, 6));
+    });
+
+    test('all four edges stay inside a narrow display dimension', () {
+      final PageGeometry narrowWidth = PageGeometry(
+        mediaBox: Rect.fromLTWH(0, 0, 0.1, 10),
+      );
+      final GeometryValidation left = narrowWidth.validate(
+        Rect.fromLTWH(-0.4, 1, 0.2, 1),
+      );
+      expect(left.rect, Rect.fromLTWH(0, 1, 0.1, 1));
+      _expectInsideDisplayBox(narrowWidth, left.rect, reason: 'left');
+
+      final GeometryValidation right = narrowWidth.validate(
+        Rect.fromLTWH(0.2, 1, 0.2, 1),
+      );
+      expect(right.wasClamped, isTrue);
+      expect(right.rect, Rect.fromLTWH(0, 1, 0.1, 1));
+      _expectInsideDisplayBox(narrowWidth, right.rect, reason: 'right');
+
+      final PageGeometry narrowHeight = PageGeometry(
+        mediaBox: Rect.fromLTWH(0, 0, 10, 0.1),
+      );
+      final GeometryValidation top = narrowHeight.validate(
+        Rect.fromLTWH(1, -0.4, 1, 0.2),
+      );
+      expect(top.rect, Rect.fromLTWH(1, 0, 1, 0.1));
+      _expectInsideDisplayBox(narrowHeight, top.rect, reason: 'top');
+
+      final GeometryValidation bottom = narrowHeight.validate(
+        Rect.fromLTWH(1, 0.2, 1, 0.2),
+      );
+      expect(bottom.wasClamped, isTrue);
+      expect(bottom.rect, Rect.fromLTWH(1, 0, 1, 0.1));
+      _expectInsideDisplayBox(narrowHeight, bottom.rect, reason: 'bottom');
+    });
+
+    test('narrow width and height clamp on every rotation', () {
+      for (final int rotation in <int>[0, 90, 180, 270]) {
+        final PageGeometry narrowWidth = _geometryWithDisplaySize(
+          0.05,
+          1,
+          rotation,
+        );
+        expect(narrowWidth.displaySize, Size(0.05, 1), reason: '$rotation');
+        final GeometryValidation left = narrowWidth.validate(
+          Rect.fromLTWH(-0.3, 0.25, 0.1, 0.5),
+        );
+        expect(
+          left.rect,
+          Rect.fromLTWH(0, 0.25, 0.05, 0.5),
+          reason: 'rotation $rotation left',
+        );
+        _expectInsideDisplayBox(
+          narrowWidth,
+          left.rect,
+          reason: 'rotation $rotation left',
+        );
+        final GeometryValidation right = narrowWidth.validate(
+          Rect.fromLTWH(0.2, 0.25, 0.2, 0.5),
+        );
+        expect(
+          right.rect,
+          Rect.fromLTWH(0, 0.25, 0.05, 0.5),
+          reason: 'rotation $rotation right',
+        );
+        _expectInsideDisplayBox(
+          narrowWidth,
+          right.rect,
+          reason: 'rotation $rotation right',
+        );
+
+        final PageGeometry narrowHeight = _geometryWithDisplaySize(
+          1,
+          0.05,
+          rotation,
+        );
+        expect(narrowHeight.displaySize, Size(1, 0.05), reason: '$rotation');
+        final GeometryValidation top = narrowHeight.validate(
+          Rect.fromLTWH(0.25, -0.3, 0.5, 0.1),
+        );
+        expect(
+          top.rect,
+          Rect.fromLTWH(0.25, 0, 0.5, 0.05),
+          reason: 'rotation $rotation top',
+        );
+        _expectInsideDisplayBox(
+          narrowHeight,
+          top.rect,
+          reason: 'rotation $rotation top',
+        );
+        final GeometryValidation bottom = narrowHeight.validate(
+          Rect.fromLTWH(0.25, 0.2, 0.5, 0.2),
+        );
+        expect(
+          bottom.rect,
+          Rect.fromLTWH(0.25, 0, 0.5, 0.05),
+          reason: 'rotation $rotation bottom',
+        );
+        _expectInsideDisplayBox(
+          narrowHeight,
+          bottom.rect,
+          reason: 'rotation $rotation bottom',
+        );
+      }
+    });
+
+    test('corner outliers stay inside a tiny square display box', () {
+      for (final int rotation in <int>[0, 90, 180, 270]) {
+        final PageGeometry geometry = _geometryWithDisplaySize(
+          0.1,
+          0.1,
+          rotation,
+        );
+        expect(geometry.displaySize, Size(0.1, 0.1), reason: '$rotation');
+        final List<Rect> inputs = <Rect>[
+          Rect.fromLTWH(-0.4, -0.4, 0.2, 0.2),
+          Rect.fromLTWH(0.1, 0.1, 0.2, 0.2),
+          Rect.fromLTWH(-0.4, 0.1, 0.2, 0.2),
+          Rect.fromLTWH(0.1, -0.4, 0.2, 0.2),
+        ];
+        for (final Rect input in inputs) {
+          final GeometryValidation result = geometry.validate(input);
+          expect(
+            result.wasClamped,
+            isTrue,
+            reason: 'rotation $rotation $input',
+          );
+          expect(
+            result.rect,
+            Rect.fromLTWH(0, 0, 0.1, 0.1),
+            reason: 'rotation $rotation $input',
+          );
+          _expectInsideDisplayBox(
+            geometry,
+            result.rect,
+            reason: 'rotation $rotation $input',
+          );
+        }
+      }
+    });
+
+    test('near-zero display dimensions cap the translated size', () {
+      for (final double width in <double>[1e-9, 1e-12]) {
+        final PageGeometry geometry = PageGeometry(
+          mediaBox: Rect.fromLTWH(0, 0, width, 1),
+        );
+        final GeometryValidation left = geometry.validate(
+          Rect.fromLTWH(-0.4, 0.25, 0.2, 0.5),
+        );
+        expect(left.wasClamped, isTrue);
+        expect(left.rect.left, 0);
+        expect(left.rect.right, width);
+        expect(left.rect.top, 0.25);
+        expect(left.rect.bottom, 0.75);
+        _expectInsideDisplayBox(
+          geometry,
+          left.rect,
+          reason: 'width $width left',
+        );
+
+        final GeometryValidation right = geometry.validate(
+          Rect.fromLTWH(0.2, 0.25, 0.2, 0.5),
+        );
+        expect(right.wasClamped, isTrue);
+        expect(right.rect.left, 0);
+        expect(right.rect.right, width);
+        _expectInsideDisplayBox(
+          geometry,
+          right.rect,
+          reason: 'width $width right',
+        );
+      }
+    });
+
+    test('extreme display aspect ratios keep the invariant', () {
+      final PageGeometry tall = PageGeometry(
+        mediaBox: Rect.fromLTWH(0, 0, 1e-4, 1e6),
+      );
+      final GeometryValidation left = tall.validate(
+        Rect.fromLTWH(-0.4, 1e5, 0.2, 1),
+      );
+      expect(left.wasClamped, isTrue);
+      expect(left.rect, Rect.fromLTWH(0, 1e5, 1e-4, 1));
+      _expectInsideDisplayBox(tall, left.rect, reason: 'tall page');
+
+      final PageGeometry wide = PageGeometry(
+        mediaBox: Rect.fromLTWH(0, 0, 1e6, 1e-4),
+      );
+      final GeometryValidation top = wide.validate(
+        Rect.fromLTWH(1e5, -0.4, 1, 0.2),
+      );
+      expect(top.wasClamped, isTrue);
+      expect(top.rect, Rect.fromLTWH(1e5, 0, 1, 1e-4));
+      _expectInsideDisplayBox(wide, top.rect, reason: 'wide page');
+    });
+
+    test('accepted rectangles stay bounded across tiny display widths', () {
+      for (final double width in <double>[
+        1e-12,
+        1e-9,
+        1e-6,
+        1e-4,
+        0.05,
+        0.1,
+        0.49,
+        0.5,
+        1,
+        595,
+      ]) {
+        final PageGeometry geometry = PageGeometry(
+          mediaBox: Rect.fromLTWH(0, 0, width, 10),
+        );
+        // Each input has an edge overshoot of at most 0.4 pt, so it must be
+        // accepted and normalized rather than rejected.
+        final List<Rect> outside = <Rect>[
+          Rect.fromLTWH(-0.4, 1, 0.2, 1),
+          Rect.fromLTWH(-0.3, 1, 0.2, 1),
+          Rect.fromLTWH(width, 1, 0.2, 1),
+          Rect.fromLTWH(width + 0.2, 1, 0.2, 1),
+        ];
+        for (final Rect input in outside) {
+          final GeometryValidation result = geometry.validate(input);
+          expect(
+            result.wasClamped,
+            isTrue,
+            reason: 'width $width input $input',
+          );
+          _expectInsideDisplayBox(
+            geometry,
+            result.rect,
+            reason: 'width $width input $input',
+          );
+        }
+        _expectInsideDisplayBox(
+          geometry,
+          geometry.validate(Rect.fromLTWH(0, 1, 0.2, 1)).rect,
+          reason: 'width $width in-bounds',
+        );
+      }
+    });
   });
 
   group('JSON', () {
@@ -664,6 +930,50 @@ Rect _a4() => Rect.fromLTWH(0, 0, 595, 842);
 
 PageGeometry _a4Geometry(int rotation, {Rect? cropBox}) {
   return PageGeometry(mediaBox: _a4(), cropBox: cropBox, rotation: rotation);
+}
+
+/// Builds a page whose *display* size is [width] × [height] for [rotation].
+///
+/// The MediaBox is written in PDF user space, so rotations 90 and 270 need the
+/// width and height swapped relative to the requested display size.
+PageGeometry _geometryWithDisplaySize(
+  double width,
+  double height,
+  int rotation,
+) {
+  final bool quarterTurn = rotation == 90 || rotation == 270;
+  return PageGeometry(
+    mediaBox: Rect.fromLTWH(
+      0,
+      0,
+      quarterTurn ? height : width,
+      quarterTurn ? width : height,
+    ),
+    rotation: rotation,
+  );
+}
+
+/// Asserts contract section 6.1's stored-rectangle invariant.
+void _expectInsideDisplayBox(
+  PageGeometry geometry,
+  Rect rect, {
+  String? reason,
+}) {
+  final String label = reason == null ? '' : '$reason: ';
+  expect(rect.left, greaterThanOrEqualTo(0), reason: '${label}left');
+  expect(rect.top, greaterThanOrEqualTo(0), reason: '${label}top');
+  expect(
+    rect.right,
+    lessThanOrEqualTo(geometry.displaySize.width),
+    reason: '${label}right',
+  );
+  expect(
+    rect.bottom,
+    lessThanOrEqualTo(geometry.displaySize.height),
+    reason: '${label}bottom',
+  );
+  expect(rect.width, greaterThan(0), reason: '${label}width');
+  expect(rect.height, greaterThan(0), reason: '${label}height');
 }
 
 void _expectPointClose(
