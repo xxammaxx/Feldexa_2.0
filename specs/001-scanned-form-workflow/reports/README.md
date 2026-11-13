@@ -212,6 +212,12 @@ revision explicitly. An attestation candidate is verified at its own commit
 even when `HEAD` has moved on. A changed file that no recorded revision
 contains still fails.
 
+The checked report is bound to the same revision or attestation candidate: a
+working-copy report edit fails, even if only a title changed. README, tasks.md,
+and the checker are allowed to evolve; their historical values are still
+verified at that revision through the artifact rows and attestation changed
+files.
+
 The attestation form runs inside a fresh bundle clone. T032 still owns the
 machine-readable schema and full validator.
 

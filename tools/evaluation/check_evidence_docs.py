@@ -281,6 +281,7 @@ def main():
 
     attestation = load_attestation(repo, args, errors)
     artifact_revision = None
+    report_revision = None
     if attestation is not None:
         candidate = attestation["candidate"]["commit"]
         candidate_revision = git_commit(repo, candidate)
@@ -290,6 +291,7 @@ def main():
             if args.revision and git_commit(repo, args.revision) != candidate_revision:
                 errors.append("attestation: candidate.commit differs from --revision")
             artifact_revision = candidate_revision
+            report_revision = candidate_revision
             candidate_report = git_bytes(repo, candidate_revision, report_git_path)
             if candidate_report is None:
                 errors.append(
@@ -337,6 +339,7 @@ def main():
         if revision is None:
             errors.append(f"revision: not a commit {args.revision}")
         else:
+            report_revision = revision
             artifact_errors = verify_artifacts(repo, revision, rows)
             errors.extend(artifact_errors)
             if not artifact_errors:
@@ -344,23 +347,45 @@ def main():
     elif head:
         current_errors = verify_artifacts(repo, head, rows)
         if not current_errors:
+            report_revision = head
             print(f"PASS artifacts: HEAD {short(head)} ({len(rows)} recorded)")
         else:
             historical = find_historical_revision(
                 repo, head, report_git_path, rows
             )
             if historical is not None:
+                report_revision = historical
                 print(
                     f"PASS historical artifacts: {short(historical)} "
                     f"({len(rows)} recorded; later task changes accepted only "
                     "at the recorded revision)"
                 )
             else:
+                report_revision = head
                 errors.extend(current_errors)
                 errors.append(
                     "report: no reachable historical revision matches all "
                     "recorded artifact hashes"
                 )
+
+    # The report is the evidence document itself, so bind the working copy to
+    # the same revision used for the artifact rows. README, tasks.md, and the
+    # checker are allowed to evolve; their historical values are still checked
+    # at report_revision through the artifact rows and attestation changed_files.
+    if report_revision is not None:
+        bound_report = git_bytes(repo, report_revision, report_git_path)
+        working_report = report_path.read_bytes()
+        if bound_report is None:
+            errors.append(
+                f"report: report missing at checked revision {short(report_revision)}"
+            )
+        elif bound_report != working_report:
+            errors.append(
+                f"report: working report differs from checked revision "
+                f"{short(report_revision)}; working-copy tampering is not accepted"
+            )
+        else:
+            print(f"PASS report binding: {short(report_revision)}")
 
     print(f"PASS README: {len(TOKENS)} tokens, links, anchors, fences")
     print(f"PASS report: {artifact_rows} artifact rows ({skipped} local logs skipped)")
