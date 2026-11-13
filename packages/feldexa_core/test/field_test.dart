@@ -1,0 +1,1152 @@
+// T018 field-model tests.
+//
+// These are host-VM tests (evidence class NONE). They pin the constraints in
+// `data-model.md` §2.3–§2.4 and §3.4–§3.8 and the suggestion shape in
+// `contracts/recognition-output.md` §2–§3:
+//   * deterministic suggestion ids, confidence, cue, skew, conflict, and
+//     signature-cue rules;
+//   * confirmed-field label (1–120), order, UTC timestamps, and the
+//     machine-only suggestion provenance fields;
+//   * value length limits (10,000), control-character rules, canonical number
+//     and real-calendar-date shapes;
+//   * signature long-edge and hash limits;
+//   * verification timestamps and warning ordering;
+//   * page-bounds tolerance, JSON round-trips, equality, and privacy: errors
+//     and `toString` never echo labels or values.
+
+import 'dart:convert';
+
+import 'package:feldexa_core/feldexa_core.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+const Object _keep = Object();
+
+const String _uuid = '1b4e28ba-2fa1-4d3b-a1f8-6f2a3c4d5e6f';
+const String _assetId = 'd2a1b3c4-1234-4abc-8def-0123456789ab';
+const String _sha256 =
+    '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+
+DateTime _at([int minute = 0]) => DateTime.utc(2026, 11, 13, 12, minute);
+
+Rect _rect([double left = 10, double top = 20, double width = 120]) {
+  return Rect.fromLTWH(left, top, width, 18);
+}
+
+Size _a4() => Size(595, 842);
+
+String _repeat(String unit, int count) =>
+    List<String>.filled(count, unit).join();
+
+Map<String, Object?> _jsonRoundTrip(Map<String, Object?> json) {
+  return jsonDecode(jsonEncode(json)) as Map<String, Object?>;
+}
+
+SuggestionEvidence _evidence({
+  Iterable<SuggestionCue> cues = const <SuggestionCue>[SuggestionCue.line],
+  int cueAgreement = 1,
+  double skewDegrees = 0,
+  bool lowContrast = false,
+  bool ocrUsed = true,
+}) {
+  return SuggestionEvidence(
+    cues: cues,
+    cueAgreement: cueAgreement,
+    skewDegrees: skewDegrees,
+    lowContrast: lowContrast,
+    ocrUsed: ocrUsed,
+  );
+}
+
+FieldSuggestion _suggestion({
+  String id = 's_p0_0001',
+  int pageIndex = 0,
+  Rect? rect,
+  FieldType proposedType = FieldType.text,
+  double confidence = 0.82,
+  String? labelText = 'Name',
+  SuggestionEvidence? evidence,
+  Iterable<String> conflictsWith = const <String>[],
+  SuggestionResolution resolution = SuggestionResolution.unresolved,
+}) {
+  return FieldSuggestion(
+    id: id,
+    pageIndex: pageIndex,
+    rect: rect ?? _rect(),
+    proposedType: proposedType,
+    confidence: confidence,
+    labelText: labelText,
+    evidence: evidence ?? _evidence(),
+    conflictsWith: conflictsWith,
+    resolution: resolution,
+  );
+}
+
+ConfirmedField _field({
+  String id = _uuid,
+  int pageIndex = 0,
+  Rect? rect,
+  FieldType type = FieldType.text,
+  Provenance provenance = Provenance.user,
+  Object? sourceSuggestionId = _keep,
+  Object? suggestionConfidence = _keep,
+  String label = 'Name',
+  int order = 0,
+  DateTime? createdAt,
+  DateTime? updatedAt,
+  FieldValidation validation = FieldValidation.ok,
+}) {
+  return ConfirmedField(
+    id: id,
+    pageIndex: pageIndex,
+    rect: rect ?? _rect(),
+    type: type,
+    provenance: provenance,
+    sourceSuggestionId: identical(sourceSuggestionId, _keep)
+        ? null
+        : sourceSuggestionId as String?,
+    suggestionConfidence: identical(suggestionConfidence, _keep)
+        ? null
+        : suggestionConfidence as double?,
+    label: label,
+    order: order,
+    createdAt: createdAt ?? _at(),
+    updatedAt: updatedAt ?? _at(1),
+    validation: validation,
+  );
+}
+
+SignatureMark _mark({
+  String assetId = _assetId,
+  String fieldId = _uuid,
+  int pageIndex = 0,
+  Rect? rect,
+  int widthPx = 400,
+  int heightPx = 200,
+  DateTime? capturedAt,
+  String sha256 = _sha256,
+}) {
+  return SignatureMark(
+    assetId: assetId,
+    fieldId: fieldId,
+    pageIndex: pageIndex,
+    rect: rect ?? _rect(320, 720, 180),
+    widthPx: widthPx,
+    heightPx: heightPx,
+    capturedAt: capturedAt ?? _at(),
+    sha256: sha256,
+  );
+}
+
+void main() {
+  group('FieldType and enum tokens', () {
+    test('wire tokens are stable and unknown tokens fail closed', () {
+      expect(FieldType.fromWire('text'), FieldType.text);
+      expect(FieldType.fromWire('multiline'), FieldType.multiline);
+      expect(Provenance.fromWire('machine'), Provenance.machine);
+      expect(
+        SuggestionResolution.fromWire('rejected'),
+        SuggestionResolution.rejected,
+      );
+      expect(
+        SuggestionCue.fromWire('ocr_alignment'),
+        SuggestionCue.ocrAlignment,
+      );
+      expect(
+        SuggestionCue.fromWire('signature_area'),
+        SuggestionCue.signatureArea,
+      );
+      expect(
+        WarningCode.fromWire('incompatible_content'),
+        WarningCode.incompatibleContent,
+      );
+      expect(
+        FieldVerificationState.fromWire('corrected'),
+        FieldVerificationState.corrected,
+      );
+      expect(() => FieldType.fromWire('unknown'), throwsFormatException);
+      expect(() => FieldType.fromWire(3), throwsFormatException);
+    });
+  });
+
+  group('SuggestionEvidence', () {
+    test('requires a non-empty, duplicate-free cue set', () {
+      expect(
+        () => _evidence(cues: const <SuggestionCue>[]),
+        throwsArgumentError,
+      );
+      expect(
+        () => _evidence(
+          cues: const <SuggestionCue>[SuggestionCue.line, SuggestionCue.line],
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('sorts cues and stores them as an immutable set', () {
+      final SuggestionEvidence evidence = _evidence(
+        cues: const <SuggestionCue>[
+          SuggestionCue.keyword,
+          SuggestionCue.line,
+          SuggestionCue.box,
+        ],
+      );
+      expect(evidence.cues.toList(), <SuggestionCue>[
+        SuggestionCue.line,
+        SuggestionCue.box,
+        SuggestionCue.keyword,
+      ]);
+      expect(
+        () => evidence.cues.add(SuggestionCue.grid),
+        throwsUnsupportedError,
+      );
+      expect(evidence.toJson()['cues'], <String>['line', 'box', 'keyword']);
+    });
+
+    test('enforces cueAgreement and skew bounds', () {
+      expect(_evidence(cueAgreement: 1).cueAgreement, 1);
+      expect(() => _evidence(cueAgreement: 0), throwsArgumentError);
+      expect(() => _evidence(cueAgreement: -1), throwsArgumentError);
+      expect(_evidence(skewDegrees: -10).skewDegrees, -10);
+      expect(_evidence(skewDegrees: 10).skewDegrees, 10);
+      expect(() => _evidence(skewDegrees: -10.01), throwsArgumentError);
+      expect(() => _evidence(skewDegrees: 10.01), throwsArgumentError);
+      expect(() => _evidence(skewDegrees: double.nan), throwsArgumentError);
+      expect(
+        () => _evidence(skewDegrees: double.infinity),
+        throwsArgumentError,
+      );
+    });
+
+    test('tracks the signature cue and JSON round-trips', () {
+      final SuggestionEvidence signed = _evidence(
+        cues: const <SuggestionCue>[
+          SuggestionCue.signatureArea,
+          SuggestionCue.whitespace,
+        ],
+        cueAgreement: 2,
+        skewDegrees: 0.4,
+        lowContrast: true,
+        ocrUsed: false,
+      );
+      expect(signed.hasSignatureCue, isTrue);
+      final SuggestionEvidence parsed = SuggestionEvidence.fromJson(
+        _jsonRoundTrip(signed.toJson()),
+      );
+      expect(parsed, signed);
+      expect(parsed.hashCode, signed.hashCode);
+      expect(parsed.hasSignatureCue, isTrue);
+    });
+  });
+
+  group('FieldSuggestion', () {
+    test('builds deterministic idFor ids', () {
+      expect(FieldSuggestion.idFor(pageIndex: 0, ordinal: 7), 's_p0_0007');
+      expect(FieldSuggestion.idFor(pageIndex: 12, ordinal: 7), 's_p12_0007');
+      expect(FieldSuggestion.idFor(pageIndex: 0, ordinal: 12345), 's_p0_12345');
+      expect(
+        () => FieldSuggestion.idFor(pageIndex: -1, ordinal: 1),
+        throwsArgumentError,
+      );
+      expect(
+        () => FieldSuggestion.idFor(pageIndex: 0, ordinal: 0),
+        throwsArgumentError,
+      );
+    });
+
+    test('rejects malformed or page-mismatched ids', () {
+      expect(() => _suggestion(id: 's_0_0007'), throwsArgumentError);
+      expect(() => _suggestion(id: 's_p0_7'), throwsArgumentError);
+      expect(() => _suggestion(id: 's_p1_0007'), throwsArgumentError);
+      expect(() => _suggestion(id: 's_p0_0000'), throwsArgumentError);
+      expect(() => _suggestion(id: 's_p0_0007', pageIndex: 0), returnsNormally);
+    });
+
+    test('enforces the confidence interval', () {
+      expect(_suggestion(confidence: 0).confidence, 0);
+      expect(_suggestion(confidence: 1).confidence, 1);
+      expect(_suggestion(confidence: 0.82).uncertainty, closeTo(0.18, 1e-9));
+      for (final double invalid in <double>[
+        -0.01,
+        1.01,
+        double.nan,
+        double.infinity,
+      ]) {
+        expect(
+          () => _suggestion(confidence: invalid),
+          throwsArgumentError,
+          reason: 'confidence $invalid',
+        );
+      }
+    });
+
+    test('trims labelText, treats blank as null, and enforces 200 chars', () {
+      expect(_suggestion(labelText: '  Name  ').labelText, 'Name');
+      expect(_suggestion(labelText: '   ').labelText, isNull);
+      expect(_suggestion(labelText: null).labelText, isNull);
+      expect(
+        _suggestion(labelText: _repeat('A', 200)).labelText,
+        hasLength(200),
+      );
+      expect(_suggestion(labelText: 'Straße').labelText, 'Straße');
+      expect(
+        () => _suggestion(labelText: _repeat('A', 201)),
+        throwsArgumentError,
+      );
+      expect(() => _suggestion(labelText: 'Na\nme'), throwsArgumentError);
+      expect(() => _suggestion(labelText: 'Na\tme'), throwsArgumentError);
+    });
+
+    test('requires the signature cue for a signature suggestion', () {
+      expect(
+        () => _suggestion(proposedType: FieldType.signature),
+        throwsArgumentError,
+      );
+      final FieldSuggestion signature = _suggestion(
+        proposedType: FieldType.signature,
+        evidence: _evidence(
+          cues: const <SuggestionCue>[SuggestionCue.signatureArea],
+        ),
+      );
+      expect(signature.proposedType, FieldType.signature);
+    });
+
+    test('normalizes conflict ids and rejects self or malformed ids', () {
+      final FieldSuggestion conflict = _suggestion(
+        conflictsWith: <String>['s_p0_0003', 's_p0_0002'],
+      );
+      expect(conflict.conflictsWith, <String>['s_p0_0002', 's_p0_0003']);
+      expect(
+        () => _suggestion(conflictsWith: <String>['s_p0_0001']),
+        throwsArgumentError,
+      );
+      expect(
+        () => _suggestion(conflictsWith: <String>['s_p0_0002', 's_p0_0002']),
+        throwsArgumentError,
+      );
+      expect(
+        () => _suggestion(conflictsWith: <String>['other']),
+        throwsArgumentError,
+      );
+    });
+
+    test('checks page-bounds tolerance without clamping', () {
+      final Size page = _a4();
+      expect(_suggestion(rect: _rect(0, 0)).fitsWithinPage(page), isTrue);
+      expect(
+        _suggestion(rect: Rect.fromLTWH(-0.5, 0, 595, 842))
+            .fitsWithinPage(page),
+        isTrue,
+      );
+      expect(
+        _suggestion(rect: Rect.fromLTWH(0, 0, 595.5, 842)).fitsWithinPage(page),
+        isTrue,
+      );
+      expect(
+        _suggestion(rect: Rect.fromLTWH(0, 0, 595.51, 842))
+            .fitsWithinPage(page),
+        isFalse,
+      );
+      expect(
+        _suggestion(rect: Rect.fromLTWH(-0.51, 0, 595, 842))
+            .fitsWithinPage(page),
+        isFalse,
+      );
+      expect(
+        _suggestion(rect: Rect.fromLTWH(0, 0, 595, 842.51))
+            .fitsWithinPage(page),
+        isFalse,
+      );
+    });
+
+    test('copyWith keeps the id and can clear the optional label', () {
+      final FieldSuggestion original = _suggestion(
+        confidence: 0.9,
+        labelText: 'Name',
+      );
+      final FieldSuggestion revised = original.copyWith(
+        confidence: 0.4,
+        labelText: null,
+        resolution: SuggestionResolution.rejected,
+      );
+      expect(revised.id, original.id);
+      expect(revised.confidence, 0.4);
+      expect(revised.labelText, isNull);
+      expect(revised.resolution, SuggestionResolution.rejected);
+      expect(original.labelText, 'Name');
+    });
+
+    test('equality, JSON round-trip, and privacy-safe toString', () {
+      final FieldSuggestion suggestion = _suggestion(
+        labelText: 'Geheim',
+        resolution: SuggestionResolution.confirmed,
+      );
+      final FieldSuggestion parsed = FieldSuggestion.fromJson(
+        _jsonRoundTrip(suggestion.toJson()),
+      );
+      expect(parsed, suggestion);
+      expect(parsed.hashCode, suggestion.hashCode);
+      expect(parsed.labelText, 'Geheim');
+      expect(parsed.toString(), isNot(contains('Geheim')));
+      expect(_suggestion(labelText: 'Other'), isNot(equals(suggestion)));
+    });
+  });
+
+  group('ConfirmedField', () {
+    test('builds a user field and round-trips JSON', () {
+      final ConfirmedField field = _field(validation: FieldValidation.ok);
+      expect(field.provenance, Provenance.user);
+      expect(field.sourceSuggestionId, isNull);
+      expect(field.suggestionConfidence, isNull);
+      expect(field.validation.isOk, isTrue);
+      final ConfirmedField parsed = ConfirmedField.fromJson(
+        _jsonRoundTrip(field.toJson()),
+      );
+      expect(parsed, field);
+      expect(parsed.hashCode, field.hashCode);
+    });
+
+    test('requires machine provenance fields exactly for machine fields', () {
+      expect(() => _field(provenance: Provenance.machine), throwsArgumentError);
+      expect(
+        () => _field(
+          provenance: Provenance.machine,
+          sourceSuggestionId: 's_p0_0001',
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => _field(provenance: Provenance.machine, suggestionConfidence: 0.8),
+        throwsArgumentError,
+      );
+      final ConfirmedField machine = _field(
+        provenance: Provenance.machine,
+        sourceSuggestionId: 's_p0_0001',
+        suggestionConfidence: 0.8,
+      );
+      expect(machine.sourceSuggestionId, 's_p0_0001');
+      expect(machine.suggestionConfidence, 0.8);
+      expect(
+        () => _field(
+          provenance: Provenance.template,
+          sourceSuggestionId: 's_p0_0001',
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () =>
+            _field(provenance: Provenance.template, suggestionConfidence: 0.8),
+        throwsArgumentError,
+      );
+    });
+
+    test('requires the source suggestion on the same page', () {
+      expect(
+        () => _field(
+          provenance: Provenance.machine,
+          sourceSuggestionId: 's_p1_0001',
+          suggestionConfidence: 0.8,
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => _field(
+          provenance: Provenance.machine,
+          sourceSuggestionId: 's_p0_0001',
+          suggestionConfidence: 1.2,
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('enforces the 1–120 label rule and preserves German characters', () {
+      expect(_field(label: '  Straße  ').label, 'Straße');
+      expect(_field(label: _repeat('A', 120)).label, hasLength(120));
+      expect(() => _field(label: _repeat('A', 121)), throwsArgumentError);
+      expect(() => _field(label: '   '), throwsArgumentError);
+      expect(() => _field(label: 'Na\nme'), throwsArgumentError);
+    });
+
+    test('enforces order and UTC timestamps', () {
+      expect(_field(order: 0).order, 0);
+      expect(() => _field(order: -1), throwsArgumentError);
+      final DateTime local = DateTime(2026, 11, 13, 12);
+      expect(() => _field(createdAt: local), throwsArgumentError);
+      expect(() => _field(updatedAt: local), throwsArgumentError);
+    });
+
+    test('enforces field-id shape and limits', () {
+      expect(() => _field(id: ''), throwsArgumentError);
+      expect(() => _field(id: ' padded'), throwsArgumentError);
+      expect(() => _field(id: 'has space'), throwsArgumentError);
+      expect(() => _field(id: _repeat('a', 129)), throwsArgumentError);
+    });
+
+    test('accepts only matching values or preserved incompatible content', () {
+      final ConfirmedField field = _field(type: FieldType.text);
+      expect(
+        field.acceptsValue(TextValue(text: 'x', lastEditedAt: _at())),
+        isTrue,
+      );
+      expect(
+        field.acceptsValue(
+          NumberValue(canonical: '1', rawGerman: '1', lastEditedAt: _at()),
+        ),
+        isFalse,
+      );
+      expect(
+        field.acceptsValue(
+          IncompatibleValue(
+            preservedText: 'x',
+            reasonCode: 'text_to_checkbox',
+            lastEditedAt: _at(),
+          ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('checks page bounds and clears machine fields with copyWith', () {
+      final ConfirmedField field = _field(
+        rect: Rect.fromLTWH(0, 0, 595.5, 842),
+      );
+      expect(field.fitsWithinPage(_a4()), isTrue);
+      expect(
+        _field(rect: Rect.fromLTWH(0, 0, 596, 842)).fitsWithinPage(_a4()),
+        isFalse,
+      );
+
+      final ConfirmedField machine = _field(
+        provenance: Provenance.machine,
+        sourceSuggestionId: 's_p0_0001',
+        suggestionConfidence: 0.8,
+      );
+      final ConfirmedField user = machine.copyWith(
+        provenance: Provenance.user,
+        sourceSuggestionId: null,
+        suggestionConfidence: null,
+      );
+      expect(user.provenance, Provenance.user);
+      expect(user.sourceSuggestionId, isNull);
+      expect(user.suggestionConfidence, isNull);
+      expect(
+        () => machine.copyWith(provenance: Provenance.user),
+        throwsArgumentError,
+      );
+    });
+
+    test('toString never echoes the label', () {
+      expect(_field(label: 'Geheim').toString(), isNot(contains('Geheim')));
+    });
+  });
+
+  group('SignatureMark', () {
+    test('builds a mark and matches only its signature field', () {
+      final SignatureMark mark = _mark();
+      final ConfirmedField matching = _field(
+        id: mark.fieldId,
+        type: FieldType.signature,
+        pageIndex: mark.pageIndex,
+      );
+      expect(mark.describesField(matching), isTrue);
+      expect(
+        mark.describesField(
+          _field(id: mark.fieldId, pageIndex: mark.pageIndex),
+        ),
+        isFalse,
+      );
+      expect(
+        mark.describesField(
+          _field(
+            id: mark.fieldId,
+            type: FieldType.signature,
+            pageIndex: mark.pageIndex + 1,
+          ),
+        ),
+        isFalse,
+      );
+      expect(
+        mark.describesField(
+          _field(
+            id: '9c858901-8a57-4791-81fe-4c455b099bc9',
+            type: FieldType.signature,
+          ),
+        ),
+        isFalse,
+      );
+    });
+
+    test('enforces the positive 1024-pixel long edge', () {
+      expect(_mark(widthPx: 1024, heightPx: 10).widthPx, 1024);
+      expect(_mark(widthPx: 10, heightPx: 1024).heightPx, 1024);
+      expect(() => _mark(widthPx: 0), throwsArgumentError);
+      expect(() => _mark(heightPx: 0), throwsArgumentError);
+      expect(() => _mark(widthPx: -1), throwsArgumentError);
+      expect(() => _mark(widthPx: 1025), throwsArgumentError);
+      expect(() => _mark(heightPx: 1025), throwsArgumentError);
+    });
+
+    test('enforces UUIDv4, SHA-256, and UTC', () {
+      expect(() => _mark(assetId: 'not-a-uuid'), throwsArgumentError);
+      expect(() => _mark(assetId: _assetId.toUpperCase()), throwsArgumentError);
+      expect(() => _mark(sha256: _repeat('A', 64)), throwsArgumentError);
+      expect(() => _mark(sha256: _repeat('a', 63)), throwsArgumentError);
+      expect(() => _mark(sha256: _repeat('a', 65)), throwsArgumentError);
+      expect(
+        () => _mark(capturedAt: DateTime(2026, 11, 13, 12)),
+        throwsArgumentError,
+      );
+    });
+
+    test('round-trips JSON and keeps equality', () {
+      final SignatureMark mark = _mark();
+      final SignatureMark parsed = SignatureMark.fromJson(
+        _jsonRoundTrip(mark.toJson()),
+      );
+      expect(parsed, mark);
+      expect(parsed.hashCode, mark.hashCode);
+      expect(parsed.copyWith(widthPx: 1024), isNot(equals(mark)));
+    });
+  });
+
+  group('FieldVerification', () {
+    test('requires reviewedAt exactly for confirmed and corrected', () {
+      expect(
+        FieldVerification(state: FieldVerificationState.unreviewed).reviewedAt,
+        isNull,
+      );
+      expect(
+        () => FieldVerification(
+          state: FieldVerificationState.unreviewed,
+          reviewedAt: _at(),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => FieldVerification(state: FieldVerificationState.confirmed),
+        throwsArgumentError,
+      );
+      expect(
+        () => FieldVerification(state: FieldVerificationState.corrected),
+        throwsArgumentError,
+      );
+      expect(
+        FieldVerification(
+          state: FieldVerificationState.confirmed,
+          reviewedAt: _at(),
+        ).state,
+        FieldVerificationState.confirmed,
+      );
+      expect(
+        FieldVerification(
+          state: FieldVerificationState.corrected,
+          reviewedAt: _at(),
+        ).reviewedAt,
+        _at(),
+      );
+      expect(
+        FieldVerification(state: FieldVerificationState.rejected).reviewedAt,
+        isNull,
+      );
+      expect(
+        FieldVerification(
+          state: FieldVerificationState.rejected,
+          reviewedAt: _at(),
+        ).reviewedAt,
+        _at(),
+      );
+    });
+
+    test('rejects duplicate warnings and sorts the stored list', () {
+      final FieldVerification verification = FieldVerification(
+        state: FieldVerificationState.confirmed,
+        reviewedAt: _at(),
+        warnings: const <WarningCode>[
+          WarningCode.conflict,
+          WarningCode.overflow,
+        ],
+      );
+      expect(verification.warnings, <WarningCode>[
+        WarningCode.overflow,
+        WarningCode.conflict,
+      ]);
+      expect(
+        () => FieldVerification(
+          state: FieldVerificationState.confirmed,
+          reviewedAt: _at(),
+          warnings: const <WarningCode>[
+            WarningCode.conflict,
+            WarningCode.conflict,
+          ],
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => FieldVerification(
+          state: FieldVerificationState.confirmed,
+          reviewedAt: DateTime(2026, 11, 13, 12),
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('round-trips JSON and equality', () {
+      final FieldVerification verification = FieldVerification(
+        state: FieldVerificationState.corrected,
+        reviewedAt: _at(),
+        warnings: const <WarningCode>[
+          WarningCode.lowConfidence,
+          WarningCode.incompatibleContent,
+        ],
+      );
+      final FieldVerification parsed = FieldVerification.fromJson(
+        _jsonRoundTrip(verification.toJson()),
+      );
+      expect(parsed, verification);
+      expect(parsed.hashCode, verification.hashCode);
+      expect(parsed.warnings, verification.warnings);
+
+      final FieldVerification unreviewed = verification.copyWith(
+        state: FieldVerificationState.unreviewed,
+        reviewedAt: null,
+      );
+      expect(unreviewed.state, FieldVerificationState.unreviewed);
+      expect(unreviewed.reviewedAt, isNull);
+    });
+  });
+
+  group('FieldValidation', () {
+    test('ok, warning, and error states are distinct', () {
+      final FieldValidation warning = FieldValidation.warning(
+        WarningCode.overflow,
+        'FLD-001',
+      );
+      final FieldValidation error = FieldValidation.error('NUM-001');
+      expect(FieldValidation.ok.isOk, isTrue);
+      expect(FieldValidation.ok.isWarning, isFalse);
+      expect(FieldValidation.ok.isError, isFalse);
+      expect(warning.isWarning, isTrue);
+      expect(warning.warningCode, WarningCode.overflow);
+      expect(warning.messageKey, 'FLD-001');
+      expect(warning.errorCode, isNull);
+      expect(error.isError, isTrue);
+      expect(error.errorCode, 'NUM-001');
+      expect(error.warningCode, isNull);
+      expect(FieldValidation.ok, FieldValidation.ok);
+    });
+
+    test('rejects invalid message keys and catalog codes', () {
+      expect(
+        () => FieldValidation.warning(WarningCode.overflow, 'not a key'),
+        throwsArgumentError,
+      );
+      expect(
+        () => FieldValidation.warning(WarningCode.overflow, ''),
+        throwsArgumentError,
+      );
+      expect(() => FieldValidation.error('num-1'), throwsArgumentError);
+      expect(() => FieldValidation.error('NUM-1'), throwsArgumentError);
+      expect(() => FieldValidation.error('TOOLONG-001'), throwsArgumentError);
+    });
+
+    test('round-trips all three states and rejects unknown statuses', () {
+      final List<FieldValidation> validations = <FieldValidation>[
+        FieldValidation.ok,
+        FieldValidation.warning(WarningCode.conflict, 'FLD-002'),
+        FieldValidation.error('DAT-001'),
+      ];
+      for (final FieldValidation validation in validations) {
+        final FieldValidation parsed = FieldValidation.fromJson(
+          _jsonRoundTrip(validation.toJson()),
+        );
+        expect(parsed, validation, reason: '$validation');
+        expect(parsed.hashCode, validation.hashCode);
+      }
+      expect(
+        () => FieldValidation.fromJson(<String, Object?>{'status': 'other'}),
+        throwsFormatException,
+      );
+    });
+  });
+
+  group('FieldValue lengths and control characters', () {
+    test('text accepts 10,000 characters and rejects 10,001', () {
+      expect(
+        TextValue(text: _repeat('a', 10000), lastEditedAt: _at()).text,
+        hasLength(10000),
+      );
+      expect(
+        () => TextValue(text: _repeat('a', 10001), lastEditedAt: _at()),
+        throwsArgumentError,
+      );
+    });
+
+    test('text removes line breaks and rejects control characters', () {
+      expect(
+        () => TextValue(text: 'line 1\nline 2', lastEditedAt: _at()),
+        throwsArgumentError,
+      );
+      expect(
+        () => TextValue(text: 'tab\there', lastEditedAt: _at()),
+        throwsArgumentError,
+      );
+      expect(
+        () => TextValue(text: 'bell\u0007', lastEditedAt: _at()),
+        throwsArgumentError,
+      );
+      expect(
+        () => TextValue(text: 'del\u007f', lastEditedAt: _at()),
+        throwsArgumentError,
+      );
+      expect(
+        TextValue(text: 'Straße Müller-Lüdenscheidt', lastEditedAt: _at()).text,
+        'Straße Müller-Lüdenscheidt',
+      );
+    });
+
+    test('multiline preserves newlines and applies the same length cap', () {
+      expect(
+        MultilineValue(text: 'line 1\nline 2', lastEditedAt: _at()).text,
+        'line 1\nline 2',
+      );
+      expect(
+        MultilineValue(text: _repeat('a', 10000), lastEditedAt: _at()).text,
+        hasLength(10000),
+      );
+      expect(
+        () => MultilineValue(text: _repeat('a', 10001), lastEditedAt: _at()),
+        throwsArgumentError,
+      );
+      expect(
+        () => MultilineValue(text: 'windows\r\n', lastEditedAt: _at()),
+        throwsArgumentError,
+      );
+      expect(
+        () => MultilineValue(text: 'tab\there', lastEditedAt: _at()),
+        throwsArgumentError,
+      );
+    });
+
+    test('preserved incompatible content is kept verbatim', () {
+      const String preserved = 'a\nb\tc\u0001';
+      final IncompatibleValue value = IncompatibleValue(
+        preservedText: preserved,
+        reasonCode: 'text_to_checkbox',
+        lastEditedAt: _at(),
+      );
+      expect(value.preservedText, preserved);
+      expect(value.type, isNull);
+      expect(value.kind, 'incompatible');
+      expect(
+        IncompatibleValue(
+          preservedText: _repeat('a', 10000),
+          reasonCode: 'text_to_checkbox',
+          lastEditedAt: _at(),
+        ).preservedText,
+        hasLength(10000),
+      );
+      expect(
+        () => IncompatibleValue(
+          preservedText: _repeat('a', 10001),
+          reasonCode: 'text_to_checkbox',
+          lastEditedAt: _at(),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => IncompatibleValue(
+          preservedText: 'x',
+          reasonCode: 'Bad Code',
+          lastEditedAt: _at(),
+        ),
+        throwsArgumentError,
+      );
+    });
+  });
+
+  group('FieldValue canonical shapes', () {
+    test('number accepts normalized decimals only', () {
+      for (final String canonical in <String>[
+        '0',
+        '1',
+        '-1',
+        '3.14',
+        '-0.5',
+        '0007',
+      ]) {
+        expect(
+          NumberValue(
+            canonical: canonical,
+            rawGerman: '1.234,56',
+            lastEditedAt: _at(),
+          ).canonical,
+          canonical,
+          reason: canonical,
+        );
+      }
+      for (final String canonical in <String>[
+        '',
+        '+1',
+        '1e3',
+        '.5',
+        '1,5',
+        '1.',
+        '--1',
+        ' ',
+      ]) {
+        expect(
+          () => NumberValue(
+            canonical: canonical,
+            rawGerman: '1',
+            lastEditedAt: _at(),
+          ),
+          throwsArgumentError,
+          reason: 'canonical "$canonical"',
+        );
+      }
+      expect(
+        () => NumberValue(canonical: '1', rawGerman: '', lastEditedAt: _at()),
+        throwsArgumentError,
+      );
+      expect(
+        () =>
+            NumberValue(canonical: '1', rawGerman: '1\n', lastEditedAt: _at()),
+        throwsArgumentError,
+      );
+    });
+
+    test('date accepts real calendar dates only', () {
+      for (final String canonical in <String>[
+        '2026-11-13',
+        '2024-02-29',
+        '2000-02-29',
+        '0000-01-01',
+        '9999-12-31',
+      ]) {
+        expect(
+          DateValue(canonical: canonical, lastEditedAt: _at()).canonical,
+          canonical,
+          reason: canonical,
+        );
+      }
+      for (final String canonical in <String>[
+        '2026-02-29',
+        '1900-02-29',
+        '2026-13-01',
+        '2026-00-10',
+        '2026-1-1',
+        '13.11.2026',
+        '2026-11-32',
+      ]) {
+        expect(
+          () => DateValue(canonical: canonical, lastEditedAt: _at()),
+          throwsArgumentError,
+          reason: 'canonical "$canonical"',
+        );
+      }
+    });
+
+    test('checkbox defaults to unchecked', () {
+      expect(CheckboxValue(lastEditedAt: _at()).checked, isFalse);
+      expect(CheckboxValue(checked: true, lastEditedAt: _at()).checked, isTrue);
+    });
+
+    test('signature values require a lowercase UUIDv4', () {
+      expect(
+        SignatureValue(
+          signatureAssetId: _assetId,
+          lastEditedAt: _at(),
+        ).signatureAssetId,
+        _assetId,
+      );
+      expect(
+        () =>
+            SignatureValue(signatureAssetId: 'not-a-uuid', lastEditedAt: _at()),
+        throwsArgumentError,
+      );
+      expect(
+        () => SignatureValue(
+          signatureAssetId: _assetId.toUpperCase(),
+          lastEditedAt: _at(),
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('every variant rejects a non-UTC lastEditedAt', () {
+      final DateTime local = DateTime(2026, 11, 13, 12);
+      final List<void Function(DateTime)> factories = <void Function(DateTime)>[
+        (DateTime at) => TextValue(text: 'x', lastEditedAt: at),
+        (DateTime at) => MultilineValue(text: 'x', lastEditedAt: at),
+        (DateTime at) =>
+            NumberValue(canonical: '1', rawGerman: '1', lastEditedAt: at),
+        (DateTime at) => DateValue(canonical: '2026-11-13', lastEditedAt: at),
+        (DateTime at) => CheckboxValue(lastEditedAt: at),
+        (DateTime at) =>
+            SignatureValue(signatureAssetId: _assetId, lastEditedAt: at),
+        (DateTime at) => IncompatibleValue(
+          preservedText: 'x',
+          reasonCode: 'text_to_checkbox',
+          lastEditedAt: at,
+        ),
+      ];
+      for (final void Function(DateTime) factory in factories) {
+        expect(() => factory(local), throwsArgumentError);
+      }
+    });
+
+    test('metadata defaults and copyWithMetadata preserve content', () {
+      final TextValue value = TextValue(text: 'x', lastEditedAt: _at());
+      expect(value.overflow, isFalse);
+      final TextValue overflowed = value.copyWithMetadata(overflow: true);
+      expect(overflowed.overflow, isTrue);
+      expect(overflowed.text, 'x');
+      expect(overflowed.lastEditedAt, value.lastEditedAt);
+    });
+
+    test('JSON round-trips every variant with its type discriminator', () {
+      final List<FieldValue> values = <FieldValue>[
+        TextValue(text: 'text', lastEditedAt: _at()),
+        MultilineValue(text: 'a\nb', lastEditedAt: _at()),
+        NumberValue(
+          canonical: '-12.5',
+          rawGerman: '-12,5',
+          lastEditedAt: _at(),
+        ),
+        DateValue(canonical: '2026-11-13', lastEditedAt: _at()),
+        CheckboxValue(checked: true, lastEditedAt: _at()),
+        SignatureValue(signatureAssetId: _assetId, lastEditedAt: _at()),
+        IncompatibleValue(
+          preservedText: 'a\nb',
+          reasonCode: 'text_to_checkbox',
+          lastEditedAt: _at(),
+        ),
+      ];
+      for (final FieldValue value in values) {
+        final FieldValue parsed = FieldValue.fromJson(
+          _jsonRoundTrip(value.toJson()),
+        );
+        expect(parsed, value, reason: value.kind);
+        expect(parsed.hashCode, value.hashCode);
+        expect(parsed.kind, value.kind);
+        expect(parsed.type, value.type);
+      }
+    });
+
+    test('JSON timestamps are truncated to milliseconds', () {
+      final DateTime precise = DateTime.utc(2026, 1, 2, 3, 4, 5, 6, 7);
+      final TextValue value = TextValue(text: 'x', lastEditedAt: precise);
+      expect(value.lastEditedAt.microsecond, 7);
+      expect(value.toJson()['lastEditedAt'], '2026-01-02T03:04:05.006Z');
+    });
+
+    test('JSON parsing fails closed for unknown or malformed values', () {
+      expect(
+        () => FieldValue.fromJson(<String, Object?>{
+          'type': 'unknown',
+          'lastEditedAt': '2026-11-13T12:00:00.000Z',
+          'overflow': false,
+        }),
+        throwsFormatException,
+      );
+      expect(
+        () => FieldValue.fromJson(<String, Object?>{
+          'type': 'text',
+          'text': 'x',
+          'lastEditedAt': '2026-11-13T12:00:00.000Z',
+        }),
+        throwsFormatException,
+      );
+      expect(
+        () => FieldValue.fromJson(<String, Object?>{
+          'type': 'text',
+          'text': 'x',
+          'lastEditedAt': '2026-11-13T12:00:00',
+          'overflow': false,
+        }),
+        throwsFormatException,
+      );
+    });
+
+    test('value equality is variant-aware', () {
+      expect(
+        TextValue(text: 'x', lastEditedAt: _at()),
+        TextValue(text: 'x', lastEditedAt: _at()),
+      );
+      expect(
+        TextValue(text: 'x', lastEditedAt: _at()),
+        isNot(equals(MultilineValue(text: 'x', lastEditedAt: _at()))),
+      );
+      expect(
+        TextValue(text: 'x', lastEditedAt: _at()),
+        isNot(equals(TextValue(text: 'y', lastEditedAt: _at()))),
+      );
+    });
+  });
+
+  group('privacy', () {
+    test('validation errors do not echo labels or values', () {
+      final String privateLabel = _repeat('PRIVATE', 30);
+      expect(
+        () => _suggestion(labelText: privateLabel),
+        throwsA(
+          isA<ArgumentError>().having(
+            (ArgumentError error) => error.toString(),
+            'toString',
+            isNot(contains('PRIVATE')),
+          ),
+        ),
+      );
+      expect(
+        () => TextValue(text: 'secret\u0001', lastEditedAt: _at()),
+        throwsA(
+          isA<ArgumentError>().having(
+            (ArgumentError error) => error.toString(),
+            'toString',
+            isNot(contains('secret')),
+          ),
+        ),
+      );
+      expect(
+        () => _field(label: _repeat('PRIVATE', 20)),
+        throwsA(
+          isA<ArgumentError>().having(
+            (ArgumentError error) => error.toString(),
+            'toString',
+            isNot(contains('PRIVATE')),
+          ),
+        ),
+      );
+    });
+
+    test('value toString does not reveal content', () {
+      expect(
+        TextValue(text: 'secret', lastEditedAt: _at()).toString(),
+        isNot(contains('secret')),
+      );
+      expect(
+        MultilineValue(text: 'secret', lastEditedAt: _at()).toString(),
+        isNot(contains('secret')),
+      );
+      expect(
+        NumberValue(
+          canonical: '4711',
+          rawGerman: '4711',
+          lastEditedAt: _at(),
+        ).toString(),
+        isNot(contains('4711')),
+      );
+      expect(
+        DateValue(canonical: '1990-01-01', lastEditedAt: _at()).toString(),
+        isNot(contains('1990')),
+      );
+      expect(
+        IncompatibleValue(
+          preservedText: 'secret',
+          reasonCode: 'text_to_checkbox',
+          lastEditedAt: _at(),
+        ).toString(),
+        isNot(contains('secret')),
+      );
+    });
+  });
+}
