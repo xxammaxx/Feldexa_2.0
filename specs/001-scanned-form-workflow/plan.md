@@ -150,7 +150,7 @@ packages/
 ├── feldexa_core/                     # model, geometry, value types, validation, undo/redo, IDs
 ├── feldexa_ports/                    # capability interfaces, error taxonomy, capability descriptors
 ├── feldexa_recognition/              # raster preprocessing, line/box/whitespace detection, typing
-├── feldexa_export/                   # text layout, clip detection, export-plan builder
+├── feldexa_export/                   # text layout, clip detection, export-plan builder, export-attempt artifact/verification model
 ├── feldexa_application/              # use cases, autosave coordinator, repositories
 ├── feldexa_adapters_android/         # Dart thin clients for channel, pdfrx renderer, delivery
 ├── feldexa_adapters_simulated/       # deterministic SIMULATED import/storage/OCR/export/delivery
@@ -168,7 +168,7 @@ android/ is inside apps/feldexa_app/android/ (Flutter platform host only).
 
 **Structure Decision**: Flutter monorepo with one application and nine shared Dart packages. Shared packages contain no `dart:io` and no platform plugin imports, so the same sources compile for Android and Web. Android capability code lives in the app's Kotlin integration layer (not a parallel app) behind the single `FeldexaPlugin` facade. Web substitutes deterministic adapters in `feldexa_adapters_simulated`; the app bootstrap selects exactly one registry, and release builds fail fast if a simulated capability descriptor is present.
 
-Package boundaries exist to keep core logic platform-free and independently testable (no package is introduced for a future feature): `feldexa_core` and `feldexa_export` have no Flutter dependency; `feldexa_ports` contains interfaces only; `feldexa_application` orchestrates use cases; `feldexa_ui` owns widgets/semantics; the two adapter packages are the only platform bindings; `feldexa_testkit` is test-only and never imported by production code.
+Package boundaries exist to keep core logic platform-free and independently testable (no package is introduced for a future feature): `feldexa_core` and `feldexa_export` have no Flutter dependency; `feldexa_ports` contains interfaces and their contract DTOs/enums only; `feldexa_application` orchestrates use cases; `feldexa_ui` owns widgets/semantics; the two adapter packages are the only platform bindings; `feldexa_testkit` is test-only and never imported by production code. Dependency direction is one-way: `feldexa_core` is innermost; `feldexa_export` depends on core; `feldexa_ports` depends on core and export; adapters depend on ports. Core and export never import ports. `ExportPlan`, `ExportValidation`, `ExportArtifact`, and `ArtifactVerification` are export-attempt contract models owned by `feldexa_export` (T022), while `feldexa_core` owns the document aggregate and the source/revision/template models.
 
 ## Delivery Phases (each ends in an observable increment)
 
