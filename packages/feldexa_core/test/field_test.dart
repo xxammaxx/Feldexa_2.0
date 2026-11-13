@@ -715,6 +715,28 @@ void main() {
       );
     });
 
+    test('rejects invisible Unicode format controls in field ids', () {
+      // Zero-width and bidirectional format characters are not visible and
+      // must never be hidden inside a machine identifier.
+      for (final String id in <String>[
+        'field\u00ADid',
+        'field\u061Cid',
+        'field\u180Eid',
+        'field\u200Bid',
+        'field\u200Eid',
+        'field\u202Eid',
+        'field\u2066id',
+        'field\uFEFFid',
+        'field\u{E0001}id',
+      ]) {
+        expect(() => _field(id: id), throwsArgumentError);
+        expect(() => _mark(fieldId: id), throwsArgumentError);
+      }
+      expect(_field(id: 'Straße').id, 'Straße');
+      expect(_field(id: '中文').id, '中文');
+      expect(_field(id: 'العربية').id, 'العربية');
+    });
+
     test('accepts only matching values or preserved incompatible content', () {
       final ConfirmedField field = _field(type: FieldType.text);
       expect(

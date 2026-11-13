@@ -2063,9 +2063,10 @@ String _validateFieldId(String value) {
   for (final int rune in value.runes) {
     if (rune < 0x20 ||
         (rune >= 0x7F && rune <= 0x9F) ||
-        _isUnicodeWhitespace(rune)) {
+        _isUnicodeWhitespace(rune) ||
+        _isUnicodeFormatControl(rune)) {
       throw ArgumentError(
-        'id must not contain whitespace or control characters',
+        'id must not contain whitespace, control, or format characters',
       );
     }
   }
@@ -2088,6 +2089,38 @@ bool _isUnicodeWhitespace(int rune) {
       rune == 0x202F ||
       rune == 0x205F ||
       rune == 0x3000;
+}
+
+/// Whether [rune] is an invisible Unicode format control (the `Cf` category).
+///
+/// A machine identifier must not hide zero-width joiners, bidirectional
+/// overrides/isolates, tag characters, or other format controls: they are
+/// invisible to a reviewer and can make two different byte strings look equal.
+/// Visible non-ASCII letters (`ß`, CJK, Arabic) remain valid; only the
+/// `Cf` ranges are rejected. The set follows the assigned Unicode `Cf`
+/// code points, including the deprecated format characters still defined.
+bool _isUnicodeFormatControl(int rune) {
+  return rune == 0x00AD ||
+      (rune >= 0x0600 && rune <= 0x0605) ||
+      rune == 0x061C ||
+      rune == 0x06DD ||
+      rune == 0x070F ||
+      (rune >= 0x0890 && rune <= 0x0891) ||
+      rune == 0x08E2 ||
+      rune == 0x180E ||
+      (rune >= 0x200B && rune <= 0x200F) ||
+      (rune >= 0x202A && rune <= 0x202E) ||
+      (rune >= 0x2060 && rune <= 0x2064) ||
+      (rune >= 0x2066 && rune <= 0x206F) ||
+      rune == 0xFEFF ||
+      (rune >= 0xFFF9 && rune <= 0xFFFB) ||
+      rune == 0x110BD ||
+      rune == 0x110CD ||
+      (rune >= 0x13430 && rune <= 0x1343F) ||
+      (rune >= 0x1BCA0 && rune <= 0x1BCA3) ||
+      (rune >= 0x1D173 && rune <= 0x1D17A) ||
+      rune == 0xE0001 ||
+      (rune >= 0xE0020 && rune <= 0xE007F);
 }
 
 String? _normalizeOptionalLabel(
