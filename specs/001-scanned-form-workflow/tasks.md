@@ -184,7 +184,7 @@ These are the only genuine artifact contradictions found; each is resolved by th
 - [x] T032 [P] Create the evidence report schema and validator in `tools/evaluation/report_schema.json` and `tools/evaluation/validate_report.dart` (constitution Principle VIII)
 - [ ] T033 Assemble the rights-cleared corpus of at least 20 real German authority forms and record provenance in `tools/corpus/manifest.json` (constitution Principle IV; SC-001)
 - [ ] T034 Freeze `corpus-1.0.0` and `metric-definition.v1.md` and implement the scorer in `tools/evaluation/metric-definition.v1.md` and `tools/evaluation/score.dart` before any scoring run (constitution Principle IV; SC-001/SC-002)
-- [ ] T035 [P] Record the manual-baseline protocol in `tools/evaluation/manual-baseline.md` using the add/move/resize/reclassify comparison from `research.md` D-18 (SC-003)
+- [x] T035 [P] Record the manual-baseline protocol in `tools/evaluation/manual-baseline.md` using the add/move/resize/reclassify comparison from `research.md` D-18 (SC-003)
 - [ ] T036 Implement the failure-injection harness for clock, quota, keystore, and write interruption in `packages/feldexa_testkit/lib/src/faults.dart` and the `FakeRegistry` test seam from `contracts/ports.md` §4 (constitution Principle VIII)
 
 **Checkpoint**: Contracts, models, ports, encryption, German strings, corpus, frozen metrics, and fault injection are ready. User stories can start after this.
