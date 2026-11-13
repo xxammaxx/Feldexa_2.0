@@ -257,6 +257,7 @@ the git bundle and are not bundle-verifiable.
 | [2026-11-13-t014-evidence.md](./2026-11-13-t014-evidence.md) | `NONE` | Task evidence | T014 error taxonomy and evidence classes; v2 privacy correction after quality review; host-VM only |
 | [2026-11-13-t015-evidence.md](./2026-11-13-t015-evidence.md) | `NONE` | Task evidence | T015 geometry value objects; host-VM only |
 | [2026-11-13-t015-merge-evidence.md](./2026-11-13-t015-merge-evidence.md) | `NONE` | Task evidence | T015 merge of corrected main `31c75e8`; local merge only, diff vs main recorded |
+| [2026-11-13-t035-evidence.md](./2026-11-13-t035-evidence.md) | `NONE` | Task evidence | T035 manual-baseline protocol; no measurements recorded; SC-003 execution remains T142 |
 | [2026-11-12-task-issue-mapping.md](./2026-11-12-task-issue-mapping.md) | `NONE` | Historical snapshot | 2026-11-12T15:50Z all-open mapping; not live issue state |
 | [2026-11-12-task-issue-mapping.json](./2026-11-12-task-issue-mapping.json) | `NONE` | Historical snapshot | Machine-readable dated snapshot; do not overwrite with current state |
 | `backups/` | — | Not evidence | Pre-edit snapshots |
