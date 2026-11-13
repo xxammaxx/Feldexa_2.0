@@ -74,9 +74,13 @@ final class EvidenceLabel {
     if (detail.isNotEmpty) 'detail': detail,
   };
 
+  /// Redacted identity for logs.
+  ///
+  /// [detail] is omitted because free-form detail can accidentally contain
+  /// fixture-derived text. Callers that need it can read the field or call
+  /// [toJson] explicitly.
   @override
-  String toString() =>
-      detail.isEmpty ? '$tag[$surface]' : '$tag[$surface]: $detail';
+  String toString() => '$tag[$surface]';
 
   @override
   bool operator ==(Object other) =>

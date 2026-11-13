@@ -4,7 +4,9 @@
 //   * exactly four evidence classes with the uppercase report tokens;
 //   * `SIMULATED` is never Android and `NONE` is never runtime evidence;
 //   * `CapabilityEvidence.simulated` is true iff the class is simulated;
-//   * an inconsistent label cannot be constructed.
+//   * adapter ids and simulated reasons are validated at runtime as bounded
+//     machine tokens, not by debug assertions alone;
+//   * rejected input is never echoed in an error or in `toString()`.
 //
 // No test here produces SIMULATED, EMULATOR, or DEVICE runtime evidence.
 
@@ -29,7 +31,7 @@ void main() {
       );
     });
 
-    test('parses enum names and tokens case-insensitively', () {
+    test('parses enum names and report tokens case-insensitively', () {
       expect(EvidenceClass.parse('simulated'), EvidenceClass.simulated);
       expect(EvidenceClass.parse('SIMULATED'), EvidenceClass.simulated);
       expect(EvidenceClass.parse(' Emulator '), EvidenceClass.emulator);
@@ -37,8 +39,21 @@ void main() {
       expect(EvidenceClass.parse('none'), EvidenceClass.none);
     });
 
-    test('rejects unknown and empty tokens instead of defaulting', () {
-      expect(() => EvidenceClass.parse('android'), throwsFormatException);
+    test('rejects unknown and empty tokens without echoing the input', () {
+      for (final String input in <String>[
+        'android',
+        'secret-form.pdf',
+        '/tmp/private/form.pdf',
+        'PRIVATE OCR TEXT',
+      ]) {
+        try {
+          EvidenceClass.parse(input);
+          fail('parse must reject $input');
+        } on FormatException catch (error) {
+          expect(error.message, isNot(contains(input)));
+          expect(error.toString(), isNot(contains(input)));
+        }
+      }
       expect(() => EvidenceClass.parse(''), throwsFormatException);
       expect(EvidenceClass.tryParse('real'), isNull);
       expect(EvidenceClass.tryParse('SIMULATED'), EvidenceClass.simulated);
@@ -64,20 +79,20 @@ void main() {
 
   group('CapabilityEvidence', () {
     test('derives simulated only for the simulated class', () {
-      const CapabilityEvidence simulated = CapabilityEvidence(
+      final CapabilityEvidence simulated = CapabilityEvidence(
         evidenceClass: EvidenceClass.simulated,
         adapterId: 'web.sim.storage.v1',
-        simulatedReason: 'deterministic fixture adapter',
+        simulatedReason: 'fixture.deterministic',
       );
-      const CapabilityEvidence emulator = CapabilityEvidence(
+      final CapabilityEvidence emulator = CapabilityEvidence(
         evidenceClass: EvidenceClass.emulator,
         adapterId: 'android.pdfbox.v1',
       );
-      const CapabilityEvidence device = CapabilityEvidence(
+      final CapabilityEvidence device = CapabilityEvidence(
         evidenceClass: EvidenceClass.device,
         adapterId: 'android.pdfbox.v1',
       );
-      const CapabilityEvidence none = CapabilityEvidence(
+      final CapabilityEvidence none = CapabilityEvidence(
         evidenceClass: EvidenceClass.none,
         adapterId: 'android.pdfbox.v1',
       );
@@ -89,17 +104,17 @@ void main() {
     });
 
     test('simulated named constructor keeps its reason', () {
-      const CapabilityEvidence evidence = CapabilityEvidence.simulated(
+      final CapabilityEvidence evidence = CapabilityEvidence.simulated(
         adapterId: 'web.sim.ocr.v1',
-        simulatedReason: 'Web development fixture',
+        simulatedReason: 'web.development-fixture',
       );
       expect(evidence.evidenceClass, EvidenceClass.simulated);
       expect(evidence.simulated, isTrue);
-      expect(evidence.simulatedReason, 'Web development fixture');
+      expect(evidence.simulatedReason, 'web.development-fixture');
     });
 
     test('android named constructor declares no simulated evidence', () {
-      const CapabilityEvidence evidence = CapabilityEvidence.android(
+      final CapabilityEvidence evidence = CapabilityEvidence.android(
         adapterId: 'android.keystore.v1',
       );
       expect(evidence.evidenceClass, EvidenceClass.none);
@@ -112,56 +127,115 @@ void main() {
         () => CapabilityEvidence(
           evidenceClass: EvidenceClass.emulator,
           adapterId: 'android.pdfbox.v1',
-          simulatedReason: 'not simulated',
+          simulatedReason: 'not-simulated',
         ),
-        throwsA(isA<AssertionError>()),
+        throwsArgumentError,
       );
     });
 
-    test('rejects an empty adapter id', () {
-      expect(
-        () => CapabilityEvidence(
-          evidenceClass: EvidenceClass.none,
-          adapterId: '',
-        ),
-        throwsA(isA<AssertionError>()),
+    test('accepts the documented machine-token boundaries', () {
+      final String adapter64 = 'a.${'b' * 59}.v1';
+      final String reason96 = 'r.${'s' * 91}.v1';
+      expect(adapter64, hasLength(64));
+      expect(reason96, hasLength(96));
+      final CapabilityEvidence evidence = CapabilityEvidence.simulated(
+        adapterId: adapter64,
+        simulatedReason: reason96,
       );
-      expect(
-        () => CapabilityEvidence.simulated(adapterId: ''),
-        throwsA(isA<AssertionError>()),
-      );
-      expect(
-        () => CapabilityEvidence.android(adapterId: ''),
-        throwsA(isA<AssertionError>()),
-      );
+      expect(evidence.adapterId, adapter64);
+      expect(evidence.simulatedReason, reason96);
     });
 
-    test('rejects an empty simulated reason when one is supplied', () {
-      expect(
+    test('rejects content-like or unsafe adapter ids without echoing them', () {
+      final List<String> invalid = <String>[
+        '',
+        'Android.PDFBox.V1',
+        'android pdfbox',
+        'android/pdfbox',
+        r'android\pdfbox',
+        '../private/form',
+        '.leading.dot',
+        'trailing.dot.',
+        'double..dot',
+        'form.pdf',
+        'a${'b' * 64}',
+        'sicher',
+      ];
+      for (final String value in invalid) {
+        _expectSafeArgumentError(
+          () => CapabilityEvidence(
+            evidenceClass: EvidenceClass.none,
+            adapterId: value,
+          ),
+          value,
+        );
+      }
+    });
+
+    test('rejects content-like or unsafe reasons without echoing them', () {
+      final List<String> invalid = <String>[
+        '',
+        'deterministic fixture adapter',
+        'C:\\Users\\person\\form.pdf',
+        '/home/person/form.pdf',
+        'Formular.pdf',
+        '../secret',
+        'double..dot',
+        'form.pdf',
+        'a${'b' * 96}',
+        'sicher',
+      ];
+      for (final String value in invalid) {
+        _expectSafeArgumentError(
+          () => CapabilityEvidence.simulated(
+            adapterId: 'web.sim.storage.v1',
+            simulatedReason: value,
+          ),
+          value,
+        );
+      }
+    });
+
+    test('every construction path applies runtime validation', () {
+      _expectSafeArgumentError(
+        () => CapabilityEvidence.android(adapterId: 'android/pdfbox'),
+        'android/pdfbox',
+      );
+      _expectSafeArgumentError(
         () => CapabilityEvidence.simulated(
-          adapterId: 'web.sim.pdf.v1',
-          simulatedReason: '',
+          adapterId: 'web.sim.storage.v1',
+          simulatedReason: 'not a token',
         ),
-        throwsA(isA<AssertionError>()),
+        'not a token',
       );
+    });
+
+    test('redacts adapter id and reason from toString', () {
+      final CapabilityEvidence evidence = CapabilityEvidence.simulated(
+        adapterId: 'web.sim.storage.v1',
+        simulatedReason: 'fixture.deterministic',
+      );
+      expect(evidence.toString(), 'CapabilityEvidence(SIMULATED)');
+      expect(evidence.toString(), isNot(contains(evidence.adapterId)));
+      expect(evidence.toString(), isNot(contains(evidence.simulatedReason!)));
     });
 
     test('value equality covers class, adapter, and reason', () {
-      const CapabilityEvidence first = CapabilityEvidence.simulated(
+      final CapabilityEvidence first = CapabilityEvidence.simulated(
         adapterId: 'web.sim.storage.v1',
-        simulatedReason: 'fixture',
+        simulatedReason: 'fixture.deterministic',
       );
-      const CapabilityEvidence second = CapabilityEvidence.simulated(
+      final CapabilityEvidence second = CapabilityEvidence.simulated(
         adapterId: 'web.sim.storage.v1',
-        simulatedReason: 'fixture',
+        simulatedReason: 'fixture.deterministic',
       );
-      const CapabilityEvidence differentReason = CapabilityEvidence.simulated(
+      final CapabilityEvidence differentReason = CapabilityEvidence.simulated(
         adapterId: 'web.sim.storage.v1',
-        simulatedReason: 'other',
+        simulatedReason: 'fixture.other',
       );
-      const CapabilityEvidence differentAdapter = CapabilityEvidence.simulated(
+      final CapabilityEvidence differentAdapter = CapabilityEvidence.simulated(
         adapterId: 'web.sim.ocr.v1',
-        simulatedReason: 'fixture',
+        simulatedReason: 'fixture.deterministic',
       );
 
       expect(first, second);
@@ -170,30 +244,20 @@ void main() {
       expect(first, isNot(differentAdapter));
       expect(
         first,
-        isNot(
-          const CapabilityEvidence.android(adapterId: 'web.sim.storage.v1'),
-        ),
+        isNot(CapabilityEvidence.android(adapterId: 'web.sim.storage.v1')),
       );
-    });
-
-    test('toString names the class and adapter only', () {
-      const CapabilityEvidence evidence = CapabilityEvidence.simulated(
-        adapterId: 'web.sim.storage.v1',
-        simulatedReason: 'content-free reason',
-      );
-      expect(
-        evidence.toString(),
-        'CapabilityEvidence(SIMULATED, web.sim.storage.v1)',
-      );
-      expect(evidence.toString(), isNot(contains('content-free reason')));
-    });
-
-    test('supports compile-time constant evidence', () {
-      const CapabilityEvidence evidence = CapabilityEvidence.simulated(
-        adapterId: 'web.sim.export.v1',
-        simulatedReason: 'Web development export',
-      );
-      expect(evidence.evidenceClass, EvidenceClass.simulated);
     });
   });
+}
+
+void _expectSafeArgumentError(void Function() action, String forbidden) {
+  try {
+    action();
+    fail('expected ArgumentError');
+  } on ArgumentError catch (error) {
+    if (forbidden.isNotEmpty) {
+      expect(error.message, isNot(contains(forbidden)));
+      expect(error.toString(), isNot(contains(forbidden)));
+    }
+  }
 }

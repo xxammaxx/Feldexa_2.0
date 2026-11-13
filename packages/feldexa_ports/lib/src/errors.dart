@@ -82,10 +82,10 @@ abstract class FeldexaException implements Exception {
 
   static String _validateCatalogCode(String value, String name) {
     if (!_catalogCodePattern.hasMatch(value)) {
-      throw ArgumentError.value(
-        value,
-        name,
-        'must be a stable catalog code such as SAVE-001',
+      // Never echo the rejected value: it may be untrusted input and an error
+      // string is a common leak channel.
+      throw ArgumentError(
+        '$name must be a stable catalog code such as SAVE-001',
       );
     }
     return value;
@@ -93,10 +93,9 @@ abstract class FeldexaException implements Exception {
 
   static String _validateMessageKey(String value) {
     if (!_messageKeyPattern.hasMatch(value)) {
-      throw ArgumentError.value(
-        value,
-        'messageKey',
-        'must be a non-empty ARB key without spaces or path separators',
+      throw ArgumentError(
+        'messageKey must be a non-empty ARB key without spaces or path '
+        'separators',
       );
     }
     return value;
@@ -104,10 +103,9 @@ abstract class FeldexaException implements Exception {
 
   static String _validateMachineKey(String value) {
     if (!_machineKeyPattern.hasMatch(value)) {
-      throw ArgumentError.value(
-        value,
-        'message',
-        'must be a lowercase dotted machine key, never a German sentence',
+      throw ArgumentError(
+        'message must be a lowercase dotted machine key, never a German '
+        'sentence',
       );
     }
     return value;
@@ -218,10 +216,8 @@ final class ImportRejectedException extends FeldexaException {
   static ImportRejectionKind _validateKind(ImportRejectionKind kind) {
     if (kind == ImportRejectionKind.cancelled ||
         kind == ImportRejectionKind.storageFull) {
-      throw ArgumentError.value(
-        kind,
-        'kind',
-        'use ImportCancelledException or StorageFullException',
+      throw ArgumentError(
+        'use ImportCancelledException or StorageFullException for this kind',
       );
     }
     return kind;
@@ -346,31 +342,34 @@ final class ExportBlockedException extends FeldexaException {
       );
 
   /// Identifiers of the fields that block the export, in caller order.
+  ///
+  /// Each id must be 1–128 ASCII letters, digits, hyphens, or underscores and
+  /// start with a letter or digit. Paths, file names, whitespace, and
+  /// free-form content are rejected; the ids are opaque identifiers, never
+  /// document text.
   final List<String> fieldIds;
+
+  static final RegExp _fieldIdPattern = RegExp(
+    r'^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$',
+  );
 
   static List<String> _validateFieldIds(List<String> values) {
     if (values.isEmpty) {
-      throw ArgumentError.value(
-        values,
-        'fieldIds',
-        'a blocked export requires at least one field id',
-      );
+      throw ArgumentError('a blocked export requires at least one field id');
     }
     final Set<String> seen = <String>{};
     for (final String value in values) {
-      if (value.trim().isEmpty) {
-        throw ArgumentError.value(
-          value,
-          'fieldIds',
-          'field ids must not be blank',
+      if (!_fieldIdPattern.hasMatch(value)) {
+        // Field ids are opaque identifiers, never content. Reject paths,
+        // file names with separators/extensions, whitespace, and free-form
+        // text. Do not echo the rejected value.
+        throw ArgumentError(
+          'fieldIds must be 1-128 ASCII letters, digits, hyphens, or '
+          'underscores, starting with a letter or digit',
         );
       }
       if (!seen.add(value)) {
-        throw ArgumentError.value(
-          value,
-          'fieldIds',
-          'field ids must be unique',
-        );
+        throw ArgumentError('fieldIds must be unique');
       }
     }
     return List<String>.unmodifiable(values);
@@ -410,11 +409,7 @@ final class RenderException extends FeldexaException {
 
   static int _validatePageIndex(int value) {
     if (value < 0) {
-      throw ArgumentError.value(
-        value,
-        'pageIndex',
-        'must be a zero-based page index',
-      );
+      throw ArgumentError('pageIndex must be a zero-based page index');
     }
     return value;
   }

@@ -42,44 +42,49 @@ List<FeldexaException> _allContractExceptions() => <FeldexaException>[
 
 void main() {
   group('FeldexaException base contract', () {
-    test('rejects non-catalog codes', () {
-      expect(
-        () => _ProbeException(
-          code: 'sim-1',
-          messageKey: 'sim-1',
-          message: 'platform.unsupported',
-        ),
-        throwsArgumentError,
-      );
-      expect(
-        () => _ProbeException(
-          code: 'FELDEXA-SIM-001',
-          messageKey: 'FELDEXA-SIM-001',
-          message: 'platform.unsupported',
-        ),
-        throwsArgumentError,
-      );
+    test('rejects non-catalog codes without echoing them', () {
+      for (final String invalid in <String>[
+        'sim-1',
+        'FELDEXA-SIM-001',
+        '/tmp/SAVE-001',
+      ]) {
+        _expectSafeArgumentError(
+          () => _ProbeException(
+            code: invalid,
+            messageKey: 'IMP-001',
+            message: 'platform.unsupported',
+          ),
+          invalid,
+        );
+      }
     });
 
-    test('rejects a path-bearing or spaced ARB key', () {
+    test('rejects a path-bearing or spaced ARB key without echoing it', () {
       for (final String invalid in <String>[
         'import/password',
         'import password',
-        '',
+        'C:\\form.pdf',
       ]) {
-        expect(
+        _expectSafeArgumentError(
           () => _ProbeException(
             code: 'IMP-001',
             messageKey: invalid,
             message: 'import.rejected.passwordProtected',
           ),
-          throwsArgumentError,
-          reason: invalid,
+          invalid,
         );
       }
+      expect(
+        () => _ProbeException(
+          code: 'IMP-001',
+          messageKey: '',
+          message: 'import.rejected.passwordProtected',
+        ),
+        throwsArgumentError,
+      );
     });
 
-    test('rejects German sentences, paths, and content in message', () {
+    test('rejects German sentences, paths, and content in message safely', () {
       for (final String invalid in <String>[
         'Die Datei konnte nicht gelesen werden',
         'import/rejected',
@@ -88,14 +93,13 @@ void main() {
         'IMP-001',
         'Import.Rejected',
       ]) {
-        expect(
+        _expectSafeArgumentError(
           () => _ProbeException(
             code: 'IMP-001',
             messageKey: 'IMP-001',
             message: invalid,
           ),
-          throwsArgumentError,
-          reason: invalid,
+          invalid,
         );
       }
     });
@@ -345,21 +349,64 @@ void main() {
       expect(exception.fieldIds, <String>['field-b', 'field-a']);
       expect(() => exception.fieldIds.add('field-d'), throwsUnsupportedError);
       expect(exception.retryable, isTrue);
+      expect(exception.toString(), isNot(contains('field-b')));
+      expect(exception.toString(), isNot(contains('field-a')));
     });
 
-    test('ExportBlockedException rejects empty, blank, and duplicate ids', () {
+    test('ExportBlockedException accepts identifier-shaped boundary ids', () {
+      final String maxLength = 'f${'a' * 127}';
+      final ExportBlockedException exception = ExportBlockedException(<String>[
+        'F1',
+        'field-a',
+        'fld_01HXYZ',
+        '123e4567-e89b-12d3',
+        maxLength,
+      ]);
+      expect(exception.fieldIds, hasLength(5));
+      expect(exception.fieldIds.last, hasLength(128));
+    });
+
+    test('ExportBlockedException rejects empty, duplicate, and unsafe ids', () {
       expect(() => ExportBlockedException(<String>[]), throwsArgumentError);
-      expect(() => ExportBlockedException(<String>['']), throwsArgumentError);
-      expect(
+      _expectSafeArgumentError(() => ExportBlockedException(<String>['']), '');
+      _expectSafeArgumentError(
         () => ExportBlockedException(<String>['field-a', 'field-a']),
-        throwsArgumentError,
+        'field-a',
       );
+      for (final String invalid in <String>[
+        'form.pdf',
+        '/home/person/form.pdf',
+        r'C:\Users\person\form.pdf',
+        'field id',
+        'field/id',
+        'field\nid',
+        'Feldä',
+        'field.a',
+        'f${'a' * 128}',
+      ]) {
+        _expectSafeArgumentError(
+          () => ExportBlockedException(<String>[invalid]),
+          invalid,
+        );
+      }
     });
 
     test('RenderException keeps a valid zero-based page index', () {
       expect(RenderException(pageIndex: 0).pageIndex, 0);
       expect(RenderException(pageIndex: 7).pageIndex, 7);
-      expect(() => RenderException(pageIndex: -1), throwsArgumentError);
+      _expectSafeArgumentError(() => RenderException(pageIndex: -1), '-1');
     });
   });
+}
+
+void _expectSafeArgumentError(void Function() action, String forbidden) {
+  try {
+    action();
+    fail('expected ArgumentError');
+  } on ArgumentError catch (error) {
+    if (forbidden.isNotEmpty) {
+      expect(error.message, isNot(contains(forbidden)));
+      expect(error.toString(), isNot(contains(forbidden)));
+    }
+  }
 }

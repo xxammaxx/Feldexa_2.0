@@ -14,6 +14,13 @@
 // These types are metadata. Constructing a label never upgrades a run's class:
 // only the harness that actually executed a check may assign `EMULATOR` or
 // `DEVICE`, and Web/fixture work stays `SIMULATED`.
+//
+// Privacy boundary (quality-review correction): adapter ids and simulated
+// reasons are validated as bounded machine tokens at runtime, never merely by
+// debug assertions, and no untrusted input is echoed in a thrown error or in
+// `toString()`. A caller that passes a path, file name, free-form sentence, or
+// other content-like value gets a safe `ArgumentError` that names the rule but
+// not the rejected value.
 
 /// The evidence classes defined by constitution Principle VIII.
 ///
@@ -55,8 +62,11 @@ enum EvidenceClass {
 
   /// Parses a report token or enum name, case-insensitively.
   ///
-  /// Throws [FormatException] for unknown values. There is deliberately no
-  /// fallback: an unlabelled result must not become `NONE` by accident.
+  /// Throws [FormatException] for unknown values. The exception deliberately
+  /// does not echo the rejected input: a report parser may receive fixture
+  /// text, a path, or another untrusted token, and an error string is a common
+  /// leak channel. There is no fallback to `NONE`; an unlabelled result must
+  /// not silently become host-only evidence.
   static EvidenceClass parse(String value) {
     final String normalized = value.trim().toLowerCase();
     for (final EvidenceClass evidenceClass in values) {
@@ -65,9 +75,9 @@ enum EvidenceClass {
         return evidenceClass;
       }
     }
-    throw FormatException(
-      'Unknown evidence class "$value"; expected one of '
-      '${values.map((EvidenceClass value) => value.label).join(', ')}.',
+    throw const FormatException(
+      'Unknown evidence class token; expected '
+      'SIMULATED, EMULATOR, DEVICE, or NONE.',
     );
   }
 
@@ -87,28 +97,29 @@ enum EvidenceClass {
 /// [evidenceClass] is [EvidenceClass.simulated]. The field is derived here
 /// instead of being accepted from callers, so an inconsistent pair cannot be
 /// constructed even in a release build.
+///
+/// The constructor is deliberately **not** `const`: validation must execute in
+/// release builds, where assertions are disabled. This is a security
+/// requirement, not an API accident.
 final class CapabilityEvidence {
   /// Classifies a capability result.
   ///
-  /// A simulated class should carry a short, content-free [simulatedReason]
-  /// (for example `web.simulated-adapter`); a non-simulated class must not
-  /// carry one. Both rules are enforced as constructor assertions so a
-  /// mislabelled result fails the test that constructed it.
-  const CapabilityEvidence({
+  /// [adapterId] must be a lowercase dotted machine identifier such as
+  /// `android.pdfbox.v1` or `web.sim.storage.v1`. [simulatedReason], when
+  /// supplied, must be a short lowercase machine token such as
+  /// `web.simulated-adapter`; it may only be supplied for simulated evidence.
+  /// The precise rules are documented on [adapterId] and [simulatedReason].
+  /// Invalid values throw a safe [ArgumentError] that never includes the
+  /// rejected value.
+  CapabilityEvidence({
     required this.evidenceClass,
-    required this.adapterId,
-    this.simulatedReason,
+    required String adapterId,
+    String? simulatedReason,
   }) : simulated = evidenceClass == EvidenceClass.simulated,
-       assert(adapterId != '', 'adapterId must not be empty'),
-       assert(
-         evidenceClass == EvidenceClass.simulated || simulatedReason == null,
-         'only simulated evidence may carry a simulatedReason',
-       ),
-       assert(
-         evidenceClass != EvidenceClass.simulated ||
-             simulatedReason == null ||
-             simulatedReason != '',
-         'simulatedReason must not be empty when supplied',
+       adapterId = _validateAdapterId(adapterId),
+       simulatedReason = _validateSimulatedReason(
+         simulatedReason,
+         evidenceClass,
        );
 
   /// Evidence for a deterministic Web or fixture adapter.
@@ -116,15 +127,13 @@ final class CapabilityEvidence {
   /// This is the constructor referenced by `plan.md` §Architecture Decisions 9:
   /// a simulated adapter returns `CapabilityEvidence.simulated`, and every
   /// downstream surface must keep that label.
-  const CapabilityEvidence.simulated({
-    required this.adapterId,
-    this.simulatedReason,
-  }) : evidenceClass = EvidenceClass.simulated,
-       simulated = true,
-       assert(adapterId != '', 'adapterId must not be empty'),
-       assert(
-         simulatedReason == null || simulatedReason != '',
-         'simulatedReason must not be empty when supplied',
+  CapabilityEvidence.simulated({
+    required String adapterId,
+    String? simulatedReason,
+  }) : this(
+         evidenceClass: EvidenceClass.simulated,
+         adapterId: adapterId,
+         simulatedReason: simulatedReason,
        );
 
   /// Evidence for a real Android adapter.
@@ -132,11 +141,8 @@ final class CapabilityEvidence {
   /// Android adapters declare [EvidenceClass.none]; the environment class
   /// (`EMULATOR` or `DEVICE`) is attached by the test harness that actually
   /// executed the run, never by the adapter itself.
-  const CapabilityEvidence.android({required this.adapterId})
-    : evidenceClass = EvidenceClass.none,
-      simulated = false,
-      simulatedReason = null,
-      assert(adapterId != '', 'adapterId must not be empty');
+  CapabilityEvidence.android({required String adapterId})
+    : this(evidenceClass: EvidenceClass.none, adapterId: adapterId);
 
   /// The evidence class of this result.
   final EvidenceClass evidenceClass;
@@ -145,13 +151,96 @@ final class CapabilityEvidence {
   final bool simulated;
 
   /// Stable adapter identity, for example `android.pdfbox.v1`.
+  ///
+  /// Must be 1–64 characters: a lowercase ASCII letter, then lowercase ASCII
+  /// letters, digits, `_`, or `-`, with at least one dot-separated non-empty
+  /// segment. Paths, spaces, free-form text, and segments that are document
+  /// or image file extensions (`pdf`, `png`, `jpg`, `txt`, `json`, `fx1`, …)
+  /// are rejected. The value is developer-supplied metadata, never document
+  /// content.
   final String adapterId;
 
   /// Why this result is simulated, for reports and structured logs.
   ///
-  /// Must be short and must not contain document content, file names, paths,
-  /// OCR text, field values, or signature data.
+  /// Must be 1–96 characters: a lowercase machine token using letters, digits,
+  /// `_`, `-`, and at least one dot-separated non-empty segment. It must not
+  /// contain spaces, path separators, document/image file-extension segments,
+  /// OCR text, field values, signatures, or any other content. `null` is
+  /// allowed; a non-simulated class must not carry a reason.
   final String? simulatedReason;
+
+  static final RegExp _adapterIdPattern = RegExp(
+    r'^[a-z][a-z0-9_-]*(\.[a-z0-9_-]+)+$',
+  );
+  static final RegExp _reasonPattern = RegExp(
+    r'^[a-z][a-z0-9_-]*(\.[a-z0-9_-]+)+$',
+  );
+  static const int _maxAdapterIdLength = 64;
+  static const int _maxReasonLength = 96;
+
+  /// File-extension segments that must never appear in evidence metadata.
+  ///
+  /// A path or a file name is not an adapter id or a reason, even when it
+  /// happens to be lowercase. Rejecting these segments closes the obvious
+  /// leak without constraining legitimate identifiers such as `pdfbox` or
+  /// `export`.
+  static const Set<String> _contentExtensionSegments = <String>{
+    'pdf',
+    'png',
+    'jpg',
+    'jpeg',
+    'gif',
+    'webp',
+    'heic',
+    'txt',
+    'json',
+    'xml',
+    'csv',
+    'doc',
+    'docx',
+    'eml',
+    'zip',
+    'fx1',
+  };
+
+  static bool _hasContentExtensionSegment(String value) =>
+      value.split('.').any(_contentExtensionSegments.contains);
+
+  static String _validateAdapterId(String value) {
+    if (value.length > _maxAdapterIdLength ||
+        !_adapterIdPattern.hasMatch(value) ||
+        _hasContentExtensionSegment(value)) {
+      throw ArgumentError(
+        'adapterId must be a lowercase machine identifier of at most '
+        '$_maxAdapterIdLength characters with dot-separated segments and no '
+        'file-extension segments',
+      );
+    }
+    return value;
+  }
+
+  static String? _validateSimulatedReason(
+    String? value,
+    EvidenceClass evidenceClass,
+  ) {
+    if (value == null) {
+      return null;
+    }
+    if (evidenceClass != EvidenceClass.simulated) {
+      throw ArgumentError(
+        'simulatedReason is only valid for simulated evidence',
+      );
+    }
+    if (value.length > _maxReasonLength ||
+        !_reasonPattern.hasMatch(value) ||
+        _hasContentExtensionSegment(value)) {
+      throw ArgumentError(
+        'simulatedReason must be a lowercase machine token of at most '
+        '$_maxReasonLength characters with no file-extension segments',
+      );
+    }
+    return value;
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -166,6 +255,11 @@ final class CapabilityEvidence {
   int get hashCode =>
       Object.hash(evidenceClass, simulated, adapterId, simulatedReason);
 
+  /// Redacted identity for logs.
+  ///
+  /// The adapter id and simulated reason are omitted because log lines are a
+  /// possible leak channel for fixture-derived metadata. Callers that need the
+  /// adapter id read the field explicitly.
   @override
-  String toString() => 'CapabilityEvidence(${evidenceClass.label}, $adapterId)';
+  String toString() => 'CapabilityEvidence(${evidenceClass.label})';
 }

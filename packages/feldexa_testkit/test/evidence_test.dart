@@ -93,7 +93,19 @@ void main() {
       expect(first, second);
       expect(first.hashCode, second.hashCode);
       expect(first, isNot(different));
-      expect(first.toString(), 'SIMULATED[chrome]: run');
+      expect(first.toString(), 'SIMULATED[chrome]');
+      expect(first.toString(), isNot(contains('run')));
+    });
+
+    test('detail stays available explicitly but is redacted from logs', () {
+      const EvidenceLabel label = EvidenceLabel(
+        EvidenceClass.simulated,
+        'chrome',
+        detail: 'fixture.detail',
+      );
+      expect(label.toJson()['detail'], 'fixture.detail');
+      expect(label.toString(), 'SIMULATED[chrome]');
+      expect(label.toString(), isNot(contains('fixture.detail')));
     });
   });
 

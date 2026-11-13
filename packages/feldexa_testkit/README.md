@@ -95,7 +95,9 @@ SIMULATED and an Android run stays EMULATOR/DEVICE.
 toolkit no longer declares a second enum. `EvidenceClass` and `EvidenceLabel`
 encode `NONE`, `SIMULATED`, `EMULATOR`, and `DEVICE`.
 `EvidenceLedger.requireSeparated()` rejects a report that merges SIMULATED with
-EMULATOR/DEVICE. Using this package never upgrades a run's class: T011's own
+EMULATOR/DEVICE. `EvidenceLabel.toString()` is a redacted log identity that
+omits free-form detail; `toJson()` exposes it only when a caller explicitly
+serializes a report. Using this package never upgrades a run's class: T011's own
 package tests are host-VM checks and therefore produce no runtime evidence.
 
 ## Verification
