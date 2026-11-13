@@ -6,4 +6,5 @@
 // host VM.
 library;
 
+export 'src/geometry/page_geometry.dart';
 export 'src/geometry/rect.dart';
