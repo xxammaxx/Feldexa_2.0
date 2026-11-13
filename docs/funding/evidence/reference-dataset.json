@@ -1,0 +1,422 @@
+[
+ {
+  "n": 1,
+  "page": 1,
+  "bbox": [
+   415,
+   32,
+   494,
+   41
+  ],
+  "pdf_label": "Wohngeldnummer",
+  "fim": "—",
+  "classification": "UNMATCHED",
+  "note": "Kein FIM-Datenfeld in S00000159V1.4 (behördlicher Aktenverweis, nicht im Schema repräsentiert)"
+ },
+ {
+  "n": 2,
+  "page": 1,
+  "bbox": [
+   62,
+   123,
+   175,
+   131
+  ],
+  "pdf_label": "Anschrift der Wohngeldbehörde / Eingangsstempel",
+  "fim": "—",
+  "classification": "UNMATCHED",
+  "note": "Behörden-Metadaten, nicht Teil des FIM-Fachdatensatzes"
+ },
+ {
+  "n": 3,
+  "page": 1,
+  "bbox": [
+   100,
+   146,
+   220,
+   155
+  ],
+  "pdf_label": "Antragstyp-Checkboxen (Erstantrag/Weiterleistung/Erhöhung)",
+  "fim": "—",
+  "classification": "COVERAGE_GAP",
+  "note": "Schema-Identität impliziert 'Erstantrag'; kein Feld für Antragstyp-Differenzierung"
+ },
+ {
+  "n": 4,
+  "page": 1,
+  "bbox": [
+   62,
+   342,
+   84,
+   349
+  ],
+  "pdf_label": "Name",
+  "fim": "/G00000448V1.13/G00000188V1.7/F60000227V1.1",
+  "classification": "CONTEXT_REQUIRED",
+  "note": "F60000227 existiert in ≥6 Kontexten (Antragsteller, gesetzl. Vertreter G00001059, Haushaltsmitglied G00000450, Verpflichtung G00001490, Betreuer G00001477, Unterhalt G00001144); Seitenabschnitt entscheidet"
+ },
+ {
+  "n": 5,
+  "page": 1,
+  "bbox": [
+   324,
+   342,
+   359,
+   349
+  ],
+  "pdf_label": "Vorname",
+  "fim": "/G00000448V1.13/G00000188V1.7/F60000228V1.2",
+  "classification": "CONTEXT_REQUIRED",
+  "note": "dito Mehrfachkontext"
+ },
+ {
+  "n": 6,
+  "page": 1,
+  "bbox": [
+   62,
+   384,
+   131,
+   391
+  ],
+  "pdf_label": "ggf. Geburtsname",
+  "fim": "/G00000448V1.13/G00000188V1.7/F60000230V1.1",
+  "classification": "CONTEXT_REQUIRED",
+  "note": "minLength=1; optional laut PDF ('ggf.')"
+ },
+ {
+  "n": 7,
+  "page": 1,
+  "bbox": [
+   268,
+   384,
+   323,
+   391
+  ],
+  "pdf_label": "Geburtsdatum",
+  "fim": "/G00000448V1.13/G00000188V1.7/G60000083V1.1/{F60000231,F60000232,F60000233}",
+  "classification": "STRUCTURAL_MISMATCH",
+  "note": "PDF: ein Datum; FIM: drei Integer (Tag/Monat/Jahr) — Komposition nötig"
+ },
+ {
+  "n": 8,
+  "page": 1,
+  "bbox": [
+   459,
+   342,
+   502,
+   349
+  ],
+  "pdf_label": "Geschlecht",
+  "fim": "/G00000448V1.13/G00000188V1.7/F60000332V1.2",
+  "classification": "VALUE_CODELIST",
+  "note": "PDF-Checkboxen → FIM-Enum {d,m,w,x}; Abbildung definieren"
+ },
+ {
+  "n": 9,
+  "page": 1,
+  "bbox": [
+   339,
+   384,
+   380,
+   391
+  ],
+  "pdf_label": "Geburtsort",
+  "fim": "/G00000448V1.13/G00000188V1.7/F60000234V1.1",
+  "classification": "MAPPED",
+  "note": "eindeutig"
+ },
+ {
+  "n": 10,
+  "page": 1,
+  "bbox": [
+   62,
+   417,
+   290,
+   425
+  ],
+  "pdf_label": "Anschrift (Straße, Hausnr., ggf. Wohnungsnr., PLZ, Ort)",
+  "fim": "/G00000448V1.13/G00000188V1.7/G60000093V1.3/G60000088V1.2/G60000086V1.2/{F60000243,F60000244,F60000246,F60000247}",
+  "classification": "STRUCTURAL_EXPANSION",
+  "note": "eine PDF-Zeile → 4 FIM-Felder; Parsing der Straße+Hausnr."
+ },
+ {
+  "n": 11,
+  "page": 1,
+  "bbox": [
+   459,
+   384,
+   536,
+   391
+  ],
+  "pdf_label": "Staatsangehörigkeit",
+  "fim": "/G00000448V1.13/G00000188V1.7/G00001458V1.3/F60000236V1.2",
+  "classification": "VALUE_CODELIST",
+  "note": "Freitext → ISO-3166-numerisch (276=Deutschland); Pflichtfeld (minOccurs=1)"
+ },
+ {
+  "n": 12,
+  "page": 1,
+  "bbox": [
+   339,
+   417,
+   460,
+   425
+  ],
+  "pdf_label": "Telefonnummer (freiwillige Angabe)",
+  "fim": "/G00000448V1.13/G00000188V1.7/F60000240V1.1",
+  "classification": "MAPPED",
+  "note": ""
+ },
+ {
+  "n": 13,
+  "page": 1,
+  "bbox": [
+   339,
+   446,
+   475,
+   453
+  ],
+  "pdf_label": "ggf. E-Mail-Adresse (freiwillige Angabe)",
+  "fim": "/G00000448V1.13/G00000188V1.7/F60000242V1.1",
+  "classification": "MAPPED",
+  "note": "Pattern-Facet (PCRE-Anker-Defekt im Schema)"
+ },
+ {
+  "n": 14,
+  "page": 2,
+  "bbox": [
+   260,
+   67,
+   311,
+   76
+  ],
+  "pdf_label": "Familienstand",
+  "fim": "/G00000448V1.13/G00000188V1.7/G00001469V1.2/F00000984V1.2",
+  "classification": "VALUE_CODELIST",
+  "note": "FIM-Enum {001..007}; PDF: Checkboxen verheiratet/geschieden/…"
+ },
+ {
+  "n": 15,
+  "page": 2,
+  "bbox": [
+   254,
+   390,
+   386,
+   398
+  ],
+  "pdf_label": "Name und Anschrift des Betreuers",
+  "fim": "/G00001059V1.8/G00000241V1.10/{F60000227,F60000228,…}",
+  "classification": "CONTEXT_REQUIRED",
+  "note": "Betreuungs-Kontext → gesetzl. Vertreter-Gruppe; Zuordnung nur über Fragekontext"
+ },
+ {
+  "n": 16,
+  "page": 4,
+  "bbox": [
+   62,
+   62,
+   520,
+   69
+  ],
+  "pdf_label": "Einnahmen-Arten-Tabelle (z. B. Vermietung/Verpachtung)",
+  "fim": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/{F00000574,F00000575,F00001882}",
+  "classification": "STRUCTURAL_EXPANSION",
+  "note": "Tabellenzeilen → wiederholbare Einnahmen-Gruppen (maxOccurs unbounded)"
+ },
+ {
+  "n": 17,
+  "page": 5,
+  "bbox": [
+   73,
+   205,
+   252,
+   213
+  ],
+  "pdf_label": "Geldvermögen, Forderungen und sonstige Rechte (Betrag)",
+  "fim": "/G00000448V1.13/G00000352V1.6/G00001507V1.3/G00001478V1.3/{F00002569V1.1,F00002573V1.2}",
+  "classification": "STRUCTURAL_EXPANSION",
+  "note": "Art+Wert getrennte FIM-Felder"
+ },
+ {
+  "n": 18,
+  "page": 6,
+  "bbox": [
+   73,
+   73,
+   129,
+   81
+  ],
+  "pdf_label": "Hauptmieter(in)/Untermieter(in) (Ankreuzfeld)",
+  "fim": "/G00000340V1.7/G00000316V1.4/F00000560V1.4",
+  "classification": "VALUE_CODELIST",
+  "note": "Checkbox-Paar → Enum 'Mietverhältnis'"
+ },
+ {
+  "n": 19,
+  "page": 6,
+  "bbox": [
+   62,
+   152,
+   230,
+   160
+  ],
+  "pdf_label": "Wer hat vermietet? (Name, Vorname, ggf. Geburtsname, Anschrift des Vermieters)",
+  "fim": "—",
+  "classification": "COVERAGE_GAP",
+  "note": "KRITISCH: Schema enthält NUR G00001522 (Verwandtschaftsverhältnis Vermieter), KEINE Vermieter-Identität (Name/Anschrift) — Fachdaten der Behörde nicht repräsentierbar in v1.4"
+ },
+ {
+  "n": 20,
+  "page": 6,
+  "bbox": [
+   62,
+   185,
+   375,
+   195
+  ],
+  "pdf_label": "Sind Sie mit dem Vermieter verwandt?",
+  "fim": "/G00000340V1.7/G00001522V1.1/F00002564V1.1 (+F60000277V1.1 Freitext)",
+  "classification": "MAPPED",
+  "note": ""
+ },
+ {
+  "n": 21,
+  "page": 6,
+  "bbox": [
+   62,
+   254,
+   280,
+   264
+  ],
+  "pdf_label": "Die Miete beträgt einschließlich Nebenkosten monatlich (sog. Warmmiete)",
+  "fim": "/G00000340V1.7/G00001492V1.3/F00000240V1.5",
+  "classification": "AMBIGUOUS_SEMANTIC",
+  "note": "F00000240 'Höhe der Miete' — Kalt-/Warmmiete-Semantik im Schema nicht ausgewiesen; Fehlzuordnung kritisch"
+ },
+ {
+  "n": 22,
+  "page": 6,
+  "bbox": [
+   62,
+   313,
+   381,
+   323
+  ],
+  "pdf_label": "In der monatlichen Miete enthalten: Kosten für Heizung",
+  "fim": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001049V1.3/F00001720V1.3",
+  "classification": "MAPPED",
+  "note": ""
+ },
+ {
+  "n": 23,
+  "page": 6,
+  "bbox": [
+   61,
+   479,
+   485,
+   487
+  ],
+  "pdf_label": "geminderte Kaltmiete in Euro",
+  "fim": "—",
+  "classification": "COVERAGE_GAP",
+  "note": "Kein Kaltmiete-Feld im Schema"
+ },
+ {
+  "n": 24,
+  "page": 6,
+  "bbox": [
+   61,
+   536,
+   227,
+   544
+  ],
+  "pdf_label": "Von der gesamten Wohnfläche werden … m²",
+  "fim": "/G00000340V1.7/G00001514V1.2/F00000563V1.5",
+  "classification": "AMBIGUOUS_SEMANTIC",
+  "note": "PDF fragt genutzte Teilfläche; FIM 'Größe der Wohnung' — Gesamt- vs. Teilfläche klären"
+ },
+ {
+  "n": 25,
+  "page": 6,
+  "bbox": [
+   61,
+   615,
+   456,
+   623
+  ],
+  "pdf_label": "monatliches Entgelt für Untervermietung/Mitbewohnen",
+  "fim": "/G00001493V1.3/G00001502V1.3/…/{F00002591V1.2,F00002592V1.2}",
+  "classification": "CONTEXT_REQUIRED",
+  "note": "'Kosten an Dritte' in anderer Abschnitt-Struktur"
+ },
+ {
+  "n": 26,
+  "page": 7,
+  "bbox": [
+   62,
+   419,
+   82,
+   427
+  ],
+  "pdf_label": "IBAN",
+  "fim": "/G00001501V1.3/G00000350V1.6/G60000143V1.0/F60000288V1.2",
+  "classification": "MAPPED",
+  "note": ""
+ },
+ {
+  "n": 27,
+  "page": 7,
+  "bbox": [
+   381,
+   419,
+   396,
+   427
+  ],
+  "pdf_label": "BIC",
+  "fim": "/G00001501V1.3/G00000350V1.6/G60000143V1.0/F60000289V1.2",
+  "classification": "MAPPED",
+  "note": ""
+ },
+ {
+  "n": 28,
+  "page": 8,
+  "bbox": [
+   319,
+   511,
+   493,
+   518
+  ],
+  "pdf_label": "Ort, Datum / Unterschrift der Antragstellerin/des Antragstellers (1. von 3 Blöcken)",
+  "fim": "/G60000025V1.2/{F60000247V1.1,F60000330V1.2,F60000053V1.1}",
+  "classification": "CONTEXT_REQUIRED",
+  "note": "PDF hat 3 Unterschriftsblöcke (S. 8); Schema hat genau EINE Signatur-Gruppe"
+ },
+ {
+  "n": 29,
+  "page": 1,
+  "bbox": [
+   62,
+   144,
+   200,
+   152
+  ],
+  "pdf_label": "Kästchen 'Wohngeldnummer bitte eintragen soweit bekannt'",
+  "fim": "—",
+  "classification": "UNMATCHED",
+  "note": "siehe #1"
+ },
+ {
+  "n": 30,
+  "page": 2,
+  "bbox": [
+   165,
+   648,
+   278,
+   656
+  ],
+  "pdf_label": "Name, Vorname, Geburtsdatum (Ehe-/Lebenspartner)",
+  "fim": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/…",
+  "classification": "CONTEXT_REQUIRED",
+  "note": "Partner als Haushaltsmitglied; gleiche Feld-IDs wie Antragsteller"
+ }
+]
