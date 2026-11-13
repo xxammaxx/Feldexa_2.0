@@ -4,11 +4,20 @@
 // silently turn a host check into SIMULATED or Android evidence; they do not
 // produce any runtime evidence themselves.
 
+import 'package:feldexa_ports/evidence.dart' as ports;
 import 'package:feldexa_testkit/feldexa_testkit.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('EvidenceClass', () {
+    test('consumes the canonical ports EvidenceClass declaration', () {
+      // A compile-time type identity check: this assignment only compiles if
+      // the toolkit re-exports the ports type instead of declaring its own.
+      const ports.EvidenceClass canonical = EvidenceClass.simulated;
+      expect(canonical, ports.EvidenceClass.simulated);
+      expect(EvidenceClass.values, ports.EvidenceClass.values);
+    });
+
     test('parses names and report tokens case-insensitively', () {
       expect(EvidenceClass.parse('simulated'), EvidenceClass.simulated);
       expect(EvidenceClass.parse('SIMULATED'), EvidenceClass.simulated);

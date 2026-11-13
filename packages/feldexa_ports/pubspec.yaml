@@ -6,3 +6,7 @@ resolution: workspace
 
 environment:
   sdk: ^3.13.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

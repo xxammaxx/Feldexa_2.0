@@ -91,11 +91,12 @@ SIMULATED and an Android run stays EMULATOR/DEVICE.
 
 ### Evidence labels
 
-`EvidenceClass` and `EvidenceLabel` encode `NONE`, `SIMULATED`, `EMULATOR`, and
-`DEVICE`. `EvidenceLedger.requireSeparated()` rejects a report that merges
-SIMULATED with EMULATOR/DEVICE. Using this package never upgrades a run's
-class: T011's own package tests are host-VM checks and therefore produce no
-runtime evidence.
+`EvidenceClass` is owned by `feldexa_ports` (T014) and re-exported here; the
+toolkit no longer declares a second enum. `EvidenceClass` and `EvidenceLabel`
+encode `NONE`, `SIMULATED`, `EMULATOR`, and `DEVICE`.
+`EvidenceLedger.requireSeparated()` rejects a report that merges SIMULATED with
+EMULATOR/DEVICE. Using this package never upgrades a run's class: T011's own
+package tests are host-VM checks and therefore produce no runtime evidence.
 
 ## Verification
 

@@ -8,65 +8,14 @@
 //
 // These types are metadata only. Using this package never upgrades a run's
 // class: the harness that actually executed the test assigns it.
+//
+// T014 migration: `EvidenceClass` is owned by `feldexa_ports` and consumed
+// here. The toolkit no longer declares a second enum; this file re-exports the
+// canonical declaration so the T011 public API keeps working.
 
-/// The evidence classes defined by constitution Principle VIII.
-enum EvidenceClass {
-  /// Static analysis, formatting, and host-VM unit tests. Not runtime evidence.
-  none('NONE', 'No runtime evidence class (static or host-VM check only).'),
+import 'package:feldexa_ports/evidence.dart';
 
-  /// Web fixtures, simulated adapters, and Chrome interactions.
-  simulated(
-    'SIMULATED',
-    'Deterministic Web/fixture/simulated-adapter evidence.',
-  ),
-
-  /// Android emulator runtime evidence.
-  emulator('EMULATOR', 'Android emulator runtime evidence.'),
-
-  /// Physical Android device runtime evidence.
-  device('DEVICE', 'Physical Android device runtime evidence.');
-
-  const EvidenceClass(this.label, this.description);
-
-  /// Uppercase report token, for example `SIMULATED`.
-  final String label;
-
-  /// Human-readable scope of what this class can establish.
-  final String description;
-
-  /// Whether this class is produced on Android hardware or an emulator.
-  bool get isAndroid => this == emulator || this == device;
-
-  /// Whether this class is produced by an executing runtime.
-  bool get isRuntime => this != none;
-
-  /// Parses a report token or enum name, case-insensitively.
-  ///
-  /// Throws [FormatException] for unknown values. There is deliberately no
-  /// fallback: an unlabelled result must not become `NONE` by accident.
-  static EvidenceClass parse(String value) {
-    final String normalized = value.trim().toLowerCase();
-    for (final EvidenceClass evidenceClass in values) {
-      if (evidenceClass.name == normalized ||
-          evidenceClass.label.toLowerCase() == normalized) {
-        return evidenceClass;
-      }
-    }
-    throw FormatException(
-      'Unknown evidence class "$value"; expected one of '
-      '${values.map((EvidenceClass value) => value.label).join(', ')}.',
-    );
-  }
-
-  /// Like [parse], but returns `null` for an unknown token.
-  static EvidenceClass? tryParse(String value) {
-    try {
-      return parse(value);
-    } on FormatException {
-      return null;
-    }
-  }
-}
+export 'package:feldexa_ports/evidence.dart' show EvidenceClass;
 
 /// A labelled claim about what a run can prove.
 ///

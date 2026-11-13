@@ -7,6 +7,12 @@ resolution: workspace
 environment:
   sdk: ^3.13.0
 
+dependencies:
+  # T014 migration: the canonical EvidenceClass declaration is owned by
+  # feldexa_ports; the toolkit consumes it instead of declaring a duplicate.
+  feldexa_ports:
+    path: ../feldexa_ports
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
