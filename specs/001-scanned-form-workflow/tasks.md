@@ -134,7 +134,7 @@ These are the only genuine artifact contradictions found; each is resolved by th
 
 - [ ] T013 Define every capability interface in `packages/feldexa_ports/lib/` per `contracts/ports.md` (constitution Architecture and Platform Constraints)
 - [ ] T014 Define the error taxonomy and evidence classes in `packages/feldexa_ports/lib/src/errors.dart` and `packages/feldexa_ports/lib/src/evidence.dart` (constitution Principle VIII)
-- [ ] T015 [P] Implement `Rect`, `Size`, and `Point` value objects in `packages/feldexa_core/lib/src/geometry/rect.dart` with finite, positive-size invariants (`data-model.md` §2.2; enables FR-024 and SC-017)
+- [x] T015 [P] Implement `Rect`, `Size`, and `Point` value objects in `packages/feldexa_core/lib/src/geometry/rect.dart` with finite, positive-size invariants (`data-model.md` §2.2; enables FR-024 and SC-017)
 - [ ] T016 Implement `PageGeometry` display-box, rotation, and CropBox mapping in `packages/feldexa_core/lib/src/geometry/page_geometry.dart` with tests in `packages/feldexa_core/test/geometry_test.dart` (`contracts/coordinates-and-geometry.md` §1–§2; enables FR-003 and SC-017)
 - [ ] T017 Define the versioned document aggregate and canonical JSON encoding in `packages/feldexa_core/lib/src/model/document.dart` and `packages/feldexa_core/lib/src/model/canonical_json.dart` (`data-model.md` §3.1, §4; enables FR-043 and FR-044)
 - [ ] T018 Implement `FieldSuggestion`, `ConfirmedField`, `FieldValue`, and `FieldVerification` in `packages/feldexa_core/lib/src/model/field.dart` with the enum and length constraints from `data-model.md` §3.4–§3.8 (enables FR-021, FR-028, and FR-031)
