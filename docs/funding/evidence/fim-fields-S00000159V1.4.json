@@ -1,0 +1,5122 @@
+[
+ {
+  "path": "/G00001059V1.8",
+  "id": "G00001059V1.8",
+  "label": "Gesetzlicher Vertreter / Bevollmächtigter",
+  "kind": "group",
+  "type": "xfd:G00001059V1.8",
+  "depth": 0
+ },
+ {
+  "path": "/G00001059V1.8/F60000352V1.0",
+  "id": "F60000352V1.0",
+  "label": "Vertretung durch gesetzlichen Vertreter oder Bevollmächtigten (Antragsteller)",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 1
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10",
+  "id": "G00001058V1.10",
+  "label": "Juristische Person",
+  "kind": "group",
+  "type": "xfd:G00001058V1.10",
+  "depth": 1
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/F60000319V1.2",
+  "id": "F60000319V1.2",
+  "label": "Eingetragener Name / Organisationsname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/F60000320V1.2",
+  "id": "F60000320V1.2",
+  "label": "Geschäftsbezeichnung / Organisationsbezeichnung",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000093V1.3",
+  "id": "G60000093V1.3",
+  "label": "Anschrift Inland oder Ausland mit Frage",
+  "kind": "group",
+  "type": "xfd:G60000093V1.3",
+  "depth": 2
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000093V1.3/F60000263V1.1",
+  "id": "F60000263V1.1",
+  "label": "Abfrage Anschrift Inland oder Ausland",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000093V1.3/G60000088V1.2",
+  "id": "G60000088V1.2",
+  "label": "Anschrift Inland",
+  "kind": "group",
+  "type": "xfd:G60000088V1.2",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000093V1.3/G60000088V1.2/G60000086V1.2",
+  "id": "G60000086V1.2",
+  "label": "Anschrift Inland Straßenanschrift",
+  "kind": "group",
+  "type": "xfd:G60000086V1.2",
+  "depth": 4
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000243V1.1",
+  "id": "F60000243V1.1",
+  "label": "Straße",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000244V1.2",
+  "id": "F60000244V1.2",
+  "label": "Hausnummer",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000246V1.1",
+  "id": "F60000246V1.1",
+  "label": "Postleitzahl",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000247V1.1",
+  "id": "F60000247V1.1",
+  "label": "Ort",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000248V1.1",
+  "id": "F60000248V1.1",
+  "label": "Anschrift Zusatzangaben",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000093V1.3/G60000088V1.2/G60000087V1.1",
+  "id": "G60000087V1.1",
+  "label": "Anschrift Inland Postfachanschrift",
+  "kind": "group",
+  "type": "xfd:G60000087V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000093V1.3/G60000088V1.2/G60000087V1.1/F60000249V1.1",
+  "id": "F60000249V1.1",
+  "label": "Postfach",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000093V1.3/G60000088V1.2/G60000087V1.1/F60000246V1.1",
+  "id": "F60000246V1.1",
+  "label": "Postleitzahl",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000093V1.3/G60000088V1.2/G60000087V1.1/F60000247V1.1",
+  "id": "F60000247V1.1",
+  "label": "Ort",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000093V1.3/G60000091V1.2",
+  "id": "G60000091V1.2",
+  "label": "Anschrift Ausland",
+  "kind": "group",
+  "type": "xfd:G60000091V1.2",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000093V1.3/G60000091V1.2/F60000261V1.2",
+  "id": "F60000261V1.2",
+  "label": "Staat",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000093V1.3/G60000091V1.2/G60000092V1.1",
+  "id": "G60000092V1.1",
+  "label": "Anschriftzone",
+  "kind": "group",
+  "type": "xfd:G60000092V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000093V1.3/G60000091V1.2/G60000092V1.1/F60000262V1.1",
+  "id": "F60000262V1.1",
+  "label": "ZeileAnschrift",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000110V1.2",
+  "id": "G60000110V1.2",
+  "label": "Kommunikation (eine Pflichtangabe)",
+  "kind": "group",
+  "type": "xfd:G60000110V1.2",
+  "depth": 2
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000110V1.2/F60000240V1.1",
+  "id": "F60000240V1.1",
+  "label": "Telefon",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000110V1.2/F60000241V1.1",
+  "id": "F60000241V1.1",
+  "label": "Telefax",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000110V1.2/F60000242V1.1",
+  "id": "F60000242V1.1",
+  "label": "E-Mail",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000110V1.2/F60000321V1.1",
+  "id": "F60000321V1.1",
+  "label": "Web Adresse",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000110V1.2/F60000345V1.0",
+  "id": "F60000345V1.0",
+  "label": "De-Mail-Adresse",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000111V1.3",
+  "id": "G60000111V1.3",
+  "label": "Ansprechpartner",
+  "kind": "group",
+  "type": "xfd:G60000111V1.3",
+  "depth": 2
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000111V1.3/F60000227V1.1",
+  "id": "F60000227V1.1",
+  "label": "Familienname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000111V1.3/F60000228V1.2",
+  "id": "F60000228V1.2",
+  "label": "Vornamen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000111V1.3/F60000229V1.1",
+  "id": "F60000229V1.1",
+  "label": "Doktorgrade",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000111V1.3/F60000322V1.1",
+  "id": "F60000322V1.1",
+  "label": "Funktion / Rolle (Person)",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000111V1.3/G60000085V1.2",
+  "id": "G60000085V1.2",
+  "label": "Kommunikation (wenig)",
+  "kind": "group",
+  "type": "xfd:G60000085V1.2",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000111V1.3/G60000085V1.2/F60000240V1.1",
+  "id": "F60000240V1.1",
+  "label": "Telefon",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000111V1.3/G60000085V1.2/F60000241V1.1",
+  "id": "F60000241V1.1",
+  "label": "Telefax",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000111V1.3/G60000085V1.2/F60000242V1.1",
+  "id": "F60000242V1.1",
+  "label": "E-Mail",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00001059V1.8/G00001058V1.10/G60000111V1.3/G60000085V1.2/F60000345V1.0",
+  "id": "F60000345V1.0",
+  "label": "De-Mail-Adresse",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10",
+  "id": "G00000241V1.10",
+  "label": "Natürliche Person",
+  "kind": "group",
+  "type": "xfd:G00000241V1.10",
+  "depth": 1
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/F60000227V1.1",
+  "id": "F60000227V1.1",
+  "label": "Familienname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/F60000228V1.2",
+  "id": "F60000228V1.2",
+  "label": "Vornamen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/F60000230V1.1",
+  "id": "F60000230V1.1",
+  "label": "Geburtsname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/F60000229V1.1",
+  "id": "F60000229V1.1",
+  "label": "Doktorgrade",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000083V1.1",
+  "id": "G60000083V1.1",
+  "label": "Geburtsdatum (teilbekannt)",
+  "kind": "group",
+  "type": "xfd:G60000083V1.1",
+  "depth": 2
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000083V1.1/F60000231V1.1",
+  "id": "F60000231V1.1",
+  "label": "Tag (ohne Monat und Jahr)",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000083V1.1/F60000232V1.1",
+  "id": "F60000232V1.1",
+  "label": "Monat",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000083V1.1/F60000233V1.1",
+  "id": "F60000233V1.1",
+  "label": "Jahr",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000093V1.3",
+  "id": "G60000093V1.3",
+  "label": "Anschrift Inland oder Ausland mit Frage",
+  "kind": "group",
+  "type": "xfd:G60000093V1.3",
+  "depth": 2
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000093V1.3/F60000263V1.1",
+  "id": "F60000263V1.1",
+  "label": "Abfrage Anschrift Inland oder Ausland",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000093V1.3/G60000088V1.2",
+  "id": "G60000088V1.2",
+  "label": "Anschrift Inland",
+  "kind": "group",
+  "type": "xfd:G60000088V1.2",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000093V1.3/G60000088V1.2/G60000086V1.2",
+  "id": "G60000086V1.2",
+  "label": "Anschrift Inland Straßenanschrift",
+  "kind": "group",
+  "type": "xfd:G60000086V1.2",
+  "depth": 4
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000243V1.1",
+  "id": "F60000243V1.1",
+  "label": "Straße",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000244V1.2",
+  "id": "F60000244V1.2",
+  "label": "Hausnummer",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000246V1.1",
+  "id": "F60000246V1.1",
+  "label": "Postleitzahl",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000247V1.1",
+  "id": "F60000247V1.1",
+  "label": "Ort",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000248V1.1",
+  "id": "F60000248V1.1",
+  "label": "Anschrift Zusatzangaben",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000093V1.3/G60000088V1.2/G60000087V1.1",
+  "id": "G60000087V1.1",
+  "label": "Anschrift Inland Postfachanschrift",
+  "kind": "group",
+  "type": "xfd:G60000087V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000093V1.3/G60000088V1.2/G60000087V1.1/F60000249V1.1",
+  "id": "F60000249V1.1",
+  "label": "Postfach",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000093V1.3/G60000088V1.2/G60000087V1.1/F60000246V1.1",
+  "id": "F60000246V1.1",
+  "label": "Postleitzahl",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000093V1.3/G60000088V1.2/G60000087V1.1/F60000247V1.1",
+  "id": "F60000247V1.1",
+  "label": "Ort",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000093V1.3/G60000091V1.2",
+  "id": "G60000091V1.2",
+  "label": "Anschrift Ausland",
+  "kind": "group",
+  "type": "xfd:G60000091V1.2",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000093V1.3/G60000091V1.2/F60000261V1.2",
+  "id": "F60000261V1.2",
+  "label": "Staat",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000093V1.3/G60000091V1.2/G60000092V1.1",
+  "id": "G60000092V1.1",
+  "label": "Anschriftzone",
+  "kind": "group",
+  "type": "xfd:G60000092V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000093V1.3/G60000091V1.2/G60000092V1.1/F60000262V1.1",
+  "id": "F60000262V1.1",
+  "label": "ZeileAnschrift",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000110V1.2",
+  "id": "G60000110V1.2",
+  "label": "Kommunikation (eine Pflichtangabe)",
+  "kind": "group",
+  "type": "xfd:G60000110V1.2",
+  "depth": 2
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000110V1.2/F60000240V1.1",
+  "id": "F60000240V1.1",
+  "label": "Telefon",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000110V1.2/F60000241V1.1",
+  "id": "F60000241V1.1",
+  "label": "Telefax",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000110V1.2/F60000242V1.1",
+  "id": "F60000242V1.1",
+  "label": "E-Mail",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000110V1.2/F60000321V1.1",
+  "id": "F60000321V1.1",
+  "label": "Web Adresse",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/G00000241V1.10/G60000110V1.2/F60000345V1.0",
+  "id": "F60000345V1.0",
+  "label": "De-Mail-Adresse",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001059V1.8/F60000350V1.0",
+  "id": "F60000350V1.0",
+  "label": "Betreuungsurkunde",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 1
+ },
+ {
+  "path": "/G00001059V1.8/F60000351V1.0",
+  "id": "F60000351V1.0",
+  "label": "Vollmacht",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 1
+ },
+ {
+  "path": "/G00000448V1.13",
+  "id": "G00000448V1.13",
+  "label": "Angaben zum Antragsteller (Wohngeld)",
+  "kind": "group",
+  "type": "xfd:G00000448V1.13",
+  "depth": 0
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7",
+  "id": "G00000188V1.7",
+  "label": "Abschnitt Persönliche Angaben (Antragsteller Wohngeld)",
+  "kind": "group",
+  "type": "xfd:G00000188V1.7",
+  "depth": 1
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/F60000227V1.1",
+  "id": "F60000227V1.1",
+  "label": "Familienname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/F60000228V1.2",
+  "id": "F60000228V1.2",
+  "label": "Vornamen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/F60000229V1.1",
+  "id": "F60000229V1.1",
+  "label": "Doktorgrade",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/F60000230V1.1",
+  "id": "F60000230V1.1",
+  "label": "Geburtsname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G60000083V1.1",
+  "id": "G60000083V1.1",
+  "label": "Geburtsdatum (teilbekannt)",
+  "kind": "group",
+  "type": "xfd:G60000083V1.1",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G60000083V1.1/F60000231V1.1",
+  "id": "F60000231V1.1",
+  "label": "Tag (ohne Monat und Jahr)",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G60000083V1.1/F60000232V1.1",
+  "id": "F60000232V1.1",
+  "label": "Monat",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G60000083V1.1/F60000233V1.1",
+  "id": "F60000233V1.1",
+  "label": "Jahr",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/F60000234V1.1",
+  "id": "F60000234V1.1",
+  "label": "Geburtsort",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/F60000332V1.2",
+  "id": "F60000332V1.2",
+  "label": "Geschlecht",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00001458V1.3",
+  "id": "G00001458V1.3",
+  "label": "Staatsangehörigkeit mit Abfrage EU/EWR/Schweiz (Aufenthaltstitel allgemein)",
+  "kind": "group",
+  "type": "xfd:G00001458V1.3",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00001458V1.3/F60000236V1.2",
+  "id": "F60000236V1.2",
+  "label": "Staatsangehörigkeit",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00001458V1.3/F00002431V1.1",
+  "id": "F00002431V1.1",
+  "label": "Ausländische Staatsangehörigkeit (EU / EWR)",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00001458V1.3/F00002098V1.2",
+  "id": "F00002098V1.2",
+  "label": "Hinweis zum Nachweis",
+  "kind": "field",
+  "type": "xfd:F00002098V1.2",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00001458V1.3/F00002494V1.1",
+  "id": "F00002494V1.1",
+  "label": "Aufenthaltstitel (Allgemein)",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/F60000242V1.1",
+  "id": "F60000242V1.1",
+  "label": "E-Mail",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/F60000240V1.1",
+  "id": "F60000240V1.1",
+  "label": "Telefon",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00001469V1.2",
+  "id": "G00001469V1.2",
+  "label": "Familienstand und Lebenslage (getrennt lebend / nichteheliche Lebensgemeinschaft)",
+  "kind": "group",
+  "type": "xfd:G00001469V1.2",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00001469V1.2/F00000984V1.2",
+  "id": "F00000984V1.2",
+  "label": "Familienstand (gekürzt)",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00001469V1.2/F00002536V1.1",
+  "id": "F00002536V1.1",
+  "label": "Lebenslage (nichteheliche Lebensgemeinschaft)",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00001469V1.2/F00002537V1.1",
+  "id": "F00002537V1.1",
+  "label": "Lebenslage (getrennt lebend)",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00001475V1.1",
+  "id": "G00001475V1.1",
+  "label": "Angaben Erwerbsstatus",
+  "kind": "group",
+  "type": "xfd:G00001475V1.1",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00001475V1.1/F00000697V1.3",
+  "id": "F00000697V1.3",
+  "label": "Erwerbsstatus",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00001475V1.1/F00002037V1.1",
+  "id": "F00002037V1.1",
+  "label": "Erwerbsstatus - Freitext",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4",
+  "id": "G00000701V1.4",
+  "label": "Angaben zu einer Verpflichtungserklärung",
+  "kind": "group",
+  "type": "xfd:G00000701V1.4",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/F00001173V1.3",
+  "id": "F00001173V1.3",
+  "label": "Frage Verpflichtungserklärung",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3",
+  "id": "G00001490V1.3",
+  "label": "Details zur Verpflichtungserklärung",
+  "kind": "group",
+  "type": "xfd:G00001490V1.3",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/G00001477V1.2",
+  "id": "G00001477V1.2",
+  "label": "Person Verpflichtungserklärung",
+  "kind": "group",
+  "type": "xfd:G00001477V1.2",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/G00001477V1.2/F60000227V1.1",
+  "id": "F60000227V1.1",
+  "label": "Familienname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/G00001477V1.2/F60000228V1.2",
+  "id": "F60000228V1.2",
+  "label": "Vornamen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/G00001477V1.2/F60000230V1.1",
+  "id": "F60000230V1.1",
+  "label": "Geburtsname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/G00001477V1.2/F60000229V1.1",
+  "id": "F60000229V1.1",
+  "label": "Doktorgrade",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/G00001477V1.2/G60000083V1.1",
+  "id": "G60000083V1.1",
+  "label": "Geburtsdatum (teilbekannt)",
+  "kind": "group",
+  "type": "xfd:G60000083V1.1",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/G00001477V1.2/G60000083V1.1/F60000231V1.1",
+  "id": "F60000231V1.1",
+  "label": "Tag (ohne Monat und Jahr)",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/G00001477V1.2/G60000083V1.1/F60000232V1.1",
+  "id": "F60000232V1.1",
+  "label": "Monat",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/G00001477V1.2/G60000083V1.1/F60000233V1.1",
+  "id": "F60000233V1.1",
+  "label": "Jahr",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/G00001477V1.2/G60000093V1.3",
+  "id": "G60000093V1.3",
+  "label": "Anschrift Inland oder Ausland mit Frage",
+  "kind": "group",
+  "type": "xfd:G60000093V1.3",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/G00001477V1.2/G60000093V1.3/F60000263V1.1",
+  "id": "F60000263V1.1",
+  "label": "Abfrage Anschrift Inland oder Ausland",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/G00001477V1.2/G60000093V1.3/G60000088V1.2",
+  "id": "G60000088V1.2",
+  "label": "Anschrift Inland",
+  "kind": "group",
+  "type": "xfd:G60000088V1.2",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/G00001477V1.2/G60000093V1.3/G60000091V1.2",
+  "id": "G60000091V1.2",
+  "label": "Anschrift Ausland",
+  "kind": "group",
+  "type": "xfd:G60000091V1.2",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/G00001477V1.2/G00000277V1.6",
+  "id": "G00000277V1.6",
+  "label": "Kommunikation (wenig, eine Pflichtangabe)",
+  "kind": "group",
+  "type": "xfd:G00000277V1.6",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/G00001477V1.2/G00000277V1.6/F60000240V1.1",
+  "id": "F60000240V1.1",
+  "label": "Telefon",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/G00001477V1.2/G00000277V1.6/F60000241V1.1",
+  "id": "F60000241V1.1",
+  "label": "Telefax",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/G00001477V1.2/G00000277V1.6/F60000242V1.1",
+  "id": "F60000242V1.1",
+  "label": "E-Mail",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/F00002548V1.1",
+  "id": "F00002548V1.1",
+  "label": "Übernommene Kosten für den Wohnraum",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/F00002098V1.2",
+  "id": "F00002098V1.2",
+  "label": "Hinweis zum Nachweis",
+  "kind": "field",
+  "type": "xfd:F00002098V1.2",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000188V1.7/G00000701V1.4/G00001490V1.3/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000366V1.5",
+  "id": "G00000366V1.5",
+  "label": "Abschnitt Transferleistungen",
+  "kind": "group",
+  "type": "xfd:G00000366V1.5",
+  "depth": 1
+ },
+ {
+  "path": "/G00000448V1.13/G00000366V1.5/F00000655V1.3",
+  "id": "F00000655V1.3",
+  "label": "Hinweis Transferleistungen",
+  "kind": "field",
+  "type": "xfd:F00000655V1.3",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000366V1.5/G00001480V1.3",
+  "id": "G00001480V1.3",
+  "label": "Angaben zu beantragten und/oder erhaltenen Transferleistungen",
+  "kind": "group",
+  "type": "xfd:G00001480V1.3",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000366V1.5/G00001480V1.3/F00002577V1.2",
+  "id": "F00002577V1.2",
+  "label": "Frage Erhalt von Transferleistungen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000366V1.5/G00001480V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000366V1.5/G00001480V1.3/G00000341V1.5",
+  "id": "G00000341V1.5",
+  "label": "Details zu einer beantragten und/oder erhaltenen Transferleistung",
+  "kind": "group",
+  "type": "xfd:G00000341V1.5",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000366V1.5/G00001480V1.3/G00000341V1.5/F00000589V1.3",
+  "id": "F00000589V1.3",
+  "label": "Transferleistung - Art",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000366V1.5/G00001480V1.3/G00000341V1.5/F00000702V1.2",
+  "id": "F00000702V1.2",
+  "label": "Datum der Antragstellung",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000366V1.5/G00001480V1.3/G00000341V1.5/F00000591V1.2",
+  "id": "F00000591V1.2",
+  "label": "Datum der Bewilligung",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000366V1.5/G00001480V1.3/G00000341V1.5/F00000590V1.2",
+  "id": "F00000590V1.2",
+  "label": "Datum des Wegfalls der Transferleistung",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000366V1.5/G00001480V1.3/G00000341V1.5/F00000426V1.2",
+  "id": "F00000426V1.2",
+  "label": "Datum der Ablehnung der Transferleistung",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000366V1.5/G00001480V1.3/G00000341V1.5/F00002495V1.1",
+  "id": "F00002495V1.1",
+  "label": "Hinweis zum Nachweis Transferleistungen",
+  "kind": "field",
+  "type": "xfd:F00002495V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000366V1.5/G00001480V1.3/G00000341V1.5/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000366V1.5/G00001512V1.2",
+  "id": "G00001512V1.2",
+  "label": "Angaben zur Aufforderung Wohngeldbeantragung",
+  "kind": "group",
+  "type": "xfd:G00001512V1.2",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000366V1.5/G00001512V1.2/F00000645V1.4",
+  "id": "F00000645V1.4",
+  "label": "Frage Aufforderung zur Beantragung von Wohngeld",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000366V1.5/G00001512V1.2/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000366V1.5/G00001512V1.2/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3",
+  "id": "G00001481V1.3",
+  "label": "Abschnitt Einnahmen",
+  "kind": "group",
+  "type": "xfd:G00001481V1.3",
+  "depth": 1
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/F00002578V1.2",
+  "id": "F00002578V1.2",
+  "label": "Hinweis Einnahmen",
+  "kind": "field",
+  "type": "xfd:F00002578V1.2",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6",
+  "id": "G00000330V1.6",
+  "label": "Angaben zu Einnahmen (Wohngeld) inkl. Werbungskosten",
+  "kind": "group",
+  "type": "xfd:G00000330V1.6",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/F00002600V1.2",
+  "id": "F00002600V1.2",
+  "label": "Frage Einnahmen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5",
+  "id": "G00000332V2.5",
+  "label": "Einnahmen - Art und Höhe",
+  "kind": "group",
+  "type": "xfd:G00000332V2.5",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/F00000574V1.3",
+  "id": "F00000574V1.3",
+  "label": "Art der Einnahmen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/F00001996V1.2",
+  "id": "F00001996V1.2",
+  "label": "Einnahmen - Freitext",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001093V1.4",
+  "id": "G00001093V1.4",
+  "label": "Höhe der Einnahmen (Brutto)",
+  "kind": "group",
+  "type": "xfd:G00001093V1.4",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001093V1.4/F00000575V1.4",
+  "id": "F00000575V1.4",
+  "label": "Höhe der Einnahmen (Brutto)",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001093V1.4/F00001882V1.4",
+  "id": "F00001882V1.4",
+  "label": "Frequenz (Häufigkeit)",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001093V1.4/F00001883V1.1",
+  "id": "F00001883V1.1",
+  "label": "Frequenz Freitext",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00000333V1.3",
+  "id": "G00000333V1.3",
+  "label": "Einnahmen - Angaben zu den Abgaben",
+  "kind": "group",
+  "type": "xfd:G00000333V1.3",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00000333V1.3/F00000577V1.2",
+  "id": "F00000577V1.2",
+  "label": "Abgabe - Steuern",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00000333V1.3/F00000578V1.3",
+  "id": "F00000578V1.3",
+  "label": "Abgabe - Beiträge zur Rentenversicherung",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00000333V1.3/F00000579V1.3",
+  "id": "F00000579V1.3",
+  "label": "Abgabe - Beiträge zur Kranken- und Pflegeversicherung",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/F00002098V1.2",
+  "id": "F00002098V1.2",
+  "label": "Hinweis zum Nachweis",
+  "kind": "field",
+  "type": "xfd:F00002098V1.2",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001482V1.3",
+  "id": "G00001482V1.3",
+  "label": "Angaben zu Werbungskosten",
+  "kind": "group",
+  "type": "xfd:G00001482V1.3",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001482V1.3/F00002579V1.2",
+  "id": "F00002579V1.2",
+  "label": "Hinweis Werbungskosten",
+  "kind": "field",
+  "type": "xfd:F00002579V1.2",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001482V1.3/F00002580V1.2",
+  "id": "F00002580V1.2",
+  "label": "Frage Werbungskosten",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001482V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001482V1.3/G00000348V1.5",
+  "id": "G00000348V1.5",
+  "label": "Details zu Werbungskosten",
+  "kind": "group",
+  "type": "xfd:G00000348V1.5",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001482V1.3/G00000348V1.5/F00002538V1.1",
+  "id": "F00002538V1.1",
+  "label": "Betrag/Ausgaben pro Monat",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001482V1.3/G00000348V1.5/F00002616V1.1",
+  "id": "F00002616V1.1",
+  "label": "Hinweis zum Nachweis Werbungskosten",
+  "kind": "field",
+  "type": "xfd:F00002616V1.1",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001482V1.3/G00000348V1.5/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001483V1.2",
+  "id": "G00001483V1.2",
+  "label": "Angaben zur Veränderung von Einnahmen",
+  "kind": "group",
+  "type": "xfd:G00001483V1.2",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001483V1.2/F00002582V1.0",
+  "id": "F00002582V1.0",
+  "label": "Hinweis Veränderung von Einnahmen",
+  "kind": "field",
+  "type": "xfd:F00002582V1.0",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001483V1.2/F00002581V1.2",
+  "id": "F00002581V1.2",
+  "label": "Frage Veränderung von Einnahmen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001483V1.2/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001483V1.2/G00000335V1.3",
+  "id": "G00000335V1.3",
+  "label": "Details zur Veränderung von Einnahmen",
+  "kind": "group",
+  "type": "xfd:G00000335V1.3",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001483V1.2/G00000335V1.3/F00000585V1.1",
+  "id": "F00000585V1.1",
+  "label": "Zeitpunkt der Veränderung",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001483V1.2/G00000335V1.3/F00000583V1.2",
+  "id": "F00000583V1.2",
+  "label": "Grund der Veränderung",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001483V1.2/G00000335V1.3/F00000584V1.3",
+  "id": "F00000584V1.3",
+  "label": "Zukünftige monatliche Einnahmen",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001483V1.2/G00000335V1.3/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7",
+  "id": "G00000343V1.7",
+  "label": "Abschnitt Freibeträge/Abzugsbeträge",
+  "kind": "group",
+  "type": "xfd:G00000343V1.7",
+  "depth": 1
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/F00000657V1.4",
+  "id": "F00000657V1.4",
+  "label": "Hinweis Freibeträge/Abzugsbeträge (Mietzuschuss)",
+  "kind": "field",
+  "type": "xfd:F00000657V1.4",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00001484V1.3",
+  "id": "G00001484V1.3",
+  "label": "Angaben zu Kinderbetreuungskosten",
+  "kind": "group",
+  "type": "xfd:G00001484V1.3",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00001484V1.3/F00002584V1.1",
+  "id": "F00002584V1.1",
+  "label": "Hinweis Kinderbetreuungskosten",
+  "kind": "field",
+  "type": "xfd:F00002584V1.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00001484V1.3/F00002583V1.2",
+  "id": "F00002583V1.2",
+  "label": "Frage Kinderbetreuungskosten",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00001484V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00001484V1.3/G00001056V1.3",
+  "id": "G00001056V1.3",
+  "label": "Details zu Kinderbetreuungskosten (Mietzuschuss)",
+  "kind": "group",
+  "type": "xfd:G00001056V1.3",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00001484V1.3/G00001056V1.3/F00000302V1.5",
+  "id": "F00000302V1.5",
+  "label": "Kinderbetreuungskosten",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00001484V1.3/G00001056V1.3/F00002098V1.2",
+  "id": "F00002098V1.2",
+  "label": "Hinweis zum Nachweis",
+  "kind": "field",
+  "type": "xfd:F00002098V1.2",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00001484V1.3/G00001056V1.3/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00001485V1.3",
+  "id": "G00001485V1.3",
+  "label": "Angaben zur Schwerbehinderung Pflegegrad",
+  "kind": "group",
+  "type": "xfd:G00001485V1.3",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00001485V1.3/F00002585V1.2",
+  "id": "F00002585V1.2",
+  "label": "Frage Schwerbehinderung Pflegegrad",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00001485V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00001485V1.3/G00000157V1.8",
+  "id": "G00000157V1.8",
+  "label": "Details zur Schwerbehinderung Pflegegrad",
+  "kind": "group",
+  "type": "xfd:G00000157V1.8",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00001485V1.3/G00000157V1.8/F00002565V1.2",
+  "id": "F00002565V1.2",
+  "label": "Schwerbehinderung (Grad der Behinderung)",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00001485V1.3/G00000157V1.8/F00002566V1.1",
+  "id": "F00002566V1.1",
+  "label": "Pflegebedürftig",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00001485V1.3/G00000157V1.8/F00002567V1.2",
+  "id": "F00002567V1.2",
+  "label": "Pflegegrad",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00001485V1.3/G00000157V1.8/F00002028V1.2",
+  "id": "F00002028V1.2",
+  "label": "Hinweis zu Grad der Behinderung unter 100 und Vorliegen einer Pflegebedürftigkeit",
+  "kind": "field",
+  "type": "xfd:F00002028V1.2",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00001485V1.3/G00000157V1.8/F00002098V1.2",
+  "id": "F00002098V1.2",
+  "label": "Hinweis zum Nachweis",
+  "kind": "field",
+  "type": "xfd:F00002098V1.2",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00001485V1.3/G00000157V1.8/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000347V1.5",
+  "id": "G00000347V1.5",
+  "label": "Angaben zu Opfer nationalsozialistischer Verfolgung",
+  "kind": "group",
+  "type": "xfd:G00000347V1.5",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000347V1.5/F00000381V1.4",
+  "id": "F00000381V1.4",
+  "label": "Frage Opfer nationalsozialistischer Verfolgung",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000347V1.5/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000347V1.5/F00002615V1.1",
+  "id": "F00002615V1.1",
+  "label": "Hinweis zum Nachweis Opfer nationalsozialistischer Verfolgung",
+  "kind": "field",
+  "type": "xfd:F00002615V1.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000347V1.5/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5",
+  "id": "G00000345V1.5",
+  "label": "Angaben zu Unterhaltszahlung",
+  "kind": "group",
+  "type": "xfd:G00000345V1.5",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/F00002026V1.3",
+  "id": "F00002026V1.3",
+  "label": "Frage Unterhaltszahlung",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/G00001144V1.4",
+  "id": "G00001144V1.4",
+  "label": "Details zur Unterhaltszahlung",
+  "kind": "group",
+  "type": "xfd:G00001144V1.4",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00000346V1.4",
+  "id": "G00000346V1.4",
+  "label": "Unterhaltsempfänger",
+  "kind": "group",
+  "type": "xfd:G00000346V1.4",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00000346V1.4/F60000227V1.1",
+  "id": "F60000227V1.1",
+  "label": "Familienname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00000346V1.4/F60000228V1.2",
+  "id": "F60000228V1.2",
+  "label": "Vornamen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00000346V1.4/F60000229V1.1",
+  "id": "F60000229V1.1",
+  "label": "Doktorgrade",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00000346V1.4/G60000083V1.1",
+  "id": "G60000083V1.1",
+  "label": "Geburtsdatum (teilbekannt)",
+  "kind": "group",
+  "type": "xfd:G60000083V1.1",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00000346V1.4/G60000083V1.1/F60000231V1.1",
+  "id": "F60000231V1.1",
+  "label": "Tag (ohne Monat und Jahr)",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00000346V1.4/G60000083V1.1/F60000232V1.1",
+  "id": "F60000232V1.1",
+  "label": "Monat",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00000346V1.4/G60000083V1.1/F60000233V1.1",
+  "id": "F60000233V1.1",
+  "label": "Jahr",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 6
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/G00001144V1.4/F00001747V1.2",
+  "id": "F00001747V1.2",
+  "label": "Art der Unterhaltszahlung",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/G00001144V1.4/F00000592V1.4",
+  "id": "F00000592V1.4",
+  "label": "Verwandtschaftsverhältnis zum Unterhaltsempfänger",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00001096V1.4",
+  "id": "G00001096V1.4",
+  "label": "Betrag/Ausgaben",
+  "kind": "group",
+  "type": "xfd:G00001096V1.4",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00001096V1.4/F00000593V1.3",
+  "id": "F00000593V1.3",
+  "label": "Betrag/Ausgaben",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00001096V1.4/F00001882V1.4",
+  "id": "F00001882V1.4",
+  "label": "Frequenz (Häufigkeit)",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00001096V1.4/F00001883V1.1",
+  "id": "F00001883V1.1",
+  "label": "Frequenz Freitext",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/G00001144V1.4/F00002098V1.2",
+  "id": "F00002098V1.2",
+  "label": "Hinweis zum Nachweis",
+  "kind": "field",
+  "type": "xfd:F00002098V1.2",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000343V1.7/G00000345V1.5/G00001144V1.4/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3",
+  "id": "G00001487V1.3",
+  "label": "Abschnitt Sonstige Einnahmen",
+  "kind": "group",
+  "type": "xfd:G00001487V1.3",
+  "depth": 1
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3/G00001488V1.3",
+  "id": "G00001488V1.3",
+  "label": "Angaben zu Unterhaltsansprüchen",
+  "kind": "group",
+  "type": "xfd:G00001488V1.3",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3/G00001488V1.3/F00002586V1.2",
+  "id": "F00002586V1.2",
+  "label": "Frage zu Unterhaltsansprüchen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3/G00001488V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3/G00001488V1.3/G00000334V1.6",
+  "id": "G00000334V1.6",
+  "label": "Details zu Unterhaltsansprüchen",
+  "kind": "group",
+  "type": "xfd:G00000334V1.6",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3/G00001488V1.3/G00000334V1.6/F00000582V1.2",
+  "id": "F00000582V1.2",
+  "label": "Höhe des Unterhaltsanspruchs - bekannt oder unbekannt",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3/G00001488V1.3/G00000334V1.6/G00001095V1.4",
+  "id": "G00001095V1.4",
+  "label": "Angaben zur Höhe des Unterhaltsanspruchs",
+  "kind": "group",
+  "type": "xfd:G00001095V1.4",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3/G00001488V1.3/G00000334V1.6/G00001095V1.4/F00000581V1.6",
+  "id": "F00000581V1.6",
+  "label": "Höhe des Unterhaltsanspruchs",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3/G00001488V1.3/G00000334V1.6/G00001095V1.4/F00001882V1.4",
+  "id": "F00001882V1.4",
+  "label": "Frequenz (Häufigkeit)",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3/G00001488V1.3/G00000334V1.6/G00001095V1.4/F00001883V1.1",
+  "id": "F00001883V1.1",
+  "label": "Frequenz Freitext",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3/G00001489V1.2",
+  "id": "G00001489V1.2",
+  "label": "Angaben zu einmaligen Einnahmen",
+  "kind": "group",
+  "type": "xfd:G00001489V1.2",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3/G00001489V1.2/F00002587V1.2",
+  "id": "F00002587V1.2",
+  "label": "Frage zu einmaligen Einnahmen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3/G00001489V1.2/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3/G00001489V1.2/G00000336V1.5",
+  "id": "G00000336V1.5",
+  "label": "Details zu einmaligen Einnahmen",
+  "kind": "group",
+  "type": "xfd:G00000336V1.5",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3/G00001489V1.2/G00000336V1.5/F00000586V1.5",
+  "id": "F00000586V1.5",
+  "label": "Einmalige Einnahmen - Art",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3/G00001489V1.2/G00000336V1.5/F00001996V1.2",
+  "id": "F00001996V1.2",
+  "label": "Einnahmen - Freitext",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3/G00001489V1.2/G00000336V1.5/F00000587V1.3",
+  "id": "F00000587V1.3",
+  "label": "Einmalige Einnahmen - Höhe",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3/G00001489V1.2/G00000336V1.5/F60000030V1.0",
+  "id": "F60000030V1.0",
+  "label": "Datum",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00001487V1.3/G00001489V1.2/G00000336V1.5/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000352V1.6",
+  "id": "G00000352V1.6",
+  "label": "Abschnitt Vermögen",
+  "kind": "group",
+  "type": "xfd:G00000352V1.6",
+  "depth": 1
+ },
+ {
+  "path": "/G00000448V1.13/G00000352V1.6/F00000656V1.3",
+  "id": "F00000656V1.3",
+  "label": "Hinweis zu Vermögen",
+  "kind": "field",
+  "type": "xfd:F00000656V1.3",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000352V1.6/G00001507V1.3",
+  "id": "G00001507V1.3",
+  "label": "Angaben zum Vermögen",
+  "kind": "group",
+  "type": "xfd:G00001507V1.3",
+  "depth": 2
+ },
+ {
+  "path": "/G00000448V1.13/G00000352V1.6/G00001507V1.3/F00000588V1.4",
+  "id": "F00000588V1.4",
+  "label": "Frage zu Vermögen des Haushalts",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000352V1.6/G00001507V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000352V1.6/G00001507V1.3/G00001478V1.3",
+  "id": "G00001478V1.3",
+  "label": "Details zum Vermögen",
+  "kind": "group",
+  "type": "xfd:G00001478V1.3",
+  "depth": 3
+ },
+ {
+  "path": "/G00000448V1.13/G00000352V1.6/G00001507V1.3/G00001478V1.3/F00002568V1.2",
+  "id": "F00002568V1.2",
+  "label": "Vermögen Immobilien",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000352V1.6/G00001507V1.3/G00001478V1.3/F00002572V1.2",
+  "id": "F00002572V1.2",
+  "label": "Wertangabe Immobilien",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000352V1.6/G00001507V1.3/G00001478V1.3/F00002569V1.1",
+  "id": "F00002569V1.1",
+  "label": "Vermögen Geldvermögen",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000352V1.6/G00001507V1.3/G00001478V1.3/F00002573V1.2",
+  "id": "F00002573V1.2",
+  "label": "Wertangabe Geldvermögen",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000352V1.6/G00001507V1.3/G00001478V1.3/F00002570V1.1",
+  "id": "F00002570V1.1",
+  "label": "Vermögen Wertgegenstände",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000352V1.6/G00001507V1.3/G00001478V1.3/F00002574V1.2",
+  "id": "F00002574V1.2",
+  "label": "Wertangabe Wertgegenstände",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000352V1.6/G00001507V1.3/G00001478V1.3/F00002571V1.1",
+  "id": "F00002571V1.1",
+  "label": "Vermögenswerte Sonstige",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000352V1.6/G00001507V1.3/G00001478V1.3/F00002575V1.2",
+  "id": "F00002575V1.2",
+  "label": "Wertangabe Sonstige",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000352V1.6/G00001507V1.3/G00001478V1.3/F00002098V1.2",
+  "id": "F00002098V1.2",
+  "label": "Hinweis zum Nachweis",
+  "kind": "field",
+  "type": "xfd:F00002098V1.2",
+  "depth": 4
+ },
+ {
+  "path": "/G00000448V1.13/G00000352V1.6/G00001507V1.3/G00001478V1.3/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000339V1.5",
+  "id": "G00000339V1.5",
+  "label": "Abschnitt Wohnung (Mietzuschuss)",
+  "kind": "group",
+  "type": "xfd:G00000339V1.5",
+  "depth": 0
+ },
+ {
+  "path": "/G00000339V1.5/F00000650V1.2",
+  "id": "F00000650V1.2",
+  "label": "Hinweis zur Wohnung",
+  "kind": "field",
+  "type": "xfd:F00000650V1.2",
+  "depth": 1
+ },
+ {
+  "path": "/G00000339V1.5/G00001090V1.3",
+  "id": "G00001090V1.3",
+  "label": "Anschrift der Wohnung, für die Wohngeld beantragt wird",
+  "kind": "group",
+  "type": "xfd:G00001090V1.3",
+  "depth": 1
+ },
+ {
+  "path": "/G00000339V1.5/G00001090V1.3/F00002614V1.0",
+  "id": "F00002614V1.0",
+  "label": "Hinweis Anschrift Wohngeld Wohnung",
+  "kind": "field",
+  "type": "xfd:F00002614V1.0",
+  "depth": 2
+ },
+ {
+  "path": "/G00000339V1.5/G00001090V1.3/G60000086V1.2",
+  "id": "G60000086V1.2",
+  "label": "Anschrift Inland Straßenanschrift",
+  "kind": "group",
+  "type": "xfd:G60000086V1.2",
+  "depth": 2
+ },
+ {
+  "path": "/G00000339V1.5/G00001090V1.3/G60000086V1.2/F60000243V1.1",
+  "id": "F60000243V1.1",
+  "label": "Straße",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000339V1.5/G00001090V1.3/G60000086V1.2/F60000244V1.2",
+  "id": "F60000244V1.2",
+  "label": "Hausnummer",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000339V1.5/G00001090V1.3/G60000086V1.2/F60000246V1.1",
+  "id": "F60000246V1.1",
+  "label": "Postleitzahl",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000339V1.5/G00001090V1.3/G60000086V1.2/F60000247V1.1",
+  "id": "F60000247V1.1",
+  "label": "Ort",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000339V1.5/G00001090V1.3/G60000086V1.2/F60000248V1.1",
+  "id": "F60000248V1.1",
+  "label": "Anschrift Zusatzangaben",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000339V1.5/G00001090V1.3/G60000087V1.1",
+  "id": "G60000087V1.1",
+  "label": "Anschrift Inland Postfachanschrift",
+  "kind": "group",
+  "type": "xfd:G60000087V1.1",
+  "depth": 2
+ },
+ {
+  "path": "/G00000339V1.5/G00001090V1.3/G60000087V1.1/F60000249V1.1",
+  "id": "F60000249V1.1",
+  "label": "Postfach",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000339V1.5/G00001090V1.3/G60000087V1.1/F60000246V1.1",
+  "id": "F60000246V1.1",
+  "label": "Postleitzahl",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000339V1.5/G00001090V1.3/G60000087V1.1/F60000247V1.1",
+  "id": "F60000247V1.1",
+  "label": "Ort",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000339V1.5/G00001491V1.2",
+  "id": "G00001491V1.2",
+  "label": "Angaben aktuelle Wohnung des Antragstellers",
+  "kind": "group",
+  "type": "xfd:G00001491V1.2",
+  "depth": 1
+ },
+ {
+  "path": "/G00000339V1.5/G00001491V1.2/F00002588V1.0",
+  "id": "F00002588V1.0",
+  "label": "Frage aktuelle Wohnung des Antragstellers",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 2
+ },
+ {
+  "path": "/G00000339V1.5/G00001491V1.2/G00000312V1.4",
+  "id": "G00000312V1.4",
+  "label": "Details aktuelle Wohnung des Antragstellers",
+  "kind": "group",
+  "type": "xfd:G00000312V1.4",
+  "depth": 2
+ },
+ {
+  "path": "/G00000339V1.5/G00001491V1.2/G00000312V1.4/G60000086V1.2",
+  "id": "G60000086V1.2",
+  "label": "Anschrift Inland Straßenanschrift",
+  "kind": "group",
+  "type": "xfd:G60000086V1.2",
+  "depth": 3
+ },
+ {
+  "path": "/G00000339V1.5/G00001491V1.2/G00000312V1.4/G60000086V1.2/F60000243V1.1",
+  "id": "F60000243V1.1",
+  "label": "Straße",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000339V1.5/G00001491V1.2/G00000312V1.4/G60000086V1.2/F60000244V1.2",
+  "id": "F60000244V1.2",
+  "label": "Hausnummer",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000339V1.5/G00001491V1.2/G00000312V1.4/G60000086V1.2/F60000246V1.1",
+  "id": "F60000246V1.1",
+  "label": "Postleitzahl",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000339V1.5/G00001491V1.2/G00000312V1.4/G60000086V1.2/F60000247V1.1",
+  "id": "F60000247V1.1",
+  "label": "Ort",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000339V1.5/G00001491V1.2/G00000312V1.4/G60000086V1.2/F60000248V1.1",
+  "id": "F60000248V1.1",
+  "label": "Anschrift Zusatzangaben",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000339V1.5/G00001491V1.2/G00000312V1.4/G60000087V1.1",
+  "id": "G60000087V1.1",
+  "label": "Anschrift Inland Postfachanschrift",
+  "kind": "group",
+  "type": "xfd:G60000087V1.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000339V1.5/G00001491V1.2/G00000312V1.4/G60000087V1.1/F60000249V1.1",
+  "id": "F60000249V1.1",
+  "label": "Postfach",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000339V1.5/G00001491V1.2/G00000312V1.4/G60000087V1.1/F60000246V1.1",
+  "id": "F60000246V1.1",
+  "label": "Postleitzahl",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000339V1.5/G00001491V1.2/G00000312V1.4/G60000087V1.1/F60000247V1.1",
+  "id": "F60000247V1.1",
+  "label": "Ort",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000339V1.5/G00001491V1.2/G00000312V1.4/F00002485V1.0",
+  "id": "F00002485V1.0",
+  "label": "Geplantes Einzugsdatum",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 3
+ },
+ {
+  "path": "/G00000339V1.5/G00001508V1.2",
+  "id": "G00001508V1.2",
+  "label": "Angaben zur Förderung der Wohnung mit öffentlichen Mitteln",
+  "kind": "group",
+  "type": "xfd:G00001508V1.2",
+  "depth": 1
+ },
+ {
+  "path": "/G00000339V1.5/G00001508V1.2/F00000283V1.5",
+  "id": "F00000283V1.5",
+  "label": "Frage Förderung der Wohnung mit öffentlichen Mitteln",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00000339V1.5/G00001508V1.2/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 2
+ },
+ {
+  "path": "/G00000339V1.5/G00001509V1.2",
+  "id": "G00001509V1.2",
+  "label": "Angaben Wohngeld für andere Wohnung",
+  "kind": "group",
+  "type": "xfd:G00001509V1.2",
+  "depth": 1
+ },
+ {
+  "path": "/G00000339V1.5/G00001509V1.2/F00000643V1.4",
+  "id": "F00000643V1.4",
+  "label": "Frage Wohngeld für andere Wohnung",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00000339V1.5/G00001509V1.2/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 2
+ },
+ {
+  "path": "/G00000339V1.5/G00002025V0.1",
+  "id": "G00002025V0.1",
+  "label": "Angaben Zweitwohnsitz",
+  "kind": "group",
+  "type": "xfd:G00002025V0.1",
+  "depth": 1
+ },
+ {
+  "path": "/G00000339V1.5/G00002025V0.1/F00003220V0.1",
+  "id": "F00003220V0.1",
+  "label": "Frage Zweitwohnsitz",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00000339V1.5/G00002025V0.1/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 2
+ },
+ {
+  "path": "/G00000449V1.5",
+  "id": "G00000449V1.5",
+  "label": "Abschnitt Haushaltsmitglieder",
+  "kind": "group",
+  "type": "xfd:G00000449V1.5",
+  "depth": 0
+ },
+ {
+  "path": "/G00000449V1.5/F00000652V1.4",
+  "id": "F00000652V1.4",
+  "label": "Hinweis zu Haushaltsmitgliedern",
+  "kind": "field",
+  "type": "xfd:F00000652V1.4",
+  "depth": 1
+ },
+ {
+  "path": "/G00000449V1.5/F00002065V1.3",
+  "id": "F00002065V1.3",
+  "label": "Frage Haushaltsmitglieder",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 1
+ },
+ {
+  "path": "/G00000449V1.5/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 1
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11",
+  "id": "G00000450V1.11",
+  "label": "Details zu einem Haushaltsmitglied (Wohngeld)",
+  "kind": "group",
+  "type": "xfd:G00000450V1.11",
+  "depth": 1
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5",
+  "id": "G00000173V1.5",
+  "label": "Abschnitt Persönliche Angaben (Haushaltsmitglied Wohngeld)",
+  "kind": "group",
+  "type": "xfd:G00000173V1.5",
+  "depth": 2
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/F60000227V1.1",
+  "id": "F60000227V1.1",
+  "label": "Familienname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/F60000228V1.2",
+  "id": "F60000228V1.2",
+  "label": "Vornamen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/F60000229V1.1",
+  "id": "F60000229V1.1",
+  "label": "Doktorgrade",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/F60000230V1.1",
+  "id": "F60000230V1.1",
+  "label": "Geburtsname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G60000083V1.1",
+  "id": "G60000083V1.1",
+  "label": "Geburtsdatum (teilbekannt)",
+  "kind": "group",
+  "type": "xfd:G60000083V1.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G60000083V1.1/F60000231V1.1",
+  "id": "F60000231V1.1",
+  "label": "Tag (ohne Monat und Jahr)",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G60000083V1.1/F60000232V1.1",
+  "id": "F60000232V1.1",
+  "label": "Monat",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G60000083V1.1/F60000233V1.1",
+  "id": "F60000233V1.1",
+  "label": "Jahr",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/F60000234V1.1",
+  "id": "F60000234V1.1",
+  "label": "Geburtsort",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/F60000332V1.2",
+  "id": "F60000332V1.2",
+  "label": "Geschlecht",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00001458V1.3",
+  "id": "G00001458V1.3",
+  "label": "Staatsangehörigkeit mit Abfrage EU/EWR/Schweiz (Aufenthaltstitel allgemein)",
+  "kind": "group",
+  "type": "xfd:G00001458V1.3",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00001458V1.3/F60000236V1.2",
+  "id": "F60000236V1.2",
+  "label": "Staatsangehörigkeit",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00001458V1.3/F00002431V1.1",
+  "id": "F00002431V1.1",
+  "label": "Ausländische Staatsangehörigkeit (EU / EWR)",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00001458V1.3/F00002098V1.2",
+  "id": "F00002098V1.2",
+  "label": "Hinweis zum Nachweis",
+  "kind": "field",
+  "type": "xfd:F00002098V1.2",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00001458V1.3/F00002494V1.1",
+  "id": "F00002494V1.1",
+  "label": "Aufenthaltstitel (Allgemein)",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00001469V1.2",
+  "id": "G00001469V1.2",
+  "label": "Familienstand und Lebenslage (getrennt lebend / nichteheliche Lebensgemeinschaft)",
+  "kind": "group",
+  "type": "xfd:G00001469V1.2",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00001469V1.2/F00000984V1.2",
+  "id": "F00000984V1.2",
+  "label": "Familienstand (gekürzt)",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00001469V1.2/F00002536V1.1",
+  "id": "F00002536V1.1",
+  "label": "Lebenslage (nichteheliche Lebensgemeinschaft)",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00001469V1.2/F00002537V1.1",
+  "id": "F00002537V1.1",
+  "label": "Lebenslage (getrennt lebend)",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00001475V1.1",
+  "id": "G00001475V1.1",
+  "label": "Angaben Erwerbsstatus",
+  "kind": "group",
+  "type": "xfd:G00001475V1.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00001475V1.1/F00000697V1.3",
+  "id": "F00000697V1.3",
+  "label": "Erwerbsstatus",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00001475V1.1/F00002037V1.1",
+  "id": "F00002037V1.1",
+  "label": "Erwerbsstatus - Freitext",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00001100V1.2",
+  "id": "G00001100V1.2",
+  "label": "Angaben Verhältnis Antragsteller Haushaltsmitglied",
+  "kind": "group",
+  "type": "xfd:G00001100V1.2",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00001100V1.2/F00000598V1.3",
+  "id": "F00000598V1.3",
+  "label": "Verhältnis Antragsteller Haushaltsmitglied",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00001100V1.2/F60000277V1.1",
+  "id": "F60000277V1.1",
+  "label": "Verwandtschaftsverhältnis Freitext",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/F00000599V1.2",
+  "id": "F00000599V1.2",
+  "label": "Zahlung Kindergeld",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/F00003219V0.1",
+  "id": "F00003219V0.1",
+  "label": "Nachweis Aufteilung Kinderbetreuung getrennt lebender Eltern",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00000701V1.4",
+  "id": "G00000701V1.4",
+  "label": "Angaben zu einer Verpflichtungserklärung",
+  "kind": "group",
+  "type": "xfd:G00000701V1.4",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00000701V1.4/F00001173V1.3",
+  "id": "F00001173V1.3",
+  "label": "Frage Verpflichtungserklärung",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00000701V1.4/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00000701V1.4/G00001490V1.3",
+  "id": "G00001490V1.3",
+  "label": "Details zur Verpflichtungserklärung",
+  "kind": "group",
+  "type": "xfd:G00001490V1.3",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00000701V1.4/G00001490V1.3/G00001477V1.2",
+  "id": "G00001477V1.2",
+  "label": "Person Verpflichtungserklärung",
+  "kind": "group",
+  "type": "xfd:G00001477V1.2",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00000701V1.4/G00001490V1.3/G00001477V1.2/F60000227V1.1",
+  "id": "F60000227V1.1",
+  "label": "Familienname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00000701V1.4/G00001490V1.3/G00001477V1.2/F60000228V1.2",
+  "id": "F60000228V1.2",
+  "label": "Vornamen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00000701V1.4/G00001490V1.3/G00001477V1.2/F60000230V1.1",
+  "id": "F60000230V1.1",
+  "label": "Geburtsname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00000701V1.4/G00001490V1.3/G00001477V1.2/F60000229V1.1",
+  "id": "F60000229V1.1",
+  "label": "Doktorgrade",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00000701V1.4/G00001490V1.3/G00001477V1.2/G60000083V1.1",
+  "id": "G60000083V1.1",
+  "label": "Geburtsdatum (teilbekannt)",
+  "kind": "group",
+  "type": "xfd:G60000083V1.1",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00000701V1.4/G00001490V1.3/G00001477V1.2/G60000093V1.3",
+  "id": "G60000093V1.3",
+  "label": "Anschrift Inland oder Ausland mit Frage",
+  "kind": "group",
+  "type": "xfd:G60000093V1.3",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00000701V1.4/G00001490V1.3/G00001477V1.2/G00000277V1.6",
+  "id": "G00000277V1.6",
+  "label": "Kommunikation (wenig, eine Pflichtangabe)",
+  "kind": "group",
+  "type": "xfd:G00000277V1.6",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00000701V1.4/G00001490V1.3/F00002548V1.1",
+  "id": "F00002548V1.1",
+  "label": "Übernommene Kosten für den Wohnraum",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00000701V1.4/G00001490V1.3/F00002098V1.2",
+  "id": "F00002098V1.2",
+  "label": "Hinweis zum Nachweis",
+  "kind": "field",
+  "type": "xfd:F00002098V1.2",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000173V1.5/G00000701V1.4/G00001490V1.3/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000366V1.5",
+  "id": "G00000366V1.5",
+  "label": "Abschnitt Transferleistungen",
+  "kind": "group",
+  "type": "xfd:G00000366V1.5",
+  "depth": 2
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000366V1.5/F00000655V1.3",
+  "id": "F00000655V1.3",
+  "label": "Hinweis Transferleistungen",
+  "kind": "field",
+  "type": "xfd:F00000655V1.3",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000366V1.5/G00001480V1.3",
+  "id": "G00001480V1.3",
+  "label": "Angaben zu beantragten und/oder erhaltenen Transferleistungen",
+  "kind": "group",
+  "type": "xfd:G00001480V1.3",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000366V1.5/G00001480V1.3/F00002577V1.2",
+  "id": "F00002577V1.2",
+  "label": "Frage Erhalt von Transferleistungen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000366V1.5/G00001480V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000366V1.5/G00001480V1.3/G00000341V1.5",
+  "id": "G00000341V1.5",
+  "label": "Details zu einer beantragten und/oder erhaltenen Transferleistung",
+  "kind": "group",
+  "type": "xfd:G00000341V1.5",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000366V1.5/G00001480V1.3/G00000341V1.5/F00000589V1.3",
+  "id": "F00000589V1.3",
+  "label": "Transferleistung - Art",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000366V1.5/G00001480V1.3/G00000341V1.5/F00000702V1.2",
+  "id": "F00000702V1.2",
+  "label": "Datum der Antragstellung",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000366V1.5/G00001480V1.3/G00000341V1.5/F00000591V1.2",
+  "id": "F00000591V1.2",
+  "label": "Datum der Bewilligung",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000366V1.5/G00001480V1.3/G00000341V1.5/F00000590V1.2",
+  "id": "F00000590V1.2",
+  "label": "Datum des Wegfalls der Transferleistung",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000366V1.5/G00001480V1.3/G00000341V1.5/F00000426V1.2",
+  "id": "F00000426V1.2",
+  "label": "Datum der Ablehnung der Transferleistung",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000366V1.5/G00001480V1.3/G00000341V1.5/F00002495V1.1",
+  "id": "F00002495V1.1",
+  "label": "Hinweis zum Nachweis Transferleistungen",
+  "kind": "field",
+  "type": "xfd:F00002495V1.1",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000366V1.5/G00001480V1.3/G00000341V1.5/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000366V1.5/G00001512V1.2",
+  "id": "G00001512V1.2",
+  "label": "Angaben zur Aufforderung Wohngeldbeantragung",
+  "kind": "group",
+  "type": "xfd:G00001512V1.2",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000366V1.5/G00001512V1.2/F00000645V1.4",
+  "id": "F00000645V1.4",
+  "label": "Frage Aufforderung zur Beantragung von Wohngeld",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000366V1.5/G00001512V1.2/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000366V1.5/G00001512V1.2/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3",
+  "id": "G00001481V1.3",
+  "label": "Abschnitt Einnahmen",
+  "kind": "group",
+  "type": "xfd:G00001481V1.3",
+  "depth": 2
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/F00002578V1.2",
+  "id": "F00002578V1.2",
+  "label": "Hinweis Einnahmen",
+  "kind": "field",
+  "type": "xfd:F00002578V1.2",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6",
+  "id": "G00000330V1.6",
+  "label": "Angaben zu Einnahmen (Wohngeld) inkl. Werbungskosten",
+  "kind": "group",
+  "type": "xfd:G00000330V1.6",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/F00002600V1.2",
+  "id": "F00002600V1.2",
+  "label": "Frage Einnahmen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5",
+  "id": "G00000332V2.5",
+  "label": "Einnahmen - Art und Höhe",
+  "kind": "group",
+  "type": "xfd:G00000332V2.5",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/F00000574V1.3",
+  "id": "F00000574V1.3",
+  "label": "Art der Einnahmen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/F00001996V1.2",
+  "id": "F00001996V1.2",
+  "label": "Einnahmen - Freitext",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001093V1.4",
+  "id": "G00001093V1.4",
+  "label": "Höhe der Einnahmen (Brutto)",
+  "kind": "group",
+  "type": "xfd:G00001093V1.4",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001093V1.4/F00000575V1.4",
+  "id": "F00000575V1.4",
+  "label": "Höhe der Einnahmen (Brutto)",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001093V1.4/F00001882V1.4",
+  "id": "F00001882V1.4",
+  "label": "Frequenz (Häufigkeit)",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001093V1.4/F00001883V1.1",
+  "id": "F00001883V1.1",
+  "label": "Frequenz Freitext",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00000333V1.3",
+  "id": "G00000333V1.3",
+  "label": "Einnahmen - Angaben zu den Abgaben",
+  "kind": "group",
+  "type": "xfd:G00000333V1.3",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00000333V1.3/F00000577V1.2",
+  "id": "F00000577V1.2",
+  "label": "Abgabe - Steuern",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00000333V1.3/F00000578V1.3",
+  "id": "F00000578V1.3",
+  "label": "Abgabe - Beiträge zur Rentenversicherung",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00000333V1.3/F00000579V1.3",
+  "id": "F00000579V1.3",
+  "label": "Abgabe - Beiträge zur Kranken- und Pflegeversicherung",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/F00002098V1.2",
+  "id": "F00002098V1.2",
+  "label": "Hinweis zum Nachweis",
+  "kind": "field",
+  "type": "xfd:F00002098V1.2",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001482V1.3",
+  "id": "G00001482V1.3",
+  "label": "Angaben zu Werbungskosten",
+  "kind": "group",
+  "type": "xfd:G00001482V1.3",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001482V1.3/F00002579V1.2",
+  "id": "F00002579V1.2",
+  "label": "Hinweis Werbungskosten",
+  "kind": "field",
+  "type": "xfd:F00002579V1.2",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001482V1.3/F00002580V1.2",
+  "id": "F00002580V1.2",
+  "label": "Frage Werbungskosten",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001482V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001482V1.3/G00000348V1.5",
+  "id": "G00000348V1.5",
+  "label": "Details zu Werbungskosten",
+  "kind": "group",
+  "type": "xfd:G00000348V1.5",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001483V1.2",
+  "id": "G00001483V1.2",
+  "label": "Angaben zur Veränderung von Einnahmen",
+  "kind": "group",
+  "type": "xfd:G00001483V1.2",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001483V1.2/F00002582V1.0",
+  "id": "F00002582V1.0",
+  "label": "Hinweis Veränderung von Einnahmen",
+  "kind": "field",
+  "type": "xfd:F00002582V1.0",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001483V1.2/F00002581V1.2",
+  "id": "F00002581V1.2",
+  "label": "Frage Veränderung von Einnahmen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001483V1.2/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001481V1.3/G00000330V1.6/G00000332V2.5/G00001483V1.2/G00000335V1.3",
+  "id": "G00000335V1.3",
+  "label": "Details zur Veränderung von Einnahmen",
+  "kind": "group",
+  "type": "xfd:G00000335V1.3",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7",
+  "id": "G00000343V1.7",
+  "label": "Abschnitt Freibeträge/Abzugsbeträge",
+  "kind": "group",
+  "type": "xfd:G00000343V1.7",
+  "depth": 2
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/F00000657V1.4",
+  "id": "F00000657V1.4",
+  "label": "Hinweis Freibeträge/Abzugsbeträge (Mietzuschuss)",
+  "kind": "field",
+  "type": "xfd:F00000657V1.4",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00001484V1.3",
+  "id": "G00001484V1.3",
+  "label": "Angaben zu Kinderbetreuungskosten",
+  "kind": "group",
+  "type": "xfd:G00001484V1.3",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00001484V1.3/F00002584V1.1",
+  "id": "F00002584V1.1",
+  "label": "Hinweis Kinderbetreuungskosten",
+  "kind": "field",
+  "type": "xfd:F00002584V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00001484V1.3/F00002583V1.2",
+  "id": "F00002583V1.2",
+  "label": "Frage Kinderbetreuungskosten",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00001484V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00001484V1.3/G00001056V1.3",
+  "id": "G00001056V1.3",
+  "label": "Details zu Kinderbetreuungskosten (Mietzuschuss)",
+  "kind": "group",
+  "type": "xfd:G00001056V1.3",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00001484V1.3/G00001056V1.3/F00000302V1.5",
+  "id": "F00000302V1.5",
+  "label": "Kinderbetreuungskosten",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00001484V1.3/G00001056V1.3/F00002098V1.2",
+  "id": "F00002098V1.2",
+  "label": "Hinweis zum Nachweis",
+  "kind": "field",
+  "type": "xfd:F00002098V1.2",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00001484V1.3/G00001056V1.3/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00001485V1.3",
+  "id": "G00001485V1.3",
+  "label": "Angaben zur Schwerbehinderung Pflegegrad",
+  "kind": "group",
+  "type": "xfd:G00001485V1.3",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00001485V1.3/F00002585V1.2",
+  "id": "F00002585V1.2",
+  "label": "Frage Schwerbehinderung Pflegegrad",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00001485V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00001485V1.3/G00000157V1.8",
+  "id": "G00000157V1.8",
+  "label": "Details zur Schwerbehinderung Pflegegrad",
+  "kind": "group",
+  "type": "xfd:G00000157V1.8",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00001485V1.3/G00000157V1.8/F00002565V1.2",
+  "id": "F00002565V1.2",
+  "label": "Schwerbehinderung (Grad der Behinderung)",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00001485V1.3/G00000157V1.8/F00002566V1.1",
+  "id": "F00002566V1.1",
+  "label": "Pflegebedürftig",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00001485V1.3/G00000157V1.8/F00002567V1.2",
+  "id": "F00002567V1.2",
+  "label": "Pflegegrad",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00001485V1.3/G00000157V1.8/F00002028V1.2",
+  "id": "F00002028V1.2",
+  "label": "Hinweis zu Grad der Behinderung unter 100 und Vorliegen einer Pflegebedürftigkeit",
+  "kind": "field",
+  "type": "xfd:F00002028V1.2",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00001485V1.3/G00000157V1.8/F00002098V1.2",
+  "id": "F00002098V1.2",
+  "label": "Hinweis zum Nachweis",
+  "kind": "field",
+  "type": "xfd:F00002098V1.2",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00001485V1.3/G00000157V1.8/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000347V1.5",
+  "id": "G00000347V1.5",
+  "label": "Angaben zu Opfer nationalsozialistischer Verfolgung",
+  "kind": "group",
+  "type": "xfd:G00000347V1.5",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000347V1.5/F00000381V1.4",
+  "id": "F00000381V1.4",
+  "label": "Frage Opfer nationalsozialistischer Verfolgung",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000347V1.5/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000347V1.5/F00002615V1.1",
+  "id": "F00002615V1.1",
+  "label": "Hinweis zum Nachweis Opfer nationalsozialistischer Verfolgung",
+  "kind": "field",
+  "type": "xfd:F00002615V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000347V1.5/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000345V1.5",
+  "id": "G00000345V1.5",
+  "label": "Angaben zu Unterhaltszahlung",
+  "kind": "group",
+  "type": "xfd:G00000345V1.5",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000345V1.5/F00002026V1.3",
+  "id": "F00002026V1.3",
+  "label": "Frage Unterhaltszahlung",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000345V1.5/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000345V1.5/G00001144V1.4",
+  "id": "G00001144V1.4",
+  "label": "Details zur Unterhaltszahlung",
+  "kind": "group",
+  "type": "xfd:G00001144V1.4",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00000346V1.4",
+  "id": "G00000346V1.4",
+  "label": "Unterhaltsempfänger",
+  "kind": "group",
+  "type": "xfd:G00000346V1.4",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00000346V1.4/F60000227V1.1",
+  "id": "F60000227V1.1",
+  "label": "Familienname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00000346V1.4/F60000228V1.2",
+  "id": "F60000228V1.2",
+  "label": "Vornamen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00000346V1.4/F60000229V1.1",
+  "id": "F60000229V1.1",
+  "label": "Doktorgrade",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00000346V1.4/G60000083V1.1",
+  "id": "G60000083V1.1",
+  "label": "Geburtsdatum (teilbekannt)",
+  "kind": "group",
+  "type": "xfd:G60000083V1.1",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000345V1.5/G00001144V1.4/F00001747V1.2",
+  "id": "F00001747V1.2",
+  "label": "Art der Unterhaltszahlung",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000345V1.5/G00001144V1.4/F00000592V1.4",
+  "id": "F00000592V1.4",
+  "label": "Verwandtschaftsverhältnis zum Unterhaltsempfänger",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00001096V1.4",
+  "id": "G00001096V1.4",
+  "label": "Betrag/Ausgaben",
+  "kind": "group",
+  "type": "xfd:G00001096V1.4",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00001096V1.4/F00000593V1.3",
+  "id": "F00000593V1.3",
+  "label": "Betrag/Ausgaben",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00001096V1.4/F00001882V1.4",
+  "id": "F00001882V1.4",
+  "label": "Frequenz (Häufigkeit)",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000345V1.5/G00001144V1.4/G00001096V1.4/F00001883V1.1",
+  "id": "F00001883V1.1",
+  "label": "Frequenz Freitext",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000345V1.5/G00001144V1.4/F00002098V1.2",
+  "id": "F00002098V1.2",
+  "label": "Hinweis zum Nachweis",
+  "kind": "field",
+  "type": "xfd:F00002098V1.2",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00000343V1.7/G00000345V1.5/G00001144V1.4/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3",
+  "id": "G00001487V1.3",
+  "label": "Abschnitt Sonstige Einnahmen",
+  "kind": "group",
+  "type": "xfd:G00001487V1.3",
+  "depth": 2
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3/G00001488V1.3",
+  "id": "G00001488V1.3",
+  "label": "Angaben zu Unterhaltsansprüchen",
+  "kind": "group",
+  "type": "xfd:G00001488V1.3",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3/G00001488V1.3/F00002586V1.2",
+  "id": "F00002586V1.2",
+  "label": "Frage zu Unterhaltsansprüchen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3/G00001488V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3/G00001488V1.3/G00000334V1.6",
+  "id": "G00000334V1.6",
+  "label": "Details zu Unterhaltsansprüchen",
+  "kind": "group",
+  "type": "xfd:G00000334V1.6",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3/G00001488V1.3/G00000334V1.6/F00000582V1.2",
+  "id": "F00000582V1.2",
+  "label": "Höhe des Unterhaltsanspruchs - bekannt oder unbekannt",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3/G00001488V1.3/G00000334V1.6/G00001095V1.4",
+  "id": "G00001095V1.4",
+  "label": "Angaben zur Höhe des Unterhaltsanspruchs",
+  "kind": "group",
+  "type": "xfd:G00001095V1.4",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3/G00001488V1.3/G00000334V1.6/G00001095V1.4/F00000581V1.6",
+  "id": "F00000581V1.6",
+  "label": "Höhe des Unterhaltsanspruchs",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3/G00001488V1.3/G00000334V1.6/G00001095V1.4/F00001882V1.4",
+  "id": "F00001882V1.4",
+  "label": "Frequenz (Häufigkeit)",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3/G00001488V1.3/G00000334V1.6/G00001095V1.4/F00001883V1.1",
+  "id": "F00001883V1.1",
+  "label": "Frequenz Freitext",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3/G00001489V1.2",
+  "id": "G00001489V1.2",
+  "label": "Angaben zu einmaligen Einnahmen",
+  "kind": "group",
+  "type": "xfd:G00001489V1.2",
+  "depth": 3
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3/G00001489V1.2/F00002587V1.2",
+  "id": "F00002587V1.2",
+  "label": "Frage zu einmaligen Einnahmen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3/G00001489V1.2/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3/G00001489V1.2/G00000336V1.5",
+  "id": "G00000336V1.5",
+  "label": "Details zu einmaligen Einnahmen",
+  "kind": "group",
+  "type": "xfd:G00000336V1.5",
+  "depth": 4
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3/G00001489V1.2/G00000336V1.5/F00000586V1.5",
+  "id": "F00000586V1.5",
+  "label": "Einmalige Einnahmen - Art",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3/G00001489V1.2/G00000336V1.5/F00001996V1.2",
+  "id": "F00001996V1.2",
+  "label": "Einnahmen - Freitext",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3/G00001489V1.2/G00000336V1.5/F00000587V1.3",
+  "id": "F00000587V1.3",
+  "label": "Einmalige Einnahmen - Höhe",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3/G00001489V1.2/G00000336V1.5/F60000030V1.0",
+  "id": "F60000030V1.0",
+  "label": "Datum",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 5
+ },
+ {
+  "path": "/G00000449V1.5/G00000450V1.11/G00001487V1.3/G00001489V1.2/G00000336V1.5/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001473V1.3",
+  "id": "G00001473V1.3",
+  "label": "Abschnitt Veränderung der Anzahl der Haushaltsmitglieder",
+  "kind": "group",
+  "type": "xfd:G00001473V1.3",
+  "depth": 0
+ },
+ {
+  "path": "/G00001473V1.3/F00000651V1.4",
+  "id": "F00000651V1.4",
+  "label": "Hinweis zum Tod eines Haushaltsmitglieds",
+  "kind": "field",
+  "type": "xfd:F00000651V1.4",
+  "depth": 1
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3",
+  "id": "G00001498V1.3",
+  "label": "Angaben zum Tod eines Haushaltsmitglieds",
+  "kind": "group",
+  "type": "xfd:G00001498V1.3",
+  "depth": 1
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/F00002593V1.2",
+  "id": "F00002593V1.2",
+  "label": "Frage zum Tod eines Haushaltsmitglieds",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 2
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5",
+  "id": "G00000176V1.5",
+  "label": "Details zum Tod eines Haushaltsmitglieds",
+  "kind": "group",
+  "type": "xfd:G00000176V1.5",
+  "depth": 2
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00000314V1.5",
+  "id": "G00000314V1.5",
+  "label": "Angaben zu verstorbenem Haushaltsmitglied",
+  "kind": "group",
+  "type": "xfd:G00000314V1.5",
+  "depth": 3
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00000314V1.5/F60000227V1.1",
+  "id": "F60000227V1.1",
+  "label": "Familienname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00000314V1.5/F60000228V1.2",
+  "id": "F60000228V1.2",
+  "label": "Vornamen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00000314V1.5/F60000229V1.1",
+  "id": "F60000229V1.1",
+  "label": "Doktorgrade",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00000314V1.5/G60000083V1.1",
+  "id": "G60000083V1.1",
+  "label": "Geburtsdatum (teilbekannt)",
+  "kind": "group",
+  "type": "xfd:G60000083V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00000314V1.5/G60000083V1.1/F60000231V1.1",
+  "id": "F60000231V1.1",
+  "label": "Tag (ohne Monat und Jahr)",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 5
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00000314V1.5/G60000083V1.1/F60000232V1.1",
+  "id": "F60000232V1.1",
+  "label": "Monat",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 5
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00000314V1.5/G60000083V1.1/F60000233V1.1",
+  "id": "F60000233V1.1",
+  "label": "Jahr",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 5
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00000314V1.5/F60000332V1.2",
+  "id": "F60000332V1.2",
+  "label": "Geschlecht",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00000314V1.5/F00000074V1.2",
+  "id": "F00000074V1.2",
+  "label": "Sterbedatum",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 4
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00000314V1.5/F00002563V1.2",
+  "id": "F00002563V1.2",
+  "label": "Frage Transferleistungen erhalten",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00001510V1.2",
+  "id": "G00001510V1.2",
+  "label": "Angaben zu Umzug nach Todesfall",
+  "kind": "group",
+  "type": "xfd:G00001510V1.2",
+  "depth": 3
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00001510V1.2/F00000237V1.4",
+  "id": "F00000237V1.4",
+  "label": "Frage Umzug nach Todesfall",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00001510V1.2/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00001499V1.2",
+  "id": "G00001499V1.2",
+  "label": "Angaben zu neu aufgenommenen Haushaltsmitglied",
+  "kind": "group",
+  "type": "xfd:G00001499V1.2",
+  "depth": 3
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00001499V1.2/F00002594V1.2",
+  "id": "F00002594V1.2",
+  "label": "Frage zu neu aufgenommenen Haushaltsmitglied",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00001499V1.2/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00001499V1.2/G00000315V1.4",
+  "id": "G00000315V1.4",
+  "label": "Details zu neu aufgenommenen Haushaltsmitglied",
+  "kind": "group",
+  "type": "xfd:G00000315V1.4",
+  "depth": 4
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00001499V1.2/G00000315V1.4/F60000227V1.1",
+  "id": "F60000227V1.1",
+  "label": "Familienname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00001499V1.2/G00000315V1.4/F60000228V1.2",
+  "id": "F60000228V1.2",
+  "label": "Vornamen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00001499V1.2/G00000315V1.4/F60000229V1.1",
+  "id": "F60000229V1.1",
+  "label": "Doktorgrade",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00001499V1.2/G00000315V1.4/G60000083V1.1",
+  "id": "G60000083V1.1",
+  "label": "Geburtsdatum (teilbekannt)",
+  "kind": "group",
+  "type": "xfd:G60000083V1.1",
+  "depth": 5
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00001499V1.2/G00000315V1.4/G60000083V1.1/F60000231V1.1",
+  "id": "F60000231V1.1",
+  "label": "Tag (ohne Monat und Jahr)",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 6
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00001499V1.2/G00000315V1.4/G60000083V1.1/F60000232V1.1",
+  "id": "F60000232V1.1",
+  "label": "Monat",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 6
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00001499V1.2/G00000315V1.4/G60000083V1.1/F60000233V1.1",
+  "id": "F60000233V1.1",
+  "label": "Jahr",
+  "kind": "builtin",
+  "type": "xs:integer",
+  "depth": 6
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00001499V1.2/G00000315V1.4/F60000332V1.2",
+  "id": "F60000332V1.2",
+  "label": "Geschlecht",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001473V1.3/G00001498V1.3/G00000176V1.5/G00001499V1.2/G00000315V1.4/F00000056V1.1",
+  "id": "F00000056V1.1",
+  "label": "Datum des Einzugs",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 5
+ },
+ {
+  "path": "/G00001473V1.3/G00001500V1.2",
+  "id": "G00001500V1.2",
+  "label": "Angaben zur zukünftigen Anzahl der Haushaltsmitglieder",
+  "kind": "group",
+  "type": "xfd:G00001500V1.2",
+  "depth": 1
+ },
+ {
+  "path": "/G00001473V1.3/G00001500V1.2/F00002595V1.2",
+  "id": "F00002595V1.2",
+  "label": "Frage zur zukünftigen Anzahl der Haushaltsmitglieder",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00001473V1.3/G00001500V1.2/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 2
+ },
+ {
+  "path": "/G00001473V1.3/G00001500V1.2/G00001474V1.2",
+  "id": "G00001474V1.2",
+  "label": "Details Entwicklung Haushaltsmitglieder",
+  "kind": "group",
+  "type": "xfd:G00001474V1.2",
+  "depth": 2
+ },
+ {
+  "path": "/G00001473V1.3/G00001500V1.2/G00001474V1.2/F00002560V1.0",
+  "id": "F00002560V1.0",
+  "label": "Zeitpunkt der Veränderung",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 3
+ },
+ {
+  "path": "/G00001473V1.3/G00001500V1.2/G00001474V1.2/F00002561V1.2",
+  "id": "F00002561V1.2",
+  "label": "Grund Änderung Haushaltsmitglieder",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001473V1.3/G00001500V1.2/G00001474V1.2/F00002562V1.0",
+  "id": "F00002562V1.0",
+  "label": "Grund Änderung Haushaltsmitglieder Freitext",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001473V1.3/G00001523V1.3",
+  "id": "G00001523V1.3",
+  "label": "Angaben Umzug Auszug",
+  "kind": "group",
+  "type": "xfd:G00001523V1.3",
+  "depth": 1
+ },
+ {
+  "path": "/G00001473V1.3/G00001523V1.3/F00002612V1.2",
+  "id": "F00002612V1.2",
+  "label": "Frage Umzug",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00001473V1.3/G00001523V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 2
+ },
+ {
+  "path": "/G00001473V1.3/G00001523V1.3/F00002613V1.0",
+  "id": "F00002613V1.0",
+  "label": "Umzugszeitpunkt",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 2
+ },
+ {
+  "path": "/G00000340V1.7",
+  "id": "G00000340V1.7",
+  "label": "Abschnitt Miete",
+  "kind": "group",
+  "type": "xfd:G00000340V1.7",
+  "depth": 0
+ },
+ {
+  "path": "/G00000340V1.7/F00002589V1.1",
+  "id": "F00002589V1.1",
+  "label": "Hinweis Miete",
+  "kind": "field",
+  "type": "xfd:F00002589V1.1",
+  "depth": 1
+ },
+ {
+  "path": "/G00000340V1.7/G00000316V1.4",
+  "id": "G00000316V1.4",
+  "label": "Mietverhältnis",
+  "kind": "group",
+  "type": "xfd:G00000316V1.4",
+  "depth": 1
+ },
+ {
+  "path": "/G00000340V1.7/G00000316V1.4/F00000560V1.4",
+  "id": "F00000560V1.4",
+  "label": "Mietverhältnis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00000340V1.7/G00000316V1.4/F00000561V1.2",
+  "id": "F00000561V1.2",
+  "label": "Erläuterung des Mietverhältnisses",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00000340V1.7/G00001522V1.1",
+  "id": "G00001522V1.1",
+  "label": "Angaben Verwandtschaftsverhältnis Vermieter",
+  "kind": "group",
+  "type": "xfd:G00001522V1.1",
+  "depth": 1
+ },
+ {
+  "path": "/G00000340V1.7/G00001522V1.1/F00002564V1.1",
+  "id": "F00002564V1.1",
+  "label": "Frage Verwandtschaftsverhältnis Vermieter",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00000340V1.7/G00001522V1.1/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 2
+ },
+ {
+  "path": "/G00000340V1.7/G00001514V1.2",
+  "id": "G00001514V1.2",
+  "label": "Angaben zur Größe der Wohnung",
+  "kind": "group",
+  "type": "xfd:G00001514V1.2",
+  "depth": 1
+ },
+ {
+  "path": "/G00000340V1.7/G00001514V1.2/F00002601V1.2",
+  "id": "F00002601V1.2",
+  "label": "Frage Beantwortung Größe der Wohnung",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00000340V1.7/G00001514V1.2/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 2
+ },
+ {
+  "path": "/G00000340V1.7/G00001514V1.2/F00000563V1.5",
+  "id": "F00000563V1.5",
+  "label": "Größe der Wohnung",
+  "kind": "builtin",
+  "type": "xs:float",
+  "depth": 2
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3",
+  "id": "G00001492V1.3",
+  "label": "Details zur Miete",
+  "kind": "group",
+  "type": "xfd:G00001492V1.3",
+  "depth": 1
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/F00000240V1.5",
+  "id": "F00000240V1.5",
+  "label": "Höhe der Miete",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 2
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5",
+  "id": "G00000320V1.5",
+  "label": "Angaben zu Nebenkosten",
+  "kind": "group",
+  "type": "xfd:G00000320V1.5",
+  "depth": 2
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2",
+  "id": "G00001471V1.2",
+  "label": "Angaben zu Nebenkosten (an Vermieter)",
+  "kind": "group",
+  "type": "xfd:G00001471V1.2",
+  "depth": 3
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001049V1.3",
+  "id": "G00001049V1.3",
+  "label": "Kosten für Heizung in Warmmiete",
+  "kind": "group",
+  "type": "xfd:G00001049V1.3",
+  "depth": 4
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001049V1.3/F00002544V1.1",
+  "id": "F00002544V1.1",
+  "label": "Frage zu Kosten oder Pauschale",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001049V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001049V1.3/F00001720V1.3",
+  "id": "F00001720V1.3",
+  "label": "Kosten für Heizung in Warmmiete",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001050V1.3",
+  "id": "G00001050V1.3",
+  "label": "Kosten für Warmwasser in Warmmiete",
+  "kind": "group",
+  "type": "xfd:G00001050V1.3",
+  "depth": 4
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001050V1.3/F00002544V1.1",
+  "id": "F00002544V1.1",
+  "label": "Frage zu Kosten oder Pauschale",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001050V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001050V1.3/F00001719V1.2",
+  "id": "F00001719V1.2",
+  "label": "Kosten für Warmwasser in Warmmiete",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001187V1.3",
+  "id": "G00001187V1.3",
+  "label": "Kosten für Garage in Warmmiete",
+  "kind": "group",
+  "type": "xfd:G00001187V1.3",
+  "depth": 4
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001187V1.3/F00002544V1.1",
+  "id": "F00002544V1.1",
+  "label": "Frage zu Kosten oder Pauschale",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001187V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001187V1.3/F00000562V1.3",
+  "id": "F00000562V1.3",
+  "label": "Kosten für Garage in Warmmiete",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001188V1.3",
+  "id": "G00001188V1.3",
+  "label": "Kosten für Stellplatz/Carport in Warmmiete",
+  "kind": "group",
+  "type": "xfd:G00001188V1.3",
+  "depth": 4
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001188V1.3/F00002544V1.1",
+  "id": "F00002544V1.1",
+  "label": "Frage zu Kosten oder Pauschale",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001188V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001188V1.3/F00002097V1.2",
+  "id": "F00002097V1.2",
+  "label": "Kosten für Stellplatz in Warmmiete",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001497V1.2",
+  "id": "G00001497V1.2",
+  "label": "Kosten für Servicepauschale",
+  "kind": "group",
+  "type": "xfd:G00001497V1.2",
+  "depth": 4
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001497V1.2/F00002544V1.1",
+  "id": "F00002544V1.1",
+  "label": "Frage zu Kosten oder Pauschale",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001497V1.2/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001497V1.2/F00001723V1.2",
+  "id": "F00001723V1.2",
+  "label": "Kosten für Servicepauschale",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001186V1.3",
+  "id": "G00001186V1.3",
+  "label": "Kosten für Haushaltsenergie",
+  "kind": "group",
+  "type": "xfd:G00001186V1.3",
+  "depth": 4
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001186V1.3/F00002544V1.1",
+  "id": "F00002544V1.1",
+  "label": "Frage zu Kosten oder Pauschale",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001186V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001471V1.2/G00001186V1.3/F00000265V1.5",
+  "id": "F00000265V1.5",
+  "label": "Kosten für Haushaltsenergie",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001496V1.2",
+  "id": "G00001496V1.2",
+  "label": "Angaben zu Nebenkosten (an Dritte)",
+  "kind": "group",
+  "type": "xfd:G00001496V1.2",
+  "depth": 3
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001496V1.2/F00002591V1.2",
+  "id": "F00002591V1.2",
+  "label": "Fragen zu Kosten an Dritte",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001496V1.2/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/G00001496V1.2/F00002592V1.2",
+  "id": "F00002592V1.2",
+  "label": "Kosten an Dritte",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 4
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00000320V1.5/F00001723V1.2",
+  "id": "F00001723V1.2",
+  "label": "Kosten für Servicepauschale",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 3
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/F00000567V1.4",
+  "id": "F00000567V1.4",
+  "label": "Nachweis Höhe der Miete",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00001494V1.2",
+  "id": "G00001494V1.2",
+  "label": "Angaben zum Mietzuschuss",
+  "kind": "group",
+  "type": "xfd:G00001494V1.2",
+  "depth": 2
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00001494V1.2/F00002545V1.2",
+  "id": "F00002545V1.2",
+  "label": "Frage Mietzuschuss",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00001494V1.2/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00001494V1.2/G00000321V1.4",
+  "id": "G00000321V1.4",
+  "label": "Details zum Mietzuschuss",
+  "kind": "group",
+  "type": "xfd:G00000321V1.4",
+  "depth": 3
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00001494V1.2/G00000321V1.4/F00000565V1.3",
+  "id": "F00000565V1.3",
+  "label": "Zuschuss Erbringer",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00001494V1.2/G00000321V1.4/F00000566V1.3",
+  "id": "F00000566V1.3",
+  "label": "Zuschuss Höhe",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 4
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00001494V1.2/G00000321V1.4/G00001513V1.1",
+  "id": "G00001513V1.1",
+  "label": "Zeitraum offen (Ende optional)",
+  "kind": "group",
+  "type": "xfd:G00001513V1.1",
+  "depth": 4
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00001494V1.2/G00000321V1.4/G00001513V1.1/F60000048V1.2",
+  "id": "F60000048V1.2",
+  "label": "Anfang",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00001494V1.2/G00000321V1.4/G00001513V1.1/F60000049V1.2",
+  "id": "F60000049V1.2",
+  "label": "Ende",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 5
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00002023V0.1",
+  "id": "G00002023V0.1",
+  "label": "Angaben zur Veränderung der Miete",
+  "kind": "group",
+  "type": "xfd:G00002023V0.1",
+  "depth": 2
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00002023V0.1/F00003217V0.1",
+  "id": "F00003217V0.1",
+  "label": "Frage Veränderung der Miete",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00002023V0.1/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00002023V0.1/G00002024V0.1",
+  "id": "G00002024V0.1",
+  "label": "Details zur Veränderung der Miete",
+  "kind": "group",
+  "type": "xfd:G00002024V0.1",
+  "depth": 3
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00002023V0.1/G00002024V0.1/F00000585V1.1",
+  "id": "F00000585V1.1",
+  "label": "Zeitpunkt der Veränderung",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 4
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00002023V0.1/G00002024V0.1/F00000583V1.2",
+  "id": "F00000583V1.2",
+  "label": "Grund der Veränderung",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00002023V0.1/G00002024V0.1/F00003218V0.1",
+  "id": "F00003218V0.1",
+  "label": "Zukünftige monatliche Gesamtmiete",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 4
+ },
+ {
+  "path": "/G00000340V1.7/G00001492V1.3/G00002023V0.1/G00002024V0.1/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00001493V1.3",
+  "id": "G00001493V1.3",
+  "label": "Abschnitt zusätzliche Nutzung Wohnraum",
+  "kind": "group",
+  "type": "xfd:G00001493V1.3",
+  "depth": 0
+ },
+ {
+  "path": "/G00001493V1.3/F00000261V1.5",
+  "id": "F00000261V1.5",
+  "label": "Größe des gewerblich oder beruflich genutzten Wohnraums",
+  "kind": "builtin",
+  "type": "xs:float",
+  "depth": 1
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3",
+  "id": "G00001502V1.3",
+  "label": "Angaben zu weiteren Mitbewohnern Untermietern (Nicht-Haushaltsmitglied)",
+  "kind": "group",
+  "type": "xfd:G00001502V1.3",
+  "depth": 1
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/F00002597V1.2",
+  "id": "F00002597V1.2",
+  "label": "Frage weiteren Mitbewohnern Untermieter (Nicht-Haushaltsmitglied)",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/F00002599V1.1",
+  "id": "F00002599V1.1",
+  "label": "Hinweis zu unvollständigen Angaben (Wohngeld)",
+  "kind": "field",
+  "type": "xfd:F00002599V1.1",
+  "depth": 2
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6",
+  "id": "G00000326V1.6",
+  "label": "Details Mitbewohner Untermieter (Nicht-Haushaltsmitglied)",
+  "kind": "group",
+  "type": "xfd:G00000326V1.6",
+  "depth": 2
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/F60000227V1.1",
+  "id": "F60000227V1.1",
+  "label": "Familienname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/F60000228V1.2",
+  "id": "F60000228V1.2",
+  "label": "Vornamen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/F60000229V1.1",
+  "id": "F60000229V1.1",
+  "label": "Doktorgrade",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/F00002598V1.2",
+  "id": "F00002598V1.2",
+  "label": "Wohnverhältnis Mitbewohner Untermieter",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/F00002098V1.2",
+  "id": "F00002098V1.2",
+  "label": "Hinweis zum Nachweis",
+  "kind": "field",
+  "type": "xfd:F00002098V1.2",
+  "depth": 3
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/F60000296V1.1",
+  "id": "F60000296V1.1",
+  "label": "Nachweis",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/F00000572V1.3",
+  "id": "F00000572V1.3",
+  "label": "Größe Zimmer",
+  "kind": "builtin",
+  "type": "xs:float",
+  "depth": 3
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/G00000328V1.3",
+  "id": "G00000328V1.3",
+  "label": "Angaben Lebensmittelpunkt",
+  "kind": "group",
+  "type": "xfd:G00000328V1.3",
+  "depth": 3
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/G00000328V1.3/F00000573V1.2",
+  "id": "F00000573V1.2",
+  "label": "Lebensmittelpunkt",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 4
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/G00000328V1.3/F00000700V1.2",
+  "id": "F00000700V1.2",
+  "label": "Datum (seit wann)",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 4
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/G00000329V1.5",
+  "id": "G00000329V1.5",
+  "label": "Angaben Warmmiete und Nebenkosten",
+  "kind": "group",
+  "type": "xfd:G00000329V1.5",
+  "depth": 3
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/G00000329V1.5/F00000240V1.5",
+  "id": "F00000240V1.5",
+  "label": "Höhe der Miete",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 4
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/G00000329V1.5/G00001142V1.4",
+  "id": "G00001142V1.4",
+  "label": "Mitbewohner: Nebenkosten",
+  "kind": "group",
+  "type": "xfd:G00001142V1.4",
+  "depth": 4
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/G00000329V1.5/G00001142V1.4/G00001471V1.2",
+  "id": "G00001471V1.2",
+  "label": "Angaben zu Nebenkosten (an Vermieter)",
+  "kind": "group",
+  "type": "xfd:G00001471V1.2",
+  "depth": 5
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/G00000329V1.5/G00001142V1.4/G00001471V1.2/G00001049V1.3",
+  "id": "G00001049V1.3",
+  "label": "Kosten für Heizung in Warmmiete",
+  "kind": "group",
+  "type": "xfd:G00001049V1.3",
+  "depth": 6
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/G00000329V1.5/G00001142V1.4/G00001471V1.2/G00001050V1.3",
+  "id": "G00001050V1.3",
+  "label": "Kosten für Warmwasser in Warmmiete",
+  "kind": "group",
+  "type": "xfd:G00001050V1.3",
+  "depth": 6
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/G00000329V1.5/G00001142V1.4/G00001471V1.2/G00001187V1.3",
+  "id": "G00001187V1.3",
+  "label": "Kosten für Garage in Warmmiete",
+  "kind": "group",
+  "type": "xfd:G00001187V1.3",
+  "depth": 6
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/G00000329V1.5/G00001142V1.4/G00001471V1.2/G00001188V1.3",
+  "id": "G00001188V1.3",
+  "label": "Kosten für Stellplatz/Carport in Warmmiete",
+  "kind": "group",
+  "type": "xfd:G00001188V1.3",
+  "depth": 6
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/G00000329V1.5/G00001142V1.4/G00001471V1.2/G00001497V1.2",
+  "id": "G00001497V1.2",
+  "label": "Kosten für Servicepauschale",
+  "kind": "group",
+  "type": "xfd:G00001497V1.2",
+  "depth": 6
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/G00000329V1.5/G00001142V1.4/G00001471V1.2/G00001186V1.3",
+  "id": "G00001186V1.3",
+  "label": "Kosten für Haushaltsenergie",
+  "kind": "group",
+  "type": "xfd:G00001186V1.3",
+  "depth": 6
+ },
+ {
+  "path": "/G00001493V1.3/G00001502V1.3/G00000326V1.6/G00000329V1.5/G00001142V1.4/F00000564V1.4",
+  "id": "F00000564V1.4",
+  "label": "Angaben zu Nebenkosten (an Dritte)",
+  "kind": "builtin",
+  "type": "xs:decimal",
+  "depth": 5
+ },
+ {
+  "path": "/G00001501V1.3",
+  "id": "G00001501V1.3",
+  "label": "Abschnitt Zahlung",
+  "kind": "group",
+  "type": "xfd:G00001501V1.3",
+  "depth": 0
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6",
+  "id": "G00000350V1.6",
+  "label": "Angaben zur Zahlung des Wohngelds",
+  "kind": "group",
+  "type": "xfd:G00000350V1.6",
+  "depth": 1
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/F00000594V1.4",
+  "id": "F00000594V1.4",
+  "label": "Zahlung des Wohngelds an Antragsteller/andere Person",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/F00002555V1.2",
+  "id": "F00002555V1.2",
+  "label": "Zahlung des Wohngelds an Antragsteller/andere Person/Vertretung",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/F00002554V1.1",
+  "id": "F00002554V1.1",
+  "label": "Empfänger des Wohngelds (andere Person)",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 2
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4",
+  "id": "G00000349V1.4",
+  "label": "Empfänger des Wohngelds (natürliche Person)",
+  "kind": "group",
+  "type": "xfd:G00000349V1.4",
+  "depth": 2
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/F60000227V1.1",
+  "id": "F60000227V1.1",
+  "label": "Familienname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/F60000228V1.2",
+  "id": "F60000228V1.2",
+  "label": "Vornamen",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/F60000229V1.1",
+  "id": "F60000229V1.1",
+  "label": "Doktorgrade",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/G60000093V1.3",
+  "id": "G60000093V1.3",
+  "label": "Anschrift Inland oder Ausland mit Frage",
+  "kind": "group",
+  "type": "xfd:G60000093V1.3",
+  "depth": 3
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/G60000093V1.3/F60000263V1.1",
+  "id": "F60000263V1.1",
+  "label": "Abfrage Anschrift Inland oder Ausland",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/G60000093V1.3/G60000088V1.2",
+  "id": "G60000088V1.2",
+  "label": "Anschrift Inland",
+  "kind": "group",
+  "type": "xfd:G60000088V1.2",
+  "depth": 4
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/G60000093V1.3/G60000088V1.2/G60000086V1.2",
+  "id": "G60000086V1.2",
+  "label": "Anschrift Inland Straßenanschrift",
+  "kind": "group",
+  "type": "xfd:G60000086V1.2",
+  "depth": 5
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000243V1.1",
+  "id": "F60000243V1.1",
+  "label": "Straße",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000244V1.2",
+  "id": "F60000244V1.2",
+  "label": "Hausnummer",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000246V1.1",
+  "id": "F60000246V1.1",
+  "label": "Postleitzahl",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000247V1.1",
+  "id": "F60000247V1.1",
+  "label": "Ort",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000248V1.1",
+  "id": "F60000248V1.1",
+  "label": "Anschrift Zusatzangaben",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/G60000093V1.3/G60000088V1.2/G60000087V1.1",
+  "id": "G60000087V1.1",
+  "label": "Anschrift Inland Postfachanschrift",
+  "kind": "group",
+  "type": "xfd:G60000087V1.1",
+  "depth": 5
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/G60000093V1.3/G60000088V1.2/G60000087V1.1/F60000249V1.1",
+  "id": "F60000249V1.1",
+  "label": "Postfach",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/G60000093V1.3/G60000088V1.2/G60000087V1.1/F60000246V1.1",
+  "id": "F60000246V1.1",
+  "label": "Postleitzahl",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/G60000093V1.3/G60000088V1.2/G60000087V1.1/F60000247V1.1",
+  "id": "F60000247V1.1",
+  "label": "Ort",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/G60000093V1.3/G60000091V1.2",
+  "id": "G60000091V1.2",
+  "label": "Anschrift Ausland",
+  "kind": "group",
+  "type": "xfd:G60000091V1.2",
+  "depth": 4
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/G60000093V1.3/G60000091V1.2/F60000261V1.2",
+  "id": "F60000261V1.2",
+  "label": "Staat",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/G60000093V1.3/G60000091V1.2/G60000092V1.1",
+  "id": "G60000092V1.1",
+  "label": "Anschriftzone",
+  "kind": "group",
+  "type": "xfd:G60000092V1.1",
+  "depth": 5
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00000349V1.4/G60000093V1.3/G60000091V1.2/G60000092V1.1/F60000262V1.1",
+  "id": "F60000262V1.1",
+  "label": "ZeileAnschrift",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2",
+  "id": "G00001472V1.2",
+  "label": "Empfänger des Wohngelds (juristische Person)",
+  "kind": "group",
+  "type": "xfd:G00001472V1.2",
+  "depth": 2
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/F60000319V1.2",
+  "id": "F60000319V1.2",
+  "label": "Eingetragener Name / Organisationsname",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/F60000320V1.2",
+  "id": "F60000320V1.2",
+  "label": "Geschäftsbezeichnung / Organisationsbezeichnung",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/G60000093V1.3",
+  "id": "G60000093V1.3",
+  "label": "Anschrift Inland oder Ausland mit Frage",
+  "kind": "group",
+  "type": "xfd:G60000093V1.3",
+  "depth": 3
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/G60000093V1.3/F60000263V1.1",
+  "id": "F60000263V1.1",
+  "label": "Abfrage Anschrift Inland oder Ausland",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 4
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/G60000093V1.3/G60000088V1.2",
+  "id": "G60000088V1.2",
+  "label": "Anschrift Inland",
+  "kind": "group",
+  "type": "xfd:G60000088V1.2",
+  "depth": 4
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/G60000093V1.3/G60000088V1.2/G60000086V1.2",
+  "id": "G60000086V1.2",
+  "label": "Anschrift Inland Straßenanschrift",
+  "kind": "group",
+  "type": "xfd:G60000086V1.2",
+  "depth": 5
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000243V1.1",
+  "id": "F60000243V1.1",
+  "label": "Straße",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000244V1.2",
+  "id": "F60000244V1.2",
+  "label": "Hausnummer",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000246V1.1",
+  "id": "F60000246V1.1",
+  "label": "Postleitzahl",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000247V1.1",
+  "id": "F60000247V1.1",
+  "label": "Ort",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/G60000093V1.3/G60000088V1.2/G60000086V1.2/F60000248V1.1",
+  "id": "F60000248V1.1",
+  "label": "Anschrift Zusatzangaben",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/G60000093V1.3/G60000088V1.2/G60000087V1.1",
+  "id": "G60000087V1.1",
+  "label": "Anschrift Inland Postfachanschrift",
+  "kind": "group",
+  "type": "xfd:G60000087V1.1",
+  "depth": 5
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/G60000093V1.3/G60000088V1.2/G60000087V1.1/F60000249V1.1",
+  "id": "F60000249V1.1",
+  "label": "Postfach",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/G60000093V1.3/G60000088V1.2/G60000087V1.1/F60000246V1.1",
+  "id": "F60000246V1.1",
+  "label": "Postleitzahl",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/G60000093V1.3/G60000088V1.2/G60000087V1.1/F60000247V1.1",
+  "id": "F60000247V1.1",
+  "label": "Ort",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/G60000093V1.3/G60000091V1.2",
+  "id": "G60000091V1.2",
+  "label": "Anschrift Ausland",
+  "kind": "group",
+  "type": "xfd:G60000091V1.2",
+  "depth": 4
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/G60000093V1.3/G60000091V1.2/F60000261V1.2",
+  "id": "F60000261V1.2",
+  "label": "Staat",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 5
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/G60000093V1.3/G60000091V1.2/G60000092V1.1",
+  "id": "G60000092V1.1",
+  "label": "Anschriftzone",
+  "kind": "group",
+  "type": "xfd:G60000092V1.1",
+  "depth": 5
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G00001472V1.2/G60000093V1.3/G60000091V1.2/G60000092V1.1/F60000262V1.1",
+  "id": "F60000262V1.1",
+  "label": "ZeileAnschrift",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 6
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/F00001736V1.0",
+  "id": "F00001736V1.0",
+  "label": "Bankkonto",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 2
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/F00002484V1.1",
+  "id": "F00002484V1.1",
+  "label": "Hinweis: kein existierendes Bankkonto",
+  "kind": "field",
+  "type": "xfd:F00002484V1.1",
+  "depth": 2
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G60000143V1.0",
+  "id": "G60000143V1.0",
+  "label": "Angaben zur Bankverbindung (nur IBAN und BIC)",
+  "kind": "group",
+  "type": "xfd:G60000143V1.0",
+  "depth": 2
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G60000143V1.0/F60000288V1.2",
+  "id": "F60000288V1.2",
+  "label": "IBAN",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/G00001501V1.3/G00000350V1.6/G60000143V1.0/F60000289V1.2",
+  "id": "F60000289V1.2",
+  "label": "BIC",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 3
+ },
+ {
+  "path": "/F00000646V1.2",
+  "id": "F00000646V1.2",
+  "label": "Ergänzende Angaben zum Wohngeld",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 0
+ },
+ {
+  "path": "/G00000367V1.6",
+  "id": "G00000367V1.6",
+  "label": "Abschnitt Wichtige Hinweise Wohngeldantrag",
+  "kind": "group",
+  "type": "xfd:G00000367V1.6",
+  "depth": 0
+ },
+ {
+  "path": "/G00000367V1.6/F00000658V1.4",
+  "id": "F00000658V1.4",
+  "label": "Wichtige Hinweise Wohngeldantrag",
+  "kind": "field",
+  "type": "xfd:F00000658V1.4",
+  "depth": 1
+ },
+ {
+  "path": "/G00000367V1.6/F00001851V1.3",
+  "id": "F00001851V1.3",
+  "label": "Hinweis DSGVO Wohngeld",
+  "kind": "field",
+  "type": "xfd:F00001851V1.3",
+  "depth": 1
+ },
+ {
+  "path": "/G00000367V1.6/F00000647V1.4",
+  "id": "F00000647V1.4",
+  "label": "Kenntnisnahme Hinweise",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 1
+ },
+ {
+  "path": "/G00000367V1.6/F00000648V1.4",
+  "id": "F00000648V1.4",
+  "label": "Nachweise zu Akten (Kontoauszüge)",
+  "kind": "builtin",
+  "type": "xs:boolean",
+  "depth": 1
+ },
+ {
+  "path": "/G60000025V1.2",
+  "id": "G60000025V1.2",
+  "label": "Signatur (Unterschriftsbereich)",
+  "kind": "group",
+  "type": "xfd:G60000025V1.2",
+  "depth": 0
+ },
+ {
+  "path": "/G60000025V1.2/F60000330V1.2",
+  "id": "F60000330V1.2",
+  "label": "Datum (aktuelles)",
+  "kind": "builtin",
+  "type": "xs:date",
+  "depth": 1
+ },
+ {
+  "path": "/G60000025V1.2/F60000247V1.1",
+  "id": "F60000247V1.1",
+  "label": "Ort",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 1
+ },
+ {
+  "path": "/G60000025V1.2/F60000053V1.1",
+  "id": "F60000053V1.1",
+  "label": "Unterschrift",
+  "kind": "builtin",
+  "type": "xs:string",
+  "depth": 1
+ }
+]
