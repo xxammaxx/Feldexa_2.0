@@ -2,7 +2,8 @@
 
 | Field | Value |
 | --- | --- |
-| Protocol | `manual-baseline-protocol.v1.0.0` |
+| Protocol | `manual-baseline-protocol.v1.1.0` |
+| Supersedes | `v1.0.0`; per-form SC-003 decision correction made before any scored run |
 | Task / issue | T035 / #35 |
 | Status | Normative protocol, frozen before the first scored baseline run. No measurements are recorded in this file. |
 | Execution owner | T142, in `specs/001-scanned-form-workflow/reports/2026-11-12-recognition.md` |
@@ -54,6 +55,12 @@ affects the SC-003 decision, the run stops and the conflict is escalated; the
 operator, analyst, or T142 author must not silently choose the more favourable
 reading. A protocol conflict is not resolved by changing this file after data
 collection.
+
+SC-003 says "the share of a form's fields" and D-18 says to record and compare
+the reduction "for each corpus form". Neither source defines a pooled corpus
+threshold. The 80% comparison is therefore applied to every form individually;
+`R_pooled` and `U_pooled` are descriptive context only and cannot satisfy the
+criterion (§6.2–§6.4).
 
 ## 2. Terms and counting rules
 
@@ -391,8 +398,10 @@ For each form in the frozen population, in the pre-registered order:
    scoring.
 3. Apply the canonical action mapping from §2.2 and the quality predicate from
    §4.3 to every form.
-4. Compute per-form counts and ratios (§6), then the pooled values.
-5. Write the T142 report with the full per-form table and the pooled result.
+4. Compute per-form counts, ratios, and the per-form SC-003 verdicts (§6);
+   compute the pooled values separately as descriptive context only.
+5. Write the T142 report with the full per-form table, the per-form decisions,
+   and the pooled context values.
 6. Retain raw logs under the evidence root or an attestation and record their
    byte sizes and SHA-256.
 
@@ -432,7 +441,7 @@ U_f = untouched_D(f) / |GT(f)| (SC-003 field share for form f)
 the assisted condition, i.e. the fields that need no manual add, move, resize,
 or type change after review.
 
-### 6.2 Pooled values
+### 6.2 Pooled context values (not acceptance)
 
 ```text
 R_pooled = 1 − (Σ_f D_f / Σ_f M_f)
@@ -440,25 +449,28 @@ U_pooled = (Σ_f untouched_D(f)) / (Σ_f |GT(f)|)
 ```
 
 `R_pooled` is a ratio of totals, not the mean of per-form ratios. `U_pooled` is
-also a ratio of totals. Both are reported with the per-form rows; a pooled value
-must never be reported alone.
+also a ratio of totals. Both are reported with the per-form rows so that a
+reader can see the corpus-wide context, but they are **not** SC-003 decision
+criteria and cannot substitute for any per-form value. A pooled value must never
+be reported alone or used to describe a run as meeting SC-003 "on average",
+"overall", or "in aggregate".
 
 ### 6.3 Reporting precision and rounding
 
 - Report integer counts exactly; never invent, interpolate, or estimate a
   missing count.
 - Report ratios to four decimal places and percentages to one decimal place.
-- Compare the unrounded value with the 0.80 threshold. Do not round a value up
-  across the threshold and do not choose the rounding that turns a fail into a
-  pass.
-- Report the median, minimum, and maximum per-form `R_f` and the count of forms
-  below the threshold. These are descriptive; they do not replace the pooled
-  decision.
+- Compare each form's unrounded `R_f` and `U_f` with the 0.80 threshold. Do not
+  round a value up across the threshold and do not choose the rounding that
+  turns a fail into a pass.
+- Report the median, minimum, and maximum per-form `R_f` and `U_f`, and the
+  count of forms below the threshold under each measure. These are descriptive;
+  they do not replace the per-form decisions.
 - Report the secondary counts (confirm, reject, remove, reorder, navigation,
   committed operations, elapsed time) separately. They are not added to
   `A_c(f)` and cannot be used to lower it.
 
-### 6.4 SC-003 decision rule
+### 6.4 SC-003 decision rule (per form)
 
 SC-003 is satisfied only when **all** of the following hold:
 
@@ -467,28 +479,37 @@ SC-003 is satisfied only when **all** of the following hold:
    excluded, or replaced by a synthetic form.
 2. Every reported form has `M_f > 0`, a valid quality-parity result in both
    conditions, and retained action logs.
-3. `R_pooled ≥ 0.80` (the D-18 action reduction).
-4. `U_pooled ≥ 0.80` (the SC-003 field-share wording).
+3. For every form `f`, `R_f ≥ 0.80` (the D-18 action reduction applied to that
+   form).
+4. For every form `f`, `U_f ≥ 0.80` (the SC-003 field-share wording applied to
+   that form).
 
-The conjunction in items 3 and 4 is deliberate. D-18 defines the action-ratio
+Both measures are applied per form because SC-003 says "the share of a form's
+fields" and D-18 requires recording and comparing the reduction "for each corpus
+form". No normative source defines a pooled corpus threshold. `R_pooled` and
+`U_pooled` are reported as context in §6.2 but are not decision criteria.
+
+If any single form is below 0.80 under either measure, SC-003 is `FAIL` when the
+measurement is otherwise valid, and `PARTIAL` or `FAIL` when the evidence is
+incomplete. The report lists every such form with its `R_f` and `U_f`. No
+averaging, pooling, weighting, trimming, exclusion, or per-form selection may
+turn a below-threshold form into a pass. A run cannot be described as meeting
+SC-003 "on average" or "overall" while an individual form fails.
+
+The conjunction of `R_f` and `U_f` is deliberate. D-18 defines the action-ratio
 reduction and SC-003 defines the field-share measure; both are normative, so a
-run that meets only one of them is `FAIL` or `PARTIAL`, and the divergence is
-reported rather than resolved by choosing the more favourable measure. No
-combined headline replaces the two values, the per-form rows, or the separated
-TP/FP/FN/type/position results that belong to the recognition evaluation.
-
-If any form is below 80% under either measure, the report must list it and must
-not claim that every form met the target. The pooled decision stands only with
-that disclosure; the per-form distribution is part of the result, not an
-optional appendix.
+form that meets only one of them fails, and SC-003 fails for the run. No
+combined headline replaces the two per-form values, the per-form rows, or the
+separated TP/FP/FN/type/position results that belong to the recognition
+evaluation.
 
 ### 6.5 Result vocabulary
 
 Use `PASS`, `FAIL`, or `PARTIAL` only, plus per-check `UNAVAILABLE` or `ABSENT`.
 A run with an invalid form, missing log, missing quality check, or missing
-prerequisite is not `PASS`. A run that meets the numeric thresholds but has an
-unresolved evidence defect is `PARTIAL`, not `PASS`. A failed target is reported
-as `FAIL` and is never re-scored or relabelled.
+prerequisite is not `PASS`. A run that meets every per-form numeric threshold
+but has an unresolved evidence defect is `PARTIAL`, not `PASS`. A failed target
+is reported as `FAIL` and is never re-scored or relabelled.
 
 ## 7. Required T142 record
 
@@ -516,18 +537,22 @@ before.
 
 ### 7.2 Per-form table
 
-| Form ID | GT fields | `M_f` | `D_f` | `R_f` | Untouched fields | `U_f` | Quality parity `M` / `D` | Order | Removes/rejects | Notes |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- |
-| `<form-id>` | `<n>` | `<n>` | `<n>` | `<ratio>` | `<n>` | `<ratio>` | `<VALID/INVALID>` | `<M→D / D→M>` | `<n>` | `<deviation>` |
+| Form ID | GT fields | `M_f` | `D_f` | `R_f` | Untouched fields | `U_f` | Quality parity `M` / `D` | SC-003 form | Order | Removes/rejects | Notes |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- | --- | --- |
+| `<form-id>` | `<n>` | `<n>` | `<n>` | `<ratio>` | `<n>` | `<ratio>` | `<VALID/INVALID>` | `<PASS/FAIL>` | `<M→D / D→M>` | `<n>` | `<deviation>` |
 
-### 7.3 Pooled summary
+### 7.3 Per-form decision summary
 
 | Measure | Value | Decision |
 | --- | ---: | --- |
-| `R_pooled` | `<ratio>` | `<≥ 0.80?>` |
-| `U_pooled` | `<ratio>` | `<≥ 0.80?>` |
+| Forms meeting `R_f ≥ 0.80` | `<n> / <n>` | `<all?>` |
+| Forms meeting `U_f ≥ 0.80` | `<n> / <n>` | `<all?>` |
+| Minimum `R_f` | `<ratio>` | `<≥ 0.80?>` |
+| Minimum `U_f` | `<ratio>` | `<≥ 0.80?>` |
+| Forms below 80% under either measure | `<n>` | `<listed with R_f and U_f?>` |
+| `R_pooled` (context only) | `<ratio>` | Not a decision |
+| `U_pooled` (context only) | `<ratio>` | Not a decision |
 | Forms reported / expected | `<n> / <n>` | `<complete?>` |
-| Forms below 80% | `<n>` | `<listed?>` |
 | Quality-parity failures | `<n>` | `<listed?>` |
 | SC-003 | — | `<PASS / FAIL / PARTIAL>` |
 
@@ -561,7 +586,7 @@ with this table is not evidence for SC-003.
 | Changing the action classes, the net/committed rule, the quality predicate, the threshold, or the rounding after results | Moves the target | Frozen protocol hash; new run for any change |
 | Counting confirmation, rejection, removal, reordering, navigation, or value entry as an add/move/resize/reclassify | Inflates the manual baseline or hides assisted work | Separate secondary counts |
 | Deducting undone actions from the primary count or adding a redo twice to the manual baseline | Manipulates net work | Net primary + full committed secondary count |
-| Reporting only the pooled value, the mean of per-form ratios, or the best forms | Hides distribution and failures | Full per-form table and distribution |
+| Reporting only the pooled value, a mean or weighted average of per-form ratios, or the best forms; or using any pooled or averaged value as the SC-003 decision while a form is below 80% | Hides a below-threshold form and substitutes a corpus aggregate for the per-form requirement | Full per-form table, per-form `R_f`/`U_f`, and a per-form SC-003 verdict |
 | Merging `SIMULATED`, `EMULATOR`, and `DEVICE` results, or using an emulator for the SC-003 run | Violates evidence separation | One class and one runtime per run |
 | Using fewer than 20 rights-cleared real forms or substituting synthetic forms | Violates D-18's corpus | Frozen manifest count |
 | Changing operator, build, device, display, or instructions between paired conditions | Breaks the same-operator/same-tool comparison | Equality table and run manifest |
@@ -588,9 +613,12 @@ A reader must be able to repeat the method without asking the author:
 - [ ] Per-form `M_f`, `D_f`, `R_f`, untouched fields, `U_f`, quality parity,
       order, and secondary counts are present.
 - [ ] `R_pooled` and `U_pooled` are computed from totals, not from a mean of
-      per-form ratios.
-- [ ] The 0.80 comparison uses unrounded values; no value is rounded across the
-      threshold.
+      per-form ratios, and are labelled context only.
+- [ ] Every form is checked individually against 0.80 for both `R_f` and `U_f`;
+      no pooled, averaged, weighted, or best-form value substitutes for a
+      per-form result.
+- [ ] The 0.80 comparison uses each form's unrounded values; no value is
+      rounded across the threshold.
 - [ ] Every invalid, missing, unavailable, or absent item is visible.
 - [ ] The result is `PASS`, `FAIL`, or `PARTIAL`; no failure is hidden in prose.
 - [ ] The independent-review table is blank for the author.
@@ -620,14 +648,23 @@ A reader must be able to repeat the method without asking the author:
   type/IoU ≥ 0.5 matching in both conditions may invalidate forms that a real
   user would accept with minor differences. That strictness is intentional: it
   prevents a lower-quality assisted layout from producing a lower action count.
+- **The SC-003 threshold is per form.** Every form must meet both `R_f ≥ 0.80`
+  and `U_f ≥ 0.80`; a corpus average or pooled ratio cannot rescue a
+  below-threshold form. This is the normative reading of SC-003's "a form's
+  fields" and D-18's per-form comparison, and it can make the criterion harder
+  than a pooled reading. A single failing form makes the run `FAIL` when the
+  measurement is valid.
 - **No runtime evidence from this file.** This file is `NONE`. It cannot prove
   Android behavior, detection quality, export validity, accessibility, or device
   performance.
 
 ## 11. Versioning and change control
 
-- This is version `manual-baseline-protocol.v1.0.0`. Its SHA-256 is recorded in
-  the T142 run manifest before the first scored form.
+- This is version `manual-baseline-protocol.v1.1.0`. It supersedes `v1.0.0`
+  before any scored run: v1.1.0 makes the SC-003 decision per form instead of
+  using pooled ratios. The earlier version remains in the candidate history and
+  was never used for a scored run.
+- Its SHA-256 is recorded in the T142 run manifest before the first scored form.
 - Before the first scored run, a correction that changes the method requires a
   new protocol version and a new run manifest; the previous version is retained
   for audit.
@@ -646,9 +683,10 @@ A reader must be able to repeat the method without asking the author:
 | --- | --- |
 | D-18 add/move/resize/reclassify comparison | §2.2, §6.1 |
 | D-18 same operator and same tool | §3, §4.1 |
-| D-18 per-form recording and reduction formula | §6.1, §7.2 |
+| D-18 per-form recording and reduction formula | §6.1, §6.4, §7.2 |
 | D-18 corpus of at least 20 rights-cleared real forms | §2.1, §6.4 |
-| SC-003 80% reduction and field-share wording | §6.4 |
+| SC-003 80% reduction and field-share wording, applied per form | §6.4 |
+| No pooled/averaged substitution for a per-form SC-003 decision | §1, §6.2–§6.4, §7.3, §8 |
 | SC-003 "after the user's review" | §2.1 accepted layout, §3.1/§3.2 |
 | Constitution Principle IV (frozen corpus, GT, metric) | §4.2, §5.4 |
 | Constitution Principle VIII (separated, measured evidence) | §3, §4.3, §6.5, §7 |
