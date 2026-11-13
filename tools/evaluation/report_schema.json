@@ -1,0 +1,639 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://feldexa.invalid/schemas/evidence-report.schema.json",
+  "x-schema-version": "1.0.0",
+  "title": "Feldexa evidence report",
+  "description": "Normalized model of a Feldexa evidence report. The Dart validator parses the Markdown report template in specs/001-scanned-form-workflow/reports/README.md into this model and validates the result against the standard JSON Schema keywords below. The x-markdown object carries the Markdown-to-model mapping, class requirements, status vocabulary, privacy rules, and performance conditions; it is not applied to a JSON instance. Constitution Principle VIII and spec.md Evidence and Verification Rules are authoritative when this file and a report disagree.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "title",
+    "metadata",
+    "sections",
+    "checks",
+    "artifacts",
+    "review"
+  ],
+  "properties": {
+    "title": {
+      "$ref": "#/$defs/title"
+    },
+    "metadata": {
+      "$ref": "#/$defs/metadata"
+    },
+    "sections": {
+      "$ref": "#/$defs/sections"
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/check"
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/artifact"
+      }
+    },
+    "review": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/reviewRow"
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "description": "Lowercase hexadecimal SHA-256 digest.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "date": {
+      "description": "Calendar date in ISO 8601 form.",
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "evidenceClass": {
+      "description": "Exactly one evidence class per report. NONE is host-only provenance and cannot satisfy a runtime gate.",
+      "type": "string",
+      "enum": [
+        "SIMULATED",
+        "EMULATOR",
+        "DEVICE",
+        "NONE"
+      ]
+    },
+    "result": {
+      "description": "Fixed result vocabulary. Compound PASS labels are forbidden.",
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL",
+        "PARTIAL"
+      ]
+    },
+    "checkOutcome": {
+      "description": "Fixed check-outcome vocabulary. Unavailable and absent checks are explicit.",
+      "type": "string",
+      "enum": [
+        "PASS",
+        "FAIL",
+        "PARTIAL",
+        "UNAVAILABLE",
+        "ABSENT"
+      ]
+    },
+    "title": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "date",
+        "evidenceClass",
+        "summary"
+      ],
+      "properties": {
+        "date": {
+          "$ref": "#/$defs/date"
+        },
+        "evidenceClass": {
+          "$ref": "#/$defs/evidenceClass"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        }
+      }
+    },
+    "dirtyFile": {
+      "description": "A file changed in a dirty working tree, with the SHA-256 of its current bytes.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._+@%()\\[\\]{} /-]+$"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidenceClass",
+        "result",
+        "task",
+        "issue",
+        "timestamp",
+        "date",
+        "baseCommit",
+        "treeState",
+        "externalAttestation",
+        "buildIdentity",
+        "toolchain",
+        "input"
+      ],
+      "properties": {
+        "evidenceClass": {
+          "$ref": "#/$defs/evidenceClass"
+        },
+        "result": {
+          "$ref": "#/$defs/result"
+        },
+        "task": {
+          "description": "Task identifier such as T032.",
+          "type": "string",
+          "pattern": "^T[0-9]{3}$"
+        },
+        "issue": {
+          "description": "GitHub issue number paired with the task.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "timestamp": {
+          "description": "Report date and wall-clock time in the evidence root timezone.",
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2} Europe/Berlin$"
+        },
+        "date": {
+          "$ref": "#/$defs/date"
+        },
+        "baseCommit": {
+          "description": "Full 40-hex commit the evidence was produced from. The candidate that contains the report is recorded in the external attestation instead.",
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "treeState": {
+          "description": "Whether the recorded working tree was clean or dirty.",
+          "type": "string",
+          "enum": [
+            "clean",
+            "dirty"
+          ]
+        },
+        "dirtyFiles": {
+          "description": "Required when treeState is dirty; each file has its own SHA-256.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dirtyFile"
+          }
+        },
+        "externalAttestation": {
+          "description": "Path, Git ref, or transport label for the external attestation that records the candidate SHA and the report's own bytes and hash.",
+          "type": "string",
+          "minLength": 1
+        },
+        "buildIdentity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "toolchain": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "sections": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "revisionAndBuild",
+        "environment",
+        "checks",
+        "results",
+        "performance",
+        "limitations",
+        "artifacts",
+        "reproducibility",
+        "externalAttestation",
+        "independentReview"
+      ],
+      "properties": {
+        "scope": {
+          "$ref": "#/$defs/sectionBody"
+        },
+        "revisionAndBuild": {
+          "$ref": "#/$defs/sectionBody"
+        },
+        "environment": {
+          "$ref": "#/$defs/sectionBody"
+        },
+        "checks": {
+          "$ref": "#/$defs/sectionBody"
+        },
+        "results": {
+          "$ref": "#/$defs/sectionBody"
+        },
+        "performance": {
+          "$ref": "#/$defs/sectionBody"
+        },
+        "limitations": {
+          "$ref": "#/$defs/sectionBody"
+        },
+        "artifacts": {
+          "$ref": "#/$defs/sectionBody"
+        },
+        "reproducibility": {
+          "$ref": "#/$defs/sectionBody"
+        },
+        "externalAttestation": {
+          "$ref": "#/$defs/sectionBody"
+        },
+        "independentReview": {
+          "$ref": "#/$defs/sectionBody"
+        }
+      }
+    },
+    "sectionBody": {
+      "type": "string",
+      "minLength": 1
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "index",
+        "command",
+        "cwd",
+        "exitCode",
+        "log",
+        "outcome"
+      ],
+      "properties": {
+        "index": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cwd": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exitCode": {
+          "description": "Shell exit code for a check that ran. PASS requires 0; FAIL requires a non-zero code; PARTIAL requires an integer. UNAVAILABLE and ABSENT checks did not run and record null, written as '-' in the Markdown table.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 255
+        },
+        "log": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outcome": {
+          "$ref": "#/$defs/checkOutcome"
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._+@%()\\[\\]{} /-]+$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "reviewRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reviewer",
+        "date",
+        "verdict",
+        "notes"
+      ],
+      "properties": {
+        "reviewer": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "verdict": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "x-markdown": {
+    "evidenceRoot": "specs/001-scanned-form-workflow/reports",
+    "indexFile": "README.md",
+    "fileNamePattern": "^(?<date>[0-9]{4}-[0-9]{2}-[0-9]{2})-(?<slug>[a-z0-9][a-z0-9-]*)\\.md$",
+    "titleSeparator": " — ",
+    "metadataLabels": {
+      "evidenceClass": "Evidence class",
+      "result": "Result",
+      "taskIssue": "Task / issue",
+      "timestamp": "Date / timezone",
+      "revision": "Revision",
+      "externalAttestation": "External attestation",
+      "buildIdentity": "Build identity",
+      "toolchain": "Toolchain",
+      "input": "Input"
+    },
+    "sectionOrder": [
+      {
+        "key": "scope",
+        "title": "Scope"
+      },
+      {
+        "key": "revisionAndBuild",
+        "title": "Revision and build"
+      },
+      {
+        "key": "environment",
+        "title": "Environment"
+      },
+      {
+        "key": "checks",
+        "title": "Checks"
+      },
+      {
+        "key": "results",
+        "title": "Results"
+      },
+      {
+        "key": "performance",
+        "title": "Performance"
+      },
+      {
+        "key": "limitations",
+        "title": "Limitations"
+      },
+      {
+        "key": "artifacts",
+        "title": "Artifacts"
+      },
+      {
+        "key": "reproducibility",
+        "title": "Reproducibility"
+      },
+      {
+        "key": "externalAttestation",
+        "title": "External attestation"
+      },
+      {
+        "key": "independentReview",
+        "title": "Independent review"
+      }
+    ],
+    "tableHeaders": {
+      "checks": [
+        "#",
+        "Command (cwd)",
+        "Exit",
+        "Log",
+        "Outcome"
+      ],
+      "artifacts": [
+        "Artifact",
+        "Path",
+        "Bytes",
+        "SHA-256"
+      ],
+      "review": [
+        "Reviewer",
+        "Date",
+        "Verdict",
+        "Notes"
+      ]
+    },
+    "classEnvironment": {
+      "SIMULATED": {
+        "required": [
+          "browser",
+          "viewport",
+          "web build",
+          "sha-256",
+          "simulated adapter",
+          "fixture",
+          "network"
+        ]
+      },
+      "EMULATOR": {
+        "required": [
+          "pixel 7",
+          "api 35",
+          "allocation",
+          "system image",
+          "ram",
+          "apk",
+          "sha-256",
+          "build mode"
+        ]
+      },
+      "DEVICE": {
+        "required": [
+          "galaxy a54 5g",
+          "exynos 1380",
+          "6 gb",
+          "android 14",
+          "fingerprint",
+          "apk",
+          "sha-256",
+          "release",
+          "network"
+        ]
+      },
+      "NONE": {
+        "required": [
+          "host"
+        ]
+      }
+    },
+    "deviceEquivalence": {
+      "description": "An owner-approved T141 equivalent may replace the named Galaxy A54 5G, but only with the same explicit device identity evidence.",
+      "required": [
+        "t141",
+        "fingerprint",
+        "apk",
+        "sha-256",
+        "release",
+        "network"
+      ]
+    },
+    "runtimeMarkers": {
+      "SIMULATED": [
+        "--platform chrome",
+        "flutter drive",
+        "chromedriver",
+        "integration_test/web_"
+      ],
+      "ANDROID": [
+        "adb ",
+        "emulator -avd",
+        "integration_test/android_"
+      ]
+    },
+    "performance": {
+      "noClaim": "no performance claim",
+      "conditionGroups": [
+        {
+          "name": "build mode",
+          "any": [
+            "release",
+            "debug",
+            "profile"
+          ]
+        },
+        {
+          "name": "device or emulator profile",
+          "any": [
+            "galaxy a54",
+            "pixel 7",
+            "browser",
+            "viewport",
+            "device profile",
+            "emulator"
+          ]
+        },
+        {
+          "name": "input corpus",
+          "any": [
+            "corpus",
+            "fixture",
+            "page set",
+            "document"
+          ]
+        },
+        {
+          "name": "run statistics",
+          "any": [
+            "median",
+            "p95",
+            "mean",
+            "warm-up",
+            "warm up",
+            "runs"
+          ]
+        }
+      ],
+      "sc004": {
+        "description": "The three-second SC-004 claim is only valid with the named representative device, release build, frozen corpus, median, and warm-up conditions.",
+        "triggers": [
+          "3 s",
+          "3 seconds",
+          "three seconds",
+          "3-second"
+        ],
+        "required": [
+          "galaxy a54",
+          "release",
+          "corpus",
+          "median",
+          "warm-up"
+        ]
+      }
+    },
+    "privacy": {
+      "forbiddenSubstrings": [
+        "/home/",
+        "/Users/",
+        "C:\\Users\\",
+        ".dsh/sessions",
+        "xxammaxx"
+      ],
+      "forbiddenPatterns": [
+        {
+          "name": "absolute host path",
+          "pattern": "(^|[^A-Za-z0-9._-])/(?:home|Users|opt|usr|var|tmp|root|mnt|media|etc|srv|proc|sys|dev|boot|run|bin|sbin|lib|lib32|lib64|nix|snap|workspace|private|Volumes|data|system|vendor|storage|sdcard|apex)/"
+        },
+        {
+          "name": "raw terminal identifier",
+          "pattern": "\\bterm_[0-9a-fA-F-]{8,}\\b"
+        },
+        {
+          "name": "raw task, dispatch, or context identifier",
+          "pattern": "\\b(?:task|dispatch|ctx)_[0-9a-fA-F]{8,}\\b"
+        },
+        {
+          "name": "raw session identifier",
+          "pattern": "\\bses_[A-Za-z0-9]{6,}\\b"
+        },
+        {
+          "name": "absolute Windows drive path",
+          "pattern": "(^|[^A-Za-z0-9/])[A-Za-z]:[\\\\/]"
+        },
+        {
+          "name": "absolute Windows UNC path",
+          "pattern": "(^|[^A-Za-z0-9])\\\\\\\\[A-Za-z0-9._$-]+\\\\"
+        },
+        {
+          "name": "file URL with Windows drive",
+          "pattern": "[Ff][Ii][Ll][Ee]:///[A-Za-z]:[\\\\/]"
+        },
+        {
+          "name": "file URL with UNC share",
+          "pattern": "[Ff][Ii][Ll][Ee]://[A-Za-z0-9._-]+/"
+        },
+        {
+          "name": "scheme-relative or forward-slash UNC path",
+          "pattern": "(^|[^A-Za-z0-9:/])//[A-Za-z0-9._$-]+"
+        },
+        {
+          "name": "Windows extended or device namespace path",
+          "pattern": "(^|[^A-Za-z0-9])\\\\\\\\[?.]\\\\"
+        },
+        {
+          "name": "forward Windows extended or device namespace path",
+          "pattern": "(^|[^A-Za-z0-9:/])//[?.]/"
+        },
+        {
+          "name": "NT object namespace path",
+          "pattern": "(^|[^A-Za-z0-9])[\\\\/]\\?\\?[\\\\/]"
+        },
+        {
+          "name": "rooted Windows or NT object path",
+          "pattern": "(^|[^A-Za-z0-9])\\\\[A-Za-z0-9._$-]+\\\\"
+        }
+      ]
+    },
+    "review": {
+      "authorMustLeaveBlank": true
+    }
+  }
+}

@@ -196,12 +196,16 @@ DEVICE: Samsung Galaxy A54 5G (Exynos 1380, 6 GB, Android 14, One UI 6.1)
 
 ## 8. Pre-review checks
 
-Run the committed minimal check from the repository root:
+Run the committed checks from the repository root:
 
 ```sh
 python3 tools/evaluation/check_evidence_docs.py
 python3 tools/evaluation/check_evidence_docs.py --revision <commit>
 python3 tools/evaluation/check_evidence_docs.py --attestation-ref refs/remotes/origin/t010-attestation
+
+dart tools/evaluation/validate_report.dart --schema-check
+dart tools/evaluation/validate_report.dart specs/001-scanned-form-workflow/reports/<report>.md
+dart tools/evaluation/validate_report_test.dart
 ```
 
 Artifact rows are historical records. The checker verifies them against a
@@ -218,8 +222,57 @@ and the checker are allowed to evolve; their historical values are still
 verified at that revision through the artifact rows and attestation changed
 files.
 
-The attestation form runs inside a fresh bundle clone. T032 still owns the
-machine-readable schema and full validator.
+The attestation form runs inside a fresh bundle clone. `tools/evaluation/report_schema.json`
+is the machine-readable schema; `tools/evaluation/validate_report.dart` parses
+this template into the schema's normalized model and fails closed on mixed
+evidence classes, compound `PASS` labels, missing class-environment evidence,
+unconditioned performance claims, privacy leaks, artifact byte/hash drift,
+self-reference, naming/date drift, and a missing index row. In a fresh clone
+where ignored logs are absent, pass `--allow-missing-artifacts` to downgrade
+only those absent files to warnings.
+
+A check that did not run (`UNAVAILABLE` or `ABSENT`) records `-` for its exit
+code; an executed check records an integer, where `PASS` requires 0 and `FAIL`
+requires a non-zero code. Artifact and dirty-file paths must resolve inside the
+repository root; a symbolic link that escapes it is a validation failure even
+when its target bytes match the recorded hash.
+
+A performance section is a no-claim statement only when its entire normalized
+text is `No performance claim.`; mixing that phrase with a timing result is a
+contradiction and fails. Dates and times must be real calendar and clock
+values, not merely shape-valid, and absolute system paths such as `/etc/` are
+forbidden anywhere in a report.
+
+Performance detection uses the schema's SC-004 trigger list, including `3 s`,
+`3 seconds`, `three seconds`, and `3-second`, so worded forms cannot bypass the
+conditions. Output paths are always repository-relative or, for a report
+outside the root, basename-only; raw absolute report paths are never emitted,
+and an unreadable or escaping index is a structured `index.unreadable` finding.
+
+Metadata tables accept only the template's named fields; an unknown field is a
+`parse.metadata.unknown` finding and is never silently dropped before schema
+validation.
+
+Artifact, dirty-file, metadata-key, and index diagnostics are content-free:
+they name the rule and outcome but never echo report-supplied paths, labels, or
+index class values.
+
+Privacy also covers Windows absolute paths: drive-letter forms such as `D:\`
+or `D:/`, UNC forms such as `\\server\share`, forward-slash UNC and
+scheme-relative forms such as `//host/share`, and Windows file URLs.
+Scheme-relative URLs are ambiguous with UNC paths and are rejected
+conservatively; write an explicit `http://` or `https://` URL instead.
+Explicit HTTP(S) URLs and relative backslash paths remain valid and are
+covered by false-positive regressions.
+
+Extended-length, device, and NT object namespace prefixes such as `\\?\`,
+`\\.\`, and `\??\`, plus their forward-slash variants, are also rejected
+as absolute namespace paths.
+
+Rooted Windows/NT object paths with a single leading backslash and at least
+one backslash-separated segment, such as device, registry, GLOBALROOT, or
+DosDevices paths, are rejected as absolute. Isolated escape sequences such as
+`\n` or `\alpha` and relative backslash paths remain valid.
 
 - [ ] One class, one revision; no cross-class aggregation.
 - [ ] Base commit, tree state, and candidate attestation are named; no false
@@ -257,6 +310,7 @@ the git bundle and are not bundle-verifiable.
 | [2026-11-13-t014-evidence.md](./2026-11-13-t014-evidence.md) | `NONE` | Task evidence | T014 error taxonomy and evidence classes; v2 privacy correction after quality review; host-VM only |
 | [2026-11-13-t015-evidence.md](./2026-11-13-t015-evidence.md) | `NONE` | Task evidence | T015 geometry value objects; host-VM only |
 | [2026-11-13-t015-merge-evidence.md](./2026-11-13-t015-merge-evidence.md) | `NONE` | Task evidence | T015 merge of corrected main `31c75e8`; local merge only, diff vs main recorded |
+| [2026-11-13-t032-evidence.md](./2026-11-13-t032-evidence.md) | `NONE` | Task evidence | T032 evidence report schema and validator; host-only checks |
 | [2026-11-12-task-issue-mapping.md](./2026-11-12-task-issue-mapping.md) | `NONE` | Historical snapshot | 2026-11-12T15:50Z all-open mapping; not live issue state |
 | [2026-11-12-task-issue-mapping.json](./2026-11-12-task-issue-mapping.json) | `NONE` | Historical snapshot | Machine-readable dated snapshot; do not overwrite with current state |
 | `backups/` | — | Not evidence | Pre-edit snapshots |
