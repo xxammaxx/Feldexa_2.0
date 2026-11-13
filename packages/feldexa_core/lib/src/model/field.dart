@@ -380,7 +380,10 @@ final class FieldSuggestion {
   /// [pageIndex] in plain decimal and a one-based ordinal zero-padded to at
   /// least four digits; it must embed [pageIndex]. The contract has exactly
   /// one spelling per suggestion, so padding aliases such as `s_p00_0001` or
-  /// `s_p0_00001` are rejected. [confidence] is on `0.0 … 1.0` with at most
+  /// `s_p0_00001` are rejected. [rect] is rounded to the canonical 1/8 pt grid
+  /// required by `contracts/recognition-output.md` §2 and §5.4 before it is
+  /// stored; confirmed-field geometry is never rounded (FR-024).
+  /// [confidence] is on `0.0 … 1.0` with at most
   /// two decimal places (`contracts/recognition-output.md` §2). [labelText] is
   /// trimmed, must contain no control characters, and is at most 200
   /// characters; null or blank means no credible label. A
@@ -426,7 +429,7 @@ final class FieldSuggestion {
     return FieldSuggestion._(
       id: checkedId,
       pageIndex: checkedPage,
-      rect: rect,
+      rect: canonicalRect(rect),
       proposedType: proposedType,
       confidence: checkedConfidence,
       labelText: checkedLabel,
@@ -476,7 +479,12 @@ final class FieldSuggestion {
   /// document aggregate.
   final int pageIndex;
 
-  /// Display-space rectangle in PDF points; see [fitsWithinPage].
+  /// Canonical 1/8 pt-rounded display-space rectangle in PDF points.
+  ///
+  /// The constructor stores [canonicalRect], the stability form required by
+  /// `contracts/recognition-output.md` §2 and §5.4. Confirmed-field geometry is
+  /// never rounded (FR-024), so this field is the only place the suggestion
+  /// grid applies. See [fitsWithinPage].
   final Rect rect;
 
   /// The inferred type. [FieldType.signature] is only allowed with the
@@ -506,6 +514,33 @@ final class FieldSuggestion {
   /// Current review state; persisted suggestions are [unresolved] until the
   /// user acts.
   final SuggestionResolution resolution;
+
+  /// Returns the canonical 1/8 pt rounding of a suggestion rectangle.
+  ///
+  /// `contracts/recognition-output.md` §2 and §5.4 require suggestion
+  /// rectangles to be rounded to 1/8 pt before IDs and conflicts are computed.
+  /// Each component (`x`, `y`, `width`, `height`) is rounded independently to
+  /// the nearest 1/8 pt, with ties away from zero, so every edge lands on the
+  /// 1/8 pt grid while the stored size stays positive.
+  ///
+  /// This rule applies to machine suggestions only. Confirmed-field geometry
+  /// is never rounded; corrected rectangles must be preserved exactly
+  /// (FR-024).
+  ///
+  /// Throws [ArgumentError] when a rounded width or height would not be
+  /// positive, or when a component overflows to infinity while scaling.
+  static Rect canonicalRect(Rect rect) {
+    final double left = _roundToEighth(rect.left, 'x');
+    final double top = _roundToEighth(rect.top, 'y');
+    final double width = _roundToEighth(rect.width, 'width');
+    final double height = _roundToEighth(rect.height, 'height');
+    if (width <= 0 || height <= 0) {
+      throw ArgumentError(
+        'rect width and height must remain positive after 1/8 pt rounding',
+      );
+    }
+    return Rect.fromLTWH(left, top, width, height);
+  }
 
   /// The deterministic suggestion id for [pageIndex] and a one-based
   /// [ordinal].
@@ -1943,6 +1978,20 @@ double _checkTwoDecimalConfidence(double value, String name) {
 double _roundToTwoDecimals(double value) {
   final double result = (value * 100).roundToDouble() / 100;
   // Normalize negative zero so canonical JSON and equality see `0.0`.
+  return result == 0 ? 0.0 : result;
+}
+
+/// Rounds one suggestion-rect component to the nearest 1/8 pt.
+///
+/// [name] names the component in the error without echoing a user value. A
+/// finite component whose scaling overflows cannot be quantized, so it fails
+/// closed instead of producing an infinite edge. Negative zero is normalized.
+double _roundToEighth(double value, String name) {
+  final double scaled = value * 8;
+  if (!scaled.isFinite) {
+    throw ArgumentError('rect $name must be finite after 1/8 pt rounding');
+  }
+  final double result = scaled.roundToDouble() / 8;
   return result == 0 ? 0.0 : result;
 }
 

@@ -436,20 +436,110 @@ void main() {
         isTrue,
       );
       expect(
-        _suggestion(rect: Rect.fromLTWH(0, 0, 595.51, 842))
+        _suggestion(rect: Rect.fromLTWH(0, 0, 595.6, 842)).fitsWithinPage(page),
+        isFalse,
+      );
+      expect(
+        _suggestion(rect: Rect.fromLTWH(-0.6, 0, 595, 842))
             .fitsWithinPage(page),
         isFalse,
       );
       expect(
-        _suggestion(rect: Rect.fromLTWH(-0.51, 0, 595, 842))
-            .fitsWithinPage(page),
+        _suggestion(rect: Rect.fromLTWH(0, 0, 595, 842.6)).fitsWithinPage(page),
         isFalse,
+      );
+    });
+
+    test('rounds the stored rect to the 1/8 pt grid', () {
+      final FieldSuggestion suggestion = _suggestion(
+        rect: Rect.fromLTWH(10.07, 20.03, 99.99, 14.94),
+      );
+      expect(suggestion.rect, Rect.fromLTWH(10.125, 20, 100, 15));
+    });
+
+    test('canonicalRect rounds components and half-step ties', () {
+      expect(
+        FieldSuggestion.canonicalRect(
+          Rect.fromLTWH(10.07, 20.03, 99.99, 14.94),
+        ),
+        Rect.fromLTWH(10.125, 20, 100, 15),
+      );
+      // Exact half-step ties round away from zero on the 1/8 pt grid.
+      expect(
+        FieldSuggestion.canonicalRect(
+          Rect.fromLTWH(0.0625, 0.1875, 0.4375, 0.3125),
+        ),
+        Rect.fromLTWH(0.125, 0.25, 0.5, 0.375),
       );
       expect(
-        _suggestion(rect: Rect.fromLTWH(0, 0, 595, 842.51))
-            .fitsWithinPage(page),
-        isFalse,
+        FieldSuggestion.canonicalRect(Rect.fromLTWH(-0.0625, -0.1875, 1, 1)),
+        Rect.fromLTWH(-0.125, -0.25, 1, 1),
       );
+    });
+
+    test('canonicalRect is idempotent and leaves aligned rects unchanged', () {
+      final Rect aligned = Rect.fromLTWH(10.125, 20, 100, 15);
+      expect(FieldSuggestion.canonicalRect(aligned), aligned);
+      final Rect raw = Rect.fromLTWH(10.07, 20.03, 99.99, 14.94);
+      final Rect once = FieldSuggestion.canonicalRect(raw);
+      expect(FieldSuggestion.canonicalRect(once), once);
+    });
+
+    test('canonicalRect rejects zero-size and overflowing results', () {
+      expect(
+        () => FieldSuggestion.canonicalRect(Rect.fromLTWH(1, 1, 0.01, 1)),
+        throwsArgumentError,
+      );
+      expect(
+        () => FieldSuggestion.canonicalRect(Rect.fromLTWH(1, 1, 1, 0.01)),
+        throwsArgumentError,
+      );
+      expect(
+        () => FieldSuggestion.canonicalRect(Rect.fromLTWH(1, 1, 0.0624, 1)),
+        throwsArgumentError,
+      );
+      // Half of one grid step still rounds up to 1/8.
+      expect(
+        FieldSuggestion.canonicalRect(Rect.fromLTWH(1, 1, 0.0625, 0.0625)),
+        Rect.fromLTWH(1, 1, 0.125, 0.125),
+      );
+      expect(
+        () => FieldSuggestion.canonicalRect(
+          Rect.fromLTWH(double.maxFinite, 0, 1, 1),
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('constructor and JSON round-trip the canonical rect', () {
+      final Rect raw = Rect.fromLTWH(10.07, 20.03, 99.99, 14.94);
+      final Rect expected = FieldSuggestion.canonicalRect(raw);
+      final FieldSuggestion suggestion = _suggestion(rect: raw);
+      expect(suggestion.rect, expected);
+      expect(suggestion.toJson()['rect'], expected.toJson());
+      final FieldSuggestion parsed = FieldSuggestion.fromJson(
+        _jsonRoundTrip(suggestion.toJson()),
+      );
+      expect(parsed.rect, expected);
+      expect(parsed, suggestion);
+      final FieldSuggestion copied = suggestion.copyWith(
+        rect: Rect.fromLTWH(1.01, 2.02, 3.03, 4.04),
+      );
+      expect(
+        copied.rect,
+        FieldSuggestion.canonicalRect(Rect.fromLTWH(1.01, 2.02, 3.03, 4.04)),
+      );
+    });
+
+    test('raw rects that round to the same grid point are equal', () {
+      final FieldSuggestion a = _suggestion(
+        rect: Rect.fromLTWH(10.07, 20.03, 99.99, 14.94),
+      );
+      final FieldSuggestion b = _suggestion(
+        rect: Rect.fromLTWH(10.1, 20, 100, 15),
+      );
+      expect(b.rect, a.rect);
+      expect(b, a);
     });
 
     test('copyWith keeps the id and can clear the optional label', () {
@@ -676,6 +766,15 @@ void main() {
         () => machine.copyWith(provenance: Provenance.user),
         throwsArgumentError,
       );
+    });
+
+    test('keeps confirmed-field geometry exact', () {
+      // The 1/8 pt suggestion grid is deliberately not applied to corrected
+      // field geometry (FR-024).
+      final Rect raw = Rect.fromLTWH(10.07, 20.03, 99.99, 14.94);
+      final ConfirmedField field = _field(rect: raw);
+      expect(field.rect, raw);
+      expect(field.toJson()['rect'], raw.toJson());
     });
 
     test('toString never echoes the label', () {
