@@ -122,7 +122,7 @@ These are the only genuine artifact contradictions found; each is resolved by th
 - [x] T009 Create the deterministic synthetic fixture generator in `tools/corpus/synthetic/generate.dart` and its fixtures under `apps/feldexa_app/assets/fixtures/` (US9; FR-086)
 - [x] T010 [P] Create the evidence report template and directory in `specs/001-scanned-form-workflow/reports/README.md` for the `SIMULATED`, `EMULATOR`, and `DEVICE` classes (constitution Principle VIII)
 - [x] T011 [P] Create the test toolkit with a fake clock, fixture loader, and fault hooks in `packages/feldexa_testkit/lib/` (plan §Architecture Decisions 10)
-- [ ] T012 Create the shared `SIMULATED` banner and evidence-label widget in `packages/feldexa_ui/lib/src/simulated_banner.dart` (FR-087; constitution Principle II)
+- [x] T012 Create the shared `SIMULATED` banner and evidence-label widget in `packages/feldexa_ui/lib/src/simulated_banner.dart` (FR-087; constitution Principle II)
 
 ---
 
