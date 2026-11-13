@@ -200,10 +200,25 @@ Run the committed minimal check from the repository root:
 
 ```sh
 python3 tools/evaluation/check_evidence_docs.py
+python3 tools/evaluation/check_evidence_docs.py --revision <commit>
 python3 tools/evaluation/check_evidence_docs.py --attestation-ref refs/remotes/origin/t010-attestation
 ```
 
-The second form runs inside a fresh bundle clone. T032 still owns the
+Artifact rows are historical records. The checker verifies them against a
+committed Git tree, never against a later working-tree edit. When a later task
+has changed a listed file, it accepts the rows only if a revision reachable
+from `HEAD` matches every recorded size and SHA-256; `--revision` pins that
+revision explicitly. An attestation candidate is verified at its own commit
+even when `HEAD` has moved on. A changed file that no recorded revision
+contains still fails.
+
+The checked report is bound to the same revision or attestation candidate: a
+working-copy report edit fails, even if only a title changed. README, tasks.md,
+and the checker are allowed to evolve; their historical values are still
+verified at that revision through the artifact rows and attestation changed
+files.
+
+The attestation form runs inside a fresh bundle clone. T032 still owns the
 machine-readable schema and full validator.
 
 - [ ] One class, one revision; no cross-class aggregation.
