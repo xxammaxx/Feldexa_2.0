@@ -7,5 +7,671 @@
   "startTitle": "Meine Dokumente",
   "@startTitle": {
     "description": "Heading of the start area (contracts/error-catalog.de.md §8)."
+  },
+  "imp001": "Diese PDF-Datei ist passwortgeschützt. Feldexa kann geschützte Dateien nicht öffnen, und Ihr Passwort wird weder abgefragt noch gespeichert.",
+  "@imp001": {
+    "description": "contracts/error-catalog.de.md §1 IMP-001: PDF positively identified as password-protected/encrypted."
+  },
+  "imp001Recovery": "Bitte entfernen Sie den Schutz in einem PDF-Programm, das Sie dafür verwenden dürfen, und importieren Sie die Datei erneut.",
+  "@imp001Recovery": {
+    "description": "contracts/error-catalog.de.md §1 IMP-001: recovery guidance."
+  },
+  "imp002": "Die Datei konnte nicht gelesen werden. Sie ist möglicherweise unvollständig oder beschädigt.",
+  "@imp002": {
+    "description": "contracts/error-catalog.de.md §1 IMP-002: File unreadable, truncated, or damaged beyond use."
+  },
+  "imp002Recovery": "Bitte öffnen Sie die Datei in einem PDF-Programm, speichern Sie sie erneut und versuchen Sie es noch einmal.",
+  "@imp002Recovery": {
+    "description": "contracts/error-catalog.de.md §1 IMP-002: recovery guidance."
+  },
+  "imp003": "Die ausgewählte Datei ist nicht mehr verfügbar. Möglicherweise wurde sie verschoben, umbenannt oder gelöscht.",
+  "@imp003": {
+    "description": "contracts/error-catalog.de.md §1 IMP-003: File missing or no longer accessible."
+  },
+  "imp003Recovery": "Bitte wählen Sie die Datei erneut aus.",
+  "@imp003Recovery": {
+    "description": "contracts/error-catalog.de.md §1 IMP-003: recovery guidance."
+  },
+  "imp004": "Diese Datei ist kein unterstütztes PDF. Feldexa kann nur PDF-Dokumente importieren.",
+  "@imp004": {
+    "description": "contracts/error-catalog.de.md §1 IMP-004: Not a PDF or unsupported PDF structure."
+  },
+  "imp004Recovery": "Bitte wählen Sie eine PDF-Datei aus.",
+  "@imp004Recovery": {
+    "description": "contracts/error-catalog.de.md §1 IMP-004: recovery guidance."
+  },
+  "imp005": "Die Datei konnte nicht gelesen werden. Die Ursache lässt sich nicht sicher feststellen.",
+  "@imp005": {
+    "description": "contracts/error-catalog.de.md §1 IMP-005: Failure reason cannot be determined."
+  },
+  "imp005Recovery": "Bitte versuchen Sie es erneut. Wenn das Problem bleibt, öffnen und speichern Sie die Datei in einem PDF-Programm.",
+  "@imp005Recovery": {
+    "description": "contracts/error-catalog.de.md §1 IMP-005: recovery guidance."
+  },
+  "imp006": "Einige Seiten konnten nicht gelesen werden: {pages}. Die übrigen Seiten sind nutzbar. Ein Export des vollständigen Dokuments ist dadurch beeinträchtigt.",
+  "@imp006": {
+    "description": "contracts/error-catalog.de.md §1 IMP-006: Some pages unreadable, others usable.",
+    "placeholders": {
+      "pages": {
+        "type": "String"
+      }
+    }
+  },
+  "imp006Recovery": "Sie können die betroffenen Seiten prüfen und das Dokument trotzdem weiterbearbeiten.",
+  "@imp006Recovery": {
+    "description": "contracts/error-catalog.de.md §1 IMP-006: recovery guidance."
+  },
+  "imp007": "Die Datei ist zu groß. Feldexa kann PDF-Dateien bis 80 MiB (83.886.080 Bytes) importieren.",
+  "@imp007": {
+    "description": "contracts/error-catalog.de.md §1 IMP-007: File exceeds 80 MiB."
+  },
+  "imp007Recovery": "Bitte verkleinern Sie die Datei, zum Beispiel durch eine niedrigere Scan-Auflösung, und importieren Sie sie erneut.",
+  "@imp007Recovery": {
+    "description": "contracts/error-catalog.de.md §1 IMP-007: recovery guidance."
+  },
+  "page001": "Seite {page} kann nicht angezeigt werden. Die übrigen Seiten bleiben verfügbar.",
+  "@page001": {
+    "description": "contracts/error-catalog.de.md §2 PAGE-001: Page cannot be rendered.",
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "page001Recovery": "Sie können auf dieser Seite trotzdem Felder setzen; der Export bleibt eingeschränkt.",
+  "@page001Recovery": {
+    "description": "contracts/error-catalog.de.md §2 PAGE-001: recovery guidance."
+  },
+  "rec001": "Die Texterkennung ist auf diesem Gerät nicht verfügbar. Feldexa erkennt Felder nur anhand des Seitenaufbaus.",
+  "@rec001": {
+    "description": "contracts/error-catalog.de.md §2 REC-001: OCR engine unavailable on this device."
+  },
+  "rec001Recovery": "Sie können Felder jederzeit selbst ergänzen.",
+  "@rec001Recovery": {
+    "description": "contracts/error-catalog.de.md §2 REC-001: recovery guidance."
+  },
+  "rec002": "Die Felderkennung auf Seite {page} ist fehlgeschlagen. Bereits erkannte Seiten bleiben unverändert.",
+  "@rec002": {
+    "description": "contracts/error-catalog.de.md §2 REC-002: Detection failed for a page.",
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "rec002Recovery": "Bitte ergänzen Sie fehlende Felder auf dieser Seite selbst oder versuchen Sie es erneut.",
+  "@rec002Recovery": {
+    "description": "contracts/error-catalog.de.md §2 REC-002: recovery guidance."
+  },
+  "rec003": "Seite {page} konnte nicht ausgewertet werden. Der Seitenaufbau ist möglicherweise beschädigt.",
+  "@rec003": {
+    "description": "contracts/error-catalog.de.md §2 REC-003: Page structure unsupported/unreadable.",
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "rec003Recovery": "Sie können die Seite weiter anzeigen und Felder manuell hinzufügen.",
+  "@rec003Recovery": {
+    "description": "contracts/error-catalog.de.md §2 REC-003: recovery guidance."
+  },
+  "suggestionsLabel": "Vorschläge",
+  "@suggestionsLabel": {
+    "description": "§2 recognition summary label: suggestions are never described as complete (FR-085)."
+  },
+  "save001": "Der Speicherplatz reicht nicht aus. Der letzte gespeicherte Stand ist erhalten; die neuesten Änderungen sind noch nicht dauerhaft gespeichert.",
+  "@save001": {
+    "description": "contracts/error-catalog.de.md §3 SAVE-001: Storage full / quota exceeded."
+  },
+  "save001Recovery": "Bitte geben Sie Speicherplatz frei und versuchen Sie es erneut. Feldexa löscht keine Ihrer Dokumente.",
+  "@save001Recovery": {
+    "description": "contracts/error-catalog.de.md §3 SAVE-001: recovery guidance."
+  },
+  "save002": "Die gespeicherten Daten können nicht entschlüsselt werden, weil der Schlüssel dieses Geräts nicht mehr verfügbar ist. Dieses Dokument kann nicht geöffnet werden. Andere Dokumente und Vorlagen sind davon nicht betroffen.",
+  "@save002": {
+    "description": "contracts/error-catalog.de.md §3 SAVE-002: Key material unavailable/invalidated."
+  },
+  "save002Recovery": "Eine Wiederherstellung ist nicht möglich. Bitte wenden Sie sich an den Gerätehersteller, wenn der Schlüssel durch eine Zurücksetzung verloren gegangen ist.",
+  "@save002Recovery": {
+    "description": "contracts/error-catalog.de.md §3 SAVE-002: recovery guidance."
+  },
+  "save003": "Speichern ist fehlgeschlagen. Der zuletzt erfolgreich gespeicherte Stand bleibt erhalten.",
+  "@save003": {
+    "description": "contracts/error-catalog.de.md §3 SAVE-003: Write failed or stored data corrupted."
+  },
+  "save003Recovery": "Bitte versuchen Sie es erneut. Wenn der Fehler bleibt, prüfen Sie den freien Speicherplatz.",
+  "@save003Recovery": {
+    "description": "contracts/error-catalog.de.md §3 SAVE-003: recovery guidance."
+  },
+  "save004": "Feldexa hat einen älteren gespeicherten Stand wiederhergestellt, weil der neueste Stand nicht lesbar war. Änderungen seit diesem Stand können verloren sein.",
+  "@save004": {
+    "description": "contracts/error-catalog.de.md §3 SAVE-004: Recovery fell back to older revision."
+  },
+  "save004Recovery": "Bitte prüfen Sie das Dokument und speichern Sie es erneut.",
+  "@save004Recovery": {
+    "description": "contracts/error-catalog.de.md §3 SAVE-004: recovery guidance."
+  },
+  "save005": "Dieses Dokument wurde mit einer neueren Version von Feldexa gespeichert. Bitte aktualisieren Sie die App, um es zu öffnen. Die Daten bleiben unverändert.",
+  "@save005": {
+    "description": "contracts/error-catalog.de.md §3 SAVE-005: Data written by a newer app version."
+  },
+  "save005Recovery": "Öffnen Sie das Dokument erst nach dem Update wieder.",
+  "@save005Recovery": {
+    "description": "contracts/error-catalog.de.md §3 SAVE-005: recovery guidance."
+  },
+  "save006": "Das Speichern konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.",
+  "@save006": {
+    "description": "contracts/error-catalog.de.md §3 SAVE-006: Concurrent save conflict."
+  },
+  "save007": "Die Änderung konnte nicht gespeichert werden, weil die Daten ungültig sind. Der letzte gespeicherte Stand bleibt erhalten.",
+  "@save007": {
+    "description": "contracts/error-catalog.de.md §3 SAVE-007: Invalid data rejected (oversized/invalid payload)."
+  },
+  "save007Recovery": "Bitte prüfen Sie sehr lange Eingaben und versuchen Sie es erneut.",
+  "@save007Recovery": {
+    "description": "contracts/error-catalog.de.md §3 SAVE-007: recovery guidance."
+  },
+  "priv001": "Ihre Dokumente werden nur auf diesem Gerät und mit einem Schlüssel gespeichert, der an dieses Gerät gebunden ist. Sicherungskopien der App-Daten sind nicht möglich. Wenn der Schlüssel verloren geht – zum Beispiel durch Zurücksetzen des Geräts –, können die betroffenen Dokumente nicht wiederhergestellt werden. Andere Dokumente bleiben unabhängig davon nutzbar.",
+  "@priv001": {
+    "description": "§3 PRIV-001: pre-emptive key/backup disclosure shown before the first save (FR-089)."
+  },
+  "durabilityClean": "Gespeichert",
+  "@durabilityClean": {
+    "description": "§3 durability label `clean`: no changes since the verified commit (FR-046)."
+  },
+  "durabilitySaving": "Wird gespeichert …",
+  "@durabilitySaving": {
+    "description": "§3 durability label `saving`: commit in progress, not yet durable (FR-046)."
+  },
+  "durabilitySaved": "Gespeichert um {time}",
+  "@durabilitySaved": {
+    "description": "§3 durability label `saved`: verified durable commit (FR-046).",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "durabilityUnsaved": "Nicht gespeichert – Änderungen sind gefährdet",
+  "@durabilityUnsaved": {
+    "description": "§3 durability label `unsaved`: in-memory changes only (FR-046)."
+  },
+  "durabilitySaveFailed": "Speichern fehlgeschlagen – letzter gespeicherter Stand: {time}",
+  "@durabilitySaveFailed": {
+    "description": "§3 durability label `saveFailed`: failure with preserved prior state (FR-046).",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "durabilityRecoveryFallback": "Älterer Stand wiederhergestellt",
+  "@durabilityRecoveryFallback": {
+    "description": "§3 durability label `recoveryFallback`: fallback after corruption (FR-046)."
+  },
+  "exp001": "Der Export wurde gestoppt, weil der Inhalt in {count} Feld/Feldern nicht vollständig Platz hat: {fields}. Es wurde keine PDF-Datei erstellt.",
+  "@exp001": {
+    "description": "contracts/error-catalog.de.md §4 EXP-001: Content would be clipped/overflow.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "fields": {
+        "type": "String"
+      }
+    }
+  },
+  "exp001Recovery": "Bitte kürzen Sie den Text oder vergrößern Sie die betroffenen Felder und starten Sie den Export erneut.",
+  "@exp001Recovery": {
+    "description": "contracts/error-catalog.de.md §4 EXP-001: recovery guidance."
+  },
+  "exp002": "Der Export ist fehlgeschlagen. Es wurde keine gültige PDF-Datei erstellt. Ihr Dokument ist unverändert.",
+  "@exp002": {
+    "description": "contracts/error-catalog.de.md §4 EXP-002: Export failed/interrupted."
+  },
+  "exp002Recovery": "Bitte prüfen Sie den freien Speicherplatz und versuchen Sie es erneut.",
+  "@exp002Recovery": {
+    "description": "contracts/error-catalog.de.md §4 EXP-002: recovery guidance."
+  },
+  "exp003": "Der Export wurde gestoppt, weil mindestens ein Feld außerhalb der Seite liegt: {fields}. Es wurde keine PDF-Datei erstellt.",
+  "@exp003": {
+    "description": "contracts/error-catalog.de.md §4 EXP-003: Field geometry outside page.",
+    "placeholders": {
+      "fields": {
+        "type": "String"
+      }
+    }
+  },
+  "exp003Recovery": "Bitte verschieben Sie die betroffenen Felder auf die Seite und versuchen Sie es erneut.",
+  "@exp003Recovery": {
+    "description": "contracts/error-catalog.de.md §4 EXP-003: recovery guidance."
+  },
+  "exp004": "Der Export wurde gestoppt, weil ein Zeichen nicht dargestellt werden kann: {fields}. Es wurde keine PDF-Datei erstellt.",
+  "@exp004": {
+    "description": "contracts/error-catalog.de.md §4 EXP-004: Character not renderable.",
+    "placeholders": {
+      "fields": {
+        "type": "String"
+      }
+    }
+  },
+  "exp004Recovery": "Bitte entfernen Sie das betroffene Zeichen oder ersetzen Sie es und versuchen Sie es erneut.",
+  "@exp004Recovery": {
+    "description": "contracts/error-catalog.de.md §4 EXP-004: recovery guidance."
+  },
+  "exp005": "Der Export ist nicht möglich, weil die gespeicherte Originaldatei nicht mehr gelesen werden kann. Ihr bearbeitetes Dokument bleibt erhalten.",
+  "@exp005": {
+    "description": "contracts/error-catalog.de.md §4 EXP-005: Stored source unreadable."
+  },
+  "exp005Recovery": "Bitte importieren Sie das Original erneut und übertragen Sie Ihre Angaben.",
+  "@exp005Recovery": {
+    "description": "contracts/error-catalog.de.md §4 EXP-005: recovery guidance."
+  },
+  "exp006": "Der Export wurde gestoppt, weil Seite {page} nicht übernommen werden kann. Es wurde keine PDF-Datei erstellt. Seiten werden nicht stillschweigend weggelassen.",
+  "@exp006": {
+    "description": "contracts/error-catalog.de.md §4 EXP-006: A page cannot be copied.",
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "exp006Recovery": "Bitte prüfen Sie das Original oder importieren Sie es erneut. Andere Seiten und Ihre Eingaben bleiben erhalten.",
+  "@exp006Recovery": {
+    "description": "contracts/error-catalog.de.md §4 EXP-006: recovery guidance."
+  },
+  "save001Export": "Der Speicherplatz reicht für den Export nicht aus. Es wurde keine gültige PDF-Datei erstellt.",
+  "@save001Export": {
+    "description": "contracts/error-catalog.de.md §4 SAVE-001: No space during export."
+  },
+  "save001ExportRecovery": "Bitte geben Sie Speicherplatz frei und versuchen Sie es erneut.",
+  "@save001ExportRecovery": {
+    "description": "contracts/error-catalog.de.md §4 SAVE-001: recovery guidance."
+  },
+  "preExportEmptyFields": "{empty} Felder sind noch leer. Leere Felder werden nicht ausgefüllt, der Export bleibt möglich.",
+  "@preExportEmptyFields": {
+    "description": "§4 pre-export information: empty fields never block export (FR-062).",
+    "placeholders": {
+      "empty": {
+        "type": "int"
+      }
+    }
+  },
+  "preExportUnreviewedSuggestions": "{count} Vorschläge sind noch nicht geprüft. Sie werden nicht in die PDF-Datei übernommen.",
+  "@preExportUnreviewedSuggestions": {
+    "description": "§4 pre-export information: unreviewed suggestions are excluded under the provisional OD-1 policy.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportSuccess": "Die PDF-Datei ist fertig und wurde geprüft. Sie können sie ansehen, speichern, teilen oder drucken.",
+  "@exportSuccess": {
+    "description": "§4 export success message; never claims guaranteed correctness."
+  },
+  "previewFooter": "Vorschau der erzeugten PDF-Datei",
+  "@previewFooter": {
+    "description": "§4 preview footer of the in-app export preview."
+  },
+  "tpl001": "Eine Vorlage kann nicht erstellt werden, weil noch keine Felder bestätigt sind oder die Originalseiten nicht lesbar sind.",
+  "@tpl001": {
+    "description": "contracts/error-catalog.de.md §5 TPL-001: Template creation impossible (no confirmed fields or source unreadable)."
+  },
+  "tpl001Recovery": "Bitte prüfen und bestätigen Sie zuerst die Felder.",
+  "@tpl001Recovery": {
+    "description": "contracts/error-catalog.de.md §5 TPL-001: recovery guidance."
+  },
+  "tpl002": "Die Vorlage konnte nicht gespeichert werden. Bereits vorhandene Vorlagenversionen bleiben unverändert.",
+  "@tpl002": {
+    "description": "contracts/error-catalog.de.md §5 TPL-002: Template save failed."
+  },
+  "tpl002Recovery": "Bitte prüfen Sie den freien Speicherplatz und versuchen Sie es erneut.",
+  "@tpl002Recovery": {
+    "description": "contracts/error-catalog.de.md §5 TPL-002: recovery guidance."
+  },
+  "tpl003": "Die Vorlage konnte nicht geöffnet werden, weil sie unerwartete Eingaben enthält. Es wurden keine Daten geändert.",
+  "@tpl003": {
+    "description": "contracts/error-catalog.de.md §5 TPL-003: Template opened for editing contains values (internal invariant)."
+  },
+  "tpl003Recovery": "Bitte versuchen Sie es erneut oder erstellen Sie die Vorlage neu.",
+  "@tpl003Recovery": {
+    "description": "contracts/error-catalog.de.md §5 TPL-003: recovery guidance."
+  },
+  "templateSaveAction": "Als Vorlage speichern",
+  "@templateSaveAction": {
+    "description": "§5/§8 template action label."
+  },
+  "templateLabel": "Vorlage",
+  "@templateLabel": {
+    "description": "§5 template label."
+  },
+  "templateVersionLabel": "Vorlagenversion {n} vom {date}",
+  "@templateVersionLabel": {
+    "description": "§5 template version label.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "templateNewVersionSaved": "Neue Version gespeichert",
+  "@templateNewVersionSaved": {
+    "description": "§5 confirmation after saving a new template version."
+  },
+  "templateEditorHint": "In einer Vorlage werden nur Felder und Seiten gespeichert – keine Eingaben und keine Unterschriften.",
+  "@templateEditorHint": {
+    "description": "§5 template editor hint: templates never store values or signatures."
+  },
+  "date001": "Bitte geben Sie ein gültiges Datum im Format Tag.Monat.Jahr ein, zum Beispiel 31.12.2025.",
+  "@date001": {
+    "description": "contracts/error-catalog.de.md §6 DATE-001: Malformed date."
+  },
+  "date002": "Dieses Datum existiert nicht. Bitte geben Sie ein gültiges Datum im Format Tag.Monat.Jahr ein.",
+  "@date002": {
+    "description": "contracts/error-catalog.de.md §6 DATE-002: Impossible calendar date (e.g., 31.02.2025)."
+  },
+  "date002Recovery": "Prüfen Sie Tag und Monat.",
+  "@date002Recovery": {
+    "description": "contracts/error-catalog.de.md §6 DATE-002: recovery guidance."
+  },
+  "num001": "Bitte geben Sie eine gültige Zahl ein, zum Beispiel 1234,56.",
+  "@num001": {
+    "description": "contracts/error-catalog.de.md §6 NUM-001: Invalid number."
+  },
+  "fld001": "Der Text ist länger als das Feld. Er wurde nicht gekürzt. Der Export wird gestoppt, bis der Text gekürzt oder das Feld vergrößert ist.",
+  "@fld001": {
+    "description": "contracts/error-catalog.de.md §6 FLD-001: Text longer than field."
+  },
+  "fld001Recovery": "Bitte kürzen Sie den Text oder vergrößern Sie das Feld.",
+  "@fld001Recovery": {
+    "description": "contracts/error-catalog.de.md §6 FLD-001: recovery guidance."
+  },
+  "fld002": "Der bisherige Inhalt passt nicht zum neuen Feldtyp. Er wurde nicht gelöscht und ist weiterhin sichtbar.",
+  "@fld002": {
+    "description": "contracts/error-catalog.de.md §6 FLD-002: Incompatible content after type change."
+  },
+  "fld002Recovery": "Bitte prüfen Sie den Inhalt und übernehmen, ändern oder verwerfen Sie ihn bewusst.",
+  "@fld002Recovery": {
+    "description": "contracts/error-catalog.de.md §6 FLD-002: recovery guidance."
+  },
+  "fld003": "Zwei Vorschläge überlappen sich. Bitte entscheiden Sie für jeden Vorschlag einzeln, ob er übernommen wird.",
+  "@fld003": {
+    "description": "contracts/error-catalog.de.md §6 FLD-003: Conflict between suggestions."
+  },
+  "deleteDocumentDialog": "Möchten Sie „{title}“ wirklich löschen? Gelöscht werden die gespeicherten Seiten, Felder, Eingaben und Unterschriften dieses Dokuments. Andere Dokumente und Vorlagen bleiben erhalten.",
+  "@deleteDocumentDialog": {
+    "description": "§7 DEL-002 document deletion dialog (FR-076).",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteTemplateDialog": "Möchten Sie die Vorlage „{title}“ mit allen Versionen wirklich löschen? Dokumente, die aus dieser Vorlage erstellt wurden, bleiben unverändert und weiterhin nutzbar.",
+  "@deleteTemplateDialog": {
+    "description": "§7 DEL-003 template deletion dialog.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "deletionConfirmation": "„{title}“ wurde gelöscht. Andere Dokumente und Vorlagen wurden nicht verändert.",
+  "@deletionConfirmation": {
+    "description": "§7 confirmation after deletion.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "documentsGroup": "Dokumente",
+  "@documentsGroup": {
+    "description": "§8 documents group heading."
+  },
+  "templatesGroup": "Vorlagen",
+  "@templatesGroup": {
+    "description": "§8 templates group heading."
+  },
+  "emptyDocuments": "Noch keine Dokumente. Importieren Sie eine gescannte PDF-Datei, um zu beginnen.",
+  "@emptyDocuments": {
+    "description": "§8 empty documents state."
+  },
+  "emptyTemplates": "Noch keine Vorlagen. Speichern Sie ein geprüftes Dokument als Vorlage.",
+  "@emptyTemplates": {
+    "description": "§8 empty templates state."
+  },
+  "importAction": "PDF importieren",
+  "@importAction": {
+    "description": "§8 import action."
+  },
+  "statusDraft": "In Bearbeitung",
+  "@statusDraft": {
+    "description": "§8 document status `draft`."
+  },
+  "statusExportReady": "Exportbereit",
+  "@statusExportReady": {
+    "description": "§8 document status `export-ready`."
+  },
+  "statusUnreadable": "Nicht lesbar",
+  "@statusUnreadable": {
+    "description": "§8 document status `unreadable`."
+  },
+  "fieldCount": "{count} Felder, {filled} ausgefüllt",
+  "@fieldCount": {
+    "description": "§8 field count summary.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "filled": {
+        "type": "int"
+      }
+    }
+  },
+  "lastEdited": "Zuletzt bearbeitet: {date}",
+  "@lastEdited": {
+    "description": "§8 last-edited label.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewAction": "Felder prüfen",
+  "@reviewAction": {
+    "description": "§8 review action."
+  },
+  "fillAction": "Ausfüllen",
+  "@fillAction": {
+    "description": "§8 fill action."
+  },
+  "exportAction": "PDF exportieren",
+  "@exportAction": {
+    "description": "§8 export action."
+  },
+  "saveNow": "Jetzt speichern",
+  "@saveNow": {
+    "description": "§8 explicit save action."
+  },
+  "unsavedBadge": "Nicht gespeichert",
+  "@unsavedBadge": {
+    "description": "§8 unsaved badge."
+  },
+  "unsavedRiskBanner": "Ihre letzten Änderungen sind noch nicht dauerhaft gespeichert. Verlassen Sie die App nicht, bis „Gespeichert“ erscheint.",
+  "@unsavedRiskBanner": {
+    "description": "§8 unsaved-risk banner."
+  },
+  "a11yFieldOverlay": "Feld {label}, Typ {type}, Seite {page}, {filled}, {status}{conflict}{uncertainty}",
+  "@a11yFieldOverlay": {
+    "description": "§8 accessibility field-overlay semantics; `filled`, `status`, `conflict`, and `uncertainty` receive the German fragment values below.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      },
+      "page": {
+        "type": "int"
+      },
+      "filled": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      },
+      "conflict": {
+        "type": "String"
+      },
+      "uncertainty": {
+        "type": "String"
+      }
+    }
+  },
+  "a11yFieldValueFilled": "ausgefüllt",
+  "@a11yFieldValueFilled": {
+    "description": "§8 accessibility field-overlay value: the field has a confirmed value."
+  },
+  "a11yFieldValueEmpty": "leer",
+  "@a11yFieldValueEmpty": {
+    "description": "§8 accessibility field-overlay value: the field is empty."
+  },
+  "a11yFieldStatusConfirmed": "bestätigt",
+  "@a11yFieldStatusConfirmed": {
+    "description": "§8 accessibility field-overlay status: confirmed."
+  },
+  "a11yFieldStatusSuggestion": "Vorschlag",
+  "@a11yFieldStatusSuggestion": {
+    "description": "§8 accessibility field-overlay status: unconfirmed suggestion."
+  },
+  "a11yFieldStatusSelfCreated": "selbst erstellt",
+  "@a11yFieldStatusSelfCreated": {
+    "description": "§8 accessibility field-overlay status: created by the user."
+  },
+  "a11yFieldConflict": ", Konflikt",
+  "@a11yFieldConflict": {
+    "description": "§8 optional accessibility suffix for a conflicting field."
+  },
+  "a11yFieldUncertain": ", unsicher",
+  "@a11yFieldUncertain": {
+    "description": "§8 optional accessibility suffix for an uncertain suggestion."
+  },
+  "a11ySuggestion": "Vorschlag für {type} bei {label}, Zuverlässigkeit {percent} Prozent, nicht bestätigt",
+  "@a11ySuggestion": {
+    "description": "§8 accessibility suggestion semantics (FR-094).",
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "label": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "a11yCheckbox": "Kontrollkästchen {label}, {state}",
+  "@a11yCheckbox": {
+    "description": "§8 accessibility checkbox semantics; `state` is one of the two fragments below.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "a11yCheckboxChecked": "aktiviert",
+  "@a11yCheckboxChecked": {
+    "description": "§8 accessibility checkbox state: checked."
+  },
+  "a11yCheckboxUnchecked": "nicht aktiviert",
+  "@a11yCheckboxUnchecked": {
+    "description": "§8 accessibility checkbox state: unchecked."
+  },
+  "a11ySignature": "Unterschriftenfeld {label}, {state}",
+  "@a11ySignature": {
+    "description": "§8 accessibility signature-field semantics; `state` is one of the two fragments below.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "state": {
+        "type": "String"
+      }
+    }
+  },
+  "a11ySignatureSigned": "unterschrieben",
+  "@a11ySignatureSigned": {
+    "description": "§8 accessibility signature state: signed."
+  },
+  "a11ySignatureUnsigned": "nicht unterschrieben",
+  "@a11ySignatureUnsigned": {
+    "description": "§8 accessibility signature state: unsigned."
+  },
+  "a11yPageNavigation": "Seite {page} von {count}",
+  "@a11yPageNavigation": {
+    "description": "§8 accessibility page-navigation semantics.",
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "a11yZoom": "Vergrößerung {percent} Prozent",
+  "@a11yZoom": {
+    "description": "§8 accessibility zoom semantics.",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "simulatedBanner": "SIMULATED – Entwicklungsansicht mit simulierten Plattformfunktionen. Keine Android-Prüfung.",
+  "@simulatedBanner": {
+    "description": "§8 exact SIMULATED banner, including the untranslated mandated token (FR-087)."
+  },
+  "simulatedToken": "SIMULATED",
+  "@simulatedToken": {
+    "description": "§9 required exact untranslated evidence token; never translated or hidden (FR-087)."
+  },
+  "simulatedLogPrefix": "[SIMULATED]",
+  "@simulatedLogPrefix": {
+    "description": "§9 exact log prefix."
+  },
+  "simulatedBannerContext": "Entwicklungsansicht: Plattformfunktionen sind simuliert. Ergebnisse gelten nicht als Android-Nachweis.",
+  "@simulatedBannerContext": {
+    "description": "§9 German context line for the global SIMULATED banner."
+  },
+  "simulatedExportFooterContext": "Simuliertes PDF – kein Produktionsartefakt.",
+  "@simulatedExportFooterContext": {
+    "description": "§9 German context line for the simulated export footer."
+  },
+  "simulatedStorageContext": "Simulierter Speicher – keine echte Verschlüsselung.",
+  "@simulatedStorageContext": {
+    "description": "§9 German context line for the simulated storage notice."
+  },
+  "actionUnderstood": "Verstanden",
+  "@actionUnderstood": {
+    "description": "§11 rule 5: non-destructive acknowledgment action in an error dialog."
+  },
+  "actionRetry": "Erneut versuchen",
+  "@actionRetry": {
+    "description": "§11 rule 5: retry action in an error dialog."
+  },
+  "actionCheckStorage": "Speicherplatz prüfen",
+  "@actionCheckStorage": {
+    "description": "§11 rule 5: storage-recovery action in an error dialog."
   }
 }
