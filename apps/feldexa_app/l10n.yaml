@@ -2,8 +2,11 @@
 # research.md D-15; FR-090).
 #
 # German (de) is the only release locale. The template ARB is the single
-# source of user-facing strings; generated Dart lives next to the ARBs under
-# lib/l10n/ so it is reviewed and committed with the source. The deprecated
+# build-time source of generated user-facing strings; its German text and
+# stable codes are normative in specs/001-scanned-form-workflow/contracts/
+# error-catalog.de.md, and test/german_strings_test.dart verifies the
+# catalog-to-ARB mapping. Generated Dart lives next to the ARBs under lib/l10n/
+# so it is reviewed and committed with the source. The deprecated
 # synthetic-package mode is intentionally not enabled: generated code is normal
 # application source, and tests import it directly.
 arb-dir: lib/l10n

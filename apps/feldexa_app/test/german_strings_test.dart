@@ -19,6 +19,77 @@ const String _catalogPath =
 const String _arbPath = 'lib/l10n/app_de.arb';
 const String _generatedPath = 'lib/l10n/app_localizations_de.dart';
 
+/// Non-code catalog items use the semantic ARB keys below. `appTitle` is the
+/// T005 shell title and is documented as the one key not defined in the
+/// catalog; every other key maps to a catalog label, dialog, durability state,
+/// action, or accessibility fragment.
+const Set<String> _nonCodeArbKeys = <String>{
+  'a11yCheckbox',
+  'a11yCheckboxChecked',
+  'a11yCheckboxUnchecked',
+  'a11yFieldConflict',
+  'a11yFieldOverlay',
+  'a11yFieldStatusConfirmed',
+  'a11yFieldStatusSelfCreated',
+  'a11yFieldStatusSuggestion',
+  'a11yFieldUncertain',
+  'a11yFieldValueEmpty',
+  'a11yFieldValueFilled',
+  'a11yPageNavigation',
+  'a11ySignature',
+  'a11ySignatureSigned',
+  'a11ySignatureUnsigned',
+  'a11ySuggestion',
+  'a11yZoom',
+  'actionCheckStorage',
+  'actionRetry',
+  'actionUnderstood',
+  'appTitle',
+  'deleteDocumentDialog',
+  'deleteTemplateDialog',
+  'deletionConfirmation',
+  'documentsGroup',
+  'durabilityClean',
+  'durabilityRecoveryFallback',
+  'durabilitySaveFailed',
+  'durabilitySaved',
+  'durabilitySaving',
+  'durabilityUnsaved',
+  'emptyDocuments',
+  'emptyTemplates',
+  'exportAction',
+  'exportSuccess',
+  'fieldCount',
+  'fillAction',
+  'importAction',
+  'lastEdited',
+  'preExportEmptyFields',
+  'preExportUnreviewedSuggestions',
+  'previewFooter',
+  'priv001',
+  'reviewAction',
+  'saveNow',
+  'simulatedBanner',
+  'simulatedBannerContext',
+  'simulatedExportFooterContext',
+  'simulatedLogPrefix',
+  'simulatedStorageContext',
+  'simulatedToken',
+  'startTitle',
+  'statusDraft',
+  'statusExportReady',
+  'statusUnreadable',
+  'suggestionsLabel',
+  'templateEditorHint',
+  'templateLabel',
+  'templateNewVersionSaved',
+  'templateSaveAction',
+  'templateVersionLabel',
+  'templatesGroup',
+  'unsavedBadge',
+  'unsavedRiskBanner',
+};
+
 /// German quotes wrap every catalog text. The catalog also nests German quotes
 /// inside a sentence (deletion dialogs and the unsaved banner), so the match is
 /// deliberately greedy from the first opening to the last closing quote.
@@ -116,6 +187,26 @@ List<String> _tableCellsInSection(String catalog, String sectionPrefix) {
   return rows;
 }
 
+/// The complete catalog-to-ARB key mapping: code-derived keys plus the
+/// documented semantic keys for non-code items.
+Set<String> _expectedKeys(String catalog) {
+  final Set<String> keys = <String>{..._nonCodeArbKeys};
+  final Map<String, int> seen = <String, int>{};
+  for (final _CatalogRow row in _catalogRows(catalog)) {
+    if (row.message == null) {
+      continue;
+    }
+    final int occurrence = (seen[row.code] ?? 0) + 1;
+    seen[row.code] = occurrence;
+    final String key = _catalogKey(row.code, occurrence);
+    keys.add(key);
+    if (row.recovery != null) {
+      keys.add('${key}Recovery');
+    }
+  }
+  return keys;
+}
+
 String? _lineContaining(String catalog, String needle) {
   for (final String line in catalog.split('\n')) {
     if (line.contains(needle)) {
@@ -188,6 +279,26 @@ void main() {
         reason: '$code has no German ARB message',
       );
     }
+  });
+
+  test('catalog and ARB key mapping is complete in both directions', () {
+    final Set<String> actual = _messageKeys(arb).toSet();
+    final Set<String> expected = _expectedKeys(catalog);
+
+    expect(
+      actual.difference(expected),
+      isEmpty,
+      reason:
+          'orphan ARB keys have no documented catalog mapping: '
+          '${actual.difference(expected)}',
+    );
+    expect(
+      expected.difference(actual),
+      isEmpty,
+      reason:
+          'catalog items have no ARB entry: '
+          '${expected.difference(actual)}',
+    );
   });
 
   test('corrected IMP-007 and FLD-001 texts are preserved verbatim', () {
