@@ -1094,9 +1094,10 @@ final class FieldSuggestion {
 final class ConfirmedField {
   /// Creates a confirmed field.
   ///
-  /// [id] is a UUIDv4 or a deterministic template field id: non-empty, at most
-  /// 128 characters, with no whitespace or control characters. [label] is
-  /// trimmed and must be 1–120 characters; German characters are preserved.
+  /// [id] must be a lowercase UUIDv4. A [Provenance.template] field may keep a
+  /// deterministic template field id instead: non-empty, at most 128
+  /// characters, with no whitespace or control characters. [label] is trimmed
+  /// and must be 1–120 characters; German characters are preserved.
   /// [order] is at least 0. [createdAt] and [updatedAt] must be UTC.
   /// [sourceSuggestionId] and [suggestionConfidence] are required exactly when
   /// [provenance] is [Provenance.machine], and the suggestion must be on the
@@ -1119,7 +1120,7 @@ final class ConfirmedField {
     FieldValidation validation = FieldValidation.ok,
   }) {
     final int checkedPage = _checkPageIndex(pageIndex);
-    final String checkedId = _validateFieldId(id);
+    final String checkedId = _validateConfirmedFieldId(id, provenance);
     final String checkedLabel = _normalizeRequiredLabel(
       label,
       maxLength: 120,
@@ -1206,7 +1207,8 @@ final class ConfirmedField {
     }
   }
 
-  /// UUIDv4 or deterministic template field id.
+  /// Lowercase UUIDv4, or a deterministic template field id for
+  /// [Provenance.template].
   final String id;
 
   /// Zero-based page index; the document aggregate validates it against the
@@ -2480,6 +2482,21 @@ String _validateSuggestionId(String value, int pageIndex) {
   return (pageIndex: pageIndex, ordinal: ordinal);
 }
 
+/// Validates a [ConfirmedField.id] for [provenance].
+///
+/// `data-model.md` §3.5 requires a lowercase UUIDv4. A field inherited from a
+/// template may keep a deterministic template field id instead; its format is
+/// owned by the template task, so only the generic machine-id safety rules are
+/// enforced for it.
+String _validateConfirmedFieldId(String value, Provenance provenance) {
+  if (provenance == Provenance.template) {
+    return _validateFieldId(value);
+  }
+  return _validateUuidV4(value, 'id');
+}
+
+/// Validates the generic machine-id shape used by deterministic template field
+/// ids and by `SignatureMark.fieldId` references.
 String _validateFieldId(String value) {
   if (value.isEmpty) {
     throw ArgumentError('id must not be empty');

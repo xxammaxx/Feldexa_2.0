@@ -1193,43 +1193,87 @@ void main() {
       expect(() => _field(updatedAt: local), throwsArgumentError);
     });
 
-    test('enforces field-id shape and limits', () {
+    test('requires UUIDv4 ids except for deterministic template fields', () {
+      expect(_field().id, _uuid);
       expect(() => _field(id: ''), throwsArgumentError);
       expect(() => _field(id: ' padded'), throwsArgumentError);
       expect(() => _field(id: 'has space'), throwsArgumentError);
       expect(() => _field(id: _repeat('a', 129)), throwsArgumentError);
-    });
-
-    test('rejects Unicode whitespace and C1 controls in field ids', () {
-      // Machine identifiers must not hide separators that `trim()` and an
-      // ASCII-only check would miss: no-break space, Ogham space, the
-      // U+2000–U+200A quad family, line/paragraph separators, narrow and
-      // medium spaces, ideographic space, and the C1 range.
-      for (final String id in <String>[
-        'field\u00A0id',
-        'field\u1680id',
-        'field\u2000id',
-        'field\u200Aid',
-        'field\u2028id',
-        'field\u2029id',
-        'field\u202Fid',
-        'field\u205Fid',
-        'field\u3000id',
-        'field\u0085id',
-        'field\u009Fid',
-      ]) {
-        expect(() => _field(id: id), throwsArgumentError);
-        expect(() => _mark(fieldId: id), throwsArgumentError);
-      }
-      expect(_field(id: 'feld-1').id, 'feld-1');
+      // Arbitrary ids are not allowed for user or machine fields; §3.5 permits
+      // only a UUIDv4 or a deterministic template field id.
+      expect(() => _field(id: 'feld-1'), throwsArgumentError);
       expect(
-        _field(id: 'Straße').id,
-        'Straße',
-        reason: 'non-ASCII visible identifiers remain valid',
+        () => _field(
+          id: 'feld-1',
+          provenance: Provenance.machine,
+          sourceSuggestionId: 's_p0_0001',
+          suggestionConfidence: 0.8,
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        _field(provenance: Provenance.template, id: 'feld-1').id,
+        'feld-1',
+      );
+      // The UUID must be lowercase so persisted ids have one canonical form.
+      expect(() => _field(id: _uuid.toUpperCase()), throwsArgumentError);
+      final ConfirmedField template = _field(
+        provenance: Provenance.template,
+        id: 'feld-1',
+      );
+      final Map<String, Object?> json = _jsonRoundTrip(template.toJson());
+      expect(
+        ConfirmedField.fromJson(json),
+        template,
+        reason: 'a deterministic template id round-trips',
+      );
+      expect(
+        () => ConfirmedField.fromJson(
+          Map<String, Object?>.from(json)..['provenance'] = 'user',
+        ),
+        throwsFormatException,
       );
     });
 
-    test('rejects invisible Unicode format controls in field ids', () {
+    test(
+      'rejects Unicode whitespace and C1 controls in template field ids',
+      () {
+        // Machine identifiers must not hide separators that `trim()` and an
+        // ASCII-only check would miss: no-break space, Ogham space, the
+        // U+2000–U+200A quad family, line/paragraph separators, narrow and
+        // medium spaces, ideographic space, and the C1 range.
+        for (final String id in <String>[
+          'field\u00A0id',
+          'field\u1680id',
+          'field\u2000id',
+          'field\u200Aid',
+          'field\u2028id',
+          'field\u2029id',
+          'field\u202Fid',
+          'field\u205Fid',
+          'field\u3000id',
+          'field\u0085id',
+          'field\u009Fid',
+        ]) {
+          expect(
+            () => _field(provenance: Provenance.template, id: id),
+            throwsArgumentError,
+          );
+          expect(() => _mark(fieldId: id), throwsArgumentError);
+        }
+        expect(
+          _field(provenance: Provenance.template, id: 'feld-1').id,
+          'feld-1',
+        );
+        expect(
+          _field(provenance: Provenance.template, id: 'Straße').id,
+          'Straße',
+          reason: 'non-ASCII visible template identifiers remain valid',
+        );
+      },
+    );
+
+    test('rejects invisible Unicode format controls in template field ids', () {
       // Zero-width and bidirectional format characters are not visible and
       // must never be hidden inside a machine identifier.
       for (final String id in <String>[
@@ -1243,33 +1287,51 @@ void main() {
         'field\uFEFFid',
         'field\u{E0001}id',
       ]) {
-        expect(() => _field(id: id), throwsArgumentError);
+        expect(
+          () => _field(provenance: Provenance.template, id: id),
+          throwsArgumentError,
+        );
         expect(() => _mark(fieldId: id), throwsArgumentError);
       }
-      expect(_field(id: 'Straße').id, 'Straße');
-      expect(_field(id: '中文').id, '中文');
-      expect(_field(id: 'العربية').id, 'العربية');
+      expect(
+        _field(provenance: Provenance.template, id: 'Straße').id,
+        'Straße',
+      );
+      expect(_field(provenance: Provenance.template, id: '中文').id, '中文');
+      expect(
+        _field(provenance: Provenance.template, id: 'العربية').id,
+        'العربية',
+      );
     });
 
-    test('rejects default-ignorable non-Cf code points in field ids', () {
-      // U+034F and the other default-ignorable marks/fillers are invisible
-      // even though they are not Cf format controls.
-      for (final String id in <String>[
-        'field\u034Fid',
-        'field\u115Fid',
-        'field\u17B4id',
-        'field\u180Bid',
-        'field\u3164id',
-        'field\uFE00id',
-        'field\uFFA0id',
-      ]) {
-        expect(() => _field(id: id), throwsArgumentError);
-        expect(() => _mark(fieldId: id), throwsArgumentError);
-      }
-      // A visible decomposed accent (U+0301) is not default-ignorable and
-      // remains a valid identifier.
-      expect(_field(id: 'Cafe\u0301').id, 'Cafe\u0301');
-    });
+    test(
+      'rejects default-ignorable non-Cf code points in template field ids',
+      () {
+        // U+034F and the other default-ignorable marks/fillers are invisible
+        // even though they are not Cf format controls.
+        for (final String id in <String>[
+          'field\u034Fid',
+          'field\u115Fid',
+          'field\u17B4id',
+          'field\u180Bid',
+          'field\u3164id',
+          'field\uFE00id',
+          'field\uFFA0id',
+        ]) {
+          expect(
+            () => _field(provenance: Provenance.template, id: id),
+            throwsArgumentError,
+          );
+          expect(() => _mark(fieldId: id), throwsArgumentError);
+        }
+        // A visible decomposed accent (U+0301) is not default-ignorable and
+        // remains a valid template identifier.
+        expect(
+          _field(provenance: Provenance.template, id: 'Cafe\u0301').id,
+          'Cafe\u0301',
+        );
+      },
+    );
 
     test('accepts only matching values or preserved incompatible content', () {
       final ConfirmedField field = _field(type: FieldType.text);
