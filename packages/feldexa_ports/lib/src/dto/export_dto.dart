@@ -5,7 +5,9 @@
 //
 // `ExportPlan`, `ExportValidation`, `ExportArtifact`, and `ArtifactVerification`
 // are canonical `feldexa_export` contract models owned by T022. This file only
-// consumes them; it must not redeclare or wrap them in a second model.
+// consumes them; the T013-owned `ExportValidationResult` wraps the canonical
+// `ExportValidation` to attach `CapabilityEvidence` and must not redeclare,
+// reshape, or duplicate that canonical type.
 
 import 'package:feldexa_export/feldexa_export.dart';
 import 'package:feldexa_ports/evidence.dart';
@@ -117,5 +119,43 @@ final class ExportResult {
   @override
   String toString() {
     return 'ExportResult(state: ${artifact.state.wireName})';
+  }
+}
+
+/// The result of `PdfExportPort.validate` (`contracts/ports.md` §2.5).
+///
+/// [validation] remains the canonical T022 `feldexa_export` model with its
+/// blocking warnings and UTC validation time. This T013-owned wrapper only
+/// attaches the [evidence] required by §1 for an acceptance-relevant result; it
+/// does not duplicate or reshape the canonical validation type.
+final class ExportValidationResult {
+  /// Creates a validation result.
+  const ExportValidationResult({
+    required this.validation,
+    required this.evidence,
+  });
+
+  /// The canonical T022 validation, including its blocking warnings.
+  final ExportValidation validation;
+
+  /// Evidence class of the adapter that produced this validation.
+  final CapabilityEvidence evidence;
+
+  /// Whether the canonical validation has no blocking warning.
+  bool get isValid => validation.isValid;
+
+  /// Whether the canonical validation blocks export.
+  bool get isBlocking => validation.isBlocking;
+
+  /// Blocking warnings in the canonical validation order.
+  ///
+  /// The list is the canonical, unmodifiable warning list; [fieldLabel] values
+  /// are user content and are never logged by this wrapper.
+  List<ExportValidationWarning> get warnings => validation.warnings;
+
+  @override
+  String toString() {
+    return 'ExportValidationResult(isValid: $isValid, '
+        'warnings: ${warnings.length})';
   }
 }

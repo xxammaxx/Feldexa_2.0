@@ -1,10 +1,18 @@
 # T013 Evidence Review Correction — SourceIntegrity Evidence and the ExportValidation Boundary
 
+> **Owner decision (2026-11-15):** The `ExportValidation` collision below was
+> resolved in favor of a T013-owned wrapper. `PdfExportPort.validate` now
+> returns `ExportValidationResult` carrying the canonical T022
+> `ExportValidation` plus `CapabilityEvidence`; `feldexa_export` remains
+> ports-free and no canonical type is duplicated. See
+> [2026-11-15-t013-export-validation-wrapper.md](./2026-11-15-t013-export-validation-wrapper.md).
+> The historical options below are retained for audit.
+>
 > **Correction (2026-11-14):** The separate flattening finding was corrected
 > after this report. `ExportOptions(flatten: false)` is now rejected and
-> positive/negative regressions were added; the evidence analysis and the
-> `ExportValidation` collision options above remain unchanged. The
-> `feldexa_ports` test count in this report (104) is superseded by 105. See
+> positive/negative regressions were added; the evidence analysis remains
+> unchanged, and the collision was later resolved by the owner decision above.
+> The `feldexa_ports` test count in this report (104) is superseded by 107. See
 > [2026-11-14-t013-export-options-flatten-correction.md](./2026-11-14-t013-export-options-flatten-correction.md).
 
 | Field | Value |

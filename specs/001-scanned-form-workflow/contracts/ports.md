@@ -258,18 +258,32 @@ final class ExportResult {
   final CapabilityEvidence evidence;
 }
 
+final class ExportValidationResult {
+  final ExportValidation validation;   // canonical T022 type, never duplicated
+  final CapabilityEvidence evidence;   // §1 labelling for the preflight result
+}
+
 abstract interface class PdfExportPort implements PlatformCapability {
-  Future<ExportValidation> validate(ExportPlan plan);
+  Future<ExportValidationResult> validate(ExportPlan plan);
   Future<ExportResult> export(ExportRequest request);
   Future<Uint8List> readArtifact(String artifactId);   // for preview; bounded
   Future<void> deleteArtifact(String artifactId);
 }
 ```
 
-`ExportPlan`, `ExportValidation`, `ExportArtifact`, and `ArtifactVerification` are canonical `feldexa_export` contract-model types owned by T022; `feldexa_export` builds plans, `feldexa_ports` only consumes them.
+`ExportPlan`, `ExportValidation`, `ExportArtifact`, and `ArtifactVerification`
+are canonical `feldexa_export` contract-model types owned by T022;
+`feldexa_export` builds plans, `feldexa_ports` only consumes them.
+`ExportValidationResult` is the T013-owned ports wrapper required by §1: it
+holds the canonical, unmodified `ExportValidation` together with
+`CapabilityEvidence`. It is not a second validation model, and `feldexa_export`
+must still not import `feldexa_ports` (owner decision of 2026-11-15).
 
 **Contract**
-- `validate` returns blocking warnings (overflow/misplacement) before any file is written (FR-068).
+- `validate` returns the canonical blocking warnings (overflow/misplacement) and
+  the adapter `CapabilityEvidence` before any file is written (FR-068 and §1).
+  The wrapper preserves the canonical `ExportValidation` warning list and
+  blocking state unchanged.
 - `export` writes to a temp name, verifies by reopening, checks page count and media boxes, confirms no interactive form fields, then atomically renames. Failure removes the temp file (FR-072).
 - The source document and stored working document are never modified (FR-073).
 - The produced file is self-contained and flattened; the exported PDF is a normal PDF with no AcroForm widgets (FR-069).

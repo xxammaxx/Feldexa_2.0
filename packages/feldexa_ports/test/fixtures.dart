@@ -169,6 +169,34 @@ ExportValidation fixtureExportValidation() {
   );
 }
 
+/// A blocking canonical export validation with one field warning.
+ExportValidation fixtureBlockingExportValidation() {
+  return ExportValidation(
+    warnings: <ExportValidationWarning>[
+      ExportValidationWarning(
+        code: 'EXP-001',
+        reason: 'too_wide',
+        fieldId: 'field-1',
+        pageIndex: 0,
+        fieldLabel: 'Name',
+      ),
+    ],
+    validatedAt: fixtureAt(),
+  );
+}
+
+/// A ports-owned validation result carrying canonical data and evidence.
+ExportValidationResult fixtureExportValidationResult({
+  ExportValidation? validation,
+  CapabilityEvidence? evidence,
+}) {
+  return ExportValidationResult(
+    validation: validation ?? fixtureExportValidation(),
+    evidence:
+        evidence ?? fixtureAndroidEvidence(adapterId: 'android.pdfbox.v1'),
+  );
+}
+
 /// A newly started (validating) export artifact.
 ExportArtifact fixtureExportArtifact() {
   return ExportArtifact.start(

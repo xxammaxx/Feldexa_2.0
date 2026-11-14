@@ -245,8 +245,8 @@ final class _FakeExport implements PdfExportPort {
   final bool failExport;
 
   @override
-  Future<ExportValidation> validate(ExportPlan plan) async {
-    return fixtureExportValidation();
+  Future<ExportValidationResult> validate(ExportPlan plan) async {
+    return fixtureExportValidationResult();
   }
 
   @override
@@ -633,11 +633,10 @@ void main() {
     });
 
     test(
-      'PdfExportPort validates and returns the canonical artifact',
+      'PdfExportPort validates with evidence and exports the artifact',
       () async {
-        final ExportValidation validation = await registry.export.validate(
-          fixtureExportPlan(),
-        );
+        final ExportValidationResult validation = await registry.export
+            .validate(fixtureExportPlan());
         final ExportResult result = await registry.export.export(
           ExportRequest(
             documentId: fixtureUuid(2),
@@ -650,7 +649,12 @@ void main() {
         );
         await registry.export.deleteArtifact(fixtureUuid(50));
 
-        expect(validation.warnings, isEmpty);
+        final ExportValidation canonical = validation.validation;
+        expect(canonical.warnings, isEmpty);
+        expect(validation.isValid, isTrue);
+        expect(validation.isBlocking, isFalse);
+        expect(validation.evidence.evidenceClass, EvidenceClass.none);
+        expect(validation.evidence.simulated, isFalse);
         expect(result.artifact.pageCount, 1);
         expect(result.evidence.evidenceClass, EvidenceClass.none);
         expect(result.evidence.simulated, isFalse);

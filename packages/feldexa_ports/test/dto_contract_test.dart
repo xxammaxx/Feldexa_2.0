@@ -810,6 +810,41 @@ void main() {
       expect(result.evidence.evidenceClass, EvidenceClass.none);
       expect(result.toString(), contains('validating'));
     });
+
+    test(
+      'ExportValidationResult carries canonical validation and evidence',
+      () {
+        final ExportValidationResult result = fixtureExportValidationResult();
+        final ExportValidation canonical = result.validation;
+
+        expect(canonical.warnings, isEmpty);
+        expect(result.isValid, isTrue);
+        expect(result.isBlocking, isFalse);
+        expect(result.warnings, isEmpty);
+        expect(result.evidence.evidenceClass, EvidenceClass.none);
+        expect(result.evidence.simulated, isFalse);
+      },
+    );
+
+    test('ExportValidationResult preserves blocking warnings and evidence', () {
+      final ExportValidation blocking = fixtureBlockingExportValidation();
+      final ExportValidationResult result = fixtureExportValidationResult(
+        validation: blocking,
+        evidence: fixtureSimulatedEvidence(adapterId: 'web.sim.export.v1'),
+      );
+
+      expect(result.validation, same(blocking));
+      expect(result.isValid, isFalse);
+      expect(result.isBlocking, isTrue);
+      expect(result.warnings, hasLength(1));
+      expect(result.warnings.single.code, 'EXP-001');
+      expect(result.warnings.single.reason, 'too_wide');
+      expect(result.warnings.single.pageIndex, 0);
+      expect(result.evidence.evidenceClass, EvidenceClass.simulated);
+      expect(result.evidence.simulated, isTrue);
+      expect(result.toString(), contains('warnings: 1'));
+      expect(result.toString(), isNot(contains('Name')));
+    });
   });
 
   group('Delivery and lifecycle DTOs', () {

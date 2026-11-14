@@ -8,7 +8,12 @@
 //     unchanged source.
 //
 // `ExportPlan`, `ExportValidation`, `ExportArtifact`, and `ArtifactVerification`
-// are owned by T022 in `feldexa_export`; this port only consumes them.
+// are owned by T022 in `feldexa_export`; this port only consumes them. The
+// T013-owned `ExportValidationResult` wraps the canonical validation to attach
+// the adapter evidence required by `contracts/ports.md` §1.
+//
+// `feldexa_export` never imports `feldexa_ports`: the wrapper lives on the ports
+// side of the one-way dependency boundary.
 
 import 'dart:typed_data';
 
@@ -20,8 +25,13 @@ import '../dto/export_dto.dart';
 /// Validates an export plan and produces a flattened, verified PDF
 /// (`contracts/ports.md` §2.5).
 abstract interface class PdfExportPort implements PlatformCapability {
-  /// Returns blocking warnings before any file is written (FR-068).
-  Future<ExportValidation> validate(ExportPlan plan);
+  /// Returns the canonical blocking warnings plus the adapter evidence before
+  /// any file is written (FR-068 and `contracts/ports.md` §1).
+  ///
+  /// The warnings remain the canonical T022 `ExportValidation` data; the
+  /// wrapper only labels the result with [CapabilityEvidence] so a simulated
+  /// preflight is never reported as a real one.
+  Future<ExportValidationResult> validate(ExportPlan plan);
 
   /// Exports the planned pages and verifies the produced artifact.
   ///

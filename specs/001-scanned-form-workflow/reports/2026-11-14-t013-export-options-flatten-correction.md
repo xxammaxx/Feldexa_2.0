@@ -1,5 +1,12 @@
 # T013 ExportOptions Flattening Correction — Mandatory Flattening and the ExportValidation Boundary
 
+> **Owner decision (2026-11-15):** The `ExportValidation` collision referenced
+> below was resolved after this report by a T013-owned
+> `ExportValidationResult` carrying canonical T022 `ExportValidation` plus
+> `CapabilityEvidence`. The flattening result above is unchanged, and
+> `feldexa_export` remains ports-free. See
+> [2026-11-15-t013-export-validation-wrapper.md](./2026-11-15-t013-export-validation-wrapper.md).
+
 | Field | Value |
 | --- | --- |
 | Repository | `xxammaxx/Feldexa_2.0` |
