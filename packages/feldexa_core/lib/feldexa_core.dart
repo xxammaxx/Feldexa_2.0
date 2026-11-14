@@ -8,4 +8,9 @@ library;
 
 export 'src/geometry/page_geometry.dart';
 export 'src/geometry/rect.dart';
+export 'src/model/canonical_json.dart';
+export 'src/model/document.dart';
+export 'src/model/durable_pointer.dart';
 export 'src/model/field.dart';
+export 'src/model/page_failure.dart';
+export 'src/model/template_origin.dart';
