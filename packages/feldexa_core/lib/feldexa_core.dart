@@ -8,3 +8,4 @@ library;
 
 export 'src/geometry/page_geometry.dart';
 export 'src/geometry/rect.dart';
+export 'src/model/field.dart';
