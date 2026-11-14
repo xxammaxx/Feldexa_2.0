@@ -503,6 +503,31 @@ void main() {
       expect(_evidence(cueAgreement: 1).cueAgreement, 1);
       expect(() => _evidence(cueAgreement: 0), throwsArgumentError);
       expect(() => _evidence(cueAgreement: -1), throwsArgumentError);
+      // One cue can support at most one independent cue family.
+      expect(() => _evidence(cueAgreement: 2), throwsArgumentError);
+      expect(() => _evidence(cueAgreement: 99), throwsArgumentError);
+      final List<SuggestionCue> threeCues = <SuggestionCue>[
+        SuggestionCue.underline,
+        SuggestionCue.box,
+        SuggestionCue.whitespace,
+      ];
+      // Families may be fewer than cues, but never more.
+      expect(_evidence(cues: threeCues, cueAgreement: 1).cueAgreement, 1);
+      expect(_evidence(cues: threeCues, cueAgreement: 3).cueAgreement, 3);
+      expect(
+        () => _evidence(cues: threeCues, cueAgreement: 4),
+        throwsArgumentError,
+      );
+      expect(
+        () => SuggestionEvidence.fromJson(<String, Object?>{
+          'cues': <String>['underline'],
+          'cueAgreement': 99,
+          'skewDegrees': 0,
+          'contrast': 'normal',
+          'ocrUsed': true,
+        }),
+        throwsFormatException,
+      );
       expect(_evidence(skewDegrees: -10).skewDegrees, -10);
       expect(_evidence(skewDegrees: 10).skewDegrees, 10);
       expect(() => _evidence(skewDegrees: -10.01), throwsArgumentError);

@@ -554,17 +554,18 @@ enum FieldVerificationState {
 /// [cues] is a non-empty, duplicate-free set that includes at least one
 /// geometric cue; §2.1 forbids OCR-only suggestions. When [ocrUsed] is false,
 /// every cue must also be OCR-independent (geometry-only detection).
-/// [cueAgreement] counts independent cue families and is at least one.
-/// [skewDegrees] is the estimated page skew in degrees on the closed interval
-/// `-10 … 10`. [contrast] is the contract's `normal | low` page contrast, and
-/// [ocrUsed] is false when OCR failed and geometry-only detection ran.
+/// [cueAgreement] counts independent cue families and is between one and the
+/// number of cues; a family cannot be supported without a cue. [skewDegrees] is
+/// the estimated page skew in degrees on the closed interval `-10 … 10`.
+/// [contrast] is the contract's `normal | low` page contrast, and [ocrUsed] is
+/// false when OCR failed and geometry-only detection ran.
 final class SuggestionEvidence {
   /// Creates evidence for a candidate.
   ///
   /// Throws [ArgumentError] when [cues] is empty, contains duplicates, or has
   /// no geometric cue, when [ocrUsed] is false and a cue depends on OCR, when
-  /// [cueAgreement] is less than one, or when [skewDegrees] is non-finite or
-  /// outside `-10 … 10`.
+  /// [cueAgreement] is less than one or greater than the number of cues, or
+  /// when [skewDegrees] is non-finite or outside `-10 … 10`.
   factory SuggestionEvidence({
     required Iterable<SuggestionCue> cues,
     int cueAgreement = 1,
@@ -600,8 +601,14 @@ final class SuggestionEvidence {
         }
       }
     }
-    if (cueAgreement < 1) {
-      throw ArgumentError('cueAgreement must be at least 1');
+    // cueAgreement counts independent cue families, not cue tokens. Each cue
+    // can support at most one family, so the number of families cannot exceed
+    // the cue count. The contract does not define a finer family partition;
+    // producers remain responsible for the actual count.
+    if (cueAgreement < 1 || cueAgreement > cueSet.length) {
+      throw ArgumentError(
+        'cueAgreement must be between 1 and the number of cues',
+      );
     }
     if (!skewDegrees.isFinite || skewDegrees < -10 || skewDegrees > 10) {
       throw ArgumentError('skewDegrees must be finite and between -10 and 10');
@@ -680,7 +687,8 @@ final class SuggestionEvidence {
   /// key.
   final Set<SuggestionCue> cues;
 
-  /// Number of independent cue families supporting the candidate; at least 1.
+  /// Number of independent cue families supporting the candidate; at least 1
+  /// and at most the cue count.
   final int cueAgreement;
 
   /// Estimated page skew in degrees on `-10 … 10`.
