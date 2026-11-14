@@ -71,7 +71,7 @@ final class DurablePointer extends JsonObject {
       kind: kind,
       committedAt: committedAt,
       sha256: sha256,
-      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+      unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
 

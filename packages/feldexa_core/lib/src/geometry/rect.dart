@@ -184,7 +184,7 @@ final class Rect extends JsonObject {
       top,
       width,
       height,
-      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+      unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
 

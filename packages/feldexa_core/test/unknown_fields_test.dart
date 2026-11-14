@@ -644,4 +644,161 @@ void main() {
       expect(output['contrast'], 'normal');
     });
   });
+
+  group('defensive deep immutability', () {
+    test('unknownJsonFields deep-copies input maps and lists', () {
+      final Map<String, Object?> input = <String, Object?>{
+        'future': <String, Object?>{
+          'nested': <Object?>[
+            1,
+            <String, Object?>{'deep': true},
+          ],
+        },
+      };
+      final Map<String, Object?> frozen = unknownJsonFields(
+        input,
+        const <String>{},
+      );
+      final String before = canonicalJsonEncode(frozen);
+
+      final Map<String, Object?> inputFuture =
+          input['future']! as Map<String, Object?>;
+      final List<Object?> inputList = inputFuture['nested']! as List<Object?>;
+      inputList.add(2);
+      (inputList[1]! as Map<String, Object?>)['deep'] = false;
+      inputFuture['added'] = 'x';
+
+      expect(canonicalJsonEncode(frozen), before);
+      final Map<String, Object?> frozenFuture =
+          frozen['future']! as Map<String, Object?>;
+      final List<Object?> frozenList = frozenFuture['nested']! as List<Object?>;
+      expect(() => frozenFuture['added'] = 'x', throwsUnsupportedError);
+      expect(() => frozenList.add(2), throwsUnsupportedError);
+      expect(
+        () => (frozenList[1]! as Map<String, Object?>)['deep'] = false,
+        throwsUnsupportedError,
+      );
+    });
+
+    test('Document.fromJson copies nested extensions away from the input', () {
+      final Map<String, Object?> extension = <String, Object?>{
+        'nested': <Object?>[1],
+      };
+      final Map<String, Object?> extended = _withExtra(
+        _richDocument().toJson(),
+        'futureRoot',
+        extension,
+      );
+      final Document document = Document.fromJson(extended);
+      final List<int> before = canonicalJsonBytes(document.toJson());
+
+      (extension['nested']! as List<Object?>).add(2);
+      extension['added'] = 'x';
+      (extended['futureRoot']! as Map<String, Object?>)['other'] = 'y';
+
+      expect(canonicalJsonBytes(document.toJson()), before);
+      final Map<String, Object?> stored =
+          document.unknownFields['futureRoot']! as Map<String, Object?>;
+      expect(() => stored['other'] = 'y', throwsUnsupportedError);
+    });
+
+    test('public constructors copy nested extensions before storing', () {
+      final Map<String, Object?> extension = <String, Object?>{
+        'nested': <Object?>[1],
+      };
+      final Document document = _richDocument().copyWith(
+        unknownFields: <String, Object?>{'futureRoot': extension},
+      );
+      final List<int> before = canonicalJsonBytes(document.toJson());
+
+      (extension['nested']! as List<Object?>).add(2);
+      extension['added'] = 'x';
+
+      expect(canonicalJsonBytes(document.toJson()), before);
+    });
+
+    test('nested value objects copy extensions before storing', () {
+      final Map<String, Object?> extension = <String, Object?>{
+        'list': <Object?>[1],
+      };
+      final Rect rect = Rect.fromLTWH(
+        1,
+        2,
+        3,
+        4,
+        unknownFields: <String, Object?>{'future': extension},
+      );
+      final String before = canonicalJsonEncode(rect.toJson());
+
+      (extension['list']! as List<Object?>).add(2);
+
+      expect(canonicalJsonEncode(rect.toJson()), before);
+    });
+
+    test('mergeUnknownJsonFields isolates mutable extension input', () {
+      final Map<String, Object?> extension = <String, Object?>{
+        'list': <Object?>[1],
+      };
+      final Map<String, Object?> merged = mergeUnknownJsonFields(
+        <String, Object?>{'known': true},
+        <String, Object?>{'future': extension},
+      );
+      final String before = canonicalJsonEncode(merged);
+
+      (extension['list']! as List<Object?>).add(2);
+
+      expect(canonicalJsonEncode(merged), before);
+      expect(
+        () => (merged['future']! as Map<String, Object?>)['added'] = 'x',
+        throwsUnsupportedError,
+      );
+    });
+
+    test('mutating returned JSON cannot change a later digest', () {
+      final Map<String, Object?> extended = _withExtra(
+        _richDocument().toJson(),
+        'futureRoot',
+        <String, Object?>{
+          'nested': <Object?>[1],
+        },
+      );
+      final Document document = Document.fromJson(extended);
+      final List<int> before = canonicalJsonBytes(document.toJson());
+
+      final Map<String, Object?> output = document.toJson();
+      final Map<String, Object?> root =
+          output['futureRoot']! as Map<String, Object?>;
+      final List<Object?> list = root['nested']! as List<Object?>;
+      expect(() => root['added'] = 'x', throwsUnsupportedError);
+      expect(() => list.add(2), throwsUnsupportedError);
+
+      // The returned top-level map is a fresh object; replacing an entry there
+      // is allowed and cannot affect the model.
+      output['futureRoot'] = 'replaced';
+      expect(canonicalJsonBytes(document.toJson()), before);
+    });
+
+    test('rejects non-JSON and cyclic extension values', () {
+      expect(
+        () => freezeUnknownJsonFields(<String, Object?>{
+          'when': DateTime.utc(2026, 11, 14),
+        }),
+        throwsArgumentError,
+      );
+      expect(
+        () => freezeUnknownJsonFields(<String, Object?>{'number': double.nan}),
+        throwsArgumentError,
+      );
+
+      final Map<String, Object?> cycle = <String, Object?>{};
+      cycle['self'] = cycle;
+      expect(() => freezeUnknownJsonFields(cycle), throwsArgumentError);
+
+      final Map<String, Object?> nestedCycle = <String, Object?>{
+        'list': <Object?>[],
+      };
+      (nestedCycle['list']! as List<Object?>).add(nestedCycle);
+      expect(() => freezeUnknownJsonFields(nestedCycle), throwsArgumentError);
+    });
+  });
 }

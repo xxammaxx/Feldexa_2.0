@@ -627,7 +627,7 @@ final class SuggestionEvidence extends JsonObject {
       skewDegrees: skewDegrees,
       contrast: contrast,
       ocrUsed: ocrUsed,
-      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+      unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
 
@@ -838,7 +838,7 @@ final class FieldSuggestion extends JsonObject {
       evidence: evidence,
       conflictsWith: checkedConflicts,
       resolution: resolution,
-      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+      unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
 
@@ -1193,7 +1193,7 @@ final class ConfirmedField extends JsonObject {
       createdAt: _checkUtc(createdAt, 'createdAt'),
       updatedAt: _checkUtc(updatedAt, 'updatedAt'),
       validation: validation,
-      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+      unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
 
@@ -1439,7 +1439,7 @@ final class SignatureMark extends JsonObject {
       heightPx: heightPx,
       capturedAt: _checkUtc(capturedAt, 'capturedAt'),
       sha256: _validateSha256(sha256, 'sha256'),
-      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+      unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
 
@@ -1629,7 +1629,7 @@ final class FieldVerification extends JsonObject {
       state: state,
       reviewedAt: checkedReviewedAt,
       warnings: List<WarningCode>.unmodifiable(sorted),
-      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+      unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
 
@@ -1750,7 +1750,7 @@ sealed class FieldValidation extends JsonObject {
     return _FieldValidationWarning(
       code,
       _validateMessageKey(messageKey),
-      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+      unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
 
@@ -1764,7 +1764,7 @@ sealed class FieldValidation extends JsonObject {
   }) {
     return _FieldValidationError(
       _validateCatalogCode(code),
-      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+      unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
 
@@ -1921,7 +1921,7 @@ sealed class FieldValue extends JsonObject {
     required this.overflow,
     Map<String, Object?> unknownFields = const <String, Object?>{},
   }) : lastEditedAt = _checkUtc(lastEditedAt, 'lastEditedAt'),
-       super(unknownFields: Map<String, Object?>.unmodifiable(unknownFields));
+       super(unknownFields: freezeUnknownJsonFields(unknownFields));
 
   /// When the user last committed an edit, in UTC.
   final DateTime lastEditedAt;

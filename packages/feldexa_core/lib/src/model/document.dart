@@ -222,7 +222,7 @@ final class SourceFileRef extends JsonObject {
       originalName: _normalizeOriginalName(originalName),
       importedAt: _checkUtc(importedAt, 'importedAt'),
       integrity: integrity,
-      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+      unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
 
@@ -414,7 +414,7 @@ final class Page extends JsonObject {
       failure: failure,
       unreadable: unreadable,
       renderCacheKey: renderCacheKey,
-      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+      unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
 
@@ -578,7 +578,7 @@ final class DocumentPreferences extends JsonObject {
       zoom: zoom,
       currentPage: currentPage,
       reviewOrderMode: reviewOrderMode,
-      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+      unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
 
@@ -733,7 +733,7 @@ final class DocumentMeta extends JsonObject {
       lastDurableAt: lastDurableAt,
       readable: readable,
       unreadableReasonCode: unreadableReasonCode,
-      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+      unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
 
@@ -1188,7 +1188,7 @@ final class Document extends JsonObject {
       lastDurable: lastDurable,
       preferences: checkedPreferences,
       status: resolvedStatus,
-      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+      unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
 

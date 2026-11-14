@@ -44,7 +44,7 @@ final class TemplateOrigin extends JsonObject {
       templateId: templateId,
       templateVersionId: templateVersionId,
       templateVersionNumber: templateVersionNumber,
-      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+      unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
 

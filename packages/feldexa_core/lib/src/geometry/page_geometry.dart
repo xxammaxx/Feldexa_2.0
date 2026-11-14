@@ -97,7 +97,7 @@ final class PageGeometry extends JsonObject {
         unknownFields: cropBox?.unknownFields ?? const <String, Object?>{},
       ),
       rotation,
-      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+      unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
 

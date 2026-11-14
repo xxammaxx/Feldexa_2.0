@@ -88,7 +88,7 @@ final class PageFailure extends JsonObject {
       pageIndex: pageIndex,
       category: category,
       messageKey: messageKey,
-      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+      unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
 
