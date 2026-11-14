@@ -114,7 +114,6 @@ void main() {
       expect(artifact.failureCode, isNull);
       expect(artifact.isPreviewAvailable, isFalse);
       expect(artifact.isTerminal, isFalse);
-      expect(artifact.isBlocked, isFalse);
 
       expect(artifact.startVerification, throwsStateError);
       expect(
@@ -154,7 +153,6 @@ void main() {
         expect(succeeded.sha256, _sha256);
         expect(succeeded.verification, verification);
         expect(succeeded.failureCode, isNull);
-        expect(succeeded.isBlocked, isFalse);
 
         final ExportArtifact deleted = succeeded.markDeleted();
         expect(deleted.state, ExportArtifactState.deleted);
@@ -171,13 +169,14 @@ void main() {
       },
     );
 
-    test('failed is terminal, clears output, and distinguishes blocked', () {
-      final ExportArtifact failed = _start().fail(failureCode: 'EXP-001');
+    test('failed is terminal and clears output', () {
+      final ExportArtifact failed = _start().startRendering().fail(
+        failureCode: 'EXP-002',
+      );
       expect(failed.state, ExportArtifactState.failed);
       expect(failed.isTerminal, isTrue);
       expect(failed.isPreviewAvailable, isFalse);
-      expect(failed.isBlocked, isTrue);
-      expect(failed.failureCode, 'EXP-001');
+      expect(failed.failureCode, 'EXP-002');
       expect(failed.byteSize, isNull);
       expect(failed.sha256, isNull);
       expect(failed.verification, isNull);
@@ -185,12 +184,6 @@ void main() {
       expect(() => failed.fail(failureCode: 'EXP-002'), throwsStateError);
       expect(failed.markDeleted, throwsStateError);
       expect(() => _succeeded().fail(failureCode: 'EXP-002'), throwsStateError);
-
-      final ExportArtifact renderingFailure = _start().startRendering().fail(
-        failureCode: 'EXP-002',
-      );
-      expect(renderingFailure.isBlocked, isFalse);
-      expect(renderingFailure.failureCode, 'EXP-002');
 
       final ArtifactVerification failedVerification = _verification(
         pageCountMatches: false,
@@ -201,10 +194,9 @@ void main() {
       );
       expect(mismatch.state, ExportArtifactState.failed);
       expect(mismatch.verification, failedVerification);
-      expect(mismatch.isBlocked, isFalse);
     });
 
-    test('blocked failure codes are exactly the preflight block set', () {
+    test('blocking is artifactless and cannot create an ExportArtifact', () {
       for (final String code in <String>[
         'EXP-001',
         'EXP-003',
@@ -212,15 +204,25 @@ void main() {
         'EXP-005',
         'EXP-006',
       ]) {
-        expect(_start().fail(failureCode: code).isBlocked, isTrue);
+        expect(
+          () => _start().fail(failureCode: code),
+          throwsStateError,
+          reason: 'a blocked validation must not produce an artifact',
+        );
+        expect(
+          () => _start().startRendering().fail(failureCode: code),
+          throwsArgumentError,
+          reason: 'a blocked code cannot become a failed artifact',
+        );
       }
-      for (final String code in <String>['EXP-002', 'SAVE-001']) {
-        expect(_start().fail(failureCode: code).isBlocked, isFalse);
-      }
-      expect(
-        exportArtifactBlockedFailureCodes,
-        equals(<String>{'EXP-001', 'EXP-003', 'EXP-004', 'EXP-005', 'EXP-006'}),
+      final ExportValidation blocked = ExportValidation(
+        warnings: <ExportValidationWarning>[
+          ExportValidationWarning(code: 'EXP-001', reason: 'too_wide'),
+        ],
+        validatedAt: _at(),
       );
+      expect(blocked.isBlocking, isTrue);
+      expect(blocked.isValid, isFalse);
     });
 
     test('rejects a verification argument outside verifying', () {
@@ -229,7 +231,7 @@ void main() {
           failureCode: 'EXP-001',
           verification: _verification(),
         ),
-        throwsArgumentError,
+        throwsStateError,
       );
       expect(
         () => _start().startRendering().fail(
@@ -285,7 +287,7 @@ void main() {
         throwsArgumentError,
       );
       expect(
-        () => _start().fail(failureCode: 'not-a-code'),
+        () => _start().startRendering().fail(failureCode: 'not-a-code'),
         throwsArgumentError,
       );
     });
@@ -366,6 +368,25 @@ void main() {
         () => ExportArtifact.fromJson(missingPageCount),
         throwsFormatException,
       );
+
+      final Map<String, Object?> blockedFailure =
+          Map<String, Object?>.from(
+              jsonDecode(jsonEncode(_start().toJson())) as Map<String, Object?>,
+            )
+            ..['state'] = 'failed'
+            ..['failureCode'] = 'EXP-001';
+      expect(
+        () => ExportArtifact.fromJson(blockedFailure),
+        throwsFormatException,
+      );
+
+      final ExportArtifact failed = _start().startRendering().fail(
+        failureCode: 'EXP-002',
+      );
+      final ExportArtifact restoredFailed = ExportArtifact.fromJson(
+        jsonDecode(jsonEncode(failed.toJson())) as Map<String, Object?>,
+      );
+      expect(restoredFailed, failed);
 
       final Map<String, Object?> failureWithOutput =
           Map<String, Object?>.from(

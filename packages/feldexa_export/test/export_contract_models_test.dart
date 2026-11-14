@@ -69,7 +69,7 @@ ExportTextOp _textOp({
   Rect? rect,
   double fontSizePt = 8.7,
   double lineHeightPt = 10.44,
-  double baselineFromTopPt = 8.1,
+  double baselineFromTopPt = 8.46,
   String color = '#000000',
   List<String> lines = const <String>['Müller-Lüdenscheidt'],
   bool overflow = false,
@@ -229,7 +229,7 @@ Map<String, Object?> _contractExampleJson() {
             },
             'fontSizePt': 8.7,
             'lineHeightPt': 10.44,
-            'baselineFromTopPt': 8.1,
+            'baselineFromTopPt': 8.46,
             'color': '#000000',
             'lines': <Object?>['Müller-Lüdenscheidt'],
             'overflow': false,
@@ -313,7 +313,7 @@ Map<String, Object?> _contractExampleJson() {
 
 void main() {
   group('ExportPlan v1 schema', () {
-    test('serializes the §2 example canonically and round-trips', () {
+    test('serializes the §2 schema canonically and round-trips', () {
       final ExportPlan plan = _plan();
       final Object? canonical = jsonDecode(canonicalJsonEncode(plan.toJson()));
       expect(canonical, equals(_contractExampleJson()));
@@ -510,9 +510,9 @@ void main() {
         provenance: Provenance.user,
         rect: rect,
         pdfRect: Rect.fromLTWH(0, 0, rect.width, rect.height),
-        fontSizePt: 8,
-        lineHeightPt: 9.6,
-        baselineFromTopPt: 8,
+        fontSizePt: 12,
+        lineHeightPt: 14.4,
+        baselineFromTopPt: 11.1,
         lines: const <String>['x'],
       );
       expect(
@@ -546,6 +546,106 @@ void main() {
       expect(
         () => _textOp(rect: _rect(height: 5), baselineFromTopPt: 6),
         throwsArgumentError,
+      );
+    });
+
+    test('rejects text metrics that violate the §2.2 formula', () {
+      expect(() => _textOp(fontSizePt: 8.6), throwsArgumentError);
+      expect(() => _textOp(lineHeightPt: 10.43), throwsArgumentError);
+      expect(
+        _textOp(fontSizePt: 8.7, lineHeightPt: 10.44, baselineFromTopPt: 8.46),
+        isA<ExportTextOp>(),
+      );
+    });
+
+    test('rejects the stale §2 example baseline under the §2.2 formula', () {
+      // §2.2 is normative: baseline = 1.5 + 0.8 × 8.7 = 8.46. The §2 example
+      // still says 8.1. T022 follows the normative rule and refuses 8.1
+      // instead of silently accepting both values.
+      expect(() => _textOp(baselineFromTopPt: 8.1), throwsArgumentError);
+
+      final Map<String, Object?> staleExample = _contractExampleJson();
+      final Map<String, Object?> firstPage =
+          (staleExample['pages']! as List<Object?>).first!
+              as Map<String, Object?>;
+      final Map<String, Object?> textOp =
+          (firstPage['ops']! as List<Object?>).first! as Map<String, Object?>;
+      textOp['baselineFromTopPt'] = 8.1;
+      expect(() => ExportPlan.fromJson(staleExample), throwsFormatException);
+    });
+
+    test('applies the text clamps before checking the formula', () {
+      expect(
+        _textOp(
+          rect: _rect(height: 10),
+          fontSizePt: 7.0,
+          lineHeightPt: 8.4,
+          baselineFromTopPt: 7.1,
+        ).fontSizePt,
+        7.0,
+      );
+      expect(
+        _textOp(
+          rect: _rect(height: 25),
+          fontSizePt: 12.0,
+          lineHeightPt: 14.4,
+          baselineFromTopPt: 11.1,
+        ).fontSizePt,
+        12.0,
+      );
+    });
+
+    test('rejects checkbox metrics that violate the §2.2 formula', () {
+      final Rect ten = _rect(width: 10, height: 10);
+      expect(
+        () => ExportCheckboxOp(
+          fieldId: 'f2',
+          provenance: Provenance.user,
+          rect: ten,
+          pdfRect: _pdfRect(ten),
+          checked: true,
+          insetPt: 1.4,
+          strokeWidthPt: 0.8,
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => ExportCheckboxOp(
+          fieldId: 'f2',
+          provenance: Provenance.user,
+          rect: ten,
+          pdfRect: _pdfRect(ten),
+          checked: true,
+          insetPt: 1.5,
+          strokeWidthPt: 0.9,
+        ),
+        throwsArgumentError,
+      );
+      final Rect two = _rect(width: 2, height: 2);
+      expect(
+        ExportCheckboxOp(
+          fieldId: 'f2',
+          provenance: Provenance.user,
+          rect: two,
+          pdfRect: _pdfRect(two),
+          checked: true,
+          insetPt: 0.5,
+          strokeWidthPt: 0.6,
+        ).insetPt,
+        0.5,
+      );
+      final Rect hundred = _rect(width: 100, height: 100);
+      expect(
+        ExportCheckboxOp(
+          fieldId: 'f2',
+          provenance: Provenance.user,
+          rect: hundred,
+          pdfRect: _pdfRect(hundred),
+          checked: true,
+          insetPt: 3.0,
+          strokeWidthPt: 1.4,
+        ).strokeWidthPt,
+        1.4,
       );
     });
 
@@ -621,9 +721,9 @@ void main() {
           'width': 100,
           'height': 20,
         },
-        'fontSizePt': 8,
-        'lineHeightPt': 9.6,
-        'baselineFromTopPt': 8,
+        'fontSizePt': 12,
+        'lineHeightPt': 14.4,
+        'baselineFromTopPt': 11.1,
         'color': '#000000',
         'lines': <Object?>['x'],
         'overflow': false,

@@ -22,10 +22,10 @@
 // `validating` to `succeeded`, so an optimistic success cannot be represented.
 //
 // `data-model.md` §3.15 names `blocked` in the state diagram for a validation
-// outcome that produces no artifact. When an attempt record exists, that
-// outcome is the terminal `failed` state with one of the blocking `EXP-001`,
-// `EXP-003`, `EXP-004`, `EXP-005`, or `EXP-006` codes; [ExportArtifact.isBlocked]
-// exposes that distinction without inventing an additional persisted state.
+// outcome that produces no artifact. T022 therefore does not create an
+// `ExportArtifact` for that outcome and refuses a `fail` transition from
+// `validating`; blocking is represented only by [ExportValidation]. The
+// `failed` state is reachable only from `rendering` or `verifying`.
 //
 // Every model is immutable and validates in release mode. Unknown same-schema
 // JSON fields are retained (`data-model.md` §6).
@@ -36,11 +36,10 @@ import 'package:feldexa_core/feldexa_core.dart';
 /// The maximum accepted source page count (`data-model.md` §3.2).
 const int _maxArtifactPageCount = 100;
 
-/// Failure codes that mean the attempt was blocked before an artifact existed.
-///
-/// A blocked attempt has no successful-location file (`contracts/export-plan.md`
-/// §4); `EXP-002` and `SAVE-001` are failures rather than preflight blocks.
-const Set<String> exportArtifactBlockedFailureCodes = <String>{
+/// Blocking preflight codes. These outcomes have no artifact, so a failed
+/// record cannot carry one. `EXP-002` and `SAVE-001` are failures rather than
+/// preflight blocks.
+const Set<String> _blockedFailureCodes = <String>{
   'EXP-001',
   'EXP-003',
   'EXP-004',
@@ -80,9 +79,8 @@ final RegExp _failureCodePattern = RegExp(r'^[A-Z][A-Z0-9]*-[0-9]{3}$');
 ///
 /// `succeeded` is reachable only from `verifying` and only with an all-passing
 /// [ArtifactVerification]. `deleted` is reachable only from `succeeded` after
-/// preview delivery or dismissal. `failed` and `deleted` are terminal; the
-/// diagram's `blocked` outcome is represented by a `failed` artifact with a
-/// blocking `EXP-*` code (see `exportArtifactBlockedFailureCodes`).
+/// preview delivery or dismissal. `failed` and `deleted` are terminal;
+/// `blocked` is not an artifact state and never produces an `ExportArtifact`.
 enum ExportArtifactState {
   /// Plan validation is running; no output exists.
   validating('validating'),
@@ -96,7 +94,9 @@ enum ExportArtifactState {
   /// All verification checks passed; a preview is available.
   succeeded('succeeded'),
 
-  /// The attempt failed or was blocked; no success-location file remains.
+  /// Rendering or verification failed; no success-location file remains.
+  ///
+  /// Blocked validation does not create this state; it is artifactless.
   failed('failed'),
 
   /// A succeeded artifact was delivered/dismissed and the preview was removed.
@@ -263,7 +263,7 @@ final class ArtifactVerification extends JsonObject {
 /// ```text
 /// validating --startRendering--> rendering
 /// rendering  --startVerification--> verifying
-/// validating/rendering/verifying --fail--> failed
+/// rendering/verifying --fail--> failed
 /// verifying  --succeed (all checks pass)--> succeeded
 /// succeeded  --markDeleted--> deleted
 /// ```
@@ -397,17 +397,6 @@ final class ExportArtifact extends JsonObject {
         state == ExportArtifactState.deleted;
   }
 
-  /// Whether the attempt failed with a blocking preflight code.
-  ///
-  /// This is the `blocked` outcome from the `data-model.md` §3.15 diagram;
-  /// no artifact exists in the successful location.
-  bool get isBlocked {
-    final String? code = failureCode;
-    return state == ExportArtifactState.failed &&
-        code != null &&
-        exportArtifactBlockedFailureCodes.contains(code);
-  }
-
   /// Advances `validating` to `rendering`.
   ///
   /// Throws [StateError] from any other state.
@@ -446,23 +435,27 @@ final class ExportArtifact extends JsonObject {
     );
   }
 
-  /// Marks the attempt failed or blocked.
+  /// Marks a rendering or verification attempt failed.
   ///
-  /// Allowed from `validating`, `rendering`, or `verifying`. [failureCode] must
-  /// be a catalog code. [verification] may be supplied only from `verifying`
-  /// and only to record a failed re-open check. A failed attempt never carries
-  /// output bytes or a hash.
+  /// Allowed only from `rendering` or `verifying`. A blocked validation has no
+  /// artifact, so `validating` cannot fail and the blocking `EXP-001`,
+  /// `EXP-003`, `EXP-004`, `EXP-005`, and `EXP-006` codes are refused here.
+  /// [verification] may be supplied only from `verifying` and only to record a
+  /// failed re-open check. A failed attempt never carries output bytes or a
+  /// hash.
   ///
-  /// Throws [StateError] from a terminal or succeeded state and [ArgumentError]
-  /// for an invalid code or verification placement.
+  /// Throws [StateError] from any other state and [ArgumentError] for a
+  /// blocking code, an invalid code, or a misplaced verification.
   ExportArtifact fail({
     required String failureCode,
     ArtifactVerification? verification,
   }) {
-    if (state != ExportArtifactState.validating &&
-        state != ExportArtifactState.rendering &&
+    if (state != ExportArtifactState.rendering &&
         state != ExportArtifactState.verifying) {
       throw StateError('fail is not allowed from ${state.wireName}');
+    }
+    if (_blockedFailureCodes.contains(failureCode)) {
+      throw ArgumentError('a blocked validation has no artifact to fail');
     }
     if (verification != null && state != ExportArtifactState.verifying) {
       throw ArgumentError(
@@ -605,6 +598,9 @@ ExportArtifact _checked({
   if (state == ExportArtifactState.failed) {
     if (failureCode == null) {
       throw ArgumentError('a failed artifact requires a failureCode');
+    }
+    if (_blockedFailureCodes.contains(failureCode)) {
+      throw ArgumentError('a blocked validation has no artifact');
     }
     if (byteSize != null || sha256 != null) {
       throw ArgumentError('a failed artifact cannot carry output bytes');

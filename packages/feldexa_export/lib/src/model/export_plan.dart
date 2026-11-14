@@ -33,6 +33,7 @@
 library;
 
 import 'dart:collection';
+import 'dart:math' as math;
 
 import 'package:feldexa_core/feldexa_core.dart';
 
@@ -950,11 +951,14 @@ sealed class ExportOp extends JsonObject {
 final class ExportTextOp extends ExportOp {
   /// Creates and validates a text op.
   ///
-  /// [fontSizePt] must be inside the normative 7–12 pt clamp,
-  /// [baselineFromTopPt] must not exceed [rect].height, [color] must be
-  /// `#000000`, [lines] must be non-empty with no trailing whitespace or
-  /// materialized newlines, and [overflow] must be `false` because an
-  /// overflowing plan is never produced (`EXP-001`).
+  /// [fontSizePt] must equal the §2.2 clamp formula rounded to 0.1,
+  /// [lineHeightPt] must equal 1.2 × [fontSizePt] rounded to 0.01, and
+  /// [baselineFromTopPt] must equal 1.5 + 0.8 × [fontSizePt] and fit inside
+  /// [rect]. The §2 example's stale `8.1` baseline is therefore refused; the
+  /// normative §2.2 rule wins explicitly rather than accepting both values.
+  /// [color] must be `#000000`, [lines] must be non-empty with no trailing
+  /// whitespace or materialized newlines, and [overflow] must be `false`
+  /// because an overflowing plan is never produced (`EXP-001`).
   ///
   /// Throws [ArgumentError] for every invalid value.
   factory ExportTextOp({
@@ -977,12 +981,30 @@ final class ExportTextOp extends ExportOp {
       pdfRect: pdfRect,
     );
     _checkFinite(fontSizePt, 'fontSizePt');
-    if (fontSizePt < 7.0 - _geometryTolerance ||
-        fontSizePt > 12.0 + _geometryTolerance) {
-      throw ArgumentError('fontSizePt must be within the 7–12 pt clamp');
+    final double expectedFontSize = _roundTo(
+      (0.6 * rect.height).clamp(7.0, 12.0).toDouble(),
+      1,
+    );
+    if (!_numberMatches(fontSizePt, expectedFontSize)) {
+      throw ArgumentError(
+        'fontSizePt must equal the §2.2 clamp(0.6 × rect.height, 7.0, 12.0)'
+        ' rounded to 0.1',
+      );
     }
     _checkPositive(lineHeightPt, 'lineHeightPt');
+    final double expectedLineHeight = _roundTo(1.2 * fontSizePt, 2);
+    if (!_numberMatches(lineHeightPt, expectedLineHeight)) {
+      throw ArgumentError(
+        'lineHeightPt must equal the §2.2 1.2 × fontSizePt rounded to 0.01',
+      );
+    }
     _checkFinite(baselineFromTopPt, 'baselineFromTopPt');
+    final double expectedBaseline = 1.5 + 0.8 * fontSizePt;
+    if (!_numberMatches(baselineFromTopPt, expectedBaseline)) {
+      throw ArgumentError(
+        'baselineFromTopPt must equal the §2.2 1.5 + 0.8 × fontSizePt',
+      );
+    }
     if (baselineFromTopPt < 0 ||
         baselineFromTopPt > rect.height + _geometryTolerance) {
       throw ArgumentError('baselineFromTopPt must fit inside rect');
@@ -1138,9 +1160,10 @@ final class ExportTextOp extends ExportOp {
 final class ExportCheckboxOp extends ExportOp {
   /// Creates and validates a checkbox op.
   ///
-  /// [insetPt] must be inside the normative 0.5–3.0 pt clamp and
-  /// [strokeWidthPt] inside the 0.6–1.4 pt clamp. `checked: false` is
-  /// permitted; the applier draws nothing for it.
+  /// [insetPt] must equal the §2.2 clamp of 0.15 × min(width, height) and
+  /// [strokeWidthPt] must equal the §2.2 clamp of 0.08 × min(width, height)
+  /// rounded to 0.1. `checked: false` is permitted; the applier draws nothing
+  /// for it.
   ///
   /// Throws [ArgumentError] for an invalid mark.
   factory ExportCheckboxOp({
@@ -1160,14 +1183,24 @@ final class ExportCheckboxOp extends ExportOp {
       pdfRect: pdfRect,
     );
     _checkFinite(insetPt, 'insetPt');
-    if (insetPt < 0.5 - _geometryTolerance ||
-        insetPt > 3.0 + _geometryTolerance) {
-      throw ArgumentError('insetPt must be within the 0.5–3.0 pt clamp');
+    final double minSide = math.min(rect.width, rect.height).toDouble();
+    final double expectedInset = (0.15 * minSide).clamp(0.5, 3.0).toDouble();
+    if (!_numberMatches(insetPt, expectedInset)) {
+      throw ArgumentError(
+        'insetPt must equal the §2.2 clamp(0.15 × min(width, height),'
+        ' 0.5, 3.0)',
+      );
     }
     _checkFinite(strokeWidthPt, 'strokeWidthPt');
-    if (strokeWidthPt < 0.6 - _geometryTolerance ||
-        strokeWidthPt > 1.4 + _geometryTolerance) {
-      throw ArgumentError('strokeWidthPt must be within the 0.6–1.4 pt clamp');
+    final double expectedStroke = _roundTo(
+      (0.08 * minSide).clamp(0.6, 1.4).toDouble(),
+      1,
+    );
+    if (!_numberMatches(strokeWidthPt, expectedStroke)) {
+      throw ArgumentError(
+        'strokeWidthPt must equal the §2.2 clamp(0.08 × min(width, height),'
+        ' 0.6, 1.4) rounded to 0.1',
+      );
     }
     _rejectForbiddenPlanContent(unknownFields);
     return ExportCheckboxOp._(
@@ -1711,6 +1744,11 @@ void _checkPositive(double value, String name) {
   if (value <= 0) {
     throw ArgumentError('$name must be positive');
   }
+}
+
+double _roundTo(double value, int decimals) {
+  final double factor = math.pow(10, decimals).toDouble();
+  return (value * factor).roundToDouble() / factor;
 }
 
 bool _numberMatches(double left, double right) {
