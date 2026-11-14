@@ -24,8 +24,9 @@ Rect _rect({
   double top = 20,
   double width = 100,
   double height = 20,
+  Map<String, Object?> unknownFields = const {},
 }) {
-  return Rect.fromLTWH(left, top, width, height);
+  return Rect.fromLTWH(left, top, width, height, unknownFields: unknownFields);
 }
 
 double _quantize(double value) => (value * 1000).round() / 1000;
@@ -112,6 +113,7 @@ ExportCheckboxOp _checkboxOp({
 ExportImageOp _imageOp({
   String fieldId = 'f3',
   Provenance provenance = Provenance.template,
+  String? assetId,
   String fit = 'contain',
   String align = 'center',
 }) {
@@ -121,7 +123,7 @@ ExportImageOp _imageOp({
     provenance: provenance,
     rect: displayRect,
     pdfRect: _pdfRect(displayRect),
-    assetId: _uuid(200),
+    assetId: assetId ?? _uuid(200),
     fit: fit,
     align: align,
   );
@@ -730,6 +732,207 @@ void main() {
       };
       expect(() => ExportTextOp.fromJson(textJson), throwsFormatException);
     });
+  });
+
+  group('ExportPlan privacy', () {
+    test('rejects absolute paths and URIs in warnings', () {
+      for (final String warning in <String>[
+        'file:///home/user/secret',
+        'https://example.com/private',
+        'http:opaque-uri',
+        'package:feldexa/private',
+        'Pfad:/home/user/secret',
+        'Pfad:http:opaque-uri',
+        r'Pfad:C:\Users\me\secret',
+        r'Pfad:\\server\share\secret',
+        '/home/user/secret',
+        r'C:\Users\me\secret',
+        r'\\server\share\secret',
+      ]) {
+        expect(
+          () => _plan(warnings: <String>[warning]),
+          throwsArgumentError,
+          reason: 'warning must not serialize a location: $warning',
+        );
+      }
+    });
+
+    test('rejects device names and user identifiers in warnings', () {
+      for (final String warning in <String>[
+        'Pixel 7',
+        'Samsung Galaxy A54',
+        'SM-A546B',
+        'emulator-5554',
+        'user@example.com',
+        'user_12345',
+        '@alice',
+      ]) {
+        expect(
+          () => _plan(warnings: <String>[warning]),
+          throwsArgumentError,
+          reason: 'warning must not serialize an identity: $warning',
+        );
+      }
+    });
+
+    test('accepts safe warnings, labels, and relative text', () {
+      final ExportPlan plan = _plan(
+        warnings: <String>[
+          'Drei Felder sind noch leer',
+          'EXP-001: Inhalt passt nicht',
+          'Feld A / B',
+          'Pfad assets/fonts/NotoSans-Regular.ttf',
+          'Hinweis: assets/fonts/NotoSans-Regular.ttf',
+        ],
+      );
+      expect(plan.warnings, hasLength(5));
+    });
+
+    test('rejects forbidden values in unknown fields and keeps safe ones', () {
+      for (final Map<String, Object?> unknown in <Map<String, Object?>>[
+        <String, Object?>{'externalUri': 'https://example.com/private'},
+        <String, Object?>{'note': '/home/user/secret'},
+        <String, Object?>{'/home/user/secret': 'future'},
+        <String, Object?>{'https://example.com/private': 'future'},
+        <String, Object?>{'@alice': 'future'},
+        <String, Object?>{
+          'future': <String, Object?>{'uri': 'file:///x'},
+        },
+        <String, Object?>{'userId': 'u-1'},
+        <String, Object?>{'user': 'alice'},
+        <String, Object?>{'device': 'my phone'},
+        <String, Object?>{'deviceName': 'Pixel 7'},
+        <String, Object?>{'serialNumber': 'ABC123'},
+      ]) {
+        expect(
+          () => _plan(unknownFields: unknown),
+          throwsArgumentError,
+          reason: 'unknown field must not serialize private content',
+        );
+      }
+
+      expect(
+        () => _font(
+          unknownFields: <String, Object?>{'externalUri': 'file:///private'},
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => ExportPlanInfo(
+          emptyFieldCount: 0,
+          unresolvedSuggestionCount: 0,
+          unknownFields: <String, Object?>{'user': 'alice'},
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => ExportCtm(
+          a: 1,
+          b: 0,
+          c: 0,
+          d: -1,
+          e: 0,
+          f: 841.89,
+          unknownFields: <String, Object?>{'device': 'my phone'},
+        ),
+        throwsArgumentError,
+      );
+
+      final ExportPlan safe = _plan(
+        unknownFields: <String, Object?>{
+          'futureRoot': <String, Object?>{'nested': 1},
+          'futureLabel': 'Name',
+          'futureRelative': 'assets/fonts/NotoSans-Regular.ttf',
+          'futureNote': 'Hinweis: assets/fonts/NotoSans-Regular.ttf',
+          'future/label': 'Name',
+          'Feld A / B': 'Name',
+          'uri': 'relative-token',
+          'filepath': 'assets/fonts/NotoSans-Regular.ttf',
+        },
+      );
+      expect(safe.unknownFields['futureLabel'], 'Name');
+      expect(safe.unknownFields['futureRelative'], isNotNull);
+    });
+
+    test('rejects private values in schema metadata strings', () {
+      expect(
+        () => ExportFont(
+          family: 'https://example.com/private',
+          regularAsset: 'assets/fonts/NotoSans-Regular.ttf',
+          boldAsset: 'assets/fonts/NotoSans-Bold.ttf',
+          metricsVersion: 'v1',
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => ExportFont(
+          family: 'NotoSans',
+          regularAsset: 'assets/user@example.com.ttf',
+          boldAsset: 'assets/fonts/NotoSans-Bold.ttf',
+          metricsVersion: 'v1',
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => ExportFont(
+          family: 'NotoSans',
+          regularAsset: 'assets/fonts/NotoSans-Regular.ttf',
+          boldAsset: 'assets/fonts/NotoSans-Bold.ttf',
+          metricsVersion: 'Pixel 7',
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => _textOp(fieldId: 'https://example.com/private'),
+        throwsArgumentError,
+      );
+      expect(() => _textOp(fieldId: 'user_12345'), throwsArgumentError);
+      expect(
+        () => _checkboxOp(fieldId: '/home/user/secret'),
+        throwsArgumentError,
+      );
+      expect(() => _imageOp(assetId: 'user@example.com'), throwsArgumentError);
+    });
+
+    test('rejects forbidden values in nested geometry and op extensions', () {
+      final Rect mediaBox = _rect(
+        width: 595.28,
+        height: 841.89,
+        unknownFields: <String, Object?>{'externalUri': 'file:///private'},
+      );
+      expect(
+        () => _page(geometry: PageGeometry(mediaBox: mediaBox)),
+        throwsArgumentError,
+      );
+
+      final Rect opRect = _rect(
+        unknownFields: <String, Object?>{'deviceName': 'Pixel 7'},
+      );
+      expect(() => _textOp(rect: opRect), throwsArgumentError);
+    });
+
+    test(
+      'rejects forbidden values in plan JSON warnings and unknown fields',
+      () {
+        final Map<String, Object?> warningJson = _contractExampleJson();
+        (warningJson['warnings']! as List<Object?>).add(
+          'https://example.com/private',
+        );
+        expect(() => ExportPlan.fromJson(warningJson), throwsFormatException);
+
+        final Map<String, Object?> unknownJson = _contractExampleJson();
+        unknownJson['externalUri'] = 'file:///private';
+        expect(() => ExportPlan.fromJson(unknownJson), throwsFormatException);
+
+        final Map<String, Object?> nestedJson = _contractExampleJson();
+        final Map<String, Object?> firstPage =
+            (nestedJson['pages']! as List<Object?>).first!
+                as Map<String, Object?>;
+        (firstPage['ops']! as List<Object?>).first! as Map<String, Object?>;
+        firstPage['future'] = <String, Object?>{'note': '/home/user/secret'};
+        expect(() => ExportPlan.fromJson(nestedJson), throwsFormatException);
+      },
+    );
   });
 
   group('ExportValidation', () {

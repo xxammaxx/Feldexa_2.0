@@ -95,6 +95,30 @@ const Set<String> _forbiddenPlanKeys = <String>{
   'annotations',
   'interactivefields',
   'absolutepath',
+  'devicename',
+  'devicemodel',
+  'deviceid',
+  'buildfingerprint',
+  'user',
+  'userid',
+  'useridentifier',
+  'username',
+  'owner',
+  'author',
+  'createdby',
+  'updatedby',
+  'email',
+  'account',
+  'accountid',
+  'device',
+  'manufacturer',
+  'androidid',
+  'advertisingid',
+  'imei',
+  'macaddress',
+  'serial',
+  'serialnumber',
+  'hostname',
 };
 
 const Set<String> _exportPlanJsonKeys = <String>{
@@ -183,6 +207,32 @@ final RegExp _uuidV4Pattern = RegExp(
   r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
 );
 final RegExp _sha256Pattern = RegExp(r'^[0-9a-f]{64}$');
+final RegExp _emailPattern = RegExp(
+  r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}',
+);
+final RegExp _deviceNamePattern = RegExp(
+  r'\b(?:Pixel(?:\s*\d+)?|Samsung|Galaxy|SM-[A-Z0-9]{3,}|Exynos|emulator-\d+)\b',
+  caseSensitive: false,
+);
+final RegExp _userIdPattern = RegExp(
+  r'\buser[\s_-]?\d{3,}\b',
+  caseSensitive: false,
+);
+final RegExp _uriSchemePattern = RegExp(r'[A-Za-z][A-Za-z0-9+.-]*://');
+final RegExp _userHandlePattern = RegExp(r'(?<![\w.])@[A-Za-z0-9_]{3,}');
+const String _schemeAlternation =
+    r'file|content|data|http|https|mailto|tel|urn|android\.resource|intent|'
+    r'package|javascript|vbscript|about|chrome|blob|ws|wss|ftp|sftp|ssh|git|'
+    r'svn|sms|geo|market';
+final RegExp _knownSchemePattern = RegExp(
+  '^(?:$_schemeAlternation):',
+  caseSensitive: false,
+);
+final RegExp _knownSchemeContextPattern = RegExp(
+  '(?:^|[\\s(:=,;<>|])(?:$_schemeAlternation):',
+  caseSensitive: false,
+);
+final RegExp _windowsDrivePattern = RegExp(r'^[A-Za-z]:[\\/]');
 
 /// The v1 export instruction set (`contracts/export-plan.md` §2).
 ///
@@ -251,9 +301,10 @@ final class ExportPlan extends JsonObject {
       if (warning.isEmpty) {
         throw ArgumentError('warnings must not contain empty entries');
       }
+      _rejectForbiddenPlanContent(warning, scanValues: true);
       checkedWarnings.add(warning);
     }
-    _rejectForbiddenPlanContent(unknownFields);
+    _rejectForbiddenPlanContent(unknownFields, scanValues: true);
     return ExportPlan._(
       schemaVersion: schemaVersion,
       documentId: checkedDocumentId,
@@ -424,7 +475,11 @@ final class ExportFont extends JsonObject {
       metricsVersion,
       'metricsVersion',
     );
-    _rejectForbiddenPlanContent(unknownFields);
+    _checkPrivateMetadata(checkedFamily, 'family');
+    _checkPrivateMetadata(checkedRegular, 'regularAsset');
+    _checkPrivateMetadata(checkedBold, 'boldAsset');
+    _checkPrivateMetadata(checkedMetrics, 'metricsVersion');
+    _rejectForbiddenPlanContent(unknownFields, scanValues: true);
     return ExportFont._(
       family: checkedFamily,
       regularAsset: checkedRegular,
@@ -517,7 +572,7 @@ final class ExportPlanInfo extends JsonObject {
     if (unresolvedSuggestionCount < 0) {
       throw ArgumentError('unresolvedSuggestionCount must not be negative');
     }
-    _rejectForbiddenPlanContent(unknownFields);
+    _rejectForbiddenPlanContent(unknownFields, scanValues: true);
     return ExportPlanInfo._(
       emptyFieldCount: emptyFieldCount,
       unresolvedSuggestionCount: unresolvedSuggestionCount,
@@ -620,7 +675,16 @@ final class ExportPage extends JsonObject {
     if (ctm != null && !ctm.matches(expectedCtm)) {
       throw ArgumentError('ctm must match the page geometry');
     }
-    _rejectForbiddenPlanContent(unknownFields);
+    _rejectForbiddenPlanContent(geometry.unknownFields, scanValues: true);
+    _rejectForbiddenPlanContent(
+      geometry.mediaBox.unknownFields,
+      scanValues: true,
+    );
+    _rejectForbiddenPlanContent(
+      geometry.cropBox.unknownFields,
+      scanValues: true,
+    );
+    _rejectForbiddenPlanContent(unknownFields, scanValues: true);
     return ExportPage._(
       index: index,
       geometry: geometry,
@@ -751,7 +815,7 @@ final class ExportCtm extends JsonObject {
     _checkFinite(d, 'd');
     _checkFinite(e, 'e');
     _checkFinite(f, 'f');
-    _rejectForbiddenPlanContent(unknownFields);
+    _rejectForbiddenPlanContent(unknownFields, scanValues: true);
     return ExportCtm._(
       a: a,
       b: b,
@@ -935,6 +999,7 @@ sealed class ExportOp extends JsonObject {
     required Rect pdfRect,
   }) {
     _checkNonEmpty(fieldId, 'fieldId');
+    _checkPrivateMetadata(fieldId, 'fieldId');
     if (!Provenance.values.contains(provenance)) {
       throw ArgumentError('provenance is not a supported token');
     }
@@ -944,6 +1009,8 @@ sealed class ExportOp extends JsonObject {
     if (!pdfRect.width.isFinite || !pdfRect.height.isFinite) {
       throw ArgumentError('pdfRect must be finite');
     }
+    _rejectForbiddenPlanContent(rect.unknownFields, scanValues: true);
+    _rejectForbiddenPlanContent(pdfRect.unknownFields, scanValues: true);
   }
 }
 
@@ -1029,7 +1096,7 @@ final class ExportTextOp extends ExportOp {
         'overflow must be false; an overflowing plan is not produced',
       );
     }
-    _rejectForbiddenPlanContent(unknownFields);
+    _rejectForbiddenPlanContent(unknownFields, scanValues: true);
     return ExportTextOp._(
       fieldId: fieldId,
       provenance: provenance,
@@ -1202,7 +1269,7 @@ final class ExportCheckboxOp extends ExportOp {
         ' 0.6, 1.4) rounded to 0.1',
       );
     }
-    _rejectForbiddenPlanContent(unknownFields);
+    _rejectForbiddenPlanContent(unknownFields, scanValues: true);
     return ExportCheckboxOp._(
       fieldId: fieldId,
       provenance: provenance,
@@ -1326,13 +1393,14 @@ final class ExportImageOp extends ExportOp {
       pdfRect: pdfRect,
     );
     final String checkedAssetId = _checkNonEmpty(assetId, 'assetId');
+    _checkPrivateMetadata(checkedAssetId, 'assetId');
     if (fit != 'contain') {
       throw ArgumentError('fit must be contain');
     }
     if (align != 'center') {
       throw ArgumentError('align must be center');
     }
-    _rejectForbiddenPlanContent(unknownFields);
+    _rejectForbiddenPlanContent(unknownFields, scanValues: true);
     return ExportImageOp._(
       fieldId: fieldId,
       provenance: provenance,
@@ -1650,12 +1718,37 @@ final class ExportValidationWarning extends JsonObject {
 
 /// Rejects forbidden plan content at any depth (`contracts/export-plan.md`
 /// §2.3).
-void _rejectForbiddenPlanContent(Object? value, {bool asJson = false}) {
+///
+/// [scanValues] is used for the two content classes that are not otherwise
+/// constrained by the schema: `ExportPlan.warnings` and same-schema unknown
+/// fields. It refuses URIs, absolute paths, device names, and user identifiers
+/// while leaving relative text and ordinary extension values intact. Known
+/// field values such as confirmed text lines are not scanned here; they are the
+/// user's export content and must stay exportable.
+void _rejectForbiddenPlanContent(
+  Object? value, {
+  bool asJson = false,
+  bool scanValues = false,
+}) {
   Never fail(String message) {
     if (asJson) {
       throw FormatException(message);
     }
     throw ArgumentError(message);
+  }
+
+  void checkPrivateText(String text) {
+    if (_containsForbiddenLocation(text)) {
+      fail('Export plan must not contain an absolute path or URI');
+    }
+    if (_emailPattern.hasMatch(text) ||
+        _userHandlePattern.hasMatch(text) ||
+        _userIdPattern.hasMatch(text)) {
+      fail('Export plan must not contain a user identifier');
+    }
+    if (_deviceNamePattern.hasMatch(text)) {
+      fail('Export plan must not contain a device name');
+    }
   }
 
   final Set<Object> ancestors = HashSet<Object>.identity();
@@ -1672,6 +1765,9 @@ void _rejectForbiddenPlanContent(Object? value, {bool asJson = false}) {
         if (_forbiddenPlanKeys.contains(key.toLowerCase())) {
           fail('Export plan must not contain "$key"');
         }
+        if (scanValues) {
+          checkPrivateText(key);
+        }
         walk(entry.value);
       }
       ancestors.remove(node);
@@ -1685,10 +1781,52 @@ void _rejectForbiddenPlanContent(Object? value, {bool asJson = false}) {
         walk(item);
       }
       ancestors.remove(node);
+      return;
+    }
+    if (scanValues && node is String) {
+      checkPrivateText(node);
     }
   }
 
   walk(value);
+}
+
+/// Whether [value] contains an absolute path or a URI token.
+///
+/// Relative paths such as `assets/fonts/NotoSans-Regular.ttf` and ordinary
+/// punctuation such as `Feld A / B` remain allowed.
+bool _containsForbiddenLocation(String value) {
+  if (_uriSchemePattern.hasMatch(value) ||
+      _knownSchemeContextPattern.hasMatch(value)) {
+    return true;
+  }
+  final List<String> tokens = value.split(RegExp(r'\s+'));
+  for (final String raw in tokens) {
+    final String token = raw
+        .replaceFirst(RegExp(r'''^[\(\[\{"']+'''), '')
+        .replaceFirst(RegExp(r'''[\)\]\}"',;:.!?]+$'''), '');
+    if (token.isEmpty || token == '/' || token == '\\' || token == '~') {
+      continue;
+    }
+    if (token.startsWith('/') ||
+        token.startsWith('\\') ||
+        token.startsWith('~/') ||
+        token.startsWith('~\\') ||
+        _windowsDrivePattern.hasMatch(token) ||
+        _knownSchemePattern.hasMatch(token)) {
+      return true;
+    }
+  }
+  if (RegExp(r'(?:^|[\s(:=,;<>|])/(?:[^\s)])').hasMatch(value)) {
+    return true;
+  }
+  if (RegExp(r'(?:^|[\s(:=,;<>|])\\\\[^\s]').hasMatch(value)) {
+    return true;
+  }
+  if (RegExp(r'(?:^|[\s(:=,;<>|])[A-Za-z]:[\\/]').hasMatch(value)) {
+    return true;
+  }
+  return false;
 }
 
 String _checkUuidV4(String value, String name) {
@@ -1725,6 +1863,26 @@ String _checkBundledAssetPath(String value, String name) {
     throw ArgumentError('$name must not contain empty or parent segments');
   }
   return value;
+}
+
+/// Rejects private metadata in a schema string that is not user export content.
+///
+/// `warnings` and unknown fields use [_rejectForbiddenPlanContent] so a JSON
+/// read reports a `FormatException`; known metadata strings use this helper and
+/// report `ArgumentError`. Confirmed field `lines` are user content and are not
+/// passed through this gate.
+void _checkPrivateMetadata(String value, String name) {
+  if (_containsForbiddenLocation(value)) {
+    throw ArgumentError('$name must not contain an absolute path or URI');
+  }
+  if (_emailPattern.hasMatch(value) ||
+      _userHandlePattern.hasMatch(value) ||
+      _userIdPattern.hasMatch(value)) {
+    throw ArgumentError('$name must not contain a user identifier');
+  }
+  if (_deviceNamePattern.hasMatch(value)) {
+    throw ArgumentError('$name must not contain a device name');
+  }
 }
 
 void _checkUtc(DateTime value, String name) {
