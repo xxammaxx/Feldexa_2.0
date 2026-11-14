@@ -658,7 +658,7 @@ void main() {
       );
     });
 
-    test('incompatible content and its warning must occur together', () {
+    test('incompatible content and its flag must occur together', () {
       final ConfirmedField plain = _field(id: _uuid(20));
       final ConfirmedField flagged = _field(
         id: _uuid(21),
@@ -667,6 +667,17 @@ void main() {
           WarningCode.incompatibleContent,
           'field.incompatible_content',
         ),
+      );
+      final ConfirmedField errorFlagged = _field(
+        id: _uuid(22),
+        order: 0,
+        type: FieldType.number,
+        validation: FieldValidation.error('NUM-001'),
+      );
+      final ConfirmedField overflowFlagged = _field(
+        id: _uuid(23),
+        order: 0,
+        validation: FieldValidation.warning(WarningCode.overflow, 'FLD-001'),
       );
       final IncompatibleValue preserved = IncompatibleValue(
         preservedText: 'alt',
@@ -680,6 +691,23 @@ void main() {
           values: <String, FieldValue>{flagged.id: preserved},
         ).values.length,
         1,
+      );
+      final RevisionContent errorContent = _minimalContent(
+        fields: <ConfirmedField>[errorFlagged],
+        fieldOrder: <String>[errorFlagged.id],
+        values: <String, FieldValue>{errorFlagged.id: preserved},
+      );
+      final RevisionContent errorRoundTrip = RevisionContent.fromJson(
+        errorContent.toJson(),
+      );
+      expect(
+        errorRoundTrip.fields.single.validation,
+        FieldValidation.error('NUM-001'),
+      );
+      expect(
+        (errorRoundTrip.values[errorFlagged.id]! as IncompatibleValue)
+            .preservedText,
+        'alt',
       );
       expect(
         () => _minimalContent(
@@ -696,6 +724,14 @@ void main() {
           values: <String, FieldValue>{
             flagged.id: TextValue(text: 'x', lastEditedAt: _at()),
           },
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => _minimalContent(
+          fields: <ConfirmedField>[overflowFlagged],
+          fieldOrder: <String>[overflowFlagged.id],
+          values: <String, FieldValue>{overflowFlagged.id: preserved},
         ),
         throwsArgumentError,
       );

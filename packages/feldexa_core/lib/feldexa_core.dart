@@ -14,5 +14,6 @@ export 'src/model/durable_pointer.dart';
 export 'src/model/field.dart';
 export 'src/model/page_failure.dart';
 export 'src/model/persistence.dart';
+export 'src/model/reclassification.dart';
 export 'src/model/template.dart';
 export 'src/model/template_origin.dart';

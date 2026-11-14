@@ -1283,9 +1283,11 @@ final class ConfirmedField extends JsonObject {
   /// Whether [value] is compatible with this field's type.
   ///
   /// A reclassification keeps incompatible content as an [IncompatibleValue]
-  /// and flags it with a [WarningCode.incompatibleContent] validation state
-  /// instead of discarding it (FR-029/FR-038), so an incompatible value is
-  /// accepted here; the validation state carries the warning.
+  /// and flags it instead of discarding it (FR-029/FR-038): a
+  /// [WarningCode.incompatibleContent] warning for content that still needs an
+  /// explicit user decision, or a blocking [FieldValidation.error] for a failed
+  /// number/date parse. An incompatible value is accepted here; the validation
+  /// state carries the flag.
   bool acceptsValue(FieldValue value) {
     return value is IncompatibleValue || value.type == type;
   }
