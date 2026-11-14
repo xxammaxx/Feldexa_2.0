@@ -44,8 +44,8 @@ alias is part of the contract.
 | Artifact | Change | Reason |
 | --- | --- | --- |
 | `contracts/storage-format.md` | KEK row now defines per-document/per-template aliases; added per-aggregate key lifecycle, creation before first ciphertext, deletion ordering (objects first, alias last), orphan-alias sweep, aggregate-scoped failure mapping, and key-loss listing behavior. `keyScheme=1` now means "DEK wrapped by the aggregate KEK". | Remove the single shared `feldexa.master.v1` architecture and make key-loss isolation mechanically possible. |
-| `contracts/ports.md` | Removed the store-global `StoreStatus.keyAvailable`; per-aggregate availability is expressed through `StoredMeta.readable`/`unreadableReasonCode` and `KeyUnavailableException` (`SAVE-002`). Added per-aggregate creation, deletion, load/save, and empty-title rules. | A global key flag would be false/misleading when only one aggregate key is lost. |
-| `contracts/platform-channel.md` | `store.status` no longer reports a global key flag; `storage.status` carries `kind`, `itemId`, and per-aggregate key availability; deletion and Keystore-loss tests are aggregate-scoped. | Keep the channel aligned with the port and expose the affected aggregate only. |
+| `contracts/ports.md` | Retained T013's `StoreStatus.keyAvailable` as a store-level summary (false when at least one known aggregate key is unavailable); per-aggregate detail is expressed through `StoredMeta.readable`/`unreadableReasonCode` and `KeyUnavailableException` (`SAVE-002`). Added per-aggregate creation, deletion, load/save, and "Nicht lesbar" placeholder-title rules. | Preserve T013's implemented `StoreStatus` while making the summary non-fatal and the per-aggregate behavior authoritative. |
+| `contracts/platform-channel.md` | `store.status` keeps `keyAvailable` as the T013-compatible summary; `storage.status` carries `kind`, `itemId`, and per-aggregate key availability; deletion and Keystore-loss tests are aggregate-scoped. | Keep the channel aligned with the port and expose the affected aggregate without breaking T013. |
 | `data-model.md` | `Unreadable` is explicitly per aggregate; losing one aggregate KEK does not transition other documents/templates; an unreadable aggregate is listed as "Nicht lesbar" without an invented title. | Preserve per-document state isolation. |
 | `plan.md` | Storage architecture, structure comment, architecture decision 3, and key-loss risk row now use per-document/template KEKs. | Remove the plan's shared-master-key claim. |
 | `research.md` | D-07 rewritten for per-aggregate KEKs; shared master key recorded as rejected; recovery semantics now aggregate-scoped; fault-injection and decision-summary rows updated. | Remove the internal D-07 contradiction and record the rejected alternative. |
@@ -73,8 +73,8 @@ verbatim texts.
   product decision.
 - `meta.fx1` is protected by the aggregate KEK. If the key is lost, the title
   and stored timestamps are also unreadable. The list must show a non-content
-  "Nicht lesbar" entry with an empty title, and deletion must still be possible
-  through that localized state. No plaintext index or shared metadata key was
+  "Nicht lesbar" entry with that localized placeholder title, and deletion must
+  still be possible through it. No plaintext index or shared metadata key was
   introduced.
 - Each aggregate creates a Keystore key. StrongBox is best-effort; a failed
   StrongBox generation falls back to TEE, never software. Alias creation,

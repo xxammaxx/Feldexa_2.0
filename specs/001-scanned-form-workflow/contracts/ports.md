@@ -101,8 +101,14 @@ final class SourceIntegrity {
   final String? actualSha256;
   final int? pageCount;
   final List<PageFailure> pageFailures;
+  final CapabilityEvidence evidence;   // §1: acceptance-relevant results are labelled
 }
 ```
+
+A source-verification result can support the source-retention guarantees of
+FR-095/FR-096, so §1 requires the same evidence label as `ImportedSource`. The
+T013 correction added the field to the implementation and this snippet; no
+second evidence or export type is introduced.
 
 **Contract**
 - Cancellation throws `ImportCancelledException` and leaves no `meta`, `head`, `rev`, `src`, or list entry (FR-009).
@@ -176,6 +182,7 @@ abstract interface class OcrPort implements PlatformCapability {
 enum StoreKind { document, template }
 
 final class StoreStatus {
+  final bool keyAvailable;   // summary: false only if at least one aggregate key is unavailable
   final int objectCount;
   final int totalBytes;
   final CapabilityEvidence evidence;
@@ -194,9 +201,10 @@ final class StoredMeta {
 }
 
 // `StoredMeta.title` is the stored title. For an aggregate whose KEK is
-// missing or invalidated it is the empty string, `readable` is false, and
-// `unreadableReasonCode` is `SAVE-002`; the UI renders the localized
-// "Nicht lesbar" state instead of inventing a title from ciphertext.
+// missing or invalidated it is the catalog's localized "Nicht lesbar"
+// placeholder (1–200 characters), `readable` is false, and
+// `unreadableReasonCode` is `SAVE-002`; the UI does not derive a title from
+// ciphertext.
 
 final class LoadedDocument {
   final DocumentMeta meta;
@@ -236,9 +244,9 @@ final class RecoveryStamp {
 **Contract**
 - `createDocument`/`createTemplate` create the aggregate's own Keystore KEK before the first encrypted object. A key-creation failure leaves no visible aggregate and is swept; no shared master key exists (FR-049/FR-052).
 - `saveRevision`/`saveTemplateVersion` return success only after the new head is written and read back (FR-047). A missing/invalidated aggregate KEK fails that aggregate with `SAVE-002` and preserves its previous head; other aggregates continue.
-- `delete` requires an explicit `DeleteConfirmation` naming the item; a readable aggregate must match its stored title, while an unreadable aggregate with empty `StoredMeta.title` uses an empty confirmation title plus the localized "Nicht lesbar" label. It deletes the aggregate's objects first and its KEK alias last, then records the deletion. No other document/template or alias is touched (FR-053/FR-099).
-- `status` reports only object count, total bytes, and evidence; key availability is per aggregate through `StoredMeta.readable`/`unreadableReasonCode` and `KeyUnavailableException` on load/save. A missing key never throws for the whole store (FR-052).
-- `loadDocument`/`loadTemplate` fail with `KeyUnavailableException` or `CorruptDataException` for the requested aggregate; every other aggregate remains loadable. An unreadable aggregate is listed with `readable=false`, `unreadableReasonCode=SAVE-002`, and an empty title.
+- `delete` requires an explicit `DeleteConfirmation` naming the item; a readable aggregate must match its stored title, and an unreadable aggregate matches the stored "Nicht lesbar" placeholder. It deletes the aggregate's objects first and its KEK alias last, then records the deletion. No other document/template or alias is touched (FR-053/FR-099).
+- `status.keyAvailable` is a store-level summary: true only when every known aggregate key is available. False means at least one aggregate must fail with `SAVE-002`; it never makes the whole store throw, and other aggregates remain usable. Per-aggregate detail comes from `StoredMeta.readable`/`unreadableReasonCode` and `KeyUnavailableException` on load/save (FR-052).
+- `loadDocument`/`loadTemplate` fail with `KeyUnavailableException` or `CorruptDataException` for the requested aggregate; every other aggregate remains loadable. An unreadable aggregate is listed with `readable=false`, `unreadableReasonCode=SAVE-002`, and the "Nicht lesbar" placeholder title.
 - Storage exhaustion throws `StorageFullException`; the last durable head is untouched (FR-074/FR-075).
 - No method accepts an arbitrary path. Object names are server-side (adapter-side) generated.
 
@@ -257,18 +265,32 @@ final class ExportResult {
   final CapabilityEvidence evidence;
 }
 
+final class ExportValidationResult {
+  final ExportValidation validation;   // canonical T022 type, never duplicated
+  final CapabilityEvidence evidence;   // §1 labelling for the preflight result
+}
+
 abstract interface class PdfExportPort implements PlatformCapability {
-  Future<ExportValidation> validate(ExportPlan plan);
+  Future<ExportValidationResult> validate(ExportPlan plan);
   Future<ExportResult> export(ExportRequest request);
   Future<Uint8List> readArtifact(String artifactId);   // for preview; bounded
   Future<void> deleteArtifact(String artifactId);
 }
 ```
 
-`ExportPlan`, `ExportValidation`, `ExportArtifact`, and `ArtifactVerification` are canonical `feldexa_export` contract-model types owned by T022; `feldexa_export` builds plans, `feldexa_ports` only consumes them.
+`ExportPlan`, `ExportValidation`, `ExportArtifact`, and `ArtifactVerification`
+are canonical `feldexa_export` contract-model types owned by T022;
+`feldexa_export` builds plans, `feldexa_ports` only consumes them.
+`ExportValidationResult` is the T013-owned ports wrapper required by §1: it
+holds the canonical, unmodified `ExportValidation` together with
+`CapabilityEvidence`. It is not a second validation model, and `feldexa_export`
+must still not import `feldexa_ports` (owner decision of 2026-11-15).
 
 **Contract**
-- `validate` returns blocking warnings (overflow/misplacement) before any file is written (FR-068).
+- `validate` returns the canonical blocking warnings (overflow/misplacement) and
+  the adapter `CapabilityEvidence` before any file is written (FR-068 and §1).
+  The wrapper preserves the canonical `ExportValidation` warning list and
+  blocking state unchanged.
 - `export` writes to a temp name, verifies by reopening, checks page count and media boxes, confirms no interactive form fields, then atomically renames. Failure removes the temp file (FR-072).
 - The source document and stored working document are never modified (FR-073).
 - The produced file is self-contained and flattened; the exported PDF is a normal PDF with no AcroForm widgets (FR-069).

@@ -220,7 +220,7 @@ No exception message may contain a file path, file name, document title, OCR tex
 
 Per-aggregate isolation covers loss/invalidation of one aggregate's alias. A whole-Keystore or device reset invalidates every alias and is device-wide loss; no per-aggregate scheme can isolate it, and the ciphertext may also be gone.
 
-**Key-loss listing limitation**: `meta.fx1` is encrypted with the aggregate KEK, so a lost aggregate key also hides that aggregate's title and stored timestamps. The store must still enumerate the directory as `readable = false` with `unreadableReasonCode = SAVE-002`, using no ciphertext-derived title; the UI renders the localized "Nicht lesbar" state. No plaintext index or shared metadata key is introduced. Other aggregates keep their own metadata keys.
+**Key-loss listing limitation**: `meta.fx1` is encrypted with the aggregate KEK, so a lost aggregate key also hides that aggregate's title and stored timestamps. The store must still enumerate the directory as `readable = false` with `unreadableReasonCode = SAVE-002`; `StoredMeta.title` is the localized "Nicht lesbar" placeholder, never a ciphertext-derived title. The UI renders that localized state. No plaintext index or shared metadata key is introduced. Other aggregates keep their own metadata keys.
 
 ---
 
@@ -247,4 +247,4 @@ Per-aggregate isolation covers loss/invalidation of one aggregate's alias. A who
 9. **No plaintext on disk**: after import/save/export failures, scan the app data and cache directories for the PDF magic bytes (`%PDF-`) and known test phrases → none outside the encrypted container (export artifact excepted during an active preview).
 10. **Backup exclusion**: verify the manifest/`dataExtractionRules` exclude all app data on a test install.
 11. **Per-aggregate keys**: create two documents and one template; assert three distinct aliases with the documented prefixes and that no `feldexa.master.v1` alias exists. Delete one document alias; only that document returns `SAVE-002`, while the other document and the template load. Delete one template alias; only that template fails.
-12. **Key-loss listing**: with one aggregate alias deleted, `list` returns that aggregate with `readable = false`, `unreadableReasonCode = SAVE-002`, no fabricated title, and the other aggregates unchanged; the UI shows the German "Nicht lesbar" state.
+12. **Key-loss listing**: with one aggregate alias deleted, `list` returns that aggregate with `readable = false`, `unreadableReasonCode = SAVE-002`, the German "Nicht lesbar" placeholder title, and the other aggregates unchanged; the UI shows the localized unreadable state.

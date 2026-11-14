@@ -131,7 +131,7 @@ Version facts below were checked on 2026-11-12 against pub.dev, Maven Central, a
 - *Plain app-private files*: violates FR-049 — rejected.
 - *User password / biometric gate*: prohibited by FR-050 — rejected.
 
-**Recovery semantics**: Missing/corrupt aggregate KEK or unwrap failure maps to `SAVE-002` for that aggregate. The object remains on disk untouched; other documents/templates use independent KEKs and remain readable. The affected aggregate's encrypted metadata is also unreadable, so the list shows it as "Nicht lesbar" without inventing a title. No automatic re-keying or deletion; startup sweeps orphan aliases.
+**Recovery semantics**: Missing/corrupt aggregate KEK or unwrap failure maps to `SAVE-002` for that aggregate. The object remains on disk untouched; other documents/templates use independent KEKs and remain readable. The affected aggregate's encrypted metadata is also unreadable, so the list uses the "Nicht lesbar" placeholder title and does not invent one from ciphertext. No automatic re-keying or deletion; startup sweeps orphan aliases.
 
 ---
 

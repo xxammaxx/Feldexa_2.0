@@ -122,7 +122,7 @@ Internal cleanup for a failed import: `{ "txnId":"…" }` → `{ "removed": true
 
 | Method | Request | Response |
 | --- | --- | --- |
-| `store.status` | `{}` | `{ objectCount, totalBytes }` |
+| `store.status` | `{}` | `{ keyAvailable, objectCount, totalBytes }` |
 | `store.list` | `{ "kind":"document"\|"template" }` | `{ items:[StoredMeta…] }` |
 | `store.readSource` | `{ "documentId" }` | `Uint8List` (decrypted, capped 80 MiB) |
 | `store.readSignature` | `{ "documentId", "assetId" }` | `Uint8List` (PNG) |
@@ -138,8 +138,8 @@ Internal cleanup for a failed import: `{ "txnId":"…" }` → `{ "removed": true
 Rules:
 - `saveRevision` uses optimistic concurrency: `expectedHead` must equal the current verified head, otherwise `SAVE-006` (concurrent write) and the caller re-reads. The app is single-user, but autosave/lifecycle races are real.
 - `store.loadDocument` returns no source bytes; the app calls `readSource` once, then releases the buffer when the viewport closes. The adapter may cache the decrypted buffer only in memory and only for the open document.
-- `store.delete` validates `confirm.acknowledged == true`. For a readable aggregate, `confirm.title` must equal the stored title (case-sensitive, trimmed). For an aggregate whose key is unavailable, `StoredMeta.title` is empty and `confirm.title` must be empty; the confirmation UI must still present a destructive confirmation naming the item by the localized "Nicht lesbar" state. Deletion removes the aggregate's objects first and its own KEK alias last; no other alias is touched.
-- `store.status` reports no key flag: key availability is per aggregate through `store.list` (`StoredMeta.readable`/`unreadableReasonCode`) and the `storage.status` event.
+- `store.delete` validates `confirm.acknowledged == true`. For a readable aggregate, `confirm.title` must equal the stored title (case-sensitive, trimmed); for an unreadable aggregate it must equal the stored "Nicht lesbar" placeholder. The confirmation UI still presents a destructive confirmation for the localized unreadable state. Deletion removes the aggregate's objects first and its own KEK alias last; no other alias is touched.
+- `store.status.keyAvailable` is a store-level summary: false when at least one known aggregate key is unavailable. It does not make the whole store fail; per-aggregate detail comes from `store.list` (`StoredMeta.readable`/`unreadableReasonCode`) and the `storage.status` event.
 - No method accepts a path, URI, or file name. `assetId`, `documentId`, `templateId`, `revisionId` are UUID-validated.
 - Revision size cap: 32 MiB plaintext (metadata + field values); larger is rejected with `SAVE-007` (invalid data), because field values are text/signature references only.
 
