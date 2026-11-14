@@ -292,8 +292,10 @@ void main() {
         () => SuggestionCue.fromWire('ocr_alignment'),
         throwsFormatException,
       );
-      expect(SuggestionCue.fromWire('line'), SuggestionCue.underline);
-      expect(SuggestionCue.fromWire('grid'), SuggestionCue.gridCell);
+      expect(() => SuggestionCue.fromWire('line'), throwsFormatException);
+      expect(() => SuggestionCue.fromWire('grid'), throwsFormatException);
+      expect(SuggestionCue.fromLegacyWire('line'), SuggestionCue.underline);
+      expect(SuggestionCue.fromLegacyWire('grid'), SuggestionCue.gridCell);
       for (final String unknown in <String>[
         'nickname',
         'unknown',
@@ -389,6 +391,114 @@ void main() {
       );
     });
 
+    test(
+      'strict cue parsing rejects legacy aliases; migration canonicalizes',
+      () {
+        final Map<String, Object?> strictLine = <String, Object?>{
+          'cues': <String>['line'],
+          'cueAgreement': 1,
+          'skewDegrees': 0,
+          'contrast': 'normal',
+          'ocrUsed': true,
+        };
+        expect(
+          () => SuggestionEvidence.fromJson(strictLine),
+          throwsFormatException,
+        );
+        final SuggestionEvidence migrated = SuggestionEvidence.fromLegacyJson(
+          strictLine,
+        );
+        expect(migrated.cues, <SuggestionCue>{SuggestionCue.underline});
+        expect(migrated.toJson()['cues'], <String>['underline']);
+
+        final SuggestionEvidence grid = SuggestionEvidence.fromLegacyJson(
+          <String, Object?>{
+            'cues': <String>['grid'],
+            'cueAgreement': 1,
+            'skewDegrees': 0,
+            'contrast': 'normal',
+            'ocrUsed': true,
+          },
+        );
+        expect(grid.cues, <SuggestionCue>{SuggestionCue.gridCell});
+        expect(grid.toJson()['cues'], <String>['grid_cell']);
+
+        expect(
+          SuggestionEvidence.fromJson(<String, Object?>{
+            'cues': <String>['underline', 'grid_cell'],
+            'cueAgreement': 2,
+            'skewDegrees': 0,
+            'contrast': 'normal',
+            'ocrUsed': true,
+          }).cues,
+          <SuggestionCue>{SuggestionCue.underline, SuggestionCue.gridCell},
+        );
+      },
+    );
+
+    test('rejects OCR-dependent cues when ocrUsed is false', () {
+      for (final SuggestionCue ocrCue in <SuggestionCue>[
+        SuggestionCue.keyword('name'),
+        SuggestionCue.ocrAlignmentRight,
+        SuggestionCue.ocrAlignmentBelow,
+        SuggestionCue.labelBelow,
+        SuggestionCue.signatureArea,
+        SuggestionCue.numericContext,
+        SuggestionCue.dateContext,
+      ]) {
+        expect(
+          () => _evidence(
+            cues: <SuggestionCue>[SuggestionCue.underline, ocrCue],
+            ocrUsed: false,
+          ),
+          throwsArgumentError,
+          reason: ocrCue.wireName,
+        );
+      }
+      final SuggestionEvidence geometryOnly = _evidence(
+        cues: <SuggestionCue>[
+          SuggestionCue.underline,
+          SuggestionCue.box,
+          SuggestionCue.gridCell,
+          SuggestionCue.whitespace,
+          SuggestionCue.alignmentLeft,
+          SuggestionCue.smallSquare,
+          SuggestionCue.tableCell,
+        ],
+        ocrUsed: false,
+      );
+      expect(geometryOnly.ocrUsed, isFalse);
+      final SuggestionEvidence withOcr = _evidence(
+        cues: <SuggestionCue>[
+          SuggestionCue.underline,
+          SuggestionCue.keyword('name'),
+          SuggestionCue.signatureArea,
+        ],
+        ocrUsed: true,
+      );
+      expect(withOcr.ocrUsed, isTrue);
+      expect(
+        () => SuggestionEvidence.fromJson(<String, Object?>{
+          'cues': <String>['underline', 'keyword_name'],
+          'cueAgreement': 1,
+          'skewDegrees': 0,
+          'contrast': 'normal',
+          'ocrUsed': false,
+        }),
+        throwsFormatException,
+      );
+      final SuggestionEvidence jsonGeometryOnly = SuggestionEvidence.fromJson(
+        <String, Object?>{
+          'cues': <String>['underline', 'box'],
+          'cueAgreement': 2,
+          'skewDegrees': 0,
+          'contrast': 'normal',
+          'ocrUsed': false,
+        },
+      );
+      expect(jsonGeometryOnly.ocrUsed, isFalse);
+    });
+
     test('enforces cueAgreement and skew bounds', () {
       expect(_evidence(cueAgreement: 1).cueAgreement, 1);
       expect(() => _evidence(cueAgreement: 0), throwsArgumentError);
@@ -413,7 +523,7 @@ void main() {
         cueAgreement: 2,
         skewDegrees: 0.4,
         contrast: EvidenceContrast.low,
-        ocrUsed: false,
+        ocrUsed: true,
       );
       expect(signed.hasSignatureCue, isTrue);
       final SuggestionEvidence parsed = SuggestionEvidence.fromJson(
@@ -895,6 +1005,26 @@ void main() {
         );
       },
     );
+
+    test('strict suggestion decoding rejects legacy cue aliases', () {
+      final FieldSuggestion suggestion = _suggestion();
+      final Map<String, Object?> json = suggestion.toJson();
+      final Map<String, Object?> evidence = Map<String, Object?>.from(
+        json['evidence']! as Map<String, Object?>,
+      );
+      evidence['cues'] = <String>['line'];
+      final Map<String, Object?> aliasJson = Map<String, Object?>.from(json)
+        ..['evidence'] = evidence;
+      expect(() => FieldSuggestion.fromJson(aliasJson), throwsFormatException);
+      final FieldSuggestion migrated = FieldSuggestion.fromLegacyJson(
+        aliasJson,
+      );
+      expect(migrated.evidence.cues, <SuggestionCue>{SuggestionCue.underline});
+      expect(
+        (migrated.toJson()['evidence']! as Map<String, Object?>)['cues'],
+        <String>['underline'],
+      );
+    });
 
     test('round-trips the recognition-output §2 suggestion fixture', () {
       final FieldSuggestion fixture = _suggestion(

@@ -129,9 +129,10 @@ enum SuggestionResolution {
 /// cues are constants, and a keyword cue carries its lexicon key, so
 /// `keyword_<key>` is never flattened into a generic token. The data-model
 /// §3.4 list (`line`, `box`, `grid`, `whitespace`, `ocr_alignment`, `keyword`)
-/// is a coarse source taxonomy: [line] and [grid] are aliases for the concrete
-/// [underline] and [gridCell] cues, while the ambiguous `ocr_alignment` and
-/// keyless `keyword` spellings are not accepted wire tokens. Visible non-ASCII
+/// is a coarse source taxonomy: [line] and [grid] are Dart aliases for
+/// [underline] and [gridCell] but are not contract wire tokens and are read
+/// only by [fromLegacyWire] during migration. The ambiguous `ocr_alignment`
+/// and keyless `keyword` spellings are never accepted. Visible non-ASCII
 /// keyword keys such as `straße` remain representable.
 sealed class SuggestionCue implements Comparable<SuggestionCue> {
   const SuggestionCue._(this.order);
@@ -297,6 +298,13 @@ sealed class SuggestionCue implements Comparable<SuggestionCue> {
   /// Tie-breaker after [order]; empty for fixed cues.
   String get _sortKey;
 
+  /// Whether this cue depends on OCR evidence.
+  ///
+  /// When [SuggestionEvidence.ocrUsed] is false, only cues with this getter
+  /// false may appear. `signature_area` is OCR+geometry (§3.1), so it is
+  /// geometric for the §2.1 requirement but still requires OCR.
+  bool get requiresOcr;
+
   @override
   int compareTo(SuggestionCue other) {
     final int byOrder = order.compareTo(other.order);
@@ -309,21 +317,17 @@ sealed class SuggestionCue implements Comparable<SuggestionCue> {
   /// Parses a wire token.
   ///
   /// Accepts every exact §3.1 token, including `keyword_<key>` for a key in
-  /// [keywordLexiconV1], plus the unambiguous data-model aliases `line` and
-  /// `grid`. Throws [FormatException] for a non-string, unknown, ambiguous
-  /// (`ocr_alignment`), keyless (`keyword`), or out-of-lexicon keyword token.
+  /// [keywordLexiconV1]. The data-model aliases `line` and `grid` are not
+  /// contract wire tokens; only [fromLegacyWire] reads them during migration.
+  /// Throws [FormatException] for a non-string, unknown, ambiguous
+  /// (`ocr_alignment`), keyless (`keyword`), legacy-alias, or out-of-lexicon
+  /// keyword token.
   static SuggestionCue fromWire(Object? token) {
     if (token is String) {
       for (final SuggestionCue cue in _fixedCues) {
         if (cue.wireName == token) {
           return cue;
         }
-      }
-      if (token == 'line') {
-        return underline;
-      }
-      if (token == 'grid') {
-        return gridCell;
       }
       if (token.startsWith(_keywordPrefix) &&
           token.length > _keywordPrefix.length) {
@@ -335,6 +339,21 @@ sealed class SuggestionCue implements Comparable<SuggestionCue> {
       }
     }
     throw const FormatException('Unknown suggestion cue token.');
+  }
+
+  /// Parses a pre-contract wire token during explicit migration.
+  ///
+  /// Accepts the strict §3.1 vocabulary plus the data-model aliases `line` and
+  /// `grid`, which canonicalize to [underline] and [gridCell]. This is the
+  /// only path that reads those legacy spellings; [fromWire] stays strict.
+  static SuggestionCue fromLegacyWire(Object? token) {
+    if (token == 'line') {
+      return underline;
+    }
+    if (token == 'grid') {
+      return gridCell;
+    }
+    return fromWire(token);
   }
 
   static const String _keywordPrefix = 'keyword_';
@@ -367,6 +386,18 @@ final class _SimpleSuggestionCue extends SuggestionCue {
   @override
   String get _sortKey => '';
 
+  static const Set<String> _ocrDependentWireNames = <String>{
+    'label_below',
+    'ocr_alignment_right',
+    'ocr_alignment_below',
+    'signature_area',
+    'numeric_context',
+    'date_context',
+  };
+
+  @override
+  bool get requiresOcr => _ocrDependentWireNames.contains(wireName);
+
   @override
   bool operator ==(Object other) {
     return other is _SimpleSuggestionCue && other.wireName == wireName;
@@ -389,6 +420,9 @@ final class _KeywordSuggestionCue extends SuggestionCue {
 
   @override
   String get _sortKey => key;
+
+  @override
+  bool get requiresOcr => true;
 
   @override
   bool operator ==(Object other) {
@@ -518,17 +552,19 @@ enum FieldVerificationState {
 /// (`data-model.md` §3.4; `contracts/recognition-output.md` §2–§3).
 ///
 /// [cues] is a non-empty, duplicate-free set that includes at least one
-/// geometric cue; §2.1 forbids OCR-only suggestions. [cueAgreement] counts
-/// independent cue families and is at least one. [skewDegrees] is the
-/// estimated page skew in degrees on the closed interval `-10 … 10`.
-/// [contrast] is the contract's `normal | low` page contrast, and [ocrUsed] is
-/// false when OCR failed and geometry-only detection ran.
+/// geometric cue; §2.1 forbids OCR-only suggestions. When [ocrUsed] is false,
+/// every cue must also be OCR-independent (geometry-only detection).
+/// [cueAgreement] counts independent cue families and is at least one.
+/// [skewDegrees] is the estimated page skew in degrees on the closed interval
+/// `-10 … 10`. [contrast] is the contract's `normal | low` page contrast, and
+/// [ocrUsed] is false when OCR failed and geometry-only detection ran.
 final class SuggestionEvidence {
   /// Creates evidence for a candidate.
   ///
   /// Throws [ArgumentError] when [cues] is empty, contains duplicates, or has
-  /// no geometric cue, when [cueAgreement] is less than one, or when
-  /// [skewDegrees] is non-finite or outside `-10 … 10`.
+  /// no geometric cue, when [ocrUsed] is false and a cue depends on OCR, when
+  /// [cueAgreement] is less than one, or when [skewDegrees] is non-finite or
+  /// outside `-10 … 10`.
   factory SuggestionEvidence({
     required Iterable<SuggestionCue> cues,
     int cueAgreement = 1,
@@ -551,6 +587,18 @@ final class SuggestionEvidence {
         'evidence must include at least one geometric cue; '
         '§2.1 forbids OCR-only suggestions',
       );
+    }
+    // Geometry-only detection (ocrUsed == false) cannot be supported by an
+    // OCR-dependent cue. signature_area is geometric for §2.1, but the
+    // signature label itself still needs OCR.
+    if (!ocrUsed) {
+      for (final SuggestionCue cue in cueSet) {
+        if (cue.requiresOcr) {
+          throw ArgumentError(
+            'ocrUsed is false but the evidence contains an OCR-dependent cue',
+          );
+        }
+      }
     }
     if (cueAgreement < 1) {
       throw ArgumentError('cueAgreement must be at least 1');
@@ -604,7 +652,10 @@ final class SuggestionEvidence {
       throw const FormatException('JSON field "cues" must be an array');
     }
     final List<SuggestionCue> cues = <SuggestionCue>[
-      for (final Object? cue in rawCues) SuggestionCue.fromWire(cue),
+      for (final Object? cue in rawCues)
+        allowLegacy
+            ? SuggestionCue.fromLegacyWire(cue)
+            : SuggestionCue.fromWire(cue),
     ];
     final EvidenceContrast contrast = _readEvidenceContrast(
       json,
@@ -642,6 +693,9 @@ final class SuggestionEvidence {
   bool get lowContrast => contrast == EvidenceContrast.low;
 
   /// Whether OCR supplied evidence, as opposed to geometry-only detection.
+  ///
+  /// When false, [cues] must contain only OCR-independent cues; keyword,
+  /// OCR-alignment, label, context, and signature-area cues are rejected.
   final bool ocrUsed;
 
   /// Whether the optional signature-area cue is present.
