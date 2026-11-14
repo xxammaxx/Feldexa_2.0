@@ -319,6 +319,7 @@ the git bundle and are not bundle-verifiable.
 | [2026-11-14-t022-privacy-correction-evidence.md](./2026-11-14-t022-privacy-correction-evidence.md) | `NONE` | Task evidence | T022 privacy correction: recursive warning/unknown-field/metadata gate for URIs, absolute paths, device names, and user identifiers while preserving safe extensions; host-VM only; follows 6daad88 |
 | [2026-11-13-t032-evidence.md](./2026-11-13-t032-evidence.md) | `NONE` | Task evidence | T032 evidence report schema and validator; host-only checks |
 | [2026-11-13-t035-evidence.md](./2026-11-13-t035-evidence.md) | `NONE` | Task evidence | T035 manual-baseline protocol; v2 per-form SC-003 correction; no measurements recorded; SC-003 execution remains T142 |
+| [2026-11-15-t029-priv001-key-loss-collision.md](./2026-11-15-t029-priv001-key-loss-collision.md) | `NONE` | Contract collision analysis | `PRIV-001`/`SAVE-002` per-document usability promise vs one shared Keystore KEK; all normative occurrences and five options recorded; no normative text changed; owner decision open |
 | [2026-11-12-task-issue-mapping.md](./2026-11-12-task-issue-mapping.md) | `NONE` | Historical snapshot | 2026-11-12T15:50Z all-open mapping; not live issue state |
 | [2026-11-12-task-issue-mapping.json](./2026-11-12-task-issue-mapping.json) | `NONE` | Historical snapshot | Machine-readable dated snapshot; do not overwrite with current state |
 | `backups/` | — | Not evidence | Pre-edit snapshots |
