@@ -22,8 +22,10 @@
 // Every type is immutable and validates in release builds. Templates are
 // layout-only: no type in this file has a field-value or signature member, and
 // the decoders refuse a `values`, `signatures`, `suggestions`, or
-// `templateOrigin` entry at a template payload root or in a directly modeled
-// payload object instead of carrying it into `unknownFields` (FR-057/FR-102 and
+// `templateOrigin` entry at a template payload root or in any modeled nested
+// object (pages, fields, page snapshots, source, version pointers, page
+// geometry and boxes, page failure, field rectangle, and field validation)
+// instead of carrying it into `unknownFields` (FR-057/FR-102 and
 // SC-013; `data-model.md` §3.9–§3.11 and §5). Section 6 retains same-schema
 // extensions, not a payload the template shape forbids, so a template can never
 // store field content. A save appends a new immutable `TemplateVersion`;
@@ -231,7 +233,7 @@ final class TemplateVersionContent extends JsonObject {
   /// Only [templateSchemaVersion] is accepted; a higher version fails closed so
   /// the caller can refuse to save without data loss (FR-044/`data-model.md`
   /// §6). A `values`, `signatures`, `suggestions`, or `templateOrigin` entry at
-  /// the payload root or in a directly modeled page/field object is refused
+  /// the payload root or in any modeled nested page/field object is refused
   /// instead of being retained, because template storage must never carry it
   /// (FR-057/FR-102/SC-013). Other unknown same-schema keys are retained for a
   /// later write.
@@ -250,10 +252,7 @@ final class TemplateVersionContent extends JsonObject {
         'Unsupported template version schema version $rawSchemaVersion',
       );
     }
-    _rejectForbiddenTemplatePayloads(
-      json,
-      objectListKeys: const <String>['pageSnapshot', 'fieldSnapshot'],
-    );
+    _checkTemplateVersionContentPayload(json);
     try {
       return TemplateVersionContent(
         schemaVersion: rawSchemaVersion,
@@ -423,10 +422,7 @@ final class TemplateVersion extends JsonObject {
   /// Throws [FormatException] for missing, mistyped, forbidden, or invalid
   /// fields.
   factory TemplateVersion.fromJson(Map<String, Object?> json) {
-    _rejectForbiddenTemplatePayloads(
-      json,
-      objectListKeys: const <String>['fieldSnapshot', 'pageSnapshot'],
-    );
+    _checkTemplateVersionPayload(json);
     try {
       return TemplateVersion(
         id: _readString(json, 'id'),
@@ -659,7 +655,7 @@ final class Template extends JsonObject {
   /// Only [templateSchemaVersion] is accepted; a higher version fails closed so
   /// the caller can refuse to save without data loss (FR-044). The `kind`
   /// discriminator must be `template`. A `values`, `signatures`, `suggestions`,
-  /// or `templateOrigin` entry at the root or in a directly modeled payload
+  /// or `templateOrigin` entry at the root or in any modeled nested payload
   /// object is refused instead of being retained, because a template must never
   /// carry it (FR-057/FR-102/SC-013; `data-model.md` §3.9–§3.10). Other unknown
   /// same-schema keys are retained for a later write.
@@ -683,11 +679,7 @@ final class Template extends JsonObject {
         'JSON field "kind" must be the template discriminator',
       );
     }
-    _rejectForbiddenTemplatePayloads(
-      json,
-      objectListKeys: const <String>['pages', 'fields', 'versions'],
-      objectKeys: const <String>['source', 'latestVersion'],
-    );
+    _checkTemplatePayload(json);
     try {
       return Template(
         schemaVersion: rawSchemaVersion,
@@ -882,9 +874,9 @@ final class Template extends JsonObject {
 /// the corresponding T017 `DocumentMeta` envelope without one, and §3.11 puts
 /// the template schema version into the version payload that holds the layout.
 /// An explicit `schemaVersion` key is nevertheless gated: `1` is accepted and
-/// normalized away, and a higher or mistyped marker is refused so a newer
-/// envelope fails closed instead of being retained as an extension (FR-044,
-/// `data-model.md` §6).
+/// normalized away, while a present `null`, a higher, or a mistyped marker is
+/// refused so a newer envelope fails closed instead of being retained as an
+/// extension (FR-044, `data-model.md` §6).
 final class TemplateMeta extends JsonObject {
   /// Creates persisted template metadata.
   ///
@@ -959,18 +951,18 @@ final class TemplateMeta extends JsonObject {
   /// Reads a persisted metadata envelope.
   ///
   /// The `kind` discriminator must be `template`. An explicit `schemaVersion`
-  /// marker must be `1` and is normalized away; a higher or mistyped marker
-  /// fails closed so a newer envelope is never rewritten (`data-model.md` §6).
-  /// A `values`, `signatures`, `suggestions`, or `templateOrigin` entry at the
-  /// root or in a directly modeled source/version-pointer object is refused
-  /// instead of being retained (FR-057/FR-102/SC-013). Other unknown same-schema
-  /// keys are retained for a later write.
+  /// marker must be `1` and is normalized away; a present `null`, a higher, or a
+  /// mistyped marker fails closed so a newer envelope is never rewritten
+  /// (`data-model.md` §6). A `values`, `signatures`, `suggestions`, or
+  /// `templateOrigin` entry at the root or in any modeled nested object is
+  /// refused instead of being retained (FR-057/FR-102/SC-013). Other unknown
+  /// same-schema keys are retained for a later write.
   ///
   /// Throws [FormatException] for missing, mistyped, forbidden, invalid, or
   /// unsupported fields.
   factory TemplateMeta.fromJson(Map<String, Object?> json) {
-    final Object? rawSchemaVersion = json['schemaVersion'];
-    if (rawSchemaVersion != null) {
+    if (json.containsKey('schemaVersion')) {
+      final Object? rawSchemaVersion = json['schemaVersion'];
       if (rawSchemaVersion is! int) {
         throw const FormatException(
           'JSON field "schemaVersion" must be an integer',
@@ -987,11 +979,7 @@ final class TemplateMeta extends JsonObject {
         'JSON field "kind" must be the template discriminator',
       );
     }
-    _rejectForbiddenTemplatePayloads(
-      json,
-      objectListKeys: const <String>['versions'],
-      objectKeys: const <String>['source', 'latestVersion'],
-    );
+    _checkTemplateMetaPayload(json);
     final Object? unreadableReasonCode = json['unreadableReasonCode'];
     if (unreadableReasonCode != null && unreadableReasonCode is! String) {
       throw const FormatException(
@@ -1541,35 +1529,84 @@ const Set<String> _forbiddenTemplatePayloadKeys = <String>{
   'templateOrigin',
 };
 
-/// Rejects forbidden template payloads at the root and in modeled objects.
+/// Rejects forbidden payloads at the root and in every modeled nested object.
 ///
-/// [objectListKeys] name arrays of modeled objects (`pages`, `fields`,
-/// `pageSnapshot`, `fieldSnapshot`, `versions`) and [objectKeys] name modeled
-/// objects (`source`, `latestVersion`). Only these directly modeled entries are
-/// checked, so an opaque extension subtree is still retained verbatim under
-/// `data-model.md` §6 even if it contains a nested key with the same name. The
-/// error names the key, never its value.
-void _rejectForbiddenTemplatePayloads(
-  Map<String, Object?> json, {
-  Iterable<String> objectListKeys = const <String>[],
-  Iterable<String> objectKeys = const <String>[],
-}) {
+/// The walk follows only the modeled structure of a template payload: the
+/// aggregate and envelope roots, pages and their geometry/boxes/failure, fields
+/// and their rectangle/validation, the version snapshots, the source, and the
+/// version pointers. Opaque extension subtrees are not entered, so a legitimate
+/// same-schema extension is retained verbatim under `data-model.md` §6 even when
+/// it contains a nested key with the same name. The error names the key, never
+/// its value.
+void _checkTemplatePayload(Map<String, Object?> json) {
   _rejectForbiddenTemplateKeys(json);
-  for (final String key in objectListKeys) {
-    final Object? value = json[key];
-    if (value is! List<Object?>) {
-      continue;
-    }
-    for (final Object? item in value) {
-      if (item is Map<String, Object?>) {
-        _rejectForbiddenTemplateKeys(item);
-      }
-    }
+  _visitJsonObjectList(json, 'pages', _checkPagePayload);
+  _visitJsonObjectList(json, 'fields', _checkFieldPayload);
+  _visitJsonObjectList(json, 'versions', _rejectForbiddenTemplateKeys);
+  _visitJsonObject(json, 'source', _rejectForbiddenTemplateKeys);
+  _visitJsonObject(json, 'latestVersion', _rejectForbiddenTemplateKeys);
+}
+
+void _checkTemplateVersionContentPayload(Map<String, Object?> json) {
+  _rejectForbiddenTemplateKeys(json);
+  _visitJsonObjectList(json, 'pageSnapshot', _checkPagePayload);
+  _visitJsonObjectList(json, 'fieldSnapshot', _checkFieldPayload);
+}
+
+void _checkTemplateVersionPayload(Map<String, Object?> json) {
+  _rejectForbiddenTemplateKeys(json);
+  _visitJsonObjectList(json, 'fieldSnapshot', _checkFieldPayload);
+  _visitJsonObjectList(json, 'pageSnapshot', _checkPagePayload);
+}
+
+void _checkTemplateMetaPayload(Map<String, Object?> json) {
+  _rejectForbiddenTemplateKeys(json);
+  _visitJsonObjectList(json, 'versions', _rejectForbiddenTemplateKeys);
+  _visitJsonObject(json, 'source', _rejectForbiddenTemplateKeys);
+  _visitJsonObject(json, 'latestVersion', _rejectForbiddenTemplateKeys);
+}
+
+void _checkPagePayload(Map<String, Object?> json) {
+  _rejectForbiddenTemplateKeys(json);
+  _visitJsonObject(json, 'geometry', _checkPageGeometryPayload);
+  _visitJsonObject(json, 'failure', _rejectForbiddenTemplateKeys);
+}
+
+void _checkPageGeometryPayload(Map<String, Object?> json) {
+  _rejectForbiddenTemplateKeys(json);
+  _visitJsonObject(json, 'mediaBox', _rejectForbiddenTemplateKeys);
+  _visitJsonObject(json, 'cropBox', _rejectForbiddenTemplateKeys);
+}
+
+void _checkFieldPayload(Map<String, Object?> json) {
+  _rejectForbiddenTemplateKeys(json);
+  _visitJsonObject(json, 'rect', _rejectForbiddenTemplateKeys);
+  _visitJsonObject(json, 'validation', _rejectForbiddenTemplateKeys);
+}
+
+void _visitJsonObject(
+  Map<String, Object?> json,
+  String key,
+  void Function(Map<String, Object?>) visit,
+) {
+  final Object? value = json[key];
+  if (value is Map<String, Object?>) {
+    visit(value);
   }
-  for (final String key in objectKeys) {
-    final Object? value = json[key];
-    if (value is Map<String, Object?>) {
-      _rejectForbiddenTemplateKeys(value);
+}
+
+void _visitJsonObjectList(
+  Map<String, Object?> json,
+  String key,
+  void Function(Map<String, Object?>) visit,
+) {
+  final Object? value = json[key];
+  if (value is! List<Object?>) {
+    return;
+  }
+  for (final Object? item in value) {
+    if (item is Map<String, Object?>) {
+      visit(item);
     }
   }
 }
@@ -1621,8 +1658,8 @@ const Set<String> _templateVersionJsonKeys = <String>{
 ///
 /// `schemaVersion` is a known but deliberately non-persisted marker: the v1
 /// envelope has no such field (`data-model.md` §4.1), so an explicit `1` is
-/// consumed and normalized away, while any other value is refused before this
-/// set is consulted.
+/// consumed and normalized away, while a present `null` or any other value is
+/// refused before this set is consulted.
 const Set<String> _templateMetaJsonKeys = <String>{
   'schemaVersion',
   'id',

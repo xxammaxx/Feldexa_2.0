@@ -11,8 +11,10 @@
 //     `schemaVersion`, while an explicit marker must be 1 and a newer one is
 //     refused;
 //   * forbidden template payloads: `values`, `signatures`, `suggestions`, and
-//     `templateOrigin` are refused at the root and in modeled page/field/
-//     source/pointer objects instead of being retained (FR-057/FR-102/SC-013);
+//     `templateOrigin` are refused at the root and in every modeled nested
+//     object (pages, fields, snapshots, source, pointers, page geometry/boxes/
+//     failure, field rectangle/validation) instead of being retained
+//     (FR-057/FR-102/SC-013);
 //   * `StoredTemplate` as the verified join of both persisted objects;
 //   * layout-only templates (no value, signature, or template-origin member);
 //   * immutable versions: an existing version is never rewritten (FR-103) and
@@ -408,11 +410,18 @@ void main() {
       );
     });
 
-    test('rejects a missing or mistyped schemaVersion', () {
+    test('rejects a missing, null, or mistyped schemaVersion', () {
       final Map<String, Object?> missing = _content().toJson();
       missing.remove('schemaVersion');
       expect(
         () => TemplateVersionContent.fromJson(missing),
+        throwsFormatException,
+      );
+      expect(
+        () => TemplateVersionContent.fromJson(<String, Object?>{
+          ..._content().toJson(),
+          'schemaVersion': null,
+        }),
         throwsFormatException,
       );
       expect(
@@ -467,6 +476,64 @@ void main() {
         );
       },
     );
+
+    test('refuses forbidden payloads in deeply modeled objects', () {
+      final Map<String, Object?> root = _content().toJson();
+      final Map<String, Object?> field = _map(_list(root['fieldSnapshot'])[0]);
+      final Map<String, Object?> validation = _map(field['validation']);
+      expect(
+        () => TemplateVersionContent.fromJson(<String, Object?>{
+          ...root,
+          'fieldSnapshot': <Object?>[
+            <String, Object?>{
+              ...field,
+              'validation': <String, Object?>{
+                ...validation,
+                'values': <String, Object?>{},
+              },
+            },
+          ],
+        }),
+        throwsFormatException,
+      );
+      final Map<String, Object?> rect = _map(field['rect']);
+      expect(
+        () => TemplateVersionContent.fromJson(<String, Object?>{
+          ...root,
+          'fieldSnapshot': <Object?>[
+            <String, Object?>{
+              ...field,
+              'rect': <String, Object?>{
+                ...rect,
+                'signatures': <String, Object?>{},
+              },
+            },
+          ],
+        }),
+        throwsFormatException,
+      );
+      final Map<String, Object?> page = _map(_list(root['pageSnapshot'])[0]);
+      final Map<String, Object?> geometry = _map(page['geometry']);
+      final Map<String, Object?> mediaBox = _map(geometry['mediaBox']);
+      expect(
+        () => TemplateVersionContent.fromJson(<String, Object?>{
+          ...root,
+          'pageSnapshot': <Object?>[
+            <String, Object?>{
+              ...page,
+              'geometry': <String, Object?>{
+                ...geometry,
+                'mediaBox': <String, Object?>{
+                  ...mediaBox,
+                  'values': <String, Object?>{},
+                },
+              },
+            },
+          ],
+        }),
+        throwsFormatException,
+      );
+    });
 
     test('rejects an empty or non-contiguous page snapshot', () {
       expect(() => _content(pages: const <Page>[]), throwsArgumentError);
@@ -745,6 +812,48 @@ void main() {
       );
     });
 
+    test('refuses forbidden payloads in deeply modeled snapshots', () {
+      final Map<String, Object?> root = _version().toJson();
+      final Map<String, Object?> field = _map(_list(root['fieldSnapshot'])[0]);
+      final Map<String, Object?> validation = _map(field['validation']);
+      expect(
+        () => TemplateVersion.fromJson(<String, Object?>{
+          ...root,
+          'fieldSnapshot': <Object?>[
+            <String, Object?>{
+              ...field,
+              'validation': <String, Object?>{
+                ...validation,
+                'signatures': <String, Object?>{},
+              },
+            },
+          ],
+        }),
+        throwsFormatException,
+      );
+      final Map<String, Object?> page = _map(_list(root['pageSnapshot'])[0]);
+      final Map<String, Object?> geometry = _map(page['geometry']);
+      final Map<String, Object?> cropBox = _map(geometry['cropBox']);
+      expect(
+        () => TemplateVersion.fromJson(<String, Object?>{
+          ...root,
+          'pageSnapshot': <Object?>[
+            <String, Object?>{
+              ...page,
+              'geometry': <String, Object?>{
+                ...geometry,
+                'cropBox': <String, Object?>{
+                  ...cropBox,
+                  'values': <String, Object?>{},
+                },
+              },
+            },
+          ],
+        }),
+        throwsFormatException,
+      );
+    });
+
     test('toString reports the version number only', () {
       expect(_version().toString(), 'TemplateVersion(versionNumber: 2)');
     });
@@ -921,6 +1030,13 @@ void main() {
       expect(
         () => Template.fromJson(<String, Object?>{
           ..._template().toJson(),
+          'schemaVersion': null,
+        }),
+        throwsFormatException,
+      );
+      expect(
+        () => Template.fromJson(<String, Object?>{
+          ..._template().toJson(),
           'schemaVersion': '1',
         }),
         throwsFormatException,
@@ -970,6 +1086,67 @@ void main() {
           ...root,
           'versions': <Object?>[
             <String, Object?>{...version, 'values': <String, Object?>{}},
+          ],
+        }),
+        throwsFormatException,
+      );
+    });
+
+    test('refuses forbidden payloads in deeply modeled page/field objects', () {
+      final Map<String, Object?> root = _template().toJson();
+      final List<Object?> pages = _list(root['pages']);
+      final Map<String, Object?> page = _map(pages[0]);
+      final Map<String, Object?> geometry = _map(page['geometry']);
+      final Map<String, Object?> mediaBox = _map(geometry['mediaBox']);
+      expect(
+        () => Template.fromJson(<String, Object?>{
+          ...root,
+          'pages': <Object?>[
+            <String, Object?>{
+              ...page,
+              'geometry': <String, Object?>{
+                ...geometry,
+                'mediaBox': <String, Object?>{
+                  ...mediaBox,
+                  'values': <String, Object?>{},
+                },
+              },
+            },
+            pages[1],
+          ],
+        }),
+        throwsFormatException,
+      );
+      final Map<String, Object?> failedPage = <String, Object?>{
+        ...page,
+        'analysis': 'failed',
+        'failure': <String, Object?>{
+          'pageIndex': 0,
+          'category': 'rasterization',
+          'messageKey': 'REC-002',
+          'signatures': <String, Object?>{},
+        },
+      };
+      expect(
+        () => Template.fromJson(<String, Object?>{
+          ...root,
+          'pages': <Object?>[failedPage, pages[1]],
+        }),
+        throwsFormatException,
+      );
+      final Map<String, Object?> field = _map(_list(root['fields'])[0]);
+      final Map<String, Object?> validation = _map(field['validation']);
+      expect(
+        () => Template.fromJson(<String, Object?>{
+          ...root,
+          'fields': <Object?>[
+            <String, Object?>{
+              ...field,
+              'validation': <String, Object?>{
+                ...validation,
+                'values': <String, Object?>{},
+              },
+            },
           ],
         }),
         throwsFormatException,
@@ -1223,7 +1400,14 @@ void main() {
       expect(normalized.toJson().containsKey('schemaVersion'), isFalse);
     });
 
-    test('refuses a newer or mistyped schemaVersion marker', () {
+    test('refuses a present null, newer, or mistyped schemaVersion marker', () {
+      expect(
+        () => TemplateMeta.fromJson(<String, Object?>{
+          ..._meta().toJson(),
+          'schemaVersion': null,
+        }),
+        throwsFormatException,
+      );
       expect(
         () => TemplateMeta.fromJson(<String, Object?>{
           ..._meta().toJson(),
