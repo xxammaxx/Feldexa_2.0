@@ -948,8 +948,9 @@ final class Document extends JsonObject {
   /// pages, fit their display box, have unique ids, and carry symmetric
   /// same-page conflicts. Fields must have unique ids, fit their page, and be
   /// a permutation of [fieldOrder] whose `order` equals the field's position.
-  /// Values exist only for fields and must be compatible or flagged
-  /// `incompatible_content`; signatures exist only for signature fields on the
+  /// Values exist only for fields and must be compatible or preserved as
+  /// [IncompatibleValue] flagged by the `incompatible_content` warning or a
+  /// blocking field error; signatures exist only for signature fields on the
   /// same page; verification entries exist only for fields. [unknownFields]
   /// are opaque same-schema JSON extensions retained for a later write.
   ///
@@ -1091,14 +1092,27 @@ final class Document extends JsonObject {
       if (!field.acceptsValue(value)) {
         throw ArgumentError('a value is incompatible with its field type');
       }
-      final bool isIncompatible = value is IncompatibleValue;
-      final bool flaggedIncompatible =
+      final bool hasIncompatibleValue = value is IncompatibleValue;
+      final bool warnsIncompatible =
           field.validation.isWarning &&
           field.validation.warningCode == WarningCode.incompatibleContent;
-      if (isIncompatible != flaggedIncompatible) {
+      // data-model.md §3.5 flags incompatible content either with the
+      // incompatible_content warning (explicit user resolution pending) or with
+      // a blocking error (a failed number/date parse). An unflagged
+      // IncompatibleValue still fails, and the warning still requires the
+      // preserved value it claims.
+      final bool flagsIncompatible =
+          warnsIncompatible || field.validation.isError;
+      if (hasIncompatibleValue && !flagsIncompatible) {
         throw ArgumentError(
-          'incompatible content and its incompatible_content warning must '
-          'occur together',
+          'incompatible content must be flagged by an incompatible_content '
+          'warning or a blocking field error',
+        );
+      }
+      if (warnsIncompatible && !hasIncompatibleValue) {
+        throw ArgumentError(
+          'an incompatible_content warning requires preserved incompatible '
+          'content',
         );
       }
     }

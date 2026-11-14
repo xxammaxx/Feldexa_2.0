@@ -980,7 +980,7 @@ void main() {
       );
     });
 
-    test('validates values against fields and reclassification warnings', () {
+    test('validates values against fields and reclassification flags', () {
       final ConfirmedField field = _field(order: 0);
       expect(
         () => _document(
@@ -1044,6 +1044,59 @@ void main() {
           values: <String, FieldValue>{_uuid(20): preserved},
         ),
         returnsNormally,
+      );
+      final ConfirmedField errorFlagged = _field(
+        order: 0,
+        type: FieldType.number,
+        validation: FieldValidation.error('NUM-001'),
+      );
+      expect(
+        () => _document(
+          fields: <ConfirmedField>[errorFlagged],
+          values: <String, FieldValue>{errorFlagged.id: preserved},
+        ),
+        returnsNormally,
+      );
+      expect(
+        () => _document(
+          fields: <ConfirmedField>[
+            _field(
+              order: 0,
+              validation: FieldValidation.warning(
+                WarningCode.overflow,
+                'FLD-001',
+              ),
+            ),
+          ],
+          values: <String, FieldValue>{_uuid(20): preserved},
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('a blocking field error survives JSON with preserved content', () {
+      final ConfirmedField field = _field(
+        order: 0,
+        type: FieldType.number,
+        validation: FieldValidation.error('NUM-001'),
+      );
+      final IncompatibleValue preserved = IncompatibleValue(
+        preservedText: '12.13.2020',
+        reasonCode: 'incompatible_type',
+        lastEditedAt: _at(),
+      );
+      final Document document = _document(
+        fields: <ConfirmedField>[field],
+        values: <String, FieldValue>{field.id: preserved},
+      );
+      final Document reopened = Document.fromJson(document.toJson());
+      expect(
+        reopened.fields.single.validation,
+        FieldValidation.error('NUM-001'),
+      );
+      expect(
+        (reopened.values[field.id]! as IncompatibleValue).preservedText,
+        '12.13.2020',
       );
     });
 
