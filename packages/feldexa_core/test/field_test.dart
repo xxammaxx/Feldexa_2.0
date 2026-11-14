@@ -312,11 +312,13 @@ void main() {
       }
       final SuggestionEvidence sorted = _evidence(
         cues: <SuggestionCue>[
+          SuggestionCue.underline,
           SuggestionCue.keyword('vorname'),
           SuggestionCue.keyword('name'),
         ],
       );
       expect(sorted.cues.toList(), <SuggestionCue>[
+        SuggestionCue.underline,
         SuggestionCue.keyword('name'),
         SuggestionCue.keyword('vorname'),
       ]);
@@ -332,6 +334,58 @@ void main() {
       expect(
         SuggestionCue.keyword('VORNAME'),
         SuggestionCue.keyword('vorname'),
+      );
+    });
+
+    test('requires at least one geometric cue (§2.1)', () {
+      for (final SuggestionCue ocrOnly in <SuggestionCue>[
+        SuggestionCue.keyword('name'),
+        SuggestionCue.ocrAlignmentRight,
+        SuggestionCue.ocrAlignmentBelow,
+        SuggestionCue.labelBelow,
+        SuggestionCue.numericContext,
+        SuggestionCue.dateContext,
+      ]) {
+        expect(
+          () => _evidence(cues: <SuggestionCue>[ocrOnly]),
+          throwsArgumentError,
+          reason: ocrOnly.wireName,
+        );
+      }
+      for (final SuggestionCue geometric in <SuggestionCue>[
+        SuggestionCue.underline,
+        SuggestionCue.box,
+        SuggestionCue.gridCell,
+        SuggestionCue.whitespace,
+        SuggestionCue.alignmentLeft,
+        SuggestionCue.smallSquare,
+        SuggestionCue.tableCell,
+        SuggestionCue.signatureArea,
+      ]) {
+        expect(
+          _evidence(cues: <SuggestionCue>[geometric]).cues,
+          contains(geometric),
+          reason: geometric.wireName,
+        );
+      }
+      expect(
+        _evidence(
+          cues: <SuggestionCue>[
+            SuggestionCue.keyword('name'),
+            SuggestionCue.box,
+          ],
+        ).cues,
+        hasLength(2),
+      );
+      expect(
+        () => SuggestionEvidence.fromJson(<String, Object?>{
+          'cues': <String>['keyword_name'],
+          'cueAgreement': 1,
+          'skewDegrees': 0,
+          'contrast': 'normal',
+          'ocrUsed': true,
+        }),
+        throwsFormatException,
       );
     });
 
@@ -382,7 +436,7 @@ void main() {
       expect(low.lowContrast, isTrue);
       expect(low.toJson()['contrast'], 'low');
 
-      final SuggestionEvidence migrated = SuggestionEvidence.fromJson(
+      final SuggestionEvidence migrated = SuggestionEvidence.fromLegacyJson(
         <String, Object?>{
           'cues': <String>['underline'],
           'cueAgreement': 1,
@@ -394,6 +448,16 @@ void main() {
       expect(migrated.contrast, EvidenceContrast.low);
       expect(migrated.toJson()['contrast'], 'low');
       expect(migrated.toJson().containsKey('lowContrast'), isFalse);
+      expect(
+        () => SuggestionEvidence.fromJson(<String, Object?>{
+          'cues': <String>['underline'],
+          'cueAgreement': 1,
+          'skewDegrees': 0,
+          'lowContrast': true,
+          'ocrUsed': true,
+        }),
+        throwsFormatException,
+      );
 
       expect(
         () => SuggestionEvidence.fromJson(<String, Object?>{
@@ -779,7 +843,8 @@ void main() {
 
       final Map<String, Object?> legacy = Map<String, Object?>.from(json)
         ..remove('uncertainty');
-      expect(FieldSuggestion.fromJson(legacy), suggestion);
+      expect(() => FieldSuggestion.fromJson(legacy), throwsFormatException);
+      expect(FieldSuggestion.fromLegacyJson(legacy), suggestion);
       final Map<String, Object?> mismatched = Map<String, Object?>.from(json)
         ..['uncertainty'] = 0.17;
       expect(() => FieldSuggestion.fromJson(mismatched), throwsFormatException);
@@ -789,10 +854,47 @@ void main() {
         () => FieldSuggestion.fromJson(explicitNull),
         throwsFormatException,
       );
+      expect(
+        () => FieldSuggestion.fromLegacyJson(explicitNull),
+        throwsFormatException,
+      );
       final Map<String, Object?> nonNumeric = Map<String, Object?>.from(json)
         ..['uncertainty'] = '0.18';
       expect(() => FieldSuggestion.fromJson(nonNumeric), throwsFormatException);
+      expect(
+        () => FieldSuggestion.fromLegacyJson(nonNumeric),
+        throwsFormatException,
+      );
     });
+
+    test(
+      'strict decoding requires contrast while legacy decoding migrates it',
+      () {
+        final FieldSuggestion suggestion = _suggestion(
+          evidence: _evidence(contrast: EvidenceContrast.low),
+        );
+        final Map<String, Object?> json = suggestion.toJson();
+        final Map<String, Object?> evidence = Map<String, Object?>.from(
+          json['evidence']! as Map<String, Object?>,
+        );
+        evidence.remove('contrast');
+        evidence['lowContrast'] = true;
+        final Map<String, Object?> legacyJson = Map<String, Object?>.from(json)
+          ..['evidence'] = evidence;
+        expect(
+          () => FieldSuggestion.fromJson(legacyJson),
+          throwsFormatException,
+        );
+        final FieldSuggestion legacy = FieldSuggestion.fromLegacyJson(
+          legacyJson,
+        );
+        expect(legacy.evidence.contrast, EvidenceContrast.low);
+        expect(
+          (legacy.toJson()['evidence']! as Map<String, Object?>)['contrast'],
+          'low',
+        );
+      },
+    );
 
     test('round-trips the recognition-output §2 suggestion fixture', () {
       final FieldSuggestion fixture = _suggestion(
@@ -1683,6 +1785,30 @@ void main() {
           lastEditedAt: _at(),
         ).toString(),
         isNot(contains('secret')),
+      );
+    });
+
+    test('closed keyword diagnostics do not echo rejected input', () {
+      const String arbitrary = 'privateKeyword';
+      expect(
+        () => SuggestionCue.keyword(arbitrary),
+        throwsA(
+          isA<ArgumentError>().having(
+            (ArgumentError error) => error.toString(),
+            'toString',
+            isNot(contains(arbitrary)),
+          ),
+        ),
+      );
+      expect(
+        () => SuggestionCue.fromWire('keyword_$arbitrary'),
+        throwsA(
+          isA<FormatException>().having(
+            (FormatException error) => error.toString(),
+            'toString',
+            isNot(contains(arbitrary)),
+          ),
+        ),
       );
     });
   });

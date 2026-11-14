@@ -251,6 +251,27 @@ sealed class SuggestionCue implements Comparable<SuggestionCue> {
     'bis',
   };
 
+  /// Wire names of cues whose evidence is geometric and therefore satisfies
+  /// the §2.1 requirement that every suggestion carry at least one geometric
+  /// cue.
+  ///
+  /// `signature_area` is OCR+geometry (§3.1); its low-ink region is the
+  /// geometric evidence. OCR-alignment, label, and keyword cues are not
+  /// geometric on their own.
+  static const Set<String> _geometricWireNames = <String>{
+    'underline',
+    'box',
+    'grid_cell',
+    'whitespace',
+    'alignment_left',
+    'small_square',
+    'table_cell',
+    'signature_area',
+  };
+
+  /// Whether this cue is geometric evidence.
+  bool get isGeometric => _geometricWireNames.contains(wireName);
+
   /// Creates a `keyword_<key>` cue.
   ///
   /// [key] is the lexicon key. It is trimmed and lowercased for canonical
@@ -496,17 +517,18 @@ enum FieldVerificationState {
 /// Suggestion evidence: the cue flags and quality signals of one candidate
 /// (`data-model.md` §3.4; `contracts/recognition-output.md` §2–§3).
 ///
-/// [cues] is a non-empty, duplicate-free set. [cueAgreement] counts independent
-/// cue families and is at least one. [skewDegrees] is the estimated page skew
-/// in degrees on the closed interval `-10 … 10`. [contrast] is the contract's
-/// `normal | low` page contrast, and [ocrUsed] is false when OCR failed and
-/// geometry-only detection ran.
+/// [cues] is a non-empty, duplicate-free set that includes at least one
+/// geometric cue; §2.1 forbids OCR-only suggestions. [cueAgreement] counts
+/// independent cue families and is at least one. [skewDegrees] is the
+/// estimated page skew in degrees on the closed interval `-10 … 10`.
+/// [contrast] is the contract's `normal | low` page contrast, and [ocrUsed] is
+/// false when OCR failed and geometry-only detection ran.
 final class SuggestionEvidence {
   /// Creates evidence for a candidate.
   ///
-  /// Throws [ArgumentError] when [cues] is empty or contains duplicates, when
-  /// [cueAgreement] is less than one, or when [skewDegrees] is non-finite or
-  /// outside `-10 … 10`.
+  /// Throws [ArgumentError] when [cues] is empty, contains duplicates, or has
+  /// no geometric cue, when [cueAgreement] is less than one, or when
+  /// [skewDegrees] is non-finite or outside `-10 … 10`.
   factory SuggestionEvidence({
     required Iterable<SuggestionCue> cues,
     int cueAgreement = 1,
@@ -521,6 +543,14 @@ final class SuggestionEvidence {
     }
     if (cueSet.length != cueList.length) {
       throw ArgumentError('cues must not contain duplicates');
+    }
+    // recognition-output §2.1: no suggestion may be generated from OCR text
+    // alone; at least one geometric cue must support it.
+    if (!cueSet.any((SuggestionCue cue) => cue.isGeometric)) {
+      throw ArgumentError(
+        'evidence must include at least one geometric cue; '
+        '§2.1 forbids OCR-only suggestions',
+      );
     }
     if (cueAgreement < 1) {
       throw ArgumentError('cueAgreement must be at least 1');
@@ -547,10 +577,28 @@ final class SuggestionEvidence {
     required this.ocrUsed,
   });
 
-  /// Reads the persisted evidence object.
+  /// Decodes the recognition-output §2 evidence object.
+  ///
+  /// `contrast` is required. Use [fromLegacyJson] for the pre-contract
+  /// `lowContrast` boolean shape.
   ///
   /// Throws [FormatException] for missing, mistyped, or out-of-range fields.
   factory SuggestionEvidence.fromJson(Map<String, Object?> json) {
+    return SuggestionEvidence._decode(json, allowLegacy: false);
+  }
+
+  /// Decodes a pre-contract evidence object that used `lowContrast`.
+  ///
+  /// The next write emits the contract `contrast` key. A present but invalid
+  /// `contrast` (including null) is still rejected rather than falling back.
+  factory SuggestionEvidence.fromLegacyJson(Map<String, Object?> json) {
+    return SuggestionEvidence._decode(json, allowLegacy: true);
+  }
+
+  static SuggestionEvidence _decode(
+    Map<String, Object?> json, {
+    required bool allowLegacy,
+  }) {
     final Object? rawCues = json['cues'];
     if (rawCues is! List<Object?>) {
       throw const FormatException('JSON field "cues" must be an array');
@@ -558,7 +606,10 @@ final class SuggestionEvidence {
     final List<SuggestionCue> cues = <SuggestionCue>[
       for (final Object? cue in rawCues) SuggestionCue.fromWire(cue),
     ];
-    final EvidenceContrast contrast = _readEvidenceContrast(json);
+    final EvidenceContrast contrast = _readEvidenceContrast(
+      json,
+      allowLegacy: allowLegacy,
+    );
     try {
       return SuggestionEvidence(
         cues: cues,
@@ -725,10 +776,30 @@ final class FieldSuggestion {
     required this.resolution,
   });
 
-  /// Reads a persisted suggestion object.
+  /// Decodes the recognition-output §2 suggestion object.
+  ///
+  /// `uncertainty` is required and must be numeric and equal to
+  /// `1 - confidence`; the evidence must carry the contract `contrast` key.
+  /// Use [fromLegacyJson] for a pre-contract persisted object.
   ///
   /// Throws [FormatException] for missing, mistyped, or invalid fields.
   factory FieldSuggestion.fromJson(Map<String, Object?> json) {
+    return FieldSuggestion._decode(json, allowLegacy: false);
+  }
+
+  /// Decodes a pre-contract suggestion object.
+  ///
+  /// A missing `uncertainty` key is derived from confidence and the evidence
+  /// may use the legacy `lowContrast` boolean; the next write emits the
+  /// canonical contract shape. An explicit null is still rejected.
+  factory FieldSuggestion.fromLegacyJson(Map<String, Object?> json) {
+    return FieldSuggestion._decode(json, allowLegacy: true);
+  }
+
+  static FieldSuggestion _decode(
+    Map<String, Object?> json, {
+    required bool allowLegacy,
+  }) {
     try {
       final FieldSuggestion suggestion = FieldSuggestion(
         id: _readString(json, 'id'),
@@ -737,14 +808,15 @@ final class FieldSuggestion {
         proposedType: FieldType.fromWire(json['proposedType']),
         confidence: _readDouble(json, 'confidence'),
         labelText: _readOptionalString(json, 'labelText'),
-        evidence: SuggestionEvidence.fromJson(_readObject(json, 'evidence')),
+        evidence: allowLegacy
+            ? SuggestionEvidence.fromLegacyJson(_readObject(json, 'evidence'))
+            : SuggestionEvidence.fromJson(_readObject(json, 'evidence')),
         conflictsWith: _readStringList(json, 'conflictsWith'),
         resolution: SuggestionResolution.fromWire(json['resolution']),
       );
       // `uncertainty` is derived from confidence. The contract requires a
-      // numeric key, so toJson always writes it; a missing key is the legacy
-      // boundary for older persisted objects, but an explicit null is not
-      // numeric and is rejected.
+      // numeric key; only the legacy decoder may omit it. An explicit null is
+      // never numeric and is rejected in both modes.
       if (json.containsKey('uncertainty')) {
         final double provided = _readDouble(json, 'uncertainty');
         if ((provided - suggestion.uncertainty).abs() > 1e-12) {
@@ -752,6 +824,8 @@ final class FieldSuggestion {
             'JSON field "uncertainty" must equal 1 - confidence',
           );
         }
+      } else if (!allowLegacy) {
+        throw const FormatException('JSON field "uncertainty" is required');
       }
       return suggestion;
     } on ArgumentError catch (error) {
@@ -2719,16 +2793,21 @@ bool _readBool(Map<String, Object?> json, String key) {
 
 /// Reads the contract `contrast` key.
 ///
-/// Falls back to the legacy `lowContrast` boolean only when the canonical
-/// key is absent, so pre-contract persisted evidence stays readable while
-/// every write emits the contract's `normal | low` token.
-EvidenceContrast _readEvidenceContrast(Map<String, Object?> json) {
+/// Strict decoding requires the canonical key. The legacy `lowContrast`
+/// boolean is read only by [SuggestionEvidence.fromLegacyJson]; every write
+/// emits the contract's `normal | low` token.
+EvidenceContrast _readEvidenceContrast(
+  Map<String, Object?> json, {
+  required bool allowLegacy,
+}) {
   if (json.containsKey('contrast')) {
     return EvidenceContrast.fromWire(json['contrast']);
   }
-  final Object? legacy = json['lowContrast'];
-  if (legacy is bool) {
-    return legacy ? EvidenceContrast.low : EvidenceContrast.normal;
+  if (allowLegacy) {
+    final Object? legacy = json['lowContrast'];
+    if (legacy is bool) {
+      return legacy ? EvidenceContrast.low : EvidenceContrast.normal;
+    }
   }
   throw const FormatException(
     'JSON field "contrast" must be "normal" or "low"',
