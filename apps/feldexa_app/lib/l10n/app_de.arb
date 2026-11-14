@@ -128,9 +128,9 @@
   "@save001Recovery": {
     "description": "contracts/error-catalog.de.md §3 SAVE-001: recovery guidance."
   },
-  "save002": "Die gespeicherten Daten können nicht entschlüsselt werden, weil der Schlüssel dieses Geräts nicht mehr verfügbar ist. Dieses Dokument kann nicht geöffnet werden. Andere Dokumente und Vorlagen sind davon nicht betroffen.",
+  "save002": "Die gespeicherten Daten können nicht entschlüsselt werden, weil der zugehörige Schlüssel nicht mehr verfügbar ist; das betroffene Dokument oder die betroffene Vorlage kann nicht geöffnet werden. Andere Dokumente und Vorlagen sind davon nicht betroffen.",
   "@save002": {
-    "description": "contracts/error-catalog.de.md §3 SAVE-002: Key material unavailable/invalidated."
+    "description": "contracts/error-catalog.de.md §3 SAVE-002: key material for one document/template unavailable/invalidated; the aggregate's own KEK is affected."
   },
   "save002Recovery": "Eine Wiederherstellung ist nicht möglich. Bitte wenden Sie sich an den Gerätehersteller, wenn der Schlüssel durch eine Zurücksetzung verloren gegangen ist.",
   "@save002Recovery": {
@@ -172,9 +172,9 @@
   "@save007Recovery": {
     "description": "contracts/error-catalog.de.md §3 SAVE-007: recovery guidance."
   },
-  "priv001": "Ihre Dokumente werden nur auf diesem Gerät und mit einem Schlüssel gespeichert, der an dieses Gerät gebunden ist. Sicherungskopien der App-Daten sind nicht möglich. Wenn der Schlüssel verloren geht – zum Beispiel durch Zurücksetzen des Geräts –, können die betroffenen Dokumente nicht wiederhergestellt werden. Andere Dokumente bleiben unabhängig davon nutzbar.",
+  "priv001": "Ihre Dokumente und Vorlagen werden nur auf diesem Gerät und mit Schlüsseln gespeichert, die an dieses Gerät gebunden sind. Sicherungskopien der App-Daten sind nicht möglich. Wenn der Schlüssel eines Dokuments oder einer Vorlage verloren geht, können die betroffenen Daten nicht wiederhergestellt werden. Andere Dokumente und Vorlagen bleiben unabhängig davon nutzbar.",
   "@priv001": {
-    "description": "§3 PRIV-001: pre-emptive key/backup disclosure shown before the first save (FR-089)."
+    "description": "§3 PRIV-001: pre-emptive key/backup disclosure for per-document/template Keystore keys, shown before the first save (FR-089)."
   },
   "durabilityClean": "Gespeichert",
   "@durabilityClean": {

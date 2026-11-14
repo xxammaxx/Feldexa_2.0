@@ -23,7 +23,7 @@ FeldexaPlugin
 ├── ImportService        (SAF, streaming staging, preflight coordination)
 ├── PdfPreflight         (PDFBox parse/geometry/encryption/damage)
 ├── OcrService           (bundled ML Kit Latin)
-├── KeystoreService      (master key, DEK wrap/unwrap)
+├── KeystoreService      (per-document/template KEKs, DEK wrap/unwrap)
 ├── EncryptedStore       (FXC1, revisions, atomic commits, sweep)
 ├── PdfExportService     (PDFBox page import + overlay + verification)
 ├── DeliveryService      (SAF save, FileProvider share, print)
@@ -122,7 +122,7 @@ Internal cleanup for a failed import: `{ "txnId":"…" }` → `{ "removed": true
 
 | Method | Request | Response |
 | --- | --- | --- |
-| `store.status` | `{}` | `{ keyAvailable, objectCount, totalBytes, keyAliasPresent }` |
+| `store.status` | `{}` | `{ objectCount, totalBytes }` |
 | `store.list` | `{ "kind":"document"\|"template" }` | `{ items:[StoredMeta…] }` |
 | `store.readSource` | `{ "documentId" }` | `Uint8List` (decrypted, capped 80 MiB) |
 | `store.readSignature` | `{ "documentId", "assetId" }` | `Uint8List` (PNG) |
@@ -138,7 +138,8 @@ Internal cleanup for a failed import: `{ "txnId":"…" }` → `{ "removed": true
 Rules:
 - `saveRevision` uses optimistic concurrency: `expectedHead` must equal the current verified head, otherwise `SAVE-006` (concurrent write) and the caller re-reads. The app is single-user, but autosave/lifecycle races are real.
 - `store.loadDocument` returns no source bytes; the app calls `readSource` once, then releases the buffer when the viewport closes. The adapter may cache the decrypted buffer only in memory and only for the open document.
-- `store.delete` validates `confirm.acknowledged == true` and `confirm.title` equals the stored title (case-sensitive, trimmed) to prevent accidental deletion; an empty title cannot be confirmed.
+- `store.delete` validates `confirm.acknowledged == true`. For a readable aggregate, `confirm.title` must equal the stored title (case-sensitive, trimmed). For an aggregate whose key is unavailable, `StoredMeta.title` is empty and `confirm.title` must be empty; the confirmation UI must still present a destructive confirmation naming the item by the localized "Nicht lesbar" state. Deletion removes the aggregate's objects first and its own KEK alias last; no other alias is touched.
+- `store.status` reports no key flag: key availability is per aggregate through `store.list` (`StoredMeta.readable`/`unreadableReasonCode`) and the `storage.status` event.
 - No method accepts a path, URI, or file name. `assetId`, `documentId`, `templateId`, `revisionId` are UUID-validated.
 - Revision size cap: 32 MiB plaintext (metadata + field values); larger is rejected with `SAVE-007` (invalid data), because field values are text/signature references only.
 
@@ -239,7 +240,7 @@ Rules:
 | --- | --- | --- |
 | `lifecycle` | `{ "state": "resumed"\|"inactive"\|"paused"\|"detached" }` | forwarded from `MainActivity` |
 | `operation.progress` | `{ "operationId", "kind":"import\|analyze\|save\|export", "phase", "fraction", "pageIndex"? }` | coalesced; no content |
-| `storage.status` | `{ "keyAvailable": bool, "reasonCode": null\|"SAVE-002" }` | emitted on key errors and on resume |
+| `storage.status` | `{ "kind":"document"\|"template", "itemId", "keyAvailable": bool, "reasonCode": null\|"SAVE-002" }` | per-aggregate key error or resume; no title or content |
 | `import.pickerResult` | `{ "correlationId", "cancelled": bool }` | result of the SAF picker |
 
 Dart must tolerate duplicate/missed progress events; only the terminal method result is authoritative.
@@ -294,7 +295,7 @@ Every string that becomes a UI label is capped (title 200, field label 120, `lab
 | Payload round-trip | Emulator instrumentation | every method accepts a minimal valid payload and rejects unknown fields, bad UUIDs, oversized payloads |
 | Encryption detection | Emulator instrumentation | synthetic password-protected PDF → `IMP-001`; truncated PDF → `IMP-002`; random bytes → `IMP-004`; unreadable file → `IMP-005` |
 | No plaintext leak | Emulator instrumentation | scan `filesDir`, `cacheDir`, logs, and Recents thumbnail after failures → no `%PDF`, no title, no value |
-| Keystore loss | Emulator instrumentation | delete alias → `SAVE-002`; sibling document loads; no file deleted |
+| Keystore loss | Emulator instrumentation | delete one document's alias → that document gets `SAVE-002`; sibling document and template load; no file deleted; repeat for one template alias |
 | Interrupted commit | Instrumentation with fault hook | kill/abort at each step → previous head readable or verified fallback, never a false success |
 | OCR offline | Instrumentation | radios off → `ocr.recognize` succeeds; no sockets opened |
 | Export verification | Instrumentation | returned artifact reopens, page count/boxes match, no AcroForm, text extraction contains German characters |

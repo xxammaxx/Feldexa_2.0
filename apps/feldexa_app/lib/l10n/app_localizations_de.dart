@@ -117,7 +117,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get save002 =>
-      'Die gespeicherten Daten können nicht entschlüsselt werden, weil der Schlüssel dieses Geräts nicht mehr verfügbar ist. Dieses Dokument kann nicht geöffnet werden. Andere Dokumente und Vorlagen sind davon nicht betroffen.';
+      'Die gespeicherten Daten können nicht entschlüsselt werden, weil der zugehörige Schlüssel nicht mehr verfügbar ist; das betroffene Dokument oder die betroffene Vorlage kann nicht geöffnet werden. Andere Dokumente und Vorlagen sind davon nicht betroffen.';
 
   @override
   String get save002Recovery =>
@@ -161,7 +161,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get priv001 =>
-      'Ihre Dokumente werden nur auf diesem Gerät und mit einem Schlüssel gespeichert, der an dieses Gerät gebunden ist. Sicherungskopien der App-Daten sind nicht möglich. Wenn der Schlüssel verloren geht – zum Beispiel durch Zurücksetzen des Geräts –, können die betroffenen Dokumente nicht wiederhergestellt werden. Andere Dokumente bleiben unabhängig davon nutzbar.';
+      'Ihre Dokumente und Vorlagen werden nur auf diesem Gerät und mit Schlüsseln gespeichert, die an dieses Gerät gebunden sind. Sicherungskopien der App-Daten sind nicht möglich. Wenn der Schlüssel eines Dokuments oder einer Vorlage verloren geht, können die betroffenen Daten nicht wiederhergestellt werden. Andere Dokumente und Vorlagen bleiben unabhängig davon nutzbar.';
 
   @override
   String get durabilityClean => 'Gespeichert';

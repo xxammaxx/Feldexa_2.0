@@ -176,7 +176,6 @@ abstract interface class OcrPort implements PlatformCapability {
 enum StoreKind { document, template }
 
 final class StoreStatus {
-  final bool keyAvailable;
   final int objectCount;
   final int totalBytes;
   final CapabilityEvidence evidence;
@@ -193,6 +192,11 @@ final class StoredMeta {
   final bool readable;
   final String? unreadableReasonCode;
 }
+
+// `StoredMeta.title` is the stored title. For an aggregate whose KEK is
+// missing or invalidated it is the empty string, `readable` is false, and
+// `unreadableReasonCode` is `SAVE-002`; the UI renders the localized
+// "Nicht lesbar" state instead of inventing a title from ciphertext.
 
 final class LoadedDocument {
   final DocumentMeta meta;
@@ -230,10 +234,11 @@ final class RecoveryStamp {
 `StoredMeta` is the single port-level list read model. It is projected from the persisted `DocumentMeta` or `TemplateMeta`; `DocumentSummary` in `data-model.md` is a UI projection of `StoredMeta` plus derived counts, not a second persisted type (T095).
 
 **Contract**
-- `saveRevision` returns success only after the new head is written and read back (FR-047).
-- `delete` requires an explicit `DeleteConfirmation` naming the item; it deletes the aggregate's objects and records the deletion in the operation result. No other document/template is touched (FR-053/FR-099).
-- `status` exposes key availability; a missing key does not throw for the whole store, only for affected loads (`SAVE-002`) (FR-052).
-- `loadDocument` fails with `KeyUnavailableException` or `CorruptDataException`; other documents remain loadable.
+- `createDocument`/`createTemplate` create the aggregate's own Keystore KEK before the first encrypted object. A key-creation failure leaves no visible aggregate and is swept; no shared master key exists (FR-049/FR-052).
+- `saveRevision`/`saveTemplateVersion` return success only after the new head is written and read back (FR-047). A missing/invalidated aggregate KEK fails that aggregate with `SAVE-002` and preserves its previous head; other aggregates continue.
+- `delete` requires an explicit `DeleteConfirmation` naming the item; a readable aggregate must match its stored title, while an unreadable aggregate with empty `StoredMeta.title` uses an empty confirmation title plus the localized "Nicht lesbar" label. It deletes the aggregate's objects first and its KEK alias last, then records the deletion. No other document/template or alias is touched (FR-053/FR-099).
+- `status` reports only object count, total bytes, and evidence; key availability is per aggregate through `StoredMeta.readable`/`unreadableReasonCode` and `KeyUnavailableException` on load/save. A missing key never throws for the whole store (FR-052).
+- `loadDocument`/`loadTemplate` fail with `KeyUnavailableException` or `CorruptDataException` for the requested aggregate; every other aggregate remains loadable. An unreadable aggregate is listed with `readable=false`, `unreadableReasonCode=SAVE-002`, and an empty title.
 - Storage exhaustion throws `StorageFullException`; the last durable head is untouched (FR-074/FR-075).
 - No method accepts an arbitrary path. Object names are server-side (adapter-side) generated.
 

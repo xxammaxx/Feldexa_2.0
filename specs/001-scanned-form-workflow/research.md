@@ -115,22 +115,23 @@ Version facts below were checked on 2026-11-12 against pub.dev, Maven Central, a
 
 ## D-07 — Secure storage and key management
 
-**Decision**: Android-native encryption with a non-exportable Keystore key:
-- Master key: AES-256-GCM in Android Keystore alias `feldexa.master.v1`, `setUserAuthenticationRequired(false)`, StrongBox when available, TEE fallback. Key bytes never leave the Keystore.
-- Per-object data key: 32 random bytes from `SecureRandom`, wrapped by the master key (AES-GCM) and stored in the object header.
+**Decision**: Android-native encryption with non-exportable Keystore keys, one per aggregate:
+- Aggregate KEK: one AES-256-GCM key per document (`feldexa.doc.v1.<documentId>`) and one per template (`feldexa.tpl.v1.<templateId>`), `setUserAuthenticationRequired(false)`, StrongBox best-effort when available with TEE fallback. Key bytes never leave the Keystore.
+- Per-object data key: 32 random bytes from `SecureRandom`, wrapped by the owning aggregate's KEK (AES-GCM) and stored in the object header.
 - Payload encryption: AES-256-GCM in 1 MiB chunks; 12-byte IV derived from an 8-byte random file nonce plus a 4-byte big-endian chunk counter; AAD = container magic ‖ fileId ‖ chunkIndex ‖ chunkCount ‖ plaintextLength. Final chunk authenticated; truncation and reordering fail.
-- Metadata (document/template JSON, revisions, index/head pointers) uses the same container with a smaller chunk size.
+- Metadata (document/template JSON, revisions, index/head pointers) uses the same container with a smaller chunk size and the aggregate's KEK.
 
-**Rationale**: FR-049 requires device-bound key material not exportable by the app. A Dart-held master key (even inside `flutter_secure_storage`) is readable by the app process and would weaken the guarantee; Keystore-wrapped data keys keep the root key non-exportable. Per-object keys make every encrypted file self-contained: a corrupted wrapped key or ciphertext affects one object (for example one revision or signature), never other documents, templates, or their sources (FR-052). Loss of the Keystore master key itself is the unavoidable device-wide case and is disclosed in German (FR-051).
+**Rationale**: FR-049 requires device-bound key material not exportable by the app. A Dart-held master key (even inside `flutter_secure_storage`) is readable by the app process and would weaken the guarantee; Keystore-wrapped data keys keep the root keys non-exportable. Per-object keys isolate corruption to one object (for example one revision or signature). Per-aggregate KEKs isolate key loss: losing or invalidating one document/template alias affects only that aggregate, while every other aggregate has its own key and remains readable (FR-052). A shared master key is rejected because one alias loss would make every document unreadable and contradict FR-052. A whole-Keystore or device reset invalidates every alias and is an unavoidable device-wide loss case disclosed under FR-051; it is not claimed as per-document isolation.
 
 **Alternatives considered**:
 - *`flutter_secure_storage` alone for whole documents*: designed for small key/value secrets; large blobs and atomicity are not its contract — rejected as the storage engine (it is also unnecessary once Kotlin owns the Keystore).
+- *One shared master key*: one alias loss makes every document and template unreadable; contradicts the FR-052 isolation promise — rejected after the 2026-11-15 owner decision.
 - *Jetpack `EncryptedFile`*: deprecated/limited, whole-file rewrite semantics, weaker failure reporting — rejected.
 - *SQLCipher via `sqlite3` 3.x*: adds a database and native crypto library, but this scope needs revisioned objects, not relational queries; would still not provide non-exportable root keys by itself — rejected.
 - *Plain app-private files*: violates FR-049 — rejected.
 - *User password / biometric gate*: prohibited by FR-050 — rejected.
 
-**Recovery semantics**: Missing/corrupt master key or unwrap failure maps to `SAVE-002`. The object remains on disk untouched; other documents use independent data keys and remain readable. No automatic re-keying or deletion.
+**Recovery semantics**: Missing/corrupt aggregate KEK or unwrap failure maps to `SAVE-002` for that aggregate. The object remains on disk untouched; other documents/templates use independent KEKs and remain readable. The affected aggregate's encrypted metadata is also unreadable, so the list shows it as "Nicht lesbar" without inventing a title. No automatic re-keying or deletion; startup sweeps orphan aliases.
 
 ---
 
@@ -294,7 +295,7 @@ Every adapter returns `CapabilityEvidence.simulated` with `reason` and `adapterI
 - Shared logic: `dart test`; Flutter widgets: `flutter test`; browser: `flutter test --platform chrome`.
 - Android integration: `flutter test integration_test -d <emulator>` plus Kotlin `androidTest` for Keystore/SAF/PDFBox/ML Kit failure modes.
 - Artifact verification: `qpdf --check` for structural validity, `pdftoppm` (Poppler/PDFium path is separate) and `mutool draw` (MuPDF) for independent rendering, page-image comparison against expected overlay renders, `pdftotext` for German character and line-break checks, and a hash comparison proving the source file is unchanged.
-- Fault injection: `FaultInjectingStore` (ENOSPC, short write, fsync failure), Keystore alias deletion, revoked/corrupt key material, truncated/encrypted/corrupt PDF fixtures, and a clock port for debounce tests.
+- Fault injection: `FaultInjectingStore` (ENOSPC, short write, fsync failure), deletion of one document or template Keystore alias, revoked/corrupt key material, truncated/encrypted/corrupt PDF fixtures, and a clock port for debounce tests.
 - Deterministic fixtures: all synthetic, versioned in `corpus-1.0.0`; no real personal documents anywhere.
 
 **Rationale**: Principle V requires artifact-level export verification; SC-006 requires zero clipping/misplacement/checkbox/signature defects. Two renderers reduce the risk of validating with the same engine that produced the file.
@@ -400,7 +401,7 @@ Every adapter returns `CapabilityEvidence.simulated` with `reason` and `adapterI
 | How to export a flattened PDF without re-rendering pages | PDFBox-Android page import + overlay content stream + verification (D-04) |
 | On-device OCR choice | Bundled ML Kit Latin, auxiliary to geometry-first detection (D-05) |
 | Detection algorithm and determinism | Pure-Dart geometry-first hybrid with cue-based confidence (D-06) |
-| Device-bound encryption without exportable keys | Keystore master key + wrapped per-object keys + chunked AES-GCM (D-07) |
+| Device-bound encryption without exportable keys | Per-document/template Keystore KEKs + wrapped per-object keys + chunked AES-GCM (D-07) |
 | Storage and atomic save semantics | Revisioned encrypted objects with atomic head pointer (D-08) |
 | Autosave timing and durability reporting | Serialized debounced coordinator with read-back verification (D-09) |
 | Coordinate space and rotation handling | PDF points in page display space with one mapper (D-10) |

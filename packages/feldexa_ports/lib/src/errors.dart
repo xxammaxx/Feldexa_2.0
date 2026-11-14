@@ -252,10 +252,12 @@ final class StorageFullException extends FeldexaException {
       );
 }
 
-/// The device key material is unavailable or invalidated (`SAVE-002`).
+/// The owning document's or template's Keystore key is unavailable or
+/// invalidated (`SAVE-002`).
 ///
-/// Ciphertext is untouched and other documents load normally, but this
-/// document cannot be opened. Recovery is not possible (FR-052).
+/// The affected aggregate's ciphertext is untouched and only that aggregate
+/// is unreadable; other documents and templates use their own keys and load
+/// normally. Recovery is not possible (FR-052).
 final class KeyUnavailableException extends FeldexaException {
   KeyUnavailableException()
     : super(

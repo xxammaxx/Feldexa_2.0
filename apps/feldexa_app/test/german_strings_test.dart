@@ -504,7 +504,7 @@ void main() {
 
       final String? privacyLine = _lineContaining(
         catalog,
-        'Ihre Dokumente werden nur auf diesem Gerät',
+        'Ihre Dokumente und Vorlagen werden nur auf diesem Gerät',
       );
       expect(arb['priv001'], _quoted(privacyLine!));
 

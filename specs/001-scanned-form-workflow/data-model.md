@@ -137,7 +137,7 @@ any readable state --source/key unreadable--> Unreadable (isolated; no deletion)
 any state --user delete confirmed--> Deleted (record removed)
 ```
 
-`Unreadable` is per document and never transitions other documents. `ExportReady` is a derived label, not a stored state.
+`Unreadable` is per document and never transitions other documents. Each document and template has its own Keystore KEK; losing or invalidating one aggregate's key affects only that aggregate, while other documents and templates remain readable. If the key is lost, the encrypted metadata cannot be read, so the list shows the aggregate as `Nicht lesbar` without inventing a title. `ExportReady` is a derived label, not a stored state.
 
 ### 3.2 `SourceFileRef`
 

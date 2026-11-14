@@ -56,7 +56,7 @@ All non-ephemeral objects use one container format, version 1.
 | 0 | 4 | magic | ASCII `FXC1` |
 | 4 | 2 | version | `0x0001` big-endian |
 | 6 | 2 | flags | bit 0: `chunked`; other bits must be 0 |
-| 8 | 1 | keyScheme | `1` = Keystore-wrapped DEK |
+| 8 | 1 | keyScheme | `1` = DEK wrapped by the aggregate KEK |
 | 9 | 1 | objectKind | `1` meta, `2` revision, `3` source, `4` signature, `5` template version |
 | 10 | 2 | reserved | zero |
 | 12 | 4 | chunkSize | 1,048,576 for large objects; 65,536 for metadata |
@@ -78,6 +78,7 @@ Notes:
 - `fileId` binds chunks to the object and prevents cross-object chunk splicing.
 - `plaintextSha256` covers the exact plaintext including JSON formatting; it is the value compared against `head.fx1.sha256`.
 - Implementations must reject `version > 1`, unknown flags, non-zero reserved bytes, `chunkCount` inconsistent with `plaintextLength`, a chunk size outside `{65_536, 1_048_576}`, a non-zero CRC mismatch, or a wrapped key of the wrong length.
+- The KEK is selected from the aggregate context, not stored in the header: `docs/<documentId>/` uses the document's alias and `templates/<templateId>/` uses the template's alias (§2.3). A wrapped key moved to another aggregate fails to unwrap because that aggregate has a different KEK; `fileId` continues to prevent cross-object chunk splicing.
 
 ### 2.2 Chunk records
 
@@ -99,14 +100,22 @@ Each chunk is stored sequentially after the header:
 | --- | --- |
 | Payload cipher | AES-256-GCM, 128-bit tag, no padding |
 | DEK | 32 bytes from `java.security.SecureRandom` |
-| KEK | Android Keystore AES-256-GCM key, alias `feldexa.master.v1`, `setUserAuthenticationRequired(false)`, StrongBox if `FEATURE_STRONGBOX_KEYSTORE` present, TEE otherwise |
-| DEK wrapping | AES-GCM(KEK, DEK), AAD `"FXC1-DEK"`; IV random 12 bytes stored in header |
+| KEK | One Android Keystore AES-256-GCM key per aggregate: `feldexa.doc.v1.<documentId>` for `docs/<documentId>/` and `feldexa.tpl.v1.<templateId>` for `templates/<templateId>/`; `setUserAuthenticationRequired(false)`; StrongBox best-effort when `FEATURE_STRONGBOX_KEYSTORE` is present, TEE otherwise. If StrongBox key generation fails, retry in the TEE; never fall back to software. |
+| DEK wrapping | AES-GCM(aggregate KEK, DEK), AAD `"FXC1-DEK"`; IV random 12 bytes stored in header |
 | Key export | Prohibited. The app can request unwrap operations; key bytes of the KEK are not retrievable |
 | Nonce reuse | Must not occur: random 8-byte prefix per object + chunk counter; regenerating an object requires a new DEK and nonce |
 
 **Keystore failure mapping**:
-- Alias missing / key invalidated / unwrap tag mismatch → `KeyUnavailableException` (`SAVE-002`).
-- Keystore provider unavailable at boot (e.g., locked device before first unlock) → retry once after a short delay; if still unavailable, operation fails with `SAVE-002` and no partial state.
+- Alias missing / key invalidated / unwrap tag mismatch for one aggregate → `KeyUnavailableException` (`SAVE-002`) for that aggregate; other aggregates use their own aliases and remain readable.
+- Keystore provider unavailable at boot (e.g., locked device before first unlock) → retry once after a short delay; if still unavailable, the operation fails with `SAVE-002` and no partial state.
+
+**Per-aggregate key lifecycle**:
+
+- A document's alias is created with the aggregate directory before any encrypted object is written. A template's alias is created the same way before its first version commit. Key creation happens before the first ciphertext write; a failure leaves no visible aggregate.
+- Deleting a document or template deletes its encrypted objects and directory first, then its alias (§3.6). No other alias is read or deleted.
+- At startup, aliases under `feldexa.doc.v1.` or `feldexa.tpl.v1.` that have no corresponding aggregate directory are orphaned aliases and are deleted. An alias with an existing aggregate directory is never removed by the sweep.
+- Key availability is per aggregate. `StoredMeta.readable`/`unreadableReasonCode` and `KeyUnavailableException` report the affected aggregate; there is no store-global key flag.
+- A whole-Keystore reset or device reset invalidates every alias. That is device-wide loss, not the per-aggregate isolation case; the ciphertext may also be gone. It is disclosed under FR-051 and is not claimed as per-document isolation.
 
 ### 2.4 Plaintext formats
 
@@ -126,7 +135,7 @@ Canonical JSON: sorted keys, UTF-8, no whitespace, UTC ISO-8601 with millisecond
 
 ### 3.1 Saving a document revision
 
-Preconditions: a valid in-memory snapshot, a current verified head, and `status.keyAvailable == true`.
+Preconditions: a valid in-memory snapshot, a current verified head, and the document's aggregate KEK is available. A missing/invalidated aggregate key fails that save with `SAVE-002` and leaves the previous head intact; other aggregates are unaffected.
 
 1. **Serialize** the snapshot to canonical JSON; compute `plaintextSha256`; generate `revisionId`.
 2. **Stage** `tmp/<txnId>.part` with `O_CREAT|O_EXCL`, write header + chunks, `fd.sync()`.
@@ -142,6 +151,8 @@ If any step fails before step 6, the previous `head.fx1` and all previous revisi
 
 ### 3.2 Import commit (new document)
 
+Key setup: create `docs/<documentId>/` and alias `feldexa.doc.v1.<documentId>` before any encrypted object is written. If key creation fails, return `SAVE-002` with no visible document; the startup sweep removes an incomplete directory and its orphan alias.
+
 1. Validate and stage the source object (`src/<sourceId>.fxc`) from the picked stream; count bytes, cap at 80 MiB (83,886,080 bytes), compute SHA-256 of plaintext.
 2. Verify the staged source by decrypting and hashing.
 3. Promote source; fsync.
@@ -156,6 +167,8 @@ A failure at any step removes staged files; if a promoted source/revision exists
 
 Same protocol as §3.1, but the promoted object goes to `ver/<versionId>.fx1`, `head.fx1` points to the latest version, and `meta.fx1` lists version pointers. Existing versions are never modified or deleted by a normal save. Documents pin `templateVersionId` at creation and are not touched (FR-104).
 
+Template creation creates `templates/<templateId>/` and alias `feldexa.tpl.v1.<templateId>` before the first version is encrypted; a failed creation leaves no visible template and the startup sweep removes its orphan alias. Template versions and metadata use the template's alias; no document key is used.
+
 **Creating a document from a template**: stage and verify a **new encrypted copy** of the template's source under `docs/<newDocumentId>/src/`, then write the initial revision with the pinned template version's field layout and empty values/signatures. The new document has no reference to `templates/…`; template deletion therefore cannot affect it (FR-059/FR-060/FR-099). The copy is bounded by the 80 MiB source cap and included in the free-space preflight.
 
 ### 3.4 Signature asset commit
@@ -165,6 +178,10 @@ Signature PNGs are written and verified before the revision that references them
 ### 3.5 Export artifact
 
 Export artifacts are **not** part of the durable aggregate. They are written to `context.cacheDir/feldexa_exports/<artifactId>.pdf.tmp`, verified, renamed to `<artifactId>.pdf`, and reported. They are removed after delivery/preview dismissal or by the startup sweep. They are never included in backups (cache is excluded) and never placed in the document store.
+
+### 3.6 Aggregate deletion
+
+A user-confirmed deletion removes the aggregate's objects and directory first and its KEK alias last. If alias deletion fails after the objects are gone, the startup sweep removes the orphan alias; no ciphertext is left undecryptable by an early key deletion. Deleting a template never reads or deletes a derived document's alias, whose objects are independent encrypted copies (§3.3). An aggregate whose key is already unavailable remains deletable: the confirmation names the localized "Nicht lesbar" state instead of requiring an unreadable title.
 
 ---
 
@@ -179,7 +196,8 @@ On app start (before the list is shown), run in this order:
    - If `head.fx1` points to a missing/corrupt revision → same fallback.
 3. Delete unreferenced signature assets older than 24 h.
 4. Delete export artifacts older than 24 h and any on session end.
-5. Write a redacted recovery event with counts only.
+5. Delete orphaned KEK aliases under `feldexa.doc.v1.` and `feldexa.tpl.v1.` that have no corresponding aggregate directory. Never delete an alias whose aggregate directory still exists.
+6. Write a redacted recovery event with counts only (including orphan aliases removed, but no IDs, titles, or content).
 
 Recovery never deletes a visible document/template, never re-encrypts, and never renames an aggregate.
 
@@ -191,14 +209,18 @@ Recovery never deletes a visible document/template, never re-encrypts, and never
 | --- | --- | --- | --- | --- |
 | Disk full / quota exceeded (`ENOSPC`, `EDQUOT`) | `StorageFullException` | `SAVE-001` | Last verified head intact; unsaved changes retained in memory with risk badge | Blocking German message with storage guidance; retry after freeing space |
 | Short write / fsync failure | `StorageWriteException` | `SAVE-003` | Staged file removed; head intact | Save failure message; last durable state preserved |
-| KEK alias missing / invalidated | `KeyUnavailableException` | `SAVE-002` | Ciphertext untouched; other documents load normally | Specific German key-unavailability message; no data presented as intact |
-| DEK unwrap tag mismatch / corrupt chunk | `CorruptDataException` | `SAVE-003` | Ciphertext untouched | Specific unreadable message; isolation per document |
+| One aggregate's KEK alias missing / invalidated | `KeyUnavailableException` | `SAVE-002` | Ciphertext untouched; other documents/templates load normally | Specific German key-unavailability message; no data presented as intact |
+| DEK unwrap tag mismatch / corrupt chunk | `CorruptDataException` | `SAVE-003` | Ciphertext untouched | Specific unreadable message; isolation per object/aggregate |
 | Head/revision mismatch after crash | recovery fallback | `SAVE-004` | Newest verified revision adopted | "Älterer gespeicherter Stand wiederhergestellt"; unsaved risk disclosed |
 | Unknown newer schema | `SchemaTooNewException` | `SAVE-005` | Data untouched; writes refused | Message that a newer app version is required |
 | Path/name validation failure | `SecurityException` | `PLT-002` | No I/O performed | Generic German error; no path details |
 | Export temp write failure | `ExportFailedException` | `EXP-002` | No artifact presented | Export failure; temp removed |
 
 No exception message may contain a file path, file name, document title, OCR text, field value, or signature data.
+
+Per-aggregate isolation covers loss/invalidation of one aggregate's alias. A whole-Keystore or device reset invalidates every alias and is device-wide loss; no per-aggregate scheme can isolate it, and the ciphertext may also be gone.
+
+**Key-loss listing limitation**: `meta.fx1` is encrypted with the aggregate KEK, so a lost aggregate key also hides that aggregate's title and stored timestamps. The store must still enumerate the directory as `readable = false` with `unreadableReasonCode = SAVE-002`, using no ciphertext-derived title; the UI renders the localized "Nicht lesbar" state. No plaintext index or shared metadata key is introduced. Other aggregates keep their own metadata keys.
 
 ---
 
@@ -207,7 +229,7 @@ No exception message may contain a file path, file name, document title, OCR tex
 - Max source size: 80 MiB (83,886,080 bytes); max pages: 100; max signature PNG: 2 MiB. The cap is derived from the 300 MB peak-memory budget: source bytes in Dart + PDFium's document copy + one render/analysis bitmap.
 - Free-space preflight: require `2 × objectSize + 32 MiB` before import/save/export; otherwise fail early with `SAVE-001`/`IMP-007`.
 - Chunk size 1 MiB: bounded memory during encryption/decryption (one chunk + tag), and per-chunk authentication enables reliable truncation detection.
-- Listing 50 documents: reads only `meta.fx1` (estimated ≤ 8 KiB each) and `head.fx1`; no source or revision decryption.
+- Listing 50 documents: decrypts only `meta.fx1` (estimated ≤ 8 KiB each) and `head.fx1` with each aggregate's own KEK; no source or revision decryption. An aggregate whose key is unavailable is returned as an unreadable placeholder without decrypting or inventing content. Per-aggregate key lookup adds one Keystore unwrap per listed aggregate and must be measured, not assumed.
 - Revision pruning keeps at most 5 revision objects per document by default; explicit-save revisions are retained until superseded.
 
 ---
@@ -216,11 +238,13 @@ No exception message may contain a file path, file name, document title, OCR tex
 
 1. **Round-trip**: empty object, 1 byte, 65,535, 65,536, 1,048,575, 1,048,576, 1,048,577 bytes and a 20 MiB PDF → byte-identical plaintext, verified hash.
 2. **Tamper**: flip one ciphertext byte, one header byte, reorder chunks, truncate the final chunk, change `chunkCount`, splice a chunk from another object → all must fail with `SAVE-003` and no plaintext output.
-3. **Key**: delete the Keystore alias → `SAVE-002`, ciphertext unchanged, a sibling document with a different DEK still loads.
+3. **Key**: delete one document's KEK alias → that document fails with `SAVE-002`, its ciphertext is unchanged, and a sibling document and a template with independent KEKs still load; no file is deleted. Repeat with one template alias and verify a sibling template/document loads.
 4. **Crash**: kill the process at each commit step (fault injection) → old head readable or verified fallback; never a partially committed revision reported as success.
 5. **Quota**: inject `ENOSPC` at stage, promote, and head-write points → no success reported, old head intact, staging cleaned.
 6. **Import rejection**: password-protected/truncated/unknown file → no `docs/<id>/` directory after cleanup.
-7. **Sweep**: stale `tmp/`, orphan signature, orphan export, incomplete import → removed; visible documents untouched.
+7. **Sweep**: stale `tmp/`, orphan signature, orphan export, incomplete import, and orphan KEK aliases with no aggregate directory → removed; visible documents/templates and their aliases untouched.
 8. **Template immutability**: save two template versions; verify version 1 bytes unchanged and a derived document still references version 1.
 9. **No plaintext on disk**: after import/save/export failures, scan the app data and cache directories for the PDF magic bytes (`%PDF-`) and known test phrases → none outside the encrypted container (export artifact excepted during an active preview).
 10. **Backup exclusion**: verify the manifest/`dataExtractionRules` exclude all app data on a test install.
+11. **Per-aggregate keys**: create two documents and one template; assert three distinct aliases with the documented prefixes and that no `feldexa.master.v1` alias exists. Delete one document alias; only that document returns `SAVE-002`, while the other document and the template load. Delete one template alias; only that template fails.
+12. **Key-loss listing**: with one aggregate alias deleted, `list` returns that aggregate with `readable = false`, `unreadableReasonCode = SAVE-002`, no fabricated title, and the other aggregates unchanged; the UI shows the German "Nicht lesbar" state.

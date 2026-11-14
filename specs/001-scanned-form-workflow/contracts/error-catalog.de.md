@@ -52,7 +52,7 @@ No recognition surface may state or imply completeness (FR-085): the summary use
 | Code | Condition | German message | Recovery guidance |
 | --- | --- | --- | --- |
 | `SAVE-001` | Storage full / quota exceeded | „Der Speicherplatz reicht nicht aus. Der letzte gespeicherte Stand ist erhalten; die neuesten Änderungen sind noch nicht dauerhaft gespeichert.“ | „Bitte geben Sie Speicherplatz frei und versuchen Sie es erneut. Feldexa löscht keine Ihrer Dokumente.“ |
-| `SAVE-002` | Key material unavailable/invalidated | „Die gespeicherten Daten können nicht entschlüsselt werden, weil der Schlüssel dieses Geräts nicht mehr verfügbar ist. Dieses Dokument kann nicht geöffnet werden. Andere Dokumente und Vorlagen sind davon nicht betroffen.“ | „Eine Wiederherstellung ist nicht möglich. Bitte wenden Sie sich an den Gerätehersteller, wenn der Schlüssel durch eine Zurücksetzung verloren gegangen ist.“ |
+| `SAVE-002` | Key material for one document or template unavailable/invalidated | „Die gespeicherten Daten können nicht entschlüsselt werden, weil der zugehörige Schlüssel nicht mehr verfügbar ist; das betroffene Dokument oder die betroffene Vorlage kann nicht geöffnet werden. Andere Dokumente und Vorlagen sind davon nicht betroffen.“ | „Eine Wiederherstellung ist nicht möglich. Bitte wenden Sie sich an den Gerätehersteller, wenn der Schlüssel durch eine Zurücksetzung verloren gegangen ist.“ |
 | `SAVE-003` | Write failed or stored data corrupted | „Speichern ist fehlgeschlagen. Der zuletzt erfolgreich gespeicherte Stand bleibt erhalten.“ | „Bitte versuchen Sie es erneut. Wenn der Fehler bleibt, prüfen Sie den freien Speicherplatz.“ |
 | `SAVE-004` | Recovery fell back to older revision | „Feldexa hat einen älteren gespeicherten Stand wiederhergestellt, weil der neueste Stand nicht lesbar war. Änderungen seit diesem Stand können verloren sein.“ | „Bitte prüfen Sie das Dokument und speichern Sie es erneut.“ |
 | `SAVE-005` | Data written by a newer app version | „Dieses Dokument wurde mit einer neueren Version von Feldexa gespeichert. Bitte aktualisieren Sie die App, um es zu öffnen. Die Daten bleiben unverändert.“ | „Öffnen Sie das Dokument erst nach dem Update wieder.“ |
@@ -73,7 +73,9 @@ No recognition surface may state or imply completeness (FR-085): the summary use
 Forbidden: „Alles gespeichert“, „Sicher gespeichert“, or any wording implying durability for unsaved edits.
 
 **Pre-emptive key/backup disclosure** (`PRIV-001`, shown in the first-run help and before the first save):
-„Ihre Dokumente werden nur auf diesem Gerät und mit einem Schlüssel gespeichert, der an dieses Gerät gebunden ist. Sicherungskopien der App-Daten sind nicht möglich. Wenn der Schlüssel verloren geht – zum Beispiel durch Zurücksetzen des Geräts –, können die betroffenen Dokumente nicht wiederhergestellt werden. Andere Dokumente bleiben unabhängig davon nutzbar.“
+„Ihre Dokumente und Vorlagen werden nur auf diesem Gerät und mit Schlüsseln gespeichert, die an dieses Gerät gebunden sind. Sicherungskopien der App-Daten sind nicht möglich. Wenn der Schlüssel eines Dokuments oder einer Vorlage verloren geht, können die betroffenen Daten nicht wiederhergestellt werden. Andere Dokumente und Vorlagen bleiben unabhängig davon nutzbar.“
+
+`SAVE-002` normally describes the affected aggregate. A Keystore provider that is unavailable at boot is a transient device-wide condition; it is retried once and, if it persists, reported without deleting data. A whole-Keystore or device reset invalidates every alias and is a device-wide loss case; per-aggregate isolation is not claimed for that global event.
 
 ---
 
