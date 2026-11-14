@@ -312,6 +312,7 @@ the git bundle and are not bundle-verifiable.
 | [2026-11-13-t015-merge-evidence.md](./2026-11-13-t015-merge-evidence.md) | `NONE` | Task evidence | T015 merge of corrected main `31c75e8`; local merge only, diff vs main recorded |
 | [2026-11-13-t016-evidence.md](./2026-11-13-t016-evidence.md) | `NONE` | Task evidence | T016 `PageGeometry` display box, rotation, CropBox mapping; host-VM only; gate browser layer is `SIMULATED`, not T016 evidence |
 | [2026-11-14-t020-evidence.md](./2026-11-14-t020-evidence.md) | `NONE` | Task evidence | T020 persistence types (`DurabilityStatus`, `RevisionKind`, `RevisionContent`, `Revision`); host-VM only; no access to runtime or acceptance evidence |
+| [2026-11-14-t022-evidence.md](./2026-11-14-t022-evidence.md) | `NONE` | Task evidence | T022 export contract models (`ExportPlan`, `ExportValidation`, `ExportArtifact`, `ArtifactVerification`) and the strict artifact state machine; host-VM only; no runtime or Android claim |
 | [2026-11-13-t032-evidence.md](./2026-11-13-t032-evidence.md) | `NONE` | Task evidence | T032 evidence report schema and validator; host-only checks |
 | [2026-11-13-t035-evidence.md](./2026-11-13-t035-evidence.md) | `NONE` | Task evidence | T035 manual-baseline protocol; v2 per-form SC-003 correction; no measurements recorded; SC-003 execution remains T142 |
 | [2026-11-12-task-issue-mapping.md](./2026-11-12-task-issue-mapping.md) | `NONE` | Historical snapshot | 2026-11-12T15:50Z all-open mapping; not live issue state |

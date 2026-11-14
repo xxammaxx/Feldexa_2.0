@@ -6,3 +6,15 @@ resolution: workspace
 
 environment:
   sdk: ^3.13.0
+
+dependencies:
+  feldexa_core:
+    path: ../feldexa_core
+  # The canonical export-plan JSON schema lives in this package. T022 only
+  # defines the contract models; no Flutter, platform, or ports dependency.
+  # `contracts/export-plan.md` §2: ExportPlan.evidenceClass is a string token,
+  # so the export package never imports feldexa_ports.
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
