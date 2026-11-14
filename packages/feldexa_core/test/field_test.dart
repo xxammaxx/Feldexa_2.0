@@ -503,7 +503,7 @@ void main() {
       expect(_evidence(cueAgreement: 1).cueAgreement, 1);
       expect(() => _evidence(cueAgreement: 0), throwsArgumentError);
       expect(() => _evidence(cueAgreement: -1), throwsArgumentError);
-      // One cue can support at most one independent cue family.
+      // A single non-composite cue can support at most one independent family.
       expect(() => _evidence(cueAgreement: 2), throwsArgumentError);
       expect(() => _evidence(cueAgreement: 99), throwsArgumentError);
       final List<SuggestionCue> threeCues = <SuggestionCue>[
@@ -517,6 +517,63 @@ void main() {
       expect(
         () => _evidence(cues: threeCues, cueAgreement: 4),
         throwsArgumentError,
+      );
+      // signature_area is OCR + geometry, so one token can support two
+      // independent families; the bound must not assume one token == one
+      // family.
+      expect(
+        _evidence(
+          cues: <SuggestionCue>[SuggestionCue.signatureArea],
+          cueAgreement: 2,
+        ).cueAgreement,
+        2,
+      );
+      expect(
+        () => _evidence(
+          cues: <SuggestionCue>[SuggestionCue.signatureArea],
+          cueAgreement: 3,
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        _evidence(
+          cues: <SuggestionCue>[
+            SuggestionCue.signatureArea,
+            SuggestionCue.underline,
+          ],
+          cueAgreement: 3,
+        ).cueAgreement,
+        3,
+      );
+      expect(
+        () => _evidence(
+          cues: <SuggestionCue>[
+            SuggestionCue.signatureArea,
+            SuggestionCue.underline,
+          ],
+          cueAgreement: 4,
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        SuggestionEvidence.fromJson(<String, Object?>{
+          'cues': <String>['signature_area'],
+          'cueAgreement': 2,
+          'skewDegrees': 0,
+          'contrast': 'normal',
+          'ocrUsed': true,
+        }).cueAgreement,
+        2,
+      );
+      expect(
+        () => SuggestionEvidence.fromJson(<String, Object?>{
+          'cues': <String>['signature_area'],
+          'cueAgreement': 3,
+          'skewDegrees': 0,
+          'contrast': 'normal',
+          'ocrUsed': true,
+        }),
+        throwsFormatException,
       );
       expect(
         () => SuggestionEvidence.fromJson(<String, Object?>{

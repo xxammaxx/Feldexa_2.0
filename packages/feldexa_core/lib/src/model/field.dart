@@ -273,6 +273,17 @@ sealed class SuggestionCue implements Comparable<SuggestionCue> {
   /// Whether this cue is geometric evidence.
   bool get isGeometric => _geometricWireNames.contains(wireName);
 
+  /// The maximum number of independent cue families this cue can support.
+  ///
+  /// The §3.1 Source column assigns one source to every cue except
+  /// `signature_area`, which is explicitly OCR + geometry and can therefore
+  /// contribute two families. The contract defines no one-token/one-family
+  /// mapping.
+  int get maxIndependentFamilies =>
+      _compositeWireNames.contains(wireName) ? 2 : 1;
+
+  static const Set<String> _compositeWireNames = <String>{'signature_area'};
+
   /// Creates a `keyword_<key>` cue.
   ///
   /// [key] is the lexicon key. It is trimmed and lowercased for canonical
@@ -555,8 +566,9 @@ enum FieldVerificationState {
 /// geometric cue; §2.1 forbids OCR-only suggestions. When [ocrUsed] is false,
 /// every cue must also be OCR-independent (geometry-only detection).
 /// [cueAgreement] counts independent cue families and is between one and the
-/// number of cues; a family cannot be supported without a cue. [skewDegrees] is
-/// the estimated page skew in degrees on the closed interval `-10 … 10`.
+/// supported family count; the §3.1 Source column makes `signature_area`
+/// OCR + geometry, so one composite cue can support two. [skewDegrees] is the
+/// estimated page skew in degrees on the closed interval `-10 … 10`.
 /// [contrast] is the contract's `normal | low` page contrast, and [ocrUsed] is
 /// false when OCR failed and geometry-only detection ran.
 final class SuggestionEvidence {
@@ -564,8 +576,8 @@ final class SuggestionEvidence {
   ///
   /// Throws [ArgumentError] when [cues] is empty, contains duplicates, or has
   /// no geometric cue, when [ocrUsed] is false and a cue depends on OCR, when
-  /// [cueAgreement] is less than one or greater than the number of cues, or
-  /// when [skewDegrees] is non-finite or outside `-10 … 10`.
+  /// [cueAgreement] is less than one or greater than the supported family
+  /// count, or when [skewDegrees] is non-finite or outside `-10 … 10`.
   factory SuggestionEvidence({
     required Iterable<SuggestionCue> cues,
     int cueAgreement = 1,
@@ -601,13 +613,20 @@ final class SuggestionEvidence {
         }
       }
     }
-    // cueAgreement counts independent cue families, not cue tokens. Each cue
-    // can support at most one family, so the number of families cannot exceed
-    // the cue count. The contract does not define a finer family partition;
-    // producers remain responsible for the actual count.
-    if (cueAgreement < 1 || cueAgreement > cueSet.length) {
+    // cueAgreement counts independent cue families, not cue tokens. The §3.1
+    // Source column assigns one source to every cue except signature_area,
+    // which is explicitly OCR + geometry, so the cue set can support at most
+    // the sum of each cue's maxIndependentFamilies. This is a necessary bound,
+    // not a one-token/one-family mapping; the contract defines no finer
+    // partition and producers remain responsible for the actual count.
+    final int maxFamilies = cueSet.fold<int>(
+      0,
+      (int total, SuggestionCue cue) => total + cue.maxIndependentFamilies,
+    );
+    if (cueAgreement < 1 || cueAgreement > maxFamilies) {
       throw ArgumentError(
-        'cueAgreement must be between 1 and the number of cues',
+        'cueAgreement must be between 1 and the supported independent '
+        'cue-family count ($maxFamilies)',
       );
     }
     if (!skewDegrees.isFinite || skewDegrees < -10 || skewDegrees > 10) {
@@ -688,7 +707,8 @@ final class SuggestionEvidence {
   final Set<SuggestionCue> cues;
 
   /// Number of independent cue families supporting the candidate; at least 1
-  /// and at most the cue count.
+  /// and at most the supported family count (`signature_area` is OCR+geometry
+  /// and can contribute two).
   final int cueAgreement;
 
   /// Estimated page skew in degrees on `-10 … 10`.
