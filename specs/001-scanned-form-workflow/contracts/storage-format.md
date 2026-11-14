@@ -114,7 +114,7 @@ Each chunk is stored sequentially after the header:
 - A document's alias is created with the aggregate directory before any encrypted object is written. A template's alias is created the same way before its first version commit. Key creation happens before the first ciphertext write; a failure leaves no visible aggregate.
 - Deleting a document or template deletes its encrypted objects and directory first, then its alias (§3.6). No other alias is read or deleted.
 - At startup, aliases under `feldexa.doc.v1.` or `feldexa.tpl.v1.` that have no corresponding aggregate directory are orphaned aliases and are deleted. An alias with an existing aggregate directory is never removed by the sweep.
-- Key availability is per aggregate. `StoredMeta.readable`/`unreadableReasonCode` and `KeyUnavailableException` report the affected aggregate; there is no store-global key flag.
+- Key availability has two levels. `StoreStatus.keyAvailable` is the T013-compatible, non-fatal store-level summary: false when at least one known aggregate key is unavailable; it does not identify which aggregate and does not make the whole store fail. Per-aggregate detail is reported by `StoredMeta.readable`/`unreadableReasonCode` and `KeyUnavailableException`.
 - A whole-Keystore reset or device reset invalidates every alias. That is device-wide loss, not the per-aggregate isolation case; the ciphertext may also be gone. It is disclosed under FR-051 and is not claimed as per-document isolation.
 
 ### 2.4 Plaintext formats
