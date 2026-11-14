@@ -166,8 +166,9 @@ ReclassificationResult _change(
 }
 
 /// Mirrors the T017/T020 aggregate invariant: a stored value must match the
-/// field type, or be an [IncompatibleValue] paired with the
-/// `incompatible_content` warning.
+/// field type, or be an [IncompatibleValue] flagged as incompatible by the
+/// `incompatible_content` warning or a blocking [FieldValidation.error]
+/// (`data-model.md` §3.5).
 void _expectAggregateCompatible(ReclassificationResult result) {
   final FieldValue? value = result.value;
   if (value == null) {
@@ -176,14 +177,20 @@ void _expectAggregateCompatible(ReclassificationResult result) {
   }
   expect(result.field.acceptsValue(value), isTrue);
   final bool incompatible = value is IncompatibleValue;
-  final bool flagged =
-      result.field.validation.isWarning &&
-      result.field.validation.warningCode == WarningCode.incompatibleContent;
+  final bool flagsIncompatible =
+      result.field.validation.isError ||
+      (result.field.validation.isWarning &&
+          result.field.validation.warningCode ==
+              WarningCode.incompatibleContent);
   expect(
     incompatible,
-    flagged,
-    reason: 'incompatible content and the incompatible_content warning pair',
+    flagsIncompatible,
+    reason:
+        'incompatible content must be flagged by a warning or a field error',
   );
+  if (result.errorCode != null) {
+    expect(result.field.validation.errorCode, result.errorCode);
+  }
 }
 
 /// Builds a minimal valid document with the result's field and value, proving
@@ -471,10 +478,9 @@ void main() {
         expect(value.reasonCode, 'number_parse_failed');
         expect(result.preservedContent, 'keine Zahl');
         expect(result.proposedValue, isNull);
-        expect(
-          result.field.validation.warningCode,
-          WarningCode.incompatibleContent,
-        );
+        expect(result.field.validation.isError, isTrue);
+        expect(result.field.validation.errorCode, 'NUM-001');
+        expect(result.field.validation.warningCode, isNull);
         _expectAggregateCompatible(result);
         expect(() => _documentFor(result), returnsNormally);
       },
@@ -562,10 +568,8 @@ void main() {
         _text(_canary, overflow: true),
         FieldType.number,
       );
-      expect(
-        result.field.validation.warningCode,
-        WarningCode.incompatibleContent,
-      );
+      expect(result.field.validation, FieldValidation.error('NUM-001'));
+      expect(result.field.validation.warningCode, isNull);
       expect((result.value! as IncompatibleValue).overflow, isTrue);
     });
   });
@@ -616,10 +620,9 @@ void main() {
       expect(result.errorCode, 'DATE-002');
       expect(result.reason, ReclassificationReason.dateParseFailed);
       expect(result.preservedContent, '31.02.2025');
-      expect(
-        result.field.validation.warningCode,
-        WarningCode.incompatibleContent,
-      );
+      expect(result.field.validation.isError, isTrue);
+      expect(result.field.validation.errorCode, 'DATE-002');
+      expect(result.field.validation.warningCode, isNull);
       _expectAggregateCompatible(result);
       expect(() => _documentFor(result), returnsNormally);
     });
@@ -1250,9 +1253,157 @@ void main() {
     });
   });
 
-  group('persisted warning and surfaced error', () {
+  group('same-schema validation extensions', () {
+    const Map<String, Object?> extensions = <String, Object?>{
+      'future.validation': 'kept',
+    };
+
+    FieldValidation okWithExtensions() {
+      return FieldValidation.fromJson(<String, Object?>{
+        ...extensions,
+        'status': 'ok',
+      });
+    }
+
+    test('a lossless conversion keeps validation extensions', () {
+      final ReclassificationResult result = _change(
+        _field(validation: okWithExtensions()),
+        _text('x'),
+        FieldType.multiline,
+      );
+      expect(result.field.validation.isOk, isTrue);
+      expect(result.field.validation.unknownFields, extensions);
+    });
+
+    test('clearing an error keeps validation extensions', () {
+      final ConfirmedField field = _field(
+        type: FieldType.number,
+        validation: FieldValidation.error('NUM-001', unknownFields: extensions),
+      );
+      final ReclassificationResult result = _change(
+        field,
+        _number('42', '42'),
+        FieldType.text,
+      );
+      expect(result.field.validation.isOk, isTrue);
+      expect(result.field.validation.unknownFields, extensions);
+    });
+
+    test('a parse-failure error keeps validation extensions', () {
+      final ReclassificationResult result = _change(
+        _field(validation: okWithExtensions()),
+        _text('keine Zahl'),
+        FieldType.number,
+      );
+      expect(result.field.validation.isError, isTrue);
+      expect(result.field.validation.errorCode, 'NUM-001');
+      expect(result.field.validation.unknownFields, extensions);
+    });
+
+    test('a checkbox warning keeps validation extensions', () {
+      final ReclassificationResult result = _change(
+        _field(validation: okWithExtensions()),
+        _text('Erika'),
+        FieldType.checkbox,
+      );
+      expect(result.field.validation.isWarning, isTrue);
+      expect(result.field.validation.unknownFields, extensions);
+    });
+
+    test('resolve keeps validation extensions', () {
+      final ReclassificationResult pending = _change(
+        _field(validation: okWithExtensions()),
+        _text('Erika'),
+        FieldType.checkbox,
+      );
+      final ReclassificationResult resolved = pending.resolve();
+      expect(resolved.field.validation.isOk, isTrue);
+      expect(resolved.field.validation.unknownFields, extensions);
+    });
+
+    test('resolve keeps value extensions for a line-break join', () {
+      final ReclassificationResult pending = _change(
+        _field(type: FieldType.multiline),
+        _multiline('a\nb', unknownFields: extensions),
+        FieldType.text,
+      );
+      final ReclassificationResult resolved = pending.resolve();
+      expect((resolved.value! as TextValue).text, 'a b');
+      expect(resolved.value!.unknownFields, extensions);
+    });
+
+    test('resolve keeps value extensions for a checkbox projection', () {
+      final ReclassificationResult pending = _change(
+        _field(type: FieldType.checkbox),
+        _checkbox(true, unknownFields: extensions),
+        FieldType.text,
+      );
+      final ReclassificationResult resolved = pending.resolve();
+      expect((resolved.value! as TextValue).text, 'Ja');
+      expect(resolved.value!.unknownFields, extensions);
+    });
+
+    test('resolve keeps value extensions for a multiline projection', () {
+      final ReclassificationResult pending = _change(
+        _field(type: FieldType.checkbox),
+        _checkbox(false, unknownFields: extensions),
+        FieldType.multiline,
+      );
+      final ReclassificationResult resolved = pending.resolve();
+      expect((resolved.value! as MultilineValue).text, 'Nein');
+      expect(resolved.value!.unknownFields, extensions);
+    });
+
+    test('resolve keeps value extensions for a proposed checkbox', () {
+      final ReclassificationResult pending = _change(
+        _field(),
+        _text('Erika', unknownFields: extensions),
+        FieldType.checkbox,
+      );
+      final ReclassificationResult resolved = pending.resolve();
+      expect((resolved.value! as CheckboxValue).checked, isFalse);
+      expect(resolved.value!.unknownFields, extensions);
+      final Document document = _documentFor(resolved);
+      final Document reopened = Document.fromJson(document.toJson());
+      expect(reopened.values.values.single.unknownFields, extensions);
+    });
+
+    test('clearing a signature keeps validation extensions', () {
+      final ReclassificationResult result = _change(
+        _field(
+          type: FieldType.signature,
+          validation: FieldValidation.warning(
+            WarningCode.overflow,
+            'FLD-001',
+            unknownFields: extensions,
+          ),
+        ),
+        _signature(_assetId),
+        FieldType.text,
+      );
+      expect(result.field.validation.isOk, isTrue);
+      expect(result.field.validation.unknownFields, extensions);
+    });
+
+    test('the persisted roundtrip keeps validation extensions', () {
+      final ReclassificationResult result = _change(
+        _field(validation: okWithExtensions()),
+        _text('keine Zahl'),
+        FieldType.number,
+      );
+      final Document document = _documentFor(result);
+      final Document reopened = Document.fromJson(document.toJson());
+      expect(reopened.fields.single.validation.unknownFields, extensions);
+      final RevisionContent persisted = RevisionContent.fromJson(
+        RevisionContent.fromDocument(reopened).toJson(),
+      );
+      expect(persisted.fields.single.validation.unknownFields, extensions);
+    });
+  });
+
+  group('persisted blocking error and warning', () {
     test(
-      'unparseable number persists the aggregate-valid pair plus NUM-001',
+      'unparseable number persists a blocking NUM-001 error with content',
       () {
         final ReclassificationResult result = _change(
           _field(),
@@ -1260,18 +1411,16 @@ void main() {
           FieldType.number,
         );
         expect(result.value, isA<IncompatibleValue>());
-        expect(
-          result.field.validation,
-          FieldValidation.warning(WarningCode.incompatibleContent, 'FLD-002'),
-        );
+        expect(result.field.validation, FieldValidation.error('NUM-001'));
+        expect(result.field.validation.isError, isTrue);
+        expect(result.field.validation.warningCode, isNull);
         expect(result.errorCode, 'NUM-001');
-        expect(result.field.validation.isError, isFalse);
         _expectAggregateCompatible(result);
       },
     );
 
     test(
-      'unparseable date persists the aggregate-valid pair plus DATE-002',
+      'unparseable date persists a blocking DATE-002 error with content',
       () {
         final ReclassificationResult result = _change(
           _field(),
@@ -1279,13 +1428,100 @@ void main() {
           FieldType.date,
         );
         expect(result.value, isA<IncompatibleValue>());
-        expect(
-          result.field.validation,
-          FieldValidation.warning(WarningCode.incompatibleContent, 'FLD-002'),
-        );
+        expect(result.field.validation, FieldValidation.error('DATE-002'));
+        expect(result.field.validation.isError, isTrue);
         expect(result.errorCode, 'DATE-002');
+        _expectAggregateCompatible(result);
       },
     );
+
+    test(
+      'NUM-001 survives the document and revision persistence roundtrip',
+      () {
+        final ReclassificationResult result = _change(
+          _field(),
+          _text('keine Zahl'),
+          FieldType.number,
+        );
+        final Document document = _documentFor(result);
+        final Document reopened = Document.fromJson(document.toJson());
+        final ConfirmedField reopenedField = reopened.fields.single;
+        expect(reopenedField.validation, FieldValidation.error('NUM-001'));
+        final IncompatibleValue reopenedValue =
+            reopened.values[reopenedField.id]! as IncompatibleValue;
+        expect(reopenedValue.preservedText, 'keine Zahl');
+
+        final RevisionContent content = RevisionContent.fromDocument(reopened);
+        final RevisionContent persisted = RevisionContent.fromJson(
+          content.toJson(),
+        );
+        final ConfirmedField persistedField = persisted.fields.single;
+        expect(persistedField.validation, FieldValidation.error('NUM-001'));
+        final IncompatibleValue persistedValue =
+            persisted.values[persistedField.id]! as IncompatibleValue;
+        expect(persistedValue.preservedText, 'keine Zahl');
+      },
+    );
+
+    test(
+      'DATE-002 survives the document and revision persistence roundtrip',
+      () {
+        final ReclassificationResult result = _change(
+          _field(),
+          _text('31.02.2025'),
+          FieldType.date,
+        );
+        final Document document = _documentFor(result);
+        final RevisionContent persisted = RevisionContent.fromJson(
+          RevisionContent.fromDocument(Document.fromJson(document.toJson()))
+              .toJson(),
+        );
+        final ConfirmedField field = persisted.fields.single;
+        expect(field.validation, FieldValidation.error('DATE-002'));
+        final IncompatibleValue value =
+            persisted.values[field.id]! as IncompatibleValue;
+        expect(value.preservedText, '31.02.2025');
+      },
+    );
+
+    test('the incompatible-content warning survives for checkbox content', () {
+      final ReclassificationResult result = _change(
+        _field(),
+        _text('Erika'),
+        FieldType.checkbox,
+      );
+      expect(
+        result.field.validation,
+        FieldValidation.warning(WarningCode.incompatibleContent, 'FLD-002'),
+      );
+      final Document document = _documentFor(result);
+      final RevisionContent persisted = RevisionContent.fromJson(
+        RevisionContent.fromDocument(Document.fromJson(document.toJson()))
+            .toJson(),
+      );
+      expect(
+        persisted.fields.single.validation,
+        FieldValidation.warning(WarningCode.incompatibleContent, 'FLD-002'),
+      );
+      expect(persisted.values.values.single, isA<IncompatibleValue>());
+    });
+
+    test('resolving a parse failure clears the persisted error', () {
+      final ReclassificationResult resolved = _change(
+        _field(),
+        _text('keine Zahl'),
+        FieldType.number,
+      ).resolve();
+      expect(resolved.field.validation, FieldValidation.ok);
+      expect(resolved.value, isNull);
+      final Document document = _documentFor(resolved);
+      final RevisionContent persisted = RevisionContent.fromJson(
+        RevisionContent.fromDocument(Document.fromJson(document.toJson()))
+            .toJson(),
+      );
+      expect(persisted.fields.single.validation, FieldValidation.ok);
+      expect(persisted.values, isEmpty);
+    });
   });
 
   group('full type matrix', () {

@@ -27,22 +27,38 @@
 //
 // T019 owns only this module and its tests. `FieldType`, `ConfirmedField`,
 // `FieldValue`, `FieldValidation`, `WarningCode`, and `IncompatibleValue` are
-// T017/T018 types and are imported unchanged; the document aggregate and the
-// UI are not modified here.
+// T017/T018 types and are imported unchanged; this module does not redeclare or
+// reshape them. The T017/T020 aggregate flag is reconciled with §3.5 in the
+// document and revision snapshot (an incompatible value is flagged by the
+// incompatible-content warning *or* a blocking field error).
 //
-// ## Persisted warning vs. surfaced error
+// ## Persisted error vs. persisted warning
 //
-// `data-model.md` §3.5 says text → number/date content that does not parse is
-// "marked error". The T017 aggregate, the T020 `RevisionContent`, and
-// `ConfirmedField.acceptsValue` require every persisted `IncompatibleValue` to
-// be paired with a `FieldValidation.warning` whose code is
-// [WarningCode.incompatibleContent]; an error validation cannot accompany
-// preserved content. This module therefore persists the aggregate-valid pair
-// (`IncompatibleValue` + `FLD-002`) and exposes the parse failure separately as
-// [ReclassificationResult.errorCode] (`NUM-001`, `DATE-001`, or `DATE-002`).
-// The error is still reported to the UI, the content stays in the model, and
-// [ReclassificationResult.blocksExport] stays true, which is the FR-038
-// requirement the aggregate can represent.
+// `data-model.md` §3.5 distinguishes two kinds of flagged incompatible content:
+//
+//   * text → number/date content that does not parse is "marked `error`",
+//     keeps its content, and `number/date → text` "clears" that error. The
+//     blocking catalog code (`NUM-001`, `DATE-001`, or `DATE-002`) is therefore
+//     persisted in `ConfirmedField.validation` as a `FieldValidation.error`,
+//     alongside the preserved `IncompatibleValue`.
+//   * checkbox, signature, and unconfirmed line-break joins are "flagged" and
+//     stay pending until the user resolves them. They persist the
+//     `incompatible_content` warning (`FLD-002`), because the user has to make
+//     an explicit choice before export.
+//
+// The T017 `Document` and T020 `RevisionContent` accept an `IncompatibleValue`
+// when the field is flagged by either the `incompatible_content` warning or a
+// blocking error; an unflagged `IncompatibleValue` and a warning without
+// preserved content remain rejected. [ReclassificationResult.errorCode] mirrors
+// the persisted error code for callers that render the type-specific message.
+// In both cases the content stays in the model and
+// [ReclassificationResult.blocksExport] is true (FR-038).
+//
+// Every validation replacement also carries the previous state's opaque
+// same-schema JSON extensions onto the new state: `data-model.md` §6 permits
+// dropping unknown fields only on migration, not on an ordinary edit. Field,
+// value, and validation extensions therefore survive a reclassification and
+// its persistence round-trip.
 //
 // ## Rule matrix
 //
@@ -195,9 +211,10 @@ final class ReclassificationResult {
 
   /// The value to store for [field], or null when the field has no value.
   ///
-  /// Incompatible content is an [IncompatibleValue] paired with a
-  /// [WarningCode.incompatibleContent] warning, which keeps the T017/T020
-  /// aggregate valid.
+  /// Incompatible content is an [IncompatibleValue] flagged by either a
+  /// [WarningCode.incompatibleContent] warning (pending explicit user
+  /// resolution) or a blocking [FieldValidation.error] (a failed type parse),
+  /// which keeps the T017/T020 aggregate valid.
   final FieldValue? value;
 
   /// The value the user may accept by calling [resolve], or null.
@@ -218,8 +235,9 @@ final class ReclassificationResult {
   /// The catalog code of a parse failure (`NUM-001`, `DATE-001`, `DATE-002`),
   /// or null.
   ///
-  /// This is the "marked error" from `data-model.md` §3.5, surfaced alongside
-  /// the persisted [WarningCode.incompatibleContent] warning.
+  /// This is the "marked error" from `data-model.md` §3.5. It is persisted as
+  /// the code of [field]'s blocking [FieldValidation.error] and repeated here
+  /// for callers that render the type-specific message.
   final String? errorCode;
 
   /// The cleared signature asset id when a signature field became another
@@ -259,12 +277,15 @@ final class ReclassificationResult {
   ///
   /// * A compatible or already-cleared result is returned unchanged.
   /// * A [ReclassificationKind.confirmationRequired] result stores
-  ///   [proposedValue] (the space-joined text) and clears the warning.
+  ///   [proposedValue] (the space-joined text) and clears the flag.
   /// * A [ReclassificationKind.resolutionRequired] result replaces the
   ///   preserved content with [proposedValue], or with no value when
   ///   [proposedValue] is null. The caller may only invoke this after the user
   ///   has consciously resolved the flagged content; it is the explicit
-  ///   discard/accept action, never automatic cleanup.
+  ///   discard/accept action, never automatic cleanup. A persisted parse error
+  ///   is cleared in the same step (`data-model.md` §3.5: number/date → text
+  ///   clears the error, and explicit resolution clears it for the same
+  ///   reason).
   ///
   /// The field's `updatedAt` is not changed by this method.
   ReclassificationResult resolve() {
@@ -431,7 +452,7 @@ ReclassificationResult _toText({
       preservedText: projection,
       reason: ReclassificationReason.checkboxStateProjection,
       kind: ReclassificationKind.resolutionRequired,
-      proposedValue: TextValue(text: projection, lastEditedAt: updatedAt),
+      proposedValue: _textValue(projection, source, updatedAt),
       updatedAt: updatedAt,
     );
   }
@@ -463,7 +484,7 @@ ReclassificationResult _toText({
         preservedText: text,
         reason: ReclassificationReason.lineBreakJoinConfirmation,
         kind: ReclassificationKind.confirmationRequired,
-        proposedValue: TextValue(text: joined, lastEditedAt: updatedAt),
+        proposedValue: _textValue(joined, source, updatedAt),
         updatedAt: updatedAt,
       );
     }
@@ -514,7 +535,12 @@ ReclassificationResult _toMultiline({
       preservedText: projection,
       reason: ReclassificationReason.checkboxStateProjection,
       kind: ReclassificationKind.resolutionRequired,
-      proposedValue: MultilineValue(text: projection, lastEditedAt: updatedAt),
+      proposedValue: MultilineValue(
+        text: projection,
+        lastEditedAt: updatedAt,
+        overflow: source.overflow,
+        unknownFields: source.unknownFields,
+      ),
       updatedAt: updatedAt,
     );
   }
@@ -704,7 +730,11 @@ ReclassificationResult _toCheckbox({
     preservedText: text,
     reason: ReclassificationReason.checkboxRequiresResolution,
     kind: ReclassificationKind.resolutionRequired,
-    proposedValue: CheckboxValue(checked: false, lastEditedAt: updatedAt),
+    proposedValue: CheckboxValue(
+      checked: false,
+      lastEditedAt: updatedAt,
+      unknownFields: source.unknownFields,
+    ),
     updatedAt: updatedAt,
   );
 }
@@ -792,13 +822,20 @@ ReclassificationResult _preserved({
     overflow: source.overflow,
     unknownFields: source.unknownFields,
   );
+  // data-model.md §3.5 distinguishes a parse failure (`error`) from other
+  // incompatible content (`warning`). A parse failure persists its catalog code
+  // as the blocking field error; checkbox, signature, and line-join cases
+  // persist the incompatible-content warning that the user resolves.
+  final FieldValidation validation = _carryValidationExtensions(
+    errorCode == null
+        ? FieldValidation.warning(WarningCode.incompatibleContent, 'FLD-002')
+        : FieldValidation.error(errorCode),
+    field.validation,
+  );
   return ReclassificationResult._(
     field: field.copyWith(
       type: target,
-      validation: FieldValidation.warning(
-        WarningCode.incompatibleContent,
-        'FLD-002',
-      ),
+      validation: validation,
       updatedAt: updatedAt,
     ),
     value: preserved,
@@ -874,7 +911,8 @@ ReclassificationResult _notRepresentableText({
 ///
 /// Overflow is derived at layout time and is independent of the field type;
 /// keeping the status avoids hiding a known overflow until the next layout.
-/// Incompatible content takes precedence because it must block export.
+/// Incompatible content takes precedence because it must block export. Every
+/// replacement also carries the previous state's same-schema extensions.
 FieldValidation _validationAfter(
   ConfirmedField field,
   FieldValidation newValidation,
@@ -886,7 +924,46 @@ FieldValidation _validationAfter(
       field.validation.warningCode == WarningCode.overflow) {
     return field.validation;
   }
-  return newValidation;
+  return _carryValidationExtensions(newValidation, field.validation);
+}
+
+/// Carries opaque same-schema JSON extensions from [previous] onto
+/// [replacement].
+///
+/// `data-model.md` §6 only permits dropping unknown JSON fields on migration.
+/// A reclassification creates a new validation state, but the mapped state
+/// still wins and the opaque extension entries are retained for a later write.
+/// The warning/error factories expose their extension parameter; the valid
+/// state is decoded with its modeled status because `data-model.md` §3.5 has no
+/// separate constructor for an extended `ok`.
+FieldValidation _carryValidationExtensions(
+  FieldValidation replacement,
+  FieldValidation previous,
+) {
+  final Map<String, Object?> extensions = previous.unknownFields;
+  if (extensions.isEmpty) {
+    return replacement;
+  }
+  if (replacement.isWarning) {
+    return FieldValidation.warning(
+      replacement.warningCode!,
+      replacement.messageKey!,
+      unknownFields: extensions,
+    );
+  }
+  if (replacement.isError) {
+    return FieldValidation.error(
+      replacement.errorCode!,
+      unknownFields: extensions,
+    );
+  }
+  if (previous.isOk) {
+    return previous;
+  }
+  return FieldValidation.fromJson(<String, Object?>{
+    ...extensions,
+    'status': 'ok',
+  });
 }
 
 TextValue _textValue(String text, FieldValue? source, DateTime updatedAt) {
