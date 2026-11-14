@@ -499,92 +499,40 @@ void main() {
       expect(jsonGeometryOnly.ocrUsed, isFalse);
     });
 
-    test('enforces cueAgreement and skew bounds', () {
+    test('enforces the cueAgreement lower bound and accepts composites', () {
       expect(_evidence(cueAgreement: 1).cueAgreement, 1);
       expect(() => _evidence(cueAgreement: 0), throwsArgumentError);
       expect(() => _evidence(cueAgreement: -1), throwsArgumentError);
-      // A single non-composite cue can support at most one independent family.
-      expect(() => _evidence(cueAgreement: 2), throwsArgumentError);
-      expect(() => _evidence(cueAgreement: 99), throwsArgumentError);
-      final List<SuggestionCue> threeCues = <SuggestionCue>[
-        SuggestionCue.underline,
-        SuggestionCue.box,
-        SuggestionCue.whitespace,
-      ];
-      // Families may be fewer than cues, but never more.
-      expect(_evidence(cues: threeCues, cueAgreement: 1).cueAgreement, 1);
-      expect(_evidence(cues: threeCues, cueAgreement: 3).cueAgreement, 3);
-      expect(
-        () => _evidence(cues: threeCues, cueAgreement: 4),
-        throwsArgumentError,
+
+      // signature_area is explicitly OCR + geometry in §3.1, so one token can
+      // support two independent families. The contract defines no upper bound
+      // or one-token/one-family mapping, so this must be accepted.
+      final SuggestionEvidence composite = _evidence(
+        cues: <SuggestionCue>[SuggestionCue.signatureArea],
+        cueAgreement: 2,
       );
-      // signature_area is OCR + geometry, so one token can support two
-      // independent families; the bound must not assume one token == one
-      // family.
-      expect(
-        _evidence(
-          cues: <SuggestionCue>[SuggestionCue.signatureArea],
-          cueAgreement: 2,
-        ).cueAgreement,
-        2,
-      );
-      expect(
-        () => _evidence(
-          cues: <SuggestionCue>[SuggestionCue.signatureArea],
-          cueAgreement: 3,
-        ),
-        throwsArgumentError,
-      );
-      expect(
-        _evidence(
-          cues: <SuggestionCue>[
-            SuggestionCue.signatureArea,
-            SuggestionCue.underline,
-          ],
-          cueAgreement: 3,
-        ).cueAgreement,
-        3,
-      );
-      expect(
-        () => _evidence(
-          cues: <SuggestionCue>[
-            SuggestionCue.signatureArea,
-            SuggestionCue.underline,
-          ],
-          cueAgreement: 4,
-        ),
-        throwsArgumentError,
-      );
-      expect(
-        SuggestionEvidence.fromJson(<String, Object?>{
+      expect(composite.cueAgreement, 2);
+      final SuggestionEvidence compositeJson = SuggestionEvidence.fromJson(
+        <String, Object?>{
           'cues': <String>['signature_area'],
           'cueAgreement': 2,
           'skewDegrees': 0,
           'contrast': 'normal',
           'ocrUsed': true,
-        }).cueAgreement,
-        2,
+        },
       );
-      expect(
-        () => SuggestionEvidence.fromJson(<String, Object?>{
-          'cues': <String>['signature_area'],
-          'cueAgreement': 3,
-          'skewDegrees': 0,
-          'contrast': 'normal',
-          'ocrUsed': true,
-        }),
-        throwsFormatException,
-      );
-      expect(
-        () => SuggestionEvidence.fromJson(<String, Object?>{
-          'cues': <String>['underline'],
-          'cueAgreement': 99,
-          'skewDegrees': 0,
-          'contrast': 'normal',
-          'ocrUsed': true,
-        }),
-        throwsFormatException,
-      );
+      expect(compositeJson.cueAgreement, 2);
+      expect(compositeJson.cues, <SuggestionCue>{SuggestionCue.signatureArea});
+
+      // Families may be fewer than cues; no upper bound is specified.
+      final List<SuggestionCue> threeCues = <SuggestionCue>[
+        SuggestionCue.underline,
+        SuggestionCue.box,
+        SuggestionCue.whitespace,
+      ];
+      expect(_evidence(cues: threeCues, cueAgreement: 1).cueAgreement, 1);
+      expect(_evidence(cues: threeCues, cueAgreement: 3).cueAgreement, 3);
+
       expect(_evidence(skewDegrees: -10).skewDegrees, -10);
       expect(_evidence(skewDegrees: 10).skewDegrees, 10);
       expect(() => _evidence(skewDegrees: -10.01), throwsArgumentError);
