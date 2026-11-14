@@ -1,5 +1,12 @@
 # T013 Evidence Review Correction — SourceIntegrity Evidence and the ExportValidation Boundary
 
+> **Correction (2026-11-14):** The separate flattening finding was corrected
+> after this report. `ExportOptions(flatten: false)` is now rejected and
+> positive/negative regressions were added; the evidence analysis and the
+> `ExportValidation` collision options above remain unchanged. The
+> `feldexa_ports` test count in this report (104) is superseded by 105. See
+> [2026-11-14-t013-export-options-flatten-correction.md](./2026-11-14-t013-export-options-flatten-correction.md).
+
 | Field | Value |
 | --- | --- |
 | Repository | `xxammaxx/Feldexa_2.0` |

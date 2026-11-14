@@ -14,13 +14,35 @@ import 'validation.dart';
 
 /// Flattening and font options for one export (`contracts/ports.md` §2.10).
 ///
-/// Both flags default to true: the release artifact is flattened and
-/// self-contained, and bundled font glyphs are embedded.
+/// [flatten] is always true: `contracts/ports.md` §2.5 and FR-069 require the
+/// exported PDF to be flattened with no AcroForm widgets, so the option cannot
+/// disable flattening. [embedFonts] defaults to true so the artifact is
+/// self-contained.
 final class ExportOptions {
   /// Creates export options.
-  const ExportOptions({this.flatten = true, this.embedFonts = true});
+  ///
+  /// [flatten] must be true; a false value throws a safe [ArgumentError]
+  /// because it would request an unflattened artifact. [embedFonts] defaults to
+  /// true.
+  factory ExportOptions({bool flatten = true, bool embedFonts = true}) {
+    if (!flatten) {
+      throw ArgumentError(
+        'flatten must be true; the exported PDF is always flattened',
+      );
+    }
+    return ExportOptions._(flatten: flatten, embedFonts: embedFonts);
+  }
+
+  const ExportOptions._({required this.flatten, required this.embedFonts});
+
+  static const ExportOptions _defaults = ExportOptions._(
+    flatten: true,
+    embedFonts: true,
+  );
 
   /// Whether interactive form structure is flattened into page content.
+  ///
+  /// Always true; the constructor rejects false.
   final bool flatten;
 
   /// Whether bundled font glyphs are embedded in the artifact.
@@ -42,7 +64,7 @@ final class ExportRequest {
     required String documentId,
     required String revisionId,
     required ExportPlan plan,
-    ExportOptions options = const ExportOptions(),
+    ExportOptions options = ExportOptions._defaults,
   }) {
     return ExportRequest._(
       documentId: requireUuidV4(documentId, 'documentId'),

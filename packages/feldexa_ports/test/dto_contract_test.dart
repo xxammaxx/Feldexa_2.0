@@ -750,13 +750,21 @@ void main() {
   });
 
   group('Export DTOs', () {
-    test('ExportOptions defaults to flatten and embedFonts', () {
-      const ExportOptions options = ExportOptions();
+    test('ExportOptions defaults to mandated flatten and embedFonts', () {
+      final ExportOptions options = ExportOptions();
 
       expect(options.flatten, isTrue);
       expect(options.embedFonts, isTrue);
-      expect(ExportOptions().flatten, isTrue);
-      expect(ExportOptions().embedFonts, isTrue);
+      expect(ExportOptions(flatten: true).flatten, isTrue);
+      expect(ExportOptions(flatten: true).embedFonts, isTrue);
+    });
+
+    test('rejects disabling mandatory flattening', () {
+      final Object? caught = _capture(() => ExportOptions(flatten: false));
+
+      expect(caught, isA<ArgumentError>());
+      expect(caught.toString(), contains('flatten must be true'));
+      expect(caught.toString(), isNot(contains('flatten: false')));
     });
 
     test('ExportRequest carries the canonical plan and options', () {
