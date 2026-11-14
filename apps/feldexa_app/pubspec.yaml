@@ -21,6 +21,11 @@ dependencies:
   # app_localizations.dart imports it. 0.20.3 is the already-reviewed
   # transitive version, so this adds no new package to the lock graph.
   intl: 0.20.3
+  # T023: explicit platform capability interfaces and descriptor vocabulary.
+  # The app registries compose every adapter through these ports; UI and domain
+  # code never import an adapter package or a platform plugin directly.
+  feldexa_ports:
+    path: ../../packages/feldexa_ports
   # State injection / observable providers (MIT).
   flutter_riverpod: 2.6.1
   # Web-addressable navigation (BSD-3-Clause).
