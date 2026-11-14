@@ -156,17 +156,22 @@ final class ImportedSource {
 /// The result of re-validating an already stored source without user
 /// interaction (`contracts/ports.md` §2.1).
 ///
-/// [actualSha256] and [pageCount] are optional because an unreadable source may
-/// not expose either. When [pageCount] is known, every failure must reference a
-/// page inside it.
+/// `contracts/ports.md` §1 requires every result that can influence acceptance
+/// to carry `CapabilityEvidence`. A source-verification result supports the
+/// source-retention guarantees of FR-095/FR-096, so a simulated verification
+/// must never be reported as a real one. [actualSha256] and [pageCount] are
+/// optional because an unreadable source may not expose either. When
+/// [pageCount] is known, every failure must reference a page inside it.
 final class SourceIntegrity {
   /// Creates a source-integrity result.
   ///
+  /// [evidence] is required so the caller can label a simulated verification.
   /// [actualSha256], when present, must be a 64-character lowercase digest and
   /// [pageCount], when present, must be at least 1. Invalid values throw a safe
   /// [ArgumentError].
   factory SourceIntegrity({
     required bool readable,
+    required CapabilityEvidence evidence,
     String? actualSha256,
     int? pageCount,
     Iterable<PageFailure> pageFailures = const <PageFailure>[],
@@ -190,6 +195,7 @@ final class SourceIntegrity {
       actualSha256: checkedSha256,
       pageCount: checkedPageCount,
       pageFailures: failures,
+      evidence: evidence,
     );
   }
 
@@ -198,6 +204,7 @@ final class SourceIntegrity {
     required this.actualSha256,
     required this.pageCount,
     required this.pageFailures,
+    required this.evidence,
   });
 
   /// Whether the stored source could be read and authenticated.
@@ -211,6 +218,9 @@ final class SourceIntegrity {
 
   /// Failed pages; empty when every page is readable or the list is unknown.
   final List<PageFailure> pageFailures;
+
+  /// Evidence class of the adapter that produced this verification.
+  final CapabilityEvidence evidence;
 
   @override
   String toString() {

@@ -86,6 +86,7 @@ final class _FakeImport implements DocumentImportPort {
       readable: true,
       actualSha256: fixtureSha256,
       pageCount: 1,
+      evidence: fixtureAndroidEvidence(adapterId: 'android.keystore.v1'),
     );
   }
 }
@@ -526,6 +527,8 @@ void main() {
       expect(imported.pages.single.mediaBox.width, 595);
       expect(integrity.readable, isTrue);
       expect(integrity.actualSha256, fixtureSha256);
+      expect(integrity.evidence.evidenceClass, EvidenceClass.none);
+      expect(integrity.evidence.simulated, isFalse);
     });
 
     test('PageRasterPort returns canonical geometry and pixels', () async {
@@ -649,6 +652,8 @@ void main() {
 
         expect(validation.warnings, isEmpty);
         expect(result.artifact.pageCount, 1);
+        expect(result.evidence.evidenceClass, EvidenceClass.none);
+        expect(result.evidence.simulated, isFalse);
         expect(artifact, hasLength(16));
       },
     );

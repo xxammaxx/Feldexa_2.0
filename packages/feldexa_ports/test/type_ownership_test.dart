@@ -128,6 +128,12 @@ void main() {
       sourceBytes: fixtureBytes(8),
       evidence: fixtureAndroidEvidence(),
     );
+    final ports.SourceIntegrity integrity = ports.SourceIntegrity(
+      readable: true,
+      actualSha256: fixtureSha256,
+      pageCount: 1,
+      evidence: fixtureAndroidEvidence(adapterId: 'android.keystore.v1'),
+    );
     final ports.ExportRequest exportRequest = ports.ExportRequest(
       documentId: fixtureUuid(2),
       revisionId: fixtureUuid(3),
@@ -142,6 +148,7 @@ void main() {
     final DocumentMeta meta = loaded.meta;
     final RevisionContent content = loaded.content;
     final StoredTemplate storedTemplate = loadedTemplate.template;
+    final ports.CapabilityEvidence integrityEvidence = integrity.evidence;
     final ExportPlan plan = exportRequest.plan;
     final ExportArtifact artifact = exportResult.artifact;
 
@@ -149,8 +156,34 @@ void main() {
     expect(meta.title, 'Antrag');
     expect(content.pageCount, 1);
     expect(storedTemplate.version.versionNumber, 1);
+    expect(integrityEvidence.evidenceClass, ports.EvidenceClass.none);
     expect(plan.pageCount, 1);
     expect(artifact.pageCount, 1);
+  });
+
+  test('PdfExportPort.validate keeps the canonical T022 boundary', () {
+    final Directory root = _packageRoot();
+    final Directory repoRoot = root.parent.parent;
+    final String exportPlanSource = File(
+      '${repoRoot.path}/packages/feldexa_export/lib/src/model/export_plan.dart',
+    ).readAsStringSync();
+
+    // T022 owns `ExportValidation`; the export package must not import the
+    // ports evidence type. `PdfExportPort.validate` therefore keeps the
+    // explicit §2.5 signature instead of inventing a second result type.
+    expect(exportPlanSource, contains('final class ExportValidation'));
+    expect(exportPlanSource, isNot(contains('CapabilityEvidence')));
+    expect(exportPlanSource, isNot(contains('package:feldexa_ports')));
+
+    final ExportValidation validation = fixtureExportValidation();
+    final ports.ExportResult result = ports.ExportResult(
+      artifact: fixtureExportArtifact(),
+      evidence: fixtureAndroidEvidence(adapterId: 'android.pdfbox.v1'),
+    );
+
+    expect(validation.warnings, isEmpty);
+    expect(result.evidence.evidenceClass, ports.EvidenceClass.none);
+    expect(result.evidence.simulated, isFalse);
   });
 
   test('T013 files declare no canonical type owned by another task', () {

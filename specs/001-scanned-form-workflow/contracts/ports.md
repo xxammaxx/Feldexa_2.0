@@ -101,8 +101,14 @@ final class SourceIntegrity {
   final String? actualSha256;
   final int? pageCount;
   final List<PageFailure> pageFailures;
+  final CapabilityEvidence evidence;   // §1: acceptance-relevant results are labelled
 }
 ```
+
+A source-verification result can support the source-retention guarantees of
+FR-095/FR-096, so §1 requires the same evidence label as `ImportedSource`. The
+T013 correction added the field to the implementation and this snippet; no
+second evidence or export type is introduced.
 
 **Contract**
 - Cancellation throws `ImportCancelledException` and leaves no `meta`, `head`, `rev`, `src`, or list entry (FR-009).

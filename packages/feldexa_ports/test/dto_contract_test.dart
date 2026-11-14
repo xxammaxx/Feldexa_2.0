@@ -183,8 +183,12 @@ void main() {
         actualSha256: fixtureSha256,
         pageCount: 1,
         pageFailures: <PageFailure>[_failure()],
+        evidence: fixtureAndroidEvidence(adapterId: 'android.keystore.v1'),
       );
-      final SourceIntegrity unreadable = SourceIntegrity(readable: false);
+      final SourceIntegrity unreadable = SourceIntegrity(
+        readable: false,
+        evidence: fixtureAndroidEvidence(adapterId: 'android.keystore.v1'),
+      );
 
       expect(readable.readable, isTrue);
       expect(readable.actualSha256, fixtureSha256);
@@ -196,13 +200,40 @@ void main() {
       expect(unreadable.pageFailures, isEmpty);
     });
 
+    test('carries the capability evidence required by §1', () {
+      final SourceIntegrity simulated = SourceIntegrity(
+        readable: true,
+        actualSha256: fixtureSha256,
+        pageCount: 1,
+        evidence: fixtureSimulatedEvidence(adapterId: 'web.sim.import.v1'),
+      );
+      final SourceIntegrity android = SourceIntegrity(
+        readable: false,
+        evidence: fixtureAndroidEvidence(adapterId: 'android.keystore.v1'),
+      );
+
+      expect(simulated.evidence.evidenceClass, EvidenceClass.simulated);
+      expect(simulated.evidence.simulated, isTrue);
+      expect(android.evidence.evidenceClass, EvidenceClass.none);
+      expect(android.evidence.simulated, isFalse);
+      expect(simulated.toString(), isNot(contains('web.sim.import.v1')));
+    });
+
     test('rejects invalid hashes, counts, and out-of-range failures', () {
       expect(
-        () => SourceIntegrity(readable: true, actualSha256: 'not-a-hash'),
+        () => SourceIntegrity(
+          readable: true,
+          actualSha256: 'not-a-hash',
+          evidence: fixtureAndroidEvidence(),
+        ),
         throwsArgumentError,
       );
       expect(
-        () => SourceIntegrity(readable: true, pageCount: 0),
+        () => SourceIntegrity(
+          readable: true,
+          pageCount: 0,
+          evidence: fixtureAndroidEvidence(),
+        ),
         throwsArgumentError,
       );
       expect(
@@ -210,6 +241,7 @@ void main() {
           readable: true,
           pageCount: 1,
           pageFailures: <PageFailure>[_failure(pageIndex: 1)],
+          evidence: fixtureAndroidEvidence(),
         ),
         throwsArgumentError,
       );
@@ -217,6 +249,7 @@ void main() {
         () => SourceIntegrity(
           readable: true,
           pageFailures: <PageFailure>[_failure(), _failure()],
+          evidence: fixtureAndroidEvidence(),
         ),
         throwsArgumentError,
       );
