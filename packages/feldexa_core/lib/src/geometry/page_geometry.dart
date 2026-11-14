@@ -23,7 +23,16 @@ library;
 
 import 'dart:math' as math;
 
+import '../model/canonical_json.dart';
 import 'rect.dart';
+
+/// Modeled keys of a persisted page geometry; every other key is an opaque
+/// same-schema extension.
+const Set<String> _pageGeometryJsonKeys = <String>{
+  'mediaBox',
+  'cropBox',
+  'rotation',
+};
 
 /// A page's visible box, rotation, and display-space ↔ PDF-space mapping.
 ///
@@ -37,15 +46,24 @@ import 'rect.dart';
 /// `contracts/coordinates-and-geometry.md` section 2 for rotations 0, 90, 180,
 /// and 270. Both point and rectangle conversions exist, because a rectangle's
 /// width and height swap for the quarter-turn rotations.
-final class PageGeometry {
-  const PageGeometry._(this.mediaBox, this.cropBox, this.rotation);
+///
+/// A persisted page geometry retains unknown same-schema JSON fields
+/// (`data-model.md` §6) across a read/write round.
+final class PageGeometry extends JsonObject {
+  const PageGeometry._(
+    this.mediaBox,
+    this.cropBox,
+    this.rotation, {
+    super.unknownFields,
+  });
 
   /// Creates page geometry from PDF user-space boxes and a page rotation.
   ///
   /// [mediaBox] is required and must have a positive size. [cropBox] is
   /// intersected with [mediaBox]; it defaults to [mediaBox]. [rotation] must be
   /// exactly 0, 90, 180, or 270 (the PDF `/Rotate` values already normalized by
-  /// the preflight parser).
+  /// the preflight parser). [unknownFields] are opaque same-schema JSON
+  /// extensions retained on a read/write round.
   ///
   /// Throws [ArgumentError] if [rotation] is not one of the four supported
   /// values, or if the CropBox does not overlap the MediaBox in a positive-area
@@ -54,6 +72,7 @@ final class PageGeometry {
     required Rect mediaBox,
     Rect? cropBox,
     int rotation = 0,
+    Map<String, Object?> unknownFields = const <String, Object?>{},
   }) {
     _checkRotation(rotation);
     final Rect requested = cropBox ?? mediaBox;
@@ -70,8 +89,15 @@ final class PageGeometry {
     }
     return PageGeometry._(
       mediaBox,
-      Rect.fromLTWH(left, top, right - left, bottom - top),
+      Rect.fromLTWH(
+        left,
+        top,
+        right - left,
+        bottom - top,
+        unknownFields: cropBox?.unknownFields ?? const <String, Object?>{},
+      ),
       rotation,
+      unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
 
@@ -112,6 +138,7 @@ final class PageGeometry {
         mediaBox: Rect.fromJson(media),
         cropBox: cropJson == null ? null : Rect.fromJson(cropJson),
         rotation: rotation,
+        unknownFields: unknownJsonFields(json, _pageGeometryJsonKeys),
       );
     } on ArgumentError catch (error) {
       throw FormatException('Invalid PageGeometry JSON: ${error.message}');
@@ -299,11 +326,11 @@ final class PageGeometry {
   /// [displaySize] is derived and is not written; reading this JSON recomputes
   /// it. The boxes use [Rect.toJson], which quantizes only at serialization.
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'mediaBox': mediaBox.toJson(),
       'cropBox': cropBox.toJson(),
       'rotation': rotation,
-    };
+    });
   }
 
   @override
