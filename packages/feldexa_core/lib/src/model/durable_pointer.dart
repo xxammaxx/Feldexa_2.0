@@ -18,13 +18,17 @@ library;
 import 'canonical_json.dart';
 
 /// A pointer to the last revision whose read-back verification succeeded.
-final class DurablePointer {
+///
+/// Unknown same-schema JSON fields are retained across a read/write round
+/// (`data-model.md` §6).
+final class DurablePointer extends JsonObject {
   /// Creates a durable pointer.
   ///
   /// [revisionId] and an optional [parentRevisionId] must be lowercase UUIDv4
   /// values, [kind] must be `autosave`, `explicit`, or `recovery`, [sha256]
   /// must be 64 lowercase hexadecimal characters, and [committedAt] must be
-  /// UTC. [verifyReadBack] must be true.
+  /// UTC. [verifyReadBack] must be true. [unknownFields] are opaque
+  /// same-schema JSON extensions retained for a later write.
   ///
   /// Throws [ArgumentError] for every invalid value.
   factory DurablePointer({
@@ -34,6 +38,7 @@ final class DurablePointer {
     required DateTime committedAt,
     required String sha256,
     bool verifyReadBack = true,
+    Map<String, Object?> unknownFields = const <String, Object?>{},
   }) {
     if (!_uuidV4Pattern.hasMatch(revisionId)) {
       throw ArgumentError('revisionId must be a lowercase UUIDv4');
@@ -66,6 +71,7 @@ final class DurablePointer {
       kind: kind,
       committedAt: committedAt,
       sha256: sha256,
+      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
     );
   }
 
@@ -75,12 +81,14 @@ final class DurablePointer {
     required this.kind,
     required this.committedAt,
     required this.sha256,
+    required super.unknownFields,
   });
 
   /// Reads a persisted durable pointer.
   ///
   /// `verifyReadBack` is part of the contract and must be `true`; a missing or
-  /// false value is rejected rather than silently upgraded.
+  /// false value is rejected rather than silently upgraded. Unknown
+  /// same-schema keys are retained for a later write.
   ///
   /// Throws [FormatException] for missing, mistyped, or invalid fields.
   factory DurablePointer.fromJson(Map<String, Object?> json) {
@@ -116,6 +124,7 @@ final class DurablePointer {
           name: 'committedAt',
         ),
         sha256: sha256,
+        unknownFields: unknownJsonFields(json, _durablePointerJsonKeys),
       );
     } on ArgumentError catch (error) {
       throw FormatException('Invalid durable pointer JSON: ${error.message}');
@@ -156,6 +165,7 @@ final class DurablePointer {
     DateTime? committedAt,
     String? sha256,
     bool? verifyReadBack,
+    Map<String, Object?>? unknownFields,
   }) {
     return DurablePointer(
       revisionId: revisionId ?? this.revisionId,
@@ -166,22 +176,24 @@ final class DurablePointer {
       committedAt: committedAt ?? this.committedAt,
       sha256: sha256 ?? this.sha256,
       verifyReadBack: verifyReadBack ?? true,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   /// Serializes to the persisted durable-pointer object.
   ///
   /// `verifyReadBack` is always written as true because the constructor
-  /// rejects every other value.
+  /// rejects every other value. Unknown same-schema fields are emitted beneath
+  /// the modeled keys.
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'revisionId': revisionId,
       'parentRevisionId': parentRevisionId,
       'kind': kind,
       'committedAt': canonicalUtcTimestamp(committedAt),
       'sha256': sha256,
       'verifyReadBack': true,
-    };
+    });
   }
 
   @override
@@ -220,3 +232,13 @@ final RegExp _uuidV4Pattern = RegExp(
   r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
 );
 final RegExp _sha256Pattern = RegExp(r'^[0-9a-f]{64}$');
+
+/// Modeled keys of a persisted durable pointer.
+const Set<String> _durablePointerJsonKeys = <String>{
+  'revisionId',
+  'parentRevisionId',
+  'kind',
+  'committedAt',
+  'sha256',
+  'verifyReadBack',
+};

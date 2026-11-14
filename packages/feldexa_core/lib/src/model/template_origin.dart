@@ -10,19 +10,26 @@
 // to a newer template version (FR-104).
 library;
 
+import 'canonical_json.dart';
+
 /// The immutable template version pinned by a derived document
 /// (`data-model.md` §3.9).
-final class TemplateOrigin {
+///
+/// Unknown same-schema JSON fields are retained across a read/write round
+/// (`data-model.md` §6).
+final class TemplateOrigin extends JsonObject {
   /// Creates a template origin.
   ///
   /// [templateId] and [templateVersionId] must be lowercase UUIDv4 values.
-  /// [templateVersionNumber] is at least 1 and display-only.
+  /// [templateVersionNumber] is at least 1 and display-only. [unknownFields]
+  /// are opaque same-schema JSON extensions retained for a later write.
   ///
   /// Throws [ArgumentError] for every invalid value.
   factory TemplateOrigin({
     required String templateId,
     required String templateVersionId,
     required int templateVersionNumber,
+    Map<String, Object?> unknownFields = const <String, Object?>{},
   }) {
     if (!_uuidV4Pattern.hasMatch(templateId)) {
       throw ArgumentError('templateId must be a lowercase UUIDv4');
@@ -37,6 +44,7 @@ final class TemplateOrigin {
       templateId: templateId,
       templateVersionId: templateVersionId,
       templateVersionNumber: templateVersionNumber,
+      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
     );
   }
 
@@ -44,9 +52,12 @@ final class TemplateOrigin {
     required this.templateId,
     required this.templateVersionId,
     required this.templateVersionNumber,
+    required super.unknownFields,
   });
 
   /// Reads a persisted template origin.
+  ///
+  /// Unknown same-schema keys are retained for a later write.
   ///
   /// Throws [FormatException] for missing, mistyped, or invalid fields.
   factory TemplateOrigin.fromJson(Map<String, Object?> json) {
@@ -71,6 +82,7 @@ final class TemplateOrigin {
         templateId: templateId,
         templateVersionId: templateVersionId,
         templateVersionNumber: templateVersionNumber,
+        unknownFields: unknownJsonFields(json, _templateOriginJsonKeys),
       );
     } on ArgumentError catch (error) {
       throw FormatException('Invalid template origin JSON: ${error.message}');
@@ -94,22 +106,24 @@ final class TemplateOrigin {
     String? templateId,
     String? templateVersionId,
     int? templateVersionNumber,
+    Map<String, Object?>? unknownFields,
   }) {
     return TemplateOrigin(
       templateId: templateId ?? this.templateId,
       templateVersionId: templateVersionId ?? this.templateVersionId,
       templateVersionNumber:
           templateVersionNumber ?? this.templateVersionNumber,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   /// Serializes to the persisted template-origin object.
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'templateId': templateId,
       'templateVersionId': templateVersionId,
       'templateVersionNumber': templateVersionNumber,
-    };
+    });
   }
 
   @override
@@ -134,3 +148,10 @@ final class TemplateOrigin {
 final RegExp _uuidV4Pattern = RegExp(
   r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
 );
+
+/// Modeled keys of a persisted template origin.
+const Set<String> _templateOriginJsonKeys = <String>{
+  'templateId',
+  'templateVersionId',
+  'templateVersionNumber',
+};

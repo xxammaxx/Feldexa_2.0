@@ -177,15 +177,18 @@ enum ReviewOrderMode {
 ///
 /// A `SourceFileRef` is embedded in `Document` and `Template` and is never
 /// mutated in place (aggregate invariant 1). A new value object may replace it
-/// to record an integrity change; the source bytes are never modified.
-final class SourceFileRef {
+/// to record an integrity change; the source bytes are never modified. Unknown
+/// same-schema JSON fields are retained across a read/write round
+/// (`data-model.md` §6).
+final class SourceFileRef extends JsonObject {
   /// Creates a source reference.
   ///
   /// [id] must be a lowercase UUIDv4, [sha256] 64 lowercase hexadecimal
   /// characters, [sizeBytes] in `1 … 83,886,080`, and [pageCount] in
   /// `1 … 100`. [originalName] is display-only, may be null, is trimmed, and is
   /// at most 255 characters without control characters. [importedAt] must be
-  /// UTC.
+  /// UTC. [unknownFields] are opaque same-schema JSON extensions retained for
+  /// a later write.
   ///
   /// Throws [ArgumentError] for every invalid value. The error never echoes
   /// the original filename.
@@ -197,6 +200,7 @@ final class SourceFileRef {
     String? originalName,
     required DateTime importedAt,
     SourceIntegrityState integrity = SourceIntegrityState.verified,
+    Map<String, Object?> unknownFields = const <String, Object?>{},
   }) {
     final String checkedId = _validateUuidV4(id, 'id');
     final String checkedSha256 = _validateSha256(sha256, 'sha256');
@@ -218,6 +222,7 @@ final class SourceFileRef {
       originalName: _normalizeOriginalName(originalName),
       importedAt: _checkUtc(importedAt, 'importedAt'),
       integrity: integrity,
+      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
     );
   }
 
@@ -229,9 +234,12 @@ final class SourceFileRef {
     required this.originalName,
     required this.importedAt,
     required this.integrity,
+    required super.unknownFields,
   });
 
   /// Reads a persisted source reference.
+  ///
+  /// Unknown same-schema keys are retained for a later write.
   ///
   /// Throws [FormatException] for missing, mistyped, or invalid fields.
   factory SourceFileRef.fromJson(Map<String, Object?> json) {
@@ -253,6 +261,7 @@ final class SourceFileRef {
           name: 'importedAt',
         ),
         integrity: SourceIntegrityState.fromWire(json['integrity']),
+        unknownFields: unknownJsonFields(json, _sourceFileRefJsonKeys),
       );
     } on ArgumentError catch (error) {
       throw FormatException(
@@ -296,6 +305,7 @@ final class SourceFileRef {
     Object? originalName = _unset,
     DateTime? importedAt,
     SourceIntegrityState? integrity,
+    Map<String, Object?>? unknownFields,
   }) {
     return SourceFileRef(
       id: id ?? this.id,
@@ -307,12 +317,15 @@ final class SourceFileRef {
           : originalName as String?,
       importedAt: importedAt ?? this.importedAt,
       integrity: integrity ?? this.integrity,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   /// Serializes to the persisted source reference.
+  ///
+  /// Unknown same-schema fields are emitted beneath the modeled keys.
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'id': id,
       'sha256': sha256,
       'sizeBytes': sizeBytes,
@@ -320,7 +333,7 @@ final class SourceFileRef {
       'originalName': originalName,
       'importedAt': canonicalUtcTimestamp(importedAt),
       'integrity': integrity.wireName,
-    };
+    });
   }
 
   @override
@@ -356,13 +369,18 @@ final class SourceFileRef {
 }
 
 /// One immutable page of the document (`data-model.md` §3.3).
-final class Page {
+///
+/// Unknown same-schema JSON fields are retained across a read/write round
+/// (`data-model.md` §6). The derived [renderCacheKey] is intentionally not one
+/// of them: it is never persisted.
+final class Page extends JsonObject {
   /// Creates a page.
   ///
   /// [index] is zero-based and non-negative. A [PageFailure] is required
   /// exactly when [analysis] is [AnalysisState.failed], and its page index must
   /// match [index]. [renderCacheKey] is a derived in-memory cache key: it is
-  /// never persisted and does not participate in equality.
+  /// never persisted and does not participate in equality. [unknownFields] are
+  /// opaque same-schema JSON extensions retained for a later write.
   ///
   /// Throws [ArgumentError] for every invalid value.
   factory Page({
@@ -372,6 +390,7 @@ final class Page {
     PageFailure? failure,
     bool unreadable = false,
     String? renderCacheKey,
+    Map<String, Object?> unknownFields = const <String, Object?>{},
   }) {
     if (index < 0) {
       throw ArgumentError('index must be at least 0');
@@ -395,6 +414,7 @@ final class Page {
       failure: failure,
       unreadable: unreadable,
       renderCacheKey: renderCacheKey,
+      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
     );
   }
 
@@ -405,13 +425,16 @@ final class Page {
     required this.failure,
     required this.unreadable,
     required this.renderCacheKey,
+    required super.unknownFields,
   });
 
   /// Reads a persisted page.
   ///
-  /// `renderCacheKey` is derived and is not read; a persisted value would be
-  /// ignored. Throws [FormatException] for missing, mistyped, or invalid
-  /// fields.
+  /// `renderCacheKey` is derived and is therefore consumed but not retained; a
+  /// persisted value is dropped rather than treated as an extension. Unknown
+  /// same-schema keys are retained for a later write.
+  ///
+  /// Throws [FormatException] for missing, mistyped, or invalid fields.
   factory Page.fromJson(Map<String, Object?> json) {
     final Object? rawFailure = json['failure'];
     Map<String, Object?>? failureJson;
@@ -430,6 +453,7 @@ final class Page {
         analysis: AnalysisState.fromWire(json['analysis']),
         failure: failureJson == null ? null : PageFailure.fromJson(failureJson),
         unreadable: _readBool(json, 'unreadable'),
+        unknownFields: unknownJsonFields(json, _pageJsonKeys),
       );
     } on ArgumentError catch (error) {
       throw FormatException('Invalid page JSON: ${error.message}');
@@ -470,6 +494,7 @@ final class Page {
     Object? failure = _unset,
     bool? unreadable,
     Object? renderCacheKey = _unset,
+    Map<String, Object?>? unknownFields,
   }) {
     return Page(
       index: index ?? this.index,
@@ -482,20 +507,22 @@ final class Page {
       renderCacheKey: identical(renderCacheKey, _unset)
           ? this.renderCacheKey
           : renderCacheKey as String?,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   /// Serializes the persisted page fields.
   ///
-  /// [renderCacheKey] is deliberately omitted.
+  /// [renderCacheKey] is deliberately omitted. Unknown same-schema fields are
+  /// emitted beneath the modeled keys.
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'index': index,
       'geometry': geometry.toJson(),
       'analysis': analysis.wireName,
       'failure': failure?.toJson(),
       'unreadable': unreadable,
-    };
+    });
   }
 
   @override
@@ -521,19 +548,25 @@ final class Page {
 }
 
 /// Non-content document view preferences (`data-model.md` §3.1).
-final class DocumentPreferences {
+///
+/// Unknown same-schema JSON fields are retained across a read/write round
+/// (`data-model.md` §6).
+final class DocumentPreferences extends JsonObject {
   /// Creates document preferences.
   ///
   /// [zoom] is an optional ratio of `fitWidthScale`
   /// (`contracts/coordinates-and-geometry.md` §3) on the closed interval
   /// `0.5 … 8`; null means no stored preference. [currentPage] is
   /// non-negative; the document aggregate validates it against the page count.
+  /// [unknownFields] are opaque same-schema JSON extensions retained for a
+  /// later write.
   ///
   /// Throws [ArgumentError] for every invalid value.
   factory DocumentPreferences({
     double? zoom,
     int currentPage = 0,
     ReviewOrderMode reviewOrderMode = ReviewOrderMode.documentOrder,
+    Map<String, Object?> unknownFields = const <String, Object?>{},
   }) {
     if (zoom != null && (!zoom.isFinite || zoom < 0.5 || zoom > 8)) {
       throw ArgumentError('zoom must be finite and between 0.5 and 8');
@@ -545,6 +578,7 @@ final class DocumentPreferences {
       zoom: zoom,
       currentPage: currentPage,
       reviewOrderMode: reviewOrderMode,
+      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
     );
   }
 
@@ -552,12 +586,14 @@ final class DocumentPreferences {
     required this.zoom,
     required this.currentPage,
     required this.reviewOrderMode,
+    required super.unknownFields,
   });
 
   /// Reads persisted preferences.
   ///
-  /// `zoom` is optional and may be null. Throws [FormatException] for missing,
-  /// mistyped, or invalid fields.
+  /// `zoom` is optional and may be null. Unknown same-schema keys are retained
+  /// for a later write. Throws [FormatException] for missing, mistyped, or
+  /// invalid fields.
   factory DocumentPreferences.fromJson(Map<String, Object?> json) {
     final Object? rawZoom = json['zoom'];
     double? zoom;
@@ -574,6 +610,7 @@ final class DocumentPreferences {
         zoom: zoom,
         currentPage: _readInt(json, 'currentPage'),
         reviewOrderMode: ReviewOrderMode.fromWire(json['reviewOrderMode']),
+        unknownFields: unknownJsonFields(json, _documentPreferencesJsonKeys),
       );
     } on ArgumentError catch (error) {
       throw FormatException(
@@ -600,21 +637,23 @@ final class DocumentPreferences {
     Object? zoom = _unset,
     int? currentPage,
     ReviewOrderMode? reviewOrderMode,
+    Map<String, Object?>? unknownFields,
   }) {
     return DocumentPreferences(
       zoom: identical(zoom, _unset) ? this.zoom : zoom as double?,
       currentPage: currentPage ?? this.currentPage,
       reviewOrderMode: reviewOrderMode ?? this.reviewOrderMode,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   /// Serializes to the persisted preferences object.
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'zoom': zoom,
       'currentPage': currentPage,
       'reviewOrderMode': reviewOrderMode.wireName,
-    };
+    });
   }
 
   @override
@@ -639,8 +678,9 @@ final class DocumentPreferences {
 ///
 /// It contains list metadata only: no page content, values, or signatures. This
 /// is the canonical type the start list projects from; it is not a second
-/// document record.
-final class DocumentMeta {
+/// document record. Unknown same-schema JSON fields are retained across a
+/// read/write round (`data-model.md` §6).
+final class DocumentMeta extends JsonObject {
   /// Creates persisted document metadata.
   ///
   /// [id] must be a lowercase UUIDv4 and [title] is trimmed to 1–200
@@ -649,7 +689,8 @@ final class DocumentMeta {
   /// independently because a recovered or partially written envelope may
   /// legitimately expose only one of them. A readable envelope must not carry
   /// an [unreadableReasonCode]; an unreadable envelope may omit it when the
-  /// failure has no specific catalog key.
+  /// failure has no specific catalog key. [unknownFields] are opaque
+  /// same-schema JSON extensions retained for a later write.
   ///
   /// Throws [ArgumentError] for every invalid value.
   factory DocumentMeta({
@@ -662,6 +703,7 @@ final class DocumentMeta {
     DateTime? lastDurableAt,
     bool readable = true,
     String? unreadableReasonCode,
+    Map<String, Object?> unknownFields = const <String, Object?>{},
   }) {
     final String checkedId = _validateUuidV4(id, 'id');
     final String checkedTitle = _normalizeTitle(title);
@@ -691,6 +733,7 @@ final class DocumentMeta {
       lastDurableAt: lastDurableAt,
       readable: readable,
       unreadableReasonCode: unreadableReasonCode,
+      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
     );
   }
 
@@ -704,12 +747,14 @@ final class DocumentMeta {
     required this.lastDurableAt,
     required this.readable,
     required this.unreadableReasonCode,
+    required super.unknownFields,
   });
 
   /// Reads a persisted metadata envelope.
   ///
-  /// The `kind` discriminator must be `document`. Throws [FormatException] for
-  /// missing, mistyped, or invalid fields.
+  /// The `kind` discriminator must be `document`. Unknown same-schema keys are
+  /// retained for a later write. Throws [FormatException] for missing,
+  /// mistyped, or invalid fields.
   factory DocumentMeta.fromJson(Map<String, Object?> json) {
     if (json['kind'] != 'document') {
       throw const FormatException(
@@ -753,6 +798,7 @@ final class DocumentMeta {
         lastDurableAt: lastDurableAt,
         readable: _readBool(json, 'readable'),
         unreadableReasonCode: unreadableReasonCode as String?,
+        unknownFields: unknownJsonFields(json, _documentMetaJsonKeys),
       );
     } on ArgumentError catch (error) {
       throw FormatException(
@@ -806,6 +852,7 @@ final class DocumentMeta {
     Object? lastDurableAt = _unset,
     bool? readable,
     Object? unreadableReasonCode = _unset,
+    Map<String, Object?>? unknownFields,
   }) {
     return DocumentMeta(
       id: id ?? this.id,
@@ -823,12 +870,15 @@ final class DocumentMeta {
       unreadableReasonCode: identical(unreadableReasonCode, _unset)
           ? this.unreadableReasonCode
           : unreadableReasonCode as String?,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   /// Serializes the persisted metadata envelope.
+  ///
+  /// Unknown same-schema fields are emitted beneath the modeled keys.
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'id': id,
       'kind': kind,
       'title': title,
@@ -841,7 +891,7 @@ final class DocumentMeta {
           : canonicalUtcTimestamp(lastDurableAt!),
       'readable': readable,
       'unreadableReasonCode': unreadableReasonCode,
-    };
+    });
   }
 
   @override
@@ -885,20 +935,23 @@ final class DocumentMeta {
 /// order, values, signatures, verification, the optional template pin, the
 /// durable head, and the view preferences. It never mutates its
 /// [SourceFileRef] and it never edits page content; the list read models are
-/// derived elsewhere from [DocumentMeta].
-final class Document {
+/// derived elsewhere from [DocumentMeta]. Unknown same-schema JSON fields are
+/// retained across a read/write round (`data-model.md` §6), at the root and in
+/// every nested JSON object.
+final class Document extends JsonObject {
   /// Creates a validated document aggregate.
   ///
   /// [schemaVersion] must be [documentSchemaVersion]. [id] must be a lowercase
   /// UUIDv4 and [title] is trimmed to 1–200 characters. [createdAt] and
-  /// [updatedAt] must be UTC and [updatedAt] must not precede [createdAt].
-  /// Pages must be exactly `0 … source.pageCount - 1` in order. Suggestions
-  /// must reference existing pages, fit their display box, have unique ids, and
-  /// carry symmetric same-page conflicts. Fields must have unique ids, fit
-  /// their page, and be a permutation of [fieldOrder] whose `order` equals the
-  /// field's position. Values exist only for fields and must be compatible or
-  /// flagged `incompatible_content`; signatures exist only for signature
-  /// fields on the same page; verification entries exist only for fields.
+  /// [updatedAt] must be UTC. Pages must be exactly
+  /// `0 … source.pageCount - 1` in order. Suggestions must reference existing
+  /// pages, fit their display box, have unique ids, and carry symmetric
+  /// same-page conflicts. Fields must have unique ids, fit their page, and be
+  /// a permutation of [fieldOrder] whose `order` equals the field's position.
+  /// Values exist only for fields and must be compatible or flagged
+  /// `incompatible_content`; signatures exist only for signature fields on the
+  /// same page; verification entries exist only for fields. [unknownFields]
+  /// are opaque same-schema JSON extensions retained for a later write.
   ///
   /// [status] is transient. When omitted, an unreadable source yields
   /// [DocumentStatus.unreadable] and every other new aggregate yields
@@ -927,6 +980,7 @@ final class Document {
     DocumentPreferences? preferences,
     DocumentStatus? status,
     int schemaVersion = documentSchemaVersion,
+    Map<String, Object?> unknownFields = const <String, Object?>{},
   }) {
     if (schemaVersion != documentSchemaVersion) {
       throw ArgumentError('schemaVersion must be $documentSchemaVersion');
@@ -1134,6 +1188,7 @@ final class Document {
       lastDurable: lastDurable,
       preferences: checkedPreferences,
       status: resolvedStatus,
+      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
     );
   }
 
@@ -1155,6 +1210,7 @@ final class Document {
     required this.lastDurable,
     required this.preferences,
     required this.status,
+    required super.unknownFields,
   });
 
   /// Reads a persisted document aggregate.
@@ -1245,6 +1301,7 @@ final class Document {
             (source.integrity == SourceIntegrityState.unreadable
                 ? DocumentStatus.unreadable
                 : DocumentStatus.saved),
+        unknownFields: unknownJsonFields(json, _documentJsonKeys),
       );
     } on ArgumentError catch (error) {
       throw FormatException('Invalid document JSON: ${error.message}');
@@ -1310,7 +1367,8 @@ final class Document {
   /// The caller must supply a consistent combination (for example, fields and
   /// fieldOrder together) because the public constructor revalidates every
   /// invariant. [templateOrigin] can be cleared by passing `null`; omitting it
-  /// keeps the current value.
+  /// keeps the current value. Unknown same-schema fields are retained unless
+  /// [unknownFields] is supplied.
   Document copyWith({
     String? id,
     String? title,
@@ -1329,6 +1387,7 @@ final class Document {
     DocumentPreferences? preferences,
     DocumentStatus? status,
     int? schemaVersion,
+    Map<String, Object?>? unknownFields,
   }) {
     return Document(
       schemaVersion: schemaVersion ?? this.schemaVersion,
@@ -1350,15 +1409,18 @@ final class Document {
       lastDurable: lastDurable ?? this.lastDurable,
       preferences: preferences ?? this.preferences,
       status: status ?? this.status,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   /// Serializes the persisted aggregate fields.
   ///
-  /// The transient [status] is deliberately omitted. Use
-  /// [canonicalJsonEncode] on this map for the canonical byte form.
+  /// The transient [status] is deliberately omitted. Unknown same-schema
+  /// fields are emitted beneath the modeled keys at the root; nested objects
+  /// emit their own retained fields. Use [canonicalJsonEncode] on this map for
+  /// the canonical byte form.
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'schemaVersion': schemaVersion,
       'id': id,
       'kind': kind,
@@ -1393,7 +1455,7 @@ final class Document {
       'templateOrigin': templateOrigin?.toJson(),
       'lastDurable': lastDurable.toJson(),
       'preferences': preferences.toJson(),
-    };
+    });
   }
 
   @override
@@ -1660,3 +1722,73 @@ List<String> _readStringList(Map<String, Object?> json, String key) {
   }
   return result;
 }
+
+/// Modeled keys of a persisted source reference.
+const Set<String> _sourceFileRefJsonKeys = <String>{
+  'id',
+  'sha256',
+  'sizeBytes',
+  'pageCount',
+  'originalName',
+  'importedAt',
+  'integrity',
+};
+
+/// Modeled keys of a persisted page.
+///
+/// `renderCacheKey` is a known but deliberately non-persisted derived value; it
+/// is consumed and dropped rather than retained as an extension.
+const Set<String> _pageJsonKeys = <String>{
+  'index',
+  'geometry',
+  'analysis',
+  'failure',
+  'unreadable',
+  'renderCacheKey',
+};
+
+/// Modeled keys of persisted document preferences.
+const Set<String> _documentPreferencesJsonKeys = <String>{
+  'zoom',
+  'currentPage',
+  'reviewOrderMode',
+};
+
+/// Modeled keys of the persisted metadata envelope.
+const Set<String> _documentMetaJsonKeys = <String>{
+  'id',
+  'kind',
+  'title',
+  'createdAt',
+  'updatedAt',
+  'source',
+  'latestRevisionId',
+  'lastDurableAt',
+  'readable',
+  'unreadableReasonCode',
+};
+
+/// Modeled keys of the persisted document aggregate.
+///
+/// `status` is a known but deliberately non-persisted transient value; it is
+/// consumed and dropped rather than retained as an extension.
+const Set<String> _documentJsonKeys = <String>{
+  'schemaVersion',
+  'id',
+  'kind',
+  'title',
+  'createdAt',
+  'updatedAt',
+  'source',
+  'pages',
+  'suggestions',
+  'fields',
+  'fieldOrder',
+  'values',
+  'signatures',
+  'verification',
+  'templateOrigin',
+  'lastDurable',
+  'preferences',
+  'status',
+};

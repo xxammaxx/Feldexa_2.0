@@ -25,6 +25,7 @@
 library;
 
 import '../geometry/rect.dart';
+import 'canonical_json.dart';
 
 /// A field's content type (`data-model.md` §2.3).
 ///
@@ -558,9 +559,13 @@ enum FieldVerificationState {
 /// contract defines no upper bound or family partition. [skewDegrees] is the
 /// estimated page skew in degrees on the closed interval `-10 … 10`.
 /// [contrast] is the contract's `normal | low` page contrast, and [ocrUsed] is
-/// false when OCR failed and geometry-only detection ran.
-final class SuggestionEvidence {
+/// false when OCR failed and geometry-only detection ran. Unknown same-schema
+/// JSON fields are retained across a read/write round (`data-model.md` §6).
+final class SuggestionEvidence extends JsonObject {
   /// Creates evidence for a candidate.
+  ///
+  /// [unknownFields] are opaque same-schema JSON extensions retained for a
+  /// later write.
   ///
   /// Throws [ArgumentError] when [cues] is empty, contains duplicates, or has
   /// no geometric cue, when [ocrUsed] is false and a cue depends on OCR, when
@@ -572,6 +577,7 @@ final class SuggestionEvidence {
     double skewDegrees = 0,
     EvidenceContrast contrast = EvidenceContrast.normal,
     bool ocrUsed = true,
+    Map<String, Object?> unknownFields = const <String, Object?>{},
   }) {
     final List<SuggestionCue> cueList = cues.toList(growable: false);
     final Set<SuggestionCue> cueSet = cueList.toSet();
@@ -621,6 +627,7 @@ final class SuggestionEvidence {
       skewDegrees: skewDegrees,
       contrast: contrast,
       ocrUsed: ocrUsed,
+      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
     );
   }
 
@@ -630,6 +637,7 @@ final class SuggestionEvidence {
     required this.skewDegrees,
     required this.contrast,
     required this.ocrUsed,
+    required super.unknownFields,
   });
 
   /// Decodes the recognition-output §2 evidence object.
@@ -675,6 +683,7 @@ final class SuggestionEvidence {
         skewDegrees: _readDouble(json, 'skewDegrees'),
         contrast: contrast,
         ocrUsed: _readBool(json, 'ocrUsed'),
+        unknownFields: unknownJsonFields(json, _suggestionEvidenceJsonKeys),
       );
     } on ArgumentError catch (error) {
       throw FormatException(
@@ -713,13 +722,13 @@ final class SuggestionEvidence {
 
   /// Serializes to the persisted evidence object.
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'cues': <String>[for (final SuggestionCue cue in cues) cue.wireName],
       'cueAgreement': cueAgreement,
       'skewDegrees': skewDegrees,
       'contrast': contrast.wireName,
       'ocrUsed': ocrUsed,
-    };
+    });
   }
 
   @override
@@ -761,8 +770,10 @@ final class SuggestionEvidence {
 /// suggestion fields: `confidence`, the derived `uncertainty`, the contract cue
 /// vocabulary, and `evidence.contrast` (`normal | low`). Envelope-only fields
 /// (`schemaVersion`, `analysisRunId`, `timings`, `evidenceClass`) belong to
-/// T057's `FieldSuggestionSet` and are not part of this model.
-final class FieldSuggestion {
+/// T057's `FieldSuggestionSet` and are not part of this model. Unknown
+/// same-schema JSON fields are retained across a read/write round
+/// (`data-model.md` §6).
+final class FieldSuggestion extends JsonObject {
   /// Creates a suggestion.
   ///
   /// [id] must use the deterministic `s_p<pageIndex>_<ordinal>` form with
@@ -779,7 +790,8 @@ final class FieldSuggestion {
   /// [FieldType.signature] suggestion requires the
   /// [SuggestionCue.signatureArea] cue. [conflictsWith] must reference other
   /// canonical same-page suggestion ids with positive ordinals, contain no
-  /// duplicates, and never reference [id].
+  /// duplicates, and never reference [id]. [unknownFields] are opaque
+  /// same-schema JSON extensions retained for a later write.
   ///
   /// Throws [ArgumentError] for every invalid value. The error never echoes a
   /// label or any other document content.
@@ -793,6 +805,7 @@ final class FieldSuggestion {
     required SuggestionEvidence evidence,
     Iterable<String> conflictsWith = const <String>[],
     SuggestionResolution resolution = SuggestionResolution.unresolved,
+    Map<String, Object?> unknownFields = const <String, Object?>{},
   }) {
     final int checkedPage = _checkPageIndex(pageIndex);
     final String checkedId = _validateSuggestionId(id, checkedPage);
@@ -825,6 +838,7 @@ final class FieldSuggestion {
       evidence: evidence,
       conflictsWith: checkedConflicts,
       resolution: resolution,
+      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
     );
   }
 
@@ -838,6 +852,7 @@ final class FieldSuggestion {
     required this.evidence,
     required this.conflictsWith,
     required this.resolution,
+    required super.unknownFields,
   });
 
   /// Decodes the recognition-output §2 suggestion object.
@@ -877,6 +892,7 @@ final class FieldSuggestion {
             : SuggestionEvidence.fromJson(_readObject(json, 'evidence')),
         conflictsWith: _readStringList(json, 'conflictsWith'),
         resolution: SuggestionResolution.fromWire(json['resolution']),
+        unknownFields: unknownJsonFields(json, _fieldSuggestionJsonKeys),
       );
       // `uncertainty` is derived from confidence. The contract requires a
       // numeric key; only the legacy decoder may omit it. An explicit null is
@@ -964,7 +980,13 @@ final class FieldSuggestion {
         'rect width and height must remain positive after 1/8 pt rounding',
       );
     }
-    return Rect.fromLTWH(left, top, width, height);
+    return Rect.fromLTWH(
+      left,
+      top,
+      width,
+      height,
+      unknownFields: rect.unknownFields,
+    );
   }
 
   /// The deterministic suggestion id for [pageIndex] and a one-based
@@ -1012,6 +1034,7 @@ final class FieldSuggestion {
     SuggestionEvidence? evidence,
     Iterable<String>? conflictsWith,
     SuggestionResolution? resolution,
+    Map<String, Object?>? unknownFields,
   }) {
     return FieldSuggestion(
       id: id,
@@ -1025,16 +1048,18 @@ final class FieldSuggestion {
       evidence: evidence ?? this.evidence,
       conflictsWith: conflictsWith ?? this.conflictsWith,
       resolution: resolution ?? this.resolution,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   /// Serializes to the recognition-output §2 suggestion object.
   ///
   /// `uncertainty` is always written as the two-decimal derived value, and
-  /// `evidence.contrast` is `normal | low`. Key ordering is not canonical
-  /// here; the T017 canonical JSON encoder owns that.
+  /// `evidence.contrast` is `normal | low`. Unknown same-schema fields are
+  /// emitted beneath the modeled keys. Key ordering is not canonical here; the
+  /// T017 canonical JSON encoder owns that.
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'id': id,
       'pageIndex': pageIndex,
       'rect': rect.toJson(),
@@ -1045,7 +1070,7 @@ final class FieldSuggestion {
       'evidence': evidence.toJson(),
       'conflictsWith': List<String>.unmodifiable(conflictsWith),
       'resolution': resolution.wireName,
-    };
+    });
   }
 
   @override
@@ -1090,8 +1115,9 @@ final class FieldSuggestion {
 ///
 /// Only confirmed fields contribute values and export content. A machine field
 /// keeps the suggestion id and confidence that produced it; the other
-/// provenances must not carry them.
-final class ConfirmedField {
+/// provenances must not carry them. Unknown same-schema JSON fields are
+/// retained across a read/write round (`data-model.md` §6).
+final class ConfirmedField extends JsonObject {
   /// Creates a confirmed field.
   ///
   /// [id] must be a lowercase UUIDv4. A [Provenance.template] field may keep a
@@ -1101,7 +1127,8 @@ final class ConfirmedField {
   /// [order] is at least 0. [createdAt] and [updatedAt] must be UTC.
   /// [sourceSuggestionId] and [suggestionConfidence] are required exactly when
   /// [provenance] is [Provenance.machine], and the suggestion must be on the
-  /// same page.
+  /// same page. [unknownFields] are opaque same-schema JSON extensions
+  /// retained for a later write.
   ///
   /// Throws [ArgumentError] for every invalid value. The error never echoes a
   /// label.
@@ -1118,6 +1145,7 @@ final class ConfirmedField {
     required DateTime createdAt,
     required DateTime updatedAt,
     FieldValidation validation = FieldValidation.ok,
+    Map<String, Object?> unknownFields = const <String, Object?>{},
   }) {
     final int checkedPage = _checkPageIndex(pageIndex);
     final String checkedId = _validateConfirmedFieldId(id, provenance);
@@ -1165,6 +1193,7 @@ final class ConfirmedField {
       createdAt: _checkUtc(createdAt, 'createdAt'),
       updatedAt: _checkUtc(updatedAt, 'updatedAt'),
       validation: validation,
+      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
     );
   }
 
@@ -1181,11 +1210,13 @@ final class ConfirmedField {
     required this.createdAt,
     required this.updatedAt,
     required this.validation,
+    required super.unknownFields,
   });
 
   /// Reads a persisted confirmed field.
   ///
-  /// Throws [FormatException] for missing, mistyped, or invalid fields.
+  /// Unknown same-schema keys are retained for a later write. Throws
+  /// [FormatException] for missing, mistyped, or invalid fields.
   factory ConfirmedField.fromJson(Map<String, Object?> json) {
     try {
       return ConfirmedField(
@@ -1201,6 +1232,7 @@ final class ConfirmedField {
         createdAt: _readTimestamp(json, 'createdAt'),
         updatedAt: _readTimestamp(json, 'updatedAt'),
         validation: FieldValidation.fromJson(_readObject(json, 'validation')),
+        unknownFields: unknownJsonFields(json, _confirmedFieldJsonKeys),
       );
     } on ArgumentError catch (error) {
       throw FormatException('Invalid confirmed field JSON: ${error.message}');
@@ -1280,6 +1312,7 @@ final class ConfirmedField {
     DateTime? createdAt,
     DateTime? updatedAt,
     FieldValidation? validation,
+    Map<String, Object?>? unknownFields,
   }) {
     return ConfirmedField(
       id: id,
@@ -1298,12 +1331,13 @@ final class ConfirmedField {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       validation: validation ?? this.validation,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   /// Serializes to the persisted confirmed-field object.
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'id': id,
       'pageIndex': pageIndex,
       'rect': rect.toJson(),
@@ -1316,7 +1350,7 @@ final class ConfirmedField {
       'createdAt': _serializeTimestamp(createdAt),
       'updatedAt': _serializeTimestamp(updatedAt),
       'validation': validation.toJson(),
-    };
+    });
   }
 
   @override
@@ -1366,14 +1400,16 @@ final class ConfirmedField {
 ///
 /// A signature belongs only to the current document (FR-036), is not reusable,
 /// and template creation excludes it (FR-057). Deleting the field deletes its
-/// asset after the next verified commit.
-final class SignatureMark {
+/// asset after the next verified commit. Unknown same-schema JSON fields are
+/// retained across a read/write round (`data-model.md` §6).
+final class SignatureMark extends JsonObject {
   /// Creates a signature mark.
   ///
   /// [assetId] must be a lowercase UUIDv4 and [fieldId] a valid field id.
   /// [widthPx] and [heightPx] must be positive and at most 1024 on the long
   /// edge. [capturedAt] must be UTC. [sha256] is the 64-lowercase-hex hash of
-  /// the plaintext PNG.
+  /// the plaintext PNG. [unknownFields] are opaque same-schema JSON extensions
+  /// retained for a later write.
   ///
   /// Throws [ArgumentError] for every invalid value. The error never echoes
   /// signature bytes, which are never held by this value object.
@@ -1386,6 +1422,7 @@ final class SignatureMark {
     required int heightPx,
     required DateTime capturedAt,
     required String sha256,
+    Map<String, Object?> unknownFields = const <String, Object?>{},
   }) {
     if (widthPx < 1 || heightPx < 1) {
       throw ArgumentError('widthPx and heightPx must be greater than 0');
@@ -1402,6 +1439,7 @@ final class SignatureMark {
       heightPx: heightPx,
       capturedAt: _checkUtc(capturedAt, 'capturedAt'),
       sha256: _validateSha256(sha256, 'sha256'),
+      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
     );
   }
 
@@ -1414,11 +1452,13 @@ final class SignatureMark {
     required this.heightPx,
     required this.capturedAt,
     required this.sha256,
+    required super.unknownFields,
   });
 
   /// Reads a persisted signature mark.
   ///
-  /// Throws [FormatException] for missing, mistyped, or invalid fields.
+  /// Unknown same-schema keys are retained for a later write. Throws
+  /// [FormatException] for missing, mistyped, or invalid fields.
   factory SignatureMark.fromJson(Map<String, Object?> json) {
     try {
       return SignatureMark(
@@ -1430,6 +1470,7 @@ final class SignatureMark {
         heightPx: _readInt(json, 'heightPx'),
         capturedAt: _readTimestamp(json, 'capturedAt'),
         sha256: _readString(json, 'sha256'),
+        unknownFields: unknownJsonFields(json, _signatureMarkJsonKeys),
       );
     } on ArgumentError catch (error) {
       throw FormatException('Invalid signature mark JSON: ${error.message}');
@@ -1478,6 +1519,7 @@ final class SignatureMark {
     int? heightPx,
     DateTime? capturedAt,
     String? sha256,
+    Map<String, Object?>? unknownFields,
   }) {
     return SignatureMark(
       assetId: assetId ?? this.assetId,
@@ -1488,12 +1530,13 @@ final class SignatureMark {
       heightPx: heightPx ?? this.heightPx,
       capturedAt: capturedAt ?? this.capturedAt,
       sha256: sha256 ?? this.sha256,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   /// Serializes to the persisted signature object.
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'assetId': assetId,
       'fieldId': fieldId,
       'pageIndex': pageIndex,
@@ -1502,7 +1545,7 @@ final class SignatureMark {
       'heightPx': heightPx,
       'capturedAt': _serializeTimestamp(capturedAt),
       'sha256': sha256,
-    };
+    });
   }
 
   @override
@@ -1540,19 +1583,25 @@ final class SignatureMark {
 }
 
 /// Per-field review state and warnings (`data-model.md` §3.8).
-final class FieldVerification {
+///
+/// Unknown same-schema JSON fields are retained across a read/write round
+/// (`data-model.md` §6).
+final class FieldVerification extends JsonObject {
   /// Creates a verification record.
   ///
   /// [reviewedAt] is required for [FieldVerificationState.confirmed] and
   /// [FieldVerificationState.corrected], must be null for
   /// [FieldVerificationState.unreviewed], and must be UTC. [warnings] must be
   /// duplicate-free; the stored list is sorted by declaration order.
+  /// [unknownFields] are opaque same-schema JSON extensions retained for a
+  /// later write.
   ///
   /// Throws [ArgumentError] for every invalid value.
   factory FieldVerification({
     required FieldVerificationState state,
     DateTime? reviewedAt,
     Iterable<WarningCode> warnings = const <WarningCode>[],
+    Map<String, Object?> unknownFields = const <String, Object?>{},
   }) {
     final DateTime? checkedReviewedAt = reviewedAt == null
         ? null
@@ -1580,6 +1629,7 @@ final class FieldVerification {
       state: state,
       reviewedAt: checkedReviewedAt,
       warnings: List<WarningCode>.unmodifiable(sorted),
+      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
     );
   }
 
@@ -1587,11 +1637,13 @@ final class FieldVerification {
     required this.state,
     required this.reviewedAt,
     required this.warnings,
+    required super.unknownFields,
   });
 
   /// Reads a persisted verification record.
   ///
-  /// Throws [FormatException] for missing, mistyped, or invalid fields.
+  /// Unknown same-schema keys are retained for a later write. Throws
+  /// [FormatException] for missing, mistyped, or invalid fields.
   factory FieldVerification.fromJson(Map<String, Object?> json) {
     final Object? rawWarnings = json['warnings'];
     if (rawWarnings is! List<Object?>) {
@@ -1605,6 +1657,7 @@ final class FieldVerification {
           for (final Object? warning in rawWarnings)
             WarningCode.fromWire(warning),
         ],
+        unknownFields: unknownJsonFields(json, _fieldVerificationJsonKeys),
       );
     } on ArgumentError catch (error) {
       throw FormatException(
@@ -1629,6 +1682,7 @@ final class FieldVerification {
     FieldVerificationState? state,
     Object? reviewedAt = _unset,
     Iterable<WarningCode>? warnings,
+    Map<String, Object?>? unknownFields,
   }) {
     return FieldVerification(
       state: state ?? this.state,
@@ -1636,12 +1690,13 @@ final class FieldVerification {
           ? this.reviewedAt
           : reviewedAt as DateTime?,
       warnings: warnings ?? this.warnings,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   /// Serializes to the persisted verification object.
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'state': state.wireName,
       'reviewedAt': reviewedAt == null
           ? null
@@ -1649,7 +1704,7 @@ final class FieldVerification {
       'warnings': <String>[
         for (final WarningCode warning in warnings) warning.wireName,
       ],
-    };
+    });
   }
 
   @override
@@ -1674,39 +1729,71 @@ final class FieldVerification {
 
 /// The validation state of a confirmed field (`data-model.md` §3.5):
 /// `ok | warning(code, messageKey) | error(code)`.
-sealed class FieldValidation {
-  const FieldValidation._();
+///
+/// Unknown same-schema JSON fields are retained across a read/write round
+/// (`data-model.md` §6).
+sealed class FieldValidation extends JsonObject {
+  const FieldValidation({super.unknownFields});
 
   /// The valid state: no warning or error.
   static const FieldValidation ok = _FieldValidationOk();
 
   /// A non-blocking warning with a German catalog message key.
-  factory FieldValidation.warning(WarningCode code, String messageKey) {
-    return _FieldValidationWarning(code, _validateMessageKey(messageKey));
+  ///
+  /// [unknownFields] are opaque same-schema JSON extensions retained for a
+  /// later write.
+  factory FieldValidation.warning(
+    WarningCode code,
+    String messageKey, {
+    Map<String, Object?> unknownFields = const <String, Object?>{},
+  }) {
+    return _FieldValidationWarning(
+      code,
+      _validateMessageKey(messageKey),
+      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+    );
   }
 
   /// A blocking error with a stable catalog code such as `NUM-001`.
-  factory FieldValidation.error(String code) {
-    return _FieldValidationError(_validateCatalogCode(code));
+  ///
+  /// [unknownFields] are opaque same-schema JSON extensions retained for a
+  /// later write.
+  factory FieldValidation.error(
+    String code, {
+    Map<String, Object?> unknownFields = const <String, Object?>{},
+  }) {
+    return _FieldValidationError(
+      _validateCatalogCode(code),
+      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+    );
   }
 
   /// Reads a persisted validation object.
   ///
-  /// Throws [FormatException] for missing, mistyped, or invalid fields.
+  /// Unknown same-schema keys are retained for a later write. Throws
+  /// [FormatException] for missing, mistyped, or invalid fields.
   static FieldValidation fromJson(Map<String, Object?> json) {
     final Object? status = json['status'];
+    final Map<String, Object?> unknown = unknownJsonFields(
+      json,
+      _fieldValidationJsonKeys,
+    );
     try {
       if (status == 'ok') {
-        return ok;
+        return _FieldValidationOk(unknownFields: unknown);
       }
       if (status == 'warning') {
         return FieldValidation.warning(
           WarningCode.fromWire(json['code']),
           _readString(json, 'messageKey'),
+          unknownFields: unknown,
         );
       }
       if (status == 'error') {
-        return FieldValidation.error(_readString(json, 'code'));
+        return FieldValidation.error(
+          _readString(json, 'code'),
+          unknownFields: unknown,
+        );
       }
     } on ArgumentError catch (error) {
       throw FormatException('Invalid field validation JSON: ${error.message}');
@@ -1737,10 +1824,12 @@ sealed class FieldValidation {
 }
 
 final class _FieldValidationOk extends FieldValidation {
-  const _FieldValidationOk() : super._();
+  const _FieldValidationOk({super.unknownFields});
 
   @override
-  Map<String, Object?> toJson() => <String, Object?>{'status': 'ok'};
+  Map<String, Object?> toJson() {
+    return toJsonWithUnknown(<String, Object?>{'status': 'ok'});
+  }
 
   @override
   bool operator ==(Object other) => other is _FieldValidationOk;
@@ -1753,7 +1842,11 @@ final class _FieldValidationOk extends FieldValidation {
 }
 
 final class _FieldValidationWarning extends FieldValidation {
-  const _FieldValidationWarning(this.warningCode, this.messageKey) : super._();
+  const _FieldValidationWarning(
+    this.warningCode,
+    this.messageKey, {
+    super.unknownFields,
+  });
 
   @override
   final WarningCode warningCode;
@@ -1763,11 +1856,11 @@ final class _FieldValidationWarning extends FieldValidation {
 
   @override
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'status': 'warning',
       'code': warningCode.wireName,
       'messageKey': messageKey,
-    };
+    });
   }
 
   @override
@@ -1787,14 +1880,17 @@ final class _FieldValidationWarning extends FieldValidation {
 }
 
 final class _FieldValidationError extends FieldValidation {
-  const _FieldValidationError(this.errorCode) : super._();
+  const _FieldValidationError(this.errorCode, {super.unknownFields});
 
   @override
   final String errorCode;
 
   @override
   Map<String, Object?> toJson() {
-    return <String, Object?>{'status': 'error', 'code': errorCode};
+    return toJsonWithUnknown(<String, Object?>{
+      'status': 'error',
+      'code': errorCode,
+    });
   }
 
   @override
@@ -1816,10 +1912,16 @@ final class _FieldValidationError extends FieldValidation {
 /// derived at layout time, stored for status display, and never alters
 /// content. Invalid numbers and dates are rejected before a value is
 /// constructed (FR-108/SC-022); reclassification keeps incompatible content in
-/// an [IncompatibleValue] instead of dropping it (FR-029/FR-038).
-sealed class FieldValue {
-  FieldValue({required DateTime lastEditedAt, required this.overflow})
-    : lastEditedAt = _checkUtc(lastEditedAt, 'lastEditedAt');
+/// an [IncompatibleValue] instead of dropping it (FR-029/FR-038). Unknown
+/// same-schema JSON fields are retained across a read/write round
+/// (`data-model.md` §6).
+sealed class FieldValue extends JsonObject {
+  FieldValue({
+    required DateTime lastEditedAt,
+    required this.overflow,
+    Map<String, Object?> unknownFields = const <String, Object?>{},
+  }) : lastEditedAt = _checkUtc(lastEditedAt, 'lastEditedAt'),
+       super(unknownFields: Map<String, Object?>.unmodifiable(unknownFields));
 
   /// When the user last committed an edit, in UTC.
   final DateTime lastEditedAt;
@@ -1835,19 +1937,31 @@ sealed class FieldValue {
   String get kind;
 
   /// Returns a copy with only the metadata replaced.
-  FieldValue copyWithMetadata({DateTime? lastEditedAt, bool? overflow});
+  ///
+  /// Unknown same-schema fields are retained unless [unknownFields] is
+  /// supplied.
+  FieldValue copyWithMetadata({
+    DateTime? lastEditedAt,
+    bool? overflow,
+    Map<String, Object?>? unknownFields,
+  });
 
   /// Serializes the value and its metadata.
   Map<String, Object?> toJson();
 
   /// Reads a persisted value.
   ///
-  /// Throws [FormatException] for an unknown, missing, or mistyped
-  /// discriminator or payload.
+  /// Unknown same-schema keys are retained for a later write. Throws
+  /// [FormatException] for an unknown, missing, or mistyped discriminator or
+  /// payload.
   static FieldValue fromJson(Map<String, Object?> json) {
     final String kind = _readString(json, 'type');
     final DateTime lastEditedAt = _readTimestamp(json, 'lastEditedAt');
     final bool overflow = _readBool(json, 'overflow');
+    final Map<String, Object?> unknown = unknownJsonFields(
+      json,
+      _fieldValueJsonKeys,
+    );
     try {
       switch (kind) {
         case 'text':
@@ -1855,6 +1969,7 @@ sealed class FieldValue {
             text: _readString(json, 'text'),
             lastEditedAt: lastEditedAt,
             overflow: overflow,
+            unknownFields: unknown,
           );
         case 'number':
           return NumberValue(
@@ -1862,30 +1977,35 @@ sealed class FieldValue {
             rawGerman: _readString(json, 'rawGerman'),
             lastEditedAt: lastEditedAt,
             overflow: overflow,
+            unknownFields: unknown,
           );
         case 'date':
           return DateValue(
             canonical: _readString(json, 'canonical'),
             lastEditedAt: lastEditedAt,
             overflow: overflow,
+            unknownFields: unknown,
           );
         case 'checkbox':
           return CheckboxValue(
             checked: _readBool(json, 'checked'),
             lastEditedAt: lastEditedAt,
             overflow: overflow,
+            unknownFields: unknown,
           );
         case 'multiline':
           return MultilineValue(
             text: _readString(json, 'text'),
             lastEditedAt: lastEditedAt,
             overflow: overflow,
+            unknownFields: unknown,
           );
         case 'signature':
           return SignatureValue(
             signatureAssetId: _readString(json, 'signatureAssetId'),
             lastEditedAt: lastEditedAt,
             overflow: overflow,
+            unknownFields: unknown,
           );
         case 'incompatible':
           return IncompatibleValue(
@@ -1893,6 +2013,7 @@ sealed class FieldValue {
             reasonCode: _readString(json, 'reasonCode'),
             lastEditedAt: lastEditedAt,
             overflow: overflow,
+            unknownFields: unknown,
           );
         default:
           throw const FormatException('Unknown field value type token.');
@@ -1917,6 +2038,7 @@ final class TextValue extends FieldValue {
     required String text,
     required super.lastEditedAt,
     super.overflow = false,
+    super.unknownFields,
   }) : text = _validateText(
          text,
          name: 'text',
@@ -1934,22 +2056,27 @@ final class TextValue extends FieldValue {
   String get kind => 'text';
 
   @override
-  TextValue copyWithMetadata({DateTime? lastEditedAt, bool? overflow}) {
+  TextValue copyWithMetadata({
+    DateTime? lastEditedAt,
+    bool? overflow,
+    Map<String, Object?>? unknownFields,
+  }) {
     return TextValue(
       text: text,
       lastEditedAt: lastEditedAt ?? this.lastEditedAt,
       overflow: overflow ?? this.overflow,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   @override
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'type': kind,
       'text': text,
       'lastEditedAt': _serializeTimestamp(lastEditedAt),
       'overflow': overflow,
-    };
+    });
   }
 
   @override
@@ -1984,6 +2111,7 @@ final class NumberValue extends FieldValue {
     required String rawGerman,
     required super.lastEditedAt,
     super.overflow = false,
+    super.unknownFields,
   }) : canonical = _validateCanonicalNumber(canonical),
        rawGerman = _validateDisplayText(rawGerman, name: 'rawGerman');
 
@@ -2000,24 +2128,29 @@ final class NumberValue extends FieldValue {
   String get kind => 'number';
 
   @override
-  NumberValue copyWithMetadata({DateTime? lastEditedAt, bool? overflow}) {
+  NumberValue copyWithMetadata({
+    DateTime? lastEditedAt,
+    bool? overflow,
+    Map<String, Object?>? unknownFields,
+  }) {
     return NumberValue(
       canonical: canonical,
       rawGerman: rawGerman,
       lastEditedAt: lastEditedAt ?? this.lastEditedAt,
       overflow: overflow ?? this.overflow,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   @override
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'type': kind,
       'canonical': canonical,
       'rawGerman': rawGerman,
       'lastEditedAt': _serializeTimestamp(lastEditedAt),
       'overflow': overflow,
-    };
+    });
   }
 
   @override
@@ -2049,6 +2182,7 @@ final class DateValue extends FieldValue {
     required String canonical,
     required super.lastEditedAt,
     super.overflow = false,
+    super.unknownFields,
   }) : canonical = _validateCanonicalDate(canonical);
 
   /// Canonical `YYYY-MM-DD`; document content, never logged.
@@ -2061,22 +2195,27 @@ final class DateValue extends FieldValue {
   String get kind => 'date';
 
   @override
-  DateValue copyWithMetadata({DateTime? lastEditedAt, bool? overflow}) {
+  DateValue copyWithMetadata({
+    DateTime? lastEditedAt,
+    bool? overflow,
+    Map<String, Object?>? unknownFields,
+  }) {
     return DateValue(
       canonical: canonical,
       lastEditedAt: lastEditedAt ?? this.lastEditedAt,
       overflow: overflow ?? this.overflow,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   @override
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'type': kind,
       'canonical': canonical,
       'lastEditedAt': _serializeTimestamp(lastEditedAt),
       'overflow': overflow,
-    };
+    });
   }
 
   @override
@@ -2103,6 +2242,7 @@ final class CheckboxValue extends FieldValue {
     this.checked = false,
     required super.lastEditedAt,
     super.overflow = false,
+    super.unknownFields,
   });
 
   /// Whether the box is checked; document content, never logged.
@@ -2115,22 +2255,27 @@ final class CheckboxValue extends FieldValue {
   String get kind => 'checkbox';
 
   @override
-  CheckboxValue copyWithMetadata({DateTime? lastEditedAt, bool? overflow}) {
+  CheckboxValue copyWithMetadata({
+    DateTime? lastEditedAt,
+    bool? overflow,
+    Map<String, Object?>? unknownFields,
+  }) {
     return CheckboxValue(
       checked: checked,
       lastEditedAt: lastEditedAt ?? this.lastEditedAt,
       overflow: overflow ?? this.overflow,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   @override
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'type': kind,
       'checked': checked,
       'lastEditedAt': _serializeTimestamp(lastEditedAt),
       'overflow': overflow,
-    };
+    });
   }
 
   @override
@@ -2162,6 +2307,7 @@ final class MultilineValue extends FieldValue {
     required String text,
     required super.lastEditedAt,
     super.overflow = false,
+    super.unknownFields,
   }) : text = _validateText(
          text,
          name: 'text',
@@ -2179,22 +2325,27 @@ final class MultilineValue extends FieldValue {
   String get kind => 'multiline';
 
   @override
-  MultilineValue copyWithMetadata({DateTime? lastEditedAt, bool? overflow}) {
+  MultilineValue copyWithMetadata({
+    DateTime? lastEditedAt,
+    bool? overflow,
+    Map<String, Object?>? unknownFields,
+  }) {
     return MultilineValue(
       text: text,
       lastEditedAt: lastEditedAt ?? this.lastEditedAt,
       overflow: overflow ?? this.overflow,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   @override
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'type': kind,
       'text': text,
       'lastEditedAt': _serializeTimestamp(lastEditedAt),
       'overflow': overflow,
-    };
+    });
   }
 
   @override
@@ -2224,6 +2375,7 @@ final class SignatureValue extends FieldValue {
     required String signatureAssetId,
     required super.lastEditedAt,
     super.overflow = false,
+    super.unknownFields,
   }) : signatureAssetId = _validateUuidV4(signatureAssetId, 'signatureAssetId');
 
   /// UUIDv4 of the signature asset in the same document.
@@ -2236,22 +2388,27 @@ final class SignatureValue extends FieldValue {
   String get kind => 'signature';
 
   @override
-  SignatureValue copyWithMetadata({DateTime? lastEditedAt, bool? overflow}) {
+  SignatureValue copyWithMetadata({
+    DateTime? lastEditedAt,
+    bool? overflow,
+    Map<String, Object?>? unknownFields,
+  }) {
     return SignatureValue(
       signatureAssetId: signatureAssetId,
       lastEditedAt: lastEditedAt ?? this.lastEditedAt,
       overflow: overflow ?? this.overflow,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   @override
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'type': kind,
       'signatureAssetId': signatureAssetId,
       'lastEditedAt': _serializeTimestamp(lastEditedAt),
       'overflow': overflow,
-    };
+    });
   }
 
   @override
@@ -2291,6 +2448,7 @@ final class IncompatibleValue extends FieldValue {
     required String reasonCode,
     required super.lastEditedAt,
     super.overflow = false,
+    super.unknownFields,
   }) : preservedText = _validatePreservedText(preservedText),
        reasonCode = _validateMachineToken(reasonCode, 'reasonCode');
 
@@ -2308,24 +2466,29 @@ final class IncompatibleValue extends FieldValue {
   String get kind => 'incompatible';
 
   @override
-  IncompatibleValue copyWithMetadata({DateTime? lastEditedAt, bool? overflow}) {
+  IncompatibleValue copyWithMetadata({
+    DateTime? lastEditedAt,
+    bool? overflow,
+    Map<String, Object?>? unknownFields,
+  }) {
     return IncompatibleValue(
       preservedText: preservedText,
       reasonCode: reasonCode,
       lastEditedAt: lastEditedAt ?? this.lastEditedAt,
       overflow: overflow ?? this.overflow,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   @override
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'type': kind,
       'preservedText': preservedText,
       'reasonCode': reasonCode,
       'lastEditedAt': _serializeTimestamp(lastEditedAt),
       'overflow': overflow,
-    };
+    });
   }
 
   @override
@@ -2348,6 +2511,92 @@ final class IncompatibleValue extends FieldValue {
         'length: ${preservedText.runes.length})';
   }
 }
+
+/// Modeled keys of a persisted suggestion-evidence object.
+///
+/// `lowContrast` is the legacy pre-contract spelling; it is consumed but never
+/// re-emitted, so it is not treated as an extension.
+const Set<String> _suggestionEvidenceJsonKeys = <String>{
+  'cues',
+  'cueAgreement',
+  'skewDegrees',
+  'contrast',
+  'lowContrast',
+  'ocrUsed',
+};
+
+/// Modeled keys of a persisted suggestion.
+const Set<String> _fieldSuggestionJsonKeys = <String>{
+  'id',
+  'pageIndex',
+  'rect',
+  'proposedType',
+  'confidence',
+  'uncertainty',
+  'labelText',
+  'evidence',
+  'conflictsWith',
+  'resolution',
+};
+
+/// Modeled keys of a persisted confirmed field.
+const Set<String> _confirmedFieldJsonKeys = <String>{
+  'id',
+  'pageIndex',
+  'rect',
+  'type',
+  'provenance',
+  'sourceSuggestionId',
+  'suggestionConfidence',
+  'label',
+  'order',
+  'createdAt',
+  'updatedAt',
+  'validation',
+};
+
+/// Modeled keys of a persisted signature mark.
+const Set<String> _signatureMarkJsonKeys = <String>{
+  'assetId',
+  'fieldId',
+  'pageIndex',
+  'rect',
+  'widthPx',
+  'heightPx',
+  'capturedAt',
+  'sha256',
+};
+
+/// Modeled keys of a persisted field-verification object.
+const Set<String> _fieldVerificationJsonKeys = <String>{
+  'state',
+  'reviewedAt',
+  'warnings',
+};
+
+/// Modeled keys of a persisted field-validation object.
+const Set<String> _fieldValidationJsonKeys = <String>{
+  'status',
+  'code',
+  'messageKey',
+};
+
+/// Modeled keys of a persisted field value.
+///
+/// The union covers all tagged variants so a known key that is meaningless for
+/// the current variant is dropped rather than retained as an extension.
+const Set<String> _fieldValueJsonKeys = <String>{
+  'type',
+  'lastEditedAt',
+  'overflow',
+  'text',
+  'canonical',
+  'rawGerman',
+  'checked',
+  'signatureAssetId',
+  'preservedText',
+  'reasonCode',
+};
 
 /// The maximum length of a text or multiline value in characters.
 const int _maxValueTextLength = 10000;

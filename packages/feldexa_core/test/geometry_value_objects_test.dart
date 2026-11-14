@@ -269,7 +269,7 @@ void main() {
       expect(rect.top, 2.34567891);
       expect(rect.width, 3.45678912);
       expect(rect.height, 4.56789123);
-      final Map<String, double> json = rect.toJson();
+      final Map<String, Object?> json = rect.toJson();
       expect(json.keys, <String>['x', 'y', 'width', 'height']);
       expect(json['x'], closeTo(1.235, 1e-12));
       expect(json['y'], closeTo(2.346, 1e-12));

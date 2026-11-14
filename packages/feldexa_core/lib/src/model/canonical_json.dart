@@ -145,3 +145,64 @@ DateTime parseCanonicalUtcTimestamp(
   }
   return parsed;
 }
+
+/// Base for immutable JSON model objects that retain unknown same-schema
+/// fields.
+///
+/// `data-model.md` §6 requires unknown JSON fields to survive a read/write
+/// round within one schema version. [unknownFields] stores exactly the entries
+/// a typed decoder did not consume; [toJsonWithUnknown] merges them beneath
+/// the modeled keys so a modeled value always wins.
+///
+/// Unknown fields are opaque forward-compatibility data: they are not
+/// interpreted or validated, and the concrete types deliberately keep them out
+/// of `==`/`hashCode` (compare canonical JSON when extension data matters).
+/// A higher `schemaVersion` is rejected before this layer, so preservation
+/// never crosses a schema boundary.
+abstract class JsonObject {
+  /// Creates an object with optional opaque [unknownFields].
+  const JsonObject({this.unknownFields = const <String, Object?>{}});
+
+  /// Opaque same-schema JSON entries not consumed by the typed decoder.
+  final Map<String, Object?> unknownFields;
+
+  /// Merges [unknownFields] beneath the modeled [known] keys.
+  Map<String, Object?> toJsonWithUnknown(Map<String, Object?> known) {
+    return mergeUnknownJsonFields(known, unknownFields);
+  }
+}
+
+/// Captures the entries of [json] whose keys are not in [knownKeys].
+///
+/// The returned map is unmodifiable. Nested JSON values are kept exactly as
+/// decoded so a later canonical encode can round-trip them; they are never
+/// interpreted as model content. Unknown keys are opaque, so the caller must
+/// include every key its decoder consumed (including deliberately ignored
+/// derived keys such as `renderCacheKey`) in [knownKeys].
+Map<String, Object?> unknownJsonFields(
+  Map<String, Object?> json,
+  Set<String> knownKeys,
+) {
+  final Map<String, Object?> result = <String, Object?>{};
+  for (final MapEntry<String, Object?> entry in json.entries) {
+    if (!knownKeys.contains(entry.key)) {
+      result[entry.key] = entry.value;
+    }
+  }
+  return Map<String, Object?>.unmodifiable(result);
+}
+
+/// Merges opaque [unknownFields] beneath [known] modeled fields.
+///
+/// Modeled keys always win; an unknown entry that happens to reuse a modeled
+/// key can never override validated model state. The canonical encoder sorts
+/// the merged keys and the nested unknown values.
+Map<String, Object?> mergeUnknownJsonFields(
+  Map<String, Object?> known,
+  Map<String, Object?> unknownFields,
+) {
+  if (unknownFields.isEmpty) {
+    return known;
+  }
+  return <String, Object?>{...unknownFields, ...known};
+}

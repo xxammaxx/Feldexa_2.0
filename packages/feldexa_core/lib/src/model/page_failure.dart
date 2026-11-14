@@ -16,6 +16,8 @@
 // and never document content.
 library;
 
+import 'canonical_json.dart';
+
 /// The three page-failure categories owned by the core model.
 ///
 /// `contracts/recognition-output.md` §4 also names `ocr` and `internal`; those
@@ -57,12 +59,14 @@ enum PageFailureCategory {
 ///
 /// A failure belongs to exactly one page. [PageFailure.pageIndex] must match
 /// that page's index; the [Page] value object enforces that pairing and the
-/// document aggregate enforces that the page exists.
-final class PageFailure {
+/// document aggregate enforces that the page exists. Unknown same-schema JSON
+/// fields are retained across a read/write round (`data-model.md` §6).
+final class PageFailure extends JsonObject {
   /// Creates a page failure.
   ///
   /// [pageIndex] must be non-negative and [messageKey] a stable German catalog
-  /// key such as `IMP-006` or `REC-002`.
+  /// key such as `IMP-006` or `REC-002`. [unknownFields] are opaque
+  /// same-schema JSON extensions retained for a later write.
   ///
   /// Throws [ArgumentError] for every invalid value. The error never echoes
   /// document content.
@@ -70,6 +74,7 @@ final class PageFailure {
     required int pageIndex,
     required PageFailureCategory category,
     required String messageKey,
+    Map<String, Object?> unknownFields = const <String, Object?>{},
   }) {
     if (pageIndex < 0) {
       throw ArgumentError('pageIndex must be at least 0');
@@ -83,6 +88,7 @@ final class PageFailure {
       pageIndex: pageIndex,
       category: category,
       messageKey: messageKey,
+      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
     );
   }
 
@@ -90,9 +96,12 @@ final class PageFailure {
     required this.pageIndex,
     required this.category,
     required this.messageKey,
+    required super.unknownFields,
   });
 
   /// Reads a persisted page failure.
+  ///
+  /// Unknown same-schema keys are retained for a later write.
   ///
   /// Throws [FormatException] for missing, mistyped, or invalid fields.
   factory PageFailure.fromJson(Map<String, Object?> json) {
@@ -109,6 +118,7 @@ final class PageFailure {
         pageIndex: pageIndex,
         category: PageFailureCategory.fromWire(json['category']),
         messageKey: messageKey,
+        unknownFields: unknownJsonFields(json, _pageFailureJsonKeys),
       );
     } on ArgumentError catch (error) {
       throw FormatException('Invalid page failure JSON: ${error.message}');
@@ -131,21 +141,23 @@ final class PageFailure {
     int? pageIndex,
     PageFailureCategory? category,
     String? messageKey,
+    Map<String, Object?>? unknownFields,
   }) {
     return PageFailure(
       pageIndex: pageIndex ?? this.pageIndex,
       category: category ?? this.category,
       messageKey: messageKey ?? this.messageKey,
+      unknownFields: unknownFields ?? this.unknownFields,
     );
   }
 
   /// Serializes to the persisted failure object.
   Map<String, Object?> toJson() {
-    return <String, Object?>{
+    return toJsonWithUnknown(<String, Object?>{
       'pageIndex': pageIndex,
       'category': category.wireName,
       'messageKey': messageKey,
-    };
+    });
   }
 
   @override
@@ -168,3 +180,10 @@ final class PageFailure {
 
 /// German catalog keys are compact stable codes such as `IMP-006`.
 final RegExp _catalogKeyPattern = RegExp(r'^[A-Z]{2,6}-[0-9]{3}$');
+
+/// Modeled keys of a persisted page failure.
+const Set<String> _pageFailureJsonKeys = <String>{
+  'pageIndex',
+  'category',
+  'messageKey',
+};

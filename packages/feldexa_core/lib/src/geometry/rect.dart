@@ -16,7 +16,15 @@
 // `data-model.md` section 2.2. A positive dimension that would quantize to zero
 // is written as 0.001 pt so a valid value object always survives a JSON
 // round-trip.
+//
+// [Rect] is embedded in persisted document JSON. `data-model.md` §6 therefore
+// requires it to retain unknown same-schema fields across a read/write round;
+// [Rect.fromJson] captures them and [Rect.toJson] re-emits them beneath the
+// modeled coordinates. [Point] and [Size] are not part of the persisted
+// aggregate and keep their numeric-only JSON shape.
 library;
+
+import '../model/canonical_json.dart';
 
 /// A point in page display space, measured in PDF points.
 ///
@@ -137,15 +145,30 @@ final class Size {
 /// JSON uses the field names from `contracts/export-plan.md`:
 /// `{"x", "y", "width", "height"}`. [x] and [y] are aliases for [left] and
 /// [top].
-final class Rect {
-  const Rect._(this.left, this.top, this.width, this.height);
+final class Rect extends JsonObject {
+  const Rect._(
+    this.left,
+    this.top,
+    this.width,
+    this.height, {
+    super.unknownFields,
+  });
 
   /// Creates a rectangle at ([left], [top]) with [width] and [height].
+  ///
+  /// [unknownFields] are opaque same-schema JSON extensions retained on a
+  /// read/write round (`data-model.md` §6).
   ///
   /// Throws [ArgumentError] if a coordinate is not finite, if [width] or
   /// [height] is not strictly positive, or if the right or bottom edge would
   /// overflow to infinity.
-  factory Rect.fromLTWH(double left, double top, double width, double height) {
+  factory Rect.fromLTWH(
+    double left,
+    double top,
+    double width,
+    double height, {
+    Map<String, Object?> unknownFields = const <String, Object?>{},
+  }) {
     _checkFinite(left, 'left');
     _checkFinite(top, 'top');
     _checkPositive(width, 'width');
@@ -156,10 +179,18 @@ final class Rect {
     if (!(top + height).isFinite) {
       throw ArgumentError.value(top, 'top', 'top + height must be finite');
     }
-    return Rect._(left, top, width, height);
+    return Rect._(
+      left,
+      top,
+      width,
+      height,
+      unknownFields: Map<String, Object?>.unmodifiable(unknownFields),
+    );
   }
 
   /// Reads a JSON object with numeric `x`, `y`, `width`, and `height`.
+  ///
+  /// Unknown same-schema keys are retained for a later write.
   ///
   /// Throws [FormatException] when a field is missing, is not numeric, is not
   /// finite, is not strictly positive, or produces a non-finite edge.
@@ -169,7 +200,13 @@ final class Rect {
     final double width = _readPositive(json, 'width');
     final double height = _readPositive(json, 'height');
     try {
-      return Rect.fromLTWH(x, y, width, height);
+      return Rect.fromLTWH(
+        x,
+        y,
+        width,
+        height,
+        unknownFields: unknownJsonFields(json, _rectJsonKeys),
+      );
     } on ArgumentError catch (error) {
       throw FormatException('Invalid rect JSON: ${error.message}');
     }
@@ -208,14 +245,15 @@ final class Rect {
   /// Returns the rectangle quantized to three decimals for serialization.
   ///
   /// The stored fields are not rounded. Positive dimensions that would
-  /// quantize to zero are written as 0.001 pt.
-  Map<String, double> toJson() {
-    return <String, double>{
+  /// quantize to zero are written as 0.001 pt. Unknown same-schema fields are
+  /// emitted beneath these modeled keys.
+  Map<String, Object?> toJson() {
+    return toJsonWithUnknown(<String, Object?>{
       'x': _serializeFinite(left),
       'y': _serializeFinite(top),
       'width': _serializePositive(width),
       'height': _serializePositive(height),
-    };
+    });
   }
 
   @override
@@ -237,6 +275,9 @@ final class Rect {
 }
 
 const double _serializationScale = 1000;
+
+/// Modeled keys of a persisted rect; every other key is an opaque extension.
+const Set<String> _rectJsonKeys = <String>{'x', 'y', 'width', 'height'};
 
 void _checkFinite(double value, String name) {
   if (!value.isFinite) {
