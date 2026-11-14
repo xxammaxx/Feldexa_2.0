@@ -308,6 +308,7 @@ the git bundle and are not bundle-verifiable.
 | [2026-11-13-t012-evidence.md](./2026-11-13-t012-evidence.md) | `NONE` | Task evidence | T012 shared `SIMULATED` widget; Chrome widget run is `SIMULATED` |
 | [2026-11-13-t013-blocker-correction.md](./2026-11-13-t013-blocker-correction.md) | `NONE` | Gate-5 correction | T013 canonical-type ordering, descriptor/DTO ownership, export boundary; issue mapping external, live states unavailable from the bundle |
 | [2026-11-13-t014-evidence.md](./2026-11-13-t014-evidence.md) | `NONE` | Task evidence | T014 error taxonomy and evidence classes; v2 privacy correction after quality review; host-VM only |
+| [2026-11-14-t013-evidence.md](./2026-11-14-t013-evidence.md) | `NONE` | Task evidence | T013 capability descriptors, all 10 port interfaces, `AdapterRegistry`, and port-local DTOs; canonical core/export/T014 types consumed without duplicates; host-VM only; gate browser layer is `SIMULATED`, not T013 evidence |
 | [2026-11-13-t015-evidence.md](./2026-11-13-t015-evidence.md) | `NONE` | Task evidence | T015 geometry value objects; host-VM only |
 | [2026-11-13-t015-merge-evidence.md](./2026-11-13-t015-merge-evidence.md) | `NONE` | Task evidence | T015 merge of corrected main `31c75e8`; local merge only, diff vs main recorded |
 | [2026-11-13-t016-evidence.md](./2026-11-13-t016-evidence.md) | `NONE` | Task evidence | T016 `PageGeometry` display box, rotation, CropBox mapping; host-VM only; gate browser layer is `SIMULATED`, not T016 evidence |

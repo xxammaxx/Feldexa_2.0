@@ -7,6 +7,16 @@ resolution: workspace
 environment:
   sdk: ^3.13.0
 
+dependencies:
+  # Canonical core model and geometry types consumed by port signatures and
+  # port-local DTOs (T013). `feldexa_ports` must never be imported by core or
+  # export; the dependency direction is one-way.
+  feldexa_core:
+    path: ../feldexa_core
+  # Canonical export contract models consumed by `PdfExportPort` (T022).
+  feldexa_export:
+    path: ../feldexa_export
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
