@@ -7,6 +7,12 @@
 //     ordering, and validation;
 //   * `TemplateMeta` as the `meta.fx1` envelope and `TemplateVersionContent` as
 //     the `ver/<versionId>.fx1` payload, including schema-version refusal;
+//   * the envelope boundary: the v1 `TemplateMeta` has no mandatory
+//     `schemaVersion`, while an explicit marker must be 1 and a newer one is
+//     refused;
+//   * forbidden template payloads: `values`, `signatures`, `suggestions`, and
+//     `templateOrigin` are refused at the root and in modeled page/field/
+//     source/pointer objects instead of being retained (FR-057/FR-102/SC-013);
 //   * `StoredTemplate` as the verified join of both persisted objects;
 //   * layout-only templates (no value, signature, or template-origin member);
 //   * immutable versions: an existing version is never rewritten (FR-103) and
@@ -402,6 +408,66 @@ void main() {
       );
     });
 
+    test('rejects a missing or mistyped schemaVersion', () {
+      final Map<String, Object?> missing = _content().toJson();
+      missing.remove('schemaVersion');
+      expect(
+        () => TemplateVersionContent.fromJson(missing),
+        throwsFormatException,
+      );
+      expect(
+        () => TemplateVersionContent.fromJson(<String, Object?>{
+          ..._content().toJson(),
+          'schemaVersion': '1',
+        }),
+        throwsFormatException,
+      );
+    });
+
+    test(
+      'refuses forbidden payloads at the root and in page/field objects',
+      () {
+        final Map<String, Object?> root = _content().toJson();
+        for (final String key in <String>[
+          'values',
+          'signatures',
+          'suggestions',
+          'templateOrigin',
+        ]) {
+          expect(
+            () => TemplateVersionContent.fromJson(<String, Object?>{
+              ...root,
+              key: <String, Object?>{},
+            }),
+            throwsFormatException,
+            reason: key,
+          );
+        }
+        final Map<String, Object?> field = _map(
+          _list(root['fieldSnapshot'])[0],
+        );
+        expect(
+          () => TemplateVersionContent.fromJson(<String, Object?>{
+            ...root,
+            'fieldSnapshot': <Object?>[
+              <String, Object?>{...field, 'signatures': <String, Object?>{}},
+            ],
+          }),
+          throwsFormatException,
+        );
+        final Map<String, Object?> page = _map(_list(root['pageSnapshot'])[0]);
+        expect(
+          () => TemplateVersionContent.fromJson(<String, Object?>{
+            ...root,
+            'pageSnapshot': <Object?>[
+              <String, Object?>{...page, 'values': <String, Object?>{}},
+            ],
+          }),
+          throwsFormatException,
+        );
+      },
+    );
+
     test('rejects an empty or non-contiguous page snapshot', () {
       expect(() => _content(pages: const <Page>[]), throwsArgumentError);
       expect(
@@ -640,6 +706,45 @@ void main() {
       );
     });
 
+    test('refuses forbidden payloads at the root and in snapshots', () {
+      final Map<String, Object?> root = _version().toJson();
+      for (final String key in <String>[
+        'values',
+        'signatures',
+        'suggestions',
+        'templateOrigin',
+      ]) {
+        expect(
+          () => TemplateVersion.fromJson(<String, Object?>{
+            ...root,
+            key: <String, Object?>{},
+          }),
+          throwsFormatException,
+          reason: key,
+        );
+      }
+      final Map<String, Object?> field = _map(_list(root['fieldSnapshot'])[0]);
+      expect(
+        () => TemplateVersion.fromJson(<String, Object?>{
+          ...root,
+          'fieldSnapshot': <Object?>[
+            <String, Object?>{...field, 'values': <String, Object?>{}},
+          ],
+        }),
+        throwsFormatException,
+      );
+      final Map<String, Object?> page = _map(_list(root['pageSnapshot'])[0]);
+      expect(
+        () => TemplateVersion.fromJson(<String, Object?>{
+          ...root,
+          'pageSnapshot': <Object?>[
+            <String, Object?>{...page, 'signatures': <String, Object?>{}},
+          ],
+        }),
+        throwsFormatException,
+      );
+    });
+
     test('toString reports the version number only', () {
       expect(_version().toString(), 'TemplateVersion(versionNumber: 2)');
     });
@@ -795,7 +900,7 @@ void main() {
       expect(_template().latestVersion.versionNumber, 2);
     });
 
-    test('rejects a kind or schema mismatch in JSON (fail closed)', () {
+    test('rejects a wrong kind, missing, or newer schema in JSON', () {
       expect(
         () => Template.fromJson(<String, Object?>{
           ..._template().toJson(),
@@ -807,6 +912,65 @@ void main() {
         () => Template.fromJson(<String, Object?>{
           ..._template().toJson(),
           'schemaVersion': 2,
+        }),
+        throwsFormatException,
+      );
+      final Map<String, Object?> missing = _template().toJson();
+      missing.remove('schemaVersion');
+      expect(() => Template.fromJson(missing), throwsFormatException);
+      expect(
+        () => Template.fromJson(<String, Object?>{
+          ..._template().toJson(),
+          'schemaVersion': '1',
+        }),
+        throwsFormatException,
+      );
+    });
+
+    test('refuses forbidden payloads at the root and in modeled objects', () {
+      final Map<String, Object?> root = _template().toJson();
+      for (final String key in <String>[
+        'values',
+        'signatures',
+        'suggestions',
+        'templateOrigin',
+      ]) {
+        expect(
+          () => Template.fromJson(<String, Object?>{
+            ...root,
+            key: <String, Object?>{},
+          }),
+          throwsFormatException,
+          reason: key,
+        );
+      }
+      final Map<String, Object?> page = _map(_list(root['pages'])[0]);
+      expect(
+        () => Template.fromJson(<String, Object?>{
+          ...root,
+          'pages': <Object?>[
+            <String, Object?>{...page, 'values': <String, Object?>{}},
+          ],
+        }),
+        throwsFormatException,
+      );
+      final Map<String, Object?> field = _map(_list(root['fields'])[0]);
+      expect(
+        () => Template.fromJson(<String, Object?>{
+          ...root,
+          'fields': <Object?>[
+            <String, Object?>{...field, 'signatures': <String, Object?>{}},
+          ],
+        }),
+        throwsFormatException,
+      );
+      final Map<String, Object?> version = _map(_list(root['versions'])[0]);
+      expect(
+        () => Template.fromJson(<String, Object?>{
+          ...root,
+          'versions': <Object?>[
+            <String, Object?>{...version, 'values': <String, Object?>{}},
+          ],
         }),
         throwsFormatException,
       );
@@ -1044,6 +1208,66 @@ void main() {
       final Map<String, Object?> json = _meta().toJson();
       json.remove('readable');
       expect(() => TemplateMeta.fromJson(json), throwsFormatException);
+    });
+
+    test('has no mandatory schemaVersion in the v1 envelope', () {
+      final Map<String, Object?> json = _meta().toJson();
+      expect(json.containsKey('schemaVersion'), isFalse);
+      expect(TemplateMeta.fromJson(json), _meta());
+
+      final TemplateMeta normalized = TemplateMeta.fromJson(<String, Object?>{
+        ...json,
+        'schemaVersion': templateSchemaVersion,
+      });
+      expect(normalized, _meta());
+      expect(normalized.toJson().containsKey('schemaVersion'), isFalse);
+    });
+
+    test('refuses a newer or mistyped schemaVersion marker', () {
+      expect(
+        () => TemplateMeta.fromJson(<String, Object?>{
+          ..._meta().toJson(),
+          'schemaVersion': 2,
+        }),
+        throwsFormatException,
+      );
+      expect(
+        () => TemplateMeta.fromJson(<String, Object?>{
+          ..._meta().toJson(),
+          'schemaVersion': '1',
+        }),
+        throwsFormatException,
+      );
+    });
+
+    test('refuses forbidden payloads at the root and in pointer objects', () {
+      final Map<String, Object?> root = _meta().toJson();
+      for (final String key in <String>[
+        'values',
+        'signatures',
+        'suggestions',
+        'templateOrigin',
+      ]) {
+        expect(
+          () => TemplateMeta.fromJson(<String, Object?>{
+            ...root,
+            key: <String, Object?>{},
+          }),
+          throwsFormatException,
+          reason: key,
+        );
+      }
+      final Map<String, Object?> latest = _map(root['latestVersion']);
+      expect(
+        () => TemplateMeta.fromJson(<String, Object?>{
+          ...root,
+          'latestVersion': <String, Object?>{
+            ...latest,
+            'values': <String, Object?>{},
+          },
+        }),
+        throwsFormatException,
+      );
     });
 
     test('keeps the newest-first version invariant', () {
