@@ -31,8 +31,10 @@ enum StoreKind {
 
 /// Store health and capacity (`contracts/ports.md` §2.4).
 ///
-/// A missing key does not throw for the whole store; [keyAvailable] reports it
-/// so only affected loads fail (`SAVE-002`, FR-052).
+/// A missing key does not throw for the whole store; [keyAvailable] is a
+/// non-fatal summary that can be false for aggregate-scoped `SAVE-002` or
+/// global `SAVE-008`. It does not identify the scope; loads throw the matching
+/// typed exception (FR-052).
 final class StoreStatus {
   /// Creates a store-status result.
   ///
@@ -171,7 +173,8 @@ final class StoredMeta {
   /// Whether the aggregate can currently be loaded.
   final bool readable;
 
-  /// Catalog code explaining an unreadable aggregate, for example `SAVE-002`.
+  /// Catalog code explaining an unreadable aggregate, for example `SAVE-002`
+  /// (aggregate-scoped) or `SAVE-008` (global provider/reset).
   final String? unreadableReasonCode;
 
   @override

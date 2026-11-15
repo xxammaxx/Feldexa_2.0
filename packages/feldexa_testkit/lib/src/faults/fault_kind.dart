@@ -19,11 +19,14 @@ enum FaultKind {
   /// Process or platform write was interrupted mid-commit.
   writeInterrupted('SAVE-003', 'Write interrupted before commit completed.'),
 
-  /// Keystore alias or key is unavailable.
-  keystoreUnavailable('SAVE-002', 'Keystore key material is unavailable.'),
+  /// Global Keystore provider is unavailable (not one aggregate's key).
+  keystoreUnavailable('SAVE-008', 'Global Keystore provider is unavailable.'),
 
-  /// Wrapped key material cannot be unwrapped or is corrupt.
-  corruptKeyMaterial('SAVE-002', 'Key material is corrupt or unreadable.'),
+  /// One aggregate's wrapped key material cannot be unwrapped or is corrupt.
+  corruptKeyMaterial(
+    'SAVE-002',
+    'Aggregate key material is corrupt or unreadable.',
+  ),
 
   /// Export pipeline failed before a verified artifact existed.
   exportFailure('EXP-002', 'Export failed before artifact verification.');
