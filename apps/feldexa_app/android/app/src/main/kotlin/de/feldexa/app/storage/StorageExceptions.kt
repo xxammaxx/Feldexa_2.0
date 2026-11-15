@@ -92,6 +92,71 @@ class CorruptDataException : StorageException(
 )
 
 /**
+ * Storage is exhausted (`SAVE-001`), for example a stage write or fsync fails
+ * with `ENOSPC`/`EDQUOT`.
+ *
+ * The last verified head is untouched and a retry after freeing space is
+ * allowed (FR-074/FR-075, `contracts/storage-format.md` §5).
+ */
+class StorageFullException : StorageException(
+    code = "SAVE-001",
+    machineMessage = "storage.full",
+    retryable = true,
+    severity = ErrorSeverity.ERROR,
+)
+
+/**
+ * A staged write, fsync, or promote failed (`SAVE-003`).
+ *
+ * This is the write-side counterpart of [CorruptDataException]; the staged
+ * file is removed and the previous head stays intact
+ * (`contracts/storage-format.md` §5).
+ */
+class StorageWriteException : StorageException(
+    code = "SAVE-003",
+    machineMessage = "storage.writeFailed",
+    retryable = true,
+    severity = ErrorSeverity.ERROR,
+)
+
+/**
+ * Stored data was written by a newer schema version (`SAVE-005`).
+ *
+ * The data is untouched and writes are refused until the app is updated.
+ */
+class SchemaTooNewException : StorageException(
+    code = "SAVE-005",
+    machineMessage = "storage.schemaTooNew",
+    retryable = false,
+    severity = ErrorSeverity.ERROR,
+)
+
+/**
+ * The caller's expected head no longer matches the verified head (`SAVE-006`).
+ *
+ * Internal only: the store retries the comparison once and the UI resolves a
+ * persistent conflict; no optimistic success is reported.
+ */
+class ConcurrentSaveException : StorageException(
+    code = "SAVE-006",
+    machineMessage = "storage.concurrentSave",
+    retryable = true,
+    severity = ErrorSeverity.WARNING,
+)
+
+/**
+ * A payload is too large or otherwise invalid for the store (`SAVE-007`).
+ *
+ * The rejected value is never included in the exception.
+ */
+class InvalidDataException : StorageException(
+    code = "SAVE-007",
+    machineMessage = "storage.invalidData",
+    retryable = false,
+    severity = ErrorSeverity.WARNING,
+)
+
+/**
  * A path/name or aggregate id failed validation before any Keystore access
  * (`PLT-002`).
  *
