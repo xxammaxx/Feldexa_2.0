@@ -257,18 +257,22 @@ void _checkFault(FaultInjector injector, String point) {
 ///
 /// 1. [beforeStagedWrite] — before `tmp/<txnId>.part` is created;
 /// 2. [afterStagedWrite] — after the staged bytes were written, before fsync;
-/// 3. [afterFsync] — after the staged file was fsynced and verified;
+/// 3. [beforeFsync] — immediately before `fd.sync()`, so an injected
+///    `fsyncFailure` means fsync did not complete;
 /// 4. [beforeHeadCommit] — after the revision was promoted, before the head
 ///    rename.
 ///
 /// `store.stage` is checked twice so tests can distinguish a failure before the
 /// staged object exists (`startsAt: 1`) from one after it exists
-/// (`startsAt: 2`). The seam is test scaffolding: it does not create files,
-/// preserve a head, or clean staging. Those are adapter obligations; a real
-/// durable-head assertion is only possible once the adapter transaction under
-/// test calls this seam. T028's Dart simulated storage adapter can use this
-/// Dart seam in its tests; T026's Kotlin `EncryptedStore` needs an equivalent
-/// native fault-injection/test seam in T026.
+/// (`startsAt: 2`). There is deliberately no post-fsync abort point: a fault
+/// raised after a successful fsync would model cleanup after an interruption,
+/// not an fsync failure, and would mislabel the phase. The seam is test
+/// scaffolding: it does not create files, preserve a head, or clean staging.
+/// Those are adapter obligations; a real durable-head assertion is only
+/// possible once the adapter transaction under test calls this seam. T028's
+/// Dart simulated storage adapter can use this Dart seam in its tests; T026's
+/// Kotlin `EncryptedStore` needs an equivalent native fault-injection/test seam
+/// in T026.
 final class StagedWriteFaultSeam {
   /// Creates a seam that reads faults from [injector].
   StagedWriteFaultSeam({required this.injector});
@@ -288,8 +292,11 @@ final class StagedWriteFaultSeam {
     _checkFault(injector, FaultPoints.storeStage);
   }
 
-  /// Checks the fsync fault point after the staged bytes were flushed.
-  void afterFsync() {
+  /// Checks the fsync fault point immediately before `fd.sync()`.
+  ///
+  /// A fault here happens while `tmp/<txnId>.part` exists and means the fsync
+  /// never completed; it is not a post-fsync abort.
+  void beforeFsync() {
     _checkFault(injector, FaultPoints.storeFsync);
   }
 

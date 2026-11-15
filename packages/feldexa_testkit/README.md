@@ -115,10 +115,13 @@ top of the T011 rules:
 - `StagedWriteFaultSeam` is the phase-aware companion for the
   `storage-format.md` §3.1 transaction. An adapter calls `beforeStagedWrite`
   (`store.stage` call 1), `afterStagedWrite` (`store.stage` call 2),
-  `afterFsync` (`store.fsync`), and `beforeHeadCommit` (`store.commit`) at the
-  real phase boundaries. `store.stage` is checked twice so a failure before the
-  temp object exists is distinguishable from one after it exists. The seam only
-  injects; staging cleanup and durable-head preservation remain adapter duties.
+  `beforeFsync` (`store.fsync`, immediately before `fd.sync()`), and
+  `beforeHeadCommit` (`store.commit`) at the real phase boundaries.
+  `store.stage` is checked twice so a failure before the temp object exists is
+  distinguishable from one after it exists. There is no post-fsync abort point:
+  a fault after a successful fsync would test interruption cleanup, not an fsync
+  failure. The seam only injects; staging cleanup and durable-head preservation
+  remain adapter duties.
   Real durable-head assertions therefore require the adapter transaction under
   test to call this seam: T028's Dart simulated storage adapter can use this
   Dart seam in its tests, while T026's Kotlin `EncryptedStore` needs a native

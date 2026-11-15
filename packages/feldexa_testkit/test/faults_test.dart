@@ -568,9 +568,11 @@ void main() {
   group('StagedWriteFaultSeam', () {
     // This is a contract model of storage-format.md §3.1, not an adapter
     // implementation. It proves that the seam exposes a failure before the
-    // staged object exists, after it exists, at fsync, and after revision
-    // promotion. The real transaction, real files, and real durable-head
-    // assertions belong to the T026/T028 adapters that call this seam.
+    // staged object exists, after it exists, at the fsync checkpoint, and after
+    // revision promotion. Real files and durable-head assertions belong to the
+    // adapter task that calls the seam: T028's Dart adapter can use this Dart
+    // seam in its tests, while T026's Kotlin EncryptedStore needs an equivalent
+    // native seam in T026. This model is not production evidence.
     test('promotes the head only when every phase is clear', () {
       final _CommitModel model = _CommitModel(
         StagedWriteFaultSeam(injector: FaultInjector()),
@@ -581,6 +583,7 @@ void main() {
       expect(model.revisions, <String>{'rev-0', 'rev-1'});
       expect(model.staged, isNull);
       expect(model.promoted, isNull);
+      expect(model.fsynced, isTrue);
       expect(model.cleanupCount, 0);
     });
 
@@ -628,7 +631,7 @@ void main() {
       expect(model.cleanupCount, 1);
     });
 
-    test('an fsync failure cleans staging and keeps the durable head', () {
+    test('beforeFsync models a failed fsync, not a post-fsync abort', () {
       final _CommitModel model = _CommitModel(
         StagedWriteFaultSeam(
           injector: _injectorFor(
@@ -643,6 +646,11 @@ void main() {
       expect(
         () => _attemptCommit(model),
         throwsA(isA<StorageWriteException>()),
+      );
+      expect(
+        model.fsynced,
+        isFalse,
+        reason: 'the fault fires immediately before fd.sync()',
       );
       expect(model.staged, isNull);
       expect(model.head, 'rev-0');
@@ -975,13 +983,15 @@ final class _CommitModel {
   String head = 'rev-0';
   String? staged;
   String? promoted;
+  bool fsynced = false;
   int cleanupCount = 0;
 
   String save() {
     seam.beforeStagedWrite();
     staged = 'rev-1';
     seam.afterStagedWrite();
-    seam.afterFsync();
+    seam.beforeFsync();
+    fsynced = true;
     promoted = 'rev-1';
     revisions.add(promoted!);
     seam.beforeHeadCommit();
