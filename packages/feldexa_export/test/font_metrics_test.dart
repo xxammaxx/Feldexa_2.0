@@ -12,6 +12,9 @@
 // FR-068: Clip detection is only correct when Dart layout and the PDF renderer
 // use the same advance values. The test pins point widths, rune iteration, and
 // the single-line padding boundary from `contracts/export-plan.md` §3.1.
+// The `_overflows` helper below is test-local arithmetic that pins that formula;
+// it is not a production layout implementation, rendering evidence, or a
+// substitute for T103/T108.
 //
 // Not covered here: PDFBox `getStringWidth` parity (requires the Android
 // runtime), Flutter shaping/kerning, physical PDF rendering, and the T103/T108
@@ -292,6 +295,53 @@ void main() {
     });
   });
 
+  group('malformed sfnt bounds', () {
+    test('a cmap group array that fits its declared length parses', () {
+      final _SfntFont font = _SfntFont(
+        _syntheticCmapFont(declaredGroups: 1, declaredLength: 28),
+      );
+      expect(font.cmap, <int, int>{0x41: 1});
+    });
+
+    test('a cmap group array beyond its declared length is rejected', () {
+      // The fixture declares one group's worth of subtable length (28 bytes)
+      // but claims two groups. The second group's bytes are physically the
+      // following table. A fail-closed parser must reject the subtable before
+      // reading them, not import U+0042 from the next table.
+      final _SfntFont font = _SfntFont(
+        _syntheticCmapFont(declaredGroups: 2, declaredLength: 28),
+      );
+      expect(
+        () => font.cmap,
+        throwsA(
+          isA<StateError>().having(
+            (StateError error) => error.message,
+            'message',
+            contains('group array'),
+          ),
+        ),
+      );
+    });
+
+    test('a huge cmap group count is rejected before any group read', () {
+      // 0xFFFFFFFF cannot be multiplied by the 12-byte group size safely on
+      // every platform; the division-based bound rejects it immediately.
+      final _SfntFont font = _SfntFont(
+        _syntheticCmapFont(declaredGroups: 0xFFFFFFFF, declaredLength: 28),
+      );
+      expect(
+        () => font.cmap,
+        throwsA(
+          isA<StateError>().having(
+            (StateError error) => error.message,
+            'message',
+            contains('group array'),
+          ),
+        ),
+      );
+    });
+  });
+
   group('FR-067 German typography', () {
     test('required German codepoints have positive advances', () {
       for (final int weight in <int>[400, 700]) {
@@ -420,8 +470,8 @@ void main() {
     });
   });
 
-  group('FR-068 clip detection', () {
-    test('single-line padding boundary honors the 1.5 pt inset', () {
+  group('FR-068 clip arithmetic (test-local)', () {
+    test('single-line padding arithmetic honors the 1.5 pt inset', () {
       for (final int weight in <int>[400, 700]) {
         final Map<int, int> advances = _bundled[weight]!.advances;
         final double widthAt10 = _measure(
@@ -443,27 +493,42 @@ void main() {
       }
     });
 
-    test('long German value is clipped while the wider field fits', () {
-      for (final int weight in <int>[400, 700]) {
-        final Map<int, int> advances = _bundled[weight]!.advances;
-        const String value = 'Größenänderung – 1.234,56 €';
-        final double widthAt7 = _measure(
-          advances,
-          1000,
-          value,
-          7,
-          weight: weight,
-        );
-        expect(
-          _overflows(advances, value, widthAt7 + 3.0 - 0.01, 7, weight: weight),
-          isTrue,
-        );
-        expect(
-          _overflows(advances, value, widthAt7 + 3.0 + 0.01, 7, weight: weight),
-          isFalse,
-        );
-      }
-    });
+    test(
+      'long German value crosses the helper threshold, wider field does not',
+      () {
+        for (final int weight in <int>[400, 700]) {
+          final Map<int, int> advances = _bundled[weight]!.advances;
+          const String value = 'Größenänderung – 1.234,56 €';
+          final double widthAt7 = _measure(
+            advances,
+            1000,
+            value,
+            7,
+            weight: weight,
+          );
+          expect(
+            _overflows(
+              advances,
+              value,
+              widthAt7 + 3.0 - 0.01,
+              7,
+              weight: weight,
+            ),
+            isTrue,
+          );
+          expect(
+            _overflows(
+              advances,
+              value,
+              widthAt7 + 3.0 + 0.01,
+              7,
+              weight: weight,
+            ),
+            isFalse,
+          );
+        }
+      },
+    );
 
     test('unrenderable characters fail as coverage, not zero width', () {
       for (final int weight in <int>[400, 700]) {
@@ -617,6 +682,105 @@ Map<int, int> _readAdvances(Map<String, dynamic> fontJson) {
     for (final MapEntry<String, dynamic> entry in raw.entries)
       int.parse(entry.key): _int(entry.value, 'advance ${entry.key}'),
   });
+}
+
+/// Builds a minimal static TrueType font whose cmap claims more groups than
+/// its declared subtable length can hold.
+///
+/// The `zzzz` table immediately follows `cmap` and its bytes look like a valid
+/// second group. A parser that trusts `numGroups` without bounding the group
+/// array reads those bytes and imports U+0042 from the next table.
+Uint8List _syntheticCmapFont({
+  required int declaredGroups,
+  required int declaredLength,
+}) {
+  return _buildSfnt(<String, Uint8List>{
+    'cmap': _cmapTable(
+      declaredGroups: declaredGroups,
+      declaredLength: declaredLength,
+    ),
+    'zzzz': _followingGroupBytes(),
+    'head': _headTable(),
+    'maxp': _maxpTable(glyphCount: 10),
+  });
+}
+
+Uint8List _buildSfnt(Map<String, Uint8List> tables) {
+  int nextOffset = _align4(12 + tables.length * 16);
+  final Map<String, int> offsets = <String, int>{};
+  for (final MapEntry<String, Uint8List> table in tables.entries) {
+    offsets[table.key] = nextOffset;
+    nextOffset = _align4(nextOffset + table.value.length);
+  }
+
+  final Uint8List font = Uint8List(nextOffset);
+  final ByteData data = ByteData.sublistView(font);
+  data.setUint32(0, 0x00010000, Endian.big);
+  data.setUint16(4, tables.length, Endian.big);
+
+  int record = 12;
+  for (final MapEntry<String, Uint8List> table in tables.entries) {
+    font.setRange(record, record + 4, table.key.codeUnits);
+    data.setUint32(record + 8, offsets[table.key]!, Endian.big);
+    data.setUint32(record + 12, table.value.length, Endian.big);
+    record += 16;
+  }
+  for (final MapEntry<String, Uint8List> table in tables.entries) {
+    final int offset = offsets[table.key]!;
+    font.setRange(offset, offset + table.value.length, table.value);
+  }
+  return font;
+}
+
+int _align4(int value) => (value + 3) & ~3;
+
+Uint8List _cmapTable({
+  required int declaredGroups,
+  required int declaredLength,
+}) {
+  // cmap header (4) + one encoding record (8) + a 28-byte format 12 subtable
+  // with exactly one group. The second group lives outside this table.
+  final Uint8List cmap = Uint8List(40);
+  final ByteData data = ByteData.sublistView(cmap);
+  data.setUint16(0, 0, Endian.big);
+  data.setUint16(2, 1, Endian.big);
+  data.setUint16(4, 3, Endian.big);
+  data.setUint16(6, 1, Endian.big);
+  data.setUint32(8, 12, Endian.big);
+
+  const int subtable = 12;
+  data.setUint16(subtable, 12, Endian.big);
+  data.setUint16(subtable + 2, 0, Endian.big);
+  data.setUint32(subtable + 4, declaredLength, Endian.big);
+  data.setUint32(subtable + 8, 0, Endian.big);
+  data.setUint32(subtable + 12, declaredGroups, Endian.big);
+  data.setUint32(subtable + 16, 0x41, Endian.big);
+  data.setUint32(subtable + 20, 0x41, Endian.big);
+  data.setUint32(subtable + 24, 1, Endian.big);
+  return cmap;
+}
+
+Uint8List _followingGroupBytes() {
+  final Uint8List group = Uint8List(12);
+  final ByteData data = ByteData.sublistView(group);
+  data.setUint32(0, 0x42, Endian.big);
+  data.setUint32(4, 0x42, Endian.big);
+  data.setUint32(8, 2, Endian.big);
+  return group;
+}
+
+Uint8List _headTable() {
+  final Uint8List head = Uint8List(54);
+  ByteData.sublistView(head).setUint16(18, 1000, Endian.big);
+  return head;
+}
+
+Uint8List _maxpTable({required int glyphCount}) {
+  final Uint8List maxp = Uint8List(6);
+  final ByteData data = ByteData.sublistView(maxp);
+  data.setUint32(0, 0x00010000, Endian.big);
+  data.setUint16(4, glyphCount, Endian.big);
+  return maxp;
 }
 
 String _appAssetPath(String bundleAsset) {
@@ -823,6 +987,12 @@ final class _SfntFont {
         throw StateError('cmap format 12 subtable is out of bounds');
       }
       final int groups = _u32(subtable + 12);
+      // Bound the whole group array before the first read. Division avoids a
+      // `groups * 12` overflow and keeps every group inside this subtable,
+      // not in whatever table follows it.
+      if (groups > (length - 16) ~/ 12) {
+        throw StateError('cmap format 12 group array is truncated');
+      }
       final Map<int, int> glyphs = <int, int>{};
       for (int group = 0; group < groups; group++) {
         final int base = subtable + 16 + group * 12;
