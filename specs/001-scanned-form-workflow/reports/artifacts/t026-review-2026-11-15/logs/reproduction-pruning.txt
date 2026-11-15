@@ -1,0 +1,23 @@
+T026 review reproduction - storage-format section 3.1 step 8 ownership
+
+At 365b384:
+  git show 365b384:apps/.../EncryptedStore.kt | grep -c pruneRevisions = 0
+
+Contract and model requirements:
+  storage-format.md:148  Prune revisions beyond the retention policy (last 3 autosave +
+                         newest explicit + recovery), deleting only after step 7 succeeded.
+  data-model.md:325      Retention: keep last 3 autosave revisions + the newest explicit
+                         revision + a recovery revision if present; pruning only after a
+                         verified commit.
+
+Task ownership at 365b384:
+  tasks.md T090 does not mention pruning or retention.
+  The T026 note assigned pruning to the "save-orchestration/revision-history owner (T090)"
+  without that ownership being recorded on T090.
+
+Correction:
+  T026 now exposes pruneRevisions(documentId, keepRevisionIds): it verifies the current head
+  and head revision first, never deletes the head, and only removes rev/<uuid>.fx1 files the
+  caller excluded. The retention policy itself remains open because the persisted
+  RevisionContent carries no revision kind. The review report records the options instead of
+  silently moving the requirement.

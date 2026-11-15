@@ -1,0 +1,10 @@
+T026 review reproduction - compare-and-commit race
+
+Command: Gradle :app:testDebugUnitTest --tests
+         de.feldexa.app.storage.EncryptedStoreReviewTest.twoSavesWithTheSameExpectedHeadMustNotBothCommit
+Condition: aggregate commit lock temporarily bypassed to restore the pre-fix behavior.
+Scenario: two saves use the same expected head; the first is paused after reading the head,
+          the second commits, then the first resumes.
+Result: FAIL.
+Assertion: exactly one save may win expected:<1> but was:<2>
+Interpretation: both saves committed; the second head overwrote the first head.

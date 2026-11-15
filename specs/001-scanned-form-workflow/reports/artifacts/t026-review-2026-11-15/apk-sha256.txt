@@ -1,0 +1,5 @@
+# T026 review-correction APK identity (repo-relative paths)
+0941b1764b39a83953bfb70470227f790df2c279e7ac03596fe90c1f5fb1c32e   216359341  apps/feldexa_app/build/app/outputs/apk/debug/app-debug.apk  # app APK
+82711d4215d6fa24d754f5b26490effec216bf6db8155ff105f2d7768890d8a2      399814  apps/feldexa_app/build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk  # instrumentation test APK
+0941b1764b39a83953bfb70470227f790df2c279e7ac03596fe90c1f5fb1c32e   216359341  build/t026-work/guest-review/app-debug-installed.apk  # guest-pulled app APK
+82711d4215d6fa24d754f5b26490effec216bf6db8155ff105f2d7768890d8a2      399814  build/t026-work/guest-review/app-debug-androidTest-installed.apk  # guest-pulled test APK
