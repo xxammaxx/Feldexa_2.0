@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="de.feldexa.app.storage.EncryptedStoreRetentionTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-15T16:45:19.132Z" hostname="host" time="0.187">
+  <properties/>
+  <testcase name="identicalPersistedPayloadsCanRequireDifferentKeepSets" classname="de.feldexa.app.storage.EncryptedStoreRetentionTest" time="0.113"/>
+  <testcase name="persistedRevisionPayloadCarriesNoKindWhileHeadCarriesCurrentKind" classname="de.feldexa.app.storage.EncryptedStoreRetentionTest" time="0.027"/>
+  <testcase name="saveRevisionDoesNotGuessAPolicy" classname="de.feldexa.app.storage.EncryptedStoreRetentionTest" time="0.044"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
