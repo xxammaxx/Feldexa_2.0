@@ -94,6 +94,20 @@ final class SimulatedPdfExportAdapter implements PdfExportPort {
       embeddedFont: embeddedFont,
     );
     if (warnings.isNotEmpty) {
+      // `ExportBlockedException` is the canonical `EXP-001` content-blocker;
+      // `ExportFailedException` is the canonical `EXP-002` failure. Catalog-only
+      // codes such as EXP-003/EXP-004/EXP-005/EXP-006 are carried by the
+      // `validate` result (`contracts/ports.md` §3), so export must not invent
+      // a second exception class for them. It must, however, keep the
+      // classification: a source/page failure is never disguised as a
+      // field-level content block just because a field blocker is also found.
+      final bool sourceOrPageFailure = warnings.any(
+        (ExportValidationWarning warning) =>
+            _exportFailureWarningCodes.contains(warning.code),
+      );
+      if (sourceOrPageFailure) {
+        throw ExportFailedException();
+      }
       final List<String> fieldIds = _blockingFieldIds(warnings);
       if (fieldIds.isEmpty) {
         throw ExportFailedException();
@@ -171,13 +185,35 @@ final class SimulatedPdfExportAdapter implements PdfExportPort {
       );
       return warnings;
     }
-    if (document.source.sha256 != plan.sourceSha256) {
+    // Verify the staged source content itself, not only the persisted source
+    // reference. `validate` must catch a corrupt backend object before any
+    // write, so export cannot silently use bytes that no longer match the
+    // recorded SHA-256 (EXP-005, FR-072/FR-073).
+    final SimulatedStagedSource? staged = backend.stagedSource(
+      document.source.id,
+    );
+    if (staged == null) {
       warnings.add(
-        ExportValidationWarning(
-          code: 'EXP-005',
-          reason: 'source_hash_mismatch',
-        ),
+        ExportValidationWarning(code: 'EXP-005', reason: 'source_missing'),
       );
+    } else {
+      final String actualSourceSha256 = sha256Hex(staged.bytes);
+      final bool contentMatches =
+          staged.bytes.length == document.source.sizeBytes &&
+          actualSourceSha256 == document.source.sha256 &&
+          staged.pageCount == document.source.pageCount;
+      if (!contentMatches) {
+        warnings.add(
+          ExportValidationWarning(code: 'EXP-005', reason: 'source_corrupt'),
+        );
+      } else if (document.source.sha256 != plan.sourceSha256) {
+        warnings.add(
+          ExportValidationWarning(
+            code: 'EXP-005',
+            reason: 'source_hash_mismatch',
+          ),
+        );
+      }
     }
     if (document.source.pageCount != plan.pageCount) {
       warnings.add(
@@ -261,6 +297,18 @@ final class SimulatedPdfExportAdapter implements PdfExportPort {
     }
     return List<ExportValidationWarning>.unmodifiable(warnings);
   }
+
+  /// Warning codes that describe an export failure rather than a field block.
+  ///
+  /// The canonical taxonomy has no separate exception class for these
+  /// catalog-only codes; they remain exact in `validate`'s result and export
+  /// uses the nearest typed `ExportFailedException` (`EXP-002`).
+  static const Set<String> _exportFailureWarningCodes = <String>{
+    'EXP-002',
+    'EXP-005',
+    'EXP-006',
+    'SAVE-001',
+  };
 
   static bool _withinDisplay(Rect rect, Size display) {
     const double tolerance = 0.5;

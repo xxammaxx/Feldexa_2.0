@@ -128,11 +128,12 @@ final class SimulatedTestWorld {
     required String documentId,
     required String revisionId,
     required List<ExportOp> ops,
+    String? sourceSha256,
   }) {
     return ExportPlan(
       documentId: documentId,
       revisionId: revisionId,
-      sourceSha256: imported.sha256,
+      sourceSha256: sourceSha256 ?? imported.sha256,
       pageCount: 1,
       evidenceClass: 'simulated',
       font: ExportFont(
