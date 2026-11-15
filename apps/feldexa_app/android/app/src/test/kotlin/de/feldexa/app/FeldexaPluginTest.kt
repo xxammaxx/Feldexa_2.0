@@ -927,6 +927,114 @@ class FeldexaPluginTest {
     }
 
     @Test
+    fun assertionErrorIsPublishedAsSafeInternalResult() {
+        val executor = QueueExecutor()
+        val results = PlatformResultPublisher(DirectPoster)
+        val sink = RecordingSink()
+        results.attachSink(sink)
+        val facade = newFacade(
+            servicePrefix = "ocr",
+            service = ThrowingService(AssertionError("secret /private/title.pdf")),
+            executor = executor,
+            results = results,
+        )
+        val startReply = RecordingReply()
+        facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), startReply)
+        val operationId = startOperationId(startReply)
+        executor.runNext()
+
+        assertNull(startReply.failure)
+        val result = resultFor(sink, operationId)
+        assertEquals(false, result["ok"])
+        val error = result["error"] as Map<*, *>
+        assertEquals("PLT-001", error["code"])
+        assertEquals("platform.internal", error["message"])
+        val details = error["details"] as Map<*, *>
+        assertEquals("internalError", details["category"])
+        assertFalse(result.toString().contains("secret"))
+        assertFalse(result.toString().contains("/private"))
+        assertEquals(1, sink.events.size)
+    }
+
+    @Test
+    fun syncAssertionErrorReturnsSafePlatformException() {
+        val facade = newFacade(
+            service = ThrowingService(AssertionError("secret /private/title.pdf")),
+        )
+        val reply = RecordingReply()
+        facade.handle("store.status", mapOf("schemaVersion" to 1), reply)
+        assertFailure(reply, "PLT-001")
+        assertEquals("internalError", reply.failure?.category)
+        assertEquals("platform.internal", reply.failure?.message)
+        assertFalse(reply.failure.toString().contains("secret"))
+    }
+
+    @Test
+    fun assertionErrorAfterCancelPublishesOnlyCancellation() {
+        val executor = ManualExecutor()
+        val service = BlockingErrorService()
+        val results = PlatformResultPublisher(DirectPoster)
+        val sink = RecordingSink()
+        results.attachSink(sink)
+        val facade = newFacade(
+            servicePrefix = "ocr",
+            service = service,
+            executor = executor,
+            results = results,
+        )
+        val startReply = RecordingReply()
+        facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), startReply)
+        val operationId = startOperationId(startReply)
+
+        val worker = Thread { executor.runNext() }
+        worker.start()
+        assertTrue(service.entered.await(5, TimeUnit.SECONDS))
+
+        val cancelReply = RecordingReply()
+        facade.handle(
+            "cancel.operation",
+            mapOf("schemaVersion" to 1, "operationId" to operationId),
+            cancelReply,
+        )
+        assertEquals(mapOf("cancelled" to true), (cancelReply.successValue as Map<*, *>)["data"])
+        service.release.countDown()
+        worker.join(5_000)
+        assertFalse(worker.isAlive)
+
+        val result = sink.events.single() as Map<*, *>
+        assertEquals(false, result["ok"])
+        assertEquals("PLT-004", (result["error"] as Map<*, *>)["code"])
+    }
+
+    @Test
+    fun assertionErrorAfterDisposeEmitsNothing() {
+        val executor = ManualExecutor()
+        val service = BlockingErrorService()
+        val results = PlatformResultPublisher(DirectPoster)
+        val sink = RecordingSink()
+        results.attachSink(sink)
+        val facade = newFacade(
+            servicePrefix = "ocr",
+            service = service,
+            executor = executor,
+            results = results,
+        )
+        val startReply = RecordingReply()
+        facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), startReply)
+        startOperationId(startReply)
+
+        val worker = Thread { executor.runNext() }
+        worker.start()
+        assertTrue(service.entered.await(5, TimeUnit.SECONDS))
+
+        facade.dispose()
+        service.release.countDown()
+        worker.join(5_000)
+        assertFalse(worker.isAlive)
+        assertTrue(sink.events.isEmpty())
+    }
+
+    @Test
     fun ocrOperationsAreSerializedConservatively() {
         val executor = ManualExecutor()
         val service = ConcurrencyService()
@@ -1659,6 +1767,17 @@ class FeldexaPluginTest {
             entered.countDown()
             release.await(5, TimeUnit.SECONDS)
             return mapOf("ok" to true)
+        }
+    }
+
+    private class BlockingErrorService : PlatformService {
+        val entered = CountDownLatch(1)
+        val release = CountDownLatch(1)
+
+        override fun handle(request: PlatformRequest, context: OperationContext): Any? {
+            entered.countDown()
+            release.await(5, TimeUnit.SECONDS)
+            throw AssertionError("secret /private/title.pdf")
         }
     }
 

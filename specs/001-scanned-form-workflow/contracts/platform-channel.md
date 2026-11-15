@@ -131,6 +131,13 @@ On failure or cancellation, `data` is absent and `error` is present:
 
 `error.code`, `error.message`, and `error.details` use the same §2.2 contract as `PlatformException`; post-start failures are never thrown as `PlatformException` because the start reply was already sent.
 
+**Service Error mapping.** An accepted service that throws an `Error` (including
+`AssertionError`, `LinkageError`, or `StackOverflowError`) is still a terminal
+failure: it maps to `PLT-001` / `platform.internal` / `internalError` with the
+ordinary content-free details. The `Error` message, class name, stack trace, path,
+and cause are never copied into the result. Exactly one terminal result is
+published; if cancellation won first, the result is `PLT-004` instead.
+
 **Ordering and race rules.**
 
 - The start reply and the terminal result are independent signals. The terminal result may be published before the start reply is delivered when the worker finishes immediately; Dart MUST buffer an unknown `operationId` result and reconcile it with the start reply.
@@ -399,6 +406,7 @@ Every string that becomes a UI label is capped (title 200, field label 120, `lab
 | Payload round-trip | Emulator instrumentation | every method accepts a minimal valid payload and rejects unknown fields, bad UUIDs, oversized payloads |
 | Async start reply | JVM contract + Emulator instrumentation | every asynchronous method returns `{operationId}` immediately with no method data; synchronous methods keep their direct result |
 | Async terminal result | JVM contract + Emulator instrumentation | one `operation.result` success carries the method data; one failure/cancellation carries `{code,message,details}`; post-start failures never arrive as `PlatformException` |
+| Service Error | JVM contract + Emulator instrumentation | an accepted service throwing `AssertionError`/`Error` yields exactly one safe `PLT-001`/`internalError` result (or `PLT-004` if cancellation won), with no throwable text, class, stack, or path in the result |
 | Async start rejection | JVM contract + Emulator instrumentation | validation, missing service, queue overflow, and concurrent same-document save reject with `PlatformException` and emit no result |
 | Async race and late listener | JVM contract + Emulator instrumentation | a result completed before start-reply delivery or before listener attach is retained/replayed; duplicate replay is deduplicated by `operationId` |
 | Async cancellation | JVM contract + Emulator instrumentation | queued or running cancellation yields one terminal `PLT-004` result; cancellation after terminal returns `false`; queued cancellation frees the bounded slot |

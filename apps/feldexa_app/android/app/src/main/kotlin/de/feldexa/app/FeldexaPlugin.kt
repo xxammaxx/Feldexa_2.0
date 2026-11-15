@@ -737,8 +737,9 @@ class KeyedSerialExecutor(
             try {
                 entry.task()
             } catch (_: Throwable) {
-                // The facade has already converted service failures to replies;
-                // keep draining the same key so one bad task cannot stall it.
+                // The facade converts service Throwables (including Error) to a
+                // terminal result before returning; keep draining the same key so
+                // one bad task cannot stall the queue.
             }
         }
     }
@@ -951,7 +952,11 @@ class PlatformChannelFacade(
                 deliverFailure(handle, reply, async, operationId, PlatformFailure.unsupported(), startedAt)
                 return
             } catch (error: Error) {
-                throw error
+                // An accepted service must always terminate. AssertionError and
+                // other Errors are mapped to the content-free internal failure;
+                // the Error text and stack are never forwarded.
+                deliverFailure(handle, reply, async, operationId, PlatformFailure.internal(), startedAt)
+                return
             } catch (unexpected: Exception) {
                 deliverFailure(handle, reply, async, operationId, PlatformFailure.internal(), startedAt)
                 return
