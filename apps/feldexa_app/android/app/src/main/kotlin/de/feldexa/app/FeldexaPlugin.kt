@@ -10,6 +10,7 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 import java.nio.charset.StandardCharsets
 import java.util.ArrayDeque
+import java.util.LinkedHashMap
 import java.util.UUID
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CancellationException
@@ -27,8 +28,10 @@ import java.util.concurrent.atomic.AtomicReference
  * Contract: `specs/001-scanned-form-workflow/contracts/platform-channel.md`.
  *
  * This file deliberately contains only the channel boundary and its validation,
- * error, threading, cancellation, event, and lifecycle machinery. It contains no
- * UI, form, geometry, layout, OCR, storage, or PDF implementation: the later
+ * error, threading, cancellation, start/result, event, and lifecycle machinery.
+ * Asynchronous methods return a reliable start reply with an operation id; their
+ * terminal data is delivered on `de.feldexa/results`. It contains no UI, form,
+ * geometry, layout, OCR, storage, or PDF implementation: the later
  * service tasks register a [PlatformService] per method prefix through
  * [FeldexaPlugin.registerService]. Until a prefix is registered, its methods
  * fail closed with `PLT-001` instead of pretending a capability exists.
@@ -47,6 +50,7 @@ class FeldexaPlugin : FlutterPlugin, ActivityAware {
     private var facade: PlatformChannelFacade? = null
     private var methodChannel: MethodChannel? = null
     private var eventChannel: EventChannel? = null
+    private var resultChannel: EventChannel? = null
     private var importChannel: MethodChannel? = null
     private var activityBinding: ActivityPluginBinding? = null
 
@@ -59,7 +63,12 @@ class FeldexaPlugin : FlutterPlugin, ActivityAware {
             if (facade != null) return
 
             val publisher = PlatformEventPublisher(mainPoster)
-            val created = PlatformChannelFacade(mainPoster = mainPoster, events = publisher)
+            val results = PlatformResultPublisher(mainPoster)
+            val created = PlatformChannelFacade(
+                mainPoster = mainPoster,
+                events = publisher,
+                results = results,
+            )
             facade = created
 
             methodChannel = MethodChannel(
@@ -74,7 +83,13 @@ class FeldexaPlugin : FlutterPlugin, ActivityAware {
                 binding.binaryMessenger,
                 FeldexaChannels.EVENTS,
             ).also { channel ->
-                channel.setStreamHandler(FlutterEventStreamHandler(publisher))
+                channel.setStreamHandler(FlutterEventStreamHandler(publisher::attachSink))
+            }
+            resultChannel = EventChannel(
+                binding.binaryMessenger,
+                FeldexaChannels.RESULTS,
+            ).also { channel ->
+                channel.setStreamHandler(FlutterEventStreamHandler(results::attachSink))
             }
 
             pendingServices.forEach { (prefix, service) ->
@@ -165,9 +180,11 @@ class FeldexaPlugin : FlutterPlugin, ActivityAware {
         synchronized(registrationLock) {
             methodChannel?.setMethodCallHandler(null)
             eventChannel?.setStreamHandler(null)
+            resultChannel?.setStreamHandler(null)
             importChannel?.setMethodCallHandler(null)
             methodChannel = null
             eventChannel = null
+            resultChannel = null
             importChannel = null
             pendingImportMessengers.clear()
             facade?.dispose()
@@ -204,14 +221,14 @@ class FeldexaPlugin : FlutterPlugin, ActivityAware {
     }
 
     private class FlutterEventStreamHandler(
-        private val publisher: PlatformEventPublisher,
+        private val attachSink: (FeldexaEventSink?) -> Unit,
     ) : EventChannel.StreamHandler {
         override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-            publisher.attachSink(events?.let { sink -> FeldexaEventSink { sink.success(it) } })
+            attachSink(events?.let { sink -> FeldexaEventSink { sink.success(it) } })
         }
 
         override fun onCancel(arguments: Any?) {
-            publisher.attachSink(null)
+            attachSink(null)
         }
     }
 }
@@ -220,9 +237,27 @@ class FeldexaPlugin : FlutterPlugin, ActivityAware {
 object FeldexaChannels {
     const val PLATFORM = "de.feldexa/platform"
     const val EVENTS = "de.feldexa/events"
+    const val RESULTS = "de.feldexa/results"
     const val IMPORT = "de.feldexa/import"
     const val SCHEMA_VERSION = 1
 }
+
+/**
+ * Methods that use the owner-authorized start/result protocol: the MethodChannel
+ * reply is the start reply `{operationId}`; the method-specific data is delivered
+ * later as a terminal `operation.result` on `de.feldexa/results`.
+ */
+private val ASYNC_METHODS: Set<String> = setOf(
+    "import.pickAndImport",
+    "import.verifySource",
+    "store.saveRevision",
+    "store.writeSignature",
+    "store.createTemplate",
+    "store.saveTemplateVersion",
+    "ocr.recognize",
+    "export.validate",
+    "export.render",
+)
 
 /** Host lifecycle values accepted by the `lifecycle` event (§8). */
 enum class HostLifecycle(val wireValue: String) {
@@ -700,6 +735,7 @@ class PlatformChannelFacade(
     val services: PlatformServiceRegistry = PlatformServiceRegistry(),
     private val mainPoster: ThreadPoster = AndroidMainThreadPoster(),
     val events: PlatformEventPublisher = PlatformEventPublisher(mainPoster),
+    val results: PlatformResultPublisher = PlatformResultPublisher(mainPoster),
     private val executor: BackgroundExecutor = BoundedBackgroundExecutor(),
     val limits: ChannelLimits = ChannelLimits(),
     private val operations: OperationRegistry = OperationRegistry(),
@@ -754,13 +790,7 @@ class PlatformChannelFacade(
 
         val operationId = operationIdFactory()
         val handle = operations.begin(operationId)
-        operationKind(method)?.let { kind ->
-            // §8 progress events may be coalesced or missed. This start event is
-            // not coalesced, so the id is available before dispatch. It still is
-            // not a method-result field; §2.1 and the method tables do not
-            // authorize one, so the residual missed-event case is documented.
-            events.emitOperationStarted(operationId, kind)
-        }
+        val async = method in ASYNC_METHODS
         val queued = try {
             serialExecutor.submit(serializationKey(request)) {
                 runOperation(
@@ -768,9 +798,10 @@ class PlatformChannelFacade(
                     service = service,
                     operationId = operationId,
                     handle = handle,
-                    reply = reply,
+                    reply = if (async) null else reply,
                     startedAt = startedAt,
                     saveDocumentId = saveDocumentId,
+                    async = async,
                 )
             }
         } catch (rejected: RejectedExecutionException) {
@@ -790,12 +821,23 @@ class PlatformChannelFacade(
             return
         }
 
+        if (async) {
+            // Owner decision: a reliable start reply carries the operation id.
+            // The method-specific data follows on the result channel.
+            reply.success(successEnvelope(linkedMapOf("operationId" to operationId)))
+        }
+
         queued?.let { entry ->
             handle.setCancelAction {
                 if (serialExecutor.cancel(entry)) {
                     operations.finish(handle)
                     releaseSave(saveDocumentId)
-                    reply.error(PlatformFailure.cancelled().withDuration(elapsedSince(startedAt)))
+                    val failure = PlatformFailure.cancelled().withDuration(elapsedSince(startedAt))
+                    if (async) {
+                        results.publish(errorResult(operationId, failure))
+                    } else {
+                        reply.error(failure)
+                    }
                 }
             }
         }
@@ -827,23 +869,15 @@ class PlatformChannelFacade(
         else -> null
     }
 
-    /** Method domains whose calls can be both long-running and cancellable. */
-    private fun operationKind(method: String): String? = when (method) {
-        "import.pickAndImport", "import.verifySource" -> "import"
-        "ocr.recognize" -> "analyze"
-        "store.saveRevision", "store.writeSignature", "store.createTemplate", "store.saveTemplateVersion" -> "save"
-        "export.validate", "export.render" -> "export"
-        else -> null
-    }
-
     private fun runOperation(
         request: PlatformRequest,
         service: PlatformService,
         operationId: String,
         handle: OperationHandle,
-        reply: ChannelReply,
+        reply: ChannelReply?,
         startedAt: Long,
         saveDocumentId: String?,
+        async: Boolean,
     ) {
         val data = try {
             if (handle.isCancelled) throw PlatformFailure.cancelled()
@@ -852,46 +886,83 @@ class PlatformChannelFacade(
                 OperationContext(operationId, handle, events),
             )
         } catch (failure: PlatformFailure) {
-            deliverError(reply, failure, startedAt)
+            deliverFailure(reply, async, operationId, failure, startedAt)
             return
         } catch (interrupted: InterruptedException) {
             Thread.currentThread().interrupt()
-            deliverError(reply, PlatformFailure.cancelled(), startedAt)
+            deliverFailure(reply, async, operationId, PlatformFailure.cancelled(), startedAt)
             return
         } catch (cancelled: CancellationException) {
-            deliverError(reply, PlatformFailure.cancelled(), startedAt)
+            deliverFailure(reply, async, operationId, PlatformFailure.cancelled(), startedAt)
             return
         } catch (security: SecurityException) {
-            deliverError(reply, PlatformFailure.invalidIdentifier(), startedAt)
+            deliverFailure(reply, async, operationId, PlatformFailure.invalidIdentifier(), startedAt)
             return
         } catch (unsupported: UnsupportedOperationException) {
-            deliverError(reply, PlatformFailure.unsupported(), startedAt)
+            deliverFailure(reply, async, operationId, PlatformFailure.unsupported(), startedAt)
             return
         } catch (error: Error) {
             throw error
         } catch (unexpected: Exception) {
-            deliverError(reply, PlatformFailure.internal(), startedAt)
+            deliverFailure(reply, async, operationId, PlatformFailure.internal(), startedAt)
             return
         } finally {
             operations.finish(handle)
             releaseSave(saveDocumentId)
         }
 
-        mainPoster.post {
-            reply.success(successEnvelope(data))
+        if (async) {
+            results.publish(successResult(operationId, data))
+        } else {
+            mainPoster.post {
+                reply?.success(successEnvelope(data))
+            }
         }
     }
+
+    private fun deliverFailure(
+        reply: ChannelReply?,
+        async: Boolean,
+        operationId: String,
+        failure: PlatformFailure,
+        startedAt: Long,
+    ) {
+        val timed = failure.withDuration(elapsedSince(startedAt))
+        if (async) {
+            results.publish(errorResult(operationId, timed))
+        } else {
+            mainPoster.post { reply?.error(timed) }
+        }
+    }
+
+    private fun successResult(operationId: String, data: Any?): Map<String, Any?> = linkedMapOf(
+        "schemaVersion" to FeldexaChannels.SCHEMA_VERSION,
+        "event" to "operation.result",
+        "operationId" to operationId,
+        "ok" to true,
+        "data" to data,
+    )
+
+    private fun errorResult(
+        operationId: String,
+        failure: PlatformFailure,
+    ): Map<String, Any?> = linkedMapOf(
+        "schemaVersion" to FeldexaChannels.SCHEMA_VERSION,
+        "event" to "operation.result",
+        "operationId" to operationId,
+        "ok" to false,
+        "error" to linkedMapOf(
+            "code" to failure.code,
+            "message" to failure.machineMessage,
+            "details" to failure.details(),
+        ),
+    )
 
     private fun successEnvelope(data: Any?): Map<String, Any?> = linkedMapOf(
         "schemaVersion" to FeldexaChannels.SCHEMA_VERSION,
         "ok" to true,
         "data" to data,
     )
-
-    private fun deliverError(reply: ChannelReply, failure: PlatformFailure, startedAt: Long) {
-        val timed = failure.withDuration(elapsedSince(startedAt))
-        mainPoster.post { reply.error(timed) }
-    }
 
     /** Stops background work and makes subsequent calls fail closed. */
     fun dispose() {
@@ -900,6 +971,7 @@ class PlatformChannelFacade(
         operations.clear()
         inFlightSaves.clear()
         events.dispose()
+        results.dispose()
         services.closeAll()
     }
 
@@ -1028,28 +1100,6 @@ class PlatformEventPublisher(
         )
     }
 
-    /**
-     * Non-coalesced start signal. It makes the §9 cancellation id observable
-     * before dispatch while keeping the contract's event/result split: §8 is the
-     * only authorized place for an operation id, and §2.1 does not authorize a
-     * result field. If the listener misses this event, only a later progress
-     * event can recover the id; that residual collision is documented.
-     */
-    fun emitOperationStarted(operationId: String, kind: String) {
-        require(kind == "import" || kind == "analyze" || kind == "save" || kind == "export") {
-            "invalid progress kind"
-        }
-        val event = progressEvent(
-            eventName = "operation.progress",
-            operationId = operationId,
-            phase = "queued",
-            fraction = 0.0,
-            pageIndex = null,
-        )
-        event["kind"] = kind
-        emitDirect(event)
-    }
-
     fun emitOperationProgress(
         operationId: String,
         kind: String,
@@ -1139,6 +1189,62 @@ class PlatformEventPublisher(
     private fun emitDirect(event: Map<String, Any?>) {
         if (disposed.get()) return
         poster.post { sink.get()?.success(event) }
+    }
+}
+
+/**
+ * Retains terminal async results and replays them when a result listener attaches.
+ * Retention is session-scoped, bounded, and duplicate-tolerant; the start reply is
+ * already reliable because it carries the operation id before any terminal work.
+ */
+class PlatformResultPublisher(
+    private val poster: ThreadPoster,
+    private val maxRetained: Int = 64,
+) {
+    private val lock = Any()
+    private val retained = LinkedHashMap<String, Map<String, Any?>>()
+    private val sink = AtomicReference<FeldexaEventSink?>(null)
+    private val disposed = AtomicBoolean(false)
+
+    init {
+        require(maxRetained > 0) { "maxRetained must be positive" }
+    }
+
+    /**
+     * Attaches the result sink and replays all retained terminal results. Replay
+     * duplicates are allowed; Dart deduplicates by operationId.
+     */
+    fun attachSink(newSink: FeldexaEventSink?) {
+        val replay: List<Map<String, Any?>>
+        synchronized(lock) {
+            sink.set(newSink)
+            replay = retained.values.toList()
+        }
+        if (newSink != null) {
+            replay.forEach { event -> poster.post { sink.get()?.success(event) } }
+        }
+    }
+
+    /** Publishes a terminal result and retains it for a late listener. */
+    fun publish(result: Map<String, Any?>) {
+        if (disposed.get()) return
+        val operationId = result["operationId"] as? String ?: return
+        synchronized(lock) {
+            retained.remove(operationId)
+            retained[operationId] = result
+            while (retained.size > maxRetained) {
+                retained.remove(retained.keys.iterator().next())
+            }
+        }
+        poster.post { sink.get()?.success(result) }
+    }
+
+    fun dispose() {
+        if (!disposed.compareAndSet(false, true)) return
+        synchronized(lock) {
+            retained.clear()
+            sink.set(null)
+        }
     }
 }
 

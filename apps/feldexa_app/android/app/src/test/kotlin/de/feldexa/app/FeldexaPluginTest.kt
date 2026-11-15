@@ -735,44 +735,47 @@ class FeldexaPluginTest {
     }
 
     @Test
-    fun longOperationPublishesCancellationIdBeforeDispatch() {
+    fun asyncStartReplyCarriesIdAndQueuedCancelPublishesResult() {
         val executor = QueueExecutor()
-        val publisher = PlatformEventPublisher(DirectPoster)
+        val results = PlatformResultPublisher(DirectPoster)
         val sink = RecordingSink()
-        publisher.attachSink(sink)
-        val facade = newFacade(executor = executor, events = publisher)
-        val reply = RecordingReply()
+        results.attachSink(sink)
+        val facade = newFacade(executor = executor, results = results)
+        val startReply = RecordingReply()
 
-        facade.handle("store.saveRevision", saveRevisionPayload(documentId), reply)
-
-        val event = sink.events.single() as Map<*, *>
-        assertEquals("operation.progress", event["event"])
-        assertEquals("save", event["kind"])
-        assertEquals("queued", event["phase"])
-        val discoveredOperationId = event["operationId"] as String
-        assertTrue(discoveredOperationId.isNotEmpty())
+        facade.handle("store.saveRevision", saveRevisionPayload(documentId), startReply)
+        val operationId = startOperationId(startReply)
+        assertEquals(1, executor.tasks.size)
 
         val cancelReply = RecordingReply()
         facade.handle(
             "cancel.operation",
-            mapOf("schemaVersion" to 1, "operationId" to discoveredOperationId),
+            mapOf("schemaVersion" to 1, "operationId" to operationId),
             cancelReply,
         )
         assertEquals(mapOf("cancelled" to true), (cancelReply.successValue as Map<*, *>)["data"])
 
+        val result = resultFor(sink, operationId)
+        assertEquals(false, result["ok"])
+        assertEquals("PLT-004", (result["error"] as Map<*, *>)["code"])
+
         executor.runNext()
-        assertFailure(reply, "PLT-004")
+        assertEquals(1, sink.events.size)
     }
 
     @Test
     fun sameDocumentSecondSaveReturnsSave006() {
         val executor = ManualExecutor()
         val service = ConcurrencyService()
-        val facade = newFacade(service = service, executor = executor)
+        val results = PlatformResultPublisher(DirectPoster)
+        val sink = RecordingSink()
+        results.attachSink(sink)
+        val facade = newFacade(service = service, executor = executor, results = results)
         val first = RecordingReply()
         val second = RecordingReply()
 
         facade.handle("store.saveRevision", saveRevisionPayload(documentId), first)
+        val firstId = startOperationId(first)
         facade.handle("store.saveRevision", saveRevisionPayload(documentId), second)
 
         assertEquals(1, executor.tasks.size)
@@ -780,15 +783,18 @@ class FeldexaPluginTest {
         assertEquals("concurrentWrite", second.failure?.category)
         assertEquals(true, second.failure?.retryable)
         assertNull(first.failure)
+
         executor.runNext()
         assertEquals(1, service.calls)
-        assertNull(first.failure)
+        assertEquals(true, resultFor(sink, firstId)["ok"])
 
         val third = RecordingReply()
         facade.handle("store.saveRevision", saveRevisionPayload(documentId), third)
+        val thirdId = startOperationId(third)
         assertNull(third.failure)
         executor.runNext()
         assertEquals(2, service.calls)
+        assertEquals(true, resultFor(sink, thirdId)["ok"])
     }
 
     @Test
@@ -833,23 +839,22 @@ class FeldexaPluginTest {
     fun queuedCancellationRemovesTaskAndFreesCapacity() {
         val executor = ManualExecutor()
         val service = ConcurrencyService()
-        val publisher = PlatformEventPublisher(DirectPoster)
+        val results = PlatformResultPublisher(DirectPoster)
         val sink = RecordingSink()
-        publisher.attachSink(sink)
+        results.attachSink(sink)
         val facade = newFacade(
             servicePrefix = "ocr",
             service = service,
             executor = executor,
-            events = publisher,
+            results = results,
         )
-        val replies = (1..8).map { index ->
+        val replies = (1..8).map {
             val reply = RecordingReply()
             facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), reply)
             assertNull(reply.failure)
             reply
         }
-        val ids = sink.events.map { (it as Map<*, *>)["operationId"] as String }
-        assertEquals(8, ids.size)
+        val ids = replies.map(::startOperationId)
 
         val cancelReply = RecordingReply()
         facade.handle(
@@ -858,43 +863,85 @@ class FeldexaPluginTest {
             cancelReply,
         )
         assertEquals(mapOf("cancelled" to true), (cancelReply.successValue as Map<*, *>)["data"])
-        assertFailure(replies[3], "PLT-004")
+        assertEquals(false, resultFor(sink, ids[3])["ok"])
 
         val replacement = RecordingReply()
         facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), replacement)
-        assertNull(replacement.failure)
+        val replacementId = startOperationId(replacement)
         assertEquals(1, executor.tasks.size)
 
         executor.runNext()
         assertEquals(8, service.calls)
+        assertEquals(9, sink.events.size)
+        assertEquals(true, resultFor(sink, replacementId)["ok"])
     }
 
     @Test
-    fun operationStartedEventIsNotCoalesced() {
-        val poster = QueuePoster()
-        val publisher = PlatformEventPublisher(poster)
+    fun asyncResultReplaysForLateListener() {
+        val executor = QueueExecutor()
+        val results = PlatformResultPublisher(DirectPoster)
+        val facade = newFacade(servicePrefix = "ocr", executor = executor, results = results)
+        val startReply = RecordingReply()
+
+        facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), startReply)
+        val operationId = startOperationId(startReply)
+        executor.runNext()
+
+        val lateSink = RecordingSink()
+        results.attachSink(lateSink)
+        val result = resultFor(lateSink, operationId)
+        assertEquals(true, result["ok"])
+        assertEquals("operation.result", result["event"])
+    }
+
+    @Test
+    fun asyncFailureIsPublishedAsResultNotMethodException() {
+        val executor = QueueExecutor()
+        val results = PlatformResultPublisher(DirectPoster)
         val sink = RecordingSink()
-        publisher.attachSink(sink)
+        results.attachSink(sink)
+        val service = ThrowingService(
+            PlatformFailure("SAVE-001", "storageFull", true, "save.storageFull"),
+        )
+        val facade = newFacade(
+            servicePrefix = "ocr",
+            service = service,
+            executor = executor,
+            results = results,
+        )
+        val startReply = RecordingReply()
 
-        publisher.emitOperationStarted(operationId, "export")
-        publisher.emitOperationProgress(operationId, "export", "drawing", 0.5)
-        poster.runAll()
+        facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), startReply)
+        val operationId = startOperationId(startReply)
+        executor.runNext()
 
-        assertEquals(2, sink.events.size)
-        assertEquals("queued", (sink.events[0] as Map<*, *>)["phase"])
-        assertEquals("drawing", (sink.events[1] as Map<*, *>)["phase"])
+        assertNull(startReply.failure)
+        val result = resultFor(sink, operationId)
+        assertEquals(false, result["ok"])
+        val error = result["error"] as Map<*, *>
+        assertEquals("SAVE-001", error["code"])
+        assertEquals("save.storageFull", error["message"])
+        assertTrue((error["details"] as Map<*, *>).containsKey("durationMs"))
     }
 
     @Test
     fun ocrOperationsAreSerializedConservatively() {
         val executor = ManualExecutor()
         val service = ConcurrencyService()
-        val facade = newFacade(servicePrefix = "ocr", service = service, executor = executor)
+        val results = PlatformResultPublisher(DirectPoster)
+        val facade = newFacade(
+            servicePrefix = "ocr",
+            service = service,
+            executor = executor,
+            results = results,
+        )
         val first = RecordingReply()
         val second = RecordingReply()
 
         facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), first)
         facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), second)
+        val firstId = startOperationId(first)
+        val secondId = startOperationId(second)
 
         assertEquals(1, executor.tasks.size)
         executor.runNext()
@@ -902,18 +949,26 @@ class FeldexaPluginTest {
         assertEquals(1, service.maxActive)
         assertNull(first.failure)
         assertNull(second.failure)
+
+        val sink = RecordingSink()
+        results.attachSink(sink)
+        assertEquals(true, resultFor(sink, firstId)["ok"])
+        assertEquals(true, resultFor(sink, secondId)["ok"])
     }
 
     @Test
     fun differentDocumentOperationsAreNotGloballySerialized() {
         val executor = ManualExecutor()
         val service = ConcurrencyService()
-        val facade = newFacade(service = service, executor = executor)
+        val results = PlatformResultPublisher(DirectPoster)
+        val facade = newFacade(service = service, executor = executor, results = results)
         val first = RecordingReply()
         val second = RecordingReply()
 
         facade.handle("store.saveRevision", saveRevisionPayload(documentId), first)
         facade.handle("store.saveRevision", saveRevisionPayload(assetId), second)
+        val firstId = startOperationId(first)
+        val secondId = startOperationId(second)
 
         assertEquals(2, executor.tasks.size)
         executor.runNext()
@@ -921,6 +976,11 @@ class FeldexaPluginTest {
         assertEquals(2, service.calls)
         assertNull(first.failure)
         assertNull(second.failure)
+
+        val sink = RecordingSink()
+        results.attachSink(sink)
+        assertEquals(true, resultFor(sink, firstId)["ok"])
+        assertEquals(true, resultFor(sink, secondId)["ok"])
     }
 
     @Test
@@ -1093,6 +1153,126 @@ class FeldexaPluginTest {
     }
 
     @Test
+    fun asyncResultMayPrecedeStartReply() {
+        val results = PlatformResultPublisher(DirectPoster)
+        val sink = RecordingSink()
+        results.attachSink(sink)
+        val facade = newFacade(
+            servicePrefix = "ocr",
+            executor = DirectExecutor,
+            results = results,
+        )
+        val startReply = RecordingReply()
+
+        facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), startReply)
+
+        val operationId = startOperationId(startReply)
+        val result = resultFor(sink, operationId)
+        assertEquals(true, result["ok"])
+        assertEquals(operationId, result["operationId"])
+    }
+
+    @Test
+    fun cancellationAfterTerminalReturnsFalse() {
+        val executor = QueueExecutor()
+        val results = PlatformResultPublisher(DirectPoster)
+        val sink = RecordingSink()
+        results.attachSink(sink)
+        val facade = newFacade(
+            servicePrefix = "ocr",
+            executor = executor,
+            results = results,
+        )
+        val startReply = RecordingReply()
+        facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), startReply)
+        val operationId = startOperationId(startReply)
+        executor.runNext()
+        assertEquals(true, resultFor(sink, operationId)["ok"])
+
+        val cancelReply = RecordingReply()
+        facade.handle(
+            "cancel.operation",
+            mapOf("schemaVersion" to 1, "operationId" to operationId),
+            cancelReply,
+        )
+        assertEquals(mapOf("cancelled" to false), (cancelReply.successValue as Map<*, *>)["data"])
+    }
+
+    @Test
+    fun startRejectionEmitsNoResult() {
+        val executor = ManualExecutor()
+        val service = ConcurrencyService()
+        val results = PlatformResultPublisher(DirectPoster)
+        val sink = RecordingSink()
+        results.attachSink(sink)
+        val facade = newFacade(
+            servicePrefix = "ocr",
+            service = service,
+            executor = executor,
+            results = results,
+        )
+        repeat(8) {
+            val reply = RecordingReply()
+            facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), reply)
+            assertNull(reply.failure)
+        }
+        val overflow = RecordingReply()
+        facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), overflow)
+        assertFailure(overflow, "PLT-001")
+        assertTrue(sink.events.isEmpty())
+    }
+
+    @Test
+    fun resultPublisherRetentionIsBounded() {
+        val publisher = PlatformResultPublisher(DirectPoster, maxRetained = 2)
+        publisher.publish(resultMap("11111111-1111-4111-8111-111111111111"))
+        publisher.publish(resultMap("22222222-2222-4222-8222-222222222222"))
+        publisher.publish(resultMap("33333333-3333-4333-8333-333333333333"))
+
+        val sink = RecordingSink()
+        publisher.attachSink(sink)
+        assertEquals(2, sink.events.size)
+        assertEquals("22222222-2222-4222-8222-222222222222", (sink.events[0] as Map<*, *>)["operationId"])
+        assertEquals("33333333-3333-4333-8333-333333333333", (sink.events[1] as Map<*, *>)["operationId"])
+    }
+
+    @Test
+    fun resultPublisherRetainsAcrossListenerDetach() {
+        val publisher = PlatformResultPublisher(DirectPoster)
+        val first = RecordingSink()
+        publisher.attachSink(first)
+        publisher.publish(resultMap("11111111-1111-4111-8111-111111111111"))
+        assertEquals(1, first.events.size)
+
+        publisher.attachSink(null)
+        publisher.publish(resultMap("22222222-2222-4222-8222-222222222222"))
+        val second = RecordingSink()
+        publisher.attachSink(second)
+        assertEquals(2, second.events.size)
+    }
+
+    @Test
+    fun disposedResultPublisherEmitsNothing() {
+        val publisher = PlatformResultPublisher(DirectPoster)
+        publisher.dispose()
+        publisher.publish(resultMap("11111111-1111-4111-8111-111111111111"))
+        val sink = RecordingSink()
+        publisher.attachSink(sink)
+        assertTrue(sink.events.isEmpty())
+    }
+
+    @Test
+    fun asyncStartReplyContainsOnlyOperationId() {
+        val executor = QueueExecutor()
+        val facade = newFacade(servicePrefix = "ocr", executor = executor)
+        val reply = RecordingReply()
+        facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), reply)
+        val data = (reply.successValue as Map<*, *>)["data"] as Map<*, *>
+        assertEquals(setOf("operationId"), data.keys)
+        assertEquals(1, data.size)
+    }
+
+    @Test
     fun disposedPublisherEmitsNothing() {
         val poster = QueuePoster()
         val publisher = PlatformEventPublisher(poster)
@@ -1200,12 +1380,36 @@ class FeldexaPluginTest {
         "kind" to "autosave",
     )
 
+    private fun resultMap(operationId: String): Map<String, Any?> = linkedMapOf(
+        "schemaVersion" to 1,
+        "event" to "operation.result",
+        "operationId" to operationId,
+        "ok" to true,
+        "data" to mapOf("ok" to true),
+    )
+
+    private fun startOperationId(reply: RecordingReply): String {
+        assertNull(reply.failure)
+        val envelope = reply.successValue as Map<*, *>
+        assertEquals(true, envelope["ok"])
+        val data = envelope["data"] as Map<*, *>
+        val operationId = data["operationId"] as String
+        assertTrue(operationId.isNotEmpty())
+        return operationId
+    }
+
+    private fun resultFor(sink: RecordingSink, operationId: String): Map<*, *> =
+        sink.events
+            .map { it as Map<*, *> }
+            .last { it["event"] == "operation.result" && it["operationId"] == operationId }
+
     private fun newFacade(
         servicePrefix: String? = "store",
         service: PlatformService = ReturningService(linkedMapOf("ok" to true)),
         executor: BackgroundExecutor = DirectExecutor,
         poster: ThreadPoster = DirectPoster,
         events: PlatformEventPublisher = PlatformEventPublisher(poster),
+        results: PlatformResultPublisher = PlatformResultPublisher(poster),
         limits: ChannelLimits = ChannelLimits(),
         operationIdFactory: () -> String = { UUID.randomUUID().toString() },
         clock: () -> Long = { 0L },
@@ -1216,6 +1420,7 @@ class FeldexaPluginTest {
             services = services,
             mainPoster = poster,
             events = events,
+            results = results,
             executor = executor,
             limits = limits,
             operationIdFactory = operationIdFactory,
@@ -1279,7 +1484,7 @@ class FeldexaPluginTest {
     }
 
     private class QueueExecutor : BackgroundExecutor {
-        private val tasks = mutableListOf<() -> Unit>()
+        val tasks = mutableListOf<() -> Unit>()
 
         override fun execute(task: () -> Unit) {
             tasks += task
