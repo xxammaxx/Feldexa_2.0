@@ -1,0 +1,4 @@
+# T026 prune-retry source at implementation commit 57ce38b
+aefe2d04453f365bbe17c4c018bed80cb99c2ac2274045a81dd9bdee262373f4    115701  apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/storage/EncryptedStore.kt
+6741fd1bbd75adaa86c3b23503d02f1b53afdda08e82376309e73012f20d9c60     12052  apps/feldexa_app/android/app/src/test/kotlin/de/feldexa/app/storage/EncryptedStorePruneRecoveryTest.kt
+85bc22a5589805f85c94f3ce1b6f28a563838a54045067cefa16a1baaebd9242     28077  apps/feldexa_app/android/app/src/androidTest/kotlin/de/feldexa/app/storage/EncryptedStoreInstrumentedTest.kt

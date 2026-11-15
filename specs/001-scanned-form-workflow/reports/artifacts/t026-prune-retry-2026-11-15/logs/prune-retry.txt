@@ -1,0 +1,25 @@
+T026 review of 0785e5c - no-resurrection retry
+
+Finding:
+  After a PRUNE_FSYNC failure the history stayed complete but the file was
+  already missing from the namespace. A retry that deleted nothing skipped
+  the directory fsync, filtered the missing entry and trimmed the head. The
+  save-side history rebuild also dropped missing entries before prune. A
+  no-resurrection retry could therefore forget a non-durable delete.
+
+Fix in 57ce38b:
+  * buildHeadHistory retains every previous entry; only the pruner drops a
+    missing entry after durability confirmation;
+  * prune performs the revision-directory fsync when it deleted anything OR
+    when any known history entry is missing;
+  * fsync failure or a missing directory returns the full history with
+    deletesDurable=false and no durable-prune count;
+  * head, keep set, unknown-kind entries, and untracked legacy files stay
+    protected.
+
+Tests:
+  * repeated fsync failure without resurrection: first retry still fails and
+    keeps the entry; the next successful retry fsyncs and only then trims;
+  * next save retains the unconfirmed-missing entry and trims after the
+    prune's confirmed fsync;
+  * device variant of the repeated no-resurrection retry.
