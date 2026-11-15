@@ -17,6 +17,10 @@
 //   * `FaultingSecureStore` and `FaultingPdfExport` — decorators that check
 //     documented fault points before delegating to the real adapter, so quota,
 //     keystore, interruption, and export failures surface as typed exceptions;
+//   * `StagedWriteFaultSeam` — phase-aware checkpoints that an adapter calls
+//     inside its verified-commit transaction, so staged-write, fsync, and
+//     commit faults are injected at the real boundary instead of before the
+//     delegate;
 //   * `FakeRegistry` — the `contracts/ports.md` §4 test seam with a
 //     deterministic clock, ID sequence, scripted lifecycle, and fault-injecting
 //     store/export adapters.
@@ -223,6 +227,7 @@ FeldexaException faultExceptionFor(InjectedFault fault) {
     FaultKind.fsyncFailure ||
     FaultKind.writeInterrupted => StorageWriteException(),
     FaultKind.keystoreUnavailable => KeystoreUnavailableException(),
+    FaultKind.keystoreReset => KeystoreUnavailableException(retryable: false),
     FaultKind.corruptKeyMaterial => KeyUnavailableException(),
     FaultKind.exportFailure => ExportFailedException(),
   };
@@ -238,16 +243,83 @@ void _checkFault(FaultInjector injector, String point) {
   }
 }
 
-/// Decorates a [SecureStorePort] with quota, keystore, and write-interruption
+/// Phase-aware checkpoints for the §3.1 verified-commit protocol.
+///
+/// A [SecureStorePort] only exposes `saveRevision`; the port boundary cannot
+/// tell whether a failure happened before the staged file existed, after it was
+/// written, at fsync, or after the revision was promoted but before `head.fx1`
+/// was replaced. The decorator therefore cannot inject those later phases
+/// without creating the impossible "fault before the delegate" state the review
+/// found.
+///
+/// An adapter that owns the transaction calls these methods at the documented
+/// points instead:
+///
+/// 1. [beforeStagedWrite] — before `tmp/<txnId>.part` is created;
+/// 2. [afterStagedWrite] — after the staged bytes were written, before fsync;
+/// 3. [afterFsync] — after the staged file was fsynced and verified;
+/// 4. [beforeHeadCommit] — after the revision was promoted, before the head
+///    rename.
+///
+/// `store.stage` is checked twice so tests can distinguish a failure before the
+/// staged object exists (`startsAt: 1`) from one after it exists
+/// (`startsAt: 2`). The seam is test scaffolding: it does not create files,
+/// preserve a head, or clean staging. Those are adapter obligations; a real
+/// durable-head assertion is only possible once the T026/T028 adapter calls
+/// this seam inside its own transaction.
+final class StagedWriteFaultSeam {
+  /// Creates a seam that reads faults from [injector].
+  StagedWriteFaultSeam({required this.injector});
+
+  /// The scripted fault plan for this transaction.
+  final FaultInjector injector;
+
+  /// Checks the pre-stage fault point (`store.stage`, first call).
+  void beforeStagedWrite() {
+    _checkFault(injector, FaultPoints.storeStage);
+  }
+
+  /// Checks the post-stage fault point (`store.stage`, second call).
+  ///
+  /// A fault here happens while `tmp/<txnId>.part` exists and before fsync.
+  void afterStagedWrite() {
+    _checkFault(injector, FaultPoints.storeStage);
+  }
+
+  /// Checks the fsync fault point after the staged bytes were flushed.
+  void afterFsync() {
+    _checkFault(injector, FaultPoints.storeFsync);
+  }
+
+  /// Checks the commit fault point after revision promotion.
+  ///
+  /// A fault here leaves the old `head.fx1` in place and the newly promoted
+  /// revision unreferenced; the adapter must keep the old head and remove the
+  /// unreferenced object.
+  void beforeHeadCommit() {
+    _checkFault(injector, FaultPoints.storeCommit);
+  }
+}
+
+/// Decorates a [SecureStorePort] with the pre-stage quota gate and keystore
 /// fault points.
 ///
 /// The decorator owns no storage behavior: it checks the fault script and then
-/// delegates to the real or simulated adapter. A test wraps the adapter under
-/// test, so recovery and atomicity assertions exercise that adapter while the
-/// fault is injected at the documented point.
+/// delegates to the real or simulated adapter. It deliberately checks only the
+/// points that are visible at the port boundary:
+///
+/// * `keystore.unwrap` before any read or write that needs the aggregate key;
+/// * `store.write` as the free-space/pre-stage gate;
+/// * `store.read` before a document, template, or signature read.
+///
+/// The internal `store.stage`, `store.fsync`, and `store.commit` phases belong
+/// to the adapter transaction and are exposed through [writeSeam]. Checking
+/// them here would fire before the delegate and could never exercise a partial
+/// staged state.
 final class FaultingSecureStore implements SecureStorePort {
   /// Wraps [delegate] and reads faults from [injector].
-  FaultingSecureStore({required this.delegate, required this.injector});
+  FaultingSecureStore({required this.delegate, required this.injector})
+    : writeSeam = StagedWriteFaultSeam(injector: injector);
 
   /// The adapter whose behavior is under test.
   final SecureStorePort delegate;
@@ -255,28 +327,28 @@ final class FaultingSecureStore implements SecureStorePort {
   /// The scripted faults for this store.
   final FaultInjector injector;
 
+  /// Phase-aware checkpoints for an adapter's verified-commit transaction.
+  final StagedWriteFaultSeam writeSeam;
+
   @override
   CapabilityDescriptor get descriptor => delegate.descriptor;
 
-  /// Runs one read through [FaultPoints.storeRead] and then [action].
-  ///
-  /// Public so a focused harness test can prove the mapping without building a
-  /// full `LoadedDocument`; the port methods below use the same guard.
+  /// Checks the aggregate key unwrap, then [FaultPoints.storeRead], then
+  /// [action].
   Future<T> guardRead<T>(FutureOr<T> Function() action) async {
+    _checkFault(injector, FaultPoints.keystoreUnwrap);
     _checkFault(injector, FaultPoints.storeRead);
     return await action();
   }
 
-  /// Runs one staged write through `store.write`, `store.fsync`, and
-  /// `store.commit`, then [action].
+  /// Checks the aggregate key unwrap and the pre-stage quota gate, then
+  /// [action].
   ///
-  /// The three points model the documented verified-commit protocol: a
-  /// one-shot quota fault at `store.write` fires before fsync and commit, while
-  /// an fsync or commit rule only fires after the earlier points passed.
+  /// The staged write, fsync, and commit phases are checked by the adapter
+  /// through [writeSeam]; this guard cannot observe them.
   Future<T> guardWrite<T>(FutureOr<T> Function() action) async {
+    _checkFault(injector, FaultPoints.keystoreUnwrap);
     _checkFault(injector, FaultPoints.storeWrite);
-    _checkFault(injector, FaultPoints.storeFsync);
-    _checkFault(injector, FaultPoints.storeCommit);
     return await action();
   }
 
@@ -758,6 +830,13 @@ final class FakeRegistry implements AdapterRegistry {
 
   @override
   FaultingSecureStore get store => _store;
+
+  /// Phase-aware commit checkpoints shared with [store].
+  ///
+  /// A test adapter receives this seam so it can inject `store.stage`,
+  /// `store.fsync`, and `store.commit` inside its own transaction; the
+  /// registry itself cannot observe those phases.
+  StagedWriteFaultSeam get writeSeam => _store.writeSeam;
 
   @override
   FaultingPdfExport get export => _export;

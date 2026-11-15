@@ -202,6 +202,7 @@ void main() {
         FaultKind.fsyncFailure: StorageWriteException,
         FaultKind.writeInterrupted: StorageWriteException,
         FaultKind.keystoreUnavailable: KeystoreUnavailableException,
+        FaultKind.keystoreReset: KeystoreUnavailableException,
         FaultKind.corruptKeyMaterial: KeyUnavailableException,
         FaultKind.exportFailure: ExportFailedException,
       };
@@ -230,6 +231,13 @@ void main() {
           callIndex: 1,
         ),
       );
+      final FeldexaException reset = faultExceptionFor(
+        const InjectedFault(
+          kind: FaultKind.keystoreReset,
+          point: FaultPoints.keystoreUnwrap,
+          callIndex: 1,
+        ),
+      );
 
       expect(aggregate, isA<KeyUnavailableException>());
       expect(aggregate.code, 'SAVE-002');
@@ -237,6 +245,13 @@ void main() {
       expect(global, isA<KeystoreUnavailableException>());
       expect(global.code, 'SAVE-008');
       expect(global.retryable, isTrue);
+      expect(reset, isA<KeystoreUnavailableException>());
+      expect(reset.code, 'SAVE-008');
+      expect(
+        reset.retryable,
+        isFalse,
+        reason: 'a device-wide reset has no retry recovery',
+      );
     });
 
     test('quota and write-interruption exceptions stay retryable', () {
@@ -306,33 +321,65 @@ void main() {
     );
 
     test(
-      'maps short write, fsync failure, and interruption to SAVE-003',
+      'does not check internal fsync or commit before the delegate runs',
       () async {
-        final List<(String, FaultKind)> cases = <(String, FaultKind)>[
-          (FaultPoints.storeWrite, FaultKind.shortWrite),
-          (FaultPoints.storeFsync, FaultKind.fsyncFailure),
-          (FaultPoints.storeCommit, FaultKind.writeInterrupted),
-        ];
-
-        for (final (String point, FaultKind kind) in cases) {
-          final FaultingSecureStore value = FaultingSecureStore(
-            delegate: delegate,
-            injector: _injectorFor(FaultRule(point: point, kind: kind)),
-          );
-          await expectLater(
-            value.guardWrite(() => 'never'),
-            throwsA(
-              isA<StorageWriteException>().having(
-                (StorageWriteException error) => error.code,
-                'code',
-                'SAVE-003',
-              ),
+        final FaultInjector injector = FaultInjector(
+          FaultPlan(<FaultRule>[
+            FaultRule(
+              point: FaultPoints.storeFsync,
+              kind: FaultKind.fsyncFailure,
             ),
-            reason: '${kind.name} at $point',
-          );
-        }
+            FaultRule(
+              point: FaultPoints.storeCommit,
+              kind: FaultKind.writeInterrupted,
+            ),
+          ]),
+        );
+        build(injector);
+        bool ran = false;
+
+        expect(
+          await store.guardWrite(() {
+            ran = true;
+            return 'delegate-ran';
+          }),
+          'delegate-ran',
+        );
+        expect(ran, isTrue);
+        expect(
+          injector.callsAt(FaultPoints.storeFsync),
+          0,
+          reason: 'fsync is inside the adapter transaction, not the port guard',
+        );
+        expect(
+          injector.callsAt(FaultPoints.storeCommit),
+          0,
+          reason:
+              'commit is inside the adapter transaction, not the port guard',
+        );
+        expect(injector.callsAt(FaultPoints.storeWrite), 1);
       },
     );
+
+    test('checks the phase-aware seam inside the adapter transaction', () {
+      final FaultInjector injector = _injectorFor(
+        FaultRule(
+          point: FaultPoints.storeStage,
+          kind: FaultKind.shortWrite,
+          startsAt: 2,
+        ),
+      );
+      final StagedWriteFaultSeam seam = StagedWriteFaultSeam(
+        injector: injector,
+      );
+
+      seam.beforeStagedWrite();
+      expect(
+        () => seam.afterStagedWrite(),
+        throwsA(isA<StorageWriteException>()),
+      );
+      expect(injector.callsAt(FaultPoints.storeStage), 2);
+    });
 
     test('runs the write when no fault matches', () async {
       build(FaultInjector());
@@ -350,24 +397,100 @@ void main() {
       expect(store.injector.injectedFaults, isEmpty);
     });
 
-    test('surfaces a global Keystore fault on document load', () async {
+    test('checks keystore.unwrap before a document read', () async {
       final FaultingSecureStore value = build(
         _injectorFor(
           FaultRule(
-            point: FaultPoints.storeRead,
-            kind: FaultKind.keystoreUnavailable,
+            point: FaultPoints.keystoreUnwrap,
+            kind: FaultKind.corruptKeyMaterial,
           ),
         ),
       );
 
       await expectLater(
         value.loadDocument('00000000-0000-4000-8000-000000000001'),
-        throwsA(isA<KeystoreUnavailableException>()),
+        throwsA(isA<KeyUnavailableException>()),
       );
       expect(delegate.loadCalls, 0, reason: 'the delegate must not run');
+      expect(store.injector.callsAt(FaultPoints.keystoreUnwrap), 1);
+      expect(
+        store.injector.callsAt(FaultPoints.storeRead),
+        0,
+        reason: 'unwrap fails before the read point is reached',
+      );
     });
 
-    test('surfaces an aggregate key fault on document load', () async {
+    test('checks keystore.unwrap on the write path', () async {
+      final FaultingSecureStore value = build(
+        _injectorFor(
+          FaultRule(
+            point: FaultPoints.keystoreUnwrap,
+            kind: FaultKind.corruptKeyMaterial,
+          ),
+        ),
+      );
+      bool ran = false;
+
+      await expectLater(
+        value.guardWrite(() {
+          ran = true;
+          return 'never';
+        }),
+        throwsA(isA<KeyUnavailableException>()),
+      );
+      expect(ran, isFalse);
+      expect(store.injector.callsAt(FaultPoints.storeWrite), 0);
+    });
+
+    test('surfaces both SAVE-008 contexts at the unwrap point', () async {
+      final (
+        FaultingSecureStore outageStore,
+        FaultingSecureStore resetStore,
+      ) = (
+        FaultingSecureStore(
+          delegate: delegate,
+          injector: _injectorFor(
+            FaultRule(
+              point: FaultPoints.keystoreUnwrap,
+              kind: FaultKind.keystoreUnavailable,
+            ),
+          ),
+        ),
+        FaultingSecureStore(
+          delegate: delegate,
+          injector: _injectorFor(
+            FaultRule(
+              point: FaultPoints.keystoreUnwrap,
+              kind: FaultKind.keystoreReset,
+            ),
+          ),
+        ),
+      );
+
+      await expectLater(
+        outageStore.loadDocument('00000000-0000-4000-8000-000000000001'),
+        throwsA(
+          isA<KeystoreUnavailableException>().having(
+            (KeystoreUnavailableException error) => error.retryable,
+            'retryable',
+            isTrue,
+          ),
+        ),
+      );
+      await expectLater(
+        resetStore.loadDocument('00000000-0000-4000-8000-000000000001'),
+        throwsA(
+          isA<KeystoreUnavailableException>().having(
+            (KeystoreUnavailableException error) => error.retryable,
+            'retryable',
+            isFalse,
+          ),
+        ),
+      );
+      expect(delegate.loadCalls, 0);
+    });
+
+    test('surfaces an aggregate key fault at store.read', () async {
       final FaultingSecureStore value = build(
         _injectorFor(
           FaultRule(
@@ -419,12 +542,12 @@ void main() {
       expect(delegate.loadCalls, 1);
     });
 
-    test('fault points are counted per write attempt', () async {
+    test('guardWrite counts unwrap and pre-stage gate per attempt', () async {
       build(
         _injectorFor(
           FaultRule(
-            point: FaultPoints.storeFsync,
-            kind: FaultKind.fsyncFailure,
+            point: FaultPoints.storeWrite,
+            kind: FaultKind.storageFull,
             times: 1,
           ),
         ),
@@ -432,16 +555,124 @@ void main() {
 
       await expectLater(
         store.guardWrite(() => 'first'),
-        throwsA(isA<StorageWriteException>()),
+        throwsA(isA<StorageFullException>()),
       );
       expect(await store.guardWrite(() => 'second'), 'second');
+      expect(store.injector.callsAt(FaultPoints.keystoreUnwrap), 2);
       expect(store.injector.callsAt(FaultPoints.storeWrite), 2);
-      expect(store.injector.callsAt(FaultPoints.storeFsync), 2);
-      expect(
-        store.injector.callsAt(FaultPoints.storeCommit),
-        1,
-        reason: 'the first attempt stopped at fsync',
+      expect(store.injector.callsAt(FaultPoints.storeFsync), 0);
+      expect(store.injector.callsAt(FaultPoints.storeCommit), 0);
+    });
+  });
+
+  group('StagedWriteFaultSeam', () {
+    // This is a contract model of storage-format.md §3.1, not an adapter
+    // implementation. It proves that the seam exposes a failure before the
+    // staged object exists, after it exists, at fsync, and after revision
+    // promotion. The real transaction, real files, and real durable-head
+    // assertions belong to the T026/T028 adapters that call this seam.
+    test('promotes the head only when every phase is clear', () {
+      final _CommitModel model = _CommitModel(
+        StagedWriteFaultSeam(injector: FaultInjector()),
       );
+
+      expect(model.save(), 'rev-1');
+      expect(model.head, 'rev-1');
+      expect(model.revisions, <String>{'rev-0', 'rev-1'});
+      expect(model.staged, isNull);
+      expect(model.promoted, isNull);
+      expect(model.cleanupCount, 0);
+    });
+
+    test('a fault before the staged write leaves no partial state', () {
+      final _CommitModel model = _CommitModel(
+        StagedWriteFaultSeam(
+          injector: _injectorFor(
+            FaultRule(
+              point: FaultPoints.storeStage,
+              kind: FaultKind.storageFull,
+              startsAt: 1,
+            ),
+          ),
+        ),
+      );
+
+      expect(() => _attemptCommit(model), throwsA(isA<StorageFullException>()));
+      expect(model.staged, isNull);
+      expect(model.promoted, isNull);
+      expect(model.head, 'rev-0');
+      expect(model.revisions, <String>{'rev-0'});
+      expect(model.cleanupCount, 0);
+    });
+
+    test('a short write after staging removes the staged object', () {
+      final _CommitModel model = _CommitModel(
+        StagedWriteFaultSeam(
+          injector: _injectorFor(
+            FaultRule(
+              point: FaultPoints.storeStage,
+              kind: FaultKind.shortWrite,
+              startsAt: 2,
+            ),
+          ),
+        ),
+      );
+
+      expect(
+        () => _attemptCommit(model),
+        throwsA(isA<StorageWriteException>()),
+      );
+      expect(model.staged, isNull);
+      expect(model.head, 'rev-0');
+      expect(model.revisions, <String>{'rev-0'});
+      expect(model.cleanupCount, 1);
+    });
+
+    test('an fsync failure cleans staging and keeps the durable head', () {
+      final _CommitModel model = _CommitModel(
+        StagedWriteFaultSeam(
+          injector: _injectorFor(
+            FaultRule(
+              point: FaultPoints.storeFsync,
+              kind: FaultKind.fsyncFailure,
+            ),
+          ),
+        ),
+      );
+
+      expect(
+        () => _attemptCommit(model),
+        throwsA(isA<StorageWriteException>()),
+      );
+      expect(model.staged, isNull);
+      expect(model.head, 'rev-0');
+      expect(model.revisions, <String>{'rev-0'});
+      expect(model.cleanupCount, 1);
+    });
+
+    test('a commit fault after promotion keeps the old head and prunes', () {
+      final _CommitModel model = _CommitModel(
+        StagedWriteFaultSeam(
+          injector: _injectorFor(
+            FaultRule(
+              point: FaultPoints.storeCommit,
+              kind: FaultKind.writeInterrupted,
+            ),
+          ),
+        ),
+      );
+
+      expect(
+        () => _attemptCommit(model),
+        throwsA(isA<StorageWriteException>()),
+      );
+      expect(model.staged, isNull);
+      expect(model.promoted, isNull);
+      expect(model.head, 'rev-0');
+      expect(model.revisions, <String>{
+        'rev-0',
+      }, reason: 'the unreferenced promoted revision is removed');
+      expect(model.cleanupCount, 2);
     });
   });
 
@@ -648,6 +879,7 @@ void main() {
 
       expect(identical(registry.store.injector, registry.faults), isTrue);
       expect(identical(registry.export.injector, registry.faults), isTrue);
+      expect(identical(registry.writeSeam.injector, registry.faults), isTrue);
       expect(registry.store.delegate, isNotNull);
       expect(registry.export.delegate, isNotNull);
     });
@@ -726,6 +958,60 @@ void main() {
       );
     });
   });
+}
+
+/// A minimal contract model of the §3.1 verified-commit protocol.
+///
+/// It is deliberately not a production adapter: it has no files, no
+/// encryption, and no Android Keystore. It exists only to prove that the seam
+/// fires at a real phase boundary and that a failed attempt can keep the old
+/// head and prune the unreferenced promoted revision.
+final class _CommitModel {
+  _CommitModel(this.seam);
+
+  final StagedWriteFaultSeam seam;
+  final Set<String> revisions = <String>{'rev-0'};
+
+  String head = 'rev-0';
+  String? staged;
+  String? promoted;
+  int cleanupCount = 0;
+
+  String save() {
+    seam.beforeStagedWrite();
+    staged = 'rev-1';
+    seam.afterStagedWrite();
+    seam.afterFsync();
+    promoted = 'rev-1';
+    revisions.add(promoted!);
+    seam.beforeHeadCommit();
+    head = promoted!;
+    staged = null;
+    promoted = null;
+    return head;
+  }
+
+  void cleanupAfterFailure() {
+    if (staged != null) {
+      staged = null;
+      cleanupCount++;
+    }
+    final String? candidate = promoted;
+    if (candidate != null && candidate != head) {
+      revisions.remove(candidate);
+      promoted = null;
+      cleanupCount++;
+    }
+  }
+}
+
+void _attemptCommit(_CommitModel model) {
+  try {
+    model.save();
+  } catch (_) {
+    model.cleanupAfterFailure();
+    rethrow;
+  }
 }
 
 /// A store whose read count proves whether a fault short-circuited delegation.

@@ -101,20 +101,34 @@ top of the T011 rules:
   records it.
 - `faultExceptionFor` maps every `FaultKind` to its T014 typed exception:
   `SAVE-001` (`StorageFullException`), `SAVE-003`
-  (`StorageWriteException`), `SAVE-008` (`KeystoreUnavailableException`),
-  `SAVE-002` (`KeyUnavailableException`), and `EXP-002`
-  (`ExportFailedException`).
-- `FaultingSecureStore` wraps any `SecureStorePort`. Writes pass
-  `store.write`, `store.fsync`, and `store.commit`; document, template, and
-  signature reads pass `store.read`. The decorator checks the script and then
-  delegates, so a test wraps the adapter under test rather than reimplementing
-  it.
+  (`StorageWriteException`), `SAVE-002` (`KeyUnavailableException`), and
+  `EXP-002` (`ExportFailedException`). `SAVE-008` has two explicit contexts:
+  `FaultKind.keystoreUnavailable` is the retryable temporary provider outage and
+  `FaultKind.keystoreReset` is the non-retryable device-wide reset; both map to
+  `KeystoreUnavailableException` with the correct `retryable` value.
+- `FaultingSecureStore` wraps any `SecureStorePort`. Every read and write first
+  checks `keystore.unwrap`; reads then check `store.read`, and writes check the
+  `store.write` free-space/pre-stage gate. It deliberately does not check
+  `store.fsync` or `store.commit` before the delegate, because those phases are
+  inside the adapter transaction and a port-level pre-check could never produce
+  a partial staged state.
+- `StagedWriteFaultSeam` is the phase-aware companion for the
+  `storage-format.md` §3.1 transaction. An adapter calls `beforeStagedWrite`
+  (`store.stage` call 1), `afterStagedWrite` (`store.stage` call 2),
+  `afterFsync` (`store.fsync`), and `beforeHeadCommit` (`store.commit`) at the
+  real phase boundaries. `store.stage` is checked twice so a failure before the
+  temp object exists is distinguishable from one after it exists. The seam only
+  injects; staging cleanup and durable-head preservation remain adapter duties.
+  Real durable-head assertions therefore require the T026/T028 adapter to call
+  this seam inside its transaction; the package's own `_CommitModel` test double
+  is a contract example, not production evidence.
 - `FaultingPdfExport` wraps any `PdfExportPort` and checks
   `export.validate`, `export.write`, and `export.verify`. A verification fault
   best-effort deletes the candidate artifact before throwing `EXP-002`.
 - `FakeRegistry` is the `contracts/ports.md` §4 test seam. It composes a
   `ScriptedClock`, deterministic `SequenceIds`, `ScriptedLifecycle`, and the two
-  fault decorators. Capabilities a test does not override fail with the typed
+  fault decorators. `FakeRegistry.writeSeam` is the same phase-aware seam as
+  `store.writeSeam`. Capabilities a test does not override fail with the typed
   `PLT-001` `UnsupportedOperationException`, and descriptors always come from
   the live adapter, with kinds checked in `CapabilityKind` order.
 
@@ -124,7 +138,7 @@ test('global Keystore outage surfaces SAVE-008', () async {
     faults: FaultInjector(
       FaultPlan(<FaultRule>[
         FaultRule(
-          point: FaultPoints.storeRead,
+          point: FaultPoints.keystoreUnwrap,
           kind: FaultKind.keystoreUnavailable,
         ),
       ]),

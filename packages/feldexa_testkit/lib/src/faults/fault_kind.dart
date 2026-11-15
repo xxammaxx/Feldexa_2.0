@@ -20,7 +20,20 @@ enum FaultKind {
   writeInterrupted('SAVE-003', 'Write interrupted before commit completed.'),
 
   /// Global Keystore provider is unavailable (not one aggregate's key).
+  ///
+  /// This is the temporary provider-outage context of `SAVE-008`, which is
+  /// retryable.
   keystoreUnavailable('SAVE-008', 'Global Keystore provider is unavailable.'),
+
+  /// A device-wide Keystore reset removed every stored aggregate key.
+  ///
+  /// This is the non-retryable context of `SAVE-008`; it is deliberately a
+  /// separate kind because the same catalog code must not hide the missing
+  /// recovery path.
+  keystoreReset(
+    'SAVE-008',
+    'Device-wide Keystore reset; no aggregate key remains.',
+  ),
 
   /// One aggregate's wrapped key material cannot be unwrapped or is corrupt.
   corruptKeyMaterial(
@@ -47,6 +60,7 @@ enum FaultKind {
 /// replace a string without changing the injector.
 abstract final class FaultPoints {
   static const String storeWrite = 'store.write';
+  static const String storeStage = 'store.stage';
   static const String storeCommit = 'store.commit';
   static const String storeFsync = 'store.fsync';
   static const String storeRead = 'store.read';
