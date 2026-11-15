@@ -388,6 +388,138 @@ class EncryptedStoreInstrumentedTest {
     }
 
     @Test
+    fun headHistoryAndPolicyOnDevice() {
+        val documentId = UUID.randomUUID().toString()
+        val ids = (1..6).map(::fixedUuid)
+        val created = store.createDocument(
+            documentId,
+            meta("History"),
+            UUID.randomUUID().toString(),
+            "%PDF-1.7 history".toByteArray(),
+            ids[0],
+            revision(1),
+            RevisionKindWire.AUTOSAVE,
+        )
+        var expectedHead = created.revisionId
+        for (index in 1 until 4) {
+            store.saveRevision(
+                documentId,
+                ids[index],
+                revision(index + 1),
+                RevisionKindWire.AUTOSAVE,
+                expectedHead,
+            )
+            expectedHead = ids[index]
+        }
+        store.saveRevision(
+            documentId,
+            ids[4],
+            revision(5),
+            RevisionKindWire.EXPLICIT,
+            expectedHead,
+        )
+        store.saveRevision(
+            documentId,
+            ids[5],
+            revision(6),
+            RevisionKindWire.RECOVERY,
+            ids[4],
+        )
+
+        assertFalse(File(root, "docs/$documentId/rev/${ids[0]}.fx1").exists())
+        for (index in 1 until 6) {
+            assertTrue(File(root, "docs/$documentId/rev/${ids[index]}.fx1").exists())
+        }
+        val head = store.readHeadForTest(
+            AggregateRef(AggregateKind.DOCUMENT, documentId),
+        )
+        assertEquals(ids[5], head.revisionId)
+        assertEquals(RevisionKindWire.RECOVERY, head.kind)
+        assertEquals(
+            setOf(ids[1], ids[2], ids[3], ids[4], ids[5]),
+            head.history.map { it.revisionId }.toSet(),
+        )
+        assertTrue(head.history.size <= EncryptedStore.MAX_HEAD_HISTORY)
+        assertEquals(ids[5], store.loadDocument(documentId).head.revisionId)
+    }
+
+    @Test
+    fun legacyHeadWithoutHistoryKeepsFilesOnDevice() {
+        val documentId = UUID.randomUUID().toString()
+        val ids = (1..3).map(::fixedUuid)
+        val created = store.createDocument(
+            documentId,
+            meta("Legacy"),
+            UUID.randomUUID().toString(),
+            "%PDF-1.7 legacy".toByteArray(),
+            ids[0],
+            revision(1),
+            RevisionKindWire.AUTOSAVE,
+        )
+        store.saveRevision(
+            documentId,
+            ids[1],
+            revision(2),
+            RevisionKindWire.AUTOSAVE,
+            created.revisionId,
+        )
+        store.saveRevision(
+            documentId,
+            ids[2],
+            revision(3),
+            RevisionKindWire.EXPLICIT,
+            ids[1],
+        )
+        val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
+        val head = store.readHeadForTest(ref)
+        store.commitHeadForTest(ref, head.copy(history = emptyList()))
+
+        assertEquals(0, store.pruneRevisions(documentId, emptySet()))
+        for (index in 0 until 3) {
+            assertTrue(File(root, "docs/$documentId/rev/${ids[index]}.fx1").exists())
+        }
+        assertEquals(ids[2], store.loadDocument(documentId).head.revisionId)
+    }
+
+    @Test
+    fun unknownHistoryEntryIsRetainedOnDevice() {
+        val documentId = UUID.randomUUID().toString()
+        val first = fixedUuid(1)
+        val second = fixedUuid(2)
+        val created = store.createDocument(
+            documentId,
+            meta("Unknown"),
+            UUID.randomUUID().toString(),
+            "%PDF-1.7 unknown".toByteArray(),
+            first,
+            revision(1),
+            RevisionKindWire.AUTOSAVE,
+        )
+        store.saveRevision(
+            documentId,
+            second,
+            revision(2),
+            RevisionKindWire.EXPLICIT,
+            created.revisionId,
+        )
+        val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
+        val head = store.readHeadForTest(ref)
+        store.commitHeadForTest(
+            ref,
+            head.copy(
+                history = listOf(
+                    HeadHistoryEntry(first, null),
+                    HeadHistoryEntry(second, RevisionKindWire.EXPLICIT),
+                ),
+            ),
+        )
+
+        assertEquals(0, store.pruneRevisions(documentId, setOf(second)))
+        assertTrue(File(root, "docs/$documentId/rev/$first.fx1").exists())
+        assertTrue(File(root, "docs/$documentId/rev/$second.fx1").exists())
+    }
+
+    @Test
     fun noPlaintextResidueInTheAggregateDirectory() {
         val marker = "PDF-DEVICE-SECRET"
         val created = store.createDocument(

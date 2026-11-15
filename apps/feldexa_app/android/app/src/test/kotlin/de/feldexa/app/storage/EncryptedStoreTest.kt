@@ -553,7 +553,7 @@ class EncryptedStoreTest {
 
     @Test
     fun missingHeadFallsBackToTheNewestVerifiedRevision() {
-        val created = createDoc()
+        val created = createDoc(revisionKind = RevisionKindWire.AUTOSAVE)
         val second = newId()
         val third = newId()
         store.saveRevision(
@@ -857,6 +857,7 @@ class EncryptedStoreTest {
     private fun createDoc(
         title: String = "Dokument",
         source: ByteArray = "%PDF-1.7 synthetic".toByteArray(),
+        revisionKind: RevisionKindWire = RevisionKindWire.EXPLICIT,
     ): CreateReceipt {
         val documentId = newId()
         return store.createDocument(
@@ -866,6 +867,7 @@ class EncryptedStoreTest {
             source,
             newId(),
             revision(1),
+            revisionKind,
         )
     }
 

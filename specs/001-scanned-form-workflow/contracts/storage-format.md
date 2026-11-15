@@ -142,11 +142,15 @@ Preconditions: a valid in-memory snapshot, a current verified head, and the docu
 2. **Stage** `tmp/<txnId>.part` with `O_CREAT|O_EXCL`, write header + chunks, `fd.sync()`.
 3. **Verify** by reopening the staged file, decrypting **all** chunks, recomputing SHA-256, and comparing the header and payload hash. Any mismatch → delete staged file, throw `CorruptDataException`.
 4. **Promote** the revision: `rename(tmp/<txnId>.part, rev/<revisionId>.fx1)`; `fsync` the `rev/` directory.
-5. **Stage head**: write `head.fx1` with `{revisionId, plaintextSha256, committedAt, parentRevisionId, kind}` to `tmp/<txnId>.head`, fsync, verify by decrypting and parsing.
+5. **Stage head**: write `head.fx1` with `{revisionId, plaintextSha256, committedAt, parentRevisionId, kind, history}` to `tmp/<txnId>.head`, fsync, verify by decrypting and parsing.
 6. **Promote head**: `rename(tmp/<txnId>.head, head.fx1)`, fsync the document directory.
 7. **Read-back**: decrypt `head.fx1` and the referenced revision again; compare hashes. Only now may the caller be told `saved`.
-8. **Prune** revisions beyond the retention policy (last 3 autosave + newest explicit + recovery), deleting only after step 7 succeeded.
+8. **Prune**: after step 7 succeeded, compute the keep set from `history` (last 3 autosave + newest explicit + newest recovery + the verified head) and delete only those known-kind, non-kept revision files. Unknown-kind entries and untracked legacy files are retained, never guessed. Then rewrite `head.fx1` atomically with the surviving history entries (removing entries whose files are gone); a crash between deletion and this trim is reconciled on the next save/startup.
 9. **Clean** `tmp/<txnId>*`.
+
+**Head history (bounded known-kind order).** `history` is an array of `{revisionId, kind}` entries ordered oldest first, at most 16 entries. `kind` is `autosave`, `explicit`, `recovery`, or `null` for a legacy/unknown entry. It is built from the previous head's history (dropping entries whose files no longer exist), the previous head's own `{revisionId, kind}`, and the new revision. The cap bounds head size; entries older than the cap become untracked and are therefore retained by the pruner. A legacy `head.fx1` without `history` is valid and yields an empty history; no policy pruning occurs until a new history is written. A missing or unknown `kind` is never inferred from revision content or file order.
+
+The durable order for a new revision is: stage data and fsync, read-back verify, set the monotonic revision mtime, `fsync(file)` so the mtime is durable, atomically rename, then fsync the parent directory. Only then does the head history/prune step run.
 
 If any step fails before step 6, the previous `head.fx1` and all previous revisions remain valid; the operation fails. If step 6 fails after rename (unlikely), a startup recovery check detects a head pointing to a missing revision and falls back (see §4).
 
@@ -195,6 +199,7 @@ On app start (before the list is shown), run in this order:
    - If `meta.fx1` is missing or unreadable → the aggregate never became visible; if it contains only `src/` or `rev/` and no `meta`, delete the directory (import/template-create incomplete). Otherwise mark the list entry `Nicht lesbar` and keep it.
    - If `head.fx1` is missing/corrupt → find the newest revision whose hash verifies; if found, adopt it, set `fellBackToOlderRevision: true`, and surface "Es wurde ein älterer gespeicherter Stand wiederhergestellt" (`SAVE-004`). If none verify → mark `Nicht lesbar`; never delete.
    - If `head.fx1` points to a missing/corrupt revision → same fallback.
+   - If `head.fx1` verifies and carries `history`, run the same known-kind retention step from §3.1 step 8 (head protected; unknown/untracked retained) and atomically trim missing history entries. A legacy head without history deletes nothing.
 3. Delete unreferenced signature assets older than 24 h.
 4. Delete export artifacts older than 24 h and any on session end.
 5. Delete orphaned KEK aliases under `feldexa.doc.v1.` and `feldexa.tpl.v1.` that have no corresponding aggregate directory. Never delete an alias whose aggregate directory still exists.
@@ -232,7 +237,7 @@ Per-aggregate isolation covers loss/invalidation of one aggregate's alias while 
 - Free-space preflight: require `2 × objectSize + 32 MiB` before import/save/export; otherwise fail early with `SAVE-001`/`IMP-007`.
 - Chunk size 1 MiB: bounded memory during encryption/decryption (one chunk + tag), and per-chunk authentication enables reliable truncation detection.
 - Listing 50 documents: decrypts only `meta.fx1` (estimated ≤ 8 KiB each) and `head.fx1` with each aggregate's own KEK; no source or revision decryption. An aggregate whose key is unavailable is returned as an unreadable placeholder without decrypting or inventing content. Per-aggregate key lookup adds one Keystore unwrap per listed aggregate and must be measured, not assumed.
-- Revision pruning keeps at most 5 revision objects per document by default; explicit-save revisions are retained until superseded.
+- Revision pruning keeps at most 5 known revision objects per document by default (last 3 autosave + newest explicit + newest recovery + head); the bounded head history has at most 16 entries. Explicit-save revisions are retained until superseded. Legacy/unknown-kind/untracked revisions are retained conservatively, so the on-disk count can exceed 5 after an upgrade.
 
 ---
 

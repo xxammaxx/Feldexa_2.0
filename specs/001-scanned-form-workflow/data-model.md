@@ -322,7 +322,7 @@ Not reusable across documents (FR-036); template creation excludes it (FR-057). 
 | `plaintextSha256` | `String` | verified before head update |
 | `content` | `{pages, suggestions, fields, fieldOrder, values, signatures, verification, templateOrigin}` | full snapshot, no source bytes |
 
-Retention: keep last 3 autosave revisions + the newest explicit revision + a recovery revision if present; pruning only after a verified commit.
+Retention: keep last 3 autosave revisions + the newest explicit revision + a recovery revision if present; pruning only after a verified commit. The bounded known-kind order (`revisionId`, `kind`, oldest first, at most 16 entries) is persisted atomically in `head.fx1`; entries with unknown/legacy kind are retained conservatively, and a head without this history prunes nothing. Template versions are not pruned by normal saves.
 
 > `RevisionContent` is the named payload type of `Revision.content`: `{pages, suggestions, fields, fieldOrder, values, signatures, verification, templateOrigin}`. `RevisionKind` is the enum `autosave | explicit | recovery`. Both are canonical core types owned by T020.
 

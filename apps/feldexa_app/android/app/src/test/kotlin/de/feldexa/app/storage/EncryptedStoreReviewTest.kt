@@ -266,6 +266,7 @@ class EncryptedStoreReviewTest {
             "%PDF-1.7".toByteArray(),
             first,
             revision(1),
+            RevisionKindWire.AUTOSAVE,
         )
         store.saveRevision(
             documentId,
@@ -305,6 +306,7 @@ class EncryptedStoreReviewTest {
             "%PDF-1.7".toByteArray(),
             first,
             revision(1),
+            RevisionKindWire.AUTOSAVE,
         )
         store.saveRevision(
             documentId,

@@ -223,6 +223,11 @@ class EncryptedStore(
                 committedAt = nowIso(),
                 parentRevisionId = null,
                 kind = revisionKind,
+                history = if (ref.kind == AggregateKind.DOCUMENT) {
+                    listOf(HeadHistoryEntry(revisionId, revisionKind))
+                } else {
+                    emptyList()
+                },
             )
             commitHead(ref, head, txn)
             commitObject(MetaObject(ref), metaJson, txn, TMP_SUFFIX_PART)
@@ -319,6 +324,7 @@ class EncryptedStore(
                 committedAt = nowIso(),
                 parentRevisionId = null,
                 kind = RevisionKindWire.EXPLICIT,
+                history = emptyList(),
             )
             commitHead(ref, head, txn)
             commitObject(MetaObject(ref), metaJson, txn, TMP_SUFFIX_PART)
@@ -407,12 +413,14 @@ class EncryptedStore(
             )
         }
 
+        val history = buildHeadHistory(ref, current, revisionId, revisionKind)
         val head = CommittedHead(
             revisionId = revisionId,
             plaintextSha256 = sha256Hex(revisionJson),
             committedAt = nowIso(),
             parentRevisionId = current?.revisionId,
             kind = revisionKind,
+            history = history,
         )
         commitHead(ref, head, txn)
 
@@ -423,6 +431,24 @@ class EncryptedStore(
             readRevision.plaintextSha256 != head.plaintextSha256
         ) {
             throw CorruptDataException()
+        }
+
+        // §3.1 step 8: only after the durable read-back may known-kind,
+        // non-kept revisions be pruned. The verified head is protected, and
+        // unknown/untracked legacy revisions are retained conservatively.
+        val prune = try {
+            pruneDocumentFromHead(ref, readHead)
+        } catch (failure: Exception) {
+            PruneResult(0, readHead.history)
+        }
+        if (prune.history != readHead.history) {
+            val trimmed = readHead.copy(history = prune.history)
+            try {
+                commitHead(ref, trimmed, newTxnId())
+            } catch (failure: Exception) {
+                // The durable revision/head is already verified. Keep the
+                // full history; the next save/startup reconciles it.
+            }
         }
         return CommitReceipt(
             aggregateId = documentId,
@@ -435,6 +461,7 @@ class EncryptedStore(
             revisionFileBytes = revisionFile.length(),
             headFileBytes = fileFor(HeadObject(ref)).length(),
             readBackVerified = true,
+            prunedRevisions = prune.deleted,
         )
     }
 
@@ -493,6 +520,7 @@ class EncryptedStore(
             committedAt = nowIso(),
             parentRevisionId = current?.revisionId,
             kind = RevisionKindWire.EXPLICIT,
+            history = emptyList(),
         )
         commitHead(ref, head, txn)
 
@@ -817,6 +845,7 @@ class EncryptedStore(
         var unreadable = 0
         var fallbacks = 0
         var ambiguousRevisionOrder = 0
+        var pruned = 0
         var aliasSweepSkipped = false
         var aliasSweep = OrphanAliasSweep(0, 0, 0)
 
@@ -842,6 +871,25 @@ class EncryptedStore(
                     if (health.fellBackToOlderRevision) fallbacks++
                     if (health.ambiguousRevisionOrder) ambiguousRevisionOrder++
                     if (!health.readable) unreadable++
+                    if (health.readable &&
+                        kind == AggregateKind.DOCUMENT &&
+                        health.head != null
+                    ) {
+                        try {
+                            val prune = pruneDocumentFromHead(ref, health.head)
+                            pruned += prune.deleted
+                            if (prune.history != health.head.history) {
+                                commitHead(
+                                    ref,
+                                    health.head.copy(history = prune.history),
+                                    newTxnId(),
+                                )
+                            }
+                        } catch (failure: Exception) {
+                            // Conservative restart: keep all revision files
+                            // and retry on the next startup/save.
+                        }
+                    }
                 }
             }
         }
@@ -868,6 +916,7 @@ class EncryptedStore(
             "unreadableAggregates" to unreadable,
             "fallbackAdoptions" to fallbacks,
             "ambiguousRevisionOrder" to ambiguousRevisionOrder,
+            "prunedRevisions" to pruned,
             "orphanAliasesRemoved" to aliasSweep.removedAliases,
             "orphanAliasesRetained" to aliasSweep.retainedAliases,
             "orphanAliasesFailed" to aliasSweep.failedAliases,
@@ -881,6 +930,7 @@ class EncryptedStore(
             unreadableAggregates = unreadable,
             fallbackAdoptions = fallbacks,
             ambiguousRevisionOrder = ambiguousRevisionOrder,
+            prunedRevisions = pruned,
             orphanAliasesRemoved = aliasSweep.removedAliases,
             orphanAliasesRetained = aliasSweep.retainedAliases,
             orphanAliasesFailed = aliasSweep.failedAliases,
@@ -919,16 +969,16 @@ class EncryptedStore(
     }
 
     /**
-     * Deletes revision objects that the caller explicitly excluded from
-     * retention, while never deleting the verified current head.
+     * Deletes known-kind revision objects that the caller explicitly excluded
+     * from retention, while never deleting the verified current head.
      *
-     * `contracts/storage-format.md` §3.1 step 8 requires pruning, but the
-     * persisted `RevisionContent` carries no revision kind, so the store
-     * cannot compute the "last 3 autosave + newest explicit + recovery"
-     * policy without inventing data. The save orchestration/history owner
-     * computes the keep set and calls this primitive. A corrupt or missing
-     * head, or a head revision that does not verify, aborts pruning without
-     * deleting anything. Only `rev/<uuid>.fx1` files are considered.
+     * `contracts/storage-format.md` §3.1 step 8 uses the bounded head history
+     * for the owner-decided policy. This primitive remains for explicit
+     * retention decisions: only revisions recorded in `head.history` with a
+     * known kind and not in [keepRevisionIds] are deleted. Unknown-kind and
+     * untracked legacy revisions are retained; a corrupt/missing head or a
+     * head revision that does not verify aborts without deleting anything.
+     * Only `rev/<uuid>.fx1` files are considered.
      *
      * @return number of revision files deleted.
      */
@@ -945,6 +995,8 @@ class EncryptedStore(
             }
             val dir = File(aggregateDir(ref), "rev")
             if (!io.isDirectory(dir)) return@withAggregateLock 0
+            val known = LinkedHashMap<String, HeadHistoryEntry>()
+            head.history.forEach { known[it.revisionId] = it }
             var deleted = 0
             for (file in io.list(dir)) {
                 if (!file.isFile || !file.name.endsWith(".fx1")) continue
@@ -953,6 +1005,8 @@ class EncryptedStore(
                 if (revisionId == head.revisionId || revisionId in keepRevisionIds) {
                     continue
                 }
+                val entry = known[revisionId] ?: continue
+                if (entry.kind == null) continue
                 if (io.delete(file)) deleted++
             }
             if (deleted > 0) io.fsyncDirectory(dir)
@@ -1043,6 +1097,122 @@ class EncryptedStore(
         }
         val now = clock()
         return if (latest == null) now else maxOf(now, latest + 1)
+    }
+
+    /**
+     * Bounded known-kind history for the new head, oldest first.
+     *
+     * Entries whose files no longer exist are dropped; the previous head's own
+     * entry is refreshed from its head kind, and the new revision is appended.
+     * A cap of [MAX_HEAD_HISTORY] bounds head size; entries older than the cap
+     * become untracked and are therefore retained by the pruner.
+     */
+    private fun buildHeadHistory(
+        ref: AggregateRef,
+        current: CommittedHead?,
+        newRevisionId: String,
+        newKind: RevisionKindWire,
+    ): List<HeadHistoryEntry> {
+        if (ref.kind != AggregateKind.DOCUMENT) return emptyList()
+        val entries = LinkedHashMap<String, HeadHistoryEntry>()
+        current?.history?.forEach { entry ->
+            if (revisionFileExists(ref, entry.revisionId)) {
+                entries[entry.revisionId] = entry
+            }
+        }
+        if (current != null && revisionFileExists(ref, current.revisionId)) {
+            entries.remove(current.revisionId)
+            entries[current.revisionId] = HeadHistoryEntry(
+                current.revisionId,
+                current.kind,
+            )
+        }
+        entries.remove(newRevisionId)
+        entries[newRevisionId] = HeadHistoryEntry(newRevisionId, newKind)
+        return entries.values.toList().takeLast(MAX_HEAD_HISTORY)
+    }
+
+    private fun revisionFileExists(ref: AggregateRef, revisionId: String): Boolean {
+        if (!AggregateRef.isValidId(revisionId)) return false
+        return io.exists(File(File(aggregateDir(ref), "rev"), "$revisionId.fx1"))
+    }
+
+    /**
+     * The owner's policy: last 3 known autosaves + newest known explicit +
+     * newest known recovery + the verified head. Unknown-kind entries are
+     * never added to the keep set by inference; the pruner retains them.
+     */
+    private fun computeKeepSet(
+        head: CommittedHead,
+        history: List<HeadHistoryEntry>,
+    ): Set<String> {
+        val known = history.filter { it.kind != null }
+        val keep = linkedSetOf<String>()
+        known.filter { it.kind == RevisionKindWire.AUTOSAVE }
+            .takeLast(3)
+            .forEach { keep += it.revisionId }
+        known.lastOrNull { it.kind == RevisionKindWire.EXPLICIT }
+            ?.let { keep += it.revisionId }
+        known.lastOrNull { it.kind == RevisionKindWire.RECOVERY }
+            ?.let { keep += it.revisionId }
+        keep += head.revisionId
+        return keep
+    }
+
+    private data class PruneResult(
+        val deleted: Int,
+        val history: List<HeadHistoryEntry>,
+    )
+
+    /**
+     * Deletes only known-kind, non-kept revision files after a verified head.
+     *
+     * The verified head, the policy keep set, unknown-kind history entries,
+     * and untracked legacy files are never deleted. The returned history has
+     * missing deleted entries removed so the next head write records only
+     * existing known revisions.
+     */
+    private fun pruneDocumentFromHead(
+        ref: AggregateRef,
+        head: CommittedHead,
+    ): PruneResult {
+        if (ref.kind != AggregateKind.DOCUMENT) {
+            return PruneResult(0, emptyList())
+        }
+        val headObject = RevisionObject(ref, head.revisionId)
+        val headVerification = verifyContainer(headObject, fileFor(headObject))
+        if (headVerification.plaintextSha256 != head.plaintextSha256) {
+            throw CorruptDataException()
+        }
+        val known = LinkedHashMap<String, HeadHistoryEntry>()
+        head.history.forEach { known[it.revisionId] = it }
+        val keep = computeKeepSet(head, head.history)
+        val dir = File(aggregateDir(ref), "rev")
+        var deleted = 0
+        if (io.isDirectory(dir)) {
+            for (file in io.list(dir)) {
+                if (!file.isFile || !file.name.endsWith(".fx1")) continue
+                val revisionId = file.name.removeSuffix(".fx1")
+                if (!AggregateRef.isValidId(revisionId)) continue
+                if (revisionId == head.revisionId || revisionId in keep) continue
+                val entry = known[revisionId] ?: continue
+                if (entry.kind == null) continue
+                if (io.delete(file)) deleted++
+            }
+            if (deleted > 0) {
+                try {
+                    io.fsyncDirectory(dir)
+                } catch (failure: Exception) {
+                    // Deletion is safe; the next startup/save retries the
+                    // directory durability and conservative reconciliation.
+                }
+            }
+        }
+        val remaining = head.history.filter { entry ->
+            entry.revisionId == head.revisionId ||
+                revisionFileExists(ref, entry.revisionId)
+        }
+        return PruneResult(deleted, remaining)
     }
 
     private fun readBackObject(
@@ -1361,6 +1531,13 @@ class EncryptedStore(
     internal fun readHeadForTest(aggregate: AggregateRef): CommittedHead =
         readHeadStrict(aggregate)
 
+    internal fun commitHeadForTest(
+        aggregate: AggregateRef,
+        head: CommittedHead,
+    ) {
+        commitHead(aggregate, head, newTxnId())
+    }
+
     // ------------------------------------------------------------------
     // Head parsing
     // ------------------------------------------------------------------
@@ -1398,6 +1575,12 @@ class EncryptedStore(
             "committedAt" to head.committedAt,
             "parentRevisionId" to head.parentRevisionId,
             "kind" to head.kind.wireName,
+            "history" to head.history.takeLast(MAX_HEAD_HISTORY).map { entry ->
+                linkedMapOf(
+                    "revisionId" to entry.revisionId,
+                    "kind" to entry.kind?.wireName,
+                )
+            },
         ),
     )
 
@@ -1429,13 +1612,40 @@ class EncryptedStore(
         if (!SHA256_HEX.matches(sha)) throw CorruptDataException()
         val kind = RevisionKindWire.fromWire(kindText)
             ?: throw CorruptDataException()
+        val history = decodeHeadHistory(map["history"])
         return CommittedHead(
             revisionId = revisionId,
             plaintextSha256 = sha,
             committedAt = committedAt,
             parentRevisionId = parent,
             kind = kind,
+            history = history,
         )
+    }
+
+    /**
+     * Legacy heads have no `history`; unknown kind tokens/null entries are
+     * retained as unknown so pruning never guesses their provenance.
+     */
+    private fun decodeHeadHistory(value: Any?): List<HeadHistoryEntry> {
+        if (value == null) return emptyList()
+        val items = value as? List<*> ?: throw CorruptDataException()
+        val unique = LinkedHashMap<String, HeadHistoryEntry>()
+        for (item in items) {
+            val entry = item as? Map<*, *> ?: throw CorruptDataException()
+            val revisionId = entry["revisionId"] as? String
+                ?: throw CorruptDataException()
+            if (!AggregateRef.isValidId(revisionId)) throw CorruptDataException()
+            val kindValue = entry["kind"]
+            val kind = when (kindValue) {
+                null -> null
+                is String -> RevisionKindWire.fromWire(kindValue)
+                else -> throw CorruptDataException()
+            }
+            unique.remove(revisionId)
+            unique[revisionId] = HeadHistoryEntry(revisionId, kind)
+        }
+        return unique.values.toList().takeLast(MAX_HEAD_HISTORY)
     }
 
     private fun restoreHead(headFile: File, previous: ByteArray?) {
@@ -1903,6 +2113,7 @@ class EncryptedStore(
         const val MAX_REVISION_BYTES: Long = 32L * 1024 * 1024
         const val MAX_OBJECT_BYTES: Long = 96L * 1024 * 1024
 
+        const val MAX_HEAD_HISTORY: Int = 16
         const val STALE_TEMP_MS: Long = 24L * 60 * 60 * 1000
         const val DIAGNOSTICS_CAP: Long = 64L * 1024
         const val CONFLICT_RETRY_MS: Long = 1L
@@ -1976,6 +2187,17 @@ enum class RevisionKindWire(val wireName: String) {
     }
 }
 
+/**
+ * One bounded head-history entry (`contracts/storage-format.md` §3.1 step 5).
+ *
+ * [kind] is nullable so a legacy/unknown entry is retained conservatively
+ * instead of being guessed. History order is oldest first.
+ */
+data class HeadHistoryEntry(
+    val revisionId: String,
+    val kind: RevisionKindWire?,
+)
+
 /** Parsed `head.fx1` envelope (`contracts/storage-format.md` §3.1 step 5). */
 data class CommittedHead(
     val revisionId: String,
@@ -1983,6 +2205,8 @@ data class CommittedHead(
     val committedAt: String,
     val parentRevisionId: String?,
     val kind: RevisionKindWire,
+    /** Bounded known-kind history, oldest first; may be empty for legacy heads. */
+    val history: List<HeadHistoryEntry> = emptyList(),
 )
 
 /** Staged-object receipt; no path or key bytes. */
@@ -2005,6 +2229,7 @@ data class CommitReceipt(
     val revisionFileBytes: Long,
     val headFileBytes: Long,
     val readBackVerified: Boolean,
+    val prunedRevisions: Int = 0,
 )
 
 /** New aggregate receipt after source, revision, head, and meta read-back. */
@@ -2088,6 +2313,7 @@ data class RecoveryReport(
     val orphanAliasesFailed: Int,
     val aliasSweepSkipped: Boolean,
     val ambiguousRevisionOrder: Int = 0,
+    val prunedRevisions: Int = 0,
 )
 
 // --------------------------------------------------------------------------
