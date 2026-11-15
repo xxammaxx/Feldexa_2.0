@@ -182,6 +182,9 @@ No performance claim.
   KVM record.
 - The pre-existing `gradlew.bat` line-ending state is local tooling noise and is
   not part of the candidate.
+- `DEVICE` acceptance, the physical-device journey, a live Dart-engine end-to-end
+  call, and the full SAF/OCR/export/delivery journeys are `NOT_RUN`; only the
+  checks in §4 ran.
 
 ## 8. Artifacts
 
