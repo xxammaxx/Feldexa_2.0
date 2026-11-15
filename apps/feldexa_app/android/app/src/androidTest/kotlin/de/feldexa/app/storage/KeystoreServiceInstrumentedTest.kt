@@ -2,7 +2,6 @@ package de.feldexa.app.storage
 
 import android.security.keystore.KeyInfo
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import java.security.KeyStore
 import java.util.UUID
 import javax.crypto.SecretKey
@@ -20,19 +19,22 @@ import org.junit.runner.RunWith
 /**
  * T025 `EMULATOR`/`DEVICE` tests against the real `AndroidKeyStore`.
  *
- * Required evidence class for T025's key lifecycle and key-loss isolation is
- * the Android runtime; these tests are executed with
- * `connectedDebugAndroidTest` on an allocated device/emulator. A JVM run or a
- * browser run is not a substitute.
+ * Safety rule: this class runs under the production application id, so it must
+ * never enumerate, create, or delete a production aggregate alias. Every alias
+ * used here is prefixed with a unique `feldexa.test.v1.<runToken>.` namespace
+ * by [IsolatedTestBackend]. Cleanup deletes only the exact physical aliases
+ * tracked by that backend instance; there is no `KeyStore.aliases()` sweep and
+ * no production prefix match.
  *
- * Aliases created by this class are removed in [setUp]/[tearDown] so a failed
- * test cannot make later tests read a sibling key as missing.
+ * The test uses the TEE path (`strongBoxSupported = false`) so alias mapping is
+ * deterministic on every emulator/device. StrongBox selection remains covered
+ * by the JVM policy tests; it is not a production-alias concern.
  */
 @RunWith(AndroidJUnit4::class)
 class KeystoreServiceInstrumentedTest {
 
-    private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private lateinit var keyStore: KeyStore
+    private lateinit var backend: IsolatedTestBackend
     private lateinit var service: KeystoreService
 
     private val documentOne = document()
@@ -42,13 +44,15 @@ class KeystoreServiceInstrumentedTest {
     @Before
     fun setUp() {
         keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
-        deleteAllAggregateAliases()
-        service = KeystoreService.forAndroid(context)
+        backend = IsolatedTestBackend()
+        // Fail before touching Keystore if the isolation guard is broken.
+        backend.validateIsolation(documentOne)
+        service = KeystoreService(backend, strongBoxSupported = false)
     }
 
     @After
     fun tearDown() {
-        deleteAllAggregateAliases()
+        backend.deleteCreatedTestAliases()
     }
 
     @Test
@@ -61,8 +65,8 @@ class KeystoreServiceInstrumentedTest {
         assertEquals(12, wrapped.wrapIv.size)
         assertEquals(48, wrapped.wrappedKey.size)
         assertTrue(dek.contentEquals(service.unwrapDek(documentOne, wrapped)))
-        assertTrue(keyStore.containsAlias(documentOne.alias))
-        assertFalse(keyStore.containsAlias("feldexa.master.v1"))
+        assertTrue(backend.hasTestAlias(documentOne))
+        assertFalse(backend.containsLogicalAlias("feldexa.master.v1"))
     }
 
     @Test
@@ -83,7 +87,7 @@ class KeystoreServiceInstrumentedTest {
     fun keyIsNonExportableAndDoesNotRequireUserAuthentication() {
         service.createAggregateKey(documentOne)
 
-        val key = keyStore.getKey(documentOne.alias, null) as SecretKey
+        val key = keyStore.getKey(backend.physicalAlias(documentOne), null) as SecretKey
         val encoded = try {
             key.encoded
         } catch (failure: UnsupportedOperationException) {
@@ -91,7 +95,7 @@ class KeystoreServiceInstrumentedTest {
         }
         assertNull(encoded)
 
-        val keyInfo = keyInfo(documentOne.alias)
+        val keyInfo = keyInfo(documentOne)
         assertFalse(keyInfo.isUserAuthenticationRequired)
         assertEquals(256, keyInfo.keySize)
     }
@@ -102,10 +106,10 @@ class KeystoreServiceInstrumentedTest {
         service.createAggregateKey(documentTwo)
         service.createAggregateKey(templateOne)
 
-        assertTrue(keyStore.containsAlias("feldexa.doc.v1.${documentOne.id}"))
-        assertTrue(keyStore.containsAlias("feldexa.doc.v1.${documentTwo.id}"))
-        assertTrue(keyStore.containsAlias("feldexa.tpl.v1.${templateOne.id}"))
-        assertFalse(keyStore.containsAlias("feldexa.master.v1"))
+        assertTrue(backend.hasTestAlias(documentOne))
+        assertTrue(backend.hasTestAlias(documentTwo))
+        assertTrue(backend.hasTestAlias(templateOne))
+        assertFalse(backend.containsLogicalAlias("feldexa.master.v1"))
     }
 
     @Test
@@ -117,7 +121,7 @@ class KeystoreServiceInstrumentedTest {
         val siblingWrapped = service.wrapDek(documentTwo, siblingDek)
         val templateWrapped = service.wrapDek(templateOne, randomDek())
 
-        keyStore.deleteEntry(documentOne.alias)
+        backend.deleteTestAlias(documentOne)
 
         val failure = assertThrows(KeyUnavailableException::class.java) {
             service.wrapDek(documentOne, randomDek())
@@ -136,8 +140,8 @@ class KeystoreServiceInstrumentedTest {
         service.createAggregateKey(documentOne)
         service.createAggregateKey(documentTwo)
 
-        keyStore.deleteEntry(documentOne.alias)
-        keyStore.deleteEntry(documentTwo.alias)
+        backend.deleteTestAlias(documentOne)
+        backend.deleteTestAlias(documentTwo)
 
         val failure = assertThrows(KeystoreUnavailableException::class.java) {
             service.wrapDek(documentOne, randomDek())
@@ -164,9 +168,9 @@ class KeystoreServiceInstrumentedTest {
 
         assertTrue(service.deleteAggregateKey(documentOne))
 
-        assertFalse(keyStore.containsAlias(documentOne.alias))
-        assertTrue(keyStore.containsAlias(documentTwo.alias))
-        assertTrue(keyStore.containsAlias(templateOne.alias))
+        assertFalse(backend.hasTestAlias(documentOne))
+        assertTrue(backend.hasTestAlias(documentTwo))
+        assertTrue(backend.hasTestAlias(templateOne))
     }
 
     @Test
@@ -178,8 +182,8 @@ class KeystoreServiceInstrumentedTest {
 
         assertEquals(1, result.removedAliases)
         assertEquals(1, result.retainedAliases)
-        assertTrue(keyStore.containsAlias(documentOne.alias))
-        assertFalse(keyStore.containsAlias(documentTwo.alias))
+        assertTrue(backend.hasTestAlias(documentOne))
+        assertFalse(backend.hasTestAlias(documentTwo))
     }
 
     @Test
@@ -191,38 +195,55 @@ class KeystoreServiceInstrumentedTest {
         assertTrue(healthy.keyAvailable)
         assertFalse(healthy.globalFailure)
 
-        keyStore.deleteEntry(documentOne.alias)
+        backend.deleteTestAlias(documentOne)
         val aggregateLoss = service.storeKeyStatus(listOf(documentOne, documentTwo))
         assertFalse(aggregateLoss.keyAvailable)
         assertFalse(aggregateLoss.globalFailure)
         assertEquals("SAVE-002", aggregateLoss.reasonCode)
 
-        keyStore.deleteEntry(documentTwo.alias)
+        backend.deleteTestAlias(documentTwo)
         val globalLoss = service.storeKeyStatus(listOf(documentOne, documentTwo))
         assertFalse(globalLoss.keyAvailable)
         assertTrue(globalLoss.globalFailure)
         assertEquals("SAVE-008", globalLoss.reasonCode)
     }
 
-    private fun keyInfo(alias: String): KeyInfo {
-        val key = keyStore.getKey(alias, null) as SecretKey
+    @Test
+    fun testAliasesAreIsolatedFromProductionAliases() {
+        service.createAggregateKey(documentOne)
+
+        val physical = backend.physicalAlias(documentOne)
+        assertTrue(physical.startsWith(IsolatedTestBackend.NAMESPACE_PREFIX))
+        assertTrue(keyStore.containsAlias(physical))
+        // The production alias is never created by this test; checking its
+        // absence is read-only and does not delete anything.
+        assertFalse(keyStore.containsAlias(documentOne.alias))
+    }
+
+    @Test
+    fun cleanupDoesNotDeleteForeignTestAlias() {
+        val foreignBackend = AndroidKeystoreBackend()
+        val foreignAlias = "feldexa.test.v1.${UUID.randomUUID()}.foreign"
+        foreignBackend.generateAesKey(foreignAlias, strongBox = false)
+        try {
+            service.createAggregateKey(documentOne)
+
+            backend.deleteCreatedTestAliases()
+
+            assertTrue(foreignBackend.containsAlias(foreignAlias))
+            assertFalse(backend.hasTestAlias(documentOne))
+        } finally {
+            foreignBackend.deleteAlias(foreignAlias)
+        }
+    }
+
+    private fun keyInfo(ref: AggregateRef): KeyInfo {
+        val key = keyStore.getKey(backend.physicalAlias(ref), null) as SecretKey
         val factory = SecretKeyFactory.getInstance(
             key.algorithm,
             "AndroidKeyStore",
         )
         return factory.getKeySpec(key, KeyInfo::class.java) as KeyInfo
-    }
-
-    private fun deleteAllAggregateAliases() {
-        val aliases = keyStore.aliases()
-        while (aliases.hasMoreElements()) {
-            val alias = aliases.nextElement()
-            if (alias.startsWith("feldexa.doc.v1.") ||
-                alias.startsWith("feldexa.tpl.v1.")
-            ) {
-                keyStore.deleteEntry(alias)
-            }
-        }
     }
 
     private fun document() = AggregateRef(
@@ -239,5 +260,117 @@ class KeystoreServiceInstrumentedTest {
         val dek = ByteArray(KeystoreService.DEK_SIZE_BYTES)
         java.security.SecureRandom().nextBytes(dek)
         return dek
+    }
+
+    /**
+     * Test-only Keystore backend that maps every logical T025 alias into a
+     * unique `feldexa.test.v1.<runToken>.` namespace. The production
+     * `AndroidKeystoreBackend` is still used underneath, so the real Keystore
+     * crypto and alias semantics are exercised.
+     *
+     * Cleanup is deliberate: [deleteCreatedTestAliases] iterates the exact
+     * physical aliases this instance generated. It never enumerates the
+     * KeyStore and never matches a production prefix.
+     */
+    private class IsolatedTestBackend : KeystoreBackend {
+
+        private val delegate = AndroidKeystoreBackend()
+        private val namespace =
+            NAMESPACE_PREFIX + UUID.randomUUID().toString() + "."
+        private val createdAliases = LinkedHashSet<String>()
+        private val logicalByPhysical = HashMap<String, String>()
+
+        fun physicalAlias(ref: AggregateRef): String = physicalAlias(ref.alias)
+
+        fun physicalAlias(alias: String): String = namespace + alias
+
+        fun hasTestAlias(ref: AggregateRef): Boolean =
+            delegate.containsAlias(physicalAlias(ref))
+
+        fun containsLogicalAlias(alias: String): Boolean =
+            delegate.containsAlias(physicalAlias(alias))
+
+        fun validateIsolation(ref: AggregateRef) {
+            check(namespace.startsWith(NAMESPACE_PREFIX))
+            check(physicalAlias(ref) != ref.alias)
+            check(physicalAlias(ref).startsWith(NAMESPACE_PREFIX))
+        }
+
+        override fun providerAvailable(): Boolean = delegate.providerAvailable()
+
+        override fun containsAlias(alias: String): Boolean =
+            delegate.containsAlias(physicalAlias(alias))
+
+        override fun listAliases(): Set<String> =
+            createdAliases.mapNotNull { physical ->
+                logicalByPhysical[physical]?.takeIf {
+                    delegate.containsAlias(physical)
+                }
+            }.toSet()
+
+        override fun isKeyUsable(alias: String): Boolean =
+            delegate.isKeyUsable(physicalAlias(alias))
+
+        override fun generateAesKey(alias: String, strongBox: Boolean) {
+            val physical = physicalAlias(alias)
+            createdAliases += physical
+            logicalByPhysical[physical] = alias
+            delegate.generateAesKey(physical, strongBox)
+        }
+
+        override fun deleteAlias(alias: String): Boolean {
+            val physical = physicalAlias(alias)
+            val deleted = delegate.deleteAlias(physical)
+            if (deleted) {
+                createdAliases.remove(physical)
+                logicalByPhysical.remove(physical)
+            }
+            return deleted
+        }
+
+        fun deleteTestAlias(ref: AggregateRef): Boolean {
+            val physical = physicalAlias(ref)
+            val deleted = delegate.deleteAlias(physical)
+            if (deleted) {
+                createdAliases.remove(physical)
+                logicalByPhysical.remove(physical)
+            }
+            return deleted
+        }
+
+        override fun encrypt(
+            alias: String,
+            aad: ByteArray,
+            plaintext: ByteArray,
+        ): WrappedDek =
+            delegate.encrypt(physicalAlias(alias), aad, plaintext)
+
+        override fun decrypt(
+            alias: String,
+            iv: ByteArray,
+            aad: ByteArray,
+            ciphertext: ByteArray,
+        ): ByteArray =
+            delegate.decrypt(physicalAlias(alias), iv, aad, ciphertext)
+
+        /**
+         * Deletes only exact aliases recorded by [generateAesKey], and only if
+         * they still exist in the test namespace. No global enumeration, no
+         * production prefix match.
+         */
+        fun deleteCreatedTestAliases() {
+            for (physical in createdAliases.toList()) {
+                if (!physical.startsWith(NAMESPACE_PREFIX)) continue
+                if (delegate.containsAlias(physical)) {
+                    runCatching { delegate.deleteAlias(physical) }
+                }
+            }
+            createdAliases.clear()
+            logicalByPhysical.clear()
+        }
+
+        companion object {
+            const val NAMESPACE_PREFIX: String = "feldexa.test.v1."
+        }
     }
 }
