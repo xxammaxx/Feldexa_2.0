@@ -51,6 +51,7 @@ abstract final class FaultPoints {
   static const String storeFsync = 'store.fsync';
   static const String storeRead = 'store.read';
   static const String keystoreUnwrap = 'keystore.unwrap';
+  static const String exportValidate = 'export.validate';
   static const String exportWrite = 'export.write';
   static const String exportVerify = 'export.verify';
 }

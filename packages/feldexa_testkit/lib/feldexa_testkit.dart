@@ -18,9 +18,7 @@ library;
 
 export 'src/clock/fake_clock.dart';
 export 'src/evidence/evidence.dart';
-export 'src/faults/fault_injector.dart';
-export 'src/faults/fault_kind.dart';
-export 'src/faults/fault_rule.dart';
+export 'src/faults.dart';
 export 'src/fixtures/fixture_catalog.dart';
 export 'src/fixtures/fixture_loader.dart';
 export 'src/fixtures/fixture_path.dart';
