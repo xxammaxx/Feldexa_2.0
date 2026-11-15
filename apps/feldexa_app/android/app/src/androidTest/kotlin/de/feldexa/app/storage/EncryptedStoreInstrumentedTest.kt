@@ -6,6 +6,10 @@ import androidx.test.platform.app.InstrumentationRegistry
 import java.io.File
 import java.io.IOException
 import java.util.UUID
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -250,6 +254,140 @@ class EncryptedStoreInstrumentedTest {
     }
 
     @Test
+    fun parallelSavesSerializeOnDevice() {
+        val created = createDocument()
+        val firstEntered = CountDownLatch(1)
+        val releaseFirst = CountDownLatch(1)
+        val secondStarted = CountDownLatch(1)
+        val firstInjection = AtomicBoolean(true)
+        val faultStore = EncryptedStore(
+            root = root,
+            keystore = keystore,
+            faultInjector = StoreFaultInjector { point, _ ->
+                if (point == StoreFaultPoint.STAGE_CREATE &&
+                    firstInjection.compareAndSet(true, false)
+                ) {
+                    firstEntered.countDown()
+                    if (!releaseFirst.await(5, TimeUnit.SECONDS)) {
+                        throw IllegalStateException("test latch timeout")
+                    }
+                }
+            },
+        )
+        val secondRevision = fixedUuid(2)
+        val thirdRevision = fixedUuid(3)
+        val executor = Executors.newFixedThreadPool(2)
+        try {
+            val first = executor.submit<CommitReceipt> {
+                faultStore.saveRevision(
+                    created.aggregateId,
+                    secondRevision,
+                    revision(2),
+                    RevisionKindWire.AUTOSAVE,
+                    created.revisionId,
+                )
+            }
+            assertTrue(firstEntered.await(5, TimeUnit.SECONDS))
+            val second = executor.submit<CommitReceipt> {
+                secondStarted.countDown()
+                faultStore.saveRevision(
+                    created.aggregateId,
+                    thirdRevision,
+                    revision(3),
+                    RevisionKindWire.AUTOSAVE,
+                    created.revisionId,
+                )
+            }
+            assertTrue(secondStarted.await(5, TimeUnit.SECONDS))
+            Thread.sleep(250)
+            releaseFirst.countDown()
+
+            val outcomes = listOf(
+                runCatching { first.get(10, TimeUnit.SECONDS) },
+                runCatching { second.get(10, TimeUnit.SECONDS) },
+            )
+            assertEquals(1, outcomes.count { it.isSuccess })
+            assertEquals(
+                1,
+                outcomes.count { outcome ->
+                    outcome.exceptionOrNull()?.causedBy<ConcurrentSaveException>() != null
+                },
+            )
+            val head = store.loadDocument(created.aggregateId).head.revisionId
+            assertTrue(head == secondRevision || head == thirdRevision)
+        } finally {
+            releaseFirst.countDown()
+            executor.shutdownNow()
+        }
+    }
+
+    @Test
+    fun pruneRevisionsKeepsHeadOnDevice() {
+        val documentId = UUID.randomUUID().toString()
+        val first = fixedUuid(1)
+        val second = fixedUuid(2)
+        store.createDocument(
+            documentId,
+            meta("Pruning"),
+            UUID.randomUUID().toString(),
+            "%PDF-1.7".toByteArray(),
+            first,
+            revision(1),
+        )
+        store.saveRevision(
+            documentId,
+            second,
+            revision(2),
+            RevisionKindWire.AUTOSAVE,
+            first,
+        )
+
+        val deleted = store.pruneRevisions(documentId, setOf(second))
+
+        assertEquals(1, deleted)
+        assertFalse(File(root, "docs/$documentId/rev/$first.fx1").exists())
+        assertTrue(File(root, "docs/$documentId/rev/$second.fx1").exists())
+        assertEquals(second, store.loadDocument(documentId).head.revisionId)
+    }
+
+    @Test
+    fun equalTimestampRecoveryFailsClosedOnDevice() {
+        val documentId = UUID.randomUUID().toString()
+        val higherUuid = fixedUuid(9)
+        val lowerUuid = fixedUuid(1)
+        val created = store.createDocument(
+            documentId,
+            meta("Rennen"),
+            UUID.randomUUID().toString(),
+            "%PDF-1.7".toByteArray(),
+            higherUuid,
+            revision(1),
+        )
+        store.saveRevision(
+            documentId,
+            lowerUuid,
+            revision(2),
+            RevisionKindWire.AUTOSAVE,
+            created.revisionId,
+        )
+        val revDir = File(root, "docs/$documentId/rev")
+        val highFile = File(revDir, "$higherUuid.fx1")
+        val lowFile = File(revDir, "$lowerUuid.fx1")
+        val equalTimestamp = System.currentTimeMillis() - 1_000
+        assertTrue(highFile.setLastModified(equalTimestamp))
+        assertTrue(lowFile.setLastModified(equalTimestamp))
+        File(root, "docs/$documentId/head.fx1").delete()
+
+        val stamp = store.recoveryStamp(AggregateKind.DOCUMENT, documentId)
+
+        assertFalse(stamp.readable)
+        assertEquals("SAVE-003", stamp.unreadableReasonCode)
+        assertTrue(stamp.ambiguousRevisionOrder)
+        assertTrue(highFile.exists())
+        assertTrue(lowFile.exists())
+    }
+
+    @Test
     fun noPlaintextResidueInTheAggregateDirectory() {
         val marker = "PDF-DEVICE-SECRET"
         val created = store.createDocument(
@@ -273,6 +411,18 @@ class EncryptedStoreInstrumentedTest {
     // ------------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------------
+
+    private fun fixedUuid(suffix: Int): String =
+        "00000000-0000-4000-8000-%012d".format(suffix)
+
+    private inline fun <reified T : Throwable> Throwable.causedBy(): T? {
+        var current: Throwable? = this
+        while (current != null) {
+            if (current is T) return current
+            current = current.cause
+        }
+        return null
+    }
 
     private fun createDocument(title: String = "Dokument"): CreateReceipt {
         val documentId = newId()

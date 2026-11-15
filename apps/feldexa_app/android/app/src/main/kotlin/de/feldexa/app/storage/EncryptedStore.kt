@@ -18,6 +18,9 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
 import java.util.zip.CRC32
 import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
@@ -113,6 +116,28 @@ class EncryptedStore(
 
     private fun newTxnId(): String = idGenerator()
 
+    /**
+     * Serializes compare-and-commit per aggregate.
+     *
+     * The store is used by one Android app process; a JVM-wide lock keyed by
+     * the store root and aggregate id also serializes two store instances in
+     * one process. Without it, two saves could both read the same head and
+     * both pass the expected-head check, and a read-back rollback could
+     * overwrite a concurrent commit. Cross-process writers are not claimed.
+     */
+    private fun <T> withAggregateLock(ref: AggregateRef, block: () -> T): T {
+        val lock = COMMIT_LOCKS.computeIfAbsent(lockKey(ref)) { ReentrantLock() }
+        lock.lock()
+        try {
+            return block()
+        } finally {
+            lock.unlock()
+        }
+    }
+
+    private fun lockKey(ref: AggregateRef): String =
+        root.absolutePath + "|" + ref.kind.name + "|" + ref.id
+
     // ------------------------------------------------------------------
     // Public read/write API
     // ------------------------------------------------------------------
@@ -127,6 +152,23 @@ class EncryptedStore(
      * read back is the document considered visible.
      */
     fun createDocument(
+        documentId: String,
+        metaJson: ByteArray,
+        sourceId: String,
+        sourceBytes: ByteArray,
+        revisionId: String,
+        revisionJson: ByteArray,
+        revisionKind: RevisionKindWire = RevisionKindWire.EXPLICIT,
+    ): CreateReceipt {
+        val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
+        requireAggregateId(ref)
+        return withAggregateLock(ref) {
+            createDocumentUnlocked(documentId, metaJson, sourceId, sourceBytes, revisionId, revisionJson, revisionKind)
+        }
+    }
+
+    /** Locked implementation; callers hold the aggregate commit lock. */
+    private fun createDocumentUnlocked(
         documentId: String,
         metaJson: ByteArray,
         sourceId: String,
@@ -173,6 +215,7 @@ class EncryptedStore(
                 revisionJson,
                 txn,
                 TMP_SUFFIX_PART,
+                lastModifiedMillis = nextRevisionTimestampMillis(ref),
             )
             val head = CommittedHead(
                 revisionId = revisionId,
@@ -187,8 +230,11 @@ class EncryptedStore(
             // Final read-back: only now may the caller treat it as imported.
             readContainer(MetaObject(ref), fileFor(MetaObject(ref)))
             require(readHeadStrict(ref) == head)
-            val readRevision = readObject(RevisionObject(ref, revisionId))
-            if (sha256Hex(readRevision) != head.plaintextSha256) {
+            val readRevision = verifyContainer(
+                RevisionObject(ref, revisionId),
+                fileFor(RevisionObject(ref, revisionId)),
+            )
+            if (readRevision.plaintextSha256 != head.plaintextSha256) {
                 throw CorruptDataException()
             }
             return CreateReceipt(
@@ -211,6 +257,22 @@ class EncryptedStore(
 
     /** Creates a template aggregate with its first immutable version (§3.3). */
     fun createTemplate(
+        templateId: String,
+        metaJson: ByteArray,
+        sourceId: String,
+        sourceBytes: ByteArray,
+        versionId: String,
+        versionJson: ByteArray,
+    ): CreateReceipt {
+        val ref = AggregateRef(AggregateKind.TEMPLATE, templateId)
+        requireAggregateId(ref)
+        return withAggregateLock(ref) {
+            createTemplateUnlocked(templateId, metaJson, sourceId, sourceBytes, versionId, versionJson)
+        }
+    }
+
+    /** Locked implementation; callers hold the aggregate commit lock. */
+    private fun createTemplateUnlocked(
         templateId: String,
         metaJson: ByteArray,
         sourceId: String,
@@ -249,6 +311,7 @@ class EncryptedStore(
                 versionJson,
                 txn,
                 TMP_SUFFIX_PART,
+                lastModifiedMillis = nextRevisionTimestampMillis(ref),
             )
             val head = CommittedHead(
                 revisionId = versionId,
@@ -262,8 +325,11 @@ class EncryptedStore(
 
             readContainer(MetaObject(ref), fileFor(MetaObject(ref)))
             require(readHeadStrict(ref) == head)
-            val readVersion = readObject(TemplateVersionObject(ref, versionId))
-            if (sha256Hex(readVersion) != head.plaintextSha256) {
+            val readVersion = verifyContainer(
+                TemplateVersionObject(ref, versionId),
+                fileFor(TemplateVersionObject(ref, versionId)),
+            )
+            if (readVersion.plaintextSha256 != head.plaintextSha256) {
                 throw CorruptDataException()
             }
             return CreateReceipt(
@@ -299,6 +365,21 @@ class EncryptedStore(
     ): CommitReceipt {
         val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
         requireAggregateId(ref)
+        return withAggregateLock(ref) {
+            saveRevisionUnlocked(documentId, revisionId, revisionJson, revisionKind, expectedHead)
+        }
+    }
+
+    /** Locked implementation; callers hold the aggregate commit lock. */
+    private fun saveRevisionUnlocked(
+        documentId: String,
+        revisionId: String,
+        revisionJson: ByteArray,
+        revisionKind: RevisionKindWire,
+        expectedHead: String?,
+    ): CommitReceipt {
+        val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
+        requireAggregateId(ref)
         requireObjectId(revisionId)
         requirePayload(revisionJson, MAX_REVISION_BYTES, "revision")
         if (!io.exists(fileFor(MetaObject(ref)))) {
@@ -312,10 +393,18 @@ class EncryptedStore(
 
         if (io.exists(revisionFile)) {
             // Idempotent retry of a commit that was promoted before a crash.
-            val existing = readContainer(revisionObject, revisionFile)
-            if (!existing.contentEquals(revisionJson)) throw ConcurrentSaveException()
+            val existing = verifyContainer(revisionObject, revisionFile)
+            if (existing.plaintextSha256 != sha256Hex(revisionJson)) {
+                throw ConcurrentSaveException()
+            }
         } else {
-            commitObject(revisionObject, revisionJson, txn, TMP_SUFFIX_PART)
+            commitObject(
+                revisionObject,
+                revisionJson,
+                txn,
+                TMP_SUFFIX_PART,
+                lastModifiedMillis = nextRevisionTimestampMillis(ref),
+            )
         }
 
         val head = CommittedHead(
@@ -329,9 +418,9 @@ class EncryptedStore(
 
         // §3.1 step 7: read back head and referenced revision again.
         val readHead = readHeadStrict(ref)
-        val readRevision = readContainer(revisionObject, revisionFile)
+        val readRevision = verifyContainer(revisionObject, revisionFile)
         if (readHead != head ||
-            sha256Hex(readRevision) != head.plaintextSha256
+            readRevision.plaintextSha256 != head.plaintextSha256
         ) {
             throw CorruptDataException()
         }
@@ -358,6 +447,20 @@ class EncryptedStore(
     ): CommitReceipt {
         val ref = AggregateRef(AggregateKind.TEMPLATE, templateId)
         requireAggregateId(ref)
+        return withAggregateLock(ref) {
+            saveTemplateVersionUnlocked(templateId, versionId, versionJson, expectedHead)
+        }
+    }
+
+    /** Locked implementation; callers hold the aggregate commit lock. */
+    private fun saveTemplateVersionUnlocked(
+        templateId: String,
+        versionId: String,
+        versionJson: ByteArray,
+        expectedHead: String?,
+    ): CommitReceipt {
+        val ref = AggregateRef(AggregateKind.TEMPLATE, templateId)
+        requireAggregateId(ref)
         requireObjectId(versionId)
         requirePayload(versionJson, MAX_REVISION_BYTES, "version")
         if (!io.exists(fileFor(MetaObject(ref)))) {
@@ -370,10 +473,18 @@ class EncryptedStore(
         val versionFile = fileFor(versionObject)
 
         if (io.exists(versionFile)) {
-            val existing = readContainer(versionObject, versionFile)
-            if (!existing.contentEquals(versionJson)) throw ConcurrentSaveException()
+            val existing = verifyContainer(versionObject, versionFile)
+            if (existing.plaintextSha256 != sha256Hex(versionJson)) {
+                throw ConcurrentSaveException()
+            }
         } else {
-            commitObject(versionObject, versionJson, txn, TMP_SUFFIX_PART)
+            commitObject(
+                versionObject,
+                versionJson,
+                txn,
+                TMP_SUFFIX_PART,
+                lastModifiedMillis = nextRevisionTimestampMillis(ref),
+            )
         }
 
         val head = CommittedHead(
@@ -386,9 +497,9 @@ class EncryptedStore(
         commitHead(ref, head, txn)
 
         val readHead = readHeadStrict(ref)
-        val readVersion = readContainer(versionObject, versionFile)
+        val readVersion = verifyContainer(versionObject, versionFile)
         if (readHead != head ||
-            sha256Hex(readVersion) != head.plaintextSha256
+            readVersion.plaintextSha256 != head.plaintextSha256
         ) {
             throw CorruptDataException()
         }
@@ -408,6 +519,15 @@ class EncryptedStore(
 
     /** Loads a document only after meta, head, revision, and source verify. */
     fun loadDocument(documentId: String): LoadedAggregate {
+        val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
+        requireAggregateId(ref)
+        return withAggregateLock(ref) {
+            loadDocumentUnlocked(documentId)
+        }
+    }
+
+    /** Locked implementation; callers hold the aggregate commit lock. */
+    private fun loadDocumentUnlocked(documentId: String): LoadedAggregate {
         val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
         requireAggregateId(ref)
         val health = recoverAggregate(ref)
@@ -433,6 +553,15 @@ class EncryptedStore(
 
     /** Loads a template version (`versionId` null means the verified head). */
     fun loadTemplate(templateId: String, versionId: String? = null): LoadedAggregate {
+        val ref = AggregateRef(AggregateKind.TEMPLATE, templateId)
+        requireAggregateId(ref)
+        return withAggregateLock(ref) {
+            loadTemplateUnlocked(templateId, versionId)
+        }
+    }
+
+    /** Locked implementation; callers hold the aggregate commit lock. */
+    private fun loadTemplateUnlocked(templateId: String, versionId: String? = null): LoadedAggregate {
         val ref = AggregateRef(AggregateKind.TEMPLATE, templateId)
         requireAggregateId(ref)
         if (versionId != null) requireObjectId(versionId)
@@ -464,6 +593,15 @@ class EncryptedStore(
     fun writeSignature(documentId: String, assetId: String, pngBytes: ByteArray) {
         val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
         requireAggregateId(ref)
+        return withAggregateLock(ref) {
+            writeSignatureUnlocked(documentId, assetId, pngBytes)
+        }
+    }
+
+    /** Locked implementation; callers hold the aggregate commit lock. */
+    private fun writeSignatureUnlocked(documentId: String, assetId: String, pngBytes: ByteArray) {
+        val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
+        requireAggregateId(ref)
         requireObjectId(assetId)
         requirePayload(pngBytes, MAX_SIGNATURE_BYTES, "signature")
         if (!io.exists(fileFor(MetaObject(ref)))) throw CorruptDataException()
@@ -481,6 +619,15 @@ class EncryptedStore(
     fun readSignature(documentId: String, assetId: String): ByteArray {
         val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
         requireAggregateId(ref)
+        return withAggregateLock(ref) {
+            readSignatureUnlocked(documentId, assetId)
+        }
+    }
+
+    /** Locked implementation; callers hold the aggregate commit lock. */
+    private fun readSignatureUnlocked(documentId: String, assetId: String): ByteArray {
+        val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
+        requireAggregateId(ref)
         requireObjectId(assetId)
         return readObject(SignatureObject(ref, assetId))
     }
@@ -495,6 +642,20 @@ class EncryptedStore(
      * an unreadable aggregate.
      */
     fun delete(
+        kind: AggregateKind,
+        id: String,
+        confirmation: DeleteConfirmation,
+        notReadableTitle: String,
+    ): DeletionReceipt {
+        val ref = AggregateRef(kind, id)
+        requireAggregateId(ref)
+        return withAggregateLock(ref) {
+            deleteUnlocked(kind, id, confirmation, notReadableTitle)
+        }
+    }
+
+    /** Locked implementation; callers hold the aggregate commit lock. */
+    private fun deleteUnlocked(
         kind: AggregateKind,
         id: String,
         confirmation: DeleteConfirmation,
@@ -534,7 +695,7 @@ class EncryptedStore(
             // The contract keeps the deletion successful: the ciphertext is
             // gone and the startup sweep removes the orphan alias.
             aliasDeleted = false
-        } catch (failure: Throwable) {
+        } catch (failure: Exception) {
             aliasDeleted = false
         }
 
@@ -559,19 +720,25 @@ class EncryptedStore(
                 // Not visible yet; the startup sweep removes it.
                 continue
             }
-            val health = recoverAggregate(ref)
+            val (health, metaPlaintext) = withAggregateLock(ref) {
+                val recovered = recoverAggregate(ref)
+                val meta = if (recovered.readable) {
+                    try {
+                        readContainer(MetaObject(ref), fileFor(MetaObject(ref)))
+                    } catch (failure: Exception) {
+                        null
+                    }
+                } else {
+                    null
+                }
+                recovered to meta
+            }
             listed += AggregateListing(
                 aggregateId = id,
                 aggregateKind = kind,
                 readable = health.readable,
                 unreadableReasonCode = health.reasonCode,
-                metaPlaintext = if (health.readable) {
-                    runCatching {
-                        readContainer(MetaObject(ref), fileFor(MetaObject(ref)))
-                    }.getOrNull()
-                } else {
-                    null
-                },
+                metaPlaintext = metaPlaintext,
                 head = health.head,
                 fellBackToOlderRevision = health.fellBackToOlderRevision,
             )
@@ -611,6 +778,15 @@ class EncryptedStore(
     fun recoveryStamp(kind: AggregateKind, id: String): RecoveryStampView {
         val ref = AggregateRef(kind, id)
         requireAggregateId(ref)
+        return withAggregateLock(ref) {
+            recoveryStampUnlocked(kind, id)
+        }
+    }
+
+    /** Locked implementation; callers hold the aggregate commit lock. */
+    private fun recoveryStampUnlocked(kind: AggregateKind, id: String): RecoveryStampView {
+        val ref = AggregateRef(kind, id)
+        requireAggregateId(ref)
         val health = recoverAggregate(ref)
         return RecoveryStampView(
             verifiedRevisionId = health.head?.revisionId,
@@ -619,6 +795,7 @@ class EncryptedStore(
             fellBackToOlderRevision = health.fellBackToOlderRevision,
             readable = health.readable,
             unreadableReasonCode = health.reasonCode,
+            ambiguousRevisionOrder = health.ambiguousRevisionOrder,
         )
     }
 
@@ -639,6 +816,7 @@ class EncryptedStore(
         var incompleteRemoved = 0
         var unreadable = 0
         var fallbacks = 0
+        var ambiguousRevisionOrder = 0
         var aliasSweepSkipped = false
         var aliasSweep = OrphanAliasSweep(0, 0, 0)
 
@@ -655,13 +833,16 @@ class EncryptedStore(
         for (kind in AggregateKind.entries) {
             for (id in listAggregateIds(kind)) {
                 val ref = AggregateRef(kind, id)
-                if (!io.exists(fileFor(MetaObject(ref))) && isIncomplete(ref)) {
-                    if (io.deleteTree(aggregateDir(ref))) incompleteRemoved++
-                    continue
+                withAggregateLock(ref) {
+                    if (!io.exists(fileFor(MetaObject(ref))) && isIncomplete(ref)) {
+                        if (io.deleteTree(aggregateDir(ref))) incompleteRemoved++
+                        return@withAggregateLock
+                    }
+                    val health = recoverAggregate(ref)
+                    if (health.fellBackToOlderRevision) fallbacks++
+                    if (health.ambiguousRevisionOrder) ambiguousRevisionOrder++
+                    if (!health.readable) unreadable++
                 }
-                val health = recoverAggregate(ref)
-                if (health.fellBackToOlderRevision) fallbacks++
-                if (!health.readable) unreadable++
             }
         }
 
@@ -686,6 +867,7 @@ class EncryptedStore(
             "incompleteRemoved" to incompleteRemoved,
             "unreadableAggregates" to unreadable,
             "fallbackAdoptions" to fallbacks,
+            "ambiguousRevisionOrder" to ambiguousRevisionOrder,
             "orphanAliasesRemoved" to aliasSweep.removedAliases,
             "orphanAliasesRetained" to aliasSweep.retainedAliases,
             "orphanAliasesFailed" to aliasSweep.failedAliases,
@@ -698,6 +880,7 @@ class EncryptedStore(
             incompleteAggregatesRemoved = incompleteRemoved,
             unreadableAggregates = unreadable,
             fallbackAdoptions = fallbacks,
+            ambiguousRevisionOrder = ambiguousRevisionOrder,
             orphanAliasesRemoved = aliasSweep.removedAliases,
             orphanAliasesRetained = aliasSweep.retainedAliases,
             orphanAliasesFailed = aliasSweep.failedAliases,
@@ -715,18 +898,66 @@ class EncryptedStore(
     ): Int {
         var removed = 0
         for (id in listAggregateIds(AggregateKind.DOCUMENT)) {
-            val sigDir = File(aggregateDir(AggregateRef(AggregateKind.DOCUMENT, id)), "sig")
-            if (!io.isDirectory(sigDir)) continue
-            for (file in io.list(sigDir)) {
-                val assetId = file.name.removeSuffix(".fxs")
-                if (!AggregateRef.isValidId(assetId)) continue
-                val stale = clock() - file.lastModified() > STALE_TEMP_MS
-                if (!stale) continue
-                if (isReferenced(id, assetId)) continue
-                if (io.delete(file)) removed++
+            val ref = AggregateRef(AggregateKind.DOCUMENT, id)
+            removed += withAggregateLock(ref) {
+                var local = 0
+                val sigDir = File(aggregateDir(ref), "sig")
+                if (io.isDirectory(sigDir)) {
+                    for (file in io.list(sigDir)) {
+                        val assetId = file.name.removeSuffix(".fxs")
+                        if (!AggregateRef.isValidId(assetId)) continue
+                        val stale = clock() - file.lastModified() > STALE_TEMP_MS
+                        if (!stale) continue
+                        if (isReferenced(id, assetId)) continue
+                        if (io.delete(file)) local++
+                    }
+                }
+                local
             }
         }
         return removed
+    }
+
+    /**
+     * Deletes revision objects that the caller explicitly excluded from
+     * retention, while never deleting the verified current head.
+     *
+     * `contracts/storage-format.md` §3.1 step 8 requires pruning, but the
+     * persisted `RevisionContent` carries no revision kind, so the store
+     * cannot compute the "last 3 autosave + newest explicit + recovery"
+     * policy without inventing data. The save orchestration/history owner
+     * computes the keep set and calls this primitive. A corrupt or missing
+     * head, or a head revision that does not verify, aborts pruning without
+     * deleting anything. Only `rev/<uuid>.fx1` files are considered.
+     *
+     * @return number of revision files deleted.
+     */
+    fun pruneRevisions(documentId: String, keepRevisionIds: Set<String>): Int {
+        val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
+        requireAggregateId(ref)
+        keepRevisionIds.forEach(::requireObjectId)
+        return withAggregateLock(ref) {
+            val head = readHeadStrict(ref)
+            val headObject = RevisionObject(ref, head.revisionId)
+            val headVerification = verifyContainer(headObject, fileFor(headObject))
+            if (headVerification.plaintextSha256 != head.plaintextSha256) {
+                throw CorruptDataException()
+            }
+            val dir = File(aggregateDir(ref), "rev")
+            if (!io.isDirectory(dir)) return@withAggregateLock 0
+            var deleted = 0
+            for (file in io.list(dir)) {
+                if (!file.isFile || !file.name.endsWith(".fx1")) continue
+                val revisionId = file.name.removeSuffix(".fx1")
+                if (!AggregateRef.isValidId(revisionId)) continue
+                if (revisionId == head.revisionId || revisionId in keepRevisionIds) {
+                    continue
+                }
+                if (io.delete(file)) deleted++
+            }
+            if (deleted > 0) io.fsyncDirectory(dir)
+            deleted
+        }
     }
 
     // ------------------------------------------------------------------
@@ -769,10 +1000,43 @@ class EncryptedStore(
         plaintext: ByteArray,
         txnId: String,
         suffix: String,
+        lastModifiedMillis: Long? = null,
     ): ObjectReceipt {
         val staged = stageObject(obj, plaintext, txnId, suffix)
+        if (lastModifiedMillis != null) {
+            try {
+                if (!io.setLastModified(staged.file, lastModifiedMillis)) {
+                    throw StorageWriteException()
+                }
+            } catch (failure: Throwable) {
+                runCatching { io.deleteTree(staged.file) }
+                throw mapWriteFailure(failure)
+            }
+        }
         promote(staged, obj, txnId)
         return readBackObject(obj, plaintext)
+    }
+
+    /**
+     * Strictly increasing revision/version mtime.
+     *
+     * The FXC1 format stores no revision sequence, so recovery uses the file
+     * mtime as the commit order. Enforcing `max(existing + 1, clock)` at
+     * commit keeps that order deterministic even when the clock has only
+     * millisecond precision; recovery never falls back to UUID order.
+     */
+    private fun nextRevisionTimestampMillis(ref: AggregateRef): Long {
+        val dirName = if (ref.kind == AggregateKind.DOCUMENT) "rev" else "ver"
+        val dir = File(aggregateDir(ref), dirName)
+        val latest = if (io.isDirectory(dir)) {
+            io.list(dir)
+                .filter { it.isFile && it.name.endsWith(".fx1") }
+                .maxOfOrNull { it.lastModified() }
+        } else {
+            null
+        }
+        val now = clock()
+        return if (latest == null) now else maxOf(now, latest + 1)
     }
 
     private fun readBackObject(
@@ -780,14 +1044,19 @@ class EncryptedStore(
         plaintext: ByteArray,
     ): ObjectReceipt {
         val target = fileFor(obj)
-        val read = try {
-            readContainer(obj, target)
+        val verification = try {
+            verifyContainer(obj, target)
         } catch (failure: Throwable) {
             throw mapReadFailure(failure)
         }
-        if (!read.contentEquals(plaintext)) throw CorruptDataException()
+        val expectedSha = sha256Hex(plaintext)
+        if (verification.plaintextSha256 != expectedSha ||
+            verification.plaintextLength != plaintext.size.toLong()
+        ) {
+            throw CorruptDataException()
+        }
         return ObjectReceipt(
-            plaintextSha256 = sha256Hex(plaintext),
+            plaintextSha256 = expectedSha,
             fileIdHex = hex(expectedFileId(obj)),
             plaintextLength = plaintext.size.toLong(),
             fileLength = target.length(),
@@ -811,8 +1080,12 @@ class EncryptedStore(
                 staged,
                 txnId,
             )
-            val verified = readContainer(obj, staged)
-            if (!verified.contentEquals(plaintext)) throw CorruptDataException()
+            val verified = verifyContainer(obj, staged)
+            if (verified.plaintextSha256 != sha256Hex(plaintext) ||
+                verified.plaintextLength != plaintext.size.toLong()
+            ) {
+                throw CorruptDataException()
+            }
             return StagedObject(obj, staged, header)
         } catch (failure: Throwable) {
             runCatching { io.deleteTree(staged) }
@@ -919,7 +1192,41 @@ class EncryptedStore(
         }
     }
 
-    private fun readContainer(obj: StoreObject, file: File): ByteArray {
+    private data class ContainerVerification(
+        val plaintextSha256: String,
+        val plaintextLength: Long,
+        val chunkCount: Int,
+        val plaintext: ByteArray?,
+    )
+
+    /**
+     * Materializes the plaintext because the load/read port signatures return
+     * bytes to the caller. Commit verification, read-back, and recovery use
+     * [verifyContainer] instead and keep only chunk-sized buffers.
+     */
+    private fun readContainer(obj: StoreObject, file: File): ByteArray =
+        readContainerInternal(obj, file, keepPlaintext = true).plaintext
+            ?: throw CorruptDataException()
+
+    /**
+     * Decrypts and authenticates every chunk without retaining the complete
+     * plaintext. Commit read-back and recovery use this path so only one
+     * ciphertext buffer, one plaintext chunk buffer, and one GCM tag are live
+     * at a time, as required by `contracts/storage-format.md` §6.
+     */
+    private fun verifyContainer(
+        obj: StoreObject,
+        file: File,
+        onChunk: ((index: Int, length: Int) -> Unit)? = null,
+    ): ContainerVerification =
+        readContainerInternal(obj, file, keepPlaintext = false, onChunk = onChunk)
+
+    private fun readContainerInternal(
+        obj: StoreObject,
+        file: File,
+        keepPlaintext: Boolean,
+        onChunk: ((index: Int, length: Int) -> Unit)? = null,
+    ): ContainerVerification {
         if (!io.exists(file)) throw CorruptDataException()
         var channel: FileChannel? = null
         try {
@@ -943,7 +1250,23 @@ class EncryptedStore(
                 WrappedDek(header.wrapIv, header.wrappedKey),
             )
             val digest = MessageDigest.getInstance("SHA-256")
-            val plaintext = ByteArray(header.plaintextLength.toInt())
+            val plaintext = if (keepPlaintext) {
+                ByteArray(header.plaintextLength.toInt())
+            } else {
+                null
+            }
+            // Reused per chunk; peak live memory is bounded by one ciphertext
+            // chunk plus one plaintext chunk plus the GCM tag.
+            val cipherBuffer = if (header.chunkCount > 0) {
+                ByteArray(header.chunkSize + TAG_SIZE)
+            } else {
+                null
+            }
+            val chunkBuffer = if (header.chunkCount > 0) {
+                ByteArray(header.chunkSize)
+            } else {
+                null
+            }
             var offset = 0
             for (index in 0 until header.chunkCount) {
                 val chunkLength = minOf(
@@ -951,7 +1274,7 @@ class EncryptedStore(
                     header.plaintextLength - offset,
                 ).toInt()
                 if (chunkLength <= 0) throw CorruptDataException()
-                val ciphertext = readExactly(channel, chunkLength + TAG_SIZE)
+                readExactlyInto(channel, cipherBuffer!!, chunkLength + TAG_SIZE)
                 val iv = chunkIv(header.noncePrefix, index)
                 val aad = chunkAad(
                     fileId = header.fileId,
@@ -967,25 +1290,48 @@ class EncryptedStore(
                     GCMParameterSpec(TAG_BITS, iv),
                 )
                 cipher.updateAAD(aad)
-                val chunk = cipher.doFinal(ciphertext)
-                if (chunk.size != chunkLength) throw CorruptDataException()
-                digest.update(chunk)
-                System.arraycopy(chunk, 0, plaintext, offset, chunk.size)
-                offset += chunk.size
+                val written = cipher.doFinal(
+                    cipherBuffer,
+                    0,
+                    chunkLength + TAG_SIZE,
+                    chunkBuffer!!,
+                    0,
+                )
+                if (written != chunkLength) throw CorruptDataException()
+                digest.update(chunkBuffer, 0, written)
+                if (plaintext != null && written > 0) {
+                    System.arraycopy(chunkBuffer, 0, plaintext, offset, written)
+                }
+                onChunk?.invoke(index, written)
+                offset += written
             }
-            if (offset != plaintext.size) throw CorruptDataException()
+            if (offset.toLong() != header.plaintextLength) {
+                throw CorruptDataException()
+            }
             if (!digest.digest().contentEquals(header.plaintextSha256)) {
                 throw CorruptDataException()
             }
             channel.close()
             channel = null
-            return plaintext
+            return ContainerVerification(
+                plaintextSha256 = hex(header.plaintextSha256),
+                plaintextLength = header.plaintextLength,
+                chunkCount = header.chunkCount,
+                plaintext = plaintext,
+            )
         } catch (failure: StorageException) {
             runCatching { channel?.close() }
             throw failure
         } catch (failure: Throwable) {
             runCatching { channel?.close() }
             throw mapReadFailure(failure)
+        }
+    }
+
+    private fun readExactlyInto(channel: FileChannel, into: ByteArray, length: Int) {
+        val buffer = ByteBuffer.wrap(into, 0, length)
+        while (buffer.hasRemaining()) {
+            if (channel.read(buffer) <= 0) throw CorruptDataException()
         }
     }
 
@@ -1001,6 +1347,11 @@ class EncryptedStore(
 
     internal fun readObjectForTest(obj: StoreObject): ByteArray = readObject(obj)
 
+    internal fun verifyObjectForTest(
+        obj: StoreObject,
+        onChunk: ((index: Int, length: Int) -> Unit)? = null,
+    ): String = verifyContainer(obj, fileFor(obj), onChunk).plaintextSha256
+
     internal fun readHeadForTest(aggregate: AggregateRef): CommittedHead =
         readHeadStrict(aggregate)
 
@@ -1012,6 +1363,8 @@ class EncryptedStore(
         val bytes = try {
             readContainer(HeadObject(ref), fileFor(HeadObject(ref)))
         } catch (failure: StorageException) {
+            throw failure
+        } catch (failure: Error) {
             throw failure
         } catch (failure: Throwable) {
             throw CorruptDataException()
@@ -1096,7 +1449,7 @@ class EncryptedStore(
                 io.atomicMove(restore, headFile)
                 io.fsyncDirectory(headFile.parentFile!!)
             }
-        } catch (failure: Throwable) {
+        } catch (failure: Exception) {
             // Recovery on the next start handles a head that could not be
             // restored; never mask the original failure.
         }
@@ -1156,12 +1509,8 @@ class EncryptedStore(
             return unreadable(SAVE_005)
         }
 
-        if (head != null && revisionVerifies(ref, head.revisionId)) {
-            val revisionSha = try {
-                sha256Hex(readRevisionBytes(ref, head.revisionId))
-            } catch (failure: StorageException) {
-                null
-            }
+        if (head != null) {
+            val revisionSha = revisionSha(ref, head.revisionId)
             if (revisionSha != null && revisionSha == head.plaintextSha256) {
                 return AggregateHealth(
                     readable = true,
@@ -1175,7 +1524,18 @@ class EncryptedStore(
 
         // §4 step 2: head missing/corrupt or pointing to a missing/corrupt
         // revision -> adopt the newest revision whose hash verifies.
-        val candidate = findNewestVerifiableRevision(ref)
+        val search = findNewestVerifiableRevision(ref)
+        if (search.ambiguous) {
+            return AggregateHealth(
+                readable = false,
+                reasonCode = SAVE_003,
+                head = null,
+                headCorrupt = true,
+                fellBackToOlderRevision = false,
+                ambiguousRevisionOrder = true,
+            )
+        }
+        val candidate = search.candidate
             ?: return AggregateHealth(
                 readable = false,
                 reasonCode = SAVE_003,
@@ -1219,21 +1579,21 @@ class EncryptedStore(
         fellBackToOlderRevision = false,
     )
 
-    private fun revisionVerifies(ref: AggregateRef, revisionId: String): Boolean {
+    private fun revisionSha(ref: AggregateRef, revisionId: String): String? {
+        val objectForRevision = revisionObject(ref, revisionId)
         return try {
-            readObject(revisionObject(ref, revisionId))
-            true
+            verifyContainer(objectForRevision, fileFor(objectForRevision))
+                .plaintextSha256
         } catch (failure: KeyUnavailableException) {
             throw failure
         } catch (failure: KeystoreUnavailableException) {
             throw failure
+        } catch (failure: Error) {
+            throw failure
         } catch (failure: Throwable) {
-            false
+            null
         }
     }
-
-    private fun readRevisionBytes(ref: AggregateRef, revisionId: String): ByteArray =
-        readObject(revisionObject(ref, revisionId))
 
     private fun revisionObject(ref: AggregateRef, revisionId: String): StoreObject =
         if (ref.kind == AggregateKind.DOCUMENT) {
@@ -1242,32 +1602,51 @@ class EncryptedStore(
             TemplateVersionObject(ref, revisionId)
         }
 
-    private fun findNewestVerifiableRevision(ref: AggregateRef): RevisionCandidate? {
+    private fun findNewestVerifiableRevision(ref: AggregateRef): RevisionSearch {
         val dirName = if (ref.kind == AggregateKind.DOCUMENT) "rev" else "ver"
         val dir = File(aggregateDir(ref), dirName)
-        if (!io.isDirectory(dir)) return null
+        if (!io.isDirectory(dir)) return RevisionSearch(null, ambiguous = false)
         val candidates = io.list(dir)
             .filter { it.isFile && it.name.endsWith(".fx1") }
-            .sortedWith(
-                compareByDescending<File> { it.lastModified() }
-                    .thenByDescending { it.name },
-            )
-        for (file in candidates) {
+            .sortedByDescending { io.lastModifiedNanos(it) }
+        var index = 0
+        while (index < candidates.size) {
+            val timestamp = io.lastModifiedNanos(candidates[index])
+            var end = index + 1
+            while (end < candidates.size &&
+                io.lastModifiedNanos(candidates[end]) == timestamp
+            ) {
+                end++
+            }
+            val group = candidates.subList(index, end)
+            if (group.size > 1) {
+                // Equal timestamps with no persisted revision sequence: the
+                // actual commit order is unknowable. Do not fall back to the
+                // random UUID; fail closed and keep every revision.
+                return RevisionSearch(null, ambiguous = true)
+            }
+            val file = group.single()
             val revisionId = file.name.removeSuffix(".fx1")
+            index = end
             if (!AggregateRef.isValidId(revisionId)) continue
             val objectForRevision = revisionObject(ref, revisionId)
-            val bytes = try {
-                readContainer(objectForRevision, file)
+            val verification = try {
+                verifyContainer(objectForRevision, file)
             } catch (failure: KeyUnavailableException) {
                 throw failure
             } catch (failure: KeystoreUnavailableException) {
                 throw failure
+            } catch (failure: Error) {
+                throw failure
             } catch (failure: Throwable) {
                 continue
             }
-            return RevisionCandidate(revisionId, sha256Hex(bytes))
+            return RevisionSearch(
+                RevisionCandidate(revisionId, verification.plaintextSha256),
+                ambiguous = false,
+            )
         }
-        return null
+        return RevisionSearch(null, ambiguous = false)
     }
 
     private fun isIncomplete(ref: AggregateRef): Boolean {
@@ -1298,7 +1677,7 @@ class EncryptedStore(
     private fun readTitleOrNull(meta: MetaObject): String? {
         val bytes = try {
             readContainer(meta, fileFor(meta))
-        } catch (failure: Throwable) {
+        } catch (failure: Exception) {
             return null
         }
         val map = try {
@@ -1433,11 +1812,15 @@ class EncryptedStore(
 
     private fun mapWriteFailure(failure: Throwable): StorageException {
         if (failure is StorageException) return failure
+        // Never turn a VM error (for example OutOfMemoryError) into a
+        // recoverable storage diagnosis.
+        if (failure is Error) throw failure
         return if (isQuota(failure)) StorageFullException() else StorageWriteException()
     }
 
     private fun mapReadFailure(failure: Throwable): StorageException {
         if (failure is StorageException) return failure
+        if (failure is Error) throw failure
         return if (isQuota(failure)) StorageFullException() else CorruptDataException()
     }
 
@@ -1472,7 +1855,7 @@ class EncryptedStore(
                 io.delete(diagnosticsFile)
             }
             io.appendLine(diagnosticsFile, CanonicalJson.encode(event))
-        } catch (failure: Throwable) {
+        } catch (failure: Exception) {
             // Diagnostics are best-effort and must never fail startup.
         }
     }
@@ -1552,6 +1935,9 @@ class EncryptedStore(
             "ver",
         )
         private val OBJECT_EXTENSIONS = setOf("fx1", "fxc", "fxs")
+
+        /** JVM-wide per-aggregate commit locks (store root + aggregate id). */
+        private val COMMIT_LOCKS = ConcurrentHashMap<String, ReentrantLock>()
     }
 }
 
@@ -1682,6 +2068,7 @@ data class RecoveryStampView(
     val fellBackToOlderRevision: Boolean,
     val readable: Boolean,
     val unreadableReasonCode: String?,
+    val ambiguousRevisionOrder: Boolean = false,
 )
 
 /** Counts-only startup recovery result; no ids, titles, or content. */
@@ -1694,6 +2081,7 @@ data class RecoveryReport(
     val orphanAliasesRetained: Int,
     val orphanAliasesFailed: Int,
     val aliasSweepSkipped: Boolean,
+    val ambiguousRevisionOrder: Int = 0,
 )
 
 // --------------------------------------------------------------------------
@@ -1747,6 +2135,17 @@ interface StoreIo {
     fun isDirectory(file: File): Boolean
     fun size(file: File): Long
     fun appendLine(file: File, line: ByteArray)
+
+    /** Nanosecond mtime where the filesystem supports it; millisecond fallback. */
+    fun lastModifiedNanos(file: File): Long = try {
+        Files.getLastModifiedTime(file.toPath()).to(TimeUnit.NANOSECONDS)
+    } catch (failure: IOException) {
+        file.lastModified() * 1_000_000L
+    }
+
+    /** Sets the mtime; false means the filesystem rejected the update. */
+    fun setLastModified(file: File, millis: Long): Boolean =
+        file.setLastModified(millis)
 
     fun readAll(file: File): ByteArray {
         val channel = openRead(file)
@@ -1955,6 +2354,11 @@ private data class RevisionCandidate(
     val plaintextSha256: String,
 )
 
+private data class RevisionSearch(
+    val candidate: RevisionCandidate?,
+    val ambiguous: Boolean,
+)
+
 private data class AggregateHealth(
     val readable: Boolean,
     val reasonCode: String?,
@@ -1962,6 +2366,7 @@ private data class AggregateHealth(
     val headCorrupt: Boolean,
     val fellBackToOlderRevision: Boolean,
     val incomplete: Boolean = false,
+    val ambiguousRevisionOrder: Boolean = false,
 ) {
     fun toException(): StorageException = when (reasonCode) {
         EncryptedStore.SAVE_002 -> KeyUnavailableException()
