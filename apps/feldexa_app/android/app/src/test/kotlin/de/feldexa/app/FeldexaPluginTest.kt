@@ -584,6 +584,20 @@ class FeldexaPluginTest {
     }
 
     @Test
+    fun sensitiveMachineMessageNamespaceIsRejected() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PlatformFailure("SAVE-001", "storageFull", true, "antrag.secret")
+        }
+    }
+
+    @Test
+    fun documentTitleCategoryIsRejected() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PlatformFailure("SAVE-001", "documentTitle", true, "save.noSpace")
+        }
+    }
+
+    @Test
     fun singleTokenFailureMessageIsRejected() {
         assertThrows(IllegalArgumentException::class.java) {
             PlatformFailure("SAVE-001", "storageFull", true, "antrag")
@@ -716,7 +730,7 @@ class FeldexaPluginTest {
     }
 
     @Test
-    fun sameDocumentOperationsAreSerialized() {
+    fun sameDocumentSecondSaveReturnsSave006() {
         val executor = ManualExecutor()
         val service = ConcurrencyService()
         val facade = newFacade(service = service, executor = executor)
@@ -727,11 +741,113 @@ class FeldexaPluginTest {
         facade.handle("store.saveRevision", saveRevisionPayload(documentId), second)
 
         assertEquals(1, executor.tasks.size)
+        assertFailure(second, "SAVE-006")
+        assertEquals("concurrentWrite", second.failure?.category)
+        assertEquals(true, second.failure?.retryable)
+        assertNull(first.failure)
+        executor.runNext()
+        assertEquals(1, service.calls)
+        assertNull(first.failure)
+
+        val third = RecordingReply()
+        facade.handle("store.saveRevision", saveRevisionPayload(documentId), third)
+        assertNull(third.failure)
         executor.runNext()
         assertEquals(2, service.calls)
-        assertEquals(1, service.maxActive)
-        assertNull(first.failure)
-        assertNull(second.failure)
+    }
+
+    @Test
+    fun serialQueuesAreBoundedPerAggregate() {
+        val executor = ManualExecutor()
+        val service = ConcurrencyService()
+        val facade = newFacade(servicePrefix = "ocr", service = service, executor = executor)
+
+        repeat(8) {
+            val reply = RecordingReply()
+            facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), reply)
+            assertNull(reply.failure)
+        }
+        assertEquals(1, executor.tasks.size)
+
+        val overflow = RecordingReply()
+        facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), overflow)
+        assertFailure(overflow, "PLT-001")
+        assertEquals("capacity", overflow.failure?.category)
+
+        executor.runNext()
+        assertEquals(8, service.calls)
+    }
+
+    @Test
+    fun serialQueueTotalIsBoundedAcrossAggregates() {
+        val executor = ManualExecutor()
+        val serial = KeyedSerialExecutor(
+            executor = executor,
+            maxPendingPerKey = 10,
+            maxPendingTotal = 2,
+        )
+        serial.submit("a") {}
+        serial.submit("b") {}
+        assertThrows(RejectedExecutionException::class.java) {
+            serial.submit("c") {}
+        }
+        assertEquals(2, executor.tasks.size)
+    }
+
+    @Test
+    fun queuedCancellationRemovesTaskAndFreesCapacity() {
+        val executor = ManualExecutor()
+        val service = ConcurrencyService()
+        val publisher = PlatformEventPublisher(DirectPoster)
+        val sink = RecordingSink()
+        publisher.attachSink(sink)
+        val facade = newFacade(
+            servicePrefix = "ocr",
+            service = service,
+            executor = executor,
+            events = publisher,
+        )
+        val replies = (1..8).map { index ->
+            val reply = RecordingReply()
+            facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), reply)
+            assertNull(reply.failure)
+            reply
+        }
+        val ids = sink.events.map { (it as Map<*, *>)["operationId"] as String }
+        assertEquals(8, ids.size)
+
+        val cancelReply = RecordingReply()
+        facade.handle(
+            "cancel.operation",
+            mapOf("schemaVersion" to 1, "operationId" to ids[3]),
+            cancelReply,
+        )
+        assertEquals(mapOf("cancelled" to true), (cancelReply.successValue as Map<*, *>)["data"])
+        assertFailure(replies[3], "PLT-004")
+
+        val replacement = RecordingReply()
+        facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), replacement)
+        assertNull(replacement.failure)
+        assertEquals(1, executor.tasks.size)
+
+        executor.runNext()
+        assertEquals(8, service.calls)
+    }
+
+    @Test
+    fun operationStartedEventIsNotCoalesced() {
+        val poster = QueuePoster()
+        val publisher = PlatformEventPublisher(poster)
+        val sink = RecordingSink()
+        publisher.attachSink(sink)
+
+        publisher.emitOperationStarted(operationId, "export")
+        publisher.emitOperationProgress(operationId, "export", "drawing", 0.5)
+        poster.runAll()
+
+        assertEquals(2, sink.events.size)
+        assertEquals("queued", (sink.events[0] as Map<*, *>)["phase"])
+        assertEquals("drawing", (sink.events[1] as Map<*, *>)["phase"])
     }
 
     @Test

@@ -252,11 +252,29 @@ private val CATALOG_CODES: Set<String> = setOf(
     "TPL-001", "TPL-002", "TPL-003",
 )
 
-/** Stable machine token: lower camel start, no spaces, paths, or German text. */
-private val CATEGORY_PATTERN = Regex("^[a-z][A-Za-z0-9_]{0,31}$")
+/**
+ * Closed category allowlist. A category names an error class, never a title,
+ * field label, path, URI, OCR text, or field value (§2.2).
+ */
+private val ALLOWED_CATEGORIES: Set<String> = setOf(
+    "storageFull", "invalidPayload", "invalidIdentifier", "unsupported", "cancelled",
+    "internalError", "capacity", "invalidData", "concurrentWrite", "keyUnavailable",
+    "keystoreUnavailable", "corruptData", "schemaTooNew", "importRejected", "unreadable",
+    "missing", "notPdf", "tooLarge", "exportBlocked", "exportFailed", "ocrUnavailable",
+    "ocrFailed", "renderFailed", "deliveryUnavailable", "privacy", "simulated",
+    "geometryInvalid", "missingGlyph", "sourceUnreadable", "pageNotCopiable",
+    "deliveryCancelled", "invalidRaster",
+)
 
-/** Stable message key: dot/underscore/colon-separated machine tokens, max 64 chars. */
+/** Stable message key: namespaced machine tokens, max 64 chars, no spaces or paths. */
 private val MACHINE_MESSAGE_PATTERN = Regex("^[a-z][A-Za-z0-9]*(?:[._:-][a-z][A-Za-z0-9]*){1,5}$")
+
+/** Closed namespace allowlist; `antrag.secret` and other content keys are rejected. */
+private val MACHINE_MESSAGE_NAMESPACES: Set<String> = setOf(
+    "platform", "import", "save", "store", "storage", "keystore", "ocr",
+    "recognition", "export", "delivery", "page", "template", "date",
+    "number", "field", "privacy", "simulated",
+)
 
 /**
  * A safe, catalog-coded platform failure. Only codes, counts, and durations may
@@ -274,9 +292,12 @@ class PlatformFailure(
 
     init {
         require(code in CATALOG_CODES) { "code is not a catalog code" }
-        require(CATEGORY_PATTERN.matches(category)) { "category is not a machine token" }
+        require(category in ALLOWED_CATEGORIES) { "category is not in the allowlist" }
         require(machineMessage.length <= 64 && MACHINE_MESSAGE_PATTERN.matches(machineMessage)) {
             "machineMessage is not a stable machine key"
+        }
+        require(machineMessage.substringBefore('.') in MACHINE_MESSAGE_NAMESPACES) {
+            "machineMessage namespace is not in the allowlist"
         }
         require(pageIndex == null || pageIndex >= 0) { "pageIndex must be non-negative" }
         require(fieldCount == null || fieldCount >= 0) { "fieldCount must be non-negative" }
@@ -323,6 +344,9 @@ class PlatformFailure(
 
         fun invalidSavedData(): PlatformFailure =
             PlatformFailure("SAVE-007", "invalidData", false, "save.invalidData")
+
+        fun concurrentWrite(): PlatformFailure =
+            PlatformFailure("SAVE-006", "concurrentWrite", true, "save.concurrentWrite")
     }
 }
 
@@ -420,12 +444,21 @@ class OperationRegistry {
 
 class OperationHandle internal constructor(val id: String) {
     private val cancelled = AtomicBoolean(false)
+    private val cancelAction = AtomicReference<(() -> Unit)?>(null)
 
     val isCancelled: Boolean
         get() = cancelled.get()
 
+    internal fun setCancelAction(action: () -> Unit) {
+        cancelAction.set(action)
+        if (cancelled.get()) {
+            cancelAction.getAndSet(null)?.invoke()
+        }
+    }
+
     internal fun cancel() {
         cancelled.set(true)
+        cancelAction.getAndSet(null)?.invoke()
     }
 }
 
@@ -489,56 +522,109 @@ class BoundedBackgroundExecutor(
  */
 class KeyedSerialExecutor(
     private val executor: BackgroundExecutor,
+    private val maxPendingPerKey: Int = 8,
+    private val maxPendingTotal: Int = 32,
 ) : BackgroundExecutor {
-    private val lock = Any()
-    private val queues = HashMap<String, ArrayDeque<() -> Unit>>()
-    private val runningKeys = HashSet<String>()
+    /** A queued task that can be removed before it starts. */
+    class QueuedOperation internal constructor(
+        internal val key: String,
+        internal val task: () -> Unit,
+    )
 
-    fun submit(key: String?, task: () -> Unit) {
+    private val lock = Any()
+    private val queues = HashMap<String, ArrayDeque<QueuedOperation>>()
+    private val queued = HashSet<QueuedOperation>()
+    private val runningKeys = HashSet<String>()
+    private var pendingTotal = 0
+
+    /**
+     * Queues a task under [key]. Returns the cancelable handle, or null when the
+     * task was dispatched immediately. Throws [RejectedExecutionException] when
+     * the per-key or total bound is reached, so aggregate queues cannot bypass
+     * the §9 bounded-executor backpressure.
+     */
+    fun submit(key: String?, task: () -> Unit): QueuedOperation? {
         if (key == null) {
             executor.execute(task)
-            return
+            return null
         }
+        val entry = QueuedOperation(key, task)
         val schedule = synchronized(lock) {
-            queues.getOrPut(key) { ArrayDeque() }.addLast(task)
+            val queue = queues.getOrPut(key) { ArrayDeque() }
+            if (queue.size >= maxPendingPerKey || pendingTotal >= maxPendingTotal) {
+                if (queue.isEmpty()) queues.remove(key)
+                throw RejectedExecutionException("serial queue is full")
+            }
+            queue.addLast(entry)
+            queued.add(entry)
+            pendingTotal++
             runningKeys.add(key)
         }
-        if (!schedule) return
+        if (!schedule) return entry
         try {
             executor.execute { drain(key) }
         } catch (failure: Throwable) {
             synchronized(lock) {
-                queues.remove(key)
+                val removed = queues.remove(key) ?: ArrayDeque()
                 runningKeys.remove(key)
+                removed.forEach {
+                    queued.remove(it)
+                    pendingTotal--
+                }
             }
             throw failure
         }
+        return entry
     }
 
-    override fun execute(task: () -> Unit) = submit(null, task)
+    /** Removes a still-queued task. Running tasks cannot be removed here. */
+    fun cancel(entry: QueuedOperation): Boolean {
+        var removed = false
+        synchronized(lock) {
+            if (queued.remove(entry)) {
+                val queue = queues[entry.key]
+                if (queue != null) {
+                    queue.remove(entry)
+                    if (queue.isEmpty()) queues.remove(entry.key)
+                }
+                pendingTotal--
+                removed = true
+            }
+        }
+        return removed
+    }
+
+    override fun execute(task: () -> Unit) {
+        submit(null, task)
+    }
 
     override fun shutdown() {
         synchronized(lock) {
             queues.clear()
+            queued.clear()
             runningKeys.clear()
+            pendingTotal = 0
         }
         executor.shutdown()
     }
 
     private fun drain(key: String) {
         while (true) {
-            val next = synchronized(lock) {
+            val entry = synchronized(lock) {
                 val queue = queues[key]
                 if (queue == null || queue.isEmpty()) {
                     queues.remove(key)
                     runningKeys.remove(key)
                     null
                 } else {
-                    queue.removeFirst()
+                    val next = queue.removeFirst()
+                    queued.remove(next)
+                    pendingTotal--
+                    next
                 }
             } ?: return
             try {
-                next()
+                entry.task()
             } catch (_: Throwable) {
                 // The facade has already converted service failures to replies;
                 // keep draining the same key so one bad task cannot stall it.
@@ -600,6 +686,7 @@ class PlatformChannelFacade(
     private val disposed = AtomicBoolean(false)
     private val catalog = MethodCatalog(limits)
     private val serialExecutor = KeyedSerialExecutor(executor)
+    private val inFlightSaves = ConcurrentHashMap<String, Boolean>()
 
     fun handle(method: String, arguments: Any?, reply: ChannelReply) {
         val startedAt = clock()
@@ -631,28 +718,68 @@ class PlatformChannelFacade(
             return
         }
 
+        val saveDocumentId = if (method == "store.saveRevision") {
+            request.string("documentId")
+        } else {
+            null
+        }
+        if (saveDocumentId != null && inFlightSaves.putIfAbsent(saveDocumentId, true) != null) {
+            // §9/§12: a second save for the same document is rejected, not queued.
+            reply.error(PlatformFailure.concurrentWrite().withDuration(elapsedSince(startedAt)))
+            return
+        }
+
         val operationId = operationIdFactory()
         val handle = operations.begin(operationId)
         operationKind(method)?.let { kind ->
-            // §9 requires a reliable operation id for cancel.operation. The
-            // contract exposes it on the progress stream, not in method results;
-            // this initial event makes it observable before the service starts.
-            events.emitOperationProgress(operationId, kind, "queued", 0.0)
+            // §8 progress events may be coalesced or missed. This start event is
+            // not coalesced, so the id is available before dispatch. It still is
+            // not a method-result field; §2.1 and the method tables do not
+            // authorize one, so the residual missed-event case is documented.
+            events.emitOperationStarted(operationId, kind)
         }
-        try {
+        val queued = try {
             serialExecutor.submit(serializationKey(request)) {
-                runOperation(request, service, operationId, handle, reply, startedAt)
+                runOperation(
+                    request = request,
+                    service = service,
+                    operationId = operationId,
+                    handle = handle,
+                    reply = reply,
+                    startedAt = startedAt,
+                    saveDocumentId = saveDocumentId,
+                )
             }
         } catch (rejected: RejectedExecutionException) {
             operations.finish(handle)
+            releaseSave(saveDocumentId)
             reply.error(PlatformFailure.busy().withDuration(elapsedSince(startedAt)))
+            return
         } catch (failure: PlatformFailure) {
             operations.finish(handle)
+            releaseSave(saveDocumentId)
             reply.error(failure.withDuration(elapsedSince(startedAt)))
+            return
         } catch (unexpected: Exception) {
             operations.finish(handle)
+            releaseSave(saveDocumentId)
             reply.error(PlatformFailure.internal().withDuration(elapsedSince(startedAt)))
+            return
         }
+
+        queued?.let { entry ->
+            handle.setCancelAction {
+                if (serialExecutor.cancel(entry)) {
+                    operations.finish(handle)
+                    releaseSave(saveDocumentId)
+                    reply.error(PlatformFailure.cancelled().withDuration(elapsedSince(startedAt)))
+                }
+            }
+        }
+    }
+
+    private fun releaseSave(documentId: String?) {
+        if (documentId != null) inFlightSaves.remove(documentId)
     }
 
     /**
@@ -693,6 +820,7 @@ class PlatformChannelFacade(
         handle: OperationHandle,
         reply: ChannelReply,
         startedAt: Long,
+        saveDocumentId: String?,
     ) {
         val data = try {
             if (handle.isCancelled) throw PlatformFailure.cancelled()
@@ -723,6 +851,7 @@ class PlatformChannelFacade(
             return
         } finally {
             operations.finish(handle)
+            releaseSave(saveDocumentId)
         }
 
         mainPoster.post {
@@ -746,6 +875,7 @@ class PlatformChannelFacade(
         if (!disposed.compareAndSet(false, true)) return
         serialExecutor.shutdown()
         operations.clear()
+        inFlightSaves.clear()
         events.dispose()
         services.closeAll()
     }
@@ -873,6 +1003,28 @@ class PlatformEventPublisher(
                 "cancelled" to cancelled,
             ),
         )
+    }
+
+    /**
+     * Non-coalesced start signal. It makes the §9 cancellation id observable
+     * before dispatch while keeping the contract's event/result split: §8 is the
+     * only authorized place for an operation id, and §2.1 does not authorize a
+     * result field. If the listener misses this event, only a later progress
+     * event can recover the id; that residual collision is documented.
+     */
+    fun emitOperationStarted(operationId: String, kind: String) {
+        require(kind == "import" || kind == "analyze" || kind == "save" || kind == "export") {
+            "invalid progress kind"
+        }
+        val event = progressEvent(
+            eventName = "operation.progress",
+            operationId = operationId,
+            phase = "queued",
+            fraction = 0.0,
+            pageIndex = null,
+        )
+        event["kind"] = kind
+        emitDirect(event)
     }
 
     fun emitOperationProgress(
