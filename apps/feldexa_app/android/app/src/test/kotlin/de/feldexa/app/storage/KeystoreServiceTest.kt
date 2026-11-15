@@ -357,11 +357,12 @@ class KeystoreServiceTest {
     }
 
     @Test
-    fun `tampered wrapped key is corrupt data SAVE-003`() {
+    fun `usable kek with a tampered wrapped key is integrity SAVE-003 not key loss`() {
         val backend = FakeBackend()
         val service = service(backend)
         service.createAggregateKey(document())
-        val wrapped = service.wrapDek(document(), randomBytes(KeystoreService.DEK_SIZE_BYTES))
+        val dek = randomBytes(KeystoreService.DEK_SIZE_BYTES)
+        val wrapped = service.wrapDek(document(), dek)
         wrapped.wrappedKey[0] = (wrapped.wrappedKey[0].toInt() xor 0x01).toByte()
 
         val failure = assertThrows(CorruptDataException::class.java) {
@@ -370,6 +371,11 @@ class KeystoreServiceTest {
 
         assertEquals("SAVE-003", failure.code)
         assertFalse(failure.retryable)
+        // Integrity damage, not key loss: the KEK remains available and a
+        // fresh wrap/unwrap still works for the same aggregate.
+        assertTrue(service.hasAggregateKey(document()))
+        val fresh = service.wrapDek(document(), dek)
+        assertTrue(dek.contentEquals(service.unwrapDek(document(), fresh)))
     }
 
     @Test

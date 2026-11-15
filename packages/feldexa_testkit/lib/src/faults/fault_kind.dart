@@ -22,10 +22,10 @@ enum FaultKind {
   /// Global Keystore provider is unavailable (not one aggregate's key).
   keystoreUnavailable('SAVE-008', 'Global Keystore provider is unavailable.'),
 
-  /// One aggregate's wrapped key material cannot be unwrapped or is corrupt.
+  /// One aggregate's wrapped DEK failed authentication; integrity damage.
   corruptKeyMaterial(
-    'SAVE-002',
-    'Aggregate key material is corrupt or unreadable.',
+    'SAVE-003',
+    'Aggregate key material failed authentication or is corrupt.',
   ),
 
   /// Export pipeline failed before a verified artifact existed.

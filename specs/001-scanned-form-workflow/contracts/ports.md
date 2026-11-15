@@ -203,9 +203,10 @@ final class StoredMeta {
 // `StoredMeta.title` is the stored title. For an aggregate whose KEK is
 // missing or invalidated it is the catalog's localized "Nicht lesbar"
 // placeholder (1–200 characters), `readable` is false, and
-// `unreadableReasonCode` is `SAVE-002` for aggregate-scoped loss or `SAVE-008`
-// for a global provider/reset condition; the UI does not derive a title from
-// ciphertext.
+// `unreadableReasonCode` is `SAVE-002` for aggregate-scoped key loss,
+// `SAVE-003` when the aggregate's stored data fails authentication, or
+// `SAVE-008` for a global provider/reset condition; the UI does not derive a
+// title from ciphertext.
 
 final class LoadedDocument {
   final DocumentMeta meta;
@@ -247,7 +248,7 @@ final class RecoveryStamp {
 - `saveRevision`/`saveTemplateVersion` return success only after the new head is written and read back (FR-047). A missing/invalidated aggregate KEK fails that aggregate with `SAVE-002` while other aggregate keys remain available; a global provider outage or a device-wide key-store reset fails with `SAVE-008`. In both cases the previous head is preserved.
 - `delete` requires an explicit `DeleteConfirmation` naming the item; a readable aggregate must match its stored title, and an unreadable aggregate matches the stored "Nicht lesbar" placeholder. It deletes the aggregate's objects first and its KEK alias last, then records the deletion. No other document/template or alias is touched (FR-053/FR-099).
 - `status.keyAvailable` is a store-level summary: true only when every known aggregate key is available. False means at least one aggregate must fail with `SAVE-002`, or the store has a global `SAVE-008` condition; it never makes the whole store throw, and unaffected aggregates remain usable. The summary does not identify which context applies. Per-aggregate detail comes from `StoredMeta.readable`/`unreadableReasonCode`, and the load/save exception distinguishes `SAVE-002` from `SAVE-008` (FR-052).
-- `loadDocument`/`loadTemplate` fail with `KeyUnavailableException` (`SAVE-002`), `KeystoreUnavailableException` (`SAVE-008`), or `CorruptDataException` for the requested aggregate. With `SAVE-002`, every other aggregate remains loadable; with `SAVE-008`, the whole stored set is reported as globally unavailable. An unreadable aggregate is listed with `readable=false`, the matching `unreadableReasonCode`, and the "Nicht lesbar" placeholder title.
+- `loadDocument`/`loadTemplate` fail with `KeyUnavailableException` (`SAVE-002`), `KeystoreUnavailableException` (`SAVE-008`), or `CorruptDataException` (`SAVE-003`) for the requested aggregate. With `SAVE-002`, every other aggregate remains loadable; with `SAVE-008`, the whole stored set is reported as globally unavailable. An unreadable aggregate is listed with `readable=false`, the matching `unreadableReasonCode`, and the "Nicht lesbar" placeholder title.
 - Storage exhaustion throws `StorageFullException`; the last durable head is untouched (FR-074/FR-075).
 - No method accepts an arbitrary path. Object names are server-side (adapter-side) generated.
 
