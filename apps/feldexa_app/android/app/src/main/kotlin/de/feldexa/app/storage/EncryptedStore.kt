@@ -437,7 +437,7 @@ class EncryptedStore(
         // non-kept revisions be pruned. The verified head is protected, and
         // unknown/untracked legacy revisions are retained conservatively.
         val prune = try {
-            pruneDocumentFromHead(ref, readHead)
+            pruneDocumentFromHead(ref, readHead, txn)
         } catch (failure: Exception) {
             PruneResult(0, readHead.history)
         }
@@ -461,7 +461,7 @@ class EncryptedStore(
             revisionFileBytes = revisionFile.length(),
             headFileBytes = fileFor(HeadObject(ref)).length(),
             readBackVerified = true,
-            prunedRevisions = prune.deleted,
+            prunedRevisions = if (prune.deletesDurable) prune.deleted else 0,
         )
     }
 
@@ -876,8 +876,12 @@ class EncryptedStore(
                         health.head != null
                     ) {
                         try {
-                            val prune = pruneDocumentFromHead(ref, health.head)
-                            pruned += prune.deleted
+                            val prune = pruneDocumentFromHead(
+                                ref,
+                                health.head,
+                                newTxnId(),
+                            )
+                            if (prune.deletesDurable) pruned += prune.deleted
                             if (prune.history != health.head.history) {
                                 commitHead(
                                     ref,
@@ -1162,6 +1166,7 @@ class EncryptedStore(
     private data class PruneResult(
         val deleted: Int,
         val history: List<HeadHistoryEntry>,
+        val deletesDurable: Boolean = true,
     )
 
     /**
@@ -1175,6 +1180,7 @@ class EncryptedStore(
     private fun pruneDocumentFromHead(
         ref: AggregateRef,
         head: CommittedHead,
+        transactionId: String = "",
     ): PruneResult {
         if (ref.kind != AggregateKind.DOCUMENT) {
             return PruneResult(0, emptyList())
@@ -1201,10 +1207,13 @@ class EncryptedStore(
             }
             if (deleted > 0) {
                 try {
+                    faultInjector.onFault(StoreFaultPoint.PRUNE_FSYNC, transactionId)
                     io.fsyncDirectory(dir)
                 } catch (failure: Exception) {
-                    // Deletion is safe; the next startup/save retries the
-                    // directory durability and conservative reconciliation.
+                    // The delete syscalls may not survive a crash. Do not
+                    // shorten the history: a later startup/save must still
+                    // know these revisions and retry the durable deletion.
+                    return PruneResult(deleted, head.history, deletesDurable = false)
                 }
             }
         }
@@ -1212,7 +1221,7 @@ class EncryptedStore(
             entry.revisionId == head.revisionId ||
                 revisionFileExists(ref, entry.revisionId)
         }
-        return PruneResult(deleted, remaining)
+        return PruneResult(deleted, remaining, deletesDurable = true)
     }
 
     private fun readBackObject(
@@ -2329,6 +2338,7 @@ enum class StoreFaultPoint {
     ORDERING_FSYNC,
     PROMOTE,
     PROMOTE_FSYNC,
+    PRUNE_FSYNC,
     HEAD_PROMOTED,
     DELETE_OBJECTS,
     DELETE_ALIAS,

@@ -520,6 +520,73 @@ class EncryptedStoreInstrumentedTest {
     }
 
     @Test
+    fun pruneFsyncFailureKeepsHistoryRetryableOnDevice() {
+        val documentId = UUID.randomUUID().toString()
+        val ids = (1..4).map(::fixedUuid)
+        val created = store.createDocument(
+            documentId,
+            meta("PruneFsync"),
+            UUID.randomUUID().toString(),
+            "%PDF-1.7 prune".toByteArray(),
+            ids[0],
+            revision(1),
+            RevisionKindWire.AUTOSAVE,
+        )
+        store.saveRevision(
+            documentId,
+            ids[1],
+            revision(2),
+            RevisionKindWire.AUTOSAVE,
+            created.revisionId,
+        )
+        store.saveRevision(
+            documentId,
+            ids[2],
+            revision(3),
+            RevisionKindWire.AUTOSAVE,
+            ids[1],
+        )
+        val firstFile = File(root, "docs/$documentId/rev/${ids[0]}.fx1")
+        val firstBytes = firstFile.readBytes()
+        val faultStore = EncryptedStore(
+            root = root,
+            keystore = keystore,
+            faultInjector = StoreFaultInjector { point, _ ->
+                if (point == StoreFaultPoint.PRUNE_FSYNC) {
+                    throw IOException("prune fsync failed")
+                }
+            },
+        )
+
+        val receipt = faultStore.saveRevision(
+            documentId,
+            ids[3],
+            revision(4),
+            RevisionKindWire.AUTOSAVE,
+            ids[2],
+        )
+
+        assertFalse(firstFile.exists())
+        assertEquals(0, receipt.prunedRevisions)
+        val afterFailure = store.readHeadForTest(
+            AggregateRef(AggregateKind.DOCUMENT, documentId),
+        )
+        assertTrue(afterFailure.history.any { it.revisionId == ids[0] })
+
+        // Crash resurrection: the unconfirmed delete is lost.
+        firstFile.writeBytes(firstBytes)
+        val report = store.startupRecovery()
+
+        assertTrue(report.prunedRevisions >= 1)
+        assertFalse(firstFile.exists())
+        val recovered = store.readHeadForTest(
+            AggregateRef(AggregateKind.DOCUMENT, documentId),
+        )
+        assertFalse(recovered.history.any { it.revisionId == ids[0] })
+        assertEquals(ids[3], recovered.revisionId)
+    }
+
+    @Test
     fun noPlaintextResidueInTheAggregateDirectory() {
         val marker = "PDF-DEVICE-SECRET"
         val created = store.createDocument(

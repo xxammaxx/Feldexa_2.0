@@ -152,6 +152,8 @@ Preconditions: a valid in-memory snapshot, a current verified head, and the docu
 
 The durable order for a new revision is: stage data and fsync, read-back verify, set the monotonic revision mtime, `fsync(file)` so the mtime is durable, atomically rename, then fsync the parent directory. Only then does the head history/prune step run.
 
+**Delete durability before history trim.** Pruning may shorten `history` only after the revision-directory fsync that follows the deletes succeeds. If that fsync fails, the head history stays complete, the deletions are not counted as durable, and the next startup/save must retry. This keeps a delete that is lost in a crash tracked, so the resurrected file cannot become untracked and bypass retention. A startup reconciliation follows the same rule: no history trim without a confirmed delete fsync.
+
 If any step fails before step 6, the previous `head.fx1` and all previous revisions remain valid; the operation fails. If step 6 fails after rename (unlikely), a startup recovery check detects a head pointing to a missing revision and falls back (see §4).
 
 ### 3.2 Import commit (new document)
@@ -199,7 +201,7 @@ On app start (before the list is shown), run in this order:
    - If `meta.fx1` is missing or unreadable → the aggregate never became visible; if it contains only `src/` or `rev/` and no `meta`, delete the directory (import/template-create incomplete). Otherwise mark the list entry `Nicht lesbar` and keep it.
    - If `head.fx1` is missing/corrupt → find the newest revision whose hash verifies; if found, adopt it, set `fellBackToOlderRevision: true`, and surface "Es wurde ein älterer gespeicherter Stand wiederhergestellt" (`SAVE-004`). If none verify → mark `Nicht lesbar`; never delete.
    - If `head.fx1` points to a missing/corrupt revision → same fallback.
-   - If `head.fx1` verifies and carries `history`, run the same known-kind retention step from §3.1 step 8 (head protected; unknown/untracked retained) and atomically trim missing history entries. A legacy head without history deletes nothing.
+   - If `head.fx1` verifies and carries `history`, run the same known-kind retention step from §3.1 step 8 (head protected; unknown/untracked retained). Trim history only after the delete-directory fsync succeeds; on fsync failure keep the full history and retry on the next startup/save. A legacy head without history deletes nothing.
 3. Delete unreferenced signature assets older than 24 h.
 4. Delete export artifacts older than 24 h and any on session end.
 5. Delete orphaned KEK aliases under `feldexa.doc.v1.` and `feldexa.tpl.v1.` that have no corresponding aggregate directory. Never delete an alias whose aggregate directory still exists.
