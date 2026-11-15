@@ -651,6 +651,85 @@ class EncryptedStoreInstrumentedTest {
     }
 
     @Test
+    fun historyCapDoesNotEvictUnconfirmedMissingOnDevice() {
+        val documentId = UUID.randomUUID().toString()
+        val ids = (1..24).map(::fixedUuid)
+        val created = store.createDocument(
+            documentId,
+            meta("Cap"),
+            UUID.randomUUID().toString(),
+            "%PDF-1.7 cap".toByteArray(),
+            ids[0],
+            revision(1),
+            RevisionKindWire.AUTOSAVE,
+        )
+        store.saveRevision(
+            documentId,
+            ids[1],
+            revision(2),
+            RevisionKindWire.AUTOSAVE,
+            created.revisionId,
+        )
+        store.saveRevision(
+            documentId,
+            ids[2],
+            revision(3),
+            RevisionKindWire.AUTOSAVE,
+            ids[1],
+        )
+        val faultStore = EncryptedStore(
+            root = root,
+            keystore = keystore,
+            faultInjector = StoreFaultInjector { point, _ ->
+                if (point == StoreFaultPoint.PRUNE_FSYNC) {
+                    throw IOException("persistent prune fsync failure")
+                }
+            },
+        )
+        faultStore.saveRevision(
+            documentId,
+            ids[3],
+            revision(4),
+            RevisionKindWire.AUTOSAVE,
+            ids[2],
+        )
+        val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
+        assertFalse(File(root, "docs/$documentId/rev/${ids[0]}.fx1").exists())
+
+        // More than the 16-entry bound worth of save attempts: each must
+        // refuse before staging/head-cap instead of silently evicting the
+        // unconfirmed-missing entry.
+        for (index in 4..21) {
+            assertThrows(StorageWriteException::class.java) {
+                faultStore.saveRevision(
+                    documentId,
+                    ids[index],
+                    revision(index + 1),
+                    RevisionKindWire.AUTOSAVE,
+                    ids[3],
+                )
+            }
+            val head = store.readHeadForTest(ref)
+            assertEquals(ids[3], head.revisionId)
+            assertTrue(head.history.any { it.revisionId == ids[0] })
+            assertTrue(head.history.size <= EncryptedStore.MAX_HEAD_HISTORY)
+        }
+
+        store.saveRevision(
+            documentId,
+            ids[22],
+            revision(23),
+            RevisionKindWire.AUTOSAVE,
+            ids[3],
+        )
+
+        assertFalse(File(root, "docs/$documentId/rev/${ids[0]}.fx1").exists())
+        val finalHead = store.readHeadForTest(ref)
+        assertFalse(finalHead.history.any { it.revisionId == ids[0] })
+        assertEquals(ids[22], finalHead.revisionId)
+    }
+
+    @Test
     fun noPlaintextResidueInTheAggregateDirectory() {
         val marker = "PDF-DEVICE-SECRET"
         val created = store.createDocument(

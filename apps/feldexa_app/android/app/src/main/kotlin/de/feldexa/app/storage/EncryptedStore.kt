@@ -394,6 +394,11 @@ class EncryptedStore(
 
         val current = verifyExpectedHead(ref, expectedHead)
         val txn = newTxnId()
+        // The bounded history cap must never silently evict a known entry
+        // whose deletion was not yet fsync-confirmed. Confirm any pending
+        // absence before staging the new revision; on failure the previous
+        // head stays intact and the caller may retry (SAVE-003).
+        confirmPendingPruneDurability(ref, current, txn)
         val revisionObject = RevisionObject(ref, revisionId)
         val revisionFile = fileFor(revisionObject)
 
@@ -1101,6 +1106,37 @@ class EncryptedStore(
         }
         val now = clock()
         return if (latest == null) now else maxOf(now, latest + 1)
+    }
+
+    /**
+     * Before a new head may cap history, confirm that every known history
+     * entry already missing from the namespace is durably absent.
+     *
+     * This closes the capacity hole: a retry with no new deletes must not
+     * let `takeLast(MAX_HEAD_HISTORY)` evict an unconfirmed missing entry.
+     * If the directory fsync fails, the save is refused with retryable
+     * `SAVE-003`; the previous head and all revisions remain untouched.
+     */
+    private fun confirmPendingPruneDurability(
+        ref: AggregateRef,
+        current: CommittedHead?,
+        transactionId: String,
+    ) {
+        if (current == null || ref.kind != AggregateKind.DOCUMENT) return
+        val missingKnown = current.history.any { entry ->
+            entry.revisionId != current.revisionId &&
+                entry.kind != null &&
+                !revisionFileExists(ref, entry.revisionId)
+        }
+        if (!missingKnown) return
+        val dir = File(aggregateDir(ref), "rev")
+        try {
+            if (!io.isDirectory(dir)) throw StorageWriteException()
+            faultInjector.onFault(StoreFaultPoint.PRUNE_FSYNC, transactionId)
+            io.fsyncDirectory(dir)
+        } catch (failure: Exception) {
+            throw StorageWriteException()
+        }
     }
 
     /**

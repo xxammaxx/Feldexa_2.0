@@ -6,6 +6,7 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicLong
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -318,6 +319,97 @@ class EncryptedStorePruneRecoveryTest {
         assertTrue(revFile(documentId, ids[2]).exists())
         assertTrue(revFile(documentId, ids[3]).exists())
         assertTrue(revFile(documentId, ids[4]).exists())
+    }
+
+    @Test
+    fun historyCapDoesNotEvictUnconfirmedMissingEntry() {
+        val documentId = UUID.randomUUID().toString()
+        val ids = (1..25).map(::fixedUuid)
+        val created = store.createDocument(
+            documentId,
+            meta("Cap"),
+            sourceId(),
+            source(),
+            ids[0],
+            revision(1),
+            RevisionKindWire.AUTOSAVE,
+        )
+        store.saveRevision(
+            documentId,
+            ids[1],
+            revision(2),
+            RevisionKindWire.AUTOSAVE,
+            created.revisionId,
+        )
+        store.saveRevision(
+            documentId,
+            ids[2],
+            revision(3),
+            RevisionKindWire.AUTOSAVE,
+            ids[1],
+        )
+        val firstBytes = revFile(documentId, ids[0]).readBytes()
+        val faultStore = EncryptedStore(
+            root = storeRoot,
+            keystore = keystore,
+            faultInjector = StoreFaultInjector { point, _ ->
+                if (point == StoreFaultPoint.PRUNE_FSYNC) {
+                    throw IOException("persistent prune fsync failure")
+                }
+            },
+            clock = { now.get() },
+        )
+        faultStore.saveRevision(
+            documentId,
+            ids[3],
+            revision(4),
+            RevisionKindWire.AUTOSAVE,
+            ids[2],
+        )
+        val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
+        assertFalse(revFile(documentId, ids[0]).exists())
+
+        // More than the 16-entry bound worth of further saves. Each must
+        // refuse before staging/head-cap because the missing known entry is
+        // not yet durability-confirmed; no save may silently evict it.
+        for (index in 4..23) {
+            val failure = assertThrows(StorageWriteException::class.java) {
+                faultStore.saveRevision(
+                    documentId,
+                    ids[index],
+                    revision(index + 1),
+                    RevisionKindWire.AUTOSAVE,
+                    ids[3],
+                )
+            }
+            assertTrue(failure.retryable)
+            assertFalse(revFile(documentId, ids[index]).exists())
+            val head = store.readHeadForTest(ref)
+            assertEquals(ids[3], head.revisionId)
+            assertTrue(
+                "attempt $index must not evict the unconfirmed entry",
+                head.history.any { it.revisionId == ids[0] },
+            )
+            assertTrue(head.history.size <= EncryptedStore.MAX_HEAD_HISTORY)
+        }
+
+        // Crash resurrection: restore the file without ever writing a trimmed
+        // head. The next save still knows it and lets the normal prune delete
+        // it under confirmed durability.
+        revFile(documentId, ids[0]).writeBytes(firstBytes)
+        store.saveRevision(
+            documentId,
+            ids[24],
+            revision(26),
+            RevisionKindWire.AUTOSAVE,
+            ids[3],
+        )
+
+        assertFalse(revFile(documentId, ids[0]).exists())
+        val finalHead = store.readHeadForTest(ref)
+        assertFalse(finalHead.history.any { it.revisionId == ids[0] })
+        assertEquals(ids[24], finalHead.revisionId)
+        assertTrue(finalHead.history.size <= EncryptedStore.MAX_HEAD_HISTORY)
     }
 
     // ------------------------------------------------------------------
