@@ -6,7 +6,7 @@
 | Result | `PARTIAL` |
 | Task / issue | `T025` / `#25` |
 | Date / timezone | `2026-11-15 12:45 Europe/Berlin` |
-| Revision | base commit `3a96054a1bd1e40b20f9c43606ace8aa6542748c`; tree `dirty` `specs/001-scanned-form-workflow/tasks.md` SHA-256 `e01e99536b4c7f38560ba7003439f52f20284b61b06db4d68d6d29054d56ab26`; `specs/001-scanned-form-workflow/reports/README.md` SHA-256 `a67269286783dfcdfbeb699797b039a548722dedc77758394675df318a00f0b6`; candidate SHA in external attestation |
+| Revision | base commit `3a96054a1bd1e40b20f9c43606ace8aa6542748c`; tree `dirty` `specs/001-scanned-form-workflow/tasks.md` SHA-256 `ff2e6673e1ae31bb5bbc990ec9b85f3309dcdc63c0fd58a89d21c99f9dadfe0c`; `specs/001-scanned-form-workflow/reports/README.md` SHA-256 `5488f0feea4571967988caadf8ea36e65ffab8f95d665f4e94be8cd6915c9b26`; candidate SHA in external attestation |
 | External attestation | worker_done transport attestation (candidate SHA, report bytes and hash); not part of the candidate commit |
 | Build identity | debug app APK `apps/feldexa_app/build/app/outputs/apk/debug/app-debug.apk` SHA-256 `672b15363d2eeb415a15e8f2e7999b716f4263a96807e4bdddaeb7fe3ab88077`; instrumentation test APK `apps/feldexa_app/build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk` SHA-256 `ddf7284644361e0f7afdb10f704062230fd9f2e157e5348ebbb312d68b23e9d3`; build mode `debug` |
 | Toolchain | Flutter 3.47.7 (stable), Dart 3.13.5, Gradle 9.3.1, Android Gradle Plugin 9.1.0, Kotlin 2.4.0, Temurin JDK 17.0.21, Android emulator 37.2.12.0, Android SDK 36 |
@@ -91,8 +91,11 @@ The API 31 suite was actually executed on the isolated read-only copy:
 - The AVD was a copy started read-only on unique port 5580 with
   `-no-accel`, `-gpu swiftshader_indirect`, 2 vCPU and 3072 MB; no wipe,
   snapshot write, or foreign-device adoption was used.
-- The testnamespace isolation and foreign-test-alias regressions passed; no
-  production Keystore alias was enumerated or deleted.
+- The testnamespace isolation and foreign-test-alias regressions passed. The
+  suite does not enumerate or delete production aliases; the isolation test
+  performs one read-only `keyStore.containsAlias(documentOne.alias)` on a
+  random production-form alias to assert that it was not created. No
+  production key material is created, read, or deleted.
 
 This observation is useful evidence that the T025 code path runs on an API 31
 Android runtime, but it is not project `EMULATOR`/API 35 evidence and cannot
@@ -148,7 +151,8 @@ This report is intentionally not listed in its own artifacts table.
    `Feldexa_API31` AVD, unique port 5580, `-no-accel`, `-gpu
    swiftshader_indirect`, 2 vCPU, 3072 MB, no wipe/snapshot write.
 4. Install the APKs and run the instrumentation suite; expected `OK (12
-   tests)` and no production alias deletion.
+   tests)`. The suite performs one read-only `containsAlias` check on a random
+   production-form alias and deletes no production alias.
 5. Run the host JVM suite; expected 43/43.
 6. Validate this report with `tools/evaluation/validate_report.dart`; expected
    valid `NONE`/`PARTIAL` report.

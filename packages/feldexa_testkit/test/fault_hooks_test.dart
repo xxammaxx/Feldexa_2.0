@@ -370,6 +370,11 @@ void main() {
           FaultKind.keystoreUnavailable.description,
           contains('Global Keystore'),
         );
+        expect(FaultKind.aggregateKeyUnavailable.catalogCode, 'SAVE-002');
+        expect(
+          FaultKind.aggregateKeyUnavailable.description,
+          contains('missing or invalidated'),
+        );
         expect(FaultKind.corruptKeyMaterial.catalogCode, 'SAVE-003');
         expect(FaultKind.corruptKeyMaterial.catalogCode, isNot('SAVE-002'));
         expect(

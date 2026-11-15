@@ -35,6 +35,15 @@ enum FaultKind {
     'Device-wide Keystore reset; no aggregate key remains.',
   ),
 
+  /// One aggregate's Keystore key is missing or invalidated (`SAVE-002`).
+  ///
+  /// Other aggregates remain usable; this is distinct from wrapped-DEK
+  /// integrity damage, which is `corruptKeyMaterial` (`SAVE-003`).
+  aggregateKeyUnavailable(
+    'SAVE-002',
+    'One aggregate Keystore key is missing or invalidated.',
+  ),
+
   /// One aggregate's wrapped DEK failed authentication; integrity damage.
   corruptKeyMaterial(
     'SAVE-003',

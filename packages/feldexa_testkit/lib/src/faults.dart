@@ -228,6 +228,7 @@ FeldexaException faultExceptionFor(InjectedFault fault) {
     FaultKind.writeInterrupted => StorageWriteException(),
     FaultKind.keystoreUnavailable => KeystoreUnavailableException(),
     FaultKind.keystoreReset => KeystoreUnavailableException(retryable: false),
+    FaultKind.aggregateKeyUnavailable => KeyUnavailableException(),
     FaultKind.corruptKeyMaterial => CorruptDataException(),
     FaultKind.exportFailure => ExportFailedException(),
   };
