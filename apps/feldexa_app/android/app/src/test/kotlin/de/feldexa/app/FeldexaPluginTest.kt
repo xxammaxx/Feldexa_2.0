@@ -98,7 +98,7 @@ class FeldexaPluginTest {
                 "pageWidthPt" to 100.0,
                 "pageHeightPt" to 100.0,
                 "format" to "gray8",
-                "bytes" to ByteArray(10),
+                "bytes" to ByteArray(10_000),
                 "language" to "de",
             ),
             "export.validate" to mapOf("plan" to mapOf("value" to "x")),
@@ -365,6 +365,42 @@ class FeldexaPluginTest {
     }
 
     @Test
+    fun ocrGrayBytesMustMatchDimensions() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle(
+            "ocr.recognize",
+            ocrPayload(100, 100, "gray8", 10),
+            reply,
+        )
+        assertFailure(reply, "PLT-003")
+        assertEquals("platform.invalidRaster", reply.failure?.machineMessage)
+    }
+
+    @Test
+    fun ocrRgbaBytesMustMatchDimensions() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle(
+            "ocr.recognize",
+            ocrPayload(100, 100, "rgba8888", 10_000),
+            reply,
+        )
+        assertFailure(reply, "PLT-003")
+    }
+
+    @Test
+    fun ocrValidRasterSizesAreAccepted() {
+        val facade = newFacade(servicePrefix = "ocr")
+        val gray = RecordingReply()
+        facade.handle("ocr.recognize", ocrPayload(100, 100, "gray8", 10_000), gray)
+        assertNull(gray.failure)
+        val rgba = RecordingReply()
+        facade.handle("ocr.recognize", ocrPayload(100, 100, "rgba8888", 40_000), rgba)
+        assertNull(rgba.failure)
+    }
+
+    @Test
     fun badSignatureHashIsRejected() {
         val facade = newFacade()
         val reply = RecordingReply()
@@ -534,6 +570,60 @@ class FeldexaPluginTest {
     }
 
     @Test
+    fun unknownCatalogCodeIsRejected() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PlatformFailure("EVIL-999", "storageFull", true, "save.noSpace")
+        }
+    }
+
+    @Test
+    fun contentBearingFailureMessageIsRejected() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PlatformFailure("SAVE-001", "storageFull", true, "Titel /tmp/antrag.pdf")
+        }
+    }
+
+    @Test
+    fun singleTokenFailureMessageIsRejected() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PlatformFailure("SAVE-001", "storageFull", true, "antrag")
+        }
+    }
+
+    @Test
+    fun contentBearingFailureCategoryIsRejected() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PlatformFailure("SAVE-001", "storage full", true, "save.noSpace")
+        }
+    }
+
+    @Test
+    fun negativeFailureCountersAreRejected() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PlatformFailure("SAVE-001", "storageFull", true, "save.noSpace", pageIndex = -1)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            PlatformFailure("SAVE-001", "storageFull", true, "save.noSpace", fieldCount = -1)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            PlatformFailure("SAVE-001", "storageFull", true, "save.noSpace", durationMs = -1L)
+        }
+    }
+
+    @Test
+    fun everyCatalogCodeFamilyRemainsConstructible() {
+        val codes = listOf(
+            "IMP-007", "SAVE-008", "EXP-005", "REC-004", "PAGE-001",
+            "TPL-001", "DEL-003", "DATE-001", "NUM-001", "FLD-001",
+            "PRIV-001", "PLT-003", "SIM-001",
+        )
+        codes.forEach { code ->
+            val failure = PlatformFailure(code, "storageFull", true, "save.noSpace")
+            assertEquals(code, failure.code)
+        }
+    }
+
+    @Test
     fun validationErrorCarriesDuration() {
         val times = java.util.ArrayDeque(listOf(1000L, 1005L))
         val facade = newFacade(clock = { times.removeFirst() })
@@ -593,6 +683,93 @@ class FeldexaPluginTest {
 
         executor.runNext()
         assertFailure(workReply, "PLT-004")
+    }
+
+    @Test
+    fun longOperationPublishesCancellationIdBeforeDispatch() {
+        val executor = QueueExecutor()
+        val publisher = PlatformEventPublisher(DirectPoster)
+        val sink = RecordingSink()
+        publisher.attachSink(sink)
+        val facade = newFacade(executor = executor, events = publisher)
+        val reply = RecordingReply()
+
+        facade.handle("store.saveRevision", saveRevisionPayload(documentId), reply)
+
+        val event = sink.events.single() as Map<*, *>
+        assertEquals("operation.progress", event["event"])
+        assertEquals("save", event["kind"])
+        assertEquals("queued", event["phase"])
+        val discoveredOperationId = event["operationId"] as String
+        assertTrue(discoveredOperationId.isNotEmpty())
+
+        val cancelReply = RecordingReply()
+        facade.handle(
+            "cancel.operation",
+            mapOf("schemaVersion" to 1, "operationId" to discoveredOperationId),
+            cancelReply,
+        )
+        assertEquals(mapOf("cancelled" to true), (cancelReply.successValue as Map<*, *>)["data"])
+
+        executor.runNext()
+        assertFailure(reply, "PLT-004")
+    }
+
+    @Test
+    fun sameDocumentOperationsAreSerialized() {
+        val executor = ManualExecutor()
+        val service = ConcurrencyService()
+        val facade = newFacade(service = service, executor = executor)
+        val first = RecordingReply()
+        val second = RecordingReply()
+
+        facade.handle("store.saveRevision", saveRevisionPayload(documentId), first)
+        facade.handle("store.saveRevision", saveRevisionPayload(documentId), second)
+
+        assertEquals(1, executor.tasks.size)
+        executor.runNext()
+        assertEquals(2, service.calls)
+        assertEquals(1, service.maxActive)
+        assertNull(first.failure)
+        assertNull(second.failure)
+    }
+
+    @Test
+    fun ocrOperationsAreSerializedConservatively() {
+        val executor = ManualExecutor()
+        val service = ConcurrencyService()
+        val facade = newFacade(servicePrefix = "ocr", service = service, executor = executor)
+        val first = RecordingReply()
+        val second = RecordingReply()
+
+        facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), first)
+        facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), second)
+
+        assertEquals(1, executor.tasks.size)
+        executor.runNext()
+        assertEquals(2, service.calls)
+        assertEquals(1, service.maxActive)
+        assertNull(first.failure)
+        assertNull(second.failure)
+    }
+
+    @Test
+    fun differentDocumentOperationsAreNotGloballySerialized() {
+        val executor = ManualExecutor()
+        val service = ConcurrencyService()
+        val facade = newFacade(service = service, executor = executor)
+        val first = RecordingReply()
+        val second = RecordingReply()
+
+        facade.handle("store.saveRevision", saveRevisionPayload(documentId), first)
+        facade.handle("store.saveRevision", saveRevisionPayload(assetId), second)
+
+        assertEquals(2, executor.tasks.size)
+        executor.runNext()
+        executor.runNext()
+        assertEquals(2, service.calls)
+        assertNull(first.failure)
+        assertNull(second.failure)
     }
 
     @Test
@@ -847,6 +1024,31 @@ class FeldexaPluginTest {
 
     // ---- helpers ------------------------------------------------------------
 
+    private fun ocrPayload(
+        width: Int,
+        height: Int,
+        format: String,
+        bytes: Int,
+    ): Map<String, Any?> = mapOf(
+        "schemaVersion" to 1,
+        "pageIndex" to 0,
+        "imageWidth" to width,
+        "imageHeight" to height,
+        "pageWidthPt" to 100.0,
+        "pageHeightPt" to 100.0,
+        "format" to format,
+        "bytes" to ByteArray(bytes),
+        "language" to "de",
+    )
+
+    private fun saveRevisionPayload(documentId: String): Map<String, Any?> = mapOf(
+        "schemaVersion" to 1,
+        "documentId" to documentId,
+        "revision" to mapOf("value" to "x"),
+        "expectedHead" to null,
+        "kind" to "autosave",
+    )
+
     private fun newFacade(
         servicePrefix: String? = "store",
         service: PlatformService = ReturningService(linkedMapOf("ok" to true)),
@@ -955,6 +1157,36 @@ class FeldexaPluginTest {
         override fun execute(task: () -> Unit) = task()
         override fun shutdown() {
             shutdownCount++
+        }
+    }
+
+    private class ManualExecutor : BackgroundExecutor {
+        val tasks = mutableListOf<() -> Unit>()
+
+        override fun execute(task: () -> Unit) {
+            tasks += task
+        }
+
+        override fun shutdown() {
+            tasks.clear()
+        }
+
+        fun runNext() {
+            tasks.removeAt(0).invoke()
+        }
+    }
+
+    private class ConcurrencyService : PlatformService {
+        var calls = 0
+        var active = 0
+        var maxActive = 0
+
+        override fun handle(request: PlatformRequest, context: OperationContext): Any? {
+            calls++
+            active++
+            maxActive = maxOf(maxActive, active)
+            active--
+            return mapOf("ok" to true)
         }
     }
 

@@ -9,6 +9,7 @@ import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 import java.nio.charset.StandardCharsets
+import java.util.ArrayDeque
 import java.util.UUID
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CancellationException
@@ -232,6 +233,32 @@ enum class HostLifecycle(val wireValue: String) {
 }
 
 /**
+ * Every catalog code from `contracts/error-catalog.de.md` plus the developer
+ * codes in §10 of the same catalog. A service may not invent a code.
+ */
+private val CATALOG_CODES: Set<String> = setOf(
+    "DATE-001", "DATE-002",
+    "DEL-001", "DEL-002", "DEL-003",
+    "EXP-001", "EXP-002", "EXP-003", "EXP-004", "EXP-005", "EXP-006",
+    "FLD-001", "FLD-002", "FLD-003",
+    "IMP-000", "IMP-001", "IMP-002", "IMP-003", "IMP-004", "IMP-005", "IMP-006", "IMP-007",
+    "NUM-001",
+    "PAGE-001",
+    "PLT-001", "PLT-002", "PLT-003", "PLT-004",
+    "PRIV-001",
+    "REC-001", "REC-002", "REC-003", "REC-004",
+    "SAVE-001", "SAVE-002", "SAVE-003", "SAVE-004", "SAVE-005", "SAVE-006", "SAVE-007", "SAVE-008",
+    "SIM-001",
+    "TPL-001", "TPL-002", "TPL-003",
+)
+
+/** Stable machine token: lower camel start, no spaces, paths, or German text. */
+private val CATEGORY_PATTERN = Regex("^[a-z][A-Za-z0-9_]{0,31}$")
+
+/** Stable message key: dot/underscore/colon-separated machine tokens, max 64 chars. */
+private val MACHINE_MESSAGE_PATTERN = Regex("^[a-z][A-Za-z0-9]*(?:[._:-][a-z][A-Za-z0-9]*){1,5}$")
+
+/**
  * A safe, catalog-coded platform failure. Only codes, counts, and durations may
  * cross this type; document content, paths, URIs, and German UI text may not.
  */
@@ -244,6 +271,17 @@ class PlatformFailure(
     val fieldCount: Int? = null,
     val durationMs: Long? = null,
 ) : RuntimeException(machineMessage) {
+
+    init {
+        require(code in CATALOG_CODES) { "code is not a catalog code" }
+        require(CATEGORY_PATTERN.matches(category)) { "category is not a machine token" }
+        require(machineMessage.length <= 64 && MACHINE_MESSAGE_PATTERN.matches(machineMessage)) {
+            "machineMessage is not a stable machine key"
+        }
+        require(pageIndex == null || pageIndex >= 0) { "pageIndex must be non-negative" }
+        require(fieldCount == null || fieldCount >= 0) { "fieldCount must be non-negative" }
+        require(durationMs == null || durationMs >= 0) { "durationMs must be non-negative" }
+    }
 
     fun details(): Map<String, Any?> = linkedMapOf(
         "schemaVersion" to FeldexaChannels.SCHEMA_VERSION,
@@ -441,6 +479,74 @@ class BoundedBackgroundExecutor(
     }
 }
 
+/**
+ * Serializes tasks that carry the same aggregate key while allowing different
+ * keys to use the shared bounded worker pool concurrently. A `null` key is
+ * dispatched immediately. This implements the per-document ordering required by
+ * `contracts/platform-channel.md` §9 for operations whose payload exposes a
+ * stable aggregate id; OCR/import have no document id in that contract and use
+ * conservative domain keys instead (see [PlatformChannelFacade.serializationKey]).
+ */
+class KeyedSerialExecutor(
+    private val executor: BackgroundExecutor,
+) : BackgroundExecutor {
+    private val lock = Any()
+    private val queues = HashMap<String, ArrayDeque<() -> Unit>>()
+    private val runningKeys = HashSet<String>()
+
+    fun submit(key: String?, task: () -> Unit) {
+        if (key == null) {
+            executor.execute(task)
+            return
+        }
+        val schedule = synchronized(lock) {
+            queues.getOrPut(key) { ArrayDeque() }.addLast(task)
+            runningKeys.add(key)
+        }
+        if (!schedule) return
+        try {
+            executor.execute { drain(key) }
+        } catch (failure: Throwable) {
+            synchronized(lock) {
+                queues.remove(key)
+                runningKeys.remove(key)
+            }
+            throw failure
+        }
+    }
+
+    override fun execute(task: () -> Unit) = submit(null, task)
+
+    override fun shutdown() {
+        synchronized(lock) {
+            queues.clear()
+            runningKeys.clear()
+        }
+        executor.shutdown()
+    }
+
+    private fun drain(key: String) {
+        while (true) {
+            val next = synchronized(lock) {
+                val queue = queues[key]
+                if (queue == null || queue.isEmpty()) {
+                    queues.remove(key)
+                    runningKeys.remove(key)
+                    null
+                } else {
+                    queue.removeFirst()
+                }
+            } ?: return
+            try {
+                next()
+            } catch (_: Throwable) {
+                // The facade has already converted service failures to replies;
+                // keep draining the same key so one bad task cannot stall it.
+            }
+        }
+    }
+}
+
 /** Service registry keyed by the `<domain>` prefix; one owner per prefix. */
 class PlatformServiceRegistry {
     private val services = ConcurrentHashMap<String, PlatformService>()
@@ -493,6 +599,7 @@ class PlatformChannelFacade(
 ) {
     private val disposed = AtomicBoolean(false)
     private val catalog = MethodCatalog(limits)
+    private val serialExecutor = KeyedSerialExecutor(executor)
 
     fun handle(method: String, arguments: Any?, reply: ChannelReply) {
         val startedAt = clock()
@@ -526,8 +633,14 @@ class PlatformChannelFacade(
 
         val operationId = operationIdFactory()
         val handle = operations.begin(operationId)
+        operationKind(method)?.let { kind ->
+            // §9 requires a reliable operation id for cancel.operation. The
+            // contract exposes it on the progress stream, not in method results;
+            // this initial event makes it observable before the service starts.
+            events.emitOperationProgress(operationId, kind, "queued", 0.0)
+        }
         try {
-            executor.execute {
+            serialExecutor.submit(serializationKey(request)) {
                 runOperation(request, service, operationId, handle, reply, startedAt)
             }
         } catch (rejected: RejectedExecutionException) {
@@ -540,6 +653,37 @@ class PlatformChannelFacade(
             operations.finish(handle)
             reply.error(PlatformFailure.internal().withDuration(elapsedSince(startedAt)))
         }
+    }
+
+    /**
+     * Per-aggregate ordering for the operations named in §9. Import has no
+     * document id before staging, so it uses one import key; OCR has no document
+     * id in the request either, so it uses a conservative OCR key. Per-document
+     * OCR remains the service/adapter owner (T056/T027) because the contract
+     * gives the facade no document identifier for that call.
+     */
+    private fun serializationKey(request: PlatformRequest): String? = when (request.method) {
+        "import.pickAndImport", "import.verifySource" -> "import"
+        "ocr.recognize" -> "ocr"
+        "store.saveRevision", "store.writeSignature" ->
+            request.string("documentId")?.let { "document:$it" }
+        "store.createTemplate" -> "template:create"
+        "store.saveTemplateVersion" ->
+            request.string("templateId")?.let { "template:$it" }
+        "export.validate", "export.render" -> {
+            val documentId = request.map("plan")?.get("documentId") as? String
+            documentId?.let { "export:$it" } ?: "export"
+        }
+        else -> null
+    }
+
+    /** Method domains whose calls can be both long-running and cancellable. */
+    private fun operationKind(method: String): String? = when (method) {
+        "import.pickAndImport", "import.verifySource" -> "import"
+        "ocr.recognize" -> "analyze"
+        "store.saveRevision", "store.writeSignature", "store.createTemplate", "store.saveTemplateVersion" -> "save"
+        "export.validate", "export.render" -> "export"
+        else -> null
     }
 
     private fun runOperation(
@@ -600,7 +744,7 @@ class PlatformChannelFacade(
     /** Stops background work and makes subsequent calls fail closed. */
     fun dispose() {
         if (!disposed.compareAndSet(false, true)) return
-        executor.shutdown()
+        serialExecutor.shutdown()
         operations.clear()
         events.dispose()
         services.closeAll()
@@ -1160,6 +1304,16 @@ private class MethodCatalog(private val limits: ChannelLimits) {
                 BytesRule("bytes", limits.maxOcrEdgePx.toLong() * limits.maxOcrEdgePx.toLong() * 4L),
                 StringRule("language", 16, exact = "de"),
             ),
+            postValidate = { payload ->
+                val width = (payload["imageWidth"] as Number).toLong()
+                val height = (payload["imageHeight"] as Number).toLong()
+                val channels = if (payload["format"] == "gray8") 1L else 4L
+                val expectedBytes = width * height * channels
+                val actualBytes = (payload["bytes"] as ByteArray).size.toLong()
+                if (actualBytes != expectedBytes) {
+                    throw PlatformFailure.invalidPayload("platform.invalidRaster")
+                }
+            },
         ),
         MethodSpec(
             "export.validate",
