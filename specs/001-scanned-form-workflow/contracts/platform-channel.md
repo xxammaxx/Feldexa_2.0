@@ -135,8 +135,8 @@ On failure or cancellation, `data` is absent and `error` is present:
 
 - The start reply and the terminal result are independent signals. The terminal result may be published before the start reply is delivered when the worker finishes immediately; Dart MUST buffer an unknown `operationId` result and reconcile it with the start reply.
 - Progress events are best-effort and may be duplicated, coalesced, or missed. They never replace the terminal result.
-- A result may be delivered after `cancel.operation` returns `true`; that result is `PLT-004`.
-- `cancel.operation` returns `false` when the id is unknown, invalid, or already terminal.
+- **Terminal/cancel linearization:** the success/error terminal transition and `cancel.operation` are serialized on one operation state. Before the terminal transition wins, cancel returns `true` and the only terminal result is `PLT-004`. Once the terminal state wins, its result is published before the operation is removed from the registry, and `cancel.operation` returns `false`; it MUST NOT return `true` after a terminal result has been published. A success/error result MUST NOT be published after cancellation has won.
+- `cancel.operation` returns `false` when the id is unknown, invalid, already terminal, or already cancelled.
 - After a terminal result, further progress for that operation is stale and MUST be ignored.
 
 **Missing listener, replay, and retention.** Completed results are retained in memory for the current engine/session in a bounded store (at most 64 results, oldest evicted first). On every `de.feldexa/results` listener attach, all retained results are replayed; duplicates are allowed and Dart MUST deduplicate by `operationId`. On listener detach, results remain retained and are replayed on the next attach. If a result is evicted before any listener attaches, it is no longer recoverable; the start reply still proves acceptance. Results are never persisted; process death loses them.
@@ -357,6 +357,7 @@ the start reply; Dart buffers unknown ids.
 - **Terminal exactly once.** An accepted operation publishes one terminal result. Replay can duplicate delivery of the same stored result; Dart deduplicates by `operationId`. A start rejection (`PlatformException`) creates no operation and therefore no result.
 - **Race.** Terminal result publication is independent of start-reply delivery; result-before-start is legal. Progress may arrive before or after either and is never authoritative.
 - **Missing listener.** Completed results are retained and replayed when the result listener attaches; detaching the listener does not delete results. Results are bounded (64) and not persisted, so an evicted result is unrecoverable; the start reply remains the acceptance proof.
+- **Dispose is synchronized with publish.** A terminal result racing with teardown is either retained/delivered before teardown or discarded after it; `dispose` clears the retention store under the same lock as `publish` and `attachSink`, so teardown cannot be followed by a refilled store or a post-teardown replay.
 - **Lifecycle.** Activity configuration changes retain the engine result store. `onDestroy`/engine detach cancels workers, clears the result store, stops result emission, closes PDFium/PDFBox documents, and deletes session export artifacts. Process death loses in-memory results and is handled by the storage recovery contract, not by the channel.
 
 ---
@@ -401,6 +402,8 @@ Every string that becomes a UI label is capped (title 200, field label 120, `lab
 | Async start rejection | JVM contract + Emulator instrumentation | validation, missing service, queue overflow, and concurrent same-document save reject with `PlatformException` and emit no result |
 | Async race and late listener | JVM contract + Emulator instrumentation | a result completed before start-reply delivery or before listener attach is retained/replayed; duplicate replay is deduplicated by `operationId` |
 | Async cancellation | JVM contract + Emulator instrumentation | queued or running cancellation yields one terminal `PLT-004` result; cancellation after terminal returns `false`; queued cancellation frees the bounded slot |
+| Terminal/cancel race | JVM contract + Emulator instrumentation | a result publish in progress blocks cancel on the operation-state lock; cancel returns `false` after success/error publication; cancel before service completion publishes only `PLT-004` |
+| Dispose race | JVM contract + Emulator instrumentation | dispose during a blocked publish cannot refill retention, deliver a post-teardown result, or replay it to a later listener |
 | Async lifecycle | JVM contract + Emulator instrumentation | result listener detach/reattach replays retained results; engine teardown clears the result store and emits nothing afterwards |
 | Encryption detection | Emulator instrumentation | synthetic password-protected PDF → `IMP-001`; truncated PDF → `IMP-002`; random bytes → `IMP-004`; unreadable file → `IMP-005` |
 | No plaintext leak | Emulator instrumentation | scan `filesDir`, `cacheDir`, logs, and Recents thumbnail after failures → no `%PDF`, no title, no value |

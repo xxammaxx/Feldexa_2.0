@@ -7,7 +7,9 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.UUID
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.TimeUnit
 
 /**
  * T024 host-JVM contract tests for the platform-channel facade.
@@ -1223,6 +1225,81 @@ class FeldexaPluginTest {
     }
 
     @Test
+    fun cancelAfterSuccessTerminalWaitsForPublishAndReturnsFalse() {
+        verifyCancelAfterTerminal(
+            service = ReturningService(mapOf("ok" to true)),
+            expectSuccess = true,
+        )
+    }
+
+    @Test
+    fun cancelAfterErrorTerminalWaitsForPublishAndReturnsFalse() {
+        verifyCancelAfterTerminal(
+            service = ThrowingService(
+                PlatformFailure("SAVE-001", "storageFull", true, "save.storageFull"),
+            ),
+            expectSuccess = false,
+        )
+    }
+
+    @Test
+    fun cancelWinsBeforeServiceReturnsAndPublishesOnlyCancellation() {
+        val executor = ManualExecutor()
+        val service = BlockingService()
+        val results = PlatformResultPublisher(DirectPoster)
+        val sink = RecordingSink()
+        results.attachSink(sink)
+        val facade = newFacade(
+            servicePrefix = "ocr",
+            service = service,
+            executor = executor,
+            results = results,
+        )
+        val startReply = RecordingReply()
+        facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), startReply)
+        val operationId = startOperationId(startReply)
+
+        val worker = Thread { executor.runNext() }
+        worker.start()
+        assertTrue(service.entered.await(5, TimeUnit.SECONDS))
+
+        val cancelReply = RecordingReply()
+        facade.handle(
+            "cancel.operation",
+            mapOf("schemaVersion" to 1, "operationId" to operationId),
+            cancelReply,
+        )
+        assertEquals(mapOf("cancelled" to true), (cancelReply.successValue as Map<*, *>)["data"])
+        service.release.countDown()
+        worker.join(5_000)
+        assertFalse(worker.isAlive)
+
+        val result = sink.events.single() as Map<*, *>
+        assertEquals(false, result["ok"])
+        assertEquals("PLT-004", (result["error"] as Map<*, *>)["code"])
+    }
+
+    @Test
+    fun disposeDuringResultPublishDoesNotDeliverOrReplay() {
+        val poster = BlockingPoster()
+        val publisher = PlatformResultPublisher(poster)
+        val publishThread = Thread {
+            publisher.publish(resultMap("11111111-1111-4111-8111-111111111111"))
+        }
+        publishThread.start()
+        assertTrue(poster.entered.await(5, TimeUnit.SECONDS))
+
+        publisher.dispose()
+        val sink = RecordingSink()
+        publisher.attachSink(sink)
+        poster.release.countDown()
+        publishThread.join(5_000)
+        assertFalse(publishThread.isAlive)
+
+        assertTrue(sink.events.isEmpty())
+    }
+
+    @Test
     fun resultPublisherRetentionIsBounded() {
         val publisher = PlatformResultPublisher(DirectPoster, maxRetained = 2)
         publisher.publish(resultMap("11111111-1111-4111-8111-111111111111"))
@@ -1388,6 +1465,53 @@ class FeldexaPluginTest {
         "data" to mapOf("ok" to true),
     )
 
+    private fun verifyCancelAfterTerminal(service: PlatformService, expectSuccess: Boolean) {
+        val executor = QueueExecutor()
+        val poster = BlockingPoster()
+        val results = PlatformResultPublisher(poster)
+        val sink = RecordingSink()
+        results.attachSink(sink)
+        val facade = newFacade(
+            servicePrefix = "ocr",
+            service = service,
+            executor = executor,
+            results = results,
+        )
+        val startReply = RecordingReply()
+        facade.handle("ocr.recognize", ocrPayload(10, 10, "gray8", 100), startReply)
+        val operationId = startOperationId(startReply)
+
+        val worker = Thread { executor.runNext() }
+        worker.start()
+        assertTrue(poster.entered.await(5, TimeUnit.SECONDS))
+
+        val cancelStarted = CountDownLatch(1)
+        val cancelDone = CountDownLatch(1)
+        val cancelReply = RecordingReply()
+        val canceller = Thread {
+            cancelStarted.countDown()
+            facade.handle(
+                "cancel.operation",
+                mapOf("schemaVersion" to 1, "operationId" to operationId),
+                cancelReply,
+            )
+            cancelDone.countDown()
+        }
+        canceller.start()
+        assertTrue(cancelStarted.await(5, TimeUnit.SECONDS))
+        assertFalse(cancelDone.await(100, TimeUnit.MILLISECONDS))
+
+        poster.release.countDown()
+        worker.join(5_000)
+        canceller.join(5_000)
+        assertFalse(worker.isAlive)
+        assertFalse(canceller.isAlive)
+
+        assertEquals(mapOf("cancelled" to false), (cancelReply.successValue as Map<*, *>)["data"])
+        val result = sink.events.single() as Map<*, *>
+        assertEquals(expectSuccess, result["ok"])
+    }
+
     private fun startOperationId(reply: RecordingReply): String {
         assertNull(reply.failure)
         val envelope = reply.successValue as Map<*, *>
@@ -1513,6 +1637,28 @@ class FeldexaPluginTest {
         override fun execute(task: () -> Unit) = task()
         override fun shutdown() {
             shutdownCount++
+        }
+    }
+
+    private class BlockingPoster : ThreadPoster {
+        val entered = CountDownLatch(1)
+        val release = CountDownLatch(1)
+
+        override fun post(block: () -> Unit) {
+            entered.countDown()
+            release.await(5, TimeUnit.SECONDS)
+            block()
+        }
+    }
+
+    private class BlockingService : PlatformService {
+        val entered = CountDownLatch(1)
+        val release = CountDownLatch(1)
+
+        override fun handle(request: PlatformRequest, context: OperationContext): Any? {
+            entered.countDown()
+            release.await(5, TimeUnit.SECONDS)
+            return mapOf("ok" to true)
         }
     }
 

@@ -491,8 +491,7 @@ class OperationRegistry {
 
     fun cancel(operationId: String): Boolean {
         val handle = active[operationId] ?: return false
-        handle.cancel()
-        return true
+        return handle.cancel()
     }
 
     internal fun clear() {
@@ -501,22 +500,76 @@ class OperationRegistry {
 }
 
 class OperationHandle internal constructor(val id: String) {
-    private val cancelled = AtomicBoolean(false)
-    private val cancelAction = AtomicReference<(() -> Unit)?>(null)
+    private enum class State { ACTIVE, CANCELLED, COMPLETED }
+
+    private val lock = Any()
+    private var state = State.ACTIVE
+    private var cancelAction: (() -> Unit)? = null
+    private var cancellationPublished = false
 
     val isCancelled: Boolean
-        get() = cancelled.get()
+        get() = synchronized(lock) { state == State.CANCELLED }
 
     internal fun setCancelAction(action: () -> Unit) {
-        cancelAction.set(action)
-        if (cancelled.get()) {
-            cancelAction.getAndSet(null)?.invoke()
+        val invokeNow = synchronized(lock) {
+            when (state) {
+                State.ACTIVE -> {
+                    cancelAction = action
+                    null
+                }
+                State.CANCELLED -> action
+                State.COMPLETED -> null
+            }
+        }
+        invokeNow?.invoke()
+    }
+
+    /**
+     * Linearizes cancellation against the terminal transition. Returns true only
+     * when this call moved an ACTIVE operation to CANCELLED.
+     */
+    internal fun cancel(): Boolean {
+        var action: (() -> Unit)? = null
+        val transitioned = synchronized(lock) {
+            if (state != State.ACTIVE) {
+                false
+            } else {
+                state = State.CANCELLED
+                action = cancelAction
+                cancelAction = null
+                true
+            }
+        }
+        if (!transitioned) return false
+        action?.invoke()
+        return true
+    }
+
+    /**
+     * Publishes the terminal success/error result while holding the same lock as
+     * cancellation. A concurrent cancel therefore either wins before this call
+     * (false) or observes a completed terminal state (false); it never observes
+     * an active operation after the result was published.
+     */
+    internal fun complete(publish: () -> Unit): Boolean = synchronized(lock) {
+        if (state != State.ACTIVE) {
+            false
+        } else {
+            state = State.COMPLETED
+            publish()
+            true
         }
     }
 
-    internal fun cancel() {
-        cancelled.set(true)
-        cancelAction.getAndSet(null)?.invoke()
+    /** Publishes the one terminal PLT-004 result if cancellation won. */
+    internal fun publishCancellation(publish: () -> Unit): Boolean = synchronized(lock) {
+        if (state != State.CANCELLED || cancellationPublished) {
+            false
+        } else {
+            cancellationPublished = true
+            publish()
+            true
+        }
     }
 }
 
@@ -821,25 +874,20 @@ class PlatformChannelFacade(
             return
         }
 
+        queued?.let { entry ->
+            handle.setCancelAction {
+                if (serialExecutor.cancel(entry)) {
+                    publishCancelled(handle, reply, async, operationId, startedAt)
+                    operations.finish(handle)
+                    releaseSave(saveDocumentId)
+                }
+            }
+        }
+
         if (async) {
             // Owner decision: a reliable start reply carries the operation id.
             // The method-specific data follows on the result channel.
             reply.success(successEnvelope(linkedMapOf("operationId" to operationId)))
-        }
-
-        queued?.let { entry ->
-            handle.setCancelAction {
-                if (serialExecutor.cancel(entry)) {
-                    operations.finish(handle)
-                    releaseSave(saveDocumentId)
-                    val failure = PlatformFailure.cancelled().withDuration(elapsedSince(startedAt))
-                    if (async) {
-                        results.publish(errorResult(operationId, failure))
-                    } else {
-                        reply.error(failure)
-                    }
-                }
-            }
         }
     }
 
@@ -879,38 +927,58 @@ class PlatformChannelFacade(
         saveDocumentId: String?,
         async: Boolean,
     ) {
-        val data = try {
-            if (handle.isCancelled) throw PlatformFailure.cancelled()
-            service.handle(
-                request,
-                OperationContext(operationId, handle, events),
-            )
-        } catch (failure: PlatformFailure) {
-            deliverFailure(reply, async, operationId, failure, startedAt)
-            return
-        } catch (interrupted: InterruptedException) {
-            Thread.currentThread().interrupt()
-            deliverFailure(reply, async, operationId, PlatformFailure.cancelled(), startedAt)
-            return
-        } catch (cancelled: CancellationException) {
-            deliverFailure(reply, async, operationId, PlatformFailure.cancelled(), startedAt)
-            return
-        } catch (security: SecurityException) {
-            deliverFailure(reply, async, operationId, PlatformFailure.invalidIdentifier(), startedAt)
-            return
-        } catch (unsupported: UnsupportedOperationException) {
-            deliverFailure(reply, async, operationId, PlatformFailure.unsupported(), startedAt)
-            return
-        } catch (error: Error) {
-            throw error
-        } catch (unexpected: Exception) {
-            deliverFailure(reply, async, operationId, PlatformFailure.internal(), startedAt)
-            return
+        try {
+            val data = try {
+                if (handle.isCancelled) throw PlatformFailure.cancelled()
+                service.handle(
+                    request,
+                    OperationContext(operationId, handle, events),
+                )
+            } catch (failure: PlatformFailure) {
+                deliverFailure(handle, reply, async, operationId, failure, startedAt)
+                return
+            } catch (interrupted: InterruptedException) {
+                Thread.currentThread().interrupt()
+                deliverFailure(handle, reply, async, operationId, PlatformFailure.cancelled(), startedAt)
+                return
+            } catch (cancelled: CancellationException) {
+                deliverFailure(handle, reply, async, operationId, PlatformFailure.cancelled(), startedAt)
+                return
+            } catch (security: SecurityException) {
+                deliverFailure(handle, reply, async, operationId, PlatformFailure.invalidIdentifier(), startedAt)
+                return
+            } catch (unsupported: UnsupportedOperationException) {
+                deliverFailure(handle, reply, async, operationId, PlatformFailure.unsupported(), startedAt)
+                return
+            } catch (error: Error) {
+                throw error
+            } catch (unexpected: Exception) {
+                deliverFailure(handle, reply, async, operationId, PlatformFailure.internal(), startedAt)
+                return
+            }
+
+            if (handle.isCancelled) {
+                publishCancelled(handle, reply, async, operationId, startedAt)
+            } else {
+                val completed = handle.complete {
+                    publishSuccess(reply, async, operationId, data)
+                }
+                if (!completed) {
+                    publishCancelled(handle, reply, async, operationId, startedAt)
+                }
+            }
         } finally {
             operations.finish(handle)
             releaseSave(saveDocumentId)
         }
+    }
 
+    private fun publishSuccess(
+        reply: ChannelReply?,
+        async: Boolean,
+        operationId: String,
+        data: Any?,
+    ) {
         if (async) {
             results.publish(successResult(operationId, data))
         } else {
@@ -921,6 +989,7 @@ class PlatformChannelFacade(
     }
 
     private fun deliverFailure(
+        handle: OperationHandle,
         reply: ChannelReply?,
         async: Boolean,
         operationId: String,
@@ -928,10 +997,36 @@ class PlatformChannelFacade(
         startedAt: Long,
     ) {
         val timed = failure.withDuration(elapsedSince(startedAt))
-        if (async) {
-            results.publish(errorResult(operationId, timed))
-        } else {
-            mainPoster.post { reply?.error(timed) }
+        if (handle.isCancelled) {
+            publishCancelled(handle, reply, async, operationId, startedAt)
+            return
+        }
+        val completed = handle.complete {
+            if (async) {
+                results.publish(errorResult(operationId, timed))
+            } else {
+                mainPoster.post { reply?.error(timed) }
+            }
+        }
+        if (!completed) {
+            publishCancelled(handle, reply, async, operationId, startedAt)
+        }
+    }
+
+    private fun publishCancelled(
+        handle: OperationHandle,
+        reply: ChannelReply?,
+        async: Boolean,
+        operationId: String,
+        startedAt: Long,
+    ) {
+        handle.publishCancellation {
+            val failure = PlatformFailure.cancelled().withDuration(elapsedSince(startedAt))
+            if (async) {
+                results.publish(errorResult(operationId, failure))
+            } else {
+                mainPoster.post { reply?.error(failure) }
+            }
         }
     }
 
@@ -1217,31 +1312,38 @@ class PlatformResultPublisher(
     fun attachSink(newSink: FeldexaEventSink?) {
         val replay: List<Map<String, Any?>>
         synchronized(lock) {
+            if (disposed.get()) return
             sink.set(newSink)
             replay = retained.values.toList()
         }
         if (newSink != null) {
-            replay.forEach { event -> poster.post { sink.get()?.success(event) } }
+            replay.forEach { event ->
+                poster.post {
+                    if (!disposed.get()) sink.get()?.success(event)
+                }
+            }
         }
     }
 
     /** Publishes a terminal result and retains it for a late listener. */
     fun publish(result: Map<String, Any?>) {
-        if (disposed.get()) return
         val operationId = result["operationId"] as? String ?: return
         synchronized(lock) {
+            if (disposed.get()) return
             retained.remove(operationId)
             retained[operationId] = result
             while (retained.size > maxRetained) {
                 retained.remove(retained.keys.iterator().next())
             }
         }
-        poster.post { sink.get()?.success(result) }
+        poster.post {
+            if (!disposed.get()) sink.get()?.success(result)
+        }
     }
 
     fun dispose() {
-        if (!disposed.compareAndSet(false, true)) return
         synchronized(lock) {
+            if (!disposed.compareAndSet(false, true)) return
             retained.clear()
             sink.set(null)
         }
