@@ -334,10 +334,10 @@ abstract class AppLocalizations {
   /// **'Wenn das Problem bleibt, starten Sie das Gerät neu; verlorene Schlüssel können nicht wiederhergestellt werden.'**
   String get save008Recovery;
 
-  /// §3 PRIV-001: pre-emptive key/backup disclosure for per-document/template Keystore keys, shown before the first save (FR-089).
+  /// §3 PRIV-001: pre-emptive key/backup disclosure for aggregate key loss and the global device/Keystore reset exception, shown before the first save (FR-051/FR-089).
   ///
   /// In de, this message translates to:
-  /// **'Ihre Dokumente und Vorlagen werden nur auf diesem Gerät und mit Schlüsseln gespeichert, die an dieses Gerät gebunden sind. Sicherungskopien der App-Daten sind nicht möglich. Wenn der Schlüssel eines Dokuments oder einer Vorlage verloren geht, können die betroffenen Daten nicht wiederhergestellt werden. Andere Dokumente und Vorlagen bleiben unabhängig davon nutzbar.'**
+  /// **'Ihre Dokumente und Vorlagen werden nur auf diesem Gerät und mit Schlüsseln gespeichert, die an dieses Gerät gebunden sind. Sicherungskopien der App-Daten sind nicht möglich. Wenn der Schlüssel eines Dokuments oder einer Vorlage verloren geht, können die betroffenen Daten nicht wiederhergestellt werden. Andere Dokumente und Vorlagen bleiben unabhängig davon nutzbar. Ein Zurücksetzen des Geräts oder seiner Schlüssel kann dagegen alle gespeicherten Dokumente und Vorlagen unlesbar machen oder entfernen; eine Wiederherstellung ist dann nicht möglich.'**
   String get priv001;
 
   /// §3 durability label `clean`: no changes since the verified commit (FR-046).

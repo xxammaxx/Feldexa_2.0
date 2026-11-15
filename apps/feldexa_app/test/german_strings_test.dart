@@ -329,6 +329,36 @@ void main() {
     expect(arb['fld001'], isNot(contains('abgeschnitten')));
   });
 
+  test(
+    'PRIV-001 discloses aggregate isolation and the global reset exception',
+    () {
+      final String disclosure = arb['priv001'] as String;
+      expect(
+        disclosure,
+        contains(
+          'Wenn der Schlüssel eines Dokuments oder einer Vorlage verloren geht',
+        ),
+      );
+      expect(
+        disclosure,
+        contains(
+          'Andere Dokumente und Vorlagen bleiben unabhängig davon nutzbar',
+        ),
+      );
+      expect(
+        disclosure,
+        contains('Ein Zurücksetzen des Geräts oder seiner Schlüssel'),
+      );
+      expect(
+        disclosure,
+        contains(
+          'alle gespeicherten Dokumente und Vorlagen unlesbar machen oder '
+          'entfernen',
+        ),
+      );
+    },
+  );
+
   test('placeholder metadata is complete, typed, and German', () {
     const Set<String> allowedTypes = <String>{'String', 'int'};
     final RegExp placeholderPattern = RegExp(r'\{([A-Za-z][A-Za-z0-9]*)\}');

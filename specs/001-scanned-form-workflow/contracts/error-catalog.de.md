@@ -74,9 +74,9 @@ No recognition surface may state or imply completeness (FR-085): the summary use
 Forbidden: „Alles gespeichert“, „Sicher gespeichert“, or any wording implying durability for unsaved edits.
 
 **Pre-emptive key/backup disclosure** (`PRIV-001`, shown in the first-run help and before the first save):
-„Ihre Dokumente und Vorlagen werden nur auf diesem Gerät und mit Schlüsseln gespeichert, die an dieses Gerät gebunden sind. Sicherungskopien der App-Daten sind nicht möglich. Wenn der Schlüssel eines Dokuments oder einer Vorlage verloren geht, können die betroffenen Daten nicht wiederhergestellt werden. Andere Dokumente und Vorlagen bleiben unabhängig davon nutzbar.“
+„Ihre Dokumente und Vorlagen werden nur auf diesem Gerät und mit Schlüsseln gespeichert, die an dieses Gerät gebunden sind. Sicherungskopien der App-Daten sind nicht möglich. Wenn der Schlüssel eines Dokuments oder einer Vorlage verloren geht, können die betroffenen Daten nicht wiederhergestellt werden. Andere Dokumente und Vorlagen bleiben unabhängig davon nutzbar. Ein Zurücksetzen des Geräts oder seiner Schlüssel kann dagegen alle gespeicherten Dokumente und Vorlagen unlesbar machen oder entfernen; eine Wiederherstellung ist dann nicht möglich.“
 
-`SAVE-002` is only for aggregate-scoped loss while other aggregate keys remain available. A Keystore provider that is unavailable at boot is a transient global condition: retry once, then report `SAVE-008` without deleting data. A whole-Keystore or device reset invalidates every alias and is a device-wide loss reported as `SAVE-008`; per-aggregate isolation is not claimed for that global event. Do not reuse `SAVE-002` for a global provider or reset condition.
+This pre-loss disclosure names both the aggregate-isolation case and the global device/Keystore reset exception required by FR-051. `SAVE-002` is only for aggregate-scoped loss while other aggregate keys remain available. A Keystore provider that is unavailable at boot is a transient global condition: retry once, then report `SAVE-008` without deleting data. A whole-Keystore or device reset invalidates every alias and is a device-wide loss reported as `SAVE-008`; per-aggregate isolation is not claimed for that global event. Do not reuse `SAVE-002` for a global provider or reset condition.
 
 ---
 
