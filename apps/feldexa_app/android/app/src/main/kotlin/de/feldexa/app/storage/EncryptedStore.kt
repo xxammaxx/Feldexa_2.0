@@ -1008,6 +1008,12 @@ class EncryptedStore(
                 if (!io.setLastModified(staged.file, lastModifiedMillis)) {
                     throw StorageWriteException()
                 }
+                // The parent-directory fsync below makes the rename durable,
+                // but it does not necessarily persist the inode mtime that
+                // orders this revision. Flush the changed file metadata before
+                // the rename, then fsync the parent after it.
+                faultInjector.onFault(StoreFaultPoint.ORDERING_FSYNC, txnId)
+                io.fsyncFile(staged.file)
             } catch (failure: Throwable) {
                 runCatching { io.deleteTree(staged.file) }
                 throw mapWriteFailure(failure)
@@ -2094,6 +2100,7 @@ enum class StoreFaultPoint {
     STAGE_WRITE,
     STAGE_PATCH,
     STAGE_FSYNC,
+    ORDERING_FSYNC,
     PROMOTE,
     PROMOTE_FSYNC,
     HEAD_PROMOTED,
@@ -2146,6 +2153,15 @@ interface StoreIo {
     /** Sets the mtime; false means the filesystem rejected the update. */
     fun setLastModified(file: File, millis: Long): Boolean =
         file.setLastModified(millis)
+
+    /**
+     * Flushes the file's data and inode metadata (including mtime) before a
+     * rename. A parent-directory fsync alone does not prove the ordering
+     * metadata durable.
+     */
+    fun fsyncFile(file: File) {
+        openRead(file).use { it.force(true) }
+    }
 
     fun readAll(file: File): ByteArray {
         val channel = openRead(file)
