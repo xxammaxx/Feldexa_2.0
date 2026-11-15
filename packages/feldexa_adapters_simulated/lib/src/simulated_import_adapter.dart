@@ -75,6 +75,18 @@ final class SimulatedImportPicker {
   }
 }
 
+/// Initial user-visible title for an imported fixture aggregate.
+///
+/// The catalogue title is already synthetic metadata; a pathological title is
+/// replaced by the stable fixture id so the document meta stays valid.
+String _initialTitle(SimulatedFixture fixture) {
+  final String title = fixture.title.trim();
+  if (title.isNotEmpty && title.length <= 200) {
+    return title;
+  }
+  return fixture.id;
+}
+
 /// Fixture-backed deterministic `DocumentImportPort`.
 final class SimulatedDocumentImportAdapter implements DocumentImportPort {
   /// Creates the import adapter.
@@ -139,6 +151,12 @@ final class SimulatedDocumentImportAdapter implements DocumentImportPort {
         break;
     }
 
+    if (backend.globalKeyUnavailable) {
+      // A document aggregate cannot become visible without its key material;
+      // `SAVE-008` is the canonical global key-provider failure.
+      throw KeystoreUnavailableException();
+    }
+
     final String documentId = backend.context.newId();
     final String sourceId = backend.context.newId();
     final SimulatedStagedSource staged = backend.stageSource(
@@ -153,6 +171,29 @@ final class SimulatedDocumentImportAdapter implements DocumentImportPort {
         sha256Hex(readBack) != staged.sha256) {
       throw ImportRejectedException(ImportRejectionKind.unreadable);
     }
+
+    // Import creates the document aggregate so `ImportedSource.documentId` is
+    // a real aggregate id (contract `ports.md` §2.1). A later
+    // `createDocument` for the same source only applies its title.
+    final SourceFileRef sourceRef = SourceFileRef(
+      id: sourceId,
+      sha256: staged.sha256,
+      sizeBytes: readBack.length,
+      pageCount: staged.pageCount,
+      originalName: fixture.displayName,
+      importedAt: staged.importedAt,
+    );
+    backend.putDocument(
+      SimulatedDocumentRecord(
+        id: documentId,
+        title: _initialTitle(fixture),
+        createdAt: staged.importedAt,
+        updatedAt: staged.importedAt,
+        source: sourceRef,
+        head: null,
+        lastDurableAt: null,
+      ),
+    );
 
     return ImportedSource(
       documentId: documentId,

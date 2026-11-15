@@ -61,6 +61,11 @@ final class SimulatedPageRasterAdapter implements PageRasterPort {
 
   @override
   Future<RasterImage> renderPage(RasterRequest request) async {
+    if (request.pageIndex < 0) {
+      // RasterRequest already rejects this; keep the applier defensive rather
+      // than letting a negative index reach the source page list.
+      throw ArgumentError('pageIndex must be at least 0');
+    }
     final SimulatedStagedSource? source = backend.stagedSource(
       request.sourceId,
     );
@@ -119,6 +124,10 @@ final class SimulatedPageRasterAdapter implements PageRasterPort {
       width = math.max(1, (width * factor).floor());
       height = math.max(1, (height * factor).floor());
     }
+    // Hard guarantee for both dimensions even if the aspect calculation
+    // rounds unexpectedly.
+    width = math.min(width, maxDimensionPx);
+    height = math.min(height, maxDimensionPx);
     return _PixelSize(width, height);
   }
 

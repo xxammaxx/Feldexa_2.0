@@ -50,8 +50,6 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
   /// Optional logical capacity cap.
   final int? maxTotalBytes;
 
-  final Set<String> _lostAggregateKeys = <String>{};
-  bool _globalKeyUnavailable = false;
   bool _failNextWrite = false;
   bool _corruptNextCommit = false;
 
@@ -74,30 +72,29 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
   CapabilityEvidence get evidence => _descriptor.evidence;
 
   /// Whether the simulated global key provider is marked unavailable.
-  bool get isGlobalKeyUnavailable => _globalKeyUnavailable;
+  bool get isGlobalKeyUnavailable => backend.globalKeyUnavailable;
 
   /// Aggregate ids whose simulated key was marked unavailable.
-  Set<String> get lostAggregateKeys =>
-      Set<String>.unmodifiable(_lostAggregateKeys);
+  Set<String> get lostAggregateKeys => backend.lostAggregateKeys;
 
   /// Marks one aggregate key unavailable (`SAVE-002` for that aggregate only).
   void simulateAggregateKeyLoss(String id) {
-    _lostAggregateKeys.add(id);
+    backend.setAggregateKeyUnavailable(id, true);
   }
 
   /// Restores one aggregate key.
   void restoreAggregateKey(String id) {
-    _lostAggregateKeys.remove(id);
+    backend.setAggregateKeyUnavailable(id, false);
   }
 
   /// Marks the simulated key provider unavailable (`SAVE-008`).
   void simulateGlobalKeyUnavailable() {
-    _globalKeyUnavailable = true;
+    backend.setGlobalKeyUnavailable(true);
   }
 
   /// Restores the simulated key provider.
   void restoreGlobalKey() {
-    _globalKeyUnavailable = false;
+    backend.setGlobalKeyUnavailable(false);
   }
 
   /// Makes the next revision/version write fail before the head moves.
@@ -113,8 +110,8 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
   @override
   Future<StoreStatus> status() async {
     final bool keysAvailable =
-        !_globalKeyUnavailable &&
-        !_lostAggregateKeys.any(
+        !backend.globalKeyUnavailable &&
+        !backend.lostAggregateKeys.any(
           (String id) =>
               backend.document(id) != null || backend.template(id) != null,
         );
@@ -141,7 +138,19 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
   @override
   Future<StoredMeta> createDocument(CreateDocumentRequest request) async {
     final SourceFileRef source = _validatedStagedSource(request.source);
+    _ensureGlobalKey();
     final DateTime now = backend.context.nowUtc();
+    // The import adapter creates the aggregate for its staged source so the
+    // `ImportedSource.documentId` DTO names a real aggregate. A later
+    // createDocument call for the same source applies the requested title to
+    // that aggregate instead of creating a second visible document.
+    for (final SimulatedDocumentRecord existing in backend.documents.values) {
+      if (existing.source.id == source.id) {
+        existing.title = request.title;
+        existing.updatedAt = now;
+        return _projectDocument(existing);
+      }
+    }
     final SimulatedDocumentRecord record = SimulatedDocumentRecord(
       id: backend.context.newId(),
       title: request.title,
@@ -315,6 +324,7 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
   @override
   Future<StoredMeta> createTemplate(CreateTemplateRequest request) async {
     final SourceFileRef source = _validatedStagedSource(request.source);
+    _ensureGlobalKey();
     if (request.pages.length != source.pageCount) {
       throw ArgumentError('pages.length must equal source.pageCount');
     }
@@ -654,20 +664,24 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
     }
   }
 
-  void _ensureAggregateKey(String id) {
-    if (_globalKeyUnavailable) {
+  void _ensureGlobalKey() {
+    if (backend.globalKeyUnavailable) {
       throw KeystoreUnavailableException();
     }
-    if (_lostAggregateKeys.contains(id)) {
+  }
+
+  void _ensureAggregateKey(String id) {
+    _ensureGlobalKey();
+    if (backend.lostAggregateKeys.contains(id)) {
       throw KeyUnavailableException();
     }
   }
 
   String? _unreadableReason(String id) {
-    if (_globalKeyUnavailable) {
+    if (backend.globalKeyUnavailable) {
       return 'SAVE-008';
     }
-    if (_lostAggregateKeys.contains(id)) {
+    if (backend.lostAggregateKeys.contains(id)) {
       return 'SAVE-002';
     }
     return null;

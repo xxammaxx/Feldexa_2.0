@@ -283,6 +283,33 @@ final class SimulatedBackend {
   /// Deterministic clock and id source.
   final SimulatedAdapterContext context;
 
+  bool _globalKeyUnavailable = false;
+  final Set<String> _lostAggregateKeys = <String>{};
+
+  /// Whether the simulated key provider is marked globally unavailable.
+  ///
+  /// The store and import adapters share this flag so a `SAVE-008` condition
+  /// blocks visible aggregate creation, not only later loads/saves.
+  bool get globalKeyUnavailable => _globalKeyUnavailable;
+
+  /// Aggregate ids whose simulated key was marked unavailable.
+  Set<String> get lostAggregateKeys =>
+      Set<String>.unmodifiable(_lostAggregateKeys);
+
+  /// Sets or clears the simulated global key-provider outage.
+  void setGlobalKeyUnavailable(bool value) {
+    _globalKeyUnavailable = value;
+  }
+
+  /// Sets or clears one aggregate's simulated key loss.
+  void setAggregateKeyUnavailable(String id, bool value) {
+    if (value) {
+      _lostAggregateKeys.add(id);
+    } else {
+      _lostAggregateKeys.remove(id);
+    }
+  }
+
   final Map<String, SimulatedStagedSource> _sources =
       <String, SimulatedStagedSource>{};
   final Map<String, SimulatedDocumentRecord> _documents =

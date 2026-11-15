@@ -111,6 +111,32 @@ void main() {
     expect(image.bytes.length, image.width * image.height * 4);
   });
 
+  test('negative page dimensions are rejected before lookup', () async {
+    final world = await SimulatedTestWorld.create();
+    final imported = await world.importFixture('sf-004');
+    await expectLater(
+      world.rasterAdapter.pageDimensions(imported.sourceId, -1),
+      throwsA(isA<ArgumentError>()),
+    );
+  });
+
+  test('a cap of one pixel still yields a non-empty 1x1 raster', () async {
+    final world = await SimulatedTestWorld.create();
+    final imported = await world.importFixture('sf-003');
+    final RasterImage image = await world.rasterAdapter.renderPage(
+      RasterRequest(
+        sourceId: imported.sourceId,
+        pageIndex: 2,
+        scale: 100,
+        format: RasterFormat.rgba8888,
+        maxDimensionPx: 1,
+      ),
+    );
+    expect(image.width, 1);
+    expect(image.height, 1);
+    expect(image.bytes.length, 4);
+  });
+
   test('renders respect the maxDimensionPx safety cap', () async {
     final world = await SimulatedTestWorld.create();
     final imported = await world.importFixture('sf-001');

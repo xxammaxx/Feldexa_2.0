@@ -88,6 +88,12 @@ final class SimulatedPdfExportAdapter implements PdfExportPort {
   @override
   Future<ExportResult> export(ExportRequest request) async {
     final ExportPlan plan = request.plan;
+    if (request.documentId != plan.documentId ||
+        request.revisionId != plan.revisionId) {
+      // The request and the plan must identify the same aggregate/revision;
+      // otherwise the preview could bind a plan to the wrong source.
+      throw ExportFailedException();
+    }
     final bool embeddedFont = fontBytes != null && request.options.embedFonts;
     final List<ExportValidationWarning> warnings = _validatePlan(
       plan,
@@ -134,14 +140,20 @@ final class SimulatedPdfExportAdapter implements PdfExportPort {
     }
     artifact = artifact.startVerification();
 
-    final ArtifactVerification verification = ArtifactVerification(
-      pageCountMatches: true,
-      mediaBoxesMatch: true,
-      fontGlyphsPresent: true,
-      noInteractiveFields: true,
-      overlayBoundsWithinPage: true,
+    final ArtifactVerification verification = _verifyPreview(
+      bytes,
+      plan,
+      embeddedFont: embeddedFont,
       checkedAt: createdAt,
     );
+    if (!verification.pageCountMatches ||
+        !verification.mediaBoxesMatch ||
+        !verification.fontGlyphsPresent ||
+        !verification.noInteractiveFields ||
+        !verification.overlayBoundsWithinPage) {
+      // Never present a preview whose simulated self-check failed.
+      throw ExportFailedException();
+    }
     artifact = artifact.succeed(
       byteSize: bytes.length,
       sha256: sha256Hex(bytes),
@@ -169,6 +181,70 @@ final class SimulatedPdfExportAdapter implements PdfExportPort {
   @override
   Future<void> deleteArtifact(String artifactId) async {
     backend.removeArtifact(artifactId);
+  }
+
+  /// Performs the simulated applier's own structural checks on the preview.
+  ///
+  /// The content streams are uncompressed, so the checks inspect the produced
+  /// bytes: page objects, MediaBox dimensions, absence of form/widget objects,
+  /// and overlay bounds. They are SIMULATED self-checks only; they do not
+  /// replace independent PDFBox/Poppler/MuPDF verification (`export-plan.md`
+  /// §7).
+  ArtifactVerification _verifyPreview(
+    Uint8List bytes,
+    ExportPlan plan, {
+    required bool embeddedFont,
+    required DateTime checkedAt,
+  }) {
+    final String pdf = latin1.decode(bytes);
+    final int pageCount = RegExp(r'/Type\s*/Page\b').allMatches(pdf).length;
+    final List<RegExpMatch> mediaBoxMatches = RegExp(
+      r'/MediaBox\s*\[\s*([0-9.+-]+)\s+([0-9.+-]+)\s+([0-9.+-]+)\s+([0-9.+-]+)\s*\]',
+    ).allMatches(pdf).toList(growable: false);
+    bool mediaBoxesMatch = mediaBoxMatches.length == plan.pageCount;
+    if (mediaBoxesMatch) {
+      for (int index = 0; index < plan.pageCount; index++) {
+        final RegExpMatch match = mediaBoxMatches[index];
+        final double width = double.parse(match.group(3)!);
+        final double height = double.parse(match.group(4)!);
+        final Size expected = plan.pages[index].geometry.displaySize;
+        if ((width - expected.width).abs() > 0.01 ||
+            (height - expected.height).abs() > 0.01) {
+          mediaBoxesMatch = false;
+          break;
+        }
+      }
+    }
+    final bool noInteractiveFields =
+        !pdf.contains('/AcroForm') && !pdf.contains('/Widget');
+    bool overlayBoundsWithinPage = true;
+    for (final ExportPage page in plan.pages) {
+      final Size display = page.geometry.displaySize;
+      for (final ExportOp op in page.ops) {
+        if (!_withinDisplay(op.rect, display)) {
+          overlayBoundsWithinPage = false;
+          break;
+        }
+      }
+    }
+    bool fontGlyphsPresent = true;
+    for (final ExportPage page in plan.pages) {
+      for (final ExportOp op in page.ops) {
+        if (op is ExportTextOp &&
+            !embeddedFont &&
+            !_helveticaCanEncode(op.lines.join('\n'))) {
+          fontGlyphsPresent = false;
+        }
+      }
+    }
+    return ArtifactVerification(
+      pageCountMatches: pageCount == plan.pageCount,
+      mediaBoxesMatch: mediaBoxesMatch,
+      fontGlyphsPresent: fontGlyphsPresent,
+      noInteractiveFields: noInteractiveFields,
+      overlayBoundsWithinPage: overlayBoundsWithinPage,
+      checkedAt: checkedAt,
+    );
   }
 
   // --- validation ---------------------------------------------------------
@@ -219,6 +295,27 @@ final class SimulatedPdfExportAdapter implements PdfExportPort {
       warnings.add(
         ExportValidationWarning(code: 'EXP-006', reason: 'page_count_mismatch'),
       );
+    }
+    // Defensive: ExportPlan already enforces length and contiguous indexes,
+    // but the applier must not trust a plan that survived a bad import.
+    if (plan.pages.length != plan.pageCount) {
+      warnings.add(
+        ExportValidationWarning(
+          code: 'EXP-006',
+          reason: 'page_structure_mismatch',
+        ),
+      );
+    }
+    for (final ExportPage page in plan.pages) {
+      if (page.index < 0 || page.index >= plan.pageCount) {
+        warnings.add(
+          ExportValidationWarning(
+            code: 'EXP-006',
+            reason: 'page_index_out_of_range',
+            pageIndex: page.index < 0 ? 0 : page.index,
+          ),
+        );
+      }
     }
     final SimulatedRevisionRecord? revision =
         document.revisions[plan.revisionId];

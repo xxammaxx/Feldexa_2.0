@@ -106,7 +106,10 @@ void main() {
     expect(result.artifact.byteSize, greaterThan(0));
     expect(result.artifact.sha256!.length, 64);
     expect(result.artifact.verification!.pageCountMatches, isTrue);
+    expect(result.artifact.verification!.mediaBoxesMatch, isTrue);
+    expect(result.artifact.verification!.fontGlyphsPresent, isTrue);
     expect(result.artifact.verification!.noInteractiveFields, isTrue);
+    expect(result.artifact.verification!.overlayBoundsWithinPage, isTrue);
     expect(result.evidence.evidenceClass, EvidenceClass.simulated);
 
     final Uint8List bytes = await world.exportAdapter.readArtifact(
@@ -657,6 +660,43 @@ void main() {
       ),
     );
     expect(result.artifact.state, ExportArtifactState.succeeded);
+  });
+
+  test('request document/revision ids must match the plan', () async {
+    final world = await SimulatedTestWorld.create();
+    final imported = await world.importFixture('sf-004');
+    final saved = await world.createSavedDocument(imported);
+    final plan = world.buildExportPlan(
+      imported: imported,
+      documentId: saved.documentId,
+      revisionId: saved.revisionId,
+      ops: <ExportOp>[],
+    );
+    await expectLater(
+      world.exportAdapter.export(
+        ExportRequest(
+          documentId: world.backend.context.newId(),
+          revisionId: saved.revisionId,
+          plan: plan,
+        ),
+      ),
+      throwsA(
+        isA<ExportFailedException>().having((e) => e.code, 'code', 'EXP-002'),
+      ),
+    );
+    await expectLater(
+      world.exportAdapter.export(
+        ExportRequest(
+          documentId: saved.documentId,
+          revisionId: world.backend.context.newId(),
+          plan: plan,
+        ),
+      ),
+      throwsA(
+        isA<ExportFailedException>().having((e) => e.code, 'code', 'EXP-002'),
+      ),
+    );
+    expect(world.backend.artifacts, isEmpty);
   });
 
   test(

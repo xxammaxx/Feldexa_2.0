@@ -47,11 +47,11 @@ void main() {
     expect(staged, isNotNull);
     expect(staged!.sha256, fixture.sha256);
     expect(staged.bytes.length, fixture.sizeBytes);
-    expect(
-      world.backend.documents,
-      isEmpty,
-      reason: 'import must not create the document aggregate',
-    );
+    final SimulatedDocumentRecord aggregate =
+        world.backend.documents[imported.documentId]!;
+    expect(aggregate.source.id, imported.sourceId);
+    expect(aggregate.head, isNull);
+    expect(aggregate.title, isNotEmpty);
 
     final SourceIntegrity verified = await world.importAdapter.verifySource(
       imported.sourceId,
@@ -211,6 +211,24 @@ void main() {
     expect(a.sha256, b.sha256);
     expect(a.sizeBytes, b.sizeBytes);
     expect(a.pages.length, b.pages.length);
+  });
+
+  test('import refuses to create an aggregate under global SAVE-008', () async {
+    final world = await SimulatedTestWorld.create();
+    world.storeAdapter.simulateGlobalKeyUnavailable();
+    world.importAdapter.picker.enqueueFixture('sf-004');
+    await expectLater(
+      world.importAdapter.pickAndImport(ImportRequest()),
+      throwsA(
+        isA<KeystoreUnavailableException>().having(
+          (e) => e.code,
+          'code',
+          'SAVE-008',
+        ),
+      ),
+    );
+    expect(world.backend.stagedSources, isEmpty);
+    expect(world.backend.documents, isEmpty);
   });
 
   test('page geometry of a rotated fixture is preserved', () async {

@@ -33,6 +33,7 @@ void main() {
     final world = await SimulatedTestWorld.create();
     final imported = await world.importFixture('sf-001');
     final saved = await world.createSavedDocument(imported);
+    expect(saved.documentId, imported.documentId);
     final LoadedDocument loaded = await world.storeAdapter.loadDocument(
       saved.documentId,
     );
@@ -199,6 +200,56 @@ void main() {
       ),
     );
     expect(world.backend.document(created.id)!.head, isNull);
+  });
+
+  test('global SAVE-008 blocks new document and template aggregates', () async {
+    final world = await SimulatedTestWorld.create();
+    final fixture = catalog.fixture('sf-004');
+    final staged = world.backend.stageSource(
+      sourceId: world.backend.context.newId(),
+      fixture: fixture,
+    );
+    final SourceFileRef source = SourceFileRef(
+      id: staged.sourceId,
+      sha256: staged.sha256,
+      sizeBytes: staged.bytes.length,
+      pageCount: staged.pageCount,
+      importedAt: world.backend.context.nowUtc(),
+    );
+    world.storeAdapter.simulateGlobalKeyUnavailable();
+    await expectLater(
+      world.storeAdapter.createDocument(
+        CreateDocumentRequest(title: 'Nicht sichtbar', source: source),
+      ),
+      throwsA(
+        isA<KeystoreUnavailableException>().having(
+          (e) => e.code,
+          'code',
+          'SAVE-008',
+        ),
+      ),
+    );
+    await expectLater(
+      world.storeAdapter.createTemplate(
+        CreateTemplateRequest(
+          title: 'Nicht sichtbar',
+          source: source,
+          pages: <Page>[Page(index: 0, geometry: fixture.geometries.first)],
+          fieldOrder: const <String>[],
+        ),
+      ),
+      throwsA(
+        isA<KeystoreUnavailableException>().having(
+          (e) => e.code,
+          'code',
+          'SAVE-008',
+        ),
+      ),
+    );
+    expect(world.backend.documents, isEmpty);
+    expect(world.backend.templates, isEmpty);
+    final StoreStatus status = await world.storeAdapter.status();
+    expect(status.keyAvailable, isFalse);
   });
 
   test(
