@@ -591,6 +591,41 @@ class FeldexaPluginTest {
     }
 
     @Test
+    fun sensitiveMessageSuffixIsRejected() {
+        assertThrows(IllegalArgumentException::class.java) {
+            PlatformFailure("SAVE-001", "storageFull", true, "save.antrag")
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            PlatformFailure("SAVE-001", "storageFull", true, "save.documentTitle")
+        }
+    }
+
+    @Test
+    fun legitimateErrorMappingsRemainAccepted() {
+        val mappings = listOf(
+            "platform.invalidPayload" to "PLT-003",
+            "save.storageFull" to "SAVE-001",
+            "save.noSpace" to "SAVE-001",
+            "save.keyUnavailable" to "SAVE-002",
+            "save.corruptData" to "SAVE-003",
+            "save.schemaTooNew" to "SAVE-005",
+            "save.concurrentWrite" to "SAVE-006",
+            "import.passwordProtected" to "IMP-001",
+            "import.unreadable" to "IMP-002",
+            "import.tooLarge" to "IMP-007",
+            "export.blocked" to "EXP-001",
+            "export.missingGlyph" to "EXP-004",
+            "ocr.unavailable" to "REC-001",
+            "page.renderFailed" to "PAGE-001",
+            "delivery.cancelled" to "DEL-001",
+        )
+        mappings.forEach { (message, code) ->
+            val failure = PlatformFailure(code, "storageFull", true, message)
+            assertEquals(message, failure.machineMessage)
+        }
+    }
+
+    @Test
     fun documentTitleCategoryIsRejected() {
         assertThrows(IllegalArgumentException::class.java) {
             PlatformFailure("SAVE-001", "documentTitle", true, "save.noSpace")

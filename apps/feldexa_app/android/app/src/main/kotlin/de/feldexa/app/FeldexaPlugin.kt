@@ -266,14 +266,37 @@ private val ALLOWED_CATEGORIES: Set<String> = setOf(
     "deliveryCancelled", "invalidRaster",
 )
 
-/** Stable message key: namespaced machine tokens, max 64 chars, no spaces or paths. */
+/** Stable message key shape; the exact key must also be in the allowlist below. */
 private val MACHINE_MESSAGE_PATTERN = Regex("^[a-z][A-Za-z0-9]*(?:[._:-][a-z][A-Za-z0-9]*){1,5}$")
 
-/** Closed namespace allowlist; `antrag.secret` and other content keys are rejected. */
-private val MACHINE_MESSAGE_NAMESPACES: Set<String> = setOf(
-    "platform", "import", "save", "store", "storage", "keystore", "ocr",
-    "recognition", "export", "delivery", "page", "template", "date",
-    "number", "field", "privacy", "simulated",
+/**
+ * Closed, content-free machine-message allowlist. The namespace is not enough:
+ * `save.antrag` must be rejected just like `antrag.secret`. A new catalog mapping
+ * must add its exact key here deliberately; arbitrary suffixes never pass.
+ */
+private val ALLOWED_MACHINE_MESSAGES: Set<String> = setOf(
+    // platform/facade validation
+    "platform.invalidPayload", "platform.identifier", "platform.unsupported",
+    "platform.cancelled", "platform.internal", "platform.busy",
+    "platform.payloadNotMap", "platform.nonStringKey", "platform.unknownField",
+    "platform.payloadTooLarge", "platform.schemaVersionMissing",
+    "platform.schemaVersionUnsupported", "platform.payloadTooDeep",
+    "platform.unsupportedValue", "platform.missingField", "platform.invalidString",
+    "platform.invalidInteger", "platform.valueOutOfRange", "platform.invalidNumber",
+    "platform.invalidMap", "platform.invalidEnum", "platform.invalidHash",
+    "platform.invalidConfirmation", "platform.invalidRaster",
+    // stable domain mappings used by the catalog/tests
+    "save.invalidData", "save.concurrentWrite", "save.noSpace", "save.storageFull",
+    "save.keyUnavailable", "save.corruptData", "save.schemaTooNew", "save.keystoreUnavailable",
+    "import.passwordProtected", "import.unreadable", "import.missing", "import.notPdf",
+    "import.unknown", "import.partiallyUnreadable", "import.tooLarge", "import.cancelled",
+    "export.blocked", "export.failed", "export.geometryInvalid", "export.missingGlyph",
+    "export.sourceUnreadable", "export.pageNotCopiable", "export.cancelled",
+    "ocr.unavailable", "ocr.failed", "page.renderFailed", "page.unreadable",
+    "page.unsupported", "delivery.cancelled", "delivery.failed", "delivery.unavailable",
+    "template.invalid", "template.versionConflict", "template.notFound",
+    "date.invalid", "number.invalid", "field.invalid", "field.overflow",
+    "privacy.redaction", "simulated.capability",
 )
 
 /**
@@ -296,8 +319,8 @@ class PlatformFailure(
         require(machineMessage.length <= 64 && MACHINE_MESSAGE_PATTERN.matches(machineMessage)) {
             "machineMessage is not a stable machine key"
         }
-        require(machineMessage.substringBefore('.') in MACHINE_MESSAGE_NAMESPACES) {
-            "machineMessage namespace is not in the allowlist"
+        require(machineMessage in ALLOWED_MACHINE_MESSAGES) {
+            "machineMessage is not in the exact allowlist"
         }
         require(pageIndex == null || pageIndex >= 0) { "pageIndex must be non-negative" }
         require(fieldCount == null || fieldCount >= 0) { "fieldCount must be non-negative" }
