@@ -28,6 +28,7 @@ List<FeldexaException> _allContractExceptions() => <FeldexaException>[
   ImportCancelledException(),
   StorageFullException(),
   KeyUnavailableException(),
+  KeystoreUnavailableException(),
   CorruptDataException(),
   StorageWriteException(),
   SecurityException(),
@@ -171,6 +172,12 @@ void main() {
               severity: ErrorSeverity.fatal,
             ),
             (
+              type: KeystoreUnavailableException,
+              code: 'SAVE-008',
+              retryable: true,
+              severity: ErrorSeverity.error,
+            ),
+            (
               type: CorruptDataException,
               code: 'SAVE-003',
               retryable: false,
@@ -232,7 +239,7 @@ void main() {
             ),
           ];
 
-      expect(rows, hasLength(14));
+      expect(rows, hasLength(15));
       final List<FeldexaException> actual = _allContractExceptions();
       expect(actual, hasLength(rows.length));
       for (int index = 0; index < rows.length; index++) {
@@ -244,6 +251,18 @@ void main() {
         expect(exception.retryable, row.retryable, reason: row.type.toString());
         expect(exception.severity, row.severity, reason: row.type.toString());
       }
+    });
+
+    test('SAVE-008 distinguishes a temporary provider outage from a reset', () {
+      final KeystoreUnavailableException temporary =
+          KeystoreUnavailableException();
+      final KeystoreUnavailableException reset = KeystoreUnavailableException(
+        retryable: false,
+      );
+      expect(temporary.code, 'SAVE-008');
+      expect(temporary.retryable, isTrue);
+      expect(reset.retryable, isFalse);
+      expect(temporary.message, reset.message);
     });
 
     test('SAVE-003 keeps its two concrete causes distinct', () {

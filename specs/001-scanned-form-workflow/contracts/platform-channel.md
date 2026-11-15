@@ -139,7 +139,7 @@ Rules:
 - `saveRevision` uses optimistic concurrency: `expectedHead` must equal the current verified head, otherwise `SAVE-006` (concurrent write) and the caller re-reads. The app is single-user, but autosave/lifecycle races are real.
 - `store.loadDocument` returns no source bytes; the app calls `readSource` once, then releases the buffer when the viewport closes. The adapter may cache the decrypted buffer only in memory and only for the open document.
 - `store.delete` validates `confirm.acknowledged == true`. For a readable aggregate, `confirm.title` must equal the stored title (case-sensitive, trimmed); for an unreadable aggregate it must equal the stored "Nicht lesbar" placeholder. The confirmation UI still presents a destructive confirmation for the localized unreadable state. Deletion removes the aggregate's objects first and its own KEK alias last; no other alias is touched.
-- `store.status.keyAvailable` is a store-level summary: false when at least one known aggregate key is unavailable. It does not make the whole store fail; per-aggregate detail comes from `store.list` (`StoredMeta.readable`/`unreadableReasonCode`) and the `storage.status` event.
+- `store.status.keyAvailable` is a store-level summary: false when at least one known aggregate key is unavailable or a global provider/reset condition exists. It does not identify the context and does not make the whole store fail; per-aggregate detail comes from `store.list` (`StoredMeta.readable`/`unreadableReasonCode`) and the `storage.status` event, whose `SAVE-002`/`SAVE-008` code distinguishes aggregate from global failure.
 - No method accepts a path, URI, or file name. `assetId`, `documentId`, `templateId`, `revisionId` are UUID-validated.
 - Revision size cap: 32 MiB plaintext (metadata + field values); larger is rejected with `SAVE-007` (invalid data), because field values are text/signature references only.
 
@@ -240,7 +240,7 @@ Rules:
 | --- | --- | --- |
 | `lifecycle` | `{ "state": "resumed"\|"inactive"\|"paused"\|"detached" }` | forwarded from `MainActivity` |
 | `operation.progress` | `{ "operationId", "kind":"import\|analyze\|save\|export", "phase", "fraction", "pageIndex"? }` | coalesced; no content |
-| `storage.status` | `{ "kind":"document"\|"template", "itemId", "keyAvailable": bool, "reasonCode": null\|"SAVE-002" }` | per-aggregate key error or resume; no title or content |
+| `storage.status` | `{ "scope":"store"\|"aggregate", "kind":"document"\|"template"\|null, "itemId": string\|null, "keyAvailable": bool, "reasonCode": null\|"SAVE-002"\|"SAVE-008" }` | aggregate or global key error/resume; global uses `scope:"store"` with null kind/itemId; no title or content |
 | `import.pickerResult` | `{ "correlationId", "cancelled": bool }` | result of the SAF picker |
 
 Dart must tolerate duplicate/missed progress events; only the terminal method result is authoritative.
@@ -295,7 +295,7 @@ Every string that becomes a UI label is capped (title 200, field label 120, `lab
 | Payload round-trip | Emulator instrumentation | every method accepts a minimal valid payload and rejects unknown fields, bad UUIDs, oversized payloads |
 | Encryption detection | Emulator instrumentation | synthetic password-protected PDF → `IMP-001`; truncated PDF → `IMP-002`; random bytes → `IMP-004`; unreadable file → `IMP-005` |
 | No plaintext leak | Emulator instrumentation | scan `filesDir`, `cacheDir`, logs, and Recents thumbnail after failures → no `%PDF`, no title, no value |
-| Keystore loss | Emulator instrumentation | delete one document's alias → that document gets `SAVE-002`; sibling document and template load; no file deleted; repeat for one template alias |
+| Keystore loss | Emulator instrumentation | delete one document's alias → that document gets `SAVE-002`; sibling document and template load; no file deleted; repeat for one template alias. Invalidate all aliases or make the provider unavailable → global `SAVE-008`, no per-aggregate "others unaffected" claim, no file deleted |
 | Interrupted commit | Instrumentation with fault hook | kill/abort at each step → previous head readable or verified fallback, never a false success |
 | OCR offline | Instrumentation | radios off → `ocr.recognize` succeeds; no sockets opened |
 | Export verification | Instrumentation | returned artifact reopens, page count/boxes match, no AcroForm, text extraction contains German characters |

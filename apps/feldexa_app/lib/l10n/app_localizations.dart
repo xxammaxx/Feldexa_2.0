@@ -265,7 +265,7 @@ abstract class AppLocalizations {
   /// contracts/error-catalog.de.md §3 SAVE-002: recovery guidance.
   ///
   /// In de, this message translates to:
-  /// **'Eine Wiederherstellung ist nicht möglich. Bitte wenden Sie sich an den Gerätehersteller, wenn der Schlüssel durch eine Zurücksetzung verloren gegangen ist.'**
+  /// **'Eine Wiederherstellung ist nicht möglich. Bitte wenden Sie sich an den Gerätehersteller, wenn der Schlüssel durch einen Gerätefehler verloren gegangen ist.'**
   String get save002Recovery;
 
   /// contracts/error-catalog.de.md §3 SAVE-003: Write failed or stored data corrupted.
@@ -321,6 +321,18 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Bitte prüfen Sie sehr lange Eingaben und versuchen Sie es erneut.'**
   String get save007Recovery;
+
+  /// contracts/error-catalog.de.md §3 SAVE-008: global Keystore provider outage or device-wide key-store reset; all stored aggregates may be affected.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Schlüssel des Geräts sind nicht verfügbar; alle gespeicherten Dokumente und Vorlagen können vorübergehend oder dauerhaft nicht geöffnet werden. Bitte entsperren Sie das Gerät und versuchen Sie es erneut.'**
+  String get save008;
+
+  /// contracts/error-catalog.de.md §3 SAVE-008: recovery guidance for global key-store unavailability.
+  ///
+  /// In de, this message translates to:
+  /// **'Wenn das Problem bleibt, starten Sie das Gerät neu; verlorene Schlüssel können nicht wiederhergestellt werden.'**
+  String get save008Recovery;
 
   /// §3 PRIV-001: pre-emptive key/backup disclosure for per-document/template Keystore keys, shown before the first save (FR-089).
   ///

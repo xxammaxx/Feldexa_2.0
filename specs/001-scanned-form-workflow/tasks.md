@@ -84,6 +84,7 @@ These are the only genuine artifact contradictions found; each is resolved by th
 | CR-9 | 30 port/core/export types had no task-level owner and 11 port types were undefined | Added the Foundational Type Ownership table and `contracts/ports.md` §2.10; T022 owns export contract models; T013 owns port DTOs. | T013, T014, T017, T018, T020, T021, T022, T057, T095 |
 | CR-10 | `ExportArtifact` was in core in T022 but in export in the contracts and plan | `feldexa_export` is authoritative; T022's path and scope now match; no second copy remains in core. | T022 |
 | CR-11 (review 8a508d7) | `PRIV-001`/`SAVE-002` promised per-document/template isolation while `storage-format.md` used one shared Keystore KEK. | Owner decision 2026-11-15: one Keystore KEK per document and per template; isolation for loss/invalidation of one aggregate key remains binding. Whole-Keystore/device reset remains a disclosed device-wide loss. | T025, T026, T029 |
+| CR-12 (review ae8237b) | Global Keystore provider outage was mapped to aggregate-scoped `SAVE-002`, whose German text claimed other aggregates were unaffected; a whole reset appeared only in an internal note. | Global provider outage and device-wide reset now use `SAVE-008` / `KeystoreUnavailableException`; `SAVE-002` is aggregate-scoped while other keys remain available. German catalog/ARB/generated text and tests distinguish both contexts; no new security decision. | T014, T025, T026, T029 |
 
 ## Requirement Traceability Matrix
 

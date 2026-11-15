@@ -121,7 +121,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get save002Recovery =>
-      'Eine Wiederherstellung ist nicht möglich. Bitte wenden Sie sich an den Gerätehersteller, wenn der Schlüssel durch eine Zurücksetzung verloren gegangen ist.';
+      'Eine Wiederherstellung ist nicht möglich. Bitte wenden Sie sich an den Gerätehersteller, wenn der Schlüssel durch einen Gerätefehler verloren gegangen ist.';
 
   @override
   String get save003 =>
@@ -158,6 +158,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get save007Recovery =>
       'Bitte prüfen Sie sehr lange Eingaben und versuchen Sie es erneut.';
+
+  @override
+  String get save008 =>
+      'Die Schlüssel des Geräts sind nicht verfügbar; alle gespeicherten Dokumente und Vorlagen können vorübergehend oder dauerhaft nicht geöffnet werden. Bitte entsperren Sie das Gerät und versuchen Sie es erneut.';
+
+  @override
+  String get save008Recovery =>
+      'Wenn das Problem bleibt, starten Sie das Gerät neu; verlorene Schlüssel können nicht wiederhergestellt werden.';
 
   @override
   String get priv001 =>

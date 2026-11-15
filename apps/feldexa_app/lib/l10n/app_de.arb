@@ -132,7 +132,7 @@
   "@save002": {
     "description": "contracts/error-catalog.de.md §3 SAVE-002: key material for one document/template unavailable/invalidated; the aggregate's own KEK is affected."
   },
-  "save002Recovery": "Eine Wiederherstellung ist nicht möglich. Bitte wenden Sie sich an den Gerätehersteller, wenn der Schlüssel durch eine Zurücksetzung verloren gegangen ist.",
+  "save002Recovery": "Eine Wiederherstellung ist nicht möglich. Bitte wenden Sie sich an den Gerätehersteller, wenn der Schlüssel durch einen Gerätefehler verloren gegangen ist.",
   "@save002Recovery": {
     "description": "contracts/error-catalog.de.md §3 SAVE-002: recovery guidance."
   },
@@ -171,6 +171,14 @@
   "save007Recovery": "Bitte prüfen Sie sehr lange Eingaben und versuchen Sie es erneut.",
   "@save007Recovery": {
     "description": "contracts/error-catalog.de.md §3 SAVE-007: recovery guidance."
+  },
+  "save008": "Die Schlüssel des Geräts sind nicht verfügbar; alle gespeicherten Dokumente und Vorlagen können vorübergehend oder dauerhaft nicht geöffnet werden. Bitte entsperren Sie das Gerät und versuchen Sie es erneut.",
+  "@save008": {
+    "description": "contracts/error-catalog.de.md §3 SAVE-008: global Keystore provider outage or device-wide key-store reset; all stored aggregates may be affected."
+  },
+  "save008Recovery": "Wenn das Problem bleibt, starten Sie das Gerät neu; verlorene Schlüssel können nicht wiederhergestellt werden.",
+  "@save008Recovery": {
+    "description": "contracts/error-catalog.de.md §3 SAVE-008: recovery guidance for global key-store unavailability."
   },
   "priv001": "Ihre Dokumente und Vorlagen werden nur auf diesem Gerät und mit Schlüsseln gespeichert, die an dieses Gerät gebunden sind. Sicherungskopien der App-Daten sind nicht möglich. Wenn der Schlüssel eines Dokuments oder einer Vorlage verloren geht, können die betroffenen Daten nicht wiederhergestellt werden. Andere Dokumente und Vorlagen bleiben unabhängig davon nutzbar.",
   "@priv001": {
