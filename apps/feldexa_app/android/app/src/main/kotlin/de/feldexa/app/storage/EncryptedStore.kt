@@ -1106,10 +1106,12 @@ class EncryptedStore(
     /**
      * Bounded known-kind history for the new head, oldest first.
      *
-     * Entries whose files no longer exist are dropped; the previous head's own
-     * entry is refreshed from its head kind, and the new revision is appended.
-     * A cap of [MAX_HEAD_HISTORY] bounds head size; entries older than the cap
-     * become untracked and are therefore retained by the pruner.
+     * All previous entries are retained, including a missing file whose
+     * delete was not yet fsync-confirmed; only the pruner drops such an entry
+     * after a successful directory durability confirmation. The previous
+     * head's own entry is refreshed from its head kind, and the new revision
+     * is appended. A cap of [MAX_HEAD_HISTORY] bounds head size; entries older
+     * than the cap become untracked and are therefore retained by the pruner.
      */
     private fun buildHeadHistory(
         ref: AggregateRef,
@@ -1120,11 +1122,9 @@ class EncryptedStore(
         if (ref.kind != AggregateKind.DOCUMENT) return emptyList()
         val entries = LinkedHashMap<String, HeadHistoryEntry>()
         current?.history?.forEach { entry ->
-            if (revisionFileExists(ref, entry.revisionId)) {
-                entries[entry.revisionId] = entry
-            }
+            entries[entry.revisionId] = entry
         }
-        if (current != null && revisionFileExists(ref, current.revisionId)) {
+        if (current != null) {
             entries.remove(current.revisionId)
             entries[current.revisionId] = HeadHistoryEntry(
                 current.revisionId,
@@ -1205,16 +1205,27 @@ class EncryptedStore(
                 if (entry.kind == null) continue
                 if (io.delete(file)) deleted++
             }
-            if (deleted > 0) {
-                try {
-                    faultInjector.onFault(StoreFaultPoint.PRUNE_FSYNC, transactionId)
-                    io.fsyncDirectory(dir)
-                } catch (failure: Exception) {
-                    // The delete syscalls may not survive a crash. Do not
-                    // shorten the history: a later startup/save must still
-                    // know these revisions and retry the durable deletion.
-                    return PruneResult(deleted, head.history, deletesDurable = false)
-                }
+        }
+        // A previous failed attempt may already have removed a file from the
+        // namespace without confirming the directory durability. Do not drop
+        // that history entry just because this run deleted nothing: confirm
+        // the current absence with a directory fsync first.
+        val missingKnown = head.history.any { entry ->
+            entry.revisionId != head.revisionId &&
+                !revisionFileExists(ref, entry.revisionId)
+        }
+        if (deleted > 0 || missingKnown) {
+            if (!io.isDirectory(dir)) {
+                return PruneResult(deleted, head.history, deletesDurable = false)
+            }
+            try {
+                faultInjector.onFault(StoreFaultPoint.PRUNE_FSYNC, transactionId)
+                io.fsyncDirectory(dir)
+            } catch (failure: Exception) {
+                // The delete syscalls may not survive a crash. Do not
+                // shorten the history: a later startup/save must still know
+                // these revisions and retry the durable deletion.
+                return PruneResult(deleted, head.history, deletesDurable = false)
             }
         }
         val remaining = head.history.filter { entry ->

@@ -587,6 +587,70 @@ class EncryptedStoreInstrumentedTest {
     }
 
     @Test
+    fun pruneFsyncFailureWithoutResurrectionRetriesOnDevice() {
+        val documentId = UUID.randomUUID().toString()
+        val ids = (1..4).map(::fixedUuid)
+        val created = store.createDocument(
+            documentId,
+            meta("NoResurrection"),
+            UUID.randomUUID().toString(),
+            "%PDF-1.7 nores".toByteArray(),
+            ids[0],
+            revision(1),
+            RevisionKindWire.AUTOSAVE,
+        )
+        store.saveRevision(
+            documentId,
+            ids[1],
+            revision(2),
+            RevisionKindWire.AUTOSAVE,
+            created.revisionId,
+        )
+        store.saveRevision(
+            documentId,
+            ids[2],
+            revision(3),
+            RevisionKindWire.AUTOSAVE,
+            ids[1],
+        )
+        val faultStore = EncryptedStore(
+            root = root,
+            keystore = keystore,
+            faultInjector = StoreFaultInjector { point, _ ->
+                if (point == StoreFaultPoint.PRUNE_FSYNC) {
+                    throw IOException("prune fsync still failing")
+                }
+            },
+        )
+        faultStore.saveRevision(
+            documentId,
+            ids[3],
+            revision(4),
+            RevisionKindWire.AUTOSAVE,
+            ids[2],
+        )
+        val firstFile = File(root, "docs/$documentId/rev/${ids[0]}.fx1")
+        assertFalse(firstFile.exists())
+
+        val failedRetry = faultStore.startupRecovery()
+        assertEquals(0, failedRetry.prunedRevisions)
+        val afterFailure = store.readHeadForTest(
+            AggregateRef(AggregateKind.DOCUMENT, documentId),
+        )
+        assertTrue(afterFailure.history.any { it.revisionId == ids[0] })
+
+        val retry = store.startupRecovery()
+
+        assertEquals(0, retry.prunedRevisions)
+        assertFalse(firstFile.exists())
+        val finalHead = store.readHeadForTest(
+            AggregateRef(AggregateKind.DOCUMENT, documentId),
+        )
+        assertFalse(finalHead.history.any { it.revisionId == ids[0] })
+        assertEquals(ids[3], finalHead.revisionId)
+    }
+
+    @Test
     fun noPlaintextResidueInTheAggregateDirectory() {
         val marker = "PDF-DEVICE-SECRET"
         val created = store.createDocument(

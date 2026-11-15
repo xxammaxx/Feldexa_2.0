@@ -183,6 +183,143 @@ class EncryptedStorePruneRecoveryTest {
         assertEquals(ids[3], finalHead.revisionId)
     }
 
+    @Test
+    fun repeatedFsyncFailureWithoutResurrectionRetriesBeforeHistoryTrim() {
+        val documentId = UUID.randomUUID().toString()
+        val ids = (1..4).map(::fixedUuid)
+        val created = store.createDocument(
+            documentId,
+            meta("NoResurrection"),
+            sourceId(),
+            source(),
+            ids[0],
+            revision(1),
+            RevisionKindWire.AUTOSAVE,
+        )
+        store.saveRevision(
+            documentId,
+            ids[1],
+            revision(2),
+            RevisionKindWire.AUTOSAVE,
+            created.revisionId,
+        )
+        store.saveRevision(
+            documentId,
+            ids[2],
+            revision(3),
+            RevisionKindWire.AUTOSAVE,
+            ids[1],
+        )
+        val faultStore = EncryptedStore(
+            root = storeRoot,
+            keystore = keystore,
+            faultInjector = StoreFaultInjector { point, _ ->
+                if (point == StoreFaultPoint.PRUNE_FSYNC) {
+                    throw IOException("prune fsync still failing")
+                }
+            },
+            clock = { now.get() },
+        )
+        faultStore.saveRevision(
+            documentId,
+            ids[3],
+            revision(4),
+            RevisionKindWire.AUTOSAVE,
+            ids[2],
+        )
+
+        // No crash resurrection: the file stays missing. The retry itself has
+        // no delete to perform, but it still must confirm directory
+        // durability before dropping the history entry.
+        assertFalse(revFile(documentId, ids[0]).exists())
+        val repeatedFailureReport = faultStore.startupRecovery()
+        assertEquals(0, repeatedFailureReport.prunedRevisions)
+        val headAfterFailure = store.readHeadForTest(
+            AggregateRef(AggregateKind.DOCUMENT, documentId),
+        )
+        assertTrue(headAfterFailure.history.any { it.revisionId == ids[0] })
+
+        val retryReport = store.startupRecovery()
+
+        assertEquals(0, retryReport.prunedRevisions)
+        assertFalse(revFile(documentId, ids[0]).exists())
+        val finalHead = store.readHeadForTest(
+            AggregateRef(AggregateKind.DOCUMENT, documentId),
+        )
+        assertFalse(finalHead.history.any { it.revisionId == ids[0] })
+        assertEquals(ids[3], finalHead.revisionId)
+    }
+
+    @Test
+    fun nextSaveRetainsUnconfirmedMissingHistoryAndTrimsAfterConfirmation() {
+        val documentId = UUID.randomUUID().toString()
+        val ids = (1..5).map(::fixedUuid)
+        val created = store.createDocument(
+            documentId,
+            meta("SaveRetry"),
+            sourceId(),
+            source(),
+            ids[0],
+            revision(1),
+            RevisionKindWire.AUTOSAVE,
+        )
+        store.saveRevision(
+            documentId,
+            ids[1],
+            revision(2),
+            RevisionKindWire.AUTOSAVE,
+            created.revisionId,
+        )
+        store.saveRevision(
+            documentId,
+            ids[2],
+            revision(3),
+            RevisionKindWire.AUTOSAVE,
+            ids[1],
+        )
+        val faultStore = EncryptedStore(
+            root = storeRoot,
+            keystore = keystore,
+            faultInjector = StoreFaultInjector { point, _ ->
+                if (point == StoreFaultPoint.PRUNE_FSYNC) {
+                    throw IOException("prune fsync failed")
+                }
+            },
+            clock = { now.get() },
+        )
+        faultStore.saveRevision(
+            documentId,
+            ids[3],
+            revision(4),
+            RevisionKindWire.AUTOSAVE,
+            ids[2],
+        )
+        assertFalse(revFile(documentId, ids[0]).exists())
+
+        // The next head rebuild must retain the unconfirmed-missing entry;
+        // the prune then confirms absence via fsync before trimming.
+        store.saveRevision(
+            documentId,
+            ids[4],
+            revision(5),
+            RevisionKindWire.AUTOSAVE,
+            ids[3],
+        )
+
+        assertFalse(revFile(documentId, ids[0]).exists())
+        val finalHead = store.readHeadForTest(
+            AggregateRef(AggregateKind.DOCUMENT, documentId),
+        )
+        assertFalse(finalHead.history.any { it.revisionId == ids[0] })
+        assertEquals(ids[4], finalHead.revisionId)
+        // rev2 is a known autosave outside the last three and is pruned; the
+        // last three autosaves plus the new head remain.
+        assertFalse(revFile(documentId, ids[1]).exists())
+        assertTrue(revFile(documentId, ids[2]).exists())
+        assertTrue(revFile(documentId, ids[3]).exists())
+        assertTrue(revFile(documentId, ids[4]).exists())
+    }
+
     // ------------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------------
