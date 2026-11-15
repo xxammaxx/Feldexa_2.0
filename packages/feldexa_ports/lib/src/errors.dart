@@ -252,10 +252,12 @@ final class StorageFullException extends FeldexaException {
       );
 }
 
-/// The device key material is unavailable or invalidated (`SAVE-002`).
+/// The owning document's or template's Keystore key is unavailable or
+/// invalidated (`SAVE-002`).
 ///
-/// Ciphertext is untouched and other documents load normally, but this
-/// document cannot be opened. Recovery is not possible (FR-052).
+/// The affected aggregate's ciphertext is untouched and only that aggregate
+/// is unreadable; other documents and templates use their own keys and load
+/// normally. Recovery is not possible (FR-052).
 final class KeyUnavailableException extends FeldexaException {
   KeyUnavailableException()
     : super(
@@ -264,6 +266,29 @@ final class KeyUnavailableException extends FeldexaException {
         message: 'storage.keyUnavailable',
         retryable: false,
         severity: ErrorSeverity.fatal,
+      );
+}
+
+/// The Keystore provider is temporarily unavailable or a device-wide key-store
+/// reset removed every aggregate key (`SAVE-008`).
+///
+/// This is the global counterpart of [KeyUnavailableException]. It must not be
+/// used for one aggregate while other aggregate keys remain available; that
+/// case is `SAVE-002`. Ciphertext is untouched. A temporary provider outage is
+/// retryable; after a device-wide reset the retry cannot recover the keys
+/// (FR-051/FR-052).
+final class KeystoreUnavailableException extends FeldexaException {
+  /// Creates the global key-store failure.
+  ///
+  /// [retryable] is true for a temporary provider outage and false after a
+  /// device-wide reset. Both states use the same catalog code because the user
+  /// message must explain both possibilities.
+  KeystoreUnavailableException({super.retryable = true})
+    : super(
+        code: 'SAVE-008',
+        messageKey: 'SAVE-008',
+        message: 'storage.keystoreUnavailable',
+        severity: ErrorSeverity.error,
       );
 }
 

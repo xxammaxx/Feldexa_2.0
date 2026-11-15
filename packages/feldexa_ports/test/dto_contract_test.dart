@@ -475,6 +475,18 @@ void main() {
 
       expect(unreadable.readable, isFalse);
       expect(unreadable.unreadableReasonCode, 'SAVE-002');
+
+      final StoredMeta globallyUnreadable = StoredMeta(
+        id: fixtureUuid(3),
+        kind: StoreKind.document,
+        title: 'Nicht lesbar',
+        createdAt: fixtureAt(),
+        updatedAt: fixtureAt(1),
+        readable: false,
+        unreadableReasonCode: 'SAVE-008',
+      );
+      expect(globallyUnreadable.readable, isFalse);
+      expect(globallyUnreadable.unreadableReasonCode, 'SAVE-008');
       expect(
         () => StoredMeta(
           id: fixtureUuid(2),

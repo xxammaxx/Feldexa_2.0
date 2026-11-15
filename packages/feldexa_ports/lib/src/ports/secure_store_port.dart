@@ -18,10 +18,12 @@ import '../dto/store_dto.dart';
 
 /// Encrypted document and template storage (`contracts/ports.md` §2.4).
 abstract interface class SecureStorePort implements PlatformCapability {
-  /// Reports key availability, object count, and total size.
+  /// Reports whether every known aggregate key is available, plus object count
+  /// and total size.
   ///
-  /// A missing key does not throw for the whole store; only affected loads fail
-  /// with `KeyUnavailableException` (`SAVE-002`).
+  /// A missing key does not throw for the whole store. The summary can be false
+  /// for aggregate-scoped `SAVE-002` or global `SAVE-008`; it does not identify
+  /// the scope, and loads throw the matching typed exception.
   Future<StoreStatus> status();
 
   /// Creates a document for an already staged source.
@@ -32,13 +34,17 @@ abstract interface class SecureStorePort implements PlatformCapability {
   /// Success is returned only after the new head is written and read back
   /// (FR-047). A failed staged write throws `StorageWriteException`; storage
   /// exhaustion throws `StorageFullException` and leaves the last durable head
-  /// untouched.
+  /// untouched. A missing aggregate key throws `KeyUnavailableException`
+  /// (`SAVE-002`); a global provider/reset condition throws
+  /// `KeystoreUnavailableException` (`SAVE-008`). The previous head is preserved.
   Future<StoredMeta> saveRevision(SaveRevisionRequest request);
 
   /// Loads and decrypts the current document revision.
   ///
-  /// Throws `KeyUnavailableException` or `CorruptDataException`; other
-  /// documents remain loadable.
+  /// Throws `KeyUnavailableException` (`SAVE-002`) for one aggregate while
+  /// other aggregate keys remain available, `KeystoreUnavailableException`
+  /// (`SAVE-008`) for a global provider/reset condition, or
+  /// `CorruptDataException`. With `SAVE-002`, other documents remain loadable.
   Future<LoadedDocument> loadDocument(String documentId);
 
   /// Reads one decrypted signature asset, bounded in size.
@@ -67,6 +73,9 @@ abstract interface class SecureStorePort implements PlatformCapability {
   Future<StoredMeta> saveTemplateVersion(SaveTemplateVersionRequest request);
 
   /// Loads a template and one immutable version, defaulting to the latest.
+  ///
+  /// Throws the same aggregate-scoped `SAVE-002` or global `SAVE-008` key
+  /// errors as [loadDocument].
   Future<LoadedTemplate> loadTemplate(String templateId, {String? versionId});
 
   /// Returns the recovery state for one aggregate.

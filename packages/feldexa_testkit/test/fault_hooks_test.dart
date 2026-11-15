@@ -361,10 +361,18 @@ void main() {
       );
     });
 
-    test('catalog codes match the documented failure taxonomy', () {
+    test('catalog codes distinguish global and aggregate key failures', () {
       expect(FaultKind.storageFull.catalogCode, 'SAVE-001');
-      expect(FaultKind.keystoreUnavailable.catalogCode, 'SAVE-002');
+      expect(FaultKind.keystoreUnavailable.catalogCode, 'SAVE-008');
+      expect(
+        FaultKind.keystoreUnavailable.description,
+        contains('Global Keystore'),
+      );
       expect(FaultKind.corruptKeyMaterial.catalogCode, 'SAVE-002');
+      expect(
+        FaultKind.corruptKeyMaterial.description,
+        contains('Aggregate key material'),
+      );
       expect(FaultKind.shortWrite.catalogCode, 'SAVE-003');
       expect(FaultKind.fsyncFailure.catalogCode, 'SAVE-003');
       expect(FaultKind.writeInterrupted.catalogCode, 'SAVE-003');

@@ -1,6 +1,6 @@
 # Contract: German Error and Recovery Catalog
 
-**Feature**: `001-scanned-form-workflow` | **Release locale**: `de` only | **Source of truth**: `apps/feldexa_app/lib/l10n/app_de.arb` (keys identical to this catalog)
+**Feature**: `001-scanned-form-workflow` | **Release locale**: `de` only | **Normative source**: this catalog defines the German message and recovery text plus the stable codes. `apps/feldexa_app/lib/l10n/app_de.arb` is the committed Flutter runtime resource generated from it; ARB keys are derived by the §11.1 mapping (for example `IMP-007` → `imp007`) and are intentionally not identical to catalog codes. `apps/feldexa_app/test/german_strings_test.dart` verifies the mapping and the exact text.
 
 Every user-facing string is German (FR-090, SC-014). Codes are stable machine identifiers used by tests, diagnostics, and code; **codes never appear in the UI**. Placeholders use `{name}` and are filled from typed values. Messages must name the actual cause, never invent one, and never claim success before verification.
 
@@ -52,12 +52,13 @@ No recognition surface may state or imply completeness (FR-085): the summary use
 | Code | Condition | German message | Recovery guidance |
 | --- | --- | --- | --- |
 | `SAVE-001` | Storage full / quota exceeded | „Der Speicherplatz reicht nicht aus. Der letzte gespeicherte Stand ist erhalten; die neuesten Änderungen sind noch nicht dauerhaft gespeichert.“ | „Bitte geben Sie Speicherplatz frei und versuchen Sie es erneut. Feldexa löscht keine Ihrer Dokumente.“ |
-| `SAVE-002` | Key material unavailable/invalidated | „Die gespeicherten Daten können nicht entschlüsselt werden, weil der Schlüssel dieses Geräts nicht mehr verfügbar ist. Dieses Dokument kann nicht geöffnet werden. Andere Dokumente und Vorlagen sind davon nicht betroffen.“ | „Eine Wiederherstellung ist nicht möglich. Bitte wenden Sie sich an den Gerätehersteller, wenn der Schlüssel durch eine Zurücksetzung verloren gegangen ist.“ |
+| `SAVE-002` | Aggregate-scoped key material unavailable/invalidated while other aggregate keys remain available | „Die gespeicherten Daten können nicht entschlüsselt werden, weil der zugehörige Schlüssel nicht mehr verfügbar ist; das betroffene Dokument oder die betroffene Vorlage kann nicht geöffnet werden. Andere Dokumente und Vorlagen sind davon nicht betroffen.“ | „Eine Wiederherstellung ist nicht möglich. Bitte wenden Sie sich an den Gerätehersteller, wenn der Schlüssel durch einen Gerätefehler verloren gegangen ist.“ |
 | `SAVE-003` | Write failed or stored data corrupted | „Speichern ist fehlgeschlagen. Der zuletzt erfolgreich gespeicherte Stand bleibt erhalten.“ | „Bitte versuchen Sie es erneut. Wenn der Fehler bleibt, prüfen Sie den freien Speicherplatz.“ |
 | `SAVE-004` | Recovery fell back to older revision | „Feldexa hat einen älteren gespeicherten Stand wiederhergestellt, weil der neueste Stand nicht lesbar war. Änderungen seit diesem Stand können verloren sein.“ | „Bitte prüfen Sie das Dokument und speichern Sie es erneut.“ |
 | `SAVE-005` | Data written by a newer app version | „Dieses Dokument wurde mit einer neueren Version von Feldexa gespeichert. Bitte aktualisieren Sie die App, um es zu öffnen. Die Daten bleiben unverändert.“ | „Öffnen Sie das Dokument erst nach dem Update wieder.“ |
 | `SAVE-006` | Concurrent save conflict | *(internal; no user message)* Retry automatically once; if it persists: „Das Speichern konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.“ | — |
 | `SAVE-007` | Invalid data rejected (oversized/invalid payload) | „Die Änderung konnte nicht gespeichert werden, weil die Daten ungültig sind. Der letzte gespeicherte Stand bleibt erhalten.“ | „Bitte prüfen Sie sehr lange Eingaben und versuchen Sie es erneut.“ |
+| `SAVE-008` | Keystore provider unavailable, or no stored aggregate key remains (device-wide reset) | „Die Schlüssel des Geräts sind nicht verfügbar; alle gespeicherten Dokumente und Vorlagen können vorübergehend oder dauerhaft nicht geöffnet werden. Bitte entsperren Sie das Gerät und versuchen Sie es erneut.“ | „Wenn das Problem bleibt, starten Sie das Gerät neu; verlorene Schlüssel können nicht wiederhergestellt werden.“ |
 
 **Durability labels** (must be used consistently, FR-046):
 
@@ -73,7 +74,9 @@ No recognition surface may state or imply completeness (FR-085): the summary use
 Forbidden: „Alles gespeichert“, „Sicher gespeichert“, or any wording implying durability for unsaved edits.
 
 **Pre-emptive key/backup disclosure** (`PRIV-001`, shown in the first-run help and before the first save):
-„Ihre Dokumente werden nur auf diesem Gerät und mit einem Schlüssel gespeichert, der an dieses Gerät gebunden ist. Sicherungskopien der App-Daten sind nicht möglich. Wenn der Schlüssel verloren geht – zum Beispiel durch Zurücksetzen des Geräts –, können die betroffenen Dokumente nicht wiederhergestellt werden. Andere Dokumente bleiben unabhängig davon nutzbar.“
+„Ihre Dokumente und Vorlagen werden nur auf diesem Gerät und mit Schlüsseln gespeichert, die an dieses Gerät gebunden sind. Sicherungskopien der App-Daten sind nicht möglich. Wenn der Schlüssel eines Dokuments oder einer Vorlage verloren geht, können die betroffenen Daten nicht wiederhergestellt werden. Andere Dokumente und Vorlagen bleiben unabhängig davon nutzbar. Ein Zurücksetzen des Geräts oder seiner Schlüssel kann dagegen alle gespeicherten Dokumente und Vorlagen unlesbar machen oder entfernen; eine Wiederherstellung ist dann nicht möglich.“
+
+This pre-loss disclosure names both the aggregate-isolation case and the global device/Keystore reset exception required by FR-051. `SAVE-002` is only for aggregate-scoped loss while other aggregate keys remain available. A Keystore provider that is unavailable at boot is a transient global condition: retry once, then report `SAVE-008` without deleting data. A whole-Keystore or device reset invalidates every alias and is a device-wide loss reported as `SAVE-008`; per-aggregate isolation is not claimed for that global event. Do not reuse `SAVE-002` for a global provider or reset condition.
 
 ---
 
@@ -204,9 +207,24 @@ Developer messages may appear in debug builds only, in English, without document
 
 ## 11. String audit rules
 
-1. Every key in this catalog exists in `app_de.arb`; `flutter gen-l10n` fails the build on missing keys.
+1. Every user-facing catalog text has an ARB entry created by the §11.1 mapping. `apps/feldexa_app/test/german_strings_test.dart` verifies the exact text, the typed placeholders, and the complete key set in both directions (no missing entry, no orphan key). `flutter gen-l10n` must regenerate the committed Dart without error.
 2. A test asserts no user-visible string is English (allowlist: `SIMULATED`, `PDF`, `Feldexa`, `Android`, `ML Kit` only if ever shown — it is not).
 3. Placeholders must be typed and escaped; no string concatenation for grammar.
 4. German quotes are „…“; apostrophes are ’ where typographically appropriate.
 5. Error dialogs have one primary action („Verstanden“ / „Erneut versuchen“ / „Speicherplatz prüfen“) and never a destructive default.
 6. Messages that mention data safety are reviewed against the actual implementation before release; wording may not exceed the implemented guarantee.
+
+### 11.1 ARB key mapping
+
+`app_de.arb` is the Flutter runtime resource, not a second catalog. Catalog codes remain the stable machine identifiers; gen-l10n requires valid Dart method names, so each catalog item maps to an ARB key by these rules. `apps/feldexa_app/test/german_strings_test.dart` enforces the rules against this document.
+
+| Catalog item | ARB key rule | Example |
+| --- | --- | --- |
+| Coded message | lower-case code without `-` | `IMP-007` → `imp007` |
+| Coded recovery guidance | message key + `Recovery` | `IMP-007` → `imp007Recovery` |
+| Repeated code (the `SAVE-001` export row in §4) | first key + `Export` | `SAVE-001` → `save001Export`, recovery → `save001ExportRecovery` |
+| Non-code label, dialog, or accessibility template | semantic key listed in `app_de.arb` | `Start title` → `startTitle`; `clean` → `durabilityClean` |
+| Placeholder | unchanged catalog name | `{pages}` → `{pages}` |
+| Application shell title | `appTitle` (T005; not defined in this catalog) | `appTitle` |
+
+Codes and ARB keys are machine identifiers and never appear in the UI. A `Recovery` key exists only where this catalog supplies recovery guidance.

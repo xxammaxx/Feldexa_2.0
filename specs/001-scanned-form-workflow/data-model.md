@@ -137,7 +137,7 @@ any readable state --source/key unreadable--> Unreadable (isolated; no deletion)
 any state --user delete confirmed--> Deleted (record removed)
 ```
 
-`Unreadable` is per document and never transitions other documents. `ExportReady` is a derived label, not a stored state.
+`Unreadable` is per document and never transitions other documents. Each document and template has its own Keystore KEK; losing or invalidating one aggregate's key affects only that aggregate while other aggregate keys remain available (`SAVE-002`). If the key is lost, the encrypted metadata cannot be read, so the list uses the "Nicht lesbar" placeholder title and does not invent a title from ciphertext. A global Keystore-provider outage or device-wide reset marks all stored aggregates globally unreadable with `SAVE-008`; that is a device-wide condition, not per-document isolation. `ExportReady` is a derived label, not a stored state.
 
 ### 3.2 `SourceFileRef`
 

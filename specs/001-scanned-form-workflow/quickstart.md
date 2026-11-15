@@ -189,7 +189,8 @@ flutter test integration_test/interrupted_write_test.dart -d emulator-5554
 
 | Injection | Expected |
 | --- | --- |
-| Delete the Keystore alias in the test app | `SAVE-002` on open; affected document not presented as intact; sibling document still opens |
+| Delete one document's Keystore alias in the test app | `SAVE-002` on open; affected document not presented as intact; sibling document and template still open; repeat with one template alias |
+| Invalidate all Keystore aliases or make the provider unavailable | Global `SAVE-008`; all stored documents/templates reported unavailable; no per-aggregate "others unaffected" claim; no file deleted; a temporary provider outage is retryable |
 | Quota/`ENOSPC` at stage, promote, head write | `SAVE-001`; no success reported; last head intact; no stored document/template deleted; retry succeeds after space is freed |
 | Short write / fsync failure / process kill | `SAVE-003` or verified fallback (`SAVE-004`); never a half-written revision reported as saved |
 | Interrupted export | `EXP-002`; no artifact in the final location |
