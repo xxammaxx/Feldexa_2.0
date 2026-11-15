@@ -1,0 +1,27 @@
+T026 review of e2775f8 - bounded history capacity
+
+Finding:
+  buildHeadHistory kept missing known entries, but takeLast(MAX_HEAD_HISTORY)
+  could evict one before pruneDocumentFromHead checked missingKnown when
+  repeated save attempts followed a failed prune fsync. If that delete was
+  not durable, a crash could resurrect an untracked file and bypass retention.
+
+Fix in df625d7:
+  * before staging a new revision, confirmPendingPruneDurability checks every
+    known history entry missing from the namespace;
+  * if any is missing, fsync the revision directory first;
+  * on fsync failure, refuse the save with retryable SAVE-003 before staging
+    or changing the head; previous head and revisions stay untouched;
+  * on success, the cap may drop a confirmed-absent entry. Existing entries
+    dropped by the cap remain as conservative untracked files;
+  * verified head, keep set, unknown-kind entries, and untracked legacy files
+    remain protected.
+
+Capacity options (owner may choose later):
+  A. implemented: fail closed with retryable SAVE-003, preserving the 16-entry
+     bound and never silently discarding an unconfirmed entry;
+  B. allow the head history to exceed 16 while unconfirmed deletes exist,
+     then trim after confirmation (availability over strict bound);
+  C. persist a separate pending-deletion ledger (new format/owner decision);
+  D. reserve cap slots for unconfirmed entries and only evict confirmed ones
+     (can still exceed 16 or refuse saves under the same fault).
