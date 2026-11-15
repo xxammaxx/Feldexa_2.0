@@ -6,3 +6,13 @@ resolution: workspace
 
 environment:
   sdk: ^3.13.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  feldexa_ports:
+    path: ../feldexa_ports
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
