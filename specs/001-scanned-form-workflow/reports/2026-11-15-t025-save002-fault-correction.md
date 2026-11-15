@@ -6,7 +6,7 @@
 | Result | `PASS` |
 | Task / issue | `T025` / `#25` |
 | Date / timezone | `2026-11-15 12:49 Europe/Berlin` |
-| Revision | base commit `3731b5f8068371a187f453001204e15e1a76647b`; tree `dirty` `packages/feldexa_testkit/lib/src/faults/fault_kind.dart` SHA-256 `a3a395e22f8117c49c8f32a1c7681e50ddd3f492488c0943c0cecffc1a337cb6`; `packages/feldexa_testkit/lib/src/faults.dart` SHA-256 `4c7ad7a6270ba573c1491fefa40df47b9d26660d446390a5fc8b913a6bd43c89`; `packages/feldexa_testkit/test/faults_test.dart` SHA-256 `8955a95eb3b1ec97d0bdbf0f6efaa6cbbba8d65a96a3e8f87a7c3c12f4ca1c40`; `packages/feldexa_testkit/test/fault_hooks_test.dart` SHA-256 `525326c93253e5dc352926bc1d593d0b8e1033fe80fd84a40024860d86585781`; `packages/feldexa_testkit/README.md` SHA-256 `f98dee2f391914d415f1818d1cf20799b89272a327b5a697042b14bacf409f1c`; `specs/001-scanned-form-workflow/tasks.md` SHA-256 `ff2e6673e1ae31bb5bbc990ec9b85f3309dcdc63c0fd58a89d21c99f9dadfe0c`; `specs/001-scanned-form-workflow/reports/README.md` SHA-256 `5488f0feea4571967988caadf8ea36e65ffab8f95d665f4e94be8cd6915c9b26`; `specs/001-scanned-form-workflow/reports/2026-11-15-t025-api31-observation.md` SHA-256 `98e45ed6bb796a4ed9f6a046646ef368e774fcec879eda837cd49caf3db95520`; `specs/001-scanned-form-workflow/reports/2026-11-15-t025-main-merge.md` SHA-256 `d29608ff25599e1e4803b2cd391c8c324d23d6da8cb7f18a69a54199477a642d`; candidate SHA in external attestation |
+| Revision | base commit `3731b5f8068371a187f453001204e15e1a76647b`; tree `dirty` `packages/feldexa_testkit/lib/src/faults/fault_kind.dart` SHA-256 `a3a395e22f8117c49c8f32a1c7681e50ddd3f492488c0943c0cecffc1a337cb6`; `packages/feldexa_testkit/lib/src/faults.dart` SHA-256 `4c7ad7a6270ba573c1491fefa40df47b9d26660d446390a5fc8b913a6bd43c89`; `packages/feldexa_testkit/test/faults_test.dart` SHA-256 `8955a95eb3b1ec97d0bdbf0f6efaa6cbbba8d65a96a3e8f87a7c3c12f4ca1c40`; `packages/feldexa_testkit/test/fault_hooks_test.dart` SHA-256 `525326c93253e5dc352926bc1d593d0b8e1033fe80fd84a40024860d86585781`; `packages/feldexa_testkit/README.md` SHA-256 `f98dee2f391914d415f1818d1cf20799b89272a327b5a697042b14bacf409f1c`; `specs/001-scanned-form-workflow/tasks.md` SHA-256 `c12770285fe3336fa24c94a72c9a26ba03ba38bd5e97c5d8728e4b66635c2fca`; `specs/001-scanned-form-workflow/reports/README.md` SHA-256 `2bc63753f1bd5540f8e8a168e95136a22c3b869de099161b83eefc927e7d448a`; `specs/001-scanned-form-workflow/reports/2026-11-15-t025-api31-evidence-governance.md` SHA-256 `a0c05ed7634572d5084ef4fd6cffd72305dee97dd7001facc039a8d0023e04a6`; `specs/001-scanned-form-workflow/reports/2026-11-15-t025-main-merge.md` SHA-256 `be3509292022283a71371ac7e414ce958508d5789a44004db548cb92b92b4f6d`; candidate SHA in external attestation |
 | External attestation | worker_done transport attestation (candidate SHA, report bytes and hash); not part of the candidate commit |
 | Build identity | unchanged T025 debug app APK SHA-256 `672b15363d2eeb415a15e8f2e7999b716f4263a96807e4bdddaeb7fe3ab88077`; instrumentation test APK SHA-256 `ddf7284644361e0f7afdb10f704062230fd9f2e157e5348ebbb312d68b23e9d3` |
 | Toolchain | Flutter 3.47.7 (stable), Dart 3.13.5, Gradle 9.3.1, Android Gradle Plugin 9.1.0, Kotlin 2.4.0, Temurin JDK 17.0.21, Android SDK 36 |
@@ -37,7 +37,7 @@ No push, remote merge, or self-review was performed.
 
 Base is `3731b5f8068371a187f453001204e15e1a76647b`. The dirty tree contains
 only the testkit fault/tests/README, `tasks.md` (CR-17), the report index, the
-corrected API 31 observation wording, the corrected merge wording, and this
+corrected API 31 governance wording, the corrected merge wording, and this
 report.
 
 The app/test APK hashes are unchanged from the tested T025 identity. No new
@@ -92,14 +92,21 @@ The new regressions assert:
   `keystore.unwrap` before any delegate read;
 - both SAVE-008 contexts remain distinct.
 
-### 5.3 API 31 observation wording
+### 5.3 API 31 evidence governance
 
-The observation now states precisely that the isolation test performs one
+The wording now states precisely that the isolation test performs one
 read-only `keyStore.containsAlias(documentOne.alias)` on a random
 production-form alias to assert that the production alias was not created. It
 does not enumerate or delete production aliases and does not create, read, or
-delete production key material. The record remains `NONE`/`PARTIAL` with
-`UNAVAILABLE` project `EMULATOR`/`DEVICE` checks; it is not acceptance.
+delete production key material.
+
+The historical run report `2026-11-15-emulator-t025-keystore.md` is preserved
+as a frozen superseded record; its `EMULATOR`/`PASS` class is invalid under
+`reports/README.md` §2 because the run was not an Orca-allocated Pixel 7 API
+35. The attempted `NONE` replacement is withdrawn, because `NONE` is not a
+runtime class. No currently allowed class represents this unallocated run;
+the collision and options are documented in the evidence-governance report.
+It is not acceptance.
 
 ### 5.4 Android identity
 
@@ -107,15 +114,17 @@ delete production key material. The record remains `NONE`/`PARTIAL` with
 apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/storage
 apps/feldexa_app/android/app/src/test/kotlin/de/feldexa/app/storage
 apps/feldexa_app/android/app/src/androidTest/kotlin/de/feldexa/app/storage`
-is empty and both APK hashes are unchanged. The 12/12 API 31 observation is
-therefore still bound to the same T025 code/APK identity; it is not project
-`EMULATOR`, API 35, `DEVICE`, or performance evidence.
+is empty and both APK hashes are unchanged. The 12/12 API 31 run is
+therefore still bound to the same T025 code/APK identity, but has no valid
+evidence class; it is not project `EMULATOR`, API 35, `DEVICE`, or performance
+evidence.
 
 ### 5.5 Validators
 
-The API 31 observation, merge record, and this correction report all validate
-under `tools/evaluation/validate_report.dart` with their declared `NONE`
-classes. No convention, schema, or validator change was made.
+The evidence-governance report, merge record, and this correction report all
+validate under `tools/evaluation/validate_report.dart`. The superseded
+historical report is not revalidated as valid evidence because its class is
+invalid under §2. No convention, schema, or validator change was made.
 
 ## 6. Performance
 
@@ -124,8 +133,9 @@ No performance claim.
 ## 7. Limitations
 
 - This is a host-only correction; no new Android runtime run was made.
-- The API 31 observation remains a non-accepting API 31 TCG run, not project
-  `EMULATOR`/API 35 or `DEVICE` evidence.
+- The API 31 run remains an unclassified non-accepting TCG run; it has no
+  valid evidence class and is not project `EMULATOR`/API 35 or `DEVICE`
+  evidence.
 - Android source and APK identity were intentionally kept unchanged.
 - The testkit fault harness is test scaffolding; it does not itself prove
   production Keystore behavior.
@@ -156,7 +166,8 @@ This report is intentionally not listed in its own artifacts table.
    (`SAVE-002`) and `FaultKind.corruptKeyMaterial → CorruptDataException`
    (`SAVE-003`), and that both SAVE-008 contexts remain.
 6. Do not run or claim a new Android acceptance run; the app/test APK hashes
-   above are unchanged and the API 31 observation remains non-accepting.
+   above are unchanged and the API 31 run remains unclassified and
+   non-accepting.
 
 ## 10. External attestation
 
