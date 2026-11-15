@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="de.feldexa.app.storage.EncryptedStoreFaultTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-15T16:28:30.944Z" hostname="host" time="0.149">
+  <properties/>
+  <testcase name="headStageFsyncFailureLeavesPreviousHeadReadable" classname="de.feldexa.app.storage.EncryptedStoreFaultTest" time="0.017"/>
+  <testcase name="promoteFailureIsSave003AndKeepsOldHead" classname="de.feldexa.app.storage.EncryptedStoreFaultTest" time="0.018"/>
+  <testcase name="corruptRevisionAfterPromotionFailsReadBackAndKeepsOldHead" classname="de.feldexa.app.storage.EncryptedStoreFaultTest" time="0.018"/>
+  <testcase name="stageWriteFailureIsSave003AndKeepsOldHead" classname="de.feldexa.app.storage.EncryptedStoreFaultTest" time="0.016"/>
+  <testcase name="quotaAtStageMapsToSave001AndKeepsOldHead" classname="de.feldexa.app.storage.EncryptedStoreFaultTest" time="0.013"/>
+  <testcase name="corruptHeadAfterPromotionIsDetectedAndPreviousHeadRestored" classname="de.feldexa.app.storage.EncryptedStoreFaultTest" time="0.021"/>
+  <testcase name="promoteFsyncFailureIsSave003AndKeepsOldHead" classname="de.feldexa.app.storage.EncryptedStoreFaultTest" time="0.02"/>
+  <testcase name="stageFsyncFailureIsSave003AndKeepsOldHead" classname="de.feldexa.app.storage.EncryptedStoreFaultTest" time="0.015"/>
+  <testcase name="failedCreateLeavesNoVisibleAggregateAndNoAlias" classname="de.feldexa.app.storage.EncryptedStoreFaultTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

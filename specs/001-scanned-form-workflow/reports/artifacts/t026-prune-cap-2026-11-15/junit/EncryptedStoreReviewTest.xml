@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="de.feldexa.app.storage.EncryptedStoreReviewTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-15T17:46:48.474Z" hostname="host" time="11.463">
+  <properties/>
+  <testcase name="verificationStreamsChunksInOrder" classname="de.feldexa.app.storage.EncryptedStoreReviewTest" time="0.227"/>
+  <testcase name="pruneRefusesToDeleteWhenTheHeadDoesNotVerify" classname="de.feldexa.app.storage.EncryptedStoreReviewTest" time="0.007"/>
+  <testcase name="equalTimestampRecoveryMustNotPickByRandomUuid" classname="de.feldexa.app.storage.EncryptedStoreReviewTest" time="0.009"/>
+  <testcase name="twoSavesWithTheSameExpectedHeadMustNotBothCommit" classname="de.feldexa.app.storage.EncryptedStoreReviewTest" time="0.308"/>
+  <testcase name="pruneKeepsHeadAndRequestedRevisions" classname="de.feldexa.app.storage.EncryptedStoreReviewTest" time="0.029"/>
+  <testcase name="pruneNeverDeletesTheHeadEvenWhenItIsNotInTheKeepSet" classname="de.feldexa.app.storage.EncryptedStoreReviewTest" time="0.022"/>
+  <testcase name="eightyMiBObjectVerifiesUnder128MiBHeap" classname="de.feldexa.app.storage.EncryptedStoreReviewTest" time="10.842"/>
+  <testcase name="commitsPersistStrictlyIncreasingRevisionTimestamps" classname="de.feldexa.app.storage.EncryptedStoreReviewTest" time="0.017"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

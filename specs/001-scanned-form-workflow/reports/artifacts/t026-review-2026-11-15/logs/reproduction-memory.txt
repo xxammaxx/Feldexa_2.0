@@ -1,0 +1,11 @@
+T026 review reproduction - full-plaintext verification
+
+Command: Gradle :app:testDebugUnitTest --tests
+         de.feldexa.app.storage.EncryptedStoreReviewTest.eightyMiBObjectVerifiesUnder128MiBHeap
+Condition: staged verification temporarily restored to the pre-fix readContainer full-plaintext path.
+Child JVM: -Xmx128m; object: 80 MiB.
+Result: FAIL.
+Exception: java.lang.OutOfMemoryError: Java heap space
+  at de.feldexa.app.storage.EncryptedStore.readContainerInternal(...)
+Interpretation: the pre-fix read-back held the 80 MiB plaintext in addition to the input and
+                chunk buffers. The corrected verifyContainer path reuses chunk-sized buffers.

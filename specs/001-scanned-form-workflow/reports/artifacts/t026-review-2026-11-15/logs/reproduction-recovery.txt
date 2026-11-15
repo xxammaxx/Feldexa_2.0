@@ -1,0 +1,11 @@
+T026 review reproduction - equal-timestamp recovery
+
+Command: Gradle :app:testDebugUnitTest --tests
+         de.feldexa.app.storage.EncryptedStoreReviewTest.equalTimestampRecoveryMustNotPickByRandomUuid
+Condition: pre-fix recovery sorted equal-millisecond revisions by lastModified then UUID.
+Scenario: two revisions have equal mtimes; the lexicographically higher UUID belongs to the
+          older revision; the head is removed.
+Result: FAIL.
+Assertion: org.junit.Assert.assertFalse at EncryptedStoreReviewTest.kt:245 (assertFalse(stamp.readable)).
+Interpretation: the pre-fix code returned a readable stamp selected by UUID order. The
+                corrected code fails closed with SAVE-003 and keeps both revision files.

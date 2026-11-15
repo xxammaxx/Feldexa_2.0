@@ -1,0 +1,5 @@
+# T026 mtime-ordering APK identity (repo-relative paths)
+93b92c585e3a5b401c5e0dbd14d322fcfdc171216b1f7760f799672d8b0e0ac5   216359664  apps/feldexa_app/build/app/outputs/apk/debug/app-debug.apk  # app APK
+82711d4215d6fa24d754f5b26490effec216bf6db8155ff105f2d7768890d8a2      399814  apps/feldexa_app/build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk  # instrumentation test APK
+93b92c585e3a5b401c5e0dbd14d322fcfdc171216b1f7760f799672d8b0e0ac5   216359664  build/t026-work/guest-mtime/app-debug-installed.apk  # guest-pulled app APK
+82711d4215d6fa24d754f5b26490effec216bf6db8155ff105f2d7768890d8a2      399814  build/t026-work/guest-mtime/app-debug-androidTest-installed.apk  # guest-pulled test APK

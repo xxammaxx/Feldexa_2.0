@@ -1,0 +1,34 @@
+T026 owner decision - bounded head history and automatic retention
+
+Head field:
+  history: [{revisionId, kind}, ...]
+  * oldest first, at most 16 entries;
+  * kind = autosave | explicit | recovery | null (legacy/unknown);
+  * encoded atomically inside the encrypted head.fx1;
+  * built from the previous head history (existing files only), the previous
+    head's own {revisionId, kind}, and the new revision;
+  * a legacy head without history is valid and prunes nothing.
+
+Applied after the durable step-7 read-back:
+  keep = last 3 known autosaves + newest known explicit + newest known recovery
+         + verified head
+  delete only known-kind revision files not in keep;
+  never delete the verified head, unknown-kind entries, or untracked legacy
+  files;
+  then atomically rewrite head.fx1 with surviving history entries.
+
+Crash/restart:
+  a crash between the durable head and the prune is reconciled on startup or
+  the next save; a crash between deletion and history trim is reconciled by
+  filtering missing entries. A failed delete is retried on the next commit.
+  Deletions happen only after the head/revision read-back verification.
+
+Races:
+  the per-aggregate JVM lock wraps commit + prune; it does not protect
+  cross-process writers.
+
+Tests:
+  seven head-history tests cover ordering, policy, unknown kinds, legacy
+  heads, crash reconciliation, the 16-entry bound, and delete failure;
+  three device tests cover the policy, legacy head, and unknown entry on the
+  real AndroidKeyStore.

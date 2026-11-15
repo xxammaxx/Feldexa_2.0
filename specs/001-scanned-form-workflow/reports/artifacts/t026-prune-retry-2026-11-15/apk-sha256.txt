@@ -1,0 +1,5 @@
+# T026 prune-retry APK identity (repo-relative paths)
+518a0a37fe50e956482d0d313b16c953843f6519b18eb22700ede9c920d51860   216366594  apps/feldexa_app/build/app/outputs/apk/debug/app-debug.apk  # app APK
+00f73e17e6f734a8260baa139f3e4880e056b8979038041d44d5723b5e6e3452      403990  apps/feldexa_app/build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk  # instrumentation test APK
+518a0a37fe50e956482d0d313b16c953843f6519b18eb22700ede9c920d51860   216366594  build/t026-work/guest-prunefsync2/app-debug-installed.apk  # guest-pulled app APK
+00f73e17e6f734a8260baa139f3e4880e056b8979038041d44d5723b5e6e3452      403990  build/t026-work/guest-prunefsync2/app-debug-androidTest-installed.apk  # guest-pulled test APK

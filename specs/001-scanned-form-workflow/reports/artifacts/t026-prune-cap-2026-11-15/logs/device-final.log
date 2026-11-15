@@ -1,0 +1,4 @@
+version=    versionName=1.0
+runner=instrumentation:de.feldexa.app.test/androidx.test.runner.AndroidJUnitRunner (target=de.feldexa.app)
+sdk=35
+avd=T025_Pixel7_API35_KVM_20261115
