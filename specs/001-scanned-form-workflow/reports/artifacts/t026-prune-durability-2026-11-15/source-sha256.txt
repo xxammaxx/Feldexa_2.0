@@ -1,0 +1,4 @@
+# T026 prune-durability source at implementation commit 0c75c57
+3c3c135ab3144f54157d54db311d6c10c17f80ce64f9e170705de4daa500bd68    115093  apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/storage/EncryptedStore.kt
+57b8be735212e16ba40a50058dcf2c06a49794d9f62ee2a6654b0796f4e95a10      7391  apps/feldexa_app/android/app/src/test/kotlin/de/feldexa/app/storage/EncryptedStorePruneRecoveryTest.kt
+6d575624f86ab3088c8c6959a2a4b53302effbc1fefbbd4d7ad377c12ba02420     25980  apps/feldexa_app/android/app/src/androidTest/kotlin/de/feldexa/app/storage/EncryptedStoreInstrumentedTest.kt

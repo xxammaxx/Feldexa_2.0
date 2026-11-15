@@ -1,0 +1,22 @@
+T026 security review of ff8f7fb - prune delete durability
+
+Finding:
+  pruneDocumentFromHead swallowed a fsyncDirectory failure after deleting
+  known non-kept revisions, then filtered history by visible files. Save and
+  startup wrote that shortened history. After a crash, a non-durable delete
+  could reappear as an untracked file and bypass retention forever.
+
+Fix in 0c75c57:
+  * new StoreFaultPoint.PRUNE_FSYNC before the revision-directory fsync;
+  * if that fsync fails, return the complete head history and
+    deletesDurable=false; do not trim, do not count a durable prune;
+  * save/startup keep the full history and retry on the next startup/save;
+  * verified head, policy keep set, unknown-kind entries, and untracked
+    legacy files remain protected.
+
+Tests:
+  * save-path fsync failure + crash resurrection of rev1; history stays full;
+    next startup deletes rev1 and only then trims;
+  * startup-path fsync failure + crash resurrection; report count stays 0;
+    next startup retries and trims;
+  * device variant on the real AndroidKeyStore.
