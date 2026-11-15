@@ -29,6 +29,10 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // T025: JVM unit tests cover the Keystore lifecycle/failure policy;
+        // instrumented tests cover the real Android Keystore on a device or
+        // emulator. Neither layer substitutes for the other.
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -50,6 +54,11 @@ kotlin {
 // application code calls PDFBox yet.
 dependencies {
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
+
+    // T025 test layers: policy on the JVM, real Keystore instrumentation.
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.3.0")
+    androidTestImplementation("androidx.test:runner:1.7.0")
 
     constraints {
         implementation("org.bouncycastle:bcprov-jdk15to18:1.87")

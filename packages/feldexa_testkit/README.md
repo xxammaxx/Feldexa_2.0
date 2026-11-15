@@ -100,9 +100,11 @@ top of the T011 rules:
   applied before the read after its configured read count; `appliedJumps`
   records it.
 - `faultExceptionFor` maps every `FaultKind` to its T014 typed exception:
-  `SAVE-001` (`StorageFullException`), `SAVE-003`
-  (`StorageWriteException`), `SAVE-002` (`KeyUnavailableException`), and
-  `EXP-002` (`ExportFailedException`). `SAVE-008` has two explicit contexts:
+  `SAVE-001` (`StorageFullException`), write faults as `SAVE-003`
+  (`StorageWriteException`), `FaultKind.aggregateKeyUnavailable` as `SAVE-002`
+  (`KeyUnavailableException`), `FaultKind.corruptKeyMaterial` as `SAVE-003`
+  (`CorruptDataException`, integrity damage), and `EXP-002`
+  (`ExportFailedException`). `SAVE-008` has two explicit contexts:
   `FaultKind.keystoreUnavailable` is the retryable temporary provider outage and
   `FaultKind.keystoreReset` is the non-retryable device-wide reset; both map to
   `KeystoreUnavailableException` with the correct `retryable` value.

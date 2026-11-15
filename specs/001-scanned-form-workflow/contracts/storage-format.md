@@ -106,7 +106,8 @@ Each chunk is stored sequentially after the header:
 | Nonce reuse | Must not occur: random 8-byte prefix per object + chunk counter; regenerating an object requires a new DEK and nonce |
 
 **Keystore failure mapping**:
-- Alias missing / key invalidated / unwrap tag mismatch for one aggregate while at least one other aggregate key remains available → `KeyUnavailableException` (`SAVE-002`) for that aggregate; other aggregates use their own aliases and remain readable.
+- Alias missing / key invalidated for one aggregate while at least one other aggregate key remains available → `KeyUnavailableException` (`SAVE-002`) for that aggregate; other aggregates use their own aliases and remain readable.
+- A usable aggregate KEK whose wrapped DEK fails GCM authentication (tag mismatch) is an integrity/authentication failure → `CorruptDataException` (`SAVE-003`), not `SAVE-002`; the KEK remains available and no key is deleted. Corrupt chunk data follows the same `SAVE-003` rule (§5).
 - Keystore provider unavailable at boot (e.g., locked device before first unlock) → retry once after a short delay; if still unavailable, the operation fails with `KeystoreUnavailableException` (`SAVE-008`) and no partial state. If the provider is available but every stored aggregate key is missing/invalidated (device-wide reset), the same global `SAVE-008` applies; do not emit per-aggregate `SAVE-002` messages that claim other aggregates are unaffected.
 
 **Per-aggregate key lifecycle**:
@@ -114,7 +115,7 @@ Each chunk is stored sequentially after the header:
 - A document's alias is created with the aggregate directory before any encrypted object is written. A template's alias is created the same way before its first version commit. Key creation happens before the first ciphertext write; a failure leaves no visible aggregate.
 - Deleting a document or template deletes its encrypted objects and directory first, then its alias (§3.6). No other alias is read or deleted.
 - At startup, aliases under `feldexa.doc.v1.` or `feldexa.tpl.v1.` that have no corresponding aggregate directory are orphaned aliases and are deleted. An alias with an existing aggregate directory is never removed by the sweep.
-- Key availability has two levels. `StoreStatus.keyAvailable` is the T013-compatible, non-fatal store-level summary: false when at least one known aggregate key is unavailable; it does not identify which aggregate or whether the failure is global, and does not make the whole store fail. Per-aggregate detail is reported by `StoredMeta.readable`/`unreadableReasonCode` and by `KeyUnavailableException` (`SAVE-002`) or `KeystoreUnavailableException` (`SAVE-008`).
+- Key availability has two levels. `StoreStatus.keyAvailable` is the T013-compatible, non-fatal store-level summary: false when at least one known aggregate key is unavailable; it does not identify which aggregate or whether the failure is global, and does not make the whole store fail. Per-aggregate detail is reported by `StoredMeta.readable`/`unreadableReasonCode` and by `KeyUnavailableException` (`SAVE-002`), `KeystoreUnavailableException` (`SAVE-008`), or `CorruptDataException` (`SAVE-003`).
 - A whole-Keystore reset or device reset invalidates every alias. That is device-wide loss reported as `SAVE-008`, not the per-aggregate `SAVE-002` case; the ciphertext may also be gone. It is disclosed under FR-051 and is not claimed as per-document isolation.
 
 ### 2.4 Plaintext formats
@@ -221,7 +222,7 @@ No exception message may contain a file path, file name, document title, OCR tex
 
 Per-aggregate isolation covers loss/invalidation of one aggregate's alias while other aggregate keys remain available. A whole-Keystore or device reset invalidates every alias and is device-wide loss reported as `SAVE-008`; no per-aggregate scheme can isolate it, and the ciphertext may also be gone.
 
-**Key-loss listing limitation**: `meta.fx1` is encrypted with the aggregate KEK, so a lost aggregate key also hides that aggregate's title and stored timestamps. The store must still enumerate the directory as `readable = false` with `unreadableReasonCode = SAVE-002` for aggregate-scoped loss or `SAVE-008` for a global provider/reset condition; `StoredMeta.title` is the localized "Nicht lesbar" placeholder, never a ciphertext-derived title. The UI renders the matching localized state. No plaintext index or shared metadata key is introduced. Unaffected aggregates keep their own metadata keys.
+**Key-loss listing limitation**: `meta.fx1` is encrypted with the aggregate KEK, so a lost aggregate key also hides that aggregate's title and stored timestamps. The store must still enumerate the directory as `readable = false` with `unreadableReasonCode = SAVE-002` for aggregate-scoped key loss, `SAVE-003` when the aggregate's stored data fails authentication, or `SAVE-008` for a global provider/reset condition; `StoredMeta.title` is the localized "Nicht lesbar" placeholder, never a ciphertext-derived title. The UI renders the matching localized state. No plaintext index or shared metadata key is introduced. Unaffected aggregates keep their own metadata keys.
 
 ---
 

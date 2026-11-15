@@ -203,7 +203,8 @@ void main() {
         FaultKind.writeInterrupted: StorageWriteException,
         FaultKind.keystoreUnavailable: KeystoreUnavailableException,
         FaultKind.keystoreReset: KeystoreUnavailableException,
-        FaultKind.corruptKeyMaterial: KeyUnavailableException,
+        FaultKind.aggregateKeyUnavailable: KeyUnavailableException,
+        FaultKind.corruptKeyMaterial: CorruptDataException,
         FaultKind.exportFailure: ExportFailedException,
       };
 
@@ -216,8 +217,15 @@ void main() {
       }
     });
 
-    test('keeps aggregate and global key failures distinct', () {
-      final FeldexaException aggregate = faultExceptionFor(
+    test('keeps key-loss, integrity, and global failures distinct', () {
+      final FeldexaException keyLoss = faultExceptionFor(
+        const InjectedFault(
+          kind: FaultKind.aggregateKeyUnavailable,
+          point: FaultPoints.keystoreUnwrap,
+          callIndex: 1,
+        ),
+      );
+      final FeldexaException integrity = faultExceptionFor(
         const InjectedFault(
           kind: FaultKind.corruptKeyMaterial,
           point: FaultPoints.storeRead,
@@ -239,9 +247,12 @@ void main() {
         ),
       );
 
-      expect(aggregate, isA<KeyUnavailableException>());
-      expect(aggregate.code, 'SAVE-002');
-      expect(aggregate.retryable, isFalse);
+      expect(keyLoss, isA<KeyUnavailableException>());
+      expect(keyLoss.code, 'SAVE-002');
+      expect(keyLoss.retryable, isFalse);
+      expect(integrity, isA<CorruptDataException>());
+      expect(integrity.code, 'SAVE-003');
+      expect(integrity.retryable, isFalse);
       expect(global, isA<KeystoreUnavailableException>());
       expect(global.code, 'SAVE-008');
       expect(global.retryable, isTrue);
@@ -409,7 +420,7 @@ void main() {
 
       await expectLater(
         value.loadDocument('00000000-0000-4000-8000-000000000001'),
-        throwsA(isA<KeyUnavailableException>()),
+        throwsA(isA<CorruptDataException>()),
       );
       expect(delegate.loadCalls, 0, reason: 'the delegate must not run');
       expect(store.injector.callsAt(FaultPoints.keystoreUnwrap), 1);
@@ -418,6 +429,29 @@ void main() {
         0,
         reason: 'unwrap fails before the read point is reached',
       );
+    });
+
+    test('surfaces aggregate-scoped SAVE-002 at the unwrap point', () async {
+      final FaultingSecureStore value = build(
+        _injectorFor(
+          FaultRule(
+            point: FaultPoints.keystoreUnwrap,
+            kind: FaultKind.aggregateKeyUnavailable,
+          ),
+        ),
+      );
+
+      await expectLater(
+        value.loadDocument('00000000-0000-4000-8000-000000000001'),
+        throwsA(
+          isA<KeyUnavailableException>().having(
+            (KeyUnavailableException error) => error.code,
+            'code',
+            'SAVE-002',
+          ),
+        ),
+      );
+      expect(delegate.loadCalls, 0);
     });
 
     test('checks keystore.unwrap on the write path', () async {
@@ -436,7 +470,7 @@ void main() {
           ran = true;
           return 'never';
         }),
-        throwsA(isA<KeyUnavailableException>()),
+        throwsA(isA<CorruptDataException>()),
       );
       expect(ran, isFalse);
       expect(store.injector.callsAt(FaultPoints.storeWrite), 0);
@@ -502,7 +536,7 @@ void main() {
 
       await expectLater(
         value.loadDocument('00000000-0000-4000-8000-000000000001'),
-        throwsA(isA<KeyUnavailableException>()),
+        throwsA(isA<CorruptDataException>()),
       );
       expect(delegate.loadCalls, 0);
     });
