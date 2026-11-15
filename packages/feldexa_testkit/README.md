@@ -119,9 +119,11 @@ top of the T011 rules:
   real phase boundaries. `store.stage` is checked twice so a failure before the
   temp object exists is distinguishable from one after it exists. The seam only
   injects; staging cleanup and durable-head preservation remain adapter duties.
-  Real durable-head assertions therefore require the T026/T028 adapter to call
-  this seam inside its transaction; the package's own `_CommitModel` test double
-  is a contract example, not production evidence.
+  Real durable-head assertions therefore require the adapter transaction under
+  test to call this seam: T028's Dart simulated storage adapter can use this
+  Dart seam in its tests, while T026's Kotlin `EncryptedStore` needs a native
+  equivalent fault-injection/test seam in its own task. The package's own
+  `_CommitModel` test double is a contract example, not production evidence.
 - `FaultingPdfExport` wraps any `PdfExportPort` and checks
   `export.validate`, `export.write`, and `export.verify`. A verification fault
   best-effort deletes the candidate artifact before throwing `EXP-002`.

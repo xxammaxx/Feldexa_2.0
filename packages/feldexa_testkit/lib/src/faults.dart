@@ -265,8 +265,10 @@ void _checkFault(FaultInjector injector, String point) {
 /// staged object exists (`startsAt: 1`) from one after it exists
 /// (`startsAt: 2`). The seam is test scaffolding: it does not create files,
 /// preserve a head, or clean staging. Those are adapter obligations; a real
-/// durable-head assertion is only possible once the T026/T028 adapter calls
-/// this seam inside its own transaction.
+/// durable-head assertion is only possible once the adapter transaction under
+/// test calls this seam. T028's Dart simulated storage adapter can use this
+/// Dart seam in its tests; T026's Kotlin `EncryptedStore` needs an equivalent
+/// native fault-injection/test seam in T026.
 final class StagedWriteFaultSeam {
   /// Creates a seam that reads faults from [injector].
   StagedWriteFaultSeam({required this.injector});
