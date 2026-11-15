@@ -361,22 +361,40 @@ void main() {
       );
     });
 
-    test('catalog codes distinguish global and aggregate key failures', () {
-      expect(FaultKind.storageFull.catalogCode, 'SAVE-001');
-      expect(FaultKind.keystoreUnavailable.catalogCode, 'SAVE-008');
-      expect(
-        FaultKind.keystoreUnavailable.description,
-        contains('Global Keystore'),
-      );
-      expect(FaultKind.corruptKeyMaterial.catalogCode, 'SAVE-002');
+    test(
+      'catalog codes distinguish global, aggregate-key, and integrity failures',
+      () {
+        expect(FaultKind.storageFull.catalogCode, 'SAVE-001');
+        expect(FaultKind.keystoreUnavailable.catalogCode, 'SAVE-008');
+        expect(
+          FaultKind.keystoreUnavailable.description,
+          contains('Global Keystore'),
+        );
+        expect(FaultKind.aggregateKeyUnavailable.catalogCode, 'SAVE-002');
+        expect(
+          FaultKind.aggregateKeyUnavailable.description,
+          contains('missing or invalidated'),
+        );
+        expect(FaultKind.corruptKeyMaterial.catalogCode, 'SAVE-003');
+        expect(FaultKind.corruptKeyMaterial.catalogCode, isNot('SAVE-002'));
+        expect(
+          FaultKind.corruptKeyMaterial.description,
+          contains('authentication'),
+        );
+        expect(FaultKind.shortWrite.catalogCode, 'SAVE-003');
+        expect(FaultKind.fsyncFailure.catalogCode, 'SAVE-003');
+        expect(FaultKind.writeInterrupted.catalogCode, 'SAVE-003');
+        expect(FaultKind.exportFailure.catalogCode, 'EXP-002');
+      },
+    );
+
+    test('wrapped-DEK authentication failure is SAVE-003, not key loss', () {
+      expect(FaultKind.corruptKeyMaterial.catalogCode, 'SAVE-003');
       expect(
         FaultKind.corruptKeyMaterial.description,
-        contains('Aggregate key material'),
+        isNot(contains('unavailable')),
       );
-      expect(FaultKind.shortWrite.catalogCode, 'SAVE-003');
-      expect(FaultKind.fsyncFailure.catalogCode, 'SAVE-003');
-      expect(FaultKind.writeInterrupted.catalogCode, 'SAVE-003');
-      expect(FaultKind.exportFailure.catalogCode, 'EXP-002');
+      expect(FaultKind.keystoreUnavailable.catalogCode, 'SAVE-008');
     });
   });
 }

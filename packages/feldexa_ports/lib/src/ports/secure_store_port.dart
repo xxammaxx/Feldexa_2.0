@@ -44,7 +44,8 @@ abstract interface class SecureStorePort implements PlatformCapability {
   /// Throws `KeyUnavailableException` (`SAVE-002`) for one aggregate while
   /// other aggregate keys remain available, `KeystoreUnavailableException`
   /// (`SAVE-008`) for a global provider/reset condition, or
-  /// `CorruptDataException`. With `SAVE-002`, other documents remain loadable.
+  /// `CorruptDataException` (`SAVE-003`) for a wrapped-DEK or chunk
+  /// authentication failure. With `SAVE-002`, other documents remain loadable.
   Future<LoadedDocument> loadDocument(String documentId);
 
   /// Reads one decrypted signature asset, bounded in size.
