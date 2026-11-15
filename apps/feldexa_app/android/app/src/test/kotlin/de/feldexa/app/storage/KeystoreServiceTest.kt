@@ -225,6 +225,60 @@ class KeystoreServiceTest {
     }
 
     @Test
+    fun `wrap uses the provider-generated iv`() {
+        val backend = FakeBackend()
+        val service = service(backend)
+        service.createAggregateKey(document())
+
+        val wrapped = service.wrapDek(document(), randomBytes(KeystoreService.DEK_SIZE_BYTES))
+
+        assertTrue(backend.lastEncryptIv!!.contentEquals(wrapped.wrapIv))
+        assertEquals(KeystoreService.WRAP_IV_SIZE_BYTES, wrapped.wrapIv.size)
+    }
+
+    @Test
+    fun `unwrap uses the stored wrap iv`() {
+        val backend = FakeBackend()
+        val service = service(backend)
+        service.createAggregateKey(document())
+        val wrapped = service.wrapDek(document(), randomBytes(KeystoreService.DEK_SIZE_BYTES))
+
+        service.unwrapDek(document(), wrapped)
+
+        assertTrue(backend.lastDecryptIv!!.contentEquals(wrapped.wrapIv))
+    }
+
+    @Test
+    fun `wrap rejects a provider iv that is not twelve bytes`() {
+        val backend = FakeBackend()
+        val service = service(backend)
+        service.createAggregateKey(document())
+        backend.providerIvOverride = ByteArray(16)
+
+        val failure = assertThrows(KeystoreUnavailableException::class.java) {
+            service.wrapDek(document(), randomBytes(KeystoreService.DEK_SIZE_BYTES))
+        }
+
+        assertEquals("SAVE-008", failure.code)
+        assertTrue(failure.retryable)
+    }
+
+    @Test
+    fun `wrap rejects a provider wrapped key of the wrong length`() {
+        val backend = FakeBackend()
+        val service = service(backend)
+        service.createAggregateKey(document())
+        backend.truncateCiphertext = true
+
+        val failure = assertThrows(KeystoreUnavailableException::class.java) {
+            service.wrapDek(document(), randomBytes(KeystoreService.DEK_SIZE_BYTES))
+        }
+
+        assertEquals("SAVE-008", failure.code)
+        assertTrue(failure.retryable)
+    }
+
+    @Test
     fun `wrap rejects a dek of the wrong length`() {
         val backend = FakeBackend()
         val service = service(backend)
@@ -602,7 +656,13 @@ class KeystoreServiceTest {
         var providerChecks = 0
         var deleteCalls = 0
         var lastAad: ByteArray? = null
+        var lastEncryptIv: ByteArray? = null
+        var lastDecryptIv: ByteArray? = null
+        var providerIvOverride: ByteArray? = null
+        var truncateCiphertext = false
         var failDeletes = false
+
+        private val random = SecureRandom()
 
         override fun providerAvailable(): Boolean {
             providerChecks++
@@ -639,12 +699,25 @@ class KeystoreServiceTest {
 
         override fun encrypt(
             alias: String,
-            iv: ByteArray,
             aad: ByteArray,
             plaintext: ByteArray,
-        ): ByteArray {
+        ): WrappedDek {
             lastAad = aad.copyOf()
-            return cipher(Cipher.ENCRYPT_MODE, alias, iv, aad).doFinal(plaintext)
+            // Mirrors Android Keystore: the provider, not the caller, supplies
+            // the random 12-byte GCM IV when IND-CPA is required.
+            val iv = providerIvOverride?.copyOf()
+                ?: ByteArray(KeystoreService.WRAP_IV_SIZE_BYTES).also {
+                    random.nextBytes(it)
+                }
+            lastEncryptIv = iv.copyOf()
+            val ciphertext = cipher(Cipher.ENCRYPT_MODE, alias, iv, aad)
+                .doFinal(plaintext)
+            val stored = if (truncateCiphertext) {
+                ciphertext.copyOf(ciphertext.size - 1)
+            } else {
+                ciphertext
+            }
+            return WrappedDek(iv, stored)
         }
 
         override fun decrypt(
@@ -654,6 +727,7 @@ class KeystoreServiceTest {
             ciphertext: ByteArray,
         ): ByteArray {
             if (decryptProviderFailure) throw ProviderException("provider down")
+            lastDecryptIv = iv.copyOf()
             return try {
                 cipher(Cipher.DECRYPT_MODE, alias, iv, aad).doFinal(ciphertext)
             } catch (failure: AEADBadTagException) {

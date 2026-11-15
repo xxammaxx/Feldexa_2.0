@@ -66,6 +66,20 @@ class KeystoreServiceInstrumentedTest {
     }
 
     @Test
+    fun providerGeneratesFreshTwelveByteIvForEveryWrap() {
+        service.createAggregateKey(documentOne)
+
+        val first = service.wrapDek(documentOne, randomDek())
+        val second = service.wrapDek(documentOne, randomDek())
+
+        assertEquals(12, first.wrapIv.size)
+        assertEquals(12, second.wrapIv.size)
+        assertFalse(first.wrapIv.contentEquals(second.wrapIv))
+        service.unwrapDek(documentOne, first)
+        service.unwrapDek(documentOne, second)
+    }
+
+    @Test
     fun keyIsNonExportableAndDoesNotRequireUserAuthentication() {
         service.createAggregateKey(documentOne)
 

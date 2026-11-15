@@ -8,7 +8,6 @@ import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
 import java.security.InvalidKeyException
 import java.security.KeyStore
-import java.security.SecureRandom
 import java.security.UnrecoverableKeyException
 import javax.crypto.AEADBadTagException
 import javax.crypto.Cipher
@@ -54,7 +53,6 @@ import javax.crypto.spec.GCMParameterSpec
  */
 class KeystoreService(
     private val backend: KeystoreBackend,
-    private val secureRandom: SecureRandom = SecureRandom(),
     private val strongBoxSupported: Boolean = false,
     private val sleeper: (Long) -> Unit = { Thread.sleep(it) },
 ) {
@@ -142,9 +140,12 @@ class KeystoreService(
     }
 
     /**
-     * Wraps a 32-byte DEK with the aggregate's KEK using AES-GCM, AAD
-     * `FXC1-DEK`, and a fresh random 12-byte IV (§2.3). The returned wrapped
-     * key is 48 bytes (32-byte DEK + 16-byte tag).
+     * Wraps a 32-byte DEK with the aggregate's KEK using AES-GCM and AAD
+     * `FXC1-DEK` (§2.3). The provider generates the fresh random 12-byte IV
+     * and returns it in [WrappedDek.wrapIv]; Android Keystore rejects
+     * caller-provided IVs when encrypting with a key that requires randomized
+     * encryption (IND-CPA). The returned wrapped key is 48 bytes (32-byte DEK
+     * plus 16-byte tag).
      */
     fun wrapDek(ref: AggregateRef, dek: ByteArray): WrappedDek {
         requireValid(ref)
@@ -155,9 +156,8 @@ class KeystoreService(
         if (!containsAlias(ref.alias) || !isUsable(ref.alias)) {
             throw keyLoss(ref)
         }
-        val wrapIv = ByteArray(WRAP_IV_SIZE_BYTES).also(secureRandom::nextBytes)
-        val wrappedKey = try {
-            backend.encrypt(ref.alias, wrapIv, WRAP_AAD_BYTES, dek)
+        val wrapped = try {
+            backend.encrypt(ref.alias, WRAP_AAD_BYTES, dek)
         } catch (failure: AEADBadTagException) {
             throw CorruptDataException()
         } catch (failure: UnrecoverableKeyException) {
@@ -167,10 +167,15 @@ class KeystoreService(
         } catch (failure: Exception) {
             throw keystoreUnavailable()
         }
-        if (wrappedKey.size != WRAPPED_DEK_SIZE_BYTES) {
-            throw CorruptDataException()
+        // FXC1 requires exactly a 12-byte wrap IV and a 48-byte wrapped DEK
+        // (§2.1/§2.3). A provider that returns anything else cannot produce a
+        // valid header; fail closed instead of writing malformed material.
+        if (wrapped.wrapIv.size != WRAP_IV_SIZE_BYTES ||
+            wrapped.wrappedKey.size != WRAPPED_DEK_SIZE_BYTES
+        ) {
+            throw keystoreUnavailable()
         }
-        return WrappedDek(wrapIv, wrappedKey)
+        return wrapped
     }
 
     /**
@@ -590,15 +595,20 @@ interface KeystoreBackend {
     /** Deletes the alias; returns true when it is absent or removed. */
     fun deleteAlias(alias: String): Boolean
 
-    /** AES-GCM encrypt with the alias's key and the supplied AAD/IV. */
+    /**
+     * AES-GCM encrypt with the alias's key and AAD. The backend must let the
+     * provider generate the random 12-byte IV and return it with the
+     * ciphertext; Android Keystore rejects caller-provided IVs on encryption
+     * while randomized encryption (IND-CPA) is required, so no IV parameter
+     * exists here.
+     */
     fun encrypt(
         alias: String,
-        iv: ByteArray,
         aad: ByteArray,
         plaintext: ByteArray,
-    ): ByteArray
+    ): WrappedDek
 
-    /** AES-GCM decrypt with the alias's key and the supplied AAD/IV. */
+    /** AES-GCM decrypt with the alias's key, the stored IV, and AAD. */
     fun decrypt(
         alias: String,
         iv: ByteArray,
@@ -682,18 +692,18 @@ internal class AndroidKeystoreBackend : KeystoreBackend {
 
     override fun encrypt(
         alias: String,
-        iv: ByteArray,
         aad: ByteArray,
         plaintext: ByteArray,
-    ): ByteArray {
+    ): WrappedDek {
         val cipher = Cipher.getInstance(TRANSFORMATION)
-        cipher.init(
-            Cipher.ENCRYPT_MODE,
-            requireKey(alias),
-            GCMParameterSpec(TAG_SIZE_BITS, iv),
-        )
+        // No GCMParameterSpec here: with randomized encryption required,
+        // Android Keystore rejects a caller-provided IV on encryption and
+        // generates the random 12-byte GCM IV itself.
+        cipher.init(Cipher.ENCRYPT_MODE, requireKey(alias))
         cipher.updateAAD(aad)
-        return cipher.doFinal(plaintext)
+        val ciphertext = cipher.doFinal(plaintext)
+        val iv = cipher.iv ?: throw IllegalStateException("keystore.ivMissing")
+        return WrappedDek(iv, ciphertext)
     }
 
     override fun decrypt(
