@@ -1,0 +1,971 @@
+package de.feldexa.app
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import java.util.UUID
+import java.util.concurrent.RejectedExecutionException
+
+/**
+ * T024 host-JVM contract tests for the platform-channel facade.
+ *
+ * These tests exercise the pure channel core (validation, envelope, error
+ * mapping, cancellation, threading seam, events). They are `NONE`-class evidence:
+ * they prove no Android runtime behavior and are never reported as `EMULATOR`.
+ */
+class FeldexaPluginTest {
+
+    private val documentId = "123e4567-e89b-42d3-a456-426614174000"
+    private val assetId = "123e4567-e89b-42d3-a456-426614174001"
+    private val templateId = "123e4567-e89b-42d3-a456-426614174002"
+    private val artifactId = "123e4567-e89b-42d3-a456-426614174003"
+    private val operationId = "123e4567-e89b-42d3-a456-426614174004"
+
+    // ---- success envelope and every contract method -------------------------
+
+    @Test
+    fun successEnvelopeWrapsServiceData() {
+        val data = linkedMapOf<String, Any?>("keyAvailable" to true, "objectCount" to 2, "totalBytes" to 10)
+        val facade = newFacade(service = ReturningService(data))
+        val reply = RecordingReply()
+
+        facade.handle("store.status", mapOf("schemaVersion" to 1), reply)
+
+        assertNull(reply.failure)
+        val envelope = reply.successValue as Map<*, *>
+        assertEquals(1, envelope["schemaVersion"])
+        assertEquals(true, envelope["ok"])
+        assertEquals(data, envelope["data"])
+    }
+
+    @Test
+    fun everyContractMethodAcceptsMinimalPayload() {
+        val services = PlatformServiceRegistry()
+        PlatformServiceRegistry.METHOD_PREFIXES.forEach { prefix ->
+            services.register(prefix, ReturningService(mapOf("ok" to true)))
+        }
+        val facade = PlatformChannelFacade(
+            services = services,
+            mainPoster = DirectPoster,
+            events = PlatformEventPublisher(DirectPoster),
+            executor = DirectExecutor,
+            clock = { 0L },
+        )
+        val minimalPayloads: Map<String, Map<String, Any?>> = linkedMapOf(
+            "import.pickAndImport" to mapOf("maxBytes" to 1024, "titleHint" to null),
+            "import.verifySource" to mapOf("sourceId" to documentId),
+            "import.discardStaged" to mapOf("txnId" to "txn-1"),
+            "store.status" to emptyMap(),
+            "store.list" to mapOf("kind" to "document"),
+            "store.readSource" to mapOf("documentId" to documentId),
+            "store.readSignature" to mapOf("documentId" to documentId, "assetId" to assetId),
+            "store.writeSignature" to mapOf(
+                "documentId" to documentId,
+                "assetId" to assetId,
+                "bytes" to ByteArray(4),
+                "sha256" to "a".repeat(64),
+            ),
+            "store.saveRevision" to mapOf(
+                "documentId" to documentId,
+                "revision" to mapOf("value" to "x"),
+                "expectedHead" to null,
+                "kind" to "autosave",
+            ),
+            "store.createTemplate" to mapOf(
+                "template" to mapOf("title" to "T"),
+                "revision" to mapOf("value" to "x"),
+            ),
+            "store.saveTemplateVersion" to mapOf(
+                "templateId" to templateId,
+                "version" to mapOf("value" to "x"),
+                "expectedHead" to null,
+            ),
+            "store.loadDocument" to mapOf("documentId" to documentId),
+            "store.loadTemplate" to mapOf("templateId" to templateId, "versionId" to null),
+            "store.delete" to mapOf(
+                "kind" to "document",
+                "id" to documentId,
+                "confirm" to mapOf("title" to "Titel", "acknowledged" to true),
+            ),
+            "store.recoveryStamp" to mapOf("kind" to "template", "id" to templateId),
+            "ocr.recognize" to mapOf(
+                "pageIndex" to 0,
+                "imageWidth" to 100,
+                "imageHeight" to 100,
+                "pageWidthPt" to 100.0,
+                "pageHeightPt" to 100.0,
+                "format" to "gray8",
+                "bytes" to ByteArray(10),
+                "language" to "de",
+            ),
+            "export.validate" to mapOf("plan" to mapOf("value" to "x")),
+            "export.render" to mapOf("plan" to mapOf("value" to "x")),
+            "export.readArtifact" to mapOf("artifactId" to artifactId),
+            "export.deleteArtifact" to mapOf("artifactId" to artifactId),
+            "delivery.save" to mapOf("artifactId" to artifactId, "suggestedName" to "Antrag.pdf"),
+            "delivery.share" to mapOf("artifactId" to artifactId, "mimeType" to "application/pdf"),
+            "delivery.print" to mapOf("artifactId" to artifactId, "jobName" to "Feldexa Dokument"),
+            "cancel.operation" to mapOf("operationId" to operationId),
+        )
+
+        val failures = mutableListOf<String>()
+        for ((method, payload) in minimalPayloads) {
+            val reply = RecordingReply()
+            facade.handle(method, mapOf("schemaVersion" to 1) + payload, reply)
+            val failure = reply.failure
+            when {
+                failure != null -> failures += "$method -> ${failure.code}"
+                reply.successValue !is Map<*, *> -> failures += "$method -> no envelope"
+                (reply.successValue as Map<*, *>)["ok"] != true -> failures += "$method -> not ok"
+            }
+        }
+        assertTrue(failures.joinToString(), failures.isEmpty())
+    }
+
+    @Test
+    fun longSchemaVersionIsAccepted() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle("store.status", mapOf("schemaVersion" to 1L), reply)
+        assertNull(reply.failure)
+    }
+
+    // ---- payload validation -------------------------------------------------
+
+    @Test
+    fun nonMapPayloadIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle("store.status", "not-a-map", reply)
+        assertFailure(reply, "PLT-003")
+    }
+
+    @Test
+    fun nullPayloadIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle("store.status", null, reply)
+        assertFailure(reply, "PLT-003")
+    }
+
+    @Test
+    fun missingSchemaVersionIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle("store.status", emptyMap<String, Any?>(), reply)
+        assertFailure(reply, "PLT-003")
+        assertEquals("platform.schemaVersionMissing", reply.failure?.machineMessage)
+    }
+
+    @Test
+    fun unsupportedSchemaVersionIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle("store.status", mapOf("schemaVersion" to 2), reply)
+        assertFailure(reply, "PLT-003")
+    }
+
+    @Test
+    fun unknownTopLevelFieldIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle("store.status", mapOf("schemaVersion" to 1, "extra" to true), reply)
+        assertFailure(reply, "PLT-003")
+        assertEquals("platform.unknownField", reply.failure?.machineMessage)
+    }
+
+    @Test
+    fun nonStringTopLevelKeyIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle("store.status", linkedMapOf<Any?, Any?>(1 to "x", "schemaVersion" to 1), reply)
+        assertFailure(reply, "PLT-003")
+    }
+
+    @Test
+    fun missingRequiredFieldIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle("store.readSource", mapOf("schemaVersion" to 1), reply)
+        assertFailure(reply, "PLT-003")
+    }
+
+    @Test
+    fun badUuidIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle(
+            "store.readSource",
+            mapOf("schemaVersion" to 1, "documentId" to "../../etc/passwd"),
+            reply,
+        )
+        assertFailure(reply, "PLT-002")
+    }
+
+    @Test
+    fun nonStringUuidIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle("store.readSource", mapOf("schemaVersion" to 1, "documentId" to 42), reply)
+        assertFailure(reply, "PLT-002")
+    }
+
+    @Test
+    fun overlongTitleHintIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle(
+            "import.pickAndImport",
+            mapOf("schemaVersion" to 1, "maxBytes" to 1024, "titleHint" to "x".repeat(201)),
+            reply,
+        )
+        assertFailure(reply, "PLT-003")
+    }
+
+    @Test
+    fun controlCharacterIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle(
+            "import.pickAndImport",
+            mapOf("schemaVersion" to 1, "maxBytes" to 1024, "titleHint" to "bad\u0000title"),
+            reply,
+        )
+        assertFailure(reply, "PLT-003")
+    }
+
+    @Test
+    fun payloadLimitIsEnforced() {
+        val facade = newFacade(limits = ChannelLimits(maxPayloadBytes = 8))
+        val reply = RecordingReply()
+        facade.handle(
+            "import.pickAndImport",
+            mapOf("schemaVersion" to 1, "maxBytes" to 1, "titleHint" to "abcdef"),
+            reply,
+        )
+        assertFailure(reply, "PLT-003")
+        assertEquals("platform.payloadTooLarge", reply.failure?.machineMessage)
+    }
+
+    @Test
+    fun exportPlanLimitIsEnforced() {
+        val facade = newFacade(limits = ChannelLimits(maxExportPlanBytes = 4))
+        val reply = RecordingReply()
+        facade.handle(
+            "export.validate",
+            mapOf("schemaVersion" to 1, "plan" to mapOf("a" to "bcd")),
+            reply,
+        )
+        assertFailure(reply, "PLT-003")
+    }
+
+    @Test
+    fun signatureSizeLimitMapsToSave007() {
+        val facade = newFacade(limits = ChannelLimits(maxSignatureBytes = 2))
+        val reply = RecordingReply()
+        facade.handle(
+            "store.writeSignature",
+            mapOf(
+                "schemaVersion" to 1,
+                "documentId" to documentId,
+                "assetId" to assetId,
+                "bytes" to ByteArray(3),
+                "sha256" to "a".repeat(64),
+            ),
+            reply,
+        )
+        assertFailure(reply, "SAVE-007")
+    }
+
+    @Test
+    fun revisionSizeLimitMapsToSave007() {
+        val facade = newFacade(limits = ChannelLimits(maxRevisionBytes = 4))
+        val reply = RecordingReply()
+        facade.handle(
+            "store.saveRevision",
+            mapOf(
+                "schemaVersion" to 1,
+                "documentId" to documentId,
+                "revision" to mapOf("a" to "bcd"),
+                "expectedHead" to null,
+                "kind" to "autosave",
+            ),
+            reply,
+        )
+        assertFailure(reply, "SAVE-007")
+    }
+
+    @Test
+    fun oversizedOcrEdgeIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle(
+            "ocr.recognize",
+            mapOf(
+                "schemaVersion" to 1,
+                "pageIndex" to 0,
+                "imageWidth" to 4097,
+                "imageHeight" to 100,
+                "pageWidthPt" to 100.0,
+                "pageHeightPt" to 100.0,
+                "format" to "gray8",
+                "bytes" to ByteArray(10),
+                "language" to "de",
+            ),
+            reply,
+        )
+        assertFailure(reply, "PLT-003")
+    }
+
+    @Test
+    fun unsupportedOcrFormatIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle(
+            "ocr.recognize",
+            mapOf(
+                "schemaVersion" to 1,
+                "pageIndex" to 0,
+                "imageWidth" to 100,
+                "imageHeight" to 100,
+                "pageWidthPt" to 100.0,
+                "pageHeightPt" to 100.0,
+                "format" to "rgb8",
+                "bytes" to ByteArray(10),
+                "language" to "de",
+            ),
+            reply,
+        )
+        assertFailure(reply, "PLT-003")
+    }
+
+    @Test
+    fun nonGermanOcrLanguageIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle(
+            "ocr.recognize",
+            mapOf(
+                "schemaVersion" to 1,
+                "pageIndex" to 0,
+                "imageWidth" to 100,
+                "imageHeight" to 100,
+                "pageWidthPt" to 100.0,
+                "pageHeightPt" to 100.0,
+                "format" to "gray8",
+                "bytes" to ByteArray(10),
+                "language" to "en",
+            ),
+            reply,
+        )
+        assertFailure(reply, "PLT-003")
+    }
+
+    @Test
+    fun badSignatureHashIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle(
+            "store.writeSignature",
+            mapOf(
+                "schemaVersion" to 1,
+                "documentId" to documentId,
+                "assetId" to assetId,
+                "bytes" to ByteArray(1),
+                "sha256" to "not-a-hash",
+            ),
+            reply,
+        )
+        assertFailure(reply, "PLT-003")
+    }
+
+    @Test
+    fun unacknowledgedDeleteIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle(
+            "store.delete",
+            mapOf(
+                "schemaVersion" to 1,
+                "kind" to "document",
+                "id" to documentId,
+                "confirm" to mapOf("title" to "Titel", "acknowledged" to false),
+            ),
+            reply,
+        )
+        assertFailure(reply, "SAVE-007")
+    }
+
+    @Test
+    fun unknownDeleteConfirmationFieldIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle(
+            "store.delete",
+            mapOf(
+                "schemaVersion" to 1,
+                "kind" to "document",
+                "id" to documentId,
+                "confirm" to mapOf(
+                    "title" to "Titel",
+                    "acknowledged" to true,
+                    "path" to "/tmp/secret.pdf",
+                ),
+            ),
+            reply,
+        )
+        assertFailure(reply, "PLT-003")
+    }
+
+    @Test
+    fun suggestedNameWithPathSeparatorIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle(
+            "delivery.save",
+            mapOf(
+                "schemaVersion" to 1,
+                "artifactId" to artifactId,
+                "suggestedName" to "a/b.pdf",
+            ),
+            reply,
+        )
+        assertFailure(reply, "PLT-003")
+    }
+
+    @Test
+    fun wrongShareMimeTypeIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle(
+            "delivery.share",
+            mapOf(
+                "schemaVersion" to 1,
+                "artifactId" to artifactId,
+                "mimeType" to "text/plain",
+            ),
+            reply,
+        )
+        assertFailure(reply, "PLT-003")
+    }
+
+    // ---- routing ------------------------------------------------------------
+
+    @Test
+    fun unknownMethodIsUnsupported() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle("store.readAnyFile", mapOf("schemaVersion" to 1), reply)
+        assertFailure(reply, "PLT-001")
+        assertEquals("unsupported", reply.failure?.category)
+    }
+
+    @Test
+    fun unregisteredServiceIsUnsupported() {
+        val facade = newFacade(servicePrefix = null)
+        val reply = RecordingReply()
+        facade.handle("store.status", mapOf("schemaVersion" to 1), reply)
+        assertFailure(reply, "PLT-001")
+        assertEquals("unsupported", reply.failure?.category)
+    }
+
+    // ---- error mapping ------------------------------------------------------
+
+    @Test
+    fun platformFailureIsMappedWithDurationAndDetails() {
+        val times = java.util.ArrayDeque(listOf(1000L, 1007L))
+        val facade = newFacade(
+            service = ThrowingService(
+                PlatformFailure(
+                    code = "SAVE-001",
+                    category = "storageFull",
+                    retryable = true,
+                    machineMessage = "save.noSpace",
+                    pageIndex = 2,
+                    fieldCount = 3,
+                ),
+            ),
+            clock = { times.removeFirst() },
+        )
+        val reply = RecordingReply()
+
+        facade.handle("store.status", mapOf("schemaVersion" to 1), reply)
+
+        val failure = reply.failure!!
+        assertEquals("SAVE-001", failure.code)
+        assertEquals("save.noSpace", failure.machineMessage)
+        assertEquals("save.noSpace", failure.message)
+        val details = failure.details()
+        assertEquals(1, details["schemaVersion"])
+        assertEquals("storageFull", details["category"])
+        assertEquals(true, details["retryable"])
+        assertEquals(2, details["pageIndex"])
+        assertEquals(3, details["fieldCount"])
+        assertEquals(7L, details["durationMs"])
+    }
+
+    @Test
+    fun unexpectedExceptionIsSanitized() {
+        val facade = newFacade(
+            service = ThrowingService(IllegalStateException("secret /tmp/antrag.pdf")),
+        )
+        val reply = RecordingReply()
+
+        facade.handle("store.status", mapOf("schemaVersion" to 1), reply)
+
+        val failure = reply.failure!!
+        assertEquals("PLT-001", failure.code)
+        assertEquals("internalError", failure.category)
+        assertEquals("platform.internal", failure.machineMessage)
+        assertFalse(failure.message!!.contains("secret"))
+        assertFalse(failure.message!!.contains("/tmp"))
+        assertFalse(failure.details().toString().contains("secret"))
+    }
+
+    @Test
+    fun securityExceptionMapsToInvalidIdentifier() {
+        val facade = newFacade(service = ThrowingService(SecurityException("path")))
+        val reply = RecordingReply()
+        facade.handle("store.status", mapOf("schemaVersion" to 1), reply)
+        assertFailure(reply, "PLT-002")
+    }
+
+    @Test
+    fun validationErrorCarriesDuration() {
+        val times = java.util.ArrayDeque(listOf(1000L, 1005L))
+        val facade = newFacade(clock = { times.removeFirst() })
+        val reply = RecordingReply()
+        facade.handle("store.status", emptyMap<String, Any?>(), reply)
+        assertFailure(reply, "PLT-003")
+        assertEquals(5L, reply.failure?.durationMs)
+    }
+
+    // ---- threading and cancellation ----------------------------------------
+
+    @Test
+    fun callIsDispatchedToExecutorAndResultIsPosted() {
+        val executor = QueueExecutor()
+        val poster = QueuePoster()
+        val facade = newFacade(executor = executor, poster = poster)
+        val reply = RecordingReply()
+
+        facade.handle("store.status", mapOf("schemaVersion" to 1), reply)
+
+        assertNull(reply.successValue)
+        assertNull(reply.failure)
+        executor.runNext()
+        assertNull(reply.successValue)
+        poster.runAll()
+        assertNull(reply.failure)
+        assertEquals(true, (reply.successValue as Map<*, *>)["ok"])
+    }
+
+    @Test
+    fun executorRejectionFailsClosed() {
+        val facade = newFacade(executor = RejectingExecutor)
+        val reply = RecordingReply()
+        facade.handle("store.status", mapOf("schemaVersion" to 1), reply)
+        assertFailure(reply, "PLT-001")
+        assertEquals("capacity", reply.failure?.category)
+        assertEquals(true, reply.failure?.retryable)
+    }
+
+    @Test
+    fun queuedOperationCanBeCancelledBeforeDispatch() {
+        val executor = QueueExecutor()
+        val facade = newFacade(
+            executor = executor,
+            operationIdFactory = { operationId },
+        )
+        val workReply = RecordingReply()
+        facade.handle("store.status", mapOf("schemaVersion" to 1), workReply)
+
+        val cancelReply = RecordingReply()
+        facade.handle(
+            "cancel.operation",
+            mapOf("schemaVersion" to 1, "operationId" to operationId),
+            cancelReply,
+        )
+        assertEquals(mapOf("cancelled" to true), (cancelReply.successValue as Map<*, *>)["data"])
+
+        executor.runNext()
+        assertFailure(workReply, "PLT-004")
+    }
+
+    @Test
+    fun unknownOperationCancellationIsFalse() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle(
+            "cancel.operation",
+            mapOf("schemaVersion" to 1, "operationId" to operationId),
+            reply,
+        )
+        assertEquals(mapOf("cancelled" to false), (reply.successValue as Map<*, *>)["data"])
+    }
+
+    @Test
+    fun invalidOperationIdIsRejected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+        facade.handle(
+            "cancel.operation",
+            mapOf("schemaVersion" to 1, "operationId" to "op-1"),
+            reply,
+        )
+        assertFailure(reply, "PLT-002")
+    }
+
+    @Test
+    fun disposeShutsDownOnceAndDetachesServices() {
+        val executor = TrackingExecutor()
+        val publisher = PlatformEventPublisher(DirectPoster)
+        val service = TrackingService()
+        val facade = newFacade(service = service, executor = executor, events = publisher)
+        facade.dispose()
+        facade.dispose()
+        assertEquals(1, executor.shutdownCount)
+        assertEquals(1, service.detachedCount)
+
+        val reply = RecordingReply()
+        facade.handle("store.status", mapOf("schemaVersion" to 1), reply)
+        assertFailure(reply, "PLT-001")
+    }
+
+    // ---- events -------------------------------------------------------------
+
+    @Test
+    fun lifecycleEventMatchesContractShape() {
+        val publisher = PlatformEventPublisher(DirectPoster)
+        val sink = RecordingSink()
+        publisher.attachSink(sink)
+
+        publisher.emitLifecycle(HostLifecycle.PAUSED)
+
+        assertEquals(
+            mapOf("event" to "lifecycle", "state" to "paused"),
+            sink.events.single() as Map<*, *>,
+        )
+    }
+
+    @Test
+    fun storageStatusStoreEventHasNoAggregate() {
+        val publisher = PlatformEventPublisher(DirectPoster)
+        val sink = RecordingSink()
+        publisher.attachSink(sink)
+
+        publisher.emitStorageStatus(
+            scope = "store",
+            kind = null,
+            itemId = null,
+            keyAvailable = false,
+            reasonCode = "SAVE-008",
+        )
+
+        assertEquals(
+            linkedMapOf(
+                "event" to "storage.status",
+                "scope" to "store",
+                "kind" to null,
+                "itemId" to null,
+                "keyAvailable" to false,
+                "reasonCode" to "SAVE-008",
+            ),
+            sink.events.single() as Map<*, *>,
+        )
+    }
+
+    @Test
+    fun storageStatusAggregateEventCarriesItemId() {
+        val publisher = PlatformEventPublisher(DirectPoster)
+        val sink = RecordingSink()
+        publisher.attachSink(sink)
+
+        publisher.emitStorageStatus(
+            scope = "aggregate",
+            kind = "template",
+            itemId = templateId,
+            keyAvailable = false,
+            reasonCode = "SAVE-002",
+        )
+
+        val event = sink.events.single() as Map<*, *>
+        assertEquals("aggregate", event["scope"])
+        assertEquals("template", event["kind"])
+        assertEquals(templateId, event["itemId"])
+        assertEquals("SAVE-002", event["reasonCode"])
+    }
+
+    @Test
+    fun malformedStorageStatusIsRejected() {
+        val publisher = PlatformEventPublisher(DirectPoster)
+        assertThrows(IllegalArgumentException::class.java) {
+            publisher.emitStorageStatus(
+                scope = "store",
+                kind = "document",
+                itemId = documentId,
+                keyAvailable = false,
+                reasonCode = "SAVE-002",
+            )
+        }
+    }
+
+    @Test
+    fun operationProgressIsCoalescedToLatestPerOperation() {
+        val poster = QueuePoster()
+        val publisher = PlatformEventPublisher(poster)
+        val sink = RecordingSink()
+        publisher.attachSink(sink)
+
+        publisher.emitOperationProgress(operationId, "export", "importing", 0.1, 0)
+        publisher.emitOperationProgress(operationId, "export", "drawing", 0.6, 0)
+
+        assertTrue(sink.events.isEmpty())
+        poster.runAll()
+        assertEquals(1, sink.events.size)
+        val event = sink.events.single() as Map<*, *>
+        assertEquals("operation.progress", event["event"])
+        assertEquals("drawing", event["phase"])
+        assertEquals(0.6, event["fraction"])
+    }
+
+    @Test
+    fun exportProgressUsesContractEventName() {
+        val publisher = PlatformEventPublisher(DirectPoster)
+        val sink = RecordingSink()
+        publisher.attachSink(sink)
+
+        publisher.emitExportProgress(operationId, "verifying", 0.9, 1)
+
+        val event = sink.events.single() as Map<*, *>
+        assertEquals("export.progress", event["event"])
+        assertEquals("verifying", event["phase"])
+        assertEquals(1, event["pageIndex"])
+    }
+
+    @Test
+    fun importPickerResultEventMatchesContractShape() {
+        val publisher = PlatformEventPublisher(DirectPoster)
+        val sink = RecordingSink()
+        publisher.attachSink(sink)
+
+        publisher.emitImportPickerResult(operationId, cancelled = true)
+
+        assertEquals(
+            linkedMapOf(
+                "event" to "import.pickerResult",
+                "correlationId" to operationId,
+                "cancelled" to true,
+            ),
+            sink.events.single() as Map<*, *>,
+        )
+    }
+
+    @Test
+    fun disposedPublisherEmitsNothing() {
+        val poster = QueuePoster()
+        val publisher = PlatformEventPublisher(poster)
+        val sink = RecordingSink()
+        publisher.attachSink(sink)
+
+        publisher.dispose()
+        publisher.emitLifecycle(HostLifecycle.RESUMED)
+        publisher.emitOperationProgress(operationId, "export", "drawing", 0.5)
+        poster.runAll()
+
+        assertTrue(sink.events.isEmpty())
+    }
+
+    @Test
+    fun serviceCanReportProgressThroughOperationContext() {
+        val publisher = PlatformEventPublisher(DirectPoster)
+        val sink = RecordingSink()
+        publisher.attachSink(sink)
+        val service = object : PlatformService {
+            override fun handle(request: PlatformRequest, context: OperationContext): Any? {
+                context.progress("export", "drawing", 0.5, 0)
+                return mapOf("ok" to true)
+            }
+        }
+        val facade = newFacade(service = service, events = publisher)
+        val reply = RecordingReply()
+
+        facade.handle("store.status", mapOf("schemaVersion" to 1), reply)
+
+        assertNull(reply.failure)
+        assertEquals("operation.progress", (sink.events.single() as Map<*, *>)["event"])
+    }
+
+    @Test
+    fun serviceExportProgressUsesExportEvent() {
+        val publisher = PlatformEventPublisher(DirectPoster)
+        val sink = RecordingSink()
+        publisher.attachSink(sink)
+        val service = object : PlatformService {
+            override fun handle(request: PlatformRequest, context: OperationContext): Any? {
+                context.exportProgress("verifying", 0.9)
+                return mapOf("ok" to true)
+            }
+        }
+        val facade = newFacade(service = service, events = publisher)
+        val reply = RecordingReply()
+
+        facade.handle("store.status", mapOf("schemaVersion" to 1), reply)
+
+        assertEquals("export.progress", (sink.events.single() as Map<*, *>)["event"])
+    }
+
+    // ---- registry -----------------------------------------------------------
+
+    @Test
+    fun duplicateServiceRegistrationIsRejected() {
+        val registry = PlatformServiceRegistry()
+        registry.register("store", ReturningService(emptyMap<String, Any?>()))
+        assertThrows(IllegalStateException::class.java) {
+            registry.register("store", ReturningService(emptyMap<String, Any?>()))
+        }
+    }
+
+    @Test
+    fun unknownServicePrefixIsRejected() {
+        val registry = PlatformServiceRegistry()
+        assertThrows(IllegalArgumentException::class.java) {
+            registry.register("filesystem", ReturningService(emptyMap<String, Any?>()))
+        }
+    }
+
+    @Test
+    fun unregisterRemovesService() {
+        val registry = PlatformServiceRegistry()
+        registry.register("store", ReturningService(emptyMap<String, Any?>()))
+        registry.unregister("store")
+        assertNull(registry.serviceFor("store.status"))
+    }
+
+    // ---- helpers ------------------------------------------------------------
+
+    private fun newFacade(
+        servicePrefix: String? = "store",
+        service: PlatformService = ReturningService(linkedMapOf("ok" to true)),
+        executor: BackgroundExecutor = DirectExecutor,
+        poster: ThreadPoster = DirectPoster,
+        events: PlatformEventPublisher = PlatformEventPublisher(poster),
+        limits: ChannelLimits = ChannelLimits(),
+        operationIdFactory: () -> String = { UUID.randomUUID().toString() },
+        clock: () -> Long = { 0L },
+    ): PlatformChannelFacade {
+        val services = PlatformServiceRegistry()
+        if (servicePrefix != null) services.register(servicePrefix, service)
+        return PlatformChannelFacade(
+            services = services,
+            mainPoster = poster,
+            events = events,
+            executor = executor,
+            limits = limits,
+            operationIdFactory = operationIdFactory,
+            clock = clock,
+        )
+    }
+
+    private fun assertFailure(reply: RecordingReply, code: String) {
+        assertNull("expected failure $code but got success ${reply.successValue}", reply.successValue)
+        assertEquals(code, reply.failure?.code)
+    }
+
+    private class ReturningService(private val data: Any?) : PlatformService {
+        override fun handle(request: PlatformRequest, context: OperationContext): Any? = data
+    }
+
+    private class ThrowingService(private val error: Throwable) : PlatformService {
+        override fun handle(request: PlatformRequest, context: OperationContext): Any? = throw error
+    }
+
+    private class RecordingReply : ChannelReply {
+        var successValue: Any? = null
+        var failure: PlatformFailure? = null
+
+        override fun success(result: Any?) {
+            successValue = result
+        }
+
+        override fun error(failure: PlatformFailure) {
+            this.failure = failure
+        }
+    }
+
+    private class RecordingSink : FeldexaEventSink {
+        val events = mutableListOf<Any?>()
+
+        override fun success(event: Any?) {
+            events += event
+        }
+    }
+
+    private object DirectPoster : ThreadPoster {
+        override fun post(block: () -> Unit) = block()
+    }
+
+    private class QueuePoster : ThreadPoster {
+        private val blocks = mutableListOf<() -> Unit>()
+
+        override fun post(block: () -> Unit) {
+            blocks += block
+        }
+
+        fun runAll() {
+            while (blocks.isNotEmpty()) blocks.removeAt(0).invoke()
+        }
+    }
+
+    private object DirectExecutor : BackgroundExecutor {
+        override fun execute(task: () -> Unit) = task()
+        override fun shutdown() = Unit
+    }
+
+    private class QueueExecutor : BackgroundExecutor {
+        private val tasks = mutableListOf<() -> Unit>()
+
+        override fun execute(task: () -> Unit) {
+            tasks += task
+        }
+
+        override fun shutdown() {
+            tasks.clear()
+        }
+
+        fun runNext() {
+            tasks.removeAt(0).invoke()
+        }
+    }
+
+    private object RejectingExecutor : BackgroundExecutor {
+        override fun execute(task: () -> Unit) {
+            throw RejectedExecutionException("full")
+        }
+
+        override fun shutdown() = Unit
+    }
+
+    private class TrackingExecutor : BackgroundExecutor {
+        var shutdownCount = 0
+
+        override fun execute(task: () -> Unit) = task()
+        override fun shutdown() {
+            shutdownCount++
+        }
+    }
+
+    private class TrackingService : PlatformService {
+        var detachedCount = 0
+
+        override fun handle(request: PlatformRequest, context: OperationContext): Any? =
+            mapOf("ok" to true)
+
+        override fun onFacadeDetached() {
+            detachedCount++
+        }
+    }
+}

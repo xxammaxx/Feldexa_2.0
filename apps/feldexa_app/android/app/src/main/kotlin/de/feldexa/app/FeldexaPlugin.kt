@@ -1,0 +1,1207 @@
+package de.feldexa.app
+
+import android.os.Handler
+import android.os.Looper
+import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import io.flutter.plugin.common.BinaryMessenger
+import io.flutter.plugin.common.EventChannel
+import io.flutter.plugin.common.MethodChannel
+import java.nio.charset.StandardCharsets
+import java.util.UUID
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.CancellationException
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.RejectedExecutionException
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
+
+/**
+ * T024: the single Flutter <-> Android platform facade.
+ *
+ * Contract: `specs/001-scanned-form-workflow/contracts/platform-channel.md`.
+ *
+ * This file deliberately contains only the channel boundary and its validation,
+ * error, threading, cancellation, event, and lifecycle machinery. It contains no
+ * UI, form, geometry, layout, OCR, storage, or PDF implementation: the later
+ * service tasks register a [PlatformService] per method prefix through
+ * [FeldexaPlugin.registerService]. Until a prefix is registered, its methods
+ * fail closed with `PLT-001` instead of pretending a capability exists.
+ *
+ * Security and logging rules enforced here: no request payload, document title,
+ * path, URI, OCR text, field value, signature byte, or page image is ever put in
+ * an error message or details map, and this facade performs no payload logging.
+ */
+class FeldexaPlugin : FlutterPlugin, ActivityAware {
+
+    private val mainPoster: ThreadPoster = AndroidMainThreadPoster()
+    private val pendingServices = mutableListOf<Pair<String, PlatformService>>()
+    private val pendingImportMessengers = mutableListOf<BinaryMessenger>()
+    private val registrationLock = Any()
+
+    private var facade: PlatformChannelFacade? = null
+    private var methodChannel: MethodChannel? = null
+    private var eventChannel: EventChannel? = null
+    private var importChannel: MethodChannel? = null
+    private var activityBinding: ActivityPluginBinding? = null
+
+    /** Current host Activity, if the plugin is attached to one. */
+    val activity: android.app.Activity?
+        get() = activityBinding?.activity
+
+    override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        synchronized(registrationLock) {
+            if (facade != null) return
+
+            val publisher = PlatformEventPublisher(mainPoster)
+            val created = PlatformChannelFacade(mainPoster = mainPoster, events = publisher)
+            facade = created
+
+            methodChannel = MethodChannel(
+                binding.binaryMessenger,
+                FeldexaChannels.PLATFORM,
+            ).also { channel ->
+                channel.setMethodCallHandler { call, result ->
+                    created.handle(call.method, call.arguments, FlutterChannelReply(result))
+                }
+            }
+            eventChannel = EventChannel(
+                binding.binaryMessenger,
+                FeldexaChannels.EVENTS,
+            ).also { channel ->
+                channel.setStreamHandler(FlutterEventStreamHandler(publisher))
+            }
+
+            pendingServices.forEach { (prefix, service) ->
+                created.services.register(prefix, service)
+            }
+            pendingServices.clear()
+
+            val importMessengers = pendingImportMessengers.toList()
+            pendingImportMessengers.clear()
+            importMessengers.forEach(::registerImportChannel)
+        }
+    }
+
+    /**
+     * Registers `de.feldexa/import`. The contract assigns this activity-bound
+     * channel to MainActivity, so the host calls this after adding the plugin to
+     * the engine. The method is idempotent and safe to call before engine
+     * attachment (the messenger is remembered).
+     */
+    fun registerImportChannel(messenger: BinaryMessenger) {
+        synchronized(registrationLock) {
+            val created = facade
+            if (created == null) {
+                pendingImportMessengers += messenger
+                return
+            }
+            if (importChannel != null) return
+            importChannel = MethodChannel(messenger, FeldexaChannels.IMPORT).also { channel ->
+                channel.setMethodCallHandler { call, result ->
+                    created.handle(call.method, call.arguments, FlutterChannelReply(result))
+                }
+            }
+        }
+    }
+
+    /**
+     * Registers the service that owns [prefix] (`import`, `store`, `ocr`,
+     * `export`, or `delivery`). T025/T026/T038-T040 use this seam; the facade
+     * validates and envelopes every call before the service sees it.
+     */
+    fun registerService(prefix: String, service: PlatformService) {
+        synchronized(registrationLock) {
+            val created = facade
+            if (created == null) {
+                pendingServices += prefix to service
+            } else {
+                created.services.register(prefix, service)
+            }
+        }
+    }
+
+    /** Forwards the Android host lifecycle to Dart as the contract-defined event. */
+    fun onHostLifecycle(lifecycle: HostLifecycle) {
+        val created = facade ?: return
+        created.events.emitLifecycle(lifecycle)
+        if (lifecycle == HostLifecycle.DETACHED) {
+            created.dispose()
+        }
+    }
+
+    /** Emits the contract's `storage.status` event. Never includes a title. */
+    fun emitStorageStatus(
+        scope: String,
+        kind: String?,
+        itemId: String?,
+        keyAvailable: Boolean,
+        reasonCode: String?,
+    ) {
+        facade?.events?.emitStorageStatus(scope, kind, itemId, keyAvailable, reasonCode)
+    }
+
+    /** Emits the contract's `import.pickerResult` event. */
+    fun emitImportPickerResult(correlationId: String, cancelled: Boolean) {
+        facade?.events?.emitImportPickerResult(correlationId, cancelled)
+    }
+
+    /**
+     * Stops channel work. The method channel itself is removed by the Flutter
+     * engine on detach; this only makes the facade fail closed from now on and
+     * cancels the bounded executor so no service keeps decrypting, parsing, or
+     * writing during destruction. Idempotent.
+     */
+    fun dispose() {
+        facade?.dispose()
+    }
+
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        synchronized(registrationLock) {
+            methodChannel?.setMethodCallHandler(null)
+            eventChannel?.setStreamHandler(null)
+            importChannel?.setMethodCallHandler(null)
+            methodChannel = null
+            eventChannel = null
+            importChannel = null
+            pendingImportMessengers.clear()
+            facade?.dispose()
+            facade = null
+        }
+    }
+
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        activityBinding = binding
+    }
+
+    override fun onDetachedFromActivityForConfigChanges() {
+        activityBinding = null
+    }
+
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        activityBinding = binding
+    }
+
+    override fun onDetachedFromActivity() {
+        activityBinding = null
+    }
+
+    private class FlutterChannelReply(
+        private val methodResult: MethodChannel.Result,
+    ) : ChannelReply {
+        override fun success(result: Any?) {
+            methodResult.success(result)
+        }
+
+        override fun error(failure: PlatformFailure) {
+            methodResult.error(failure.code, failure.machineMessage, failure.details())
+        }
+    }
+
+    private class FlutterEventStreamHandler(
+        private val publisher: PlatformEventPublisher,
+    ) : EventChannel.StreamHandler {
+        override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+            publisher.attachSink(events?.let { sink -> FeldexaEventSink { sink.success(it) } })
+        }
+
+        override fun onCancel(arguments: Any?) {
+            publisher.attachSink(null)
+        }
+    }
+}
+
+/** Channel names from `contracts/platform-channel.md` §1. */
+object FeldexaChannels {
+    const val PLATFORM = "de.feldexa/platform"
+    const val EVENTS = "de.feldexa/events"
+    const val IMPORT = "de.feldexa/import"
+    const val SCHEMA_VERSION = 1
+}
+
+/** Host lifecycle values accepted by the `lifecycle` event (§8). */
+enum class HostLifecycle(val wireValue: String) {
+    RESUMED("resumed"),
+    INACTIVE("inactive"),
+    PAUSED("paused"),
+    DETACHED("detached"),
+}
+
+/**
+ * A safe, catalog-coded platform failure. Only codes, counts, and durations may
+ * cross this type; document content, paths, URIs, and German UI text may not.
+ */
+class PlatformFailure(
+    val code: String,
+    val category: String,
+    val retryable: Boolean,
+    val machineMessage: String,
+    val pageIndex: Int? = null,
+    val fieldCount: Int? = null,
+    val durationMs: Long? = null,
+) : RuntimeException(machineMessage) {
+
+    fun details(): Map<String, Any?> = linkedMapOf(
+        "schemaVersion" to FeldexaChannels.SCHEMA_VERSION,
+        "category" to category,
+        "retryable" to retryable,
+        "pageIndex" to pageIndex,
+        "fieldCount" to fieldCount,
+        "durationMs" to durationMs,
+    )
+
+    fun withDuration(elapsedMs: Long): PlatformFailure = PlatformFailure(
+        code = code,
+        category = category,
+        retryable = retryable,
+        machineMessage = machineMessage,
+        pageIndex = pageIndex,
+        fieldCount = fieldCount,
+        durationMs = elapsedMs,
+    )
+
+    companion object {
+        fun invalidPayload(message: String = "platform.invalidPayload"): PlatformFailure =
+            PlatformFailure("PLT-003", "invalidPayload", false, message)
+
+        fun invalidIdentifier(message: String = "platform.identifier"): PlatformFailure =
+            PlatformFailure("PLT-002", "invalidIdentifier", false, message)
+
+        fun unsupported(message: String = "platform.unsupported"): PlatformFailure =
+            PlatformFailure("PLT-001", "unsupported", false, message)
+
+        fun cancelled(): PlatformFailure =
+            PlatformFailure("PLT-004", "cancelled", true, "platform.cancelled")
+
+        fun internal(message: String = "platform.internal"): PlatformFailure =
+            PlatformFailure("PLT-001", "internalError", false, message)
+
+        fun busy(): PlatformFailure =
+            PlatformFailure("PLT-001", "capacity", true, "platform.busy")
+
+        fun invalidSavedData(): PlatformFailure =
+            PlatformFailure("SAVE-007", "invalidData", false, "save.invalidData")
+    }
+}
+
+/** Result sink used by [PlatformChannelFacade]; the Flutter adapter wraps a MethodChannel.Result. */
+interface ChannelReply {
+    fun success(result: Any?)
+    fun error(failure: PlatformFailure)
+}
+
+/** A service registered by a later Android implementation task. */
+interface PlatformService {
+    /**
+     * Handles one validated method call on a background worker. Return the
+     * unwrapped response data; the facade adds the success envelope. Throw
+     * [PlatformFailure] for a catalog-coded error.
+     */
+    fun handle(request: PlatformRequest, context: OperationContext): Any?
+
+    /**
+     * Called once when the facade is detached or destroyed, after the worker
+     * pool is cancelled. Services close PDFBox/PDFium documents and delete only
+     * their own session export artifacts here; durable user data is never
+     * deleted. Failures are contained so one service cannot block the rest.
+     */
+    fun onFacadeDetached() = Unit
+}
+
+/** Read-only access to a payload that the facade already validated. */
+class PlatformRequest(
+    val method: String,
+    val payload: Map<String, Any?>,
+) {
+    fun string(name: String): String? = payload[name] as? String
+
+    fun uuid(name: String): String? = payload[name] as? String
+
+    fun number(name: String): Number? = payload[name] as? Number
+
+    fun bool(name: String): Boolean? = payload[name] as? Boolean
+
+    fun bytes(name: String): ByteArray? = payload[name] as? ByteArray
+
+    @Suppress("UNCHECKED_CAST")
+    fun map(name: String): Map<String, Any?>? = payload[name] as? Map<String, Any?>
+}
+
+/** Per-call cancellation + progress seam handed to a [PlatformService]. */
+class OperationContext internal constructor(
+    val operationId: String,
+    private val handle: OperationHandle,
+    private val publisher: PlatformEventPublisher,
+) {
+    val isCancelled: Boolean
+        get() = handle.isCancelled
+
+    fun checkCancelled() {
+        if (handle.isCancelled) throw PlatformFailure.cancelled()
+    }
+
+    fun progress(kind: String, phase: String, fraction: Double, pageIndex: Int? = null) {
+        checkCancelled()
+        publisher.emitOperationProgress(operationId, kind, phase, fraction, pageIndex)
+    }
+
+    fun exportProgress(phase: String, fraction: Double, pageIndex: Int? = null) {
+        checkCancelled()
+        publisher.emitExportProgress(operationId, phase, fraction, pageIndex)
+    }
+}
+
+/** Active operation registry backing `cancel.operation`. */
+class OperationRegistry {
+    private val active = ConcurrentHashMap<String, OperationHandle>()
+
+    internal fun begin(id: String): OperationHandle {
+        val handle = OperationHandle(id)
+        active[id] = handle
+        return handle
+    }
+
+    internal fun finish(handle: OperationHandle) {
+        active.remove(handle.id, handle)
+    }
+
+    fun cancel(operationId: String): Boolean {
+        val handle = active[operationId] ?: return false
+        handle.cancel()
+        return true
+    }
+
+    internal fun clear() {
+        active.clear()
+    }
+}
+
+class OperationHandle internal constructor(val id: String) {
+    private val cancelled = AtomicBoolean(false)
+
+    val isCancelled: Boolean
+        get() = cancelled.get()
+
+    internal fun cancel() {
+        cancelled.set(true)
+    }
+}
+
+/** Thread abstraction so the channel core stays JVM-testable. */
+fun interface ThreadPoster {
+    fun post(block: () -> Unit)
+}
+
+class AndroidMainThreadPoster : ThreadPoster {
+    private val handler = Handler(Looper.getMainLooper())
+
+    override fun post(block: () -> Unit) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            block()
+        } else {
+            handler.post(block)
+        }
+    }
+}
+
+/** Bounded background executor contract (§9: at most 2 workers). */
+interface BackgroundExecutor {
+    fun execute(task: () -> Unit)
+    fun shutdown()
+}
+
+class BoundedBackgroundExecutor(
+    maxWorkers: Int = 2,
+    queueCapacity: Int = 64,
+) : BackgroundExecutor {
+    private val counter = AtomicInteger(0)
+    private val pool = ThreadPoolExecutor(
+        maxWorkers,
+        maxWorkers,
+        0L,
+        TimeUnit.MILLISECONDS,
+        ArrayBlockingQueue(queueCapacity),
+        { runnable ->
+            Thread(runnable, "feldexa-channel-${counter.incrementAndGet()}").apply {
+                isDaemon = true
+            }
+        },
+    )
+
+    override fun execute(task: () -> Unit) {
+        pool.execute(task)
+    }
+
+    override fun shutdown() {
+        pool.shutdownNow()
+    }
+}
+
+/** Service registry keyed by the `<domain>` prefix; one owner per prefix. */
+class PlatformServiceRegistry {
+    private val services = ConcurrentHashMap<String, PlatformService>()
+
+    fun register(prefix: String, service: PlatformService) {
+        require(prefix in METHOD_PREFIXES) { "unknown method prefix" }
+        val existing = services.putIfAbsent(prefix, service)
+        check(existing == null) { "service already registered for prefix $prefix" }
+    }
+
+    fun unregister(prefix: String) {
+        services.remove(prefix)
+    }
+
+    fun closeAll() {
+        val registered = services.values.toList()
+        services.clear()
+        registered.forEach { service ->
+            try {
+                service.onFacadeDetached()
+            } catch (_: Exception) {
+                // A failing service must not keep the engine or other services alive.
+            }
+        }
+    }
+
+    fun serviceFor(method: String): PlatformService? = services[method.substringBefore('.')]
+
+    fun registeredPrefixes(): Set<String> = services.keys.toSet()
+
+    companion object {
+        val METHOD_PREFIXES = setOf("import", "store", "ocr", "export", "delivery")
+    }
+}
+
+/**
+ * The reusable channel core: payload validation, envelope, threading,
+ * cancellation, duration, and error mapping. [FeldexaPlugin] is the thin
+ * Flutter/Android adapter around this class.
+ */
+class PlatformChannelFacade(
+    val services: PlatformServiceRegistry = PlatformServiceRegistry(),
+    private val mainPoster: ThreadPoster = AndroidMainThreadPoster(),
+    val events: PlatformEventPublisher = PlatformEventPublisher(mainPoster),
+    private val executor: BackgroundExecutor = BoundedBackgroundExecutor(),
+    val limits: ChannelLimits = ChannelLimits(),
+    private val operations: OperationRegistry = OperationRegistry(),
+    private val operationIdFactory: () -> String = { UUID.randomUUID().toString() },
+    private val clock: () -> Long = { System.nanoTime() / 1_000_000L },
+) {
+    private val disposed = AtomicBoolean(false)
+    private val catalog = MethodCatalog(limits)
+
+    fun handle(method: String, arguments: Any?, reply: ChannelReply) {
+        val startedAt = clock()
+        if (disposed.get()) {
+            reply.error(PlatformFailure.unsupported().withDuration(elapsedSince(startedAt)))
+            return
+        }
+        val request = try {
+            validate(method, arguments)
+        } catch (failure: PlatformFailure) {
+            reply.error(failure.withDuration(elapsedSince(startedAt)))
+            return
+        } catch (error: Error) {
+            throw error
+        } catch (unexpected: Exception) {
+            reply.error(PlatformFailure.internal().withDuration(elapsedSince(startedAt)))
+            return
+        }
+
+        if (method == "cancel.operation") {
+            val operationId = request.payload["operationId"] as String
+            reply.success(successEnvelope(mapOf("cancelled" to operations.cancel(operationId))))
+            return
+        }
+
+        val service = services.serviceFor(method)
+        if (service == null) {
+            reply.error(PlatformFailure.unsupported().withDuration(elapsedSince(startedAt)))
+            return
+        }
+
+        val operationId = operationIdFactory()
+        val handle = operations.begin(operationId)
+        try {
+            executor.execute {
+                runOperation(request, service, operationId, handle, reply, startedAt)
+            }
+        } catch (rejected: RejectedExecutionException) {
+            operations.finish(handle)
+            reply.error(PlatformFailure.busy().withDuration(elapsedSince(startedAt)))
+        } catch (failure: PlatformFailure) {
+            operations.finish(handle)
+            reply.error(failure.withDuration(elapsedSince(startedAt)))
+        } catch (unexpected: Exception) {
+            operations.finish(handle)
+            reply.error(PlatformFailure.internal().withDuration(elapsedSince(startedAt)))
+        }
+    }
+
+    private fun runOperation(
+        request: PlatformRequest,
+        service: PlatformService,
+        operationId: String,
+        handle: OperationHandle,
+        reply: ChannelReply,
+        startedAt: Long,
+    ) {
+        val data = try {
+            if (handle.isCancelled) throw PlatformFailure.cancelled()
+            service.handle(
+                request,
+                OperationContext(operationId, handle, events),
+            )
+        } catch (failure: PlatformFailure) {
+            deliverError(reply, failure, startedAt)
+            return
+        } catch (interrupted: InterruptedException) {
+            Thread.currentThread().interrupt()
+            deliverError(reply, PlatformFailure.cancelled(), startedAt)
+            return
+        } catch (cancelled: CancellationException) {
+            deliverError(reply, PlatformFailure.cancelled(), startedAt)
+            return
+        } catch (security: SecurityException) {
+            deliverError(reply, PlatformFailure.invalidIdentifier(), startedAt)
+            return
+        } catch (unsupported: UnsupportedOperationException) {
+            deliverError(reply, PlatformFailure.unsupported(), startedAt)
+            return
+        } catch (error: Error) {
+            throw error
+        } catch (unexpected: Exception) {
+            deliverError(reply, PlatformFailure.internal(), startedAt)
+            return
+        } finally {
+            operations.finish(handle)
+        }
+
+        mainPoster.post {
+            reply.success(successEnvelope(data))
+        }
+    }
+
+    private fun successEnvelope(data: Any?): Map<String, Any?> = linkedMapOf(
+        "schemaVersion" to FeldexaChannels.SCHEMA_VERSION,
+        "ok" to true,
+        "data" to data,
+    )
+
+    private fun deliverError(reply: ChannelReply, failure: PlatformFailure, startedAt: Long) {
+        val timed = failure.withDuration(elapsedSince(startedAt))
+        mainPoster.post { reply.error(timed) }
+    }
+
+    /** Stops background work and makes subsequent calls fail closed. */
+    fun dispose() {
+        if (!disposed.compareAndSet(false, true)) return
+        executor.shutdown()
+        operations.clear()
+        events.dispose()
+        services.closeAll()
+    }
+
+    private fun elapsedSince(startedAt: Long): Long = (clock() - startedAt).coerceAtLeast(0L)
+
+    private fun validate(method: String, arguments: Any?): PlatformRequest {
+        val spec = catalog.specFor(method)
+            ?: throw PlatformFailure.unsupported()
+        if (arguments !is Map<*, *>) {
+            throw PlatformFailure.invalidPayload("platform.payloadNotMap")
+        }
+
+        var size = 0L
+        val payload = linkedMapOf<String, Any?>()
+        for ((key, value) in arguments) {
+            if (key !is String) throw PlatformFailure.invalidPayload("platform.nonStringKey")
+            if (key !in spec.allowedFields) {
+                throw PlatformFailure.invalidPayload("platform.unknownField")
+            }
+            payload[key] = value
+            size += PayloadSize.measure(value, limits.maxPayloadBytes - size)
+            if (size > limits.maxPayloadBytes) {
+                throw PlatformFailure.invalidPayload("platform.payloadTooLarge")
+            }
+        }
+
+        val schemaVersion = payload["schemaVersion"]
+            ?: throw PlatformFailure.invalidPayload("platform.schemaVersionMissing")
+        if (!isIntegral(schemaVersion) || (schemaVersion as Number).toLong() != FeldexaChannels.SCHEMA_VERSION.toLong()) {
+            throw PlatformFailure.invalidPayload("platform.schemaVersionUnsupported")
+        }
+
+        spec.fields.forEach { rule -> rule.apply(payload[rule.name]) }
+        spec.postValidate?.invoke(payload)
+        return PlatformRequest(method, payload)
+    }
+
+    private fun isIntegral(value: Any?): Boolean {
+        if (value !is Number) return false
+        val asDouble = value.toDouble()
+        return asDouble.isFinite() && asDouble % 1.0 == 0.0
+    }
+}
+
+/** Per-method limits from `contracts/platform-channel.md` §10. */
+data class ChannelLimits(
+    val maxPayloadBytes: Long = 96L * 1024L * 1024L,
+    val maxSourceBytes: Long = 80L * 1024L * 1024L,
+    val maxExportPlanBytes: Long = 8L * 1024L * 1024L,
+    val maxRevisionBytes: Long = 32L * 1024L * 1024L,
+    val maxSignatureBytes: Long = 2L * 1024L * 1024L,
+    val maxOcrEdgePx: Int = 4096,
+    val maxTitleLength: Int = 200,
+    val maxSuggestedNameLength: Int = 120,
+)
+
+/**
+ * Versioned event publisher for `de.feldexa/events`. Progress is coalesced per
+ * operation so a fast PDFBox loop cannot flood the Dart side; terminal method
+ * results remain authoritative (§8). Event maps follow §8 and add the `event`
+ * discriminator used by §6; they are not method payloads and therefore carry no
+ * `schemaVersion` envelope.
+ */
+class PlatformEventPublisher(
+    private val poster: ThreadPoster,
+) {
+    private val sink = AtomicReference<FeldexaEventSink?>(null)
+    private val pendingProgress = ConcurrentHashMap<String, Map<String, Any?>>()
+    private val drainScheduled = AtomicBoolean(false)
+    private val disposed = AtomicBoolean(false)
+
+    fun attachSink(newSink: FeldexaEventSink?) {
+        sink.set(newSink)
+        if (newSink == null) pendingProgress.clear()
+    }
+
+    fun emitLifecycle(lifecycle: HostLifecycle) {
+        emitDirect(
+            linkedMapOf(
+                "event" to "lifecycle",
+                "state" to lifecycle.wireValue,
+            ),
+        )
+    }
+
+    fun emitStorageStatus(
+        scope: String,
+        kind: String?,
+        itemId: String?,
+        keyAvailable: Boolean,
+        reasonCode: String?,
+    ) {
+        require(scope == "store" || scope == "aggregate") { "invalid storage scope" }
+        require(kind == null || kind == "document" || kind == "template") { "invalid storage kind" }
+        if (scope == "store") {
+            require(kind == null && itemId == null) { "store scope has no aggregate" }
+        } else {
+            require(kind != null && itemId != null) { "aggregate scope requires kind and itemId" }
+            require(UUID_PATTERN.matches(itemId)) { "invalid aggregate itemId" }
+        }
+        require(reasonCode == null || reasonCode == "SAVE-002" || reasonCode == "SAVE-008") {
+            "invalid storage reason code"
+        }
+        emitDirect(
+            linkedMapOf(
+                "event" to "storage.status",
+                "scope" to scope,
+                "kind" to kind,
+                "itemId" to itemId,
+                "keyAvailable" to keyAvailable,
+                "reasonCode" to reasonCode,
+            ),
+        )
+    }
+
+    fun emitImportPickerResult(correlationId: String, cancelled: Boolean) {
+        require(correlationId.length in 1..128 && !hasControlCharacters(correlationId)) {
+            "invalid picker correlation id"
+        }
+        emitDirect(
+            linkedMapOf(
+                "event" to "import.pickerResult",
+                "correlationId" to correlationId,
+                "cancelled" to cancelled,
+            ),
+        )
+    }
+
+    fun emitOperationProgress(
+        operationId: String,
+        kind: String,
+        phase: String,
+        fraction: Double,
+        pageIndex: Int? = null,
+    ) {
+        require(kind == "import" || kind == "analyze" || kind == "save" || kind == "export") {
+            "invalid progress kind"
+        }
+        val event = progressEvent(
+            eventName = "operation.progress",
+            operationId = operationId,
+            phase = phase,
+            fraction = fraction,
+            pageIndex = pageIndex,
+        )
+        event["kind"] = kind
+        queueProgress("operation.progress:$operationId", event)
+    }
+
+    fun emitExportProgress(
+        operationId: String,
+        phase: String,
+        fraction: Double,
+        pageIndex: Int? = null,
+    ) {
+        val event = progressEvent(
+            eventName = "export.progress",
+            operationId = operationId,
+            phase = phase,
+            fraction = fraction,
+            pageIndex = pageIndex,
+        )
+        queueProgress("export.progress:$operationId", event)
+    }
+
+    fun dispose() {
+        if (!disposed.compareAndSet(false, true)) return
+        sink.set(null)
+        pendingProgress.clear()
+    }
+
+    private fun progressEvent(
+        eventName: String,
+        operationId: String,
+        phase: String,
+        fraction: Double,
+        pageIndex: Int?,
+    ): LinkedHashMap<String, Any?> {
+        require(UUID_PATTERN.matches(operationId)) { "invalid operation id" }
+        require(phase.length in 1..32 && !hasControlCharacters(phase)) { "invalid progress phase" }
+        require(fraction.isFinite() && fraction in 0.0..1.0) { "invalid progress fraction" }
+        require(pageIndex == null || pageIndex >= 0) { "invalid progress page index" }
+        return linkedMapOf(
+            "event" to eventName,
+            "operationId" to operationId,
+            "phase" to phase,
+            "fraction" to fraction,
+            "pageIndex" to pageIndex,
+        )
+    }
+
+    private fun queueProgress(key: String, event: Map<String, Any?>) {
+        if (disposed.get()) return
+        pendingProgress[key] = event
+        scheduleDrain()
+    }
+
+    private fun scheduleDrain() {
+        if (drainScheduled.compareAndSet(false, true)) {
+            poster.post { drainProgress() }
+        }
+    }
+
+    private fun drainProgress() {
+        drainScheduled.set(false)
+        val batch = pendingProgress.entries.toList()
+        for ((key, event) in batch) {
+            if (pendingProgress.remove(key, event)) {
+                sink.get()?.success(event)
+            }
+        }
+        if (pendingProgress.isNotEmpty()) scheduleDrain()
+    }
+
+    private fun emitDirect(event: Map<String, Any?>) {
+        if (disposed.get()) return
+        poster.post { sink.get()?.success(event) }
+    }
+}
+
+/** Adapter used by [FeldexaPlugin] to keep the core free of Flutter types. */
+fun interface FeldexaEventSink {
+    fun success(event: Any?)
+}
+
+private object PayloadSize {
+    private const val MAX_DEPTH = 64
+
+    fun measure(value: Any?, remaining: Long): Long {
+        if (remaining <= 0L) return 1L
+        var total = 0L
+        fun add(amount: Long) {
+            total += amount.coerceAtLeast(0L)
+        }
+        fun visit(current: Any?, depth: Int) {
+            if (total > remaining) return
+            when (current) {
+                null -> add(1L)
+                is String -> add(current.toByteArray(StandardCharsets.UTF_8).size.toLong())
+                is ByteArray -> add(current.size.toLong())
+                is Boolean -> add(1L)
+                is Number -> add(8L)
+                is Map<*, *> -> {
+                    if (depth >= MAX_DEPTH) throw PlatformFailure.invalidPayload("platform.payloadTooDeep")
+                    add(1L)
+                    current.forEach { (key, value) ->
+                        if (key !is String) {
+                            throw PlatformFailure.invalidPayload("platform.nonStringKey")
+                        }
+                        add(key.toByteArray(StandardCharsets.UTF_8).size.toLong())
+                        visit(value, depth + 1)
+                    }
+                }
+                is Iterable<*> -> {
+                    if (depth >= MAX_DEPTH) throw PlatformFailure.invalidPayload("platform.payloadTooDeep")
+                    add(1L)
+                    current.forEach { visit(it, depth + 1) }
+                }
+                is Array<*> -> {
+                    if (depth >= MAX_DEPTH) throw PlatformFailure.invalidPayload("platform.payloadTooDeep")
+                    add(1L)
+                    current.forEach { visit(it, depth + 1) }
+                }
+                else -> throw PlatformFailure.invalidPayload("platform.unsupportedValue")
+            }
+        }
+        visit(value, 0)
+        return total
+    }
+}
+
+private sealed class FieldRule(
+    val name: String,
+    private val required: Boolean = true,
+) {
+    open fun apply(value: Any?) {
+        if (value == null) {
+            if (required) throw PlatformFailure.invalidPayload("platform.missingField")
+            return
+        }
+        check(value)
+    }
+
+    protected abstract fun check(value: Any?)
+}
+
+private class StringRule(
+    name: String,
+    private val maxLength: Int,
+    required: Boolean = true,
+    private val exact: String? = null,
+    private val pattern: Regex? = null,
+    private val rejectPathSeparators: Boolean = false,
+    private val failure: () -> PlatformFailure = { PlatformFailure.invalidPayload("platform.invalidString") },
+) : FieldRule(name, required) {
+    override fun check(value: Any?) {
+        val text = value as? String ?: throw failure()
+        if (text.isEmpty()) throw failure()
+        if (text.length > maxLength) throw failure()
+        if (hasControlCharacters(text)) throw failure()
+        if (rejectPathSeparators && (text.contains('/') || text.contains('\\'))) throw failure()
+        exact?.let { if (text != it) throw failure() }
+        pattern?.let { if (!it.matches(text)) throw failure() }
+    }
+}
+
+private class OptionalStringRule(
+    name: String,
+    private val maxLength: Int,
+    private val pattern: Regex? = null,
+    private val failure: () -> PlatformFailure = { PlatformFailure.invalidPayload("platform.invalidString") },
+) : FieldRule(name, required = false) {
+    override fun check(value: Any?) {
+        val text = value as? String ?: throw failure()
+        if (text.length > maxLength) throw failure()
+        if (hasControlCharacters(text)) throw failure()
+        pattern?.let { if (!it.matches(text)) throw failure() }
+    }
+}
+
+private class UuidRule(
+    name: String,
+    required: Boolean = true,
+    private val nullable: Boolean = false,
+) : FieldRule(name, required) {
+    override fun apply(value: Any?) {
+        if (value == null && nullable) return
+        super.apply(value)
+    }
+
+    override fun check(value: Any?) {
+        val text = value as? String ?: throw PlatformFailure.invalidIdentifier()
+        if (!UUID_PATTERN.matches(text)) throw PlatformFailure.invalidIdentifier()
+    }
+}
+
+private class IntRule(
+    name: String,
+    private val min: Int,
+    private val max: Int,
+    required: Boolean = true,
+) : FieldRule(name, required) {
+    override fun check(value: Any?) {
+        val number = value as? Number ?: throw PlatformFailure.invalidPayload("platform.invalidInteger")
+        val double = number.toDouble()
+        if (!double.isFinite() || double % 1.0 != 0.0) {
+            throw PlatformFailure.invalidPayload("platform.invalidInteger")
+        }
+        val converted = number.toLong()
+        if (converted < min.toLong() || converted > max.toLong()) {
+            throw PlatformFailure.invalidPayload("platform.valueOutOfRange")
+        }
+    }
+}
+
+private class LongRule(
+    name: String,
+    private val min: Long,
+    private val max: Long,
+    required: Boolean = true,
+) : FieldRule(name, required) {
+    override fun check(value: Any?) {
+        val number = value as? Number ?: throw PlatformFailure.invalidPayload("platform.invalidInteger")
+        val double = number.toDouble()
+        if (!double.isFinite() || double % 1.0 != 0.0) {
+            throw PlatformFailure.invalidPayload("platform.invalidInteger")
+        }
+        val converted = number.toLong()
+        if (converted < min || converted > max) {
+            throw PlatformFailure.invalidPayload("platform.valueOutOfRange")
+        }
+    }
+}
+
+private class DoubleRule(
+    name: String,
+    private val minExclusive: Double = 0.0,
+    required: Boolean = true,
+) : FieldRule(name, required) {
+    override fun check(value: Any?) {
+        val number = value as? Number ?: throw PlatformFailure.invalidPayload("platform.invalidNumber")
+        val converted = number.toDouble()
+        if (!converted.isFinite() || converted <= minExclusive) {
+            throw PlatformFailure.invalidPayload("platform.invalidNumber")
+        }
+    }
+}
+
+private class BytesRule(
+    name: String,
+    private val maxBytes: Long,
+    private val failure: () -> PlatformFailure = { PlatformFailure.invalidPayload("platform.payloadTooLarge") },
+) : FieldRule(name, required = true) {
+    override fun check(value: Any?) {
+        val bytes = value as? ByteArray ?: throw failure()
+        if (bytes.size.toLong() > maxBytes) throw failure()
+    }
+}
+
+private class MapRule(
+    name: String,
+    private val maxEstimatedBytes: Long = Long.MAX_VALUE,
+    private val failure: () -> PlatformFailure = { PlatformFailure.invalidPayload("platform.invalidMap") },
+) : FieldRule(name, required = true) {
+    override fun check(value: Any?) {
+        if (value !is Map<*, *>) throw failure()
+        if (maxEstimatedBytes != Long.MAX_VALUE &&
+            PayloadSize.measure(value, maxEstimatedBytes) > maxEstimatedBytes
+        ) {
+            throw failure()
+        }
+    }
+}
+
+private class EnumRule(
+    name: String,
+    private val values: Set<String>,
+    required: Boolean = true,
+) : FieldRule(name, required) {
+    override fun check(value: Any?) {
+        val text = value as? String ?: throw PlatformFailure.invalidPayload("platform.invalidEnum")
+        if (text !in values) throw PlatformFailure.invalidPayload("platform.invalidEnum")
+    }
+}
+
+private class Sha256Rule(name: String) : FieldRule(name, required = true) {
+    override fun check(value: Any?) {
+        val text = value as? String ?: throw PlatformFailure.invalidPayload("platform.invalidHash")
+        if (!SHA256_PATTERN.matches(text)) throw PlatformFailure.invalidPayload("platform.invalidHash")
+    }
+}
+
+private class ConfirmRule(name: String) : FieldRule(name, required = true) {
+    override fun check(value: Any?) {
+        val confirmation = value as? Map<*, *>
+            ?: throw PlatformFailure.invalidPayload("platform.invalidConfirmation")
+        val allowed = setOf("title", "acknowledged")
+        for (key in confirmation.keys) {
+            if (key !is String || key !in allowed) {
+                throw PlatformFailure.invalidPayload("platform.unknownField")
+            }
+        }
+        val title = confirmation["title"] as? String
+            ?: throw PlatformFailure.invalidPayload("platform.invalidConfirmation")
+        if (title.isEmpty() || title.length > 200 || hasControlCharacters(title)) {
+            throw PlatformFailure.invalidPayload("platform.invalidConfirmation")
+        }
+        val acknowledged = confirmation["acknowledged"] as? Boolean
+            ?: throw PlatformFailure.invalidPayload("platform.invalidConfirmation")
+        if (!acknowledged) throw PlatformFailure.invalidSavedData()
+    }
+}
+
+private class MethodSpec(
+    val name: String,
+    val fields: List<FieldRule>,
+    val postValidate: ((Map<String, Any?>) -> Unit)? = null,
+) {
+    val allowedFields: Set<String> = fields.mapTo(linkedSetOf()) { it.name } + "schemaVersion"
+}
+
+private class MethodCatalog(private val limits: ChannelLimits) {
+    private val specs: Map<String, MethodSpec> = listOf(
+        MethodSpec(
+            "import.pickAndImport",
+            listOf(
+                LongRule("maxBytes", 1L, limits.maxSourceBytes),
+                OptionalStringRule("titleHint", limits.maxTitleLength),
+            ),
+        ),
+        MethodSpec("import.verifySource", listOf(UuidRule("sourceId"))),
+        MethodSpec(
+            "import.discardStaged",
+            listOf(
+                StringRule(
+                    "txnId",
+                    128,
+                    pattern = Regex("^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"),
+                ),
+            ),
+        ),
+        MethodSpec("store.status", emptyList()),
+        MethodSpec("store.list", listOf(EnumRule("kind", setOf("document", "template")))),
+        MethodSpec("store.readSource", listOf(UuidRule("documentId"))),
+        MethodSpec(
+            "store.readSignature",
+            listOf(UuidRule("documentId"), UuidRule("assetId")),
+        ),
+        MethodSpec(
+            "store.writeSignature",
+            listOf(
+                UuidRule("documentId"),
+                UuidRule("assetId"),
+                BytesRule("bytes", limits.maxSignatureBytes, PlatformFailure::invalidSavedData),
+                Sha256Rule("sha256"),
+            ),
+        ),
+        MethodSpec(
+            "store.saveRevision",
+            listOf(
+                UuidRule("documentId"),
+                MapRule(
+                    "revision",
+                    limits.maxRevisionBytes,
+                    PlatformFailure::invalidSavedData,
+                ),
+                UuidRule("expectedHead", required = false, nullable = true),
+                EnumRule("kind", setOf("autosave", "explicit", "recovery")),
+            ),
+        ),
+        MethodSpec(
+            "store.createTemplate",
+            listOf(
+                MapRule("template"),
+                MapRule("revision", limits.maxRevisionBytes, PlatformFailure::invalidSavedData),
+            ),
+        ),
+        MethodSpec(
+            "store.saveTemplateVersion",
+            listOf(
+                UuidRule("templateId"),
+                MapRule("version"),
+                UuidRule("expectedHead", required = false, nullable = true),
+            ),
+        ),
+        MethodSpec("store.loadDocument", listOf(UuidRule("documentId"))),
+        MethodSpec(
+            "store.loadTemplate",
+            listOf(
+                UuidRule("templateId"),
+                UuidRule("versionId", required = false, nullable = true),
+            ),
+        ),
+        MethodSpec(
+            "store.delete",
+            listOf(
+                EnumRule("kind", setOf("document", "template")),
+                UuidRule("id"),
+                ConfirmRule("confirm"),
+            ),
+        ),
+        MethodSpec(
+            "store.recoveryStamp",
+            listOf(EnumRule("kind", setOf("document", "template")), UuidRule("id")),
+        ),
+        MethodSpec(
+            "ocr.recognize",
+            listOf(
+                IntRule("pageIndex", 0, Int.MAX_VALUE),
+                IntRule("imageWidth", 1, limits.maxOcrEdgePx),
+                IntRule("imageHeight", 1, limits.maxOcrEdgePx),
+                DoubleRule("pageWidthPt"),
+                DoubleRule("pageHeightPt"),
+                EnumRule("format", setOf("gray8", "rgba8888")),
+                BytesRule("bytes", limits.maxOcrEdgePx.toLong() * limits.maxOcrEdgePx.toLong() * 4L),
+                StringRule("language", 16, exact = "de"),
+            ),
+        ),
+        MethodSpec(
+            "export.validate",
+            listOf(MapRule("plan", limits.maxExportPlanBytes)),
+        ),
+        MethodSpec(
+            "export.render",
+            listOf(MapRule("plan", limits.maxExportPlanBytes)),
+        ),
+        MethodSpec("export.readArtifact", listOf(UuidRule("artifactId"))),
+        MethodSpec("export.deleteArtifact", listOf(UuidRule("artifactId"))),
+        MethodSpec(
+            "delivery.save",
+            listOf(
+                UuidRule("artifactId"),
+                StringRule(
+                    "suggestedName",
+                    limits.maxSuggestedNameLength,
+                    rejectPathSeparators = true,
+                ),
+            ),
+        ),
+        MethodSpec(
+            "delivery.share",
+            listOf(
+                UuidRule("artifactId"),
+                StringRule("mimeType", 128, exact = "application/pdf"),
+            ),
+        ),
+        MethodSpec(
+            "delivery.print",
+            listOf(UuidRule("artifactId"), StringRule("jobName", 200)),
+        ),
+        MethodSpec("cancel.operation", listOf(UuidRule("operationId"))),
+    ).associateBy { it.name }
+
+    fun specFor(method: String): MethodSpec? = specs[method]
+}
+
+private const val UUID_REGEX =
+    "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+private val UUID_PATTERN = Regex(UUID_REGEX)
+private val SHA256_PATTERN = Regex("^[0-9a-fA-F]{64}$")
+
+private fun hasControlCharacters(text: String): Boolean = text.any { it == '\u0000' || Character.isISOControl(it) }

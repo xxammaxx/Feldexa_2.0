@@ -51,6 +51,10 @@ kotlin {
 dependencies {
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
 
+    // T024: host-JVM contract tests for the platform-channel facade. Test-only;
+    // no runtime dependency and no production APK change.
+    testImplementation("junit:junit:4.13.2")
+
     constraints {
         implementation("org.bouncycastle:bcprov-jdk15to18:1.87")
         implementation("org.bouncycastle:bcpkix-jdk15to18:1.87")
