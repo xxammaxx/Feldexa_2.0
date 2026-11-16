@@ -273,6 +273,12 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
       throw ArgumentError('document does not exist');
     }
     _ensureAggregateKey(record.id);
+    if (backend.signatureBytes(request.documentId, request.assetId) != null) {
+      // `contracts/storage-format.md` §1 marks signature PNG objects immutable.
+      // A second write must never replace bytes a committed revision may
+      // reference; `PLT-002` is the canonical unsafe-operation guard.
+      throw SecurityException();
+    }
     final String actual = sha256Hex(request.bytes);
     if (actual != request.sha256) {
       // An asset whose declared hash does not match its bytes must never be
@@ -280,7 +286,14 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
       throw SecurityException();
     }
     _checkCapacity(request.bytes.length);
-    backend.putSignature(request.documentId, request.assetId, request.bytes);
+    if (!backend.putSignature(
+      request.documentId,
+      request.assetId,
+      request.bytes,
+    )) {
+      // Defensive re-check: the backend refuses to replace an existing asset.
+      throw SecurityException();
+    }
   }
 
   @override

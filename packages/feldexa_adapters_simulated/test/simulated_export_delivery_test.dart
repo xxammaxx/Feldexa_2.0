@@ -784,56 +784,58 @@ void main() {
     },
   );
 
-  test('a mutated signature asset is EXP-005 signature_hash_mismatch', () async {
-    final world = await SimulatedTestWorld.create();
-    final imported = await world.importFixture('sf-004');
-    final geometry = imported.pages.first;
-    final Rect rect = Rect.fromLTWH(300, 600, 120, 40);
-    final bound = await saveRevisionWithSignature(world, imported, rect: rect);
-    // Replace the asset after the revision commit. The new declared hash is
-    // internally consistent but no longer matches the revision's SignatureMark.
-    final Uint8List mutated = signaturePngBytes();
-    mutated[mutated.length - 1] ^= 0xFF;
-    await world.storeAdapter.writeSignature(
-      WriteSignatureRequest(
+  test(
+    'a mutated signature asset is EXP-005 signature_hash_mismatch',
+    () async {
+      final world = await SimulatedTestWorld.create();
+      final imported = await world.importFixture('sf-004');
+      final geometry = imported.pages.first;
+      final Rect rect = Rect.fromLTWH(300, 600, 120, 40);
+      final bound = await saveRevisionWithSignature(
+        world,
+        imported,
+        rect: rect,
+      );
+      // Explicit fault injection: corrupt the stored asset directly. The public
+      // storage operation now refuses to replace an immutable signature object,
+      // so this negative export case cannot be built through writeSignature.
+      final Uint8List stored = world.backend
+          .document(imported.documentId)!
+          .signatures[bound.assetId]!;
+      stored[stored.length - 1] ^= 0xFF;
+      final plan = world.buildExportPlan(
+        imported: imported,
         documentId: imported.documentId,
-        assetId: bound.assetId,
-        bytes: mutated,
-        sha256: sha256Hex(mutated),
-      ),
-    );
-    final plan = world.buildExportPlan(
-      imported: imported,
-      documentId: imported.documentId,
-      revisionId: bound.revisionId,
-      ops: <ExportOp>[
-        ExportImageOp(
-          fieldId: bound.fieldId,
-          provenance: Provenance.user,
-          rect: rect,
-          pdfRect: geometry.displayRectToPdf(rect),
-          assetId: bound.assetId,
+        revisionId: bound.revisionId,
+        ops: <ExportOp>[
+          ExportImageOp(
+            fieldId: bound.fieldId,
+            provenance: Provenance.user,
+            rect: rect,
+            pdfRect: geometry.displayRectToPdf(rect),
+            assetId: bound.assetId,
+          ),
+        ],
+      );
+      final ExportValidationResult validation = await world.exportAdapter
+          .validate(plan);
+      expect(validation.warnings.map((w) => w.code), contains('EXP-005'));
+      expect(validation.warnings.single.reason, 'signature_hash_mismatch');
+      await expectLater(
+        world.exportAdapter.export(
+          ExportRequest(
+            documentId: imported.documentId,
+            revisionId: bound.revisionId,
+            plan: plan,
+          ),
         ),
-      ],
-    );
-    final ExportValidationResult validation = await world.exportAdapter
-        .validate(plan);
-    expect(validation.warnings.map((w) => w.code), contains('EXP-005'));
-    expect(validation.warnings.single.reason, 'signature_hash_mismatch');
-    await expectLater(
-      world.exportAdapter.export(
-        ExportRequest(
-          documentId: imported.documentId,
-          revisionId: bound.revisionId,
-          plan: plan,
+        throwsA(
+          isA<ExportFailedException>().having((e) => e.code, 'code', 'EXP-002'),
         ),
-      ),
-      throwsA(
-        isA<ExportFailedException>().having((e) => e.code, 'code', 'EXP-002'),
-      ),
-    );
-    expect(world.backend.artifacts, isEmpty);
-  });
+      );
+      expect(world.backend.artifacts, isEmpty);
+    },
+  );
 
   test('request document/revision ids must match the plan', () async {
     final world = await SimulatedTestWorld.create();

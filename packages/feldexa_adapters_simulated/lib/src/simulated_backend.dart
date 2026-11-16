@@ -513,9 +513,18 @@ final class SimulatedBackend {
     return bytes == null ? null : copyBytes(bytes);
   }
 
-  /// Stores a signature asset on a document aggregate.
-  void putSignature(String documentId, String assetId, Uint8List bytes) {
-    _documents[documentId]?.signatures[assetId] = copyBytes(bytes);
+  /// Stores a new signature asset on a document aggregate.
+  ///
+  /// `contracts/storage-format.md` §1 marks `sig/<assetId>.fxs` immutable, so
+  /// an existing asset id is never replaced: this returns false and leaves the
+  /// prior bytes untouched. Returns true when the asset was stored.
+  bool putSignature(String documentId, String assetId, Uint8List bytes) {
+    final SimulatedDocumentRecord? record = _documents[documentId];
+    if (record == null || record.signatures.containsKey(assetId)) {
+      return false;
+    }
+    record.signatures[assetId] = copyBytes(bytes);
+    return true;
   }
 
   /// Stores a preview artifact.

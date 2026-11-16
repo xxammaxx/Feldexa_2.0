@@ -361,6 +361,54 @@ void main() {
     );
   });
 
+  test(
+    'an existing signature asset is immutable and rejected without mutation',
+    () async {
+      final world = await SimulatedTestWorld.create();
+      final imported = await world.importFixture('sf-004');
+      final saved = await world.createSavedDocument(imported);
+      final assetId = world.backend.context.newId();
+      final Uint8List original = Uint8List.fromList(<int>[9, 8, 7, 6]);
+      await world.storeAdapter.writeSignature(
+        WriteSignatureRequest(
+          documentId: saved.documentId,
+          assetId: assetId,
+          bytes: original,
+          sha256: sha256Hex(original),
+        ),
+      );
+      final record = world.backend.document(saved.documentId)!;
+      final String? headBefore = record.head;
+      final int revisionsBefore = record.revisions.length;
+
+      final Uint8List replacement = Uint8List.fromList(<int>[1, 2, 3, 4]);
+      await expectLater(
+        world.storeAdapter.writeSignature(
+          WriteSignatureRequest(
+            documentId: saved.documentId,
+            assetId: assetId,
+            bytes: replacement,
+            sha256: sha256Hex(replacement),
+          ),
+        ),
+        throwsA(
+          isA<SecurityException>()
+              .having((e) => e.code, 'code', 'PLT-002')
+              .having((e) => e.retryable, 'retryable', isFalse),
+        ),
+      );
+
+      final Uint8List read = await world.storeAdapter.readSignature(
+        saved.documentId,
+        assetId,
+      );
+      expect(read, orderedEquals(original));
+      expect(record.head, headBefore);
+      expect(record.revisions.length, revisionsBefore);
+      expect(record.signatures.keys, contains(assetId));
+    },
+  );
+
   test('delete requires an acknowledged matching title', () async {
     final world = await SimulatedTestWorld.create();
     final imported = await world.importFixture('sf-004');
