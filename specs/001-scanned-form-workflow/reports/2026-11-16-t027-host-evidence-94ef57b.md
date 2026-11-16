@@ -7,7 +7,7 @@
 | Task / issue | `T027` / `#27` |
 | Date / timezone | `2026-11-16 17:23 Europe/Berlin` |
 | Revision | base commit `15aab0c55c7e77df0d4c4fe199e89c6661ea3db2`; candidate code commit `94ef57b059c71fad01b0f3d46743996325a08dc7` (tree `0444e300e6a4bb0d7b7e21705cc65d635c98c5d0`). The only working-tree change is the pre-existing, deliberately uncommitted `apps/feldexa_app/android/gradlew.bat` phantom (SHA-256 `c13c6e91b9a517783976de213d46398c661ea9e17651376d7301e839eaedcc62`), which is not part of the candidate. The later docs-only commit carries this report and the artifact bundle; its final branch SHA is named in the active `worker_done` attestation, not self-derived here |
-| External attestation | `worker_done` transport record for task `task_496c6c5f2c6e` / dispatch `ctx_0782d0f510af`; it records the candidate code SHA/tree, base, final branch SHA, checks/counts, report bytes/hash, and limitations. No attestation ref was created |
+| External attestation | the active `worker_done` transport record for the dispatched T027 evidence worker (role label; raw task/dispatch identifiers withheld per `reports/README.md` §4.2); it records the candidate code SHA/tree, base, final branch SHA, checks/counts, report bytes/hash, and limitations. No attestation ref was created |
 | Build identity | version `0.1.0` (versionCode `1`); mode `debug`; standalone `build/t027-review3/apks/app-debug.apk` 240765509 bytes SHA-256 `37074ddc12cc0ee1349f3ffdcefc651743728a5c1434e6993d574ff9f1d1e110`; AndroidTest `build/t027-review3/apks/app-debug-androidTest.apk` 126352 bytes SHA-256 `2b236f82700f67692b1ad2f3c4bfccda39a135c819f17e5845340b80ff7ff4fb`; Dart integration harness `build/t027-review3/apks/app-debug-integration.apk` 217937973 bytes SHA-256 `8ab95d2e6d915f47d7350082eb0cbad7cd5f2e0f7b7c3cd886714eeb1bbad419` |
 | Toolchain | Flutter `3.47.7` (framework `abaf9c5237`), Dart `3.13.5`, Gradle `9.3.1` (wrapper distribution SHA-256 pinned in `gradle-wrapper.properties`), Temurin JDK `17.0.20.1`, Android SDK platforms 34/35/36/37.0, build-tools `35.0.0`/`36.0.0` |
 | Input | no corpus; synthetic UUIDv4 aggregate ids, synthetic PDF/source bytes, and synthetic PNG fixtures: native alpha colour types 4/6; tRNS-backed colour types 0/2/3; opaque colour types 0/2/3; malformed/duplicate/out-of-order tRNS; 1024/1025 px, CRC/IHDR/IDAT/filter-bomb and palette cases. No user document, Keystore alias, URI, or device data |
@@ -20,9 +20,9 @@ the two reports must not be aggregated into a `DEVICE` claim.
 
 ## 1. Scope
 
-Independent Review A (`ctx_31016c16cdf7`) passed `db8ce0f` and closed the earlier
+Independent Review A worker passed `db8ce0f` and closed the earlier
 store-root, PNG-structure, state-preservation, and evidence findings. Independent
-Review B (`ctx_8c196ae5cd9a` / `msg_af5c6c94d32d`) then failed that revision on
+Review B worker then failed that revision on
 one remaining point: `SignaturePng.validColorType` accepted RGB colour type 2
 and indexed colour type 3 without requiring an alpha channel or a valid `tRNS`
 chunk, while `contracts/storage-format.md` §2.4 line 129 requires signature PNG
@@ -199,6 +199,10 @@ are bound by `raw-evidence-sha256.txt` under the git-ignored `build/t027-review3
 The active `worker_done` transport record names the candidate code SHA/tree,
 base, final branch SHA, checks/counts, limitations, and report bytes/hash. No
 attestation ref was created.
+
+A later docs-only privacy correction replaced raw worker task/dispatch
+identifiers in this report and the T027 row in `tasks.md` with role labels; no candidate
+code, source, log, XML, or APK byte changed and no test was rerun.
 
 ## 11. Independent review (author leaves blank)
 
