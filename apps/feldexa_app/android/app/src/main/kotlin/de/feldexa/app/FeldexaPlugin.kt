@@ -1383,8 +1383,10 @@ fun interface FeldexaEventSink {
  * top-level values.
  *
  * No serialized copy is allocated: byte arrays contribute their length
- * directly and strings are measured by scanning code units. The `remaining`
- * budget stops traversal as soon as the limit is known to be exceeded.
+ * directly, strings and other `CharSequence`s are measured by scanning code
+ * units, and a `BigInteger` contributes the length of its hexadecimal text
+ * without building that string. The `remaining` budget stops traversal as soon
+ * as the limit is known to be exceeded.
  */
 internal object PayloadSize {
     private const val MAX_DEPTH = 64
@@ -1430,7 +1432,7 @@ internal object PayloadSize {
             if (mod != 0) add((alignment - mod).toLong())
         }
 
-        fun writeString(text: String) {
+        fun writeString(text: CharSequence) {
             add(TYPE_BYTE)
             // Each UTF-16 code unit needs at least one UTF-8 byte; when that
             // lower bound already breaks the budget, skip the full scan.
@@ -1441,6 +1443,38 @@ internal object PayloadSize {
             val bytes = utf8Length(text)
             writeSize(bytes)
             add(bytes)
+        }
+
+        fun writeBigInteger(value: BigInteger) {
+            add(TYPE_BYTE)
+            // Every hexadecimal representation has at least one byte ("0",
+            // "1", "-1", ...), so the type byte plus the one-byte size prefix
+            // already decides tiny budgets without scanning a large magnitude.
+            if (size + 1L + 1L > limit) {
+                size = limit + 1L
+                return
+            }
+            writeBytes(hexStringLength(value))
+        }
+
+        /**
+         * Byte length of `BigInteger.toString(16)` without materializing that
+         * string. `StandardMessageCodec` writes the hexadecimal text (with a
+         * leading `-` for negatives) as UTF-8, so its length equals the digit
+         * count on this ASCII path.
+         *
+         * Positives need `ceil(bitLength / 4)` digits. For negatives,
+         * `bitLength()` describes `|value| - 1`; only a power-of-two magnitude
+         * adds one more significant bit, which `bitCount() == bitLength()`
+         * identifies without allocating `abs()` or the hex text.
+         */
+        private fun hexStringLength(value: BigInteger): Long {
+            val signum = value.signum()
+            if (signum == 0) return 1L
+            val bits = value.bitLength().toLong()
+            if (signum > 0) return (bits + 3L) / 4L
+            val magnitudeBits = if (value.bitCount().toLong() == bits) bits + 1L else bits
+            return (magnitudeBits + 3L) / 4L + 1L
         }
 
         private fun writeTypedArray(elementBytes: Int, count: Int, alignment: Int) {
@@ -1480,12 +1514,9 @@ internal object PayloadSize {
                     align(8)
                     add(8L)
                 }
-                is BigInteger -> {
-                    add(TYPE_BYTE)
-                    writeBytes(value.toString(16).length.toLong())
-                }
+                is BigInteger -> writeBigInteger(value)
                 is String -> writeString(value)
-                is CharSequence -> writeString(value.toString())
+                is CharSequence -> writeString(value)
                 is ByteArray -> {
                     add(TYPE_BYTE)
                     writeBytes(value.size.toLong())
@@ -1512,8 +1543,15 @@ internal object PayloadSize {
                 is List<*> -> writeList(value.size, depth, value.iterator())
                 is Array<*> -> writeList(value.size, depth, value.iterator())
                 is Iterable<*> -> {
-                    val items = value.toList()
-                    writeList(items.size, depth, items.iterator())
+                    // Collections expose their size without copying; only a
+                    // non-Collection Iterable needs the one-pass snapshot, and
+                    // StandardMessageCodec has no Iterable encoding at all.
+                    if (value is Collection<*>) {
+                        writeList(value.size, depth, value.iterator())
+                    } else {
+                        val items = value.toList()
+                        writeList(items.size, depth, items.iterator())
+                    }
                 }
                 else -> throw PlatformFailure.invalidPayload("platform.unsupportedValue")
             }
@@ -1523,9 +1561,11 @@ internal object PayloadSize {
     /**
      * UTF-8 byte length as produced by `String.toByteArray(StandardCharsets.UTF_8)`,
      * without allocating the byte array. Malformed surrogate code units are
-     * replaced by a single `?` byte, matching the JDK encoder's default.
+     * replaced by a single `?` byte, matching the JDK encoder's default. Takes
+     * a [CharSequence] so the counter can measure a `CharSequence` payload
+     * without materializing its `toString()` copy.
      */
-    private fun utf8Length(text: String): Long {
+    private fun utf8Length(text: CharSequence): Long {
         var bytes = 0L
         var index = 0
         while (index < text.length) {

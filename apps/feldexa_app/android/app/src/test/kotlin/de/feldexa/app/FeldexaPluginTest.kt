@@ -6,6 +6,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.math.BigInteger
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.RejectedExecutionException
@@ -278,6 +279,93 @@ class FeldexaPluginTest {
     }
 
     @Test
+    fun payloadSizeMatchesCodecHexadecimalBigIntegerEncoding() {
+        // StandardMessageCodec writes a BigInteger as
+        // writeBytes(value.toString(16).getBytes(UTF_8)), so the size is the
+        // type byte, the size prefix and the ASCII hexadecimal text (the sign
+        // byte included for negatives).
+        val cases = linkedMapOf(
+            BigInteger.ZERO to "0",
+            BigInteger.ONE to "1",
+            BigInteger.valueOf(-1) to "-1",
+            BigInteger.valueOf(15) to "f",
+            BigInteger.valueOf(16) to "10",
+            BigInteger.valueOf(255) to "ff",
+            BigInteger.valueOf(256) to "100",
+            BigInteger.ONE.shiftLeft(63) to "8000000000000000",
+            BigInteger.ONE.shiftLeft(64) to "10000000000000000",
+            BigInteger.ONE.shiftLeft(64).negate() to "-10000000000000000",
+            BigInteger.ONE.shiftLeft(64).subtract(BigInteger.ONE) to "ffffffffffffffff",
+            BigInteger.ONE.shiftLeft(64).subtract(BigInteger.ONE).negate() to "-ffffffffffffffff",
+        )
+        for ((value, hex) in cases) {
+            assertEquals(hex, value.toString(16))
+            assertEquals(
+                "value=$value",
+                1L + sizePrefix(hex.length.toLong()) + hex.length.toLong(),
+                PayloadSize.measure(value, Long.MAX_VALUE),
+            )
+        }
+    }
+
+    @Test
+    fun payloadSizeMatchesCodecBigIntegerEncodingAcrossPowersAndSigns() {
+        val values = mutableListOf<BigInteger>()
+        for (exponent in 0..512) {
+            val power = BigInteger.ONE.shiftLeft(exponent)
+            values += power
+            values += power.negate()
+            values += power.subtract(BigInteger.ONE)
+            values += power.subtract(BigInteger.ONE).negate()
+            values += power.add(BigInteger.ONE)
+            values += power.add(BigInteger.ONE).negate()
+        }
+        values += BigInteger.valueOf(Long.MAX_VALUE)
+        values += BigInteger.valueOf(Long.MIN_VALUE)
+        for (value in values) {
+            val hex = value.toString(16)
+            assertEquals(
+                "value=$value",
+                1L + sizePrefix(hex.length.toLong()) + hex.length.toLong(),
+                PayloadSize.measure(value, Long.MAX_VALUE),
+            )
+        }
+    }
+
+    @Test
+    fun payloadSizeMeasuresCharSequenceWithoutMaterializingToString() {
+        val text = "a\u00e4\u20ac\uD83D\uDE00"
+        assertEquals(12L, PayloadSize.measure(text, Long.MAX_VALUE))
+        assertEquals(
+            PayloadSize.measure(text, Long.MAX_VALUE),
+            PayloadSize.measure(StringBuilder(text), Long.MAX_VALUE),
+        )
+    }
+
+    @Test
+    fun largeBigIntegerIsMeasuredWithinTinyBudgetsWithoutHexadecimalCopy() {
+        val shift = 64 * 1024 * 1024
+        val huge = BigInteger.ONE.shiftLeft(shift)
+        // "1" followed by one zero for every four magnitude bits, plus the
+        // 1 type byte and the 5-byte size prefix (the text exceeds 0xffff).
+        val hexBytes = 1L + shift.toLong() / 4L
+        val exact = 1L + 5L + hexBytes
+        assertEquals(exact, PayloadSize.measure(huge, Long.MAX_VALUE))
+
+        // Tiny budgets are decided from the type byte and the minimum one-byte
+        // text before the magnitude is inspected at all.
+        assertEquals(2L, PayloadSize.measure(huge, 1L))
+        assertEquals(3L, PayloadSize.measure(huge, 2L))
+        assertEquals(3L, PayloadSize.measure(huge.negate(), 2L))
+
+        // The exact path returns the full length without materializing the
+        // hexadecimal text; the implementation only reads bitLength (and
+        // bitCount for negatives), never toString(16) or abs(). Negatives add
+        // the leading '-' byte.
+        assertEquals(exact + 1L, PayloadSize.measure(huge.negate(), Long.MAX_VALUE))
+    }
+
+    @Test
     fun payloadAtExactTotalEnvelopeIsAcceptedAndOneByteOverIsRejected() {
         // import.pickAndImport + {schemaVersion:1, maxBytes:1024, titleHint:N}
         // StandardMethodCodec encodes the method name (22), the root map
@@ -318,6 +406,35 @@ class FeldexaPluginTest {
             .handle("import.pickAndImport", payload, reply)
         assertFailure(reply, "PLT-003")
         assertEquals("platform.payloadTooLarge", reply.failure?.machineMessage)
+    }
+
+    @Test
+    fun fixedTotalEnvelopeAcceptsBelowAndExactPayloadAndRejectsAbove() {
+        // Review-A regression: keep the total-envelope limit fixed at 112 bytes
+        // and grow only the payload, so below/exact/above are genuinely three
+        // different inputs rather than three different limits.
+        val method = "import.pickAndImport"
+        val limit = 112L
+        val payloads = listOf(39, 40, 41).associateWith { length ->
+            mapOf("schemaVersion" to 1, "maxBytes" to 1024, "titleHint" to "a".repeat(length))
+        }
+        assertEquals(111L, PayloadSize.measureMethodCall(method, payloads.getValue(39), Long.MAX_VALUE))
+        assertEquals(112L, PayloadSize.measureMethodCall(method, payloads.getValue(40), Long.MAX_VALUE))
+        assertEquals(113L, PayloadSize.measureMethodCall(method, payloads.getValue(41), Long.MAX_VALUE))
+
+        for (length in listOf(39, 40)) {
+            val accepted = RecordingReply()
+            newFacade(servicePrefix = "import", limits = ChannelLimits(maxPayloadBytes = limit))
+                .handle(method, payloads.getValue(length), accepted)
+            assertNull("expected a $length-character title to fit: ${accepted.failure}", accepted.failure)
+            assertTrue(accepted.successValue != null)
+        }
+
+        val rejected = RecordingReply()
+        newFacade(servicePrefix = "import", limits = ChannelLimits(maxPayloadBytes = limit))
+            .handle(method, payloads.getValue(41), rejected)
+        assertFailure(rejected, "PLT-003")
+        assertEquals("platform.payloadTooLarge", rejected.failure?.machineMessage)
     }
 
     @Test
@@ -1731,6 +1848,13 @@ class FeldexaPluginTest {
     private fun assertFailure(reply: RecordingReply, code: String) {
         assertNull("expected failure $code but got success ${reply.successValue}", reply.successValue)
         assertEquals(code, reply.failure?.code)
+    }
+
+    /** StandardMessageCodec's variable-width byte-array/map/list size prefix. */
+    private fun sizePrefix(length: Long): Long = when {
+        length < 254L -> 1L
+        length <= 0xffffL -> 3L
+        else -> 5L
     }
 
     private class ReturningService(private val data: Any?) : PlatformService {

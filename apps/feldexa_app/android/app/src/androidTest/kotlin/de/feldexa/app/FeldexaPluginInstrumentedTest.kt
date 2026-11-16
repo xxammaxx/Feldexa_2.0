@@ -9,9 +9,11 @@ import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.FlutterException
+import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.common.StandardMethodCodec
 import io.flutter.plugin.platform.PlatformViewFactory
 import io.flutter.plugin.platform.PlatformViewRegistry
+import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -316,6 +318,72 @@ class FeldexaPluginInstrumentedTest {
         val failure = invokeFailure(method, payload)
         assertEquals("PLT-003", failure.code)
         assertEquals("platform.payloadTooLarge", failure.message)
+    }
+
+    @Test
+    fun fixedTotalEnvelopeBoundaryTracksActualCodecAsPayloadGrows() {
+        // Review-A regression: the total-envelope limit stays fixed at 112
+        // bytes while the payload itself grows, so 111/112/113 are three
+        // different inputs rather than one input under three limits.
+        val method = "import.pickAndImport"
+        val limit = 112L
+        val expectations = linkedMapOf(39 to 111L, 40 to 112L, 41 to 113L)
+        val payloads = expectations.keys.associateWith { length ->
+            mapOf("schemaVersion" to 1, "maxBytes" to 1024, "titleHint" to "a".repeat(length))
+        }
+
+        for ((length, expectedBytes) in expectations) {
+            val payload = payloads.getValue(length)
+            val encoded = codec.encodeMethodCall(MethodCall(method, payload))
+            assertEquals("titleHint=$length", expectedBytes, encoded.limit().toLong())
+            assertEquals(
+                "titleHint=$length",
+                encoded.limit().toLong(),
+                PayloadSize.measureMethodCall(method, payload, Long.MAX_VALUE),
+            )
+        }
+
+        reattachWithLimits(ChannelLimits(maxPayloadBytes = limit))
+        plugin.registerService("import", ReturningService(mapOf("ok" to true)))
+        assertEquals(true, invoke(method, payloads.getValue(39))["ok"])
+        assertEquals(true, invoke(method, payloads.getValue(40))["ok"])
+        val failure = invokeFailure(method, payloads.getValue(41))
+        assertEquals("PLT-003", failure.code)
+        assertEquals("platform.payloadTooLarge", failure.message)
+    }
+
+    @Test
+    fun payloadSizeMatchesRealMessageCodecForBigIntegerAndCharSequence() {
+        // The real codec, not the hand formula, defines the encoded size of a
+        // BigInteger (writeBytes(toString(16))) and a CharSequence
+        // (writeBytes(toString())), including the negative sign and the
+        // variable-width size prefix.
+        val values: List<Any> = listOf(
+            BigInteger.ZERO,
+            BigInteger.ONE,
+            BigInteger.valueOf(-1),
+            BigInteger.valueOf(15),
+            BigInteger.valueOf(16),
+            BigInteger.valueOf(255),
+            BigInteger.valueOf(256),
+            BigInteger.ONE.shiftLeft(63),
+            BigInteger.ONE.shiftLeft(64),
+            BigInteger.ONE.shiftLeft(64).negate(),
+            BigInteger.ONE.shiftLeft(64).subtract(BigInteger.ONE),
+            BigInteger.ONE.shiftLeft(64).subtract(BigInteger.ONE).negate(),
+            StringBuilder("abc"),
+            StringBuilder("a\u00e4\u20ac\uD83D\uDE00"),
+        )
+        for (value in values) {
+            val encoded = requireNotNull(StandardMessageCodec.INSTANCE.encodeMessage(value)) {
+                "StandardMessageCodec did not encode $value"
+            }
+            assertEquals(
+                "value=$value",
+                encoded.limit().toLong(),
+                PayloadSize.measure(value, Long.MAX_VALUE),
+            )
+        }
     }
 
     @Test
