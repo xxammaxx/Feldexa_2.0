@@ -1,0 +1,22 @@
+00:00 +0: loading <repo-root>/packages/feldexa_adapters_android/test/operation_client_test.dart
+00:00 +0: <repo-root>/packages/feldexa_adapters_android/test/operation_client_test.dart: reconciles a terminal result arriving before the start reply
+00:00 +1: <repo-root>/packages/feldexa_adapters_android/test/operation_client_test.dart: terminal errors retain code without losing retryability
+00:00 +2: <repo-root>/packages/feldexa_adapters_android/test/operation_client_test.dart: rejects malformed start replies
+00:00 +3: <repo-root>/packages/feldexa_adapters_android/test/operation_client_test.dart: closed result stream fails a pending accepted operation
+00:00 +4: <repo-root>/packages/feldexa_adapters_android/test/operation_client_test.dart: start exposes the operation ID for cancellation
+00:01 +5: <repo-root>/packages/feldexa_adapters_android/test/android_clients_test.dart: import result is parsed and IMP-001 maps to a typed rejection
+00:01 +6: <repo-root>/packages/feldexa_adapters_android/test/android_clients_test.dart: OCR sends the resolved page size and parses blocks
+00:01 +7: <repo-root>/packages/feldexa_adapters_android/test/android_clients_test.dart: OCR fails closed when no page-size resolver is wired
+00:01 +8: <repo-root>/packages/feldexa_adapters_android/test/android_clients_test.dart: export validate and render reconstruct a verified artifact
+00:01 +9: <repo-root>/packages/feldexa_adapters_android/test/android_clients_test.dart: delivery maps cancellation and never claims a completed save
+00:01 +10: <repo-root>/packages/feldexa_adapters_android/test/android_clients_test.dart: raster eviction forgets sizes only for the requested source
+00:01 +11: <repo-root>/packages/feldexa_adapters_android/test/android_clients_test.dart: clock, ids, and diagnostics stay content-free
+00:01 +12: <repo-root>/packages/feldexa_adapters_android/test/android_store_client_test.dart: createDocument carries the approved identity and initial revision
+00:01 +13: <repo-root>/packages/feldexa_adapters_android/test/android_store_client_test.dart: duplicate create maps SAVE-006 without returning metadata
+00:01 +14: <repo-root>/packages/feldexa_adapters_android/test/android_store_client_test.dart: saveRevision returns metadata only when list agrees with the receipt
+00:01 +15: <repo-root>/packages/feldexa_adapters_android/test/android_store_client_test.dart: saveRevision refuses a mismatched list head
+00:01 +16: <repo-root>/packages/feldexa_adapters_android/test/android_store_client_test.dart: loadDocument validates the head hash and reads source bytes
+00:01 +17: <repo-root>/packages/feldexa_adapters_android/test/android_store_client_test.dart: loadDocument rejects a head that does not match the revision
+00:01 +18: <repo-root>/packages/feldexa_adapters_android/test/android_store_client_test.dart: SAVE-002 and SAVE-008 keep their distinct recovery meaning
+00:01 +19: <repo-root>/packages/feldexa_adapters_android/test/android_store_client_test.dart: stageSource and native startup recovery are available to T031
+00:01 +20: All tests passed!

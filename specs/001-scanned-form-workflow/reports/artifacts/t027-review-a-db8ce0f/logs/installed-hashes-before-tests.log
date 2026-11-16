@@ -1,0 +1,6 @@
+phase=before-tests
+2026-11-16T15:30:48Z
+package=de.feldexa.app path=<device-apk-path>
+6ad46474ac6115c8fa5f56725c51a1ecda35c21e0e473c528e1ec09cf51c5e0a  <device-apk-path>
+package=de.feldexa.app.test path=<device-apk-path>
+1fff9293bbb9640fed01669146f5d279d8d63484943f572299c2830af3288fd9  <device-apk-path>

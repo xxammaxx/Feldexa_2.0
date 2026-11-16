@@ -1,0 +1,15 @@
+phase=canonical-root-runtime
+2026-11-16T15:38:41Z
+Starting: Intent { cmp=de.feldexa.app/.MainActivity }
+--- files dir ---
+total 24
+drwxrwx--x 3 u0_a276 u0_a276 4096 2026-11-16 16:38 .
+drwx------ 6 u0_a276 u0_a276 4096 2026-11-16 16:38 ..
+drwx------ 6 u0_a276 u0_a276 4096 2026-11-16 16:38 feldexa
+--- tree ---
+files
+files/feldexa
+files/feldexa/diagnostics
+files/feldexa/docs
+files/feldexa/templates
+files/feldexa/tmp

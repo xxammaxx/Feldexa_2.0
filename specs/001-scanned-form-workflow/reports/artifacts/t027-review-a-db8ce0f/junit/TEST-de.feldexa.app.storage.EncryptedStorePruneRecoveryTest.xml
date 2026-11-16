@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="de.feldexa.app.storage.EncryptedStorePruneRecoveryTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-16T15:26:29.334Z" hostname="cachyos-x8664" time="0.142">
+  <properties/>
+  <testcase name="nextSaveRetainsUnconfirmedMissingHistoryAndTrimsAfterConfirmation" classname="de.feldexa.app.storage.EncryptedStorePruneRecoveryTest" time="0.029"/>
+  <testcase name="repeatedFsyncFailureWithoutResurrectionRetriesBeforeHistoryTrim" classname="de.feldexa.app.storage.EncryptedStorePruneRecoveryTest" time="0.02"/>
+  <testcase name="pruneFsyncFailureDuringStartupIsRetryableWithoutTrimmingHistory" classname="de.feldexa.app.storage.EncryptedStorePruneRecoveryTest" time="0.028"/>
+  <testcase name="pruneFsyncFailureKeepsFullHistoryAndStartupRetries" classname="de.feldexa.app.storage.EncryptedStorePruneRecoveryTest" time="0.018"/>
+  <testcase name="historyCapDoesNotEvictUnconfirmedMissingEntry" classname="de.feldexa.app.storage.EncryptedStorePruneRecoveryTest" time="0.045"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

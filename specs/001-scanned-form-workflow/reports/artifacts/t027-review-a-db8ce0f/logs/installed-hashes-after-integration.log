@@ -1,0 +1,4 @@
+phase=integration-harness
+2026-11-16T15:32:52Z
+package=de.feldexa.app path=<device-apk-path>
+93525519dc149e452cb82b579b62fcffed5cb0633db74b651b08062899f98de3  <device-apk-path>
