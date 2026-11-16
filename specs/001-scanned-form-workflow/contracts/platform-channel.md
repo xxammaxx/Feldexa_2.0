@@ -210,6 +210,9 @@ is terminal result `data`. The remaining store methods are synchronous.
 | --- | --- | --- |
 | `store.status` | `{}` | `{ keyAvailable, objectCount, totalBytes }` |
 | `store.list` | `{ "kind":"document"\|"template" }` | `{ items:[StoredMeta…] }` |
+| `store.stageSource` | `{ "documentId", "sourceId", "bytes", "sha256" }` | `{ sourceId, sha256, sizeBytes, verified:true }` |
+| `store.createDocument` | `{ "documentId", "title", "source":{…}, "initialRevision":{…} }` | `StoredMeta` read back from the committed aggregate |
+| `store.startupRecovery` | `{}` | `{ tempEntriesRemoved, incompleteAggregatesRemoved, unreadableAggregates, fallbackAdoptions, orphanAliasesRemoved, orphanAliasesRetained, orphanAliasesFailed, aliasSweepSkipped, ambiguousRevisionOrder, prunedRevisions }` |
 | `store.readSource` | `{ "documentId" }` | `Uint8List` (decrypted, capped 80 MiB) |
 | `store.readSignature` | `{ "documentId", "assetId" }` | `Uint8List` (PNG) |
 | `store.writeSignature` | `{ "documentId", "assetId", "bytes", "sha256" }` | `{ verified:true }` |
@@ -222,6 +225,11 @@ is terminal result `data`. The remaining store methods are synchronous.
 | `store.recoveryStamp` | `{ "kind", "id" }` | `{ verifiedRevisionId, committedAt, headCorrupt, fellBackToOlderRevision }` |
 
 Rules:
+- The template store methods (`store.createTemplate`, `store.saveTemplateVersion`, `store.loadTemplate`) still have only an ellipsis payload in the table. T027 therefore keeps them fail-closed (`PLT-001`) instead of inventing a second wire contract; a template task must specify their exact payload before a client claims them.
+- `store.stageSource` is synchronous and is the channel bridge for the contract-named `EncryptedStore.stageSource`. It creates the aggregate KEK, writes and read-back-verifies `src/<sourceId>.fxc`, and leaves the aggregate incomplete (no `meta.fx1`/`head.fx1`), so it is never listed as a document. The SAF import service (T038) uses it before `store.createDocument`; the method is not a `SecureStorePort` operation.
+- `store.startupRecovery` is synchronous and exposes the T026 native recovery (stale `tmp/`, incomplete aggregates, head fallback, unreferenced signatures, orphan aliases). T031 must call it before its Dart `StartupSweep.run()` and must not duplicate the native sweep in Dart.
+- `store.writeSignature` never replaces an existing asset id. A repeated write is refused with `PLT-002` before any staging or write, and the prior signature bytes, head, and revisions stay unchanged; the asset id is immutable, not an idempotent update.
+- `store.createDocument` is synchronous: it persists the provided document ID and initial revision exactly once. The revision must belong to that document and have no parent. A duplicate visible aggregate is rejected without overwriting it; no second identity or initial revision is generated. The staged source must be verified against the supplied hash and size before the aggregate becomes visible. The import flow supplies these values and returns only after this commit has been verified.
 - `saveRevision` uses optimistic concurrency: `expectedHead` must equal the current verified head, otherwise `SAVE-006` (concurrent write) and the caller re-reads. The app is single-user, but autosave/lifecycle races are real. A second concurrent save for the same `documentId` is rejected **before** the start reply with `PlatformException("SAVE-006")`; an `expectedHead` mismatch discovered by the storage service after the start reply is a terminal `operation.result` error with `SAVE-006`.
 - `saveRevision` performs the owner-decided retention after the verified read-back: last 3 autosave + newest explicit + newest recovery + the protected head. `prunedRevisions` is the count of known-kind files deleted by this save. Unknown/legacy entries and untracked files are retained; a legacy head without history prunes nothing.
 - `store.loadDocument` returns `head` with its bounded `history` array (`{revisionId, kind}`, oldest first, at most 16; `kind` may be null for legacy/unknown). The field is absent/empty for an old head.

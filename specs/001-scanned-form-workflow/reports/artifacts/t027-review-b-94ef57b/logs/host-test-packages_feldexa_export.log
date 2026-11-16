@@ -1,0 +1,60 @@
+00:00 +0: loading <repo-root>/packages/feldexa_export/test/export_artifact_test.dart
+00:00 +0: <repo-root>/packages/feldexa_export/test/export_artifact_test.dart: ArtifactVerification requires five passing checks and UTC time
+00:00 +1: <repo-root>/packages/feldexa_export/test/export_artifact_test.dart: ArtifactVerification allChecksPassed is false when any single check fails
+00:00 +2: <repo-root>/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine starts in validating and refuses every shortcut
+00:00 +3: <repo-root>/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine advances validating -> rendering -> verifying -> succeeded -> deleted
+00:00 +4: <repo-root>/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine failed is terminal and clears output
+00:00 +5: <repo-root>/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine blocking is artifactless and cannot create an ExportArtifact
+00:00 +6: <repo-root>/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine rejects a verification argument outside verifying
+00:00 +7: <repo-root>/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine succeed refuses an incomplete, premature, or malformed success
+00:00 +8: <repo-root>/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine exposes the exact state wire tokens and rejects blocked
+00:00 +9: <repo-root>/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact JSON round-trips every valid state and preserves unknown fields
+00:00 +10: <repo-root>/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact JSON refuses optimistic or inconsistent restored records
+00:00 +11: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema serializes the §2 schema canonically and round-trips
+00:00 +12: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema derives display size and CTM from the page geometry
+00:00 +13: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema preserves unknown same-schema fields at every modeled level
+00:00 +14: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema rejects forbidden plan content at any depth
+00:00 +15: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema rejects invalid plan identity, evidence, and page metadata
+00:00 +16: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema rejects absolute and URI font asset paths
+00:00 +17: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema rejects mismatched CTM, display size, and pdfRect
+00:00 +18: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema rejects duplicate ops for one field
+00:00 +19: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules rejects overflowing, clipped, and malformed text ops
+00:00 +20: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules rejects text metrics that violate the §2.2 formula
+00:00 +21: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules rejects the stale §2 example baseline under the §2.2 formula
+00:00 +22: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules applies the text clamps before checking the formula
+00:00 +23: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules rejects checkbox metrics that violate the §2.2 formula
+00:00 +24: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules rejects mark values outside the normative clamps
+00:00 +25: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules rejects an unknown op discriminator and provenance token
+00:00 +26: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy rejects absolute paths and URIs in warnings
+00:00 +27: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy rejects device names and user identifiers in warnings
+00:00 +28: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy accepts safe warnings, labels, and relative text
+00:00 +29: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy rejects forbidden values in unknown fields and keeps safe ones
+00:00 +30: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy rejects private values in schema metadata strings
+00:00 +31: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy rejects forbidden values in nested geometry and op extensions
+00:00 +32: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy rejects forbidden values in plan JSON warnings and unknown fields
+00:00 +33: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportValidation empty validation is valid and non-blocking
+00:00 +34: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportValidation blocking warning keeps code, reason, and field context
+00:00 +35: <repo-root>/packages/feldexa_export/test/export_contract_models_test.dart: ExportValidation rejects non-blocking codes and local timestamps
+00:01 +36: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:01 +36: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: bundled metrics document declares schema v1 and the two bundled Noto Sans weights
+00:01 +37: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: bundled metrics document asset size and declared SHA-256 pin match the bundle contract
+00:01 +38: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: bundled metrics document advance maps are ordered, bounded, and canonical
+00:01 +39: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: bundled metrics document regular and bold expose identical glyph coverage
+00:01 +40: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
+00:02 +41: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage every bundled advance equals the Dart hmtx advance
+00:02 +42: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart font-wide metrics match the bundled header values
+00:02 +43: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: malformed sfnt bounds a cmap group array that fits its declared length parses
+00:02 +44: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: malformed sfnt bounds a cmap group array beyond its declared length is rejected
+00:02 +45: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: malformed sfnt bounds a huge cmap group count is rejected before any group read
+00:02 +46: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: FR-067 German typography required German codepoints have positive advances
+00:02 +47: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: FR-067 German typography representative German values are fully renderable
+00:02 +48: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: FR-067 German typography point widths match independent pinned values at 7/10/12 pt
+00:02 +49: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: FR-067 German typography 200 deterministic sample strings agree with the bundled table
+00:02 +50: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: FR-067 German typography zero-advance combining marks stay covered without width
+00:02 +51: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: FR-067 German typography measurement iterates runes, including non-BMP codepoints
+00:02 +52: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: FR-068 clip arithmetic (test-local) single-line padding arithmetic honors the 1.5 pt inset
+00:02 +53: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: FR-068 clip arithmetic (test-local) long German value crosses the helper threshold, wider field does not
+00:02 +54: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: FR-068 clip arithmetic (test-local) unrenderable characters fail as coverage, not zero width
+00:02 +55: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: ExportFont contract the bundled identity satisfies the ExportFont contract
+00:02 +56: <repo-root>/packages/feldexa_export/test/font_metrics_test.dart: (tearDownAll)
+00:02 +56: All tests passed!

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="de.feldexa.app.storage.StoreServiceTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-16T14:37:40.767Z" hostname="cachyos-x8664" time="0.091">
+  <properties/>
+  <testcase name="stageCreateLoadListAndSaveKeepIdentityHeadAndSource" classname="de.feldexa.app.storage.StoreServiceTest" time="0.031"/>
+  <testcase name="parentedInitialRevisionIsRejectedBeforeAnyWrite" classname="de.feldexa.app.storage.StoreServiceTest" time="0.002"/>
+  <testcase name="repeatedSignatureAssetIsRefusedWithPlt002AndPreservesPriorState" classname="de.feldexa.app.storage.StoreServiceTest" time="0.017"/>
+  <testcase name="duplicateVisibleCreateIsRefusedAndOriginalRemainsReadable" classname="de.feldexa.app.storage.StoreServiceTest" time="0.012"/>
+  <testcase name="expectedHeadMismatchPreservesTheVerifiedHead" classname="de.feldexa.app.storage.StoreServiceTest" time="0.014"/>
+  <testcase name="sourceHashMismatchNeverBecomesVisible" classname="de.feldexa.app.storage.StoreServiceTest" time="0.003"/>
+  <testcase name="startupRecoveryIsReachableThroughTheService" classname="de.feldexa.app.storage.StoreServiceTest" time="0.001"/>
+  <testcase name="wrongDeleteTitleIsPlatformSecurityAndPreservesTheDocument" classname="de.feldexa.app.storage.StoreServiceTest" time="0.01"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

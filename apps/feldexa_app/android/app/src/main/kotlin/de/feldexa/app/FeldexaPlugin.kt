@@ -325,7 +325,8 @@ private val ALLOWED_MACHINE_MESSAGES: Set<String> = setOf(
     "platform.invalidConfirmation", "platform.invalidRaster",
     // stable domain mappings used by the catalog/tests
     "save.invalidData", "save.concurrentWrite", "save.noSpace", "save.storageFull",
-    "save.keyUnavailable", "save.corruptData", "save.schemaTooNew", "save.keystoreUnavailable",
+    "save.keyUnavailable", "save.corruptData", "save.writeFailed",
+    "save.schemaTooNew", "save.keystoreUnavailable",
     "import.passwordProtected", "import.unreadable", "import.missing", "import.notPdf",
     "import.unknown", "import.partiallyUnreadable", "import.tooLarge", "import.cancelled",
     "export.blocked", "export.failed", "export.geometryInvalid", "export.missingGlyph",
@@ -1833,6 +1834,35 @@ private class MethodCatalog(private val limits: ChannelLimits) {
         ),
         MethodSpec("store.status", emptyList()),
         MethodSpec("store.list", listOf(EnumRule("kind", setOf("document", "template")))),
+        MethodSpec(
+            "store.stageSource",
+            listOf(
+                UuidRule("documentId"),
+                UuidRule("sourceId"),
+                BytesRule(
+                    "bytes",
+                    limits.maxSourceBytes,
+                    failure = {
+                        PlatformFailure("IMP-007", "tooLarge", false, "import.tooLarge")
+                    },
+                ),
+                Sha256Rule("sha256"),
+            ),
+        ),
+        MethodSpec(
+            "store.createDocument",
+            listOf(
+                UuidRule("documentId"),
+                StringRule("title", limits.maxTitleLength),
+                MapRule("source", 64L * 1024L),
+                MapRule(
+                    "initialRevision",
+                    limits.maxRevisionBytes,
+                    PlatformFailure::invalidSavedData,
+                ),
+            ),
+        ),
+        MethodSpec("store.startupRecovery", emptyList()),
         MethodSpec("store.readSource", listOf(UuidRule("documentId"))),
         MethodSpec(
             "store.readSignature",

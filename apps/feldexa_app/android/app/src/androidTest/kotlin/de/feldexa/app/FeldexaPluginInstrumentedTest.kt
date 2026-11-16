@@ -1,6 +1,14 @@
 package de.feldexa.app
 
 import android.app.Instrumentation
+import de.feldexa.app.storage.AggregateKind
+import de.feldexa.app.storage.AggregateRef
+import de.feldexa.app.storage.AndroidTestPng
+import de.feldexa.app.storage.CanonicalJson
+import de.feldexa.app.storage.DeleteConfirmation
+import de.feldexa.app.storage.EncryptedStore
+import de.feldexa.app.storage.KeystoreService
+import de.feldexa.app.storage.StoreService
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.flutter.embedding.engine.FlutterEngine
@@ -13,11 +21,15 @@ import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.common.StandardMethodCodec
 import io.flutter.plugin.platform.PlatformViewFactory
 import io.flutter.plugin.platform.PlatformViewRegistry
+import java.io.File
 import java.math.BigInteger
+import java.security.MessageDigest
+import java.util.UUID
 import java.nio.ByteBuffer
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import org.junit.After
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -114,6 +126,461 @@ class FeldexaPluginInstrumentedTest {
         }
     }
 
+    // ---- T027 real store service through the real channel -------------------
+
+    @Test
+    fun realStoreServiceCreatesSavesLoadsListsAndPreservesState() {
+        val context = instrumentation.targetContext
+        val root = File(context.filesDir, "t027-channel-" + UUID.randomUUID())
+        val keystore = KeystoreService.forAndroid(context)
+        val store = EncryptedStore(root, keystore)
+        store.ensureLayout()
+        plugin.registerService("store", StoreService(store))
+        val documentId = UUID.randomUUID().toString()
+        val sourceId = UUID.randomUUID().toString()
+        val revisionId = UUID.randomUUID().toString()
+        val source = "%PDF-1.7\nT027 synthetic channel source\n".toByteArray()
+        val sourceSha = sha256(source)
+        val content = mapOf<String, Any?>(
+            "pageCount" to 1,
+            "t027CanonicalProbe" to 1.0000000000000002e-7,
+        )
+        val contentSha = sha256(CanonicalJson.encode(content))
+        try {
+            val staged = invoke(
+                "store.stageSource",
+                withSchema(
+                    mapOf(
+                        "documentId" to documentId,
+                        "sourceId" to sourceId,
+                        "bytes" to source,
+                        "sha256" to sourceSha,
+                    ),
+                ),
+            )
+            assertEquals(true, (staged["data"] as Map<*, *>)["verified"])
+
+            val createPayload = withSchema(
+                mapOf(
+                    "documentId" to documentId,
+                    "title" to "T027 Kanaltest",
+                    "source" to mapOf(
+                        "id" to sourceId,
+                        "sha256" to sourceSha,
+                        "sizeBytes" to source.size,
+                        "pageCount" to 1,
+                        "importedAt" to "2026-11-16T12:00:00.000Z",
+                        "integrity" to "verified",
+                    ),
+                    "initialRevision" to mapOf(
+                        "id" to revisionId,
+                        "documentId" to documentId,
+                        "parentRevisionId" to null,
+                        "kind" to "explicit",
+                        "createdAt" to "2026-11-16T12:00:00.000Z",
+                        "plaintextSha256" to contentSha,
+                        "content" to content,
+                    ),
+                ),
+            )
+            val created = invoke("store.createDocument", createPayload)
+            val createdMeta = created["data"] as Map<*, *>
+            assertEquals(documentId, createdMeta["id"])
+            assertEquals(revisionId, createdMeta["latestRevisionId"])
+            assertEquals("T027 Kanaltest", createdMeta["title"])
+            assertEquals(true, createdMeta["readable"])
+
+            val listed = invoke("store.list", withSchema(mapOf("kind" to "document")))
+            val items = (listed["data"] as Map<*, *>)["items"] as List<*>
+            assertEquals(1, items.size)
+            assertEquals(revisionId, (items.single() as Map<*, *>)["latestRevisionId"])
+
+            val loaded = invoke(
+                "store.loadDocument",
+                withSchema(mapOf("documentId" to documentId)),
+            )
+            val loadedData = loaded["data"] as Map<*, *>
+            assertEquals(
+                revisionId,
+                (loadedData["head"] as Map<*, *>)["revisionId"],
+            )
+            assertEquals(
+                revisionId,
+                (loadedData["meta"] as Map<*, *>)["latestRevisionId"],
+            )
+            val readSource = invoke(
+                "store.readSource",
+                withSchema(mapOf("documentId" to documentId)),
+            )["data"] as ByteArray
+            assertArrayEquals(source, readSource)
+
+            listenResults()
+            val start = invoke(
+                "store.saveRevision",
+                withSchema(
+                    mapOf(
+                        "documentId" to documentId,
+                        "revision" to mapOf("pageCount" to 2),
+                        "expectedHead" to revisionId,
+                        "kind" to "explicit",
+                    ),
+                ),
+            )
+            val operation = startOperationId(start)
+            val saved = awaitResult(operation)
+            assertEquals(true, saved["ok"])
+            val receipt = saved["data"] as Map<*, *>
+            assertEquals(true, receipt["verified"])
+            val savedRevision = receipt["revisionId"] as String
+            assertEquals(36, savedRevision.length)
+
+            val afterSave = invoke("store.list", withSchema(mapOf("kind" to "document")))
+            val savedMeta = ((afterSave["data"] as Map<*, *>)["items"] as List<*>)
+                .single() as Map<*, *>
+            assertEquals(savedRevision, savedMeta["latestRevisionId"])
+
+            val duplicate = invokeFailure("store.createDocument", createPayload)
+            assertEquals("SAVE-006", duplicate.code)
+            val stillLoaded = invoke(
+                "store.loadDocument",
+                withSchema(mapOf("documentId" to documentId)),
+            )
+            assertEquals(
+                savedRevision,
+                ((stillLoaded["data"] as Map<*, *>)["head"] as Map<*, *>)["revisionId"],
+            )
+
+            val wrongHeadStart = invoke(
+                "store.saveRevision",
+                withSchema(
+                    mapOf(
+                        "documentId" to documentId,
+                        "revision" to mapOf("pageCount" to 3),
+                        "expectedHead" to UUID.randomUUID().toString(),
+                        "kind" to "autosave",
+                    ),
+                ),
+            )
+            val wrongHeadResult = awaitResult(startOperationId(wrongHeadStart))
+            assertEquals(false, wrongHeadResult["ok"])
+            assertEquals(
+                "SAVE-006",
+                ((wrongHeadResult["error"] as Map<*, *>)["code"]),
+            )
+            val headAfterFailure = invoke(
+                "store.loadDocument",
+                withSchema(mapOf("documentId" to documentId)),
+            )
+            assertEquals(
+                savedRevision,
+                ((headAfterFailure["data"] as Map<*, *>)["head"] as Map<*, *>)["revisionId"],
+            )
+
+            val signatureId = UUID.randomUUID().toString()
+            val signatureBytes = AndroidTestPng.validRgba(2, 2)
+            val signatureSha = sha256(signatureBytes)
+            val writeSignatureStart = invoke(
+                "store.writeSignature",
+                withSchema(
+                    mapOf(
+                        "documentId" to documentId,
+                        "assetId" to signatureId,
+                        "bytes" to signatureBytes,
+                        "sha256" to signatureSha,
+                    ),
+                ),
+            )
+            val writeSignatureResult = awaitResult(startOperationId(writeSignatureStart))
+            assertEquals(true, writeSignatureResult["ok"])
+
+            val duplicateSignatureBytes = AndroidTestPng.validRgba(3, 3)
+            val duplicateSignatureStart = invoke(
+                "store.writeSignature",
+                withSchema(
+                    mapOf(
+                        "documentId" to documentId,
+                        "assetId" to signatureId,
+                        "bytes" to duplicateSignatureBytes,
+                        "sha256" to sha256(duplicateSignatureBytes),
+                    ),
+                ),
+            )
+            val duplicateSignatureResult =
+                awaitResult(startOperationId(duplicateSignatureStart))
+            assertEquals(false, duplicateSignatureResult["ok"])
+            assertEquals(
+                "PLT-002",
+                ((duplicateSignatureResult["error"] as Map<*, *>)["code"]),
+            )
+            val readSignature = invoke(
+                "store.readSignature",
+                withSchema(mapOf("documentId" to documentId, "assetId" to signatureId)),
+            )["data"] as ByteArray
+            assertArrayEquals(signatureBytes, readSignature)
+            val headAfterSignatureConflict = invoke(
+                "store.loadDocument",
+                withSchema(mapOf("documentId" to documentId)),
+            )
+            assertEquals(
+                savedRevision,
+                ((headAfterSignatureConflict["data"] as Map<*, *>)["head"] as Map<*, *>)["revisionId"],
+            )
+
+            val wrongDelete = invokeFailure(
+                "store.delete",
+                withSchema(
+                    mapOf(
+                        "kind" to "document",
+                        "id" to documentId,
+                        "confirm" to mapOf(
+                            "title" to "Falsch",
+                            "acknowledged" to true,
+                        ),
+                    ),
+                ),
+            )
+            assertEquals("PLT-002", wrongDelete.code)
+            val deleted = invoke(
+                "store.delete",
+                withSchema(
+                    mapOf(
+                        "kind" to "document",
+                        "id" to documentId,
+                        "confirm" to mapOf(
+                            "title" to "T027 Kanaltest",
+                            "acknowledged" to true,
+                        ),
+                    ),
+                ),
+            )
+            assertEquals(true, (deleted["data"] as Map<*, *>)["deleted"])
+            val afterDelete = invoke("store.list", withSchema(mapOf("kind" to "document")))
+            assertTrue(((afterDelete["data"] as Map<*, *>)["items"] as List<*>).isEmpty())
+            assertFalse(
+                keystore.hasAggregateKey(AggregateRef(AggregateKind.DOCUMENT, documentId)),
+            )
+
+            val recovery = invoke("store.startupRecovery", withSchema(emptyMap()))
+            assertEquals(0, (recovery["data"] as Map<*, *>)["tempEntriesRemoved"])
+            assertEquals(0, (recovery["data"] as Map<*, *>)["orphanAliasesFailed"])
+        } finally {
+            runCatching {
+                store.delete(
+                    AggregateKind.DOCUMENT,
+                    documentId,
+                    DeleteConfirmation(acknowledged = true, title = "T027 Kanaltest"),
+                    "Nicht lesbar",
+                )
+            }
+            runCatching {
+                keystore.deleteAggregateKey(AggregateRef(AggregateKind.DOCUMENT, documentId))
+            }
+            runCatching { root.deleteRecursively() }
+        }
+    }
+
+    @Test
+    fun realStoreSignaturePngValidationThroughChannel() {
+        val context = instrumentation.targetContext
+        val root = File(context.filesDir, "t027-signature-" + UUID.randomUUID())
+        val keystore = KeystoreService.forAndroid(context)
+        val store = EncryptedStore(root, keystore)
+        store.ensureLayout()
+        plugin.registerService("store", StoreService(store))
+        val documentId = UUID.randomUUID().toString()
+        val source = "%PDF-1.7 signature channel source".toByteArray()
+        val created = store.createDocument(
+            documentId = documentId,
+            metaJson = "{\"createdAt\":\"2026-11-16T12:00:00.000Z\",\"title\":\"Signatur\"}"
+                .toByteArray(),
+            sourceId = UUID.randomUUID().toString(),
+            sourceBytes = source,
+            revisionId = UUID.randomUUID().toString(),
+            revisionJson = "{\"pageCount\":1,\"schemaVersion\":1}".toByteArray(),
+        )
+        val headBefore = created.revisionId
+        try {
+            listenResults()
+
+            val validAsset = UUID.randomUUID().toString()
+            val validPng = AndroidTestPng.validRgba(2, 2)
+            assertEquals(2 to 2, AndroidTestPng.decodedSize(validPng))
+            val validStart = invoke(
+                "store.writeSignature",
+                withSchema(
+                    mapOf(
+                        "documentId" to documentId,
+                        "assetId" to validAsset,
+                        "bytes" to validPng,
+                        "sha256" to sha256(validPng),
+                    ),
+                ),
+            )
+            val validResult = awaitResult(startOperationId(validStart))
+            assertEquals(true, validResult["ok"])
+            assertArrayEquals(
+                validPng,
+                invoke(
+                    "store.readSignature",
+                    withSchema(
+                        mapOf("documentId" to documentId, "assetId" to validAsset),
+                    ),
+                )["data"] as ByteArray,
+            )
+
+            for (accepted in listOf(
+                AndroidTestPng.validGrayscaleAlpha(2, 2),
+                AndroidTestPng.validRgbWithTransparency(2, 2),
+            )) {
+                assertEquals(2 to 2, AndroidTestPng.decodedSize(accepted))
+                val acceptedAsset = UUID.randomUUID().toString()
+                val acceptedStart = invoke(
+                    "store.writeSignature",
+                    withSchema(
+                        mapOf(
+                            "documentId" to documentId,
+                            "assetId" to acceptedAsset,
+                            "bytes" to accepted,
+                            "sha256" to sha256(accepted),
+                        ),
+                    ),
+                )
+                assertEquals(
+                    true,
+                    awaitResult(startOperationId(acceptedStart))["ok"],
+                )
+                assertArrayEquals(
+                    accepted,
+                    invoke(
+                        "store.readSignature",
+                        withSchema(
+                            mapOf(
+                                "documentId" to documentId,
+                                "assetId" to acceptedAsset,
+                            ),
+                        ),
+                    )["data"] as ByteArray,
+                )
+            }
+
+            val sigDir = File(root, "docs/$documentId/sig")
+            val signaturesBefore = sigDir.listFiles()!!
+                .associate { it.name to it.readBytes().toList() }
+            val revDir = File(root, "docs/$documentId/rev")
+            val revisionsBefore = revDir.listFiles()!!
+                .associate { it.name to it.readBytes().toList() }
+
+            val corrupt = AndroidTestPng.validRgba(3, 3).copyOf().also {
+                it[16] = (it[16].toInt() xor 0x01).toByte()
+            }
+            for (invalid in listOf(
+                "%PDF-1.7 not a PNG".toByteArray(),
+                AndroidTestPng.validRgba(4, 4).copyOf(20),
+                corrupt,
+                // `contracts/storage-format.md` §2.4 requires alpha/transparency.
+                AndroidTestPng.opaqueRgb(2, 2),
+            )) {
+                val invalidAsset = UUID.randomUUID().toString()
+                val start = invoke(
+                    "store.writeSignature",
+                    withSchema(
+                        mapOf(
+                            "documentId" to documentId,
+                            "assetId" to invalidAsset,
+                            "bytes" to invalid,
+                            "sha256" to sha256(invalid),
+                        ),
+                    ),
+                )
+                val result = awaitResult(startOperationId(start))
+                assertEquals(false, result["ok"])
+                assertEquals(
+                    "SAVE-007",
+                    ((result["error"] as Map<*, *>)["code"]),
+                )
+                assertFalse(File(sigDir, "$invalidAsset.fxs").exists())
+                assertArrayEquals(
+                    validPng,
+                    invoke(
+                        "store.readSignature",
+                        withSchema(
+                            mapOf("documentId" to documentId, "assetId" to validAsset),
+                        ),
+                    )["data"] as ByteArray,
+                )
+                assertEquals(
+                    headBefore,
+                    ((invoke(
+                        "store.loadDocument",
+                        withSchema(mapOf("documentId" to documentId)),
+                    )["data"] as Map<*, *>)["head"] as Map<*, *>)["revisionId"],
+                )
+                assertEquals(
+                    revisionsBefore,
+                    revDir.listFiles()!!.associate { it.name to it.readBytes().toList() },
+                )
+                assertEquals(
+                    signaturesBefore,
+                    sigDir.listFiles()!!.associate { it.name to it.readBytes().toList() },
+                )
+            }
+
+            val boundaryAsset = UUID.randomUUID().toString()
+            val boundaryPng = AndroidTestPng.validRgba(1024, 1024)
+            assertEquals(1024 to 1024, AndroidTestPng.decodedSize(boundaryPng))
+            val boundaryStart = invoke(
+                "store.writeSignature",
+                withSchema(
+                    mapOf(
+                        "documentId" to documentId,
+                        "assetId" to boundaryAsset,
+                        "bytes" to boundaryPng,
+                        "sha256" to sha256(boundaryPng),
+                    ),
+                ),
+            )
+            assertEquals(true, awaitResult(startOperationId(boundaryStart))["ok"])
+
+            val tooWide = AndroidTestPng.validRgba(1025, 1024)
+            assertEquals(1025 to 1024, AndroidTestPng.decodedSize(tooWide))
+            val tooWideStart = invoke(
+                "store.writeSignature",
+                withSchema(
+                    mapOf(
+                        "documentId" to documentId,
+                        "assetId" to UUID.randomUUID().toString(),
+                        "bytes" to tooWide,
+                        "sha256" to sha256(tooWide),
+                    ),
+                ),
+            )
+            val tooWideResult = awaitResult(startOperationId(tooWideStart))
+            assertEquals(false, tooWideResult["ok"])
+            assertEquals(
+                "SAVE-007",
+                ((tooWideResult["error"] as Map<*, *>)["code"]),
+            )
+        } finally {
+            runCatching {
+                store.delete(
+                    AggregateKind.DOCUMENT,
+                    documentId,
+                    DeleteConfirmation(acknowledged = true, title = "Signatur"),
+                    "Nicht lesbar",
+                )
+            }
+            runCatching {
+                keystore.deleteAggregateKey(AggregateRef(AggregateKind.DOCUMENT, documentId))
+            }
+            runCatching { root.deleteRecursively() }
+        }
+    }
+
+    private fun sha256(bytes: ByteArray): String =
+        MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") {
+            "%02x".format(it.toInt() and 0xFF)
+        }
+
     // ---- registration and envelope -----------------------------------------
 
     @Test
@@ -133,7 +600,7 @@ class FeldexaPluginInstrumentedTest {
     @Test
     fun everyContractMethodAcceptsMinimalPayloadThroughRealChannels() {
         registerAllServices()
-        assertEquals("contract method inventory", 24, minimalPayloads().size)
+        assertEquals("contract method inventory", 27, minimalPayloads().size)
 
         val failures = mutableListOf<String>()
         for ((method, payload) in minimalPayloads()) {
@@ -540,6 +1007,19 @@ class FeldexaPluginInstrumentedTest {
         "import.discardStaged" to mapOf("txnId" to "txn-1"),
         "store.status" to emptyMap(),
         "store.list" to mapOf("kind" to "document"),
+        "store.stageSource" to mapOf(
+            "documentId" to documentId,
+            "sourceId" to assetId,
+            "bytes" to ByteArray(1),
+            "sha256" to "a".repeat(64),
+        ),
+        "store.createDocument" to mapOf(
+            "documentId" to documentId,
+            "title" to "Titel",
+            "source" to mapOf("id" to assetId),
+            "initialRevision" to mapOf("id" to templateId),
+        ),
+        "store.startupRecovery" to emptyMap(),
         "store.readSource" to mapOf("documentId" to documentId),
         "store.readSignature" to mapOf("documentId" to documentId, "assetId" to assetId),
         "store.writeSignature" to mapOf(
@@ -780,6 +1260,8 @@ class FeldexaPluginInstrumentedTest {
          */
         val UUID_FIELDS: Map<String, List<String>> = linkedMapOf(
             "import.verifySource" to listOf("sourceId"),
+            "store.stageSource" to listOf("documentId", "sourceId"),
+            "store.createDocument" to listOf("documentId"),
             "store.readSource" to listOf("documentId"),
             "store.readSignature" to listOf("documentId", "assetId"),
             "store.writeSignature" to listOf("documentId", "assetId"),

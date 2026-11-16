@@ -1,0 +1,327 @@
+{
+  "apk_sha256": {
+    "app-debug-androidTest.apk": "2b236f82700f67692b1ad2f3c4bfccda39a135c819f17e5845340b80ff7ff4fb",
+    "app-debug-integration.apk": "8ab95d2e6d915f47d7350082eb0cbad7cd5f2e0f7b7c3cd886714eeb1bbad419",
+    "app-debug.apk": "37074ddc12cc0ee1349f3ffdcefc651743728a5c1434e6993d574ff9f1d1e110"
+  },
+  "artifacts": [
+    {
+      "bytes": 2160,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/README.md",
+      "sha256": "1957fe418030536b6761629ce3ea824f79a529eae73d1715e53219f9929f7a8a"
+    },
+    {
+      "bytes": 264,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/apk-sha256.txt",
+      "sha256": "09efe674d40739edfcd8c153008ada47a5e91943fcab79423a72ade771485c8c"
+    },
+    {
+      "bytes": 477,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/generated-config-sha256.txt",
+      "sha256": "64843c679a8760fc590e7053cdccbe66621f9ee6270033f0174229cbe16a60d3"
+    },
+    {
+      "bytes": 11797,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/junit/TEST-de.feldexa.app.FeldexaPluginTest.xml",
+      "sha256": "0f5384e9a4b829c94320251fd2bc14f7e723b730c7090cd6c67a233440f00064"
+    },
+    {
+      "bytes": 454,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/junit/TEST-de.feldexa.app.MainActivityStoreRootTest.xml",
+      "sha256": "de0c893be671e7dbcd610755a3fe2864066227470c2b64aacc559362ba749e0a"
+    },
+    {
+      "bytes": 718,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/junit/TEST-de.feldexa.app.storage.CanonicalJsonTest.xml",
+      "sha256": "7719de40feb62fe2b39ff7e3974b3716abf0d7ce02030e438bf22d4c321abe7a"
+    },
+    {
+      "bytes": 1592,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/junit/TEST-de.feldexa.app.storage.EncryptedStoreFaultTest.xml",
+      "sha256": "3f6d366247371f4a749b2ac20b772bee00819780b103ebc024f79f713ffa5934"
+    },
+    {
+      "bytes": 1330,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/junit/TEST-de.feldexa.app.storage.EncryptedStoreHeadHistoryTest.xml",
+      "sha256": "c3e9755f781efeb2281449f65cd07b014f8534568d314750ab5d39c1d6895ac2"
+    },
+    {
+      "bytes": 641,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/junit/TEST-de.feldexa.app.storage.EncryptedStoreOrderingTest.xml",
+      "sha256": "274f1c0636f2830be183a897a4f4b93a69ea45172fd535607203732801c3c833"
+    },
+    {
+      "bytes": 1139,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/junit/TEST-de.feldexa.app.storage.EncryptedStorePruneRecoveryTest.xml",
+      "sha256": "45caca0bae193b00aa1020cfe1961bbb436218e7f0a3014fbbde1bf0c6f3f463"
+    },
+    {
+      "bytes": 1441,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/junit/TEST-de.feldexa.app.storage.EncryptedStoreReviewTest.xml",
+      "sha256": "098e66f65bb6f9049849b4cb14541394eda0ee0a826212a6158b052f6c45cc9f"
+    },
+    {
+      "bytes": 7145,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/junit/TEST-de.feldexa.app.storage.EncryptedStoreTest.xml",
+      "sha256": "f068435ee414750486de527eec43b9d2ba80234148fb23d48b960ccdbd26bf80"
+    },
+    {
+      "bytes": 803,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/junit/TEST-de.feldexa.app.storage.InstrumentedKeystoreAliasSafetyTest.xml",
+      "sha256": "18b384f8eaecdaa075c6e0c5f052e53e23d7d5310e07181f832d0ba3b4a6360c"
+    },
+    {
+      "bytes": 5933,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/junit/TEST-de.feldexa.app.storage.KeystoreServiceTest.xml",
+      "sha256": "840b67ea8a14cf74815e9e2b666580b138f1bc28a667a8c7b25791ba8c508392"
+    },
+    {
+      "bytes": 2803,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/junit/TEST-de.feldexa.app.storage.SignaturePngTest.xml",
+      "sha256": "591885225f446b10a4abd73ca221dffd4c85c1725e77b7bf169d8e088dac8f33"
+    },
+    {
+      "bytes": 1705,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/junit/TEST-de.feldexa.app.storage.StoreServiceTest.xml",
+      "sha256": "6c4426afc5824222da2ec974ba8491b1cafa1ef73253a6be47ba23f7c114560b"
+    },
+    {
+      "bytes": 3572,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/junit/channel-connected.xml",
+      "sha256": "345ad8a7a33ab60aa697a535a34f2a75aea9f5e8ca9f4b7e1848e42deb33c156"
+    },
+    {
+      "bytes": 6016,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/junit/storage-connected.xml",
+      "sha256": "52109e333a4087f1cac0d491cacbbc37e6957bb9b5e5aa35c5634c567ac19018"
+    },
+    {
+      "bytes": 616,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/canonical-root-runtime.log",
+      "sha256": "3f9965946ca91594322e2b200a4939cac5aa24753e7d2976c7e335e3b244d518"
+    },
+    {
+      "bytes": 1112,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/emulator-allocation.log",
+      "sha256": "6395a29f3ea06056f8542958a0aa525452f0b8eff37b2985cbd130dad1df1d20"
+    },
+    {
+      "bytes": 1401,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/environment-final.txt",
+      "sha256": "8348a3642604f39a38453a39ce84a8ee1f776ffb6cd211549abee7d1694deb16"
+    },
+    {
+      "bytes": 952,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/flutter-build-apk.log",
+      "sha256": "fa6cc3ae0694ba65204b78546b37ad702222df7f0e3ec32123aa13a3e05aa0b6"
+    },
+    {
+      "bytes": 219,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/flutter-clean.log",
+      "sha256": "e1284353c40b0197e850fa6a76623bf13c200b9f2f93846fddcb8f3183d39648"
+    },
+    {
+      "bytes": 22898,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/gradle-assemble-test-apk.log",
+      "sha256": "b925351c4a9bbb0cfeb8b564a2fb9b4d0aa13a460b7840772d1f72a02654074d"
+    },
+    {
+      "bytes": 23499,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/gradle-connected-channel.log",
+      "sha256": "00ac3db13233f4a1c13a8349c8e83ab312829d01c23f8f82e7022c49e03f44b5"
+    },
+    {
+      "bytes": 23412,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/gradle-connected-storage.log",
+      "sha256": "7b60ecfd23af27fe0a23666d2e40295da437fadf90456827204c95baa8e51a17"
+    },
+    {
+      "bytes": 20659,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/gradle-jvm-test.log",
+      "sha256": "537833df8a34d2fe5fb2b08e2680042495a2bb52a3abb9ef5e9dc1126836c42b"
+    },
+    {
+      "bytes": 97,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/host-analyze.log",
+      "sha256": "4b871ed70d313d2d0926b30f02bfd825cab2554ccc2a20c7df1349b21d27447f"
+    },
+    {
+      "bytes": 49,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/host-format.log",
+      "sha256": "0c654ab8d38f9b6de3ec5d2deba726b2d7448ffcce2401107fc031ef8448ace3"
+    },
+    {
+      "bytes": 12015,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/host-test-apps_feldexa_app.log",
+      "sha256": "e430157337d304224f61084435de24e5a884a7569dbc4dd767e76ec3e661b22f"
+    },
+    {
+      "bytes": 3064,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/host-test-packages_feldexa_adapters_android.log",
+      "sha256": "90d27f6399d9d0885d39db1112f2aac086020a71b5c72b10db6b362a861e5bcf"
+    },
+    {
+      "bytes": 16124,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/host-test-packages_feldexa_adapters_simulated.log",
+      "sha256": "4cf0b13adc88ed29732981c1430d8f698e1e6bcecf90a45dd311d94905867bf7"
+    },
+    {
+      "bytes": 65337,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/host-test-packages_feldexa_core.log",
+      "sha256": "9de07dfdf1db917d003f57883f39bbf8b5b8ecec55f98f8fa6f132bd1346e56a"
+    },
+    {
+      "bytes": 9125,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/host-test-packages_feldexa_export.log",
+      "sha256": "74583d909b73fa5815270a08c661d831e42f7d325c55eb1be0bf1a5a1e48f620"
+    },
+    {
+      "bytes": 15828,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/host-test-packages_feldexa_ports.log",
+      "sha256": "b908eae23516b8875cd9c967ddf5c8a2eee24e272bd17dfa2bc39975fbd58ad8"
+    },
+    {
+      "bytes": 21820,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/host-test-packages_feldexa_testkit.log",
+      "sha256": "0a28a8f97aa87a1d4d74ee99e663235d23e4114f7e79b046eb0be2d7c8ff29f8"
+    },
+    {
+      "bytes": 1809,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/host-test-packages_feldexa_ui.log",
+      "sha256": "779f0050329db7511006ad4db4b7d3b8985449489577794b023f97a4b8c112fc"
+    },
+    {
+      "bytes": 36,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/install-app-restore.log",
+      "sha256": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7"
+    },
+    {
+      "bytes": 36,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/install-app.log",
+      "sha256": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7"
+    },
+    {
+      "bytes": 36,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/install-integration-restore.log",
+      "sha256": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7"
+    },
+    {
+      "bytes": 36,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/install-test-restore.log",
+      "sha256": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7"
+    },
+    {
+      "bytes": 36,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/install-test.log",
+      "sha256": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7"
+    },
+    {
+      "bytes": 217,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/installed-hashes-after-integration.log",
+      "sha256": "4e465a2a8027d8ca5a7738b66aef11006b514cc4f5a8184228e3978552355231"
+    },
+    {
+      "bytes": 305,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/installed-hashes-before-tests.log",
+      "sha256": "ada3d268912b5d37b75211f63bcafea1c22a75276e00d65687ebe8a3b1bb8391"
+    },
+    {
+      "bytes": 306,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/installed-hashes-final.log",
+      "sha256": "9385c51fae9051b5773d81791cd866e4e9ae3b02fcd2ce5eef7345041323c425"
+    },
+    {
+      "bytes": 1225,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/integration-store.log",
+      "sha256": "c09b75ad3ea9ee098a50ec3d4deb52eb4207a247dfb86e4cf5be49f8377d7a2f"
+    },
+    {
+      "bytes": 1509147,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/logcat-filtered-after-final.txt",
+      "sha256": "e3bc07eef704695ce589a229cf90c450537612fccbe3966ebe1add25cf4a13fd"
+    },
+    {
+      "bytes": 221,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/pub-get-post-run.log",
+      "sha256": "bf43ac2d8521495d0a1eff3ece869a5550c2a9554d10b078ce5c40b5e84985cc"
+    },
+    {
+      "bytes": 221,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/logs/pub-get.log",
+      "sha256": "bf43ac2d8521495d0a1eff3ece869a5550c2a9554d10b078ce5c40b5e84985cc"
+    },
+    {
+      "bytes": 0,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/manifest-generated.diff",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/manifest-sources.diff",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 6692,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/raw-evidence-sha256.txt",
+      "sha256": "0255420eac7bec53546e6162a3d3852e370d3a1cb73b2be65c6566014bcaf62e"
+    },
+    {
+      "bytes": 34413,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/source-sha256.txt",
+      "sha256": "dd96bdf1d56fb30a81cf3efc46c6a0f0f19a44d8d1be22fe80bc2125e50853c5"
+    },
+    {
+      "bytes": 1982,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/toolchain.txt",
+      "sha256": "24eac9fcd3d3ded9ed0a8d814258f92638715d50c44e75ba1001f670ab97cc61"
+    },
+    {
+      "bytes": 669,
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/t027-review-b-94ef57b/verify.sh",
+      "sha256": "625f6f47782386532c3764e1e7015d392ac2fac369d2b1082f1fdf435ae617cd"
+    }
+  ],
+  "base_commit": "15aab0c55c7e77df0d4c4fe199e89c6661ea3db2",
+  "branch": "T027 worktree branch (see git ref)",
+  "candidate_code_commit": "94ef57b059c71fad01b0f3d46743996325a08dc7",
+  "candidate_tree": "0444e300e6a4bb0d7b7e21705cc65d635c98c5d0",
+  "channel_instrumentation": {
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0,
+    "tests": 20
+  },
+  "dart_host_tests": {
+    "host-test-apps_feldexa_app.log": 80,
+    "host-test-packages_feldexa_adapters_android.log": 20,
+    "host-test-packages_feldexa_adapters_simulated.log": 97,
+    "host-test-packages_feldexa_core.log": 462,
+    "host-test-packages_feldexa_export.log": 56,
+    "host-test-packages_feldexa_ports.log": 108,
+    "host-test-packages_feldexa_testkit.log": 154,
+    "host-test-packages_feldexa_ui.log": 17
+  },
+  "dart_host_total": 994,
+  "date": "2026-11-16",
+  "generated_config_sha256": "64843c679a8760fc590e7053cdccbe66621f9ee6270033f0174229cbe16a60d3",
+  "integration": {
+    "failures": 0,
+    "tests": 1
+  },
+  "jvm": {
+    "errors": 0,
+    "failures": 0,
+    "files": 13,
+    "skipped": 0,
+    "tests": 260
+  },
+  "schema": "t027-review-b-artifacts-v1",
+  "source_manifest_sha256": "dd96bdf1d56fb30a81cf3efc46c6a0f0f19a44d8d1be22fe80bc2125e50853c5",
+  "storage_instrumentation": {
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0,
+    "tests": 34
+  },
+  "timezone": "Europe/Berlin"
+}

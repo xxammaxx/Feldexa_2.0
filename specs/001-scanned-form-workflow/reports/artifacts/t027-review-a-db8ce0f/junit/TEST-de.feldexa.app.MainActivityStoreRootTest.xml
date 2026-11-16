@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="de.feldexa.app.MainActivityStoreRootTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-16T15:26:28.639Z" hostname="cachyos-x8664" time="0.0">
+  <properties/>
+  <testcase name="productionStoreRootMatchesStorageContract" classname="de.feldexa.app.MainActivityStoreRootTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

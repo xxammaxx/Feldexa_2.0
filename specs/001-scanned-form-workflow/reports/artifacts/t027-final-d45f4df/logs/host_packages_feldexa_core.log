@@ -1,0 +1,464 @@
+00:00 +0: loading <REPO>/packages/feldexa_core/test/canonical_json_test.dart
+00:00 +0: <REPO>/packages/feldexa_core/test/canonical_json_test.dart: canonical JSON encoding sorts keys recursively, omits whitespace, and keeps Unicode
+00:00 +1: <REPO>/packages/feldexa_core/test/document_test.dart: SourceFileRef accepts the source bounds and round-trips JSON
+00:00 +2: <REPO>/packages/feldexa_core/test/document_test.dart: SourceFileRef accepts the source bounds and round-trips JSON
+00:00 +3: <REPO>/packages/feldexa_core/test/document_test.dart: SourceFileRef accepts the source bounds and round-trips JSON
+00:00 +4: <REPO>/packages/feldexa_core/test/document_test.dart: SourceFileRef accepts the source bounds and round-trips JSON
+00:00 +5: <REPO>/packages/feldexa_core/test/document_test.dart: SourceFileRef accepts the source bounds and round-trips JSON
+00:00 +6: <REPO>/packages/feldexa_core/test/canonical_json_test.dart: canonical JSON encoding rejects non-finite numbers
+00:00 +7: <REPO>/packages/feldexa_core/test/document_test.dart: SourceFileRef normalizes a blank name to null and copyWith can clear it
+00:00 +8: <REPO>/packages/feldexa_core/test/canonical_json_test.dart: canonical JSON encoding rejects unsupported types and non-string map keys
+00:00 +9: <REPO>/packages/feldexa_core/test/document_test.dart: SourceFileRef rejects out-of-range size, page count, ids, and names
+00:00 +10: <REPO>/packages/feldexa_core/test/canonical_json_test.dart: canonical JSON encoding rejects cyclic object graphs instead of overflowing
+00:00 +11: <REPO>/packages/feldexa_core/test/document_test.dart: SourceFileRef rejects local import timestamps and malformed JSON
+00:00 +12: <REPO>/packages/feldexa_core/test/canonical_json_test.dart: canonical JSON encoding is deterministic for the same logical tree
+00:00 +13: <REPO>/packages/feldexa_core/test/document_test.dart: PageFailure uses exactly the three core categories
+00:00 +14: <REPO>/packages/feldexa_core/test/canonical_json_test.dart: canonical UTC timestamps serializes UTC with millisecond precision and truncates micros
+00:00 +15: <REPO>/packages/feldexa_core/test/document_test.dart: PageFailure round-trips and validates the catalog message key
+00:00 +16: <REPO>/packages/feldexa_core/test/canonical_json_test.dart: canonical UTC timestamps rejects local timestamps
+00:00 +17: <REPO>/packages/feldexa_core/test/document_test.dart: PageFailure copyWith revalidates
+00:00 +18: <REPO>/packages/feldexa_core/test/canonical_json_test.dart: canonical UTC timestamps parses UTC ISO-8601 and rejects local or malformed values
+00:00 +19: <REPO>/packages/feldexa_core/test/canonical_json_test.dart: canonical UTC timestamps parses UTC ISO-8601 and rejects local or malformed values
+00:00 +20: <REPO>/packages/feldexa_core/test/document_test.dart: TemplateOrigin rejects malformed ids and non-positive version numbers
+00:00 +21: <REPO>/packages/feldexa_core/test/document_test.dart: DurablePointer round-trips a verified pointer and its explicit parent
+00:00 +22: <REPO>/packages/feldexa_core/test/document_test.dart: DurablePointer requires verifyReadBack to be true in the constructor and JSON
+00:00 +23: <REPO>/packages/feldexa_core/test/document_test.dart: DurablePointer validates kind, parent, timestamp, and hash
+00:00 +24: <REPO>/packages/feldexa_core/test/document_test.dart: DurablePointer copyWith can clear the parent and keeps read-back verification
+00:00 +25: <REPO>/packages/feldexa_core/test/document_test.dart: Page and AnalysisState uses the four analysis tokens
+00:00 +26: <REPO>/packages/feldexa_core/test/document_test.dart: Page and AnalysisState requires a matching failure exactly for the failed state
+00:00 +27: <REPO>/packages/feldexa_core/test/document_test.dart: Page and AnalysisState keeps renderCacheKey derived, unpersisted, and out of equality
+00:00 +28: <REPO>/packages/feldexa_core/test/document_test.dart: Page and AnalysisState a retry copy clears the failure and keeps other fields
+00:00 +29: <REPO>/packages/feldexa_core/test/document_test.dart: DocumentPreferences defaults to no zoom preference and document order
+00:00 +30: <REPO>/packages/feldexa_core/test/document_test.dart: DocumentPreferences accepts the zoom-ratio bounds and round-trips JSON
+00:00 +31: <REPO>/packages/feldexa_core/test/document_test.dart: DocumentPreferences rejects invalid zoom values, pages, and review modes
+00:00 +32: <REPO>/packages/feldexa_core/test/document_test.dart: DocumentPreferences copyWith can clear the zoom preference
+00:00 +33: <REPO>/packages/feldexa_core/test/document_test.dart: DocumentMeta round-trips the persisted metadata envelope
+00:00 +34: <REPO>/packages/feldexa_core/test/document_test.dart: DocumentMeta ties readable and unreadableReasonCode together
+00:00 +35: <REPO>/packages/feldexa_core/test/document_test.dart: DocumentMeta accepts independent revision pointers and rejects local time
+00:00 +36: <REPO>/packages/feldexa_core/test/document_test.dart: DocumentMeta validates title, ids, and JSON discriminators
+00:00 +37: <REPO>/packages/feldexa_core/test/document_test.dart: Document canonical JSON round-trips the full aggregate and canonicalizes its JSON
+00:00 +38: <REPO>/packages/feldexa_core/test/document_test.dart: Document canonical JSON restores the safe derived status and never persists status
+00:00 +39: <REPO>/packages/feldexa_core/test/document_test.dart: Document canonical JSON derives and enforces the unreadable status
+00:00 +40: <REPO>/packages/feldexa_core/test/document_test.dart: Document canonical JSON rejects a higher schema version without touching the data
+00:00 +41: <REPO>/packages/feldexa_core/test/document_test.dart: Document canonical JSON rejects wrong discriminators and mistyped containers
+00:00 +42: <REPO>/packages/feldexa_core/test/document_test.dart: Document aggregate validation requires one contiguous page per preflight page
+00:00 +43: <REPO>/packages/feldexa_core/test/document_test.dart: Document aggregate validation validates suggestion pages, bounds, ids, and conflicts
+00:00 +44: <REPO>/packages/feldexa_core/test/document_test.dart: Document aggregate validation keeps suggestions in canonical page and ordinal order
+00:00 +45: <REPO>/packages/feldexa_core/test/document_test.dart: Document aggregate validation accepts symmetric conflicts and round-trips both candidates
+00:00 +46: <REPO>/packages/feldexa_core/test/document_test.dart: Document aggregate validation validates field ids, pages, bounds, and fieldOrder
+00:00 +47: <REPO>/packages/feldexa_core/test/document_test.dart: Document aggregate validation orders fields by fieldOrder and validates order values
+00:00 +48: <REPO>/packages/feldexa_core/test/document_test.dart: Document aggregate validation validates values against fields and reclassification flags
+00:00 +49: <REPO>/packages/feldexa_core/test/document_test.dart: Document aggregate validation a blocking field error survives JSON with preserved content
+00:00 +50: <REPO>/packages/feldexa_core/test/document_test.dart: Document aggregate validation validates verification references and currentPage
+00:00 +51: <REPO>/packages/feldexa_core/test/document_test.dart: Document aggregate validation normalizes the title and rejects empty, control, or long titles
+00:00 +52: <REPO>/packages/feldexa_core/test/document_test.dart: Signature invariants round-trips a signature field with its mark and value
+00:00 +53: <REPO>/packages/feldexa_core/test/document_test.dart: Signature invariants requires the mark and value to exist together with one asset
+00:00 +54: <REPO>/packages/feldexa_core/test/document_test.dart: Signature invariants rejects marks on non-signature fields
+00:00 +55: <REPO>/packages/feldexa_core/test/document_test.dart: Signature invariants rejects duplicate signature asset ids in the document
+00:00 +56: <REPO>/packages/feldexa_core/test/document_test.dart: privacy toString never echoes titles, labels, values, or filenames
+00:00 +57: <REPO>/packages/feldexa_core/test/document_test.dart: privacy validation errors never echo the rejected content
+00:00 +58: <REPO>/packages/feldexa_core/test/field_test.dart: FieldType and enum tokens wire tokens are stable and unknown tokens fail closed
+00:00 +59: <REPO>/packages/feldexa_core/test/field_test.dart: FieldType and enum tokens represents every recognition-output §3.1 wire cue
+00:00 +60: <REPO>/packages/feldexa_core/test/field_test.dart: SuggestionEvidence requires a non-empty, duplicate-free cue set
+00:00 +61: <REPO>/packages/feldexa_core/test/field_test.dart: SuggestionEvidence sorts cues and stores them as an immutable set
+00:00 +62: <REPO>/packages/feldexa_core/test/field_test.dart: SuggestionEvidence keyword cues are lossless, canonical, and validated
+00:00 +63: <REPO>/packages/feldexa_core/test/field_test.dart: SuggestionEvidence keyword cue keys are the closed recognition-output v1 lexicon
+00:00 +64: <REPO>/packages/feldexa_core/test/field_test.dart: SuggestionEvidence requires at least one geometric cue (§2.1)
+00:00 +65: <REPO>/packages/feldexa_core/test/field_test.dart: SuggestionEvidence strict cue parsing rejects legacy aliases; migration canonicalizes
+00:00 +66: <REPO>/packages/feldexa_core/test/field_test.dart: SuggestionEvidence rejects OCR-dependent cues when ocrUsed is false
+00:00 +67: <REPO>/packages/feldexa_core/test/field_test.dart: SuggestionEvidence enforces the cueAgreement lower bound and accepts composites
+00:00 +68: <REPO>/packages/feldexa_core/test/field_test.dart: SuggestionEvidence tracks the signature cue and JSON round-trips
+00:00 +69: <REPO>/packages/feldexa_core/test/field_test.dart: SuggestionEvidence serializes contrast normal|low and migrates the legacy boolean
+00:00 +70: <REPO>/packages/feldexa_core/test/field_test.dart: FieldSuggestion builds deterministic idFor ids
+00:00 +71: <REPO>/packages/feldexa_core/test/field_test.dart: FieldSuggestion rejects malformed or page-mismatched ids
+00:00 +72: <REPO>/packages/feldexa_core/test/field_test.dart: FieldSuggestion rejects noncanonical page and ordinal aliases
+00:00 +73: <REPO>/packages/feldexa_core/test/field_test.dart: FieldSuggestion enforces the confidence interval
+00:00 +74: <REPO>/packages/feldexa_core/test/field_test.dart: FieldSuggestion enforces the two-decimal confidence from recognition-output §2
+00:00 +75: <REPO>/packages/feldexa_core/test/field_test.dart: FieldSuggestion trims labelText, treats blank as null, and enforces 200 chars
+00:00 +76: <REPO>/packages/feldexa_core/test/field_test.dart: FieldSuggestion requires the signature cue for a signature suggestion
+00:00 +77: <REPO>/packages/feldexa_core/test/field_test.dart: FieldSuggestion normalizes conflict ids and rejects self or malformed ids
+00:00 +78: <REPO>/packages/feldexa_core/test/geometry_test.dart: display box CropBox defaults to the MediaBox
+00:00 +79: <REPO>/packages/feldexa_core/test/geometry_test.dart: display box CropBox defaults to the MediaBox
+00:00 +80: <REPO>/packages/feldexa_core/test/geometry_test.dart: display box CropBox defaults to the MediaBox
+00:01 +81: <REPO>/packages/feldexa_core/test/geometry_test.dart: display box CropBox defaults to the MediaBox
+00:01 +82: <REPO>/packages/feldexa_core/test/geometry_test.dart: display box CropBox defaults to the MediaBox
+00:01 +83: <REPO>/packages/feldexa_core/test/geometry_test.dart: display box CropBox defaults to the MediaBox
+00:01 +84: <REPO>/packages/feldexa_core/test/geometry_test.dart: display box CropBox defaults to the MediaBox
+00:01 +85: <REPO>/packages/feldexa_core/test/geometry_test.dart: display box CropBox defaults to the MediaBox
+00:01 +86: <REPO>/packages/feldexa_core/test/field_test.dart: FieldSuggestion copyWith keeps the id and can clear the optional label
+00:01 +87: <REPO>/packages/feldexa_core/test/geometry_test.dart: display box rotation 0 and 180 keep the crop dimensions
+00:01 +88: <REPO>/packages/feldexa_core/test/field_test.dart: FieldSuggestion equality, JSON round-trip, and privacy-safe toString
+00:01 +89: <REPO>/packages/feldexa_core/test/geometry_test.dart: display box rotation 90 and 270 swap the crop dimensions
+00:01 +90: <REPO>/packages/feldexa_core/test/field_test.dart: FieldSuggestion matches the recognition-output §2 suggestion wire fields
+00:01 +91: <REPO>/packages/feldexa_core/test/geometry_test.dart: display box a CropBox inside the MediaBox sets the display size
+00:01 +92: <REPO>/packages/feldexa_core/test/field_test.dart: FieldSuggestion strict decoding requires contrast while legacy decoding migrates it
+00:01 +93: <REPO>/packages/feldexa_core/test/geometry_test.dart: display box a CropBox larger than the MediaBox is clipped to the MediaBox
+00:01 +94: <REPO>/packages/feldexa_core/test/field_test.dart: FieldSuggestion strict suggestion decoding rejects legacy cue aliases
+00:01 +95: <REPO>/packages/feldexa_core/test/field_test.dart: FieldSuggestion strict suggestion decoding rejects legacy cue aliases
+00:01 +96: <REPO>/packages/feldexa_core/test/geometry_test.dart: display box a non-overlapping or degenerate CropBox is rejected
+00:01 +97: <REPO>/packages/feldexa_core/test/geometry_test.dart: display box a non-overlapping or degenerate CropBox is rejected
+00:01 +98: <REPO>/packages/feldexa_core/test/field_test.dart: ConfirmedField builds a user field and round-trips JSON
+00:01 +99: <REPO>/packages/feldexa_core/test/field_test.dart: ConfirmedField builds a user field and round-trips JSON
+00:01 +100: <REPO>/packages/feldexa_core/test/field_test.dart: ConfirmedField builds a user field and round-trips JSON
+00:01 +101: <REPO>/packages/feldexa_core/test/geometry_test.dart: rotation mapping the normative (100, 50, 120, 20) field maps per rotation
+00:01 +102: <REPO>/packages/feldexa_core/test/geometry_test.dart: rotation mapping the normative (100, 50, 120, 20) field maps per rotation
+00:01 +103: <REPO>/packages/feldexa_core/test/field_test.dart: ConfirmedField requires the source suggestion on the same page
+00:01 +104: <REPO>/packages/feldexa_core/test/geometry_test.dart: rotation mapping the normative (100, 50) point maps per rotation
+00:01 +105: <REPO>/packages/feldexa_core/test/field_test.dart: ConfirmedField enforces the 1–120 label rule and preserves German characters
+00:01 +106: <REPO>/packages/feldexa_core/test/geometry_test.dart: rotation mapping CropBox offsets are applied on every side
+00:01 +107: <REPO>/packages/feldexa_core/test/field_test.dart: ConfirmedField enforces order and UTC timestamps
+00:01 +108: <REPO>/packages/feldexa_core/test/geometry_test.dart: rotation mapping a clipped CropBox keeps the clipped offsets
+00:01 +109: <REPO>/packages/feldexa_core/test/field_test.dart: ConfirmedField requires UUIDv4 ids except for deterministic template fields
+00:01 +110: <REPO>/packages/feldexa_core/test/geometry_test.dart: rotation mapping all display corners map onto the four PDF crop corners
+00:01 +111: <REPO>/packages/feldexa_core/test/field_test.dart: ConfirmedField rejects Unicode whitespace and C1 controls in template field ids
+00:01 +112: <REPO>/packages/feldexa_core/test/geometry_test.dart: round-trip display → PDF → display for points at all rotations
+00:01 +113: <REPO>/packages/feldexa_core/test/field_test.dart: ConfirmedField rejects invisible Unicode format controls in template field ids
+00:01 +114: <REPO>/packages/feldexa_core/test/geometry_test.dart: round-trip display → PDF → display for rectangles at all rotations
+00:01 +115: <REPO>/packages/feldexa_core/test/field_test.dart: ConfirmedField rejects default-ignorable non-Cf code points in template field ids
+00:01 +116: <REPO>/packages/feldexa_core/test/geometry_test.dart: round-trip round-trips with offset and clipped CropBoxes
+00:01 +117: <REPO>/packages/feldexa_core/test/field_test.dart: ConfirmedField accepts only matching values or preserved incompatible content
+00:01 +118: <REPO>/packages/feldexa_core/test/field_test.dart: ConfirmedField accepts only matching values or preserved incompatible content
+00:01 +119: <REPO>/packages/feldexa_core/test/geometry_test.dart: validation an in-bounds rectangle is returned unchanged
+00:01 +120: <REPO>/packages/feldexa_core/test/field_test.dart: ConfirmedField checks page bounds and clears machine fields with copyWith
+00:01 +121: <REPO>/packages/feldexa_core/test/geometry_test.dart: validation sub-half-point overshoot is clamped with a warning flag
+00:01 +122: <REPO>/packages/feldexa_core/test/geometry_test.dart: validation sub-half-point overshoot is clamped with a warning flag
+00:01 +123: <REPO>/packages/feldexa_core/test/field_test.dart: ConfirmedField toString never echoes the label
+00:01 +124: <REPO>/packages/feldexa_core/test/geometry_test.dart: validation exactly 0.5 pt is accepted, above it is rejected
+00:01 +125: <REPO>/packages/feldexa_core/test/field_test.dart: SignatureMark builds a mark and matches only its signature field
+00:01 +126: <REPO>/packages/feldexa_core/test/field_test.dart: SignatureMark builds a mark and matches only its signature field
+00:01 +127: <REPO>/packages/feldexa_core/test/geometry_test.dart: validation every clamped rectangle lies exactly inside the display box
+00:01 +128: <REPO>/packages/feldexa_core/test/field_test.dart: SignatureMark enforces the positive 1024-pixel long edge
+00:01 +129: <REPO>/packages/feldexa_core/test/geometry_test.dart: validation validation uses the rotated display box
+00:01 +130: <REPO>/packages/feldexa_core/test/field_test.dart: SignatureMark enforces UUIDv4, SHA-256, and UTC
+00:01 +131: <REPO>/packages/feldexa_core/test/geometry_test.dart: validation the documented tolerance is 0.5 pt
+00:01 +132: <REPO>/packages/feldexa_core/test/field_test.dart: SignatureMark round-trips JSON and keeps equality
+00:01 +133: <REPO>/packages/feldexa_core/test/geometry_test.dart: validation the reported narrow-page left regression stays inside the box
+00:01 +134: <REPO>/packages/feldexa_core/test/field_test.dart: FieldVerification requires reviewedAt exactly for confirmed and corrected
+00:01 +135: <REPO>/packages/feldexa_core/test/field_test.dart: FieldVerification requires reviewedAt exactly for confirmed and corrected
+00:01 +136: <REPO>/packages/feldexa_core/test/geometry_test.dart: validation all four edges stay inside a narrow display dimension
+00:01 +137: <REPO>/packages/feldexa_core/test/field_test.dart: FieldVerification rejects duplicate warnings and sorts the stored list
+00:01 +138: <REPO>/packages/feldexa_core/test/geometry_test.dart: validation narrow width and height clamp on every rotation
+00:01 +139: <REPO>/packages/feldexa_core/test/field_test.dart: FieldVerification round-trips JSON and equality
+00:01 +140: <REPO>/packages/feldexa_core/test/geometry_test.dart: validation corner outliers stay inside a tiny square display box
+00:01 +141: <REPO>/packages/feldexa_core/test/field_test.dart: FieldValidation ok, warning, and error states are distinct
+00:01 +142: <REPO>/packages/feldexa_core/test/geometry_test.dart: validation near-zero display dimensions cap the translated size
+00:01 +143: <REPO>/packages/feldexa_core/test/field_test.dart: FieldValidation rejects invalid message keys and catalog codes
+00:01 +144: <REPO>/packages/feldexa_core/test/geometry_test.dart: validation extreme display aspect ratios keep the invariant
+00:01 +145: <REPO>/packages/feldexa_core/test/field_test.dart: FieldValidation round-trips all three states and rejects unknown statuses
+00:01 +146: <REPO>/packages/feldexa_core/test/geometry_test.dart: validation accepted rectangles stay bounded across tiny display widths
+00:01 +147: <REPO>/packages/feldexa_core/test/field_test.dart: FieldValue lengths and control characters text accepts 10,000 characters and rejects 10,001
+00:01 +148: <REPO>/packages/feldexa_core/test/geometry_test.dart: JSON serializes both boxes and the rotation, not the derived size
+00:01 +149: <REPO>/packages/feldexa_core/test/geometry_test.dart: JSON serializes both boxes and the rotation, not the derived size
+00:01 +150: <REPO>/packages/feldexa_core/test/field_test.dart: FieldValue lengths and control characters multiline preserves newlines and applies the same length cap
+00:01 +151: <REPO>/packages/feldexa_core/test/geometry_test.dart: JSON round-trips through JSON and recomputes the display size
+00:01 +152: <REPO>/packages/feldexa_core/test/field_test.dart: FieldValue lengths and control characters preserved incompatible content is kept verbatim
+00:01 +153: <REPO>/packages/feldexa_core/test/geometry_test.dart: JSON defaults a missing or null CropBox to the MediaBox
+00:01 +154: <REPO>/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes number accepts normalized decimals only
+00:01 +155: <REPO>/packages/feldexa_core/test/geometry_test.dart: JSON clips an out-of-bounds serialized CropBox like the constructor
+00:01 +156: <REPO>/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes date accepts real calendar dates only
+00:01 +157: <REPO>/packages/feldexa_core/test/geometry_test.dart: JSON rejects malformed or unsupported JSON
+00:01 +158: <REPO>/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes checkbox defaults to unchecked
+00:01 +159: <REPO>/packages/feldexa_core/test/geometry_test.dart: value semantics equality and hashCode use boxes and rotation
+00:01 +160: <REPO>/packages/feldexa_core/test/geometry_test.dart: value semantics equality and hashCode use boxes and rotation
+00:01 +161: <REPO>/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes every variant rejects a non-UTC lastEditedAt
+00:01 +162: <REPO>/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes every variant rejects a non-UTC lastEditedAt
+00:01 +163: <REPO>/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes metadata defaults and copyWithMetadata preserve content
+00:01 +164: <REPO>/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes JSON round-trips every variant with its type discriminator
+00:01 +165: <REPO>/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes JSON timestamps are truncated to milliseconds
+00:01 +166: <REPO>/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes JSON parsing fails closed for unknown or malformed values
+00:01 +167: <REPO>/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes value equality is variant-aware
+00:01 +168: <REPO>/packages/feldexa_core/test/field_test.dart: privacy validation errors do not echo labels or values
+00:01 +169: <REPO>/packages/feldexa_core/test/field_test.dart: privacy value toString does not reveal content
+00:01 +170: <REPO>/packages/feldexa_core/test/field_test.dart: privacy closed keyword diagnostics do not echo rejected input
+00:01 +171: <REPO>/packages/feldexa_core/test/geometry_value_objects_test.dart: Point keeps finite coordinates without rounding
+00:01 +172: <REPO>/packages/feldexa_core/test/geometry_value_objects_test.dart: Point accepts zero, negative, subnormal, and extreme finite values
+00:01 +173: <REPO>/packages/feldexa_core/test/geometry_value_objects_test.dart: Point rejects NaN, positive infinity, and negative infinity
+00:01 +174: <REPO>/packages/feldexa_core/test/geometry_value_objects_test.dart: Point is an immutable value object with stable equality
+00:01 +175: <REPO>/packages/feldexa_core/test/geometry_value_objects_test.dart: Point quantizes to three decimals only when serialized
+00:01 +176: <REPO>/packages/feldexa_core/test/geometry_value_objects_test.dart: Point JSON round-trip reads the quantized coordinates
+00:01 +177: <REPO>/packages/feldexa_core/test/geometry_value_objects_test.dart: Point fromJson rejects missing, non-numeric, and non-finite fields
+00:01 +178: <REPO>/packages/feldexa_core/test/geometry_value_objects_test.dart: Size accepts small and large positive dimensions
+00:01 +179: <REPO>/packages/feldexa_core/test/geometry_value_objects_test.dart: Size rejects zero, negative zero, negative, NaN, and infinity
+00:01 +180: <REPO>/packages/feldexa_core/test/geometry_value_objects_test.dart: Size is an immutable value object with stable equality
+00:01 +181: <REPO>/packages/feldexa_core/test/geometry_value_objects_test.dart: Size keeps full precision until serialization
+00:01 +182: <REPO>/packages/feldexa_core/test/geometry_value_objects_test.dart: Size preserves positivity for dimensions below the quantization step
+00:01 +183: <REPO>/packages/feldexa_core/test/geometry_value_objects_test.dart: Size fromJson rejects non-positive and malformed dimensions
+00:01 +184: <REPO>/packages/feldexa_core/test/geometry_value_objects_test.dart: Rect accepts a 6 pt checkbox and other small rectangles
+00:01 +185: <REPO>/packages/feldexa_core/test/geometry_value_objects_test.dart: Rect accepts finite negative origins
+00:01 +186: <REPO>/packages/feldexa_core/test/geometry_value_objects_test.dart: Rect derives x/y aliases and the right/bottom edges
+00:01 +187: <REPO>/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus clean is durable and has the canonical token
+00:01 +188: <REPO>/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus clean is durable and has the canonical token
+00:01 +189: <REPO>/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus clean is durable and has the canonical token
+00:01 +190: <REPO>/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus clean is durable and has the canonical token
+00:01 +191: <REPO>/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus clean is durable and has the canonical token
+00:01 +192: <REPO>/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus clean is durable and has the canonical token
+00:01 +193: <REPO>/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus clean is durable and has the canonical token
+00:01 +194: <REPO>/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus clean is durable and has the canonical token
+00:01 +195: <REPO>/packages/feldexa_core/test/geometry_value_objects_test.dart: Rect fromJson rejects missing, malformed, and invalid fields
+00:01 +196: <REPO>/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus saving is not durable
+00:01 +197: <REPO>/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus unsaved is not durable and keeps the risk semantics
+00:01 +198: <REPO>/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus saved carries a UTC timestamp and is durable
+00:01 +199: <REPO>/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus saved rejects a local timestamp
+00:01 +200: <REPO>/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus saveFailed carries a catalog code and is not durable
+00:01 +201: <REPO>/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus saveFailed rejects a sentence or malformed code
+00:01 +202: <REPO>/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus recoveryFallback carries a revision id and is not durable
+00:01 +203: <REPO>/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus recoveryFallback rejects a non-UUID revision id
+00:01 +204: <REPO>/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus only clean and saved may be presented as durable
+00:01 +205: <REPO>/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus states use value equality
+00:01 +206: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionKind wire tokens match the T017 durable-pointer vocabulary
+00:01 +207: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionKind fromWire accepts only the three canonical tokens
+00:01 +208: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction minimal snapshot has the eight canonical payload keys
+00:01 +209: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction pages must be non-empty
+00:01 +210: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction pages must be ordered contiguously from index 0
+00:02 +211: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction suggestions are sorted canonically regardless of input order
+00:02 +212: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction duplicate suggestion ids are rejected
+00:02 +213: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a suggestion must reference an existing page
+00:02 +214: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a suggestion must fit its page display box
+00:02 +215: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction suggestion conflicts must exist and be symmetric
+00:02 +216: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction duplicate confirmed field ids are rejected
+00:02 +217: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a confirmed field must reference an existing page
+00:02 +218: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a confirmed field must fit its page display box
+00:02 +219: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction fieldOrder must be a complete permutation with matching orders
+00:02 +220: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction field.order must equal its position in fieldOrder
+00:02 +221: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a value must reference a confirmed field
+00:02 +222: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction incompatible content and its flag must occur together
+00:02 +223: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a signature must reference a signature field on the same page
+00:02 +224: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction signature asset ids must be unique
+00:02 +225: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a signature mark requires the matching value
+00:02 +226: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a signature value requires the matching mark
+00:02 +227: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction verification must reference a confirmed field
+00:02 +228: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a rich snapshot round-trips through canonical JSON
+00:02 +229: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction fromDocument copies only snapshot fields
+00:02 +230: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction source bytes are rejected on read and never emitted
+00:02 +231: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction missing required payload keys are rejected
+00:02 +232: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a missing templateOrigin is accepted as null
+00:02 +233: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction mistyped payload sections are rejected
+00:02 +234: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent unknown fields unknown fields survive at every persisted layer
+00:02 +235: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent unknown fields unknown fields are retained in canonical byte order
+00:02 +236: <REPO>/packages/feldexa_core/test/persistence_test.dart: RevisionContent unknown fields unknown fields do not participate in equality
+00:02 +237: <REPO>/packages/feldexa_core/test/persistence_test.dart: Revision a valid first revision serializes all modeled keys
+00:02 +238: <REPO>/packages/feldexa_core/test/persistence_test.dart: Revision revision JSON round-trips canonically
+00:02 +239: <REPO>/packages/feldexa_core/test/persistence_test.dart: Revision all revision kinds round-trip through JSON
+00:02 +240: <REPO>/packages/feldexa_core/test/persistence_test.dart: Revision unknown fields survive at the revision and content roots
+00:02 +241: <REPO>/packages/feldexa_core/test/persistence_test.dart: Revision revision identity, parent, timestamp, and hash are validated
+00:02 +242: <REPO>/packages/feldexa_core/test/persistence_test.dart: Revision fromJson rejects missing and mistyped modeled fields
+00:02 +243: <REPO>/packages/feldexa_core/test/persistence_test.dart: Revision a revision with a clearable parent copies and validates
+00:02 +244: <REPO>/packages/feldexa_core/test/persistence_test.dart: Revision toDurablePointer maps the verified commit exactly
+00:02 +245: <REPO>/packages/feldexa_core/test/persistence_test.dart: Revision revision equality and hash include content
+00:02 +246: <REPO>/packages/feldexa_core/test/reclassification_test.dart: same-type reclassification text to itself is a no-op
+00:02 +247: <REPO>/packages/feldexa_core/test/reclassification_test.dart: same-type reclassification number to itself is a no-op
+00:02 +248: <REPO>/packages/feldexa_core/test/reclassification_test.dart: same-type reclassification date to itself is a no-op
+00:02 +249: <REPO>/packages/feldexa_core/test/reclassification_test.dart: same-type reclassification checkbox to itself is a no-op
+00:02 +250: <REPO>/packages/feldexa_core/test/reclassification_test.dart: same-type reclassification multiline to itself is a no-op
+00:02 +251: <REPO>/packages/feldexa_core/test/reclassification_test.dart: same-type reclassification signature to itself is a no-op
+00:02 +252: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text and multiline text to multiline preserves content and metadata
+00:02 +253: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text and multiline multiline without a line break to text is lossless
+00:02 +254: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text and multiline multiline with a line break needs explicit confirmation
+00:02 +255: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text and multiline each line break becomes exactly one space after confirmation
+00:02 +256: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text and multiline confirmed line-break join resolves the open action
+00:02 +257: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text and multiline empty text stays an empty multiline value
+00:02 +258: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to number parses a German grouped decimal
+00:02 +259: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to number parses German comma decimals and negatives
+00:02 +260: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to number parses canonical dot decimals
+00:02 +261: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to number prefers a valid German grouping over a canonical dot decimal
+00:02 +262: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to number trims for parsing but preserves the raw display text
+00:02 +263: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to number preserves unparseable text with NUM-001 instead of discarding it
+00:02 +264: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to number preserves German characters and spaces verbatim on failure
+00:02 +265: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to number empty text produces no value instead of a parse error
+00:02 +266: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to number whitespace-only text is preserved rather than treated as empty
+00:02 +267: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to number accepts the 10,000-character preserved-content boundary
+00:02 +268: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to number clears a previous field error on a lossless conversion
+00:02 +269: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to number keeps overflow metadata and the overflow warning
+00:02 +270: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to number incompatible content takes precedence over an overflow warning
+00:02 +271: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to date parses German dates with or without leading zeros
+00:02 +272: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to date accepts the canonical form emitted by date to text
+00:02 +273: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to date accepts a real leap day
+00:02 +274: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to date marks an impossible calendar date as DATE-002 and preserves it
+00:02 +275: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to date marks an impossible month as DATE-002
+00:02 +276: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to date marks a malformed date as DATE-001 and preserves it
+00:02 +277: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to date distinguishes a 29 February of a non-leap year as DATE-002
+00:02 +278: <REPO>/packages/feldexa_core/test/reclassification_test.dart: text to date empty text produces no value instead of a date error
+00:02 +279: <REPO>/packages/feldexa_core/test/reclassification_test.dart: number and date to text or multiline number to text preserves the German display input
+00:02 +280: <REPO>/packages/feldexa_core/test/reclassification_test.dart: number and date to text or multiline date to text preserves the canonical content and clears the error
+00:02 +281: <REPO>/packages/feldexa_core/test/reclassification_test.dart: number and date to text or multiline number and date to multiline preserve their display text
+00:02 +282: <REPO>/packages/feldexa_core/test/reclassification_test.dart: number and date to text or multiline converted values keep same-schema extensions
+00:02 +283: <REPO>/packages/feldexa_core/test/reclassification_test.dart: number and date cross-conversion number to date parses a date-shaped display input
+00:02 +284: <REPO>/packages/feldexa_core/test/reclassification_test.dart: number and date cross-conversion number to date preserves a non-date projection with DATE-001
+00:02 +285: <REPO>/packages/feldexa_core/test/reclassification_test.dart: number and date cross-conversion date to number preserves the canonical date with NUM-001
+00:02 +286: <REPO>/packages/feldexa_core/test/reclassification_test.dart: to checkbox text content is preserved and an unchecked box is proposed
+00:02 +287: <REPO>/packages/feldexa_core/test/reclassification_test.dart: to checkbox number and date content are preserved verbatim
+00:02 +288: <REPO>/packages/feldexa_core/test/reclassification_test.dart: to checkbox multiline line breaks are preserved
+00:02 +289: <REPO>/packages/feldexa_core/test/reclassification_test.dart: to checkbox empty text becomes no value instead of an incompatible warning
+00:02 +290: <REPO>/packages/feldexa_core/test/reclassification_test.dart: to checkbox resolve accepts the proposed unchecked state
+00:02 +291: <REPO>/packages/feldexa_core/test/reclassification_test.dart: to signature text content is preserved and blocks export until resolved
+00:02 +292: <REPO>/packages/feldexa_core/test/reclassification_test.dart: to signature number and date content are preserved
+00:02 +293: <REPO>/packages/feldexa_core/test/reclassification_test.dart: to signature empty text becomes an unsigned signature without a warning
+00:02 +294: <REPO>/packages/feldexa_core/test/reclassification_test.dart: to signature a checkbox state is cleared when the target is a signature
+00:02 +295: <REPO>/packages/feldexa_core/test/reclassification_test.dart: to signature resolve discards the flagged text explicitly
+00:02 +296: <REPO>/packages/feldexa_core/test/reclassification_test.dart: from checkbox checked and unchecked states project to Ja and Nein
+00:02 +297: <REPO>/packages/feldexa_core/test/reclassification_test.dart: from checkbox multiline projects the state and proposes multiline text
+00:02 +298: <REPO>/packages/feldexa_core/test/reclassification_test.dart: from checkbox number and date targets preserve the projection without inference
+00:02 +299: <REPO>/packages/feldexa_core/test/reclassification_test.dart: from checkbox resolve accepts the projected text explicitly
+00:02 +300: <REPO>/packages/feldexa_core/test/reclassification_test.dart: from signature signature to text clears the reference and surfaces the asset
+00:02 +301: <REPO>/packages/feldexa_core/test/reclassification_test.dart: from signature signature to the other non-signature types clears the reference
+00:02 +302: <REPO>/packages/feldexa_core/test/reclassification_test.dart: from signature resolve is a no-op for an already cleared signature
+00:02 +303: <REPO>/packages/feldexa_core/test/reclassification_test.dart: preserved content beyond the documented matrix a preserved line break can be confirmed for a non-multiline source
+00:02 +304: <REPO>/packages/feldexa_core/test/reclassification_test.dart: preserved content beyond the documented matrix control characters that text cannot store stay incompatible
+00:02 +305: <REPO>/packages/feldexa_core/test/reclassification_test.dart: preserved content beyond the documented matrix control characters that multiline cannot store stay incompatible
+00:02 +306: <REPO>/packages/feldexa_core/test/reclassification_test.dart: input validation and privacy rejects a value that does not belong to the field type
+00:02 +307: <REPO>/packages/feldexa_core/test/reclassification_test.dart: input validation and privacy a rejection never echoes content
+00:02 +308: <REPO>/packages/feldexa_core/test/reclassification_test.dart: input validation and privacy rejects a misplaced line-break confirmation flag
+00:02 +309: <REPO>/packages/feldexa_core/test/reclassification_test.dart: input validation and privacy rejects a non-UTC updatedAt
+00:02 +310: <REPO>/packages/feldexa_core/test/reclassification_test.dart: input validation and privacy rejects over-limit display content without echoing it
+00:02 +311: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer accepts a valid pointer and serializes the canonical timestamp
+00:02 +312: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer accepts a valid pointer and serializes the canonical timestamp
+00:02 +313: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer accepts a valid pointer and serializes the canonical timestamp
+00:02 +314: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer accepts a valid pointer and serializes the canonical timestamp
+00:02 +315: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer accepts a valid pointer and serializes the canonical timestamp
+00:02 +316: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer accepts a valid pointer and serializes the canonical timestamp
+00:02 +317: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer accepts a valid pointer and serializes the canonical timestamp
+00:02 +318: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer accepts a valid pointer and serializes the canonical timestamp
+00:02 +319: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer accepts a valid pointer and serializes the canonical timestamp
+00:02 +320: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer accepts a valid pointer and serializes the canonical timestamp
+00:02 +321: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer accepts a valid pointer and serializes the canonical timestamp
+00:02 +322: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer accepts a valid pointer and serializes the canonical timestamp
+00:02 +323: <REPO>/packages/feldexa_core/test/reclassification_test.dart: same-schema validation extensions resolve keeps value extensions for a checkbox projection
+00:02 +324: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer rejects an invalid identity, number, or timestamp
+00:02 +325: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer rejects an invalid identity, number, or timestamp
+00:02 +326: <REPO>/packages/feldexa_core/test/reclassification_test.dart: same-schema validation extensions resolve keeps value extensions for a proposed checkbox
+00:02 +327: <REPO>/packages/feldexa_core/test/reclassification_test.dart: same-schema validation extensions resolve keeps value extensions for a proposed checkbox
+00:02 +328: <REPO>/packages/feldexa_core/test/reclassification_test.dart: same-schema validation extensions resolve keeps value extensions for a proposed checkbox
+00:02 +329: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer preserves unknown same-schema fields across a round-trip
+00:02 +330: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer preserves unknown same-schema fields across a round-trip
+00:02 +331: <REPO>/packages/feldexa_core/test/reclassification_test.dart: same-schema validation extensions the persisted roundtrip keeps validation extensions
+00:02 +332: <REPO>/packages/feldexa_core/test/reclassification_test.dart: same-schema validation extensions the persisted roundtrip keeps validation extensions
+00:02 +333: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent serializes exactly the ver/<versionId>.fx1 payload
+00:02 +334: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent serializes exactly the ver/<versionId>.fx1 payload
+00:02 +335: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent serializes exactly the ver/<versionId>.fx1 payload
+00:02 +336: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent serializes exactly the ver/<versionId>.fx1 payload
+00:02 +337: <REPO>/packages/feldexa_core/test/reclassification_test.dart: persisted blocking error and warning DATE-002 survives the document and revision persistence roundtrip
+00:02 +338: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent has no value, signature, suggestion, or origin member
+00:02 +339: <REPO>/packages/feldexa_core/test/reclassification_test.dart: persisted blocking error and warning the incompatible-content warning survives for checkbox content
+00:02 +340: <REPO>/packages/feldexa_core/test/reclassification_test.dart: persisted blocking error and warning the incompatible-content warning survives for checkbox content
+00:02 +341: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent rejects an unsupported schema version
+00:02 +342: <REPO>/packages/feldexa_core/test/reclassification_test.dart: persisted blocking error and warning resolving a parse failure clears the persisted error
+00:02 +343: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent rejects a missing, null, or mistyped schemaVersion
+00:02 +344: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix text to text yields a valid state
+00:02 +345: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent refuses forbidden payloads at the root and in page/field objects
+00:02 +346: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent refuses forbidden payloads at the root and in page/field objects
+00:02 +347: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent refuses forbidden payloads at the root and in page/field objects
+00:02 +348: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix text to checkbox yields a valid state
+00:02 +349: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent refuses forbidden payloads in deeply modeled objects
+00:02 +350: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix text to multiline yields a valid state
+00:02 +351: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent rejects an empty or non-contiguous page snapshot
+00:02 +352: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent rejects an empty or non-contiguous page snapshot
+00:02 +353: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix number to text yields a valid state
+00:02 +354: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent rejects a field that does not belong to the snapshot
+00:02 +355: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix number to number yields a valid state
+00:02 +356: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent rejects a field order that is not a contiguous permutation
+00:02 +357: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix number to date yields a valid state
+00:02 +358: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent round-trips canonical JSON byte-identically
+00:02 +359: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent round-trips canonical JSON byte-identically
+00:02 +360: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent round-trips canonical JSON byte-identically
+00:02 +361: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent round-trips canonical JSON byte-identically
+00:02 +362: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix date to text yields a valid state
+00:02 +363: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent preserves unknown same-schema fields at every level
+00:02 +364: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent preserves unknown same-schema fields at every level
+00:02 +365: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix date to date yields a valid state
+00:02 +366: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent copyWith revalidates and retains extensions
+00:02 +367: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent copyWith revalidates and retains extensions
+00:02 +368: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix date to multiline yields a valid state
+00:02 +369: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent rejects extension data that is not canonical JSON
+00:02 +370: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix date to signature yields a valid state
+00:02 +371: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent deep-freezes extension data against later mutation
+00:02 +372: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersionContent deep-freezes extension data against later mutation
+00:02 +373: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix checkbox to number yields a valid state
+00:02 +374: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix checkbox to number yields a valid state
+00:02 +375: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersion composes a pointer for the metadata list
+00:02 +376: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersion composes a pointer for the metadata list
+00:02 +377: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix checkbox to checkbox yields a valid state
+00:02 +378: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersion sorts the snapshot by field order
+00:02 +379: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix checkbox to multiline yields a valid state
+00:02 +380: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersion rejects invalid identity, number, hash, pages, and field order
+00:02 +381: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersion rejects invalid identity, number, hash, pages, and field order
+00:02 +382: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix multiline to text yields a valid state
+00:02 +383: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersion round-trips canonical JSON and keeps extensions
+00:02 +384: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersion round-trips canonical JSON and keeps extensions
+00:02 +385: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix multiline to date yields a valid state
+00:02 +386: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersion fromJson wraps invalid modeled values as FormatException
+00:02 +387: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix multiline to checkbox yields a valid state
+00:02 +388: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersion refuses forbidden payloads at the root and in snapshots
+00:02 +389: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix multiline to multiline yields a valid state
+00:03 +390: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersion refuses forbidden payloads in deeply modeled snapshots
+00:03 +391: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix multiline to signature yields a valid state
+00:03 +392: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateVersion toString reports the version number only
+00:03 +393: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix signature to text yields a valid state
+00:03 +394: <REPO>/packages/feldexa_core/test/template_test.dart: Template builds a layout-only aggregate
+00:03 +395: <REPO>/packages/feldexa_core/test/template_test.dart: Template builds a layout-only aggregate
+00:03 +396: <REPO>/packages/feldexa_core/test/template_test.dart: Template builds a layout-only aggregate
+00:03 +397: <REPO>/packages/feldexa_core/test/reclassification_test.dart: full type matrix signature to checkbox yields a valid state
+00:03 +398: <REPO>/packages/feldexa_core/test/template_test.dart: Template trims the title and preserves German characters
+00:03 +399: <REPO>/packages/feldexa_core/test/template_test.dart: Template trims the title and preserves German characters
+00:03 +400: <REPO>/packages/feldexa_core/test/template_test.dart: Template rejects an invalid schema version, id, title, or timestamp
+00:03 +401: <REPO>/packages/feldexa_core/test/template_test.dart: Template rejects an invalid schema version, id, title, or timestamp
+00:03 +402: <REPO>/packages/feldexa_core/test/template_test.dart: Template rejects a page list that does not match the source
+00:03 +403: <REPO>/packages/feldexa_core/test/template_test.dart: Template rejects fields that do not belong to the layout
+00:03 +404: <REPO>/packages/feldexa_core/test/template_test.dart: Template rejects a version list that is not newest first
+00:03 +405: <REPO>/packages/feldexa_core/test/template_test.dart: Template rejects non-monotonic version timestamps
+00:03 +406: <REPO>/packages/feldexa_core/test/template_test.dart: Template requires latestVersion to be the newest pointer (FR-105)
+00:03 +407: <REPO>/packages/feldexa_core/test/template_test.dart: Template rejects a wrong kind, missing, or newer schema in JSON
+00:03 +408: <REPO>/packages/feldexa_core/test/template_test.dart: Template refuses forbidden payloads at the root and in modeled objects
+00:03 +409: <REPO>/packages/feldexa_core/test/template_test.dart: Template refuses forbidden payloads in deeply modeled page/field objects
+00:03 +410: <REPO>/packages/feldexa_core/test/template_test.dart: Template round-trips canonical JSON byte-identically
+00:03 +411: <REPO>/packages/feldexa_core/test/template_test.dart: Template retains machine provenance in the layout
+00:03 +412: <REPO>/packages/feldexa_core/test/template_test.dart: Template keeps existing versions immutable when a version is added
+00:03 +413: <REPO>/packages/feldexa_core/test/template_test.dart: Template does not re-point a derived-document pin (FR-104)
+00:03 +414: <REPO>/packages/feldexa_core/test/template_test.dart: Template copyWith revalidates and keeps extensions by default
+00:03 +415: <REPO>/packages/feldexa_core/test/template_test.dart: Template equality and hashCode ignore extension data
+00:03 +416: <REPO>/packages/feldexa_core/test/template_test.dart: Template rejects extension data that is not canonical JSON
+00:03 +417: <REPO>/packages/feldexa_core/test/template_test.dart: Template toString and errors never echo the title or labels
+00:03 +418: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateMeta serializes the meta.fx1 envelope without layout content
+00:03 +419: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateMeta round-trips canonical JSON byte-identically
+00:03 +420: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateMeta supports an unreadable envelope with a catalog reason
+00:03 +421: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateMeta rejects an inconsistent readable state or code
+00:03 +422: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateMeta copyWith can clear the unreadable reason
+00:03 +423: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateMeta rejects a wrong discriminator or missing modeled field
+00:03 +424: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateMeta has no mandatory schemaVersion in the v1 envelope
+00:03 +425: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateMeta refuses a present null, newer, or mistyped schemaVersion marker
+00:03 +426: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateMeta refuses forbidden payloads at the root and in pointer objects
+00:03 +427: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateMeta keeps the newest-first version invariant
+00:03 +428: <REPO>/packages/feldexa_core/test/template_test.dart: TemplateMeta preserves unknown same-schema fields
+00:03 +429: <REPO>/packages/feldexa_core/test/template_test.dart: StoredTemplate joins a listed version with its verified content
+00:03 +430: <REPO>/packages/feldexa_core/test/template_test.dart: StoredTemplate rejects a version from another template
+00:03 +431: <REPO>/packages/feldexa_core/test/template_test.dart: StoredTemplate rejects a version that the metadata does not list
+00:03 +432: <REPO>/packages/feldexa_core/test/template_test.dart: StoredTemplate rejects content that does not match the version snapshots
+00:03 +433: <REPO>/packages/feldexa_core/test/template_test.dart: StoredTemplate exposes a layout-only model without filled content
+00:03 +434: <REPO>/packages/feldexa_core/test/template_test.dart: StoredTemplate copyWith revalidates the join
+00:03 +435: <REPO>/packages/feldexa_core/test/template_test.dart: unknown same-schema fields survive a full template read/write round at every level
+00:03 +436: <REPO>/packages/feldexa_core/test/template_test.dart: unknown same-schema fields are dropped only across a schema boundary (fail closed)
+00:03 +437: <REPO>/packages/feldexa_core/test/template_test.dart: unknown same-schema fields are not part of equality but are part of writes
+00:03 +438: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: Document root and nested round-trip preserves extensions at every persisted object level
+00:03 +439: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: Document root and nested round-trip copyWith retains root extensions
+00:03 +440: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: Document root and nested round-trip modeled keys win over a colliding extension
+00:03 +441: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: Document root and nested round-trip drops transient status and derived renderCacheKey
+00:03 +442: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips SourceFileRef
+00:03 +443: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips Page retains its own extensions and its nested failure
+00:03 +444: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips PageGeometry and its Rect boxes
+00:03 +445: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips Rect
+00:03 +446: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips PageFailure
+00:03 +447: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips FieldSuggestion, evidence, and rect
+00:03 +448: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips ConfirmedField, validation, and rect
+00:03 +449: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips FieldValue variants retain extensions
+00:03 +450: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips FieldValidation ok, warning, and error
+00:03 +451: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips SignatureMark and FieldVerification
+00:03 +452: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips TemplateOrigin, DurablePointer, and DocumentPreferences
+00:03 +453: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips DocumentMeta and its source
+00:03 +454: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips legacy lowContrast is normalized away, not retained
+00:03 +455: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: defensive deep immutability unknownJsonFields deep-copies input maps and lists
+00:03 +456: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: defensive deep immutability Document.fromJson copies nested extensions away from the input
+00:03 +457: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: defensive deep immutability public constructors copy nested extensions before storing
+00:03 +458: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: defensive deep immutability nested value objects copy extensions before storing
+00:03 +459: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: defensive deep immutability mergeUnknownJsonFields isolates mutable extension input
+00:03 +460: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: defensive deep immutability mutating returned JSON cannot change a later digest
+00:03 +461: <REPO>/packages/feldexa_core/test/unknown_fields_test.dart: defensive deep immutability rejects non-JSON and cyclic extension values
+00:04 +462: All tests passed!

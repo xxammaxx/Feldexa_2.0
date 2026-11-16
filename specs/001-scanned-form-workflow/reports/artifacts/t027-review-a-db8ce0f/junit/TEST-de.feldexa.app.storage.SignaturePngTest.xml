@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="de.feldexa.app.storage.SignaturePngTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-11-16T15:26:42.316Z" hostname="cachyos-x8664" time="0.155">
+  <properties/>
+  <testcase name="rejectsValidPngOver1024LongEdge" classname="de.feldexa.app.storage.SignaturePngTest" time="0.078"/>
+  <testcase name="acceptsAdam7InterlacedPng" classname="de.feldexa.app.storage.SignaturePngTest" time="0.001"/>
+  <testcase name="rejectsDecompressionBomb" classname="de.feldexa.app.storage.SignaturePngTest" time="0.011"/>
+  <testcase name="rejectsUnknownCriticalChunk" classname="de.feldexa.app.storage.SignaturePngTest" time="0.001"/>
+  <testcase name="rejectsNonPngTruncatedAndTrailingBytes" classname="de.feldexa.app.storage.SignaturePngTest" time="0.0"/>
+  <testcase name="acceptsSyntheticRgbaPngs" classname="de.feldexa.app.storage.SignaturePngTest" time="0.0"/>
+  <testcase name="rejectsOversizedPngMetadataRange" classname="de.feldexa.app.storage.SignaturePngTest" time="0.029"/>
+  <testcase name="acceptsIndependentlyGeneratedPngs" classname="de.feldexa.app.storage.SignaturePngTest" time="0.001"/>
+  <testcase name="rejectsCorruptOrMissingImageData" classname="de.feldexa.app.storage.SignaturePngTest" time="0.001"/>
+  <testcase name="acceptsLongEdgeBoundary1024" classname="de.feldexa.app.storage.SignaturePngTest" time="0.031"/>
+  <testcase name="rejectsInvalidFilterByte" classname="de.feldexa.app.storage.SignaturePngTest" time="0.0"/>
+  <testcase name="rejectsInvalidHeaderFields" classname="de.feldexa.app.storage.SignaturePngTest" time="0.002"/>
+  <testcase name="rejectsBadChunkCrc" classname="de.feldexa.app.storage.SignaturePngTest" time="0.0"/>
+  <testcase name="rejectsPaletteImageWithoutPalette" classname="de.feldexa.app.storage.SignaturePngTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

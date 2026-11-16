@@ -1,0 +1,88 @@
+00:00 +0: loading <REPO>/apps/feldexa_app/test/android_backup_rules_test.dart
+00:00 +0: <REPO>/apps/feldexa_app/test/android_backup_rules_test.dart: manifest disables backup and points at the extraction rules
+00:00 +1: <REPO>/apps/feldexa_app/test/android_backup_rules_test.dart: every transfer mode excludes every app data domain
+00:00 +2: <REPO>/apps/feldexa_app/test/android_backup_rules_test.dart: cross-platform transfer is not declared without an iOS identity
+00:01 +3: <REPO>/apps/feldexa_app/test/app_smoke_test.dart: renders the Feldexa shell in German
+00:01 +4: <REPO>/apps/feldexa_app/test/app_smoke_test.dart: renders the Feldexa shell in German
+00:01 +5: <REPO>/apps/feldexa_app/test/app_smoke_test.dart: renders the Feldexa shell in German
+00:01 +6: <REPO>/apps/feldexa_app/test/app_smoke_test.dart: renders the Feldexa shell in German
+00:02 +7: <REPO>/apps/feldexa_app/test/font_metrics_bundle_test.dart: (setUpAll)
+00:02 +7: <REPO>/apps/feldexa_app/test/font_metrics_bundle_test.dart: metrics.json is a schema-v1 document for both weights
+00:02 +8: <REPO>/apps/feldexa_app/test/font_metrics_bundle_test.dart: metrics for assets/fonts/NotoSans-Regular.ttf match head/hhea/maxp/hmtx/cmap
+00:03 +9: <REPO>/apps/feldexa_app/test/font_metrics_bundle_test.dart: assets/fonts/NotoSans-Regular.ttf covers the FR-067 German codepoints
+00:03 +10: <REPO>/apps/feldexa_app/test/font_metrics_bundle_test.dart: metrics for assets/fonts/NotoSans-Bold.ttf match head/hhea/maxp/hmtx/cmap
+00:03 +11: <REPO>/apps/feldexa_app/test/font_metrics_bundle_test.dart: assets/fonts/NotoSans-Bold.ttf covers the FR-067 German codepoints
+00:03 +12: <REPO>/apps/feldexa_app/test/font_metrics_bundle_test.dart: advance keys are emitted in ascending numeric order
+00:03 +13: <REPO>/apps/feldexa_app/test/font_metrics_bundle_test.dart: sample strings measure to the pinned point widths
+00:03 +14: <REPO>/apps/feldexa_app/test/font_metrics_bundle_test.dart: missing glyphs stay absent and zero-width marks stay available
+00:03 +15: <REPO>/apps/feldexa_app/test/font_metrics_bundle_test.dart: (tearDownAll)
+00:03 +15: <REPO>/apps/feldexa_app/test/german_strings_test.dart: (setUpAll)
+00:04 +15: <REPO>/apps/feldexa_app/test/german_strings_test.dart: ARB and corrected catalog agree on every coded message
+00:04 +16: <REPO>/apps/feldexa_app/test/german_strings_test.dart: catalog and ARB key mapping is complete in both directions
+00:04 +17: <REPO>/apps/feldexa_app/test/german_strings_test.dart: corrected IMP-007 and FLD-001 texts are preserved verbatim
+00:04 +18: <REPO>/apps/feldexa_app/test/german_strings_test.dart: PRIV-001 discloses aggregate isolation and the global reset exception
+00:04 +19: <REPO>/apps/feldexa_app/test/german_strings_test.dart: placeholder metadata is complete, typed, and German
+00:04 +20: <REPO>/apps/feldexa_app/test/german_strings_test.dart: generated localization code exposes every ARB key
+00:04 +21: <REPO>/apps/feldexa_app/test/german_strings_test.dart: start area, status, action, and deletion labels match the catalog
+00:04 +22: <REPO>/apps/feldexa_app/test/german_strings_test.dart: durability, privacy, export, and SIMULATED labels match the catalog
+00:04 +23: <REPO>/apps/feldexa_app/test/german_strings_test.dart: accessibility semantics use the catalog templates and German states
+00:04 +24: <REPO>/apps/feldexa_app/test/german_strings_test.dart: no untranslated English UI words remain; SIMULATED is allowlisted
+00:04 +25: <REPO>/apps/feldexa_app/test/german_strings_test.dart: (tearDownAll)
+00:04 +25: <REPO>/apps/feldexa_app/test/l10n_scaffold_test.dart: German is the only supported release locale
+00:04 +26: <REPO>/apps/feldexa_app/test/l10n_scaffold_test.dart: l10n.yaml points at the German template and committed output
+00:04 +27: <REPO>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:04 +28: <REPO>/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+00:05 +29: <REPO>/apps/feldexa_app/test/platform_registry_test.dart: compile-time selection dart:io selects the Android registry by default
+00:05 +30: <REPO>/apps/feldexa_app/test/platform_registry_test.dart: compile-time selection the unsupported target fails closed with PLT-001
+00:05 +31: <REPO>/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation accepts real Android adapters with EvidenceClass.none
+00:05 +32: <REPO>/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects one simulated adapter with SIM-001
+00:05 +33: <REPO>/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects an all-simulated adapter set with SIM-001
+00:05 +34: <REPO>/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects an environment-labelled adapter instead of mislabelling it
+00:05 +35: <REPO>/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects a descriptor in the wrong capability slot
+00:05 +36: <REPO>/apps/feldexa_app/test/platform_registry_test.dart: Web registry evidence separation accepts simulated-only adapters and reports development mode
+00:05 +37: <REPO>/apps/feldexa_app/test/platform_registry_test.dart: Web registry evidence separation rejects an Android-labelled adapter instead of claiming it as Web
+00:05 +38: <REPO>/apps/feldexa_app/test/platform_registry_test.dart: release assertion accepts the real Android registry
+00:05 +39: <REPO>/apps/feldexa_app/test/platform_registry_test.dart: release assertion rejects a simulated Web registry with SIM-001
+00:05 +40: <REPO>/apps/feldexa_app/test/platform_registry_test.dart: release assertion inspects live descriptors when the registry metadata lies
+00:05 +41: <REPO>/apps/feldexa_app/test/platform_registry_test.dart: release assertion rejects a registry that only claims simulated capabilities
+00:05 +42: <REPO>/apps/feldexa_app/test/platform_registry_test.dart: Android dependency boundary registry sources never import the simulated adapter package
+00:05 +43: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+00:05 +43: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance catalog is a SIMULATED, deterministic fixture catalogue
+00:05 +44: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance catalogue contains the four editor forms and three failure fixtures
+00:05 +45: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-001 carries complete synthetic provenance
+00:05 +46: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-002 carries complete synthetic provenance
+00:05 +47: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-003 carries complete synthetic provenance
+00:05 +48: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-004 carries complete synthetic provenance
+00:05 +49: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-protected carries complete synthetic provenance
+00:05 +50: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-truncated carries complete synthetic provenance
+00:05 +51: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-not-a-pdf carries complete synthetic provenance
+00:05 +52: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures four valid forms cover every field type, rotation, and page-count need
+00:05 +53: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 PDF bytes, page geometry, and fixed metadata are valid
+00:05 +54: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 ground truth is unique, typed, and inside page bounds
+00:05 +55: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 expected OCR is sorted, bounded, and matches assertions
+00:05 +56: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 OCR labels support every ground-truth field
+00:05 +57: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 canonical, Web, and corpus copies are byte-identical
+00:05 +58: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 PDF bytes, page geometry, and fixed metadata are valid
+00:05 +59: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 ground truth is unique, typed, and inside page bounds
+00:05 +60: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 expected OCR is sorted, bounded, and matches assertions
+00:05 +61: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 OCR labels support every ground-truth field
+00:05 +62: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 canonical, Web, and corpus copies are byte-identical
+00:05 +63: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 PDF bytes, page geometry, and fixed metadata are valid
+00:05 +64: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 ground truth is unique, typed, and inside page bounds
+00:05 +65: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 expected OCR is sorted, bounded, and matches assertions
+00:05 +66: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 OCR labels support every ground-truth field
+00:05 +67: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 canonical, Web, and corpus copies are byte-identical
+00:05 +68: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 PDF bytes, page geometry, and fixed metadata are valid
+00:05 +69: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 ground truth is unique, typed, and inside page bounds
+00:05 +70: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 expected OCR is sorted, bounded, and matches assertions
+00:05 +71: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 OCR labels support every ground-truth field
+00:05 +72: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 canonical, Web, and corpus copies are byte-identical
+00:05 +73: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: dev-only delivery policy pubspec declares fonts but never fixture assets
+00:05 +74: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: dev-only delivery policy canonical and Web fixture trees are byte-identical
+00:05 +75: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: dev-only delivery policy the Web delivery mirror is outside Flutter asset directories
+00:05 +76: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: failure fixtures sf-protected is a genuine encrypted PDF for IMP-001
+00:05 +77: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: failure fixtures sf-truncated is a deterministic prefix without EOF for IMP-002
+00:05 +78: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: failure fixtures sf-not-a-pdf is text with a .pdf name for IMP-004
+00:05 +79: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: German content and synthetic marker OCR text exercises German characters and quotation marks
+00:05 +80: <REPO>/apps/feldexa_app/test/synthetic_fixtures_test.dart: (tearDownAll)
+00:05 +80: All tests passed!

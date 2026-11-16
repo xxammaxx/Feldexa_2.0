@@ -1,0 +1,115 @@
+00:00 +0: loading <repo-root>/packages/feldexa_adapters_simulated/test/simulated_boundary_test.dart
+00:00 +0: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_boundary_test.dart: the simulated package has no platform or Android-adapter imports
+00:00 +1: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_boundary_test.dart: library sources never read the wall clock or randomness
+00:00 +2: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_boundary_test.dart: the Android registry never imports the simulated package
+00:00 +3: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_boundary_test.dart: the package barrel exports every adapter and the evidence contract
+00:00 +4: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_evidence_test.dart: all six adapters carry SIMULATED evidence and the right capability
+00:00 +5: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_evidence_test.dart: no adapter claims EMULATOR, DEVICE, or unlabelled evidence
+00:00 +6: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_evidence_test.dart: the deterministic context has a fixed UTC instant and stable ids
+00:00 +7: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_evidence_test.dart: a custom fixed instant is normalised to UTC
+00:00 +8: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_evidence_test.dart: descriptor evidence cannot be upgraded by a caller
+00:00 +9: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: (setUpAll)
+00:01 +9: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: export descriptor is SIMULATED PDF export
+00:01 +10: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: validates and exports a deterministic SIMULATED preview
+Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+00:01 +11: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_fixtures_test.dart: (setUpAll)
+00:01 +11: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: two exports of the same plan produce byte-identical previews
+Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+00:01 +12: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_fixtures_test.dart: (setUpAll)
+00:01 +12: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: the bundled Noto Sans font can be embedded
+00:01 +13: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: the bundled Noto Sans font can be embedded
+00:01 +14: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_fixtures_test.dart: page geometry matches the declared display size for every rotation
+00:01 +15: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: overflow-free text that Helvetica cannot encode blocks with EXP-004
+00:01 +16: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: overflow-free text that Helvetica cannot encode blocks with EXP-004
+00:01 +17: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: overflow-free text that Helvetica cannot encode blocks with EXP-004
+00:01 +18: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: overflow-free text that Helvetica cannot encode blocks with EXP-004
+00:01 +19: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_fixtures_test.dart: tampered PDF bytes fail the SHA-256 pin
+00:01 +20: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: embedFonts:false falls back to the Helvetica substitute
+00:01 +21: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_fixtures_test.dart: a non-SIMULATED catalogue is refused
+00:01 +22: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: export maps a field-level EXP-003 blocker to ExportBlockedException
+00:01 +23: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a corrupted staged source is EXP-005 and never reaches export
+00:01 +24: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a missing staged source is EXP-005 and export fails
+00:01 +25: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a plan/source SHA mismatch is EXP-005 and export fails
+00:01 +26: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a missing revision is EXP-005 and export fails
+00:01 +27: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a page-count mismatch is EXP-006 and export fails
+00:01 +28: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a source failure is not masked by a field-level blocker
+00:01 +29: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: successful export leaves the staged source bytes unchanged
+Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+00:01 +30: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: an op outside the page blocks with EXP-003
+00:01 +31: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a missing signature asset blocks with EXP-005
+00:01 +32: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a post-revision signature asset is unlinked and fails export
+00:01 +33: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a revision-bound signature asset exports after hash verification
+Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+00:02 +34: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a mutated signature asset is EXP-005 signature_hash_mismatch
+00:02 +35: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: request document/revision ids must match the plan
+00:02 +36: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: readArtifact rejects a missing artifact; delete is idempotent
+00:02 +37: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: delivery reports a labelled SIMULATED hand-off
+Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+00:02 +38: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: delivery cancellation is completed:false and not an error
+Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+00:02 +39: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: delivery of an unknown artifact fails with EXP-002
+00:02 +40: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: fixture catalogue is untouched by the export and delivery flows
+Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
+00:02 +41: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: (tearDownAll)
+00:02 +41: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: (setUpAll)
+00:02 +41: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: descriptor is SIMULATED and identifies the import capability
+00:02 +42: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: imports a valid fixture, stages it, and verifies the hash
+00:02 +43: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: imports every valid fixture with its catalogue page count
+00:02 +44: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: password-protected fixture maps to IMP-001
+00:02 +45: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: truncated fixture maps to IMP-002
+00:02 +46: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: non-PDF fixture maps to IMP-004
+00:02 +47: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: cancellation throws IMP-000 and stages nothing
+00:02 +48: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: an empty picker is a cancellation, never an invented import
+00:02 +49: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: a size cap below the fixture maps to IMP-007
+00:02 +50: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: unknown fixture ids map to the unknown-reason category
+00:03 +51: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: picker selections and cancellations keep caller order
+00:03 +52: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: verifySource reports an unknown source as unreadable
+00:03 +53: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: (setUpAll)
+00:03 +54: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: (setUpAll)
+00:03 +55: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: (setUpAll)
+00:03 +56: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: (setUpAll)
+00:03 +57: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: (setUpAll)
+00:03 +57: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: a full store refuses the import before source or aggregate
+00:03 +58: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: raster descriptor is SIMULATED page raster
+00:03 +59: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: raster descriptor is SIMULATED page raster
+00:03 +60: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: pageDimensions returns the imported display geometry
+00:03 +61: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: unknown source and out-of-range pages raise PAGE-001
+00:03 +62: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: gray8 raster dimensions and byte layout follow the request
+00:03 +63: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: rgba8888 raster uses four bytes per pixel
+00:03 +64: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: negative page dimensions are rejected before lookup
+00:03 +65: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: a cap of one pixel still yields a non-empty 1x1 raster
+00:03 +66: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: renders respect the maxDimensionPx safety cap
+00:03 +67: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: the same render request produces byte-identical output
+00:03 +68: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: different pages produce different deterministic rasters
+00:03 +69: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: evict forgets raster origins so OCR can no longer resolve them
+00:03 +70: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: OCR returns the pre-authored blocks for the rendered fixture page
+00:04 +71: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: (setUpAll)
+00:04 +72: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: (setUpAll)
+00:04 +72: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: OCR rejects an unrasterized image and a non-German hint
+00:04 +73: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: descriptor is SIMULATED secure storage
+00:04 +74: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: descriptor is SIMULATED secure storage
+00:04 +75: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: creates, saves, and loads a verified document revision
+00:04 +76: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a wrong expectedHead is refused and the head is unchanged
+00:04 +77: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: retention keeps head + newest explicit/recovery + last 3 autosaves
+00:04 +78: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a failed staged write throws SAVE-003 and preserves the head
+00:04 +79: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a failed read-back throws SAVE-003 without moving the head
+00:04 +80: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: capacity exhaustion throws SAVE-001 before the head moves
+00:04 +81: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: global SAVE-008 blocks new document and template aggregates
+00:04 +82: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: aggregate key loss is SAVE-002 and leaves other documents usable
+00:04 +83: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: global key loss is SAVE-008 for every aggregate
+00:04 +84: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: signature assets are hash-checked and readable
+00:04 +85: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: an existing signature asset is immutable and rejected without mutation
+00:04 +86: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a signature asset at the 2 MiB cap is accepted
+00:05 +87: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: an above-cap signature is refused with SAVE-007 and retains nothing
+00:05 +88: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: delete requires an acknowledged matching title
+00:05 +89: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: an unreadable aggregate is deleted with the placeholder title
+00:05 +90: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: template versions are immutable, loadable, and never pruned
+00:05 +91: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a failed template read-back leaves the previous version head intact
+00:05 +92: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: status reports deterministic object counts and bytes
+00:05 +93: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: delete removes the source when the document is its last owner
+00:05 +94: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a shared source survives until its last document/template owner is gone
+00:05 +95: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: deleting a shared template leaves the document source intact
+00:05 +96: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: deleting the last owner frees capacity for a new import
+00:05 +97: <repo-root>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: (tearDownAll)
+00:05 +97: All tests passed!

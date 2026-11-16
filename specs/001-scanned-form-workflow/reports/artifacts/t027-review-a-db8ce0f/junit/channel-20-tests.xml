@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="20" failures="0" errors="0" skipped="0" time="14.5" timestamp="2026-11-16T15:30:23" hostname="localhost">
+  <testsuite name="de.feldexa.app.FeldexaPluginInstrumentedTest" tests="20" failures="0" errors="0" skipped="0" time="11.563" timestamp="2026-11-16T15:30:23" hostname="localhost">
+    <properties>
+      <property name="device" value="T025_Pixel7_API35_KVM_20261115(AVD) - 15" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="teardownRemovesChannelHandlersAndFailsClosed" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.662" />
+    <testcase name="asyncCallReturnsOperationIdAndPublishesOneTerminalResult" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.357" />
+    <testcase name="realStoreServiceCreatesSavesLoadsListsAndPreservesState" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.629" />
+    <testcase name="resultCompletedBeforeListenerAttachIsReplayed" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.53" />
+    <testcase name="payloadSizeMatchesRealMessageCodecForBigIntegerAndCharSequence" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.028" />
+    <testcase name="everyContractMethodAcceptsMinimalPayloadThroughRealChannels" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.052" />
+    <testcase name="serviceAssertionErrorPublishesOneSafeInternalResult" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.328" />
+    <testcase name="validationFailureRejectsWithFlutterExceptionAndEmitsNoResult" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.328" />
+    <testcase name="concurrentSaveForSameDocumentRejectsBeforeStart" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.63" />
+    <testcase name="missingServiceRejectsWithUnsupportedAndEmitsNoResult" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.329" />
+    <testcase name="hugeNegativeBigIntegerRejectsBeforeBitCountOnAndroidRuntime" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.403" />
+    <testcase name="asyncFailureIsPublishedAsResultNotMethodException" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.331" />
+    <testcase name="everyMethodRejectsPayloadExceedingGlobalLimit" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="5.76" />
+    <testcase name="runningCancellationPublishesOnlyCancellationAndTerminalCancelReturnsFalse" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.355" />
+    <testcase name="realStoreSignaturePngValidationThroughChannel" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.555" />
+    <testcase name="platformChannelIsRegisteredAndSyncCallReturnsSuccessEnvelope" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.052" />
+    <testcase name="everyDeclaredUuidFieldRejectsStrictRegexViolations" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.077" />
+    <testcase name="fixedTotalEnvelopeBoundaryTracksActualCodecAsPayloadGrows" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.052" />
+    <testcase name="everyMethodRejectsAnUnknownField" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.027" />
+    <testcase name="payloadLimitMatchesActualStandardMethodCodecEnvelopeAtBoundary" classname="de.feldexa.app.FeldexaPluginInstrumentedTest" time="0.078" />
+  </testsuite>
+</testsuites>

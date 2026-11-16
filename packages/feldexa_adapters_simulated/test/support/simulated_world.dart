@@ -12,6 +12,7 @@ import 'package:feldexa_adapters_simulated/feldexa_adapters_simulated.dart';
 import 'package:feldexa_core/feldexa_core.dart';
 import 'package:feldexa_export/feldexa_export.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
+import 'package:feldexa_testkit/feldexa_testkit.dart' show sha256Hex;
 import 'package:feldexa_testkit/io.dart';
 
 /// The committed fixture catalogue plus the adapter world used by a test.
@@ -90,24 +91,48 @@ final class SimulatedTestWorld {
     );
   }
 
-  /// Creates the document aggregate for [imported] and saves one revision.
+  /// Builds a create request with the approved identity and initial revision.
+  CreateDocumentRequest documentRequest({
+    required String title,
+    required SourceFileRef source,
+    required RevisionContent content,
+    String? documentId,
+  }) {
+    final String id = documentId ?? backend.context.newId();
+    final String revisionId = backend.context.newId();
+    final Uint8List bytes = Uint8List.fromList(
+      canonicalJsonBytes(content.toJson()),
+    );
+    return CreateDocumentRequest(
+      documentId: id,
+      title: title,
+      source: source,
+      initialRevision: Revision(
+        id: revisionId,
+        documentId: id,
+        kind: RevisionKind.explicit,
+        createdAt: backend.context.nowUtc(),
+        plaintextSha256: sha256Hex(bytes),
+        content: content,
+      ),
+    );
+  }
+
+  /// Creates the document aggregate for [imported] with its initial revision.
   Future<({String documentId, String revisionId})> createSavedDocument(
     ImportedSource imported, {
     String title = 'Simulierte Meldebescheinigung',
   }) async {
     final SourceFileRef source = sourceRefFor(imported);
     final StoredMeta created = await storeAdapter.createDocument(
-      CreateDocumentRequest(title: title, source: source),
-    );
-    final RevisionContent content = simpleRevisionContent(imported);
-    final StoredMeta saved = await storeAdapter.saveRevision(
-      SaveRevisionRequest(
-        documentId: created.id,
-        content: content,
-        kind: RevisionKind.explicit,
+      documentRequest(
+        title: title,
+        source: source,
+        content: simpleRevisionContent(imported),
+        documentId: imported.documentId,
       ),
     );
-    return (documentId: saved.id, revisionId: saved.latestRevisionId!);
+    return (documentId: created.id, revisionId: created.latestRevisionId!);
   }
 
   /// A minimal valid revision snapshot matching the imported page geometry.

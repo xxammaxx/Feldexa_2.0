@@ -380,6 +380,8 @@ final class LoadedTemplate {
 }
 
 final class CreateDocumentRequest {
+  final String documentId;          // identity assigned by the importer
+  final Revision initialRevision;   // same documentId, no parent
   final String title;
   final SourceFileRef source;       // immutable encrypted source already staged
 }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="de.feldexa.app.storage.CanonicalJsonTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-16T14:37:27.012Z" hostname="cachyos-x8664" time="0.024">
+  <properties/>
+  <testcase name="doublesMatchDartCanonicalJsonBytes" classname="de.feldexa.app.storage.CanonicalJsonTest" time="0.019"/>
+  <testcase name="nestedMapsSortKeysAndPreserveArrayOrderWithDartNumbers" classname="de.feldexa.app.storage.CanonicalJsonTest" time="0.003"/>
+  <testcase name="parsedDartBytesReencodeToTheSameBytes" classname="de.feldexa.app.storage.CanonicalJsonTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

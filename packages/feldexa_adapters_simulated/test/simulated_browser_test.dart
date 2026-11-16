@@ -24,6 +24,7 @@ import 'package:feldexa_adapters_simulated/feldexa_adapters_simulated.dart';
 import 'package:feldexa_core/feldexa_core.dart';
 import 'package:feldexa_export/feldexa_export.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
+import 'package:feldexa_testkit/feldexa_testkit.dart' show sha256Hex;
 import 'package:flutter_test/flutter_test.dart';
 
 const bool _runtimeEnabled = bool.fromEnvironment('SIMULATED_RUNTIME');
@@ -159,9 +160,6 @@ void main() {
         pageCount: imported.pageCount,
         importedAt: backend.context.nowUtc(),
       );
-      final StoredMeta created = await storeAdapter.createDocument(
-        CreateDocumentRequest(title: 'Browser-Dokument', source: source),
-      );
       final RevisionContent content = RevisionContent(
         pages: <Page>[
           for (int index = 0; index < imported.pageCount; index++)
@@ -169,9 +167,26 @@ void main() {
         ],
         fieldOrder: const <String>[],
       );
+      final String documentId = imported.documentId;
+      final StoredMeta created = await storeAdapter.createDocument(
+        CreateDocumentRequest(
+          documentId: documentId,
+          initialRevision: Revision(
+            id: backend.context.newId(),
+            documentId: documentId,
+            kind: RevisionKind.explicit,
+            createdAt: backend.context.nowUtc(),
+            plaintextSha256: sha256Hex(canonicalJsonBytes(content.toJson())),
+            content: content,
+          ),
+          title: 'Browser-Dokument',
+          source: source,
+        ),
+      );
       final StoredMeta saved = await storeAdapter.saveRevision(
         SaveRevisionRequest(
           documentId: created.id,
+          expectedHead: created.latestRevisionId,
           content: content,
           kind: RevisionKind.explicit,
         ),

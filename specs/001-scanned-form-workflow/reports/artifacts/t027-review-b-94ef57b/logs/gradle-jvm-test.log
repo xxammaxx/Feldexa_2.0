@@ -1,0 +1,348 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Shared read-only dependency cache is an incubating feature.
+> Task :gradle:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle:compileKotlin UP-TO-DATE
+> Task :gradle:compileJava NO-SOURCE
+> Task :gradle:compileGroovy NO-SOURCE
+> Task :gradle:pluginDescriptors UP-TO-DATE
+> Task :gradle:processResources UP-TO-DATE
+> Task :gradle:classes UP-TO-DATE
+> Task :gradle:jar UP-TO-DATE
+
+> Configure project :app
+Unable to initialize metrics, ensure <home>/.android is writable, details: <home>/.android/analytics.settings (Das Dateisystem ist nur lesbar)
+WARNING: The option setting 'android.builtInKotlin=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.newDsl=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':app' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :google_mlkit_commons
+w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':google_mlkit_commons' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :google_mlkit_text_recognition
+w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':google_mlkit_text_recognition' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :integration_test
+w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':integration_test' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :jni
+w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':jni' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :jni_flutter
+w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':jni_flutter' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :printing
+w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':printing' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :share_plus
+w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':share_plus' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :url_launcher_android
+w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':url_launcher_android' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+WARNING: Your app uses the following plugins that apply Kotlin Gradle Plugin (KGP): share_plus
+Future versions of Flutter will fail to build if your app uses plugins that apply KGP.
+
+Please check the changelogs of these plugins and upgrade to a version that supports Built-in Kotlin.
+If no such version exists, report the issue to the plugin. If necessary, here is a guide on filing
+an issue against a plugin: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers#report-incompatible-kotlin-gradle-plugin-usage-to-plugin-authors
+
+If you are a plugin author, please migrate your plugin to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
+
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:cleanMergeDebugAssets UP-TO-DATE
+> Task :app:compileFlutterBuildDebug
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:validateCompileSdkVersion
+> Task :app:preBuild
+> Task :app:preDebugBuild
+> Task :google_mlkit_commons:generateDebugAssets UP-TO-DATE
+> Task :google_mlkit_commons:preBuild UP-TO-DATE
+> Task :google_mlkit_commons:preDebugBuild UP-TO-DATE
+> Task :google_mlkit_commons:mergeDebugAssets
+> Task :google_mlkit_text_recognition:generateDebugAssets UP-TO-DATE
+> Task :google_mlkit_text_recognition:preBuild UP-TO-DATE
+> Task :google_mlkit_text_recognition:preDebugBuild UP-TO-DATE
+> Task :google_mlkit_text_recognition:mergeDebugAssets
+> Task :integration_test:generateDebugAssets UP-TO-DATE
+> Task :integration_test:preBuild UP-TO-DATE
+> Task :integration_test:preDebugBuild UP-TO-DATE
+> Task :integration_test:mergeDebugAssets
+> Task :jni:generateDebugAssets UP-TO-DATE
+> Task :jni:preBuild UP-TO-DATE
+> Task :jni:preDebugBuild UP-TO-DATE
+> Task :jni:mergeDebugAssets
+> Task :jni_flutter:generateDebugAssets UP-TO-DATE
+> Task :jni_flutter:preBuild UP-TO-DATE
+> Task :jni_flutter:preDebugBuild UP-TO-DATE
+> Task :jni_flutter:mergeDebugAssets
+> Task :printing:generateDebugAssets UP-TO-DATE
+> Task :printing:preBuild UP-TO-DATE
+> Task :printing:preDebugBuild UP-TO-DATE
+> Task :printing:mergeDebugAssets
+> Task :share_plus:generateDebugAssets UP-TO-DATE
+> Task :share_plus:preBuild UP-TO-DATE
+> Task :share_plus:preDebugBuild UP-TO-DATE
+> Task :share_plus:mergeDebugAssets
+> Task :url_launcher_android:generateDebugAssets UP-TO-DATE
+> Task :url_launcher_android:preBuild UP-TO-DATE
+> Task :url_launcher_android:preDebugBuild UP-TO-DATE
+> Task :url_launcher_android:mergeDebugAssets
+> Task :app:mergeDebugAssets
+> Task :app:copyFlutterAssetsDebug
+> Task :app:generateDebugResources
+> Task :app:packageDebugResources
+> Task :google_mlkit_commons:processDebugNavigationResources
+> Task :google_mlkit_text_recognition:processDebugNavigationResources
+> Task :integration_test:processDebugNavigationResources
+> Task :jni:processDebugNavigationResources
+> Task :jni_flutter:processDebugNavigationResources
+> Task :printing:processDebugNavigationResources
+> Task :share_plus:processDebugNavigationResources
+> Task :url_launcher_android:processDebugNavigationResources
+> Task :app:processDebugNavigationResources
+> Task :google_mlkit_commons:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :google_mlkit_commons:generateDebugResources
+> Task :google_mlkit_commons:packageDebugResources
+> Task :google_mlkit_text_recognition:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :google_mlkit_text_recognition:generateDebugResources
+> Task :google_mlkit_commons:javaPreCompileDebug
+> Task :google_mlkit_text_recognition:packageDebugResources
+> Task :google_mlkit_text_recognition:javaPreCompileDebug
+> Task :integration_test:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :integration_test:generateDebugResources
+> Task :integration_test:packageDebugResources
+> Task :google_mlkit_text_recognition:parseDebugLocalResources
+> Task :google_mlkit_commons:parseDebugLocalResources
+> Task :integration_test:parseDebugLocalResources
+> Task :app:parseDebugLocalResources
+> Task :integration_test:generateDebugRFile
+> Task :google_mlkit_commons:generateDebugRFile
+> Task :app:generateDebugRFile
+> Task :google_mlkit_text_recognition:generateDebugRFile
+> Task :integration_test:compileDebugKotlin NO-SOURCE
+> Task :jni:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :integration_test:javaPreCompileDebug
+> Task :integration_test:compileDebugJavaWithJavac
+> Task :jni:generateDebugResources
+> Task :jni:packageDebugResources
+> Task :integration_test:bundleLibCompileToJarDebug
+> Task :jni_flutter:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :jni:javaPreCompileDebug
+> Task :jni_flutter:generateDebugResources
+> Task :jni:parseDebugLocalResources
+> Task :jni_flutter:packageDebugResources
+> Task :jni:generateDebugRFile
+> Task :jni_flutter:parseDebugLocalResources
+> Task :jni:compileDebugKotlin NO-SOURCE
+> Task :jni:compileDebugJavaWithJavac
+> Task :jni:bundleLibCompileToJarDebug
+> Task :jni_flutter:generateDebugRFile
+> Task :jni_flutter:javaPreCompileDebug
+> Task :jni_flutter:compileDebugKotlin NO-SOURCE
+> Task :jni_flutter:compileDebugJavaWithJavac
+> Task :printing:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :jni_flutter:bundleLibCompileToJarDebug
+> Task :printing:generateDebugResources
+> Task :printing:packageDebugResources
+> Task :share_plus:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :printing:javaPreCompileDebug
+> Task :share_plus:generateDebugResources
+> Task :printing:parseDebugLocalResources
+> Task :share_plus:packageDebugResources
+> Task :printing:generateDebugRFile
+> Task :share_plus:javaPreCompileDebug
+> Task :share_plus:parseDebugLocalResources
+> Task :printing:compileDebugKotlin NO-SOURCE
+> Task :printing:compileDebugJavaWithJavac
+> Task :printing:bundleLibCompileToJarDebug
+> Task :url_launcher_android:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :share_plus:generateDebugRFile
+> Task :url_launcher_android:generateDebugBuildConfig
+> Task :url_launcher_android:generateDebugResources
+> Task :url_launcher_android:packageDebugResources
+> Task :url_launcher_android:javaPreCompileDebug
+> Task :url_launcher_android:parseDebugLocalResources
+> Task :app:javaPreCompileDebug
+> Task :url_launcher_android:generateDebugRFile
+> Task :google_mlkit_commons:writeDebugAarMetadata
+
+> Task :google_mlkit_commons:compileDebugKotlin
+w: file://<repo-root>/.dart_tool/t027-work/pub-cache/hosted/pub.dev/google_mlkit_commons-1.0.2/android/src/main/kotlin/com/google_mlkit_commons/InputImageConverter.kt:52:64 Java type mismatch: inferred type is 'String?', but 'String' was expected.
+
+> Task :google_mlkit_text_recognition:writeDebugAarMetadata
+> Task :integration_test:writeDebugAarMetadata
+> Task :jni:writeDebugAarMetadata
+> Task :jni_flutter:writeDebugAarMetadata
+> Task :printing:writeDebugAarMetadata
+> Task :share_plus:writeDebugAarMetadata
+> Task :url_launcher_android:writeDebugAarMetadata
+> Task :app:checkDebugAarMetadata
+> Task :app:mapDebugSourceSetPaths
+> Task :app:compileDebugNavigationResources
+> Task :google_mlkit_commons:compileDebugJavaWithJavac NO-SOURCE
+> Task :google_mlkit_commons:bundleLibCompileToJarDebug
+> Task :share_plus:compileDebugKotlin
+> Task :url_launcher_android:compileDebugKotlin
+> Task :app:mergeDebugResources
+> Task :share_plus:compileDebugJavaWithJavac NO-SOURCE
+> Task :share_plus:bundleLibCompileToJarDebug
+> Task :url_launcher_android:compileDebugJavaWithJavac
+> Task :url_launcher_android:bundleLibCompileToJarDebug
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :google_mlkit_commons:extractDeepLinksDebug
+> Task :google_mlkit_text_recognition:extractDeepLinksDebug
+> Task :integration_test:extractDeepLinksDebug
+
+> Task :integration_test:processDebugManifest
+package="dev.flutter.integration_test" found in source AndroidManifest.xml: <repo-root>/.dart_tool/t027-work/flutter/packages/integration_test/android/src/main/AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="dev.flutter.integration_test" from the source AndroidManifest.xml: <repo-root>/.dart_tool/t027-work/flutter/packages/integration_test/android/src/main/AndroidManifest.xml.
+
+> Task :google_mlkit_commons:processDebugManifest
+package="com.google_mlkit_commons" found in source AndroidManifest.xml: <repo-root>/.dart_tool/t027-work/pub-cache/hosted/pub.dev/google_mlkit_commons-1.0.2/android/src/main/AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="com.google_mlkit_commons" from the source AndroidManifest.xml: <repo-root>/.dart_tool/t027-work/pub-cache/hosted/pub.dev/google_mlkit_commons-1.0.2/android/src/main/AndroidManifest.xml.
+
+> Task :google_mlkit_text_recognition:processDebugManifest
+package="com.google_mlkit_text_recognition" found in source AndroidManifest.xml: <repo-root>/.dart_tool/t027-work/pub-cache/hosted/pub.dev/google_mlkit_text_recognition-1.0.2/android/src/main/AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="com.google_mlkit_text_recognition" from the source AndroidManifest.xml: <repo-root>/.dart_tool/t027-work/pub-cache/hosted/pub.dev/google_mlkit_text_recognition-1.0.2/android/src/main/AndroidManifest.xml.
+
+> Task :jni:extractDeepLinksDebug
+> Task :jni_flutter:extractDeepLinksDebug
+
+> Task :jni:processDebugManifest
+package="com.github.dart_lang.jni" found in source AndroidManifest.xml: <repo-root>/.dart_tool/t027-work/pub-cache/hosted/pub.dev/jni-1.1.2/android/src/main/AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="com.github.dart_lang.jni" from the source AndroidManifest.xml: <repo-root>/.dart_tool/t027-work/pub-cache/hosted/pub.dev/jni-1.1.2/android/src/main/AndroidManifest.xml.
+
+> Task :printing:extractDeepLinksDebug
+
+> Task :jni_flutter:processDebugManifest
+package="com.github.dart_lang.jni_flutter" found in source AndroidManifest.xml: <repo-root>/.dart_tool/t027-work/pub-cache/hosted/pub.dev/jni_flutter-1.0.4+1/android/src/main/AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="com.github.dart_lang.jni_flutter" from the source AndroidManifest.xml: <repo-root>/.dart_tool/t027-work/pub-cache/hosted/pub.dev/jni_flutter-1.0.4+1/android/src/main/AndroidManifest.xml.
+
+> Task :share_plus:extractDeepLinksDebug
+
+> Task :printing:processDebugManifest
+package="net.nfet.flutter.printing" found in source AndroidManifest.xml: <repo-root>/.dart_tool/t027-work/pub-cache/hosted/pub.dev/printing-5.15.1/android/src/main/AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="net.nfet.flutter.printing" from the source AndroidManifest.xml: <repo-root>/.dart_tool/t027-work/pub-cache/hosted/pub.dev/printing-5.15.1/android/src/main/AndroidManifest.xml.
+
+> Task :url_launcher_android:extractDeepLinksDebug
+
+> Task :share_plus:processDebugManifest
+package="dev.fluttercommunity.plus.share" found in source AndroidManifest.xml: <repo-root>/.dart_tool/t027-work/pub-cache/hosted/pub.dev/share_plus-12.0.2/android/src/main/AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="dev.fluttercommunity.plus.share" from the source AndroidManifest.xml: <repo-root>/.dart_tool/t027-work/pub-cache/hosted/pub.dev/share_plus-12.0.2/android/src/main/AndroidManifest.xml.
+
+> Task :google_mlkit_commons:mapDebugSourceSetPaths
+
+> Task :url_launcher_android:processDebugManifest
+package="io.flutter.plugins.urllauncher" found in source AndroidManifest.xml: <repo-root>/.dart_tool/t027-work/pub-cache/hosted/pub.dev/url_launcher_android-6.3.33/android/src/main/AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="io.flutter.plugins.urllauncher" from the source AndroidManifest.xml: <repo-root>/.dart_tool/t027-work/pub-cache/hosted/pub.dev/url_launcher_android-6.3.33/android/src/main/AndroidManifest.xml.
+
+> Task :google_mlkit_commons:compileDebugLibraryResources
+> Task :app:processDebugMainManifest
+> Task :app:outputDebugAppLinkSettings
+> Task :app:processDebugManifest
+> Task :google_mlkit_text_recognition:mapDebugSourceSetPaths
+> Task :google_mlkit_text_recognition:compileDebugLibraryResources
+> Task :integration_test:mapDebugSourceSetPaths
+> Task :integration_test:compileDebugLibraryResources
+> Task :jni:mapDebugSourceSetPaths
+> Task :jni:compileDebugLibraryResources
+> Task :jni_flutter:mapDebugSourceSetPaths
+> Task :jni_flutter:compileDebugLibraryResources
+> Task :printing:mapDebugSourceSetPaths
+> Task :printing:compileDebugLibraryResources
+> Task :share_plus:mapDebugSourceSetPaths
+> Task :share_plus:compileDebugLibraryResources
+> Task :url_launcher_android:mapDebugSourceSetPaths
+> Task :app:preDebugUnitTestBuild
+> Task :url_launcher_android:compileDebugLibraryResources
+> Task :app:javaPreCompileDebugUnitTest
+> Task :google_mlkit_commons:bundleLibRuntimeToJarDebug
+> Task :google_mlkit_commons:processDebugJavaRes
+> Task :integration_test:processDebugJavaRes NO-SOURCE
+> Task :integration_test:bundleLibRuntimeToJarDebug
+> Task :jni:processDebugJavaRes NO-SOURCE
+> Task :jni:bundleLibRuntimeToJarDebug
+> Task :jni_flutter:bundleLibRuntimeToJarDebug
+> Task :jni_flutter:processDebugJavaRes NO-SOURCE
+> Task :printing:bundleLibRuntimeToJarDebug
+> Task :printing:processDebugJavaRes NO-SOURCE
+> Task :share_plus:bundleLibRuntimeToJarDebug
+> Task :share_plus:processDebugJavaRes
+> Task :url_launcher_android:bundleLibRuntimeToJarDebug
+> Task :url_launcher_android:processDebugJavaRes
+> Task :app:processDebugManifestForPackage
+> Task :google_mlkit_text_recognition:compileDebugKotlin
+> Task :google_mlkit_text_recognition:compileDebugJavaWithJavac NO-SOURCE
+> Task :google_mlkit_text_recognition:bundleLibCompileToJarDebug
+> Task :google_mlkit_text_recognition:bundleLibRuntimeToJarDebug
+> Task :google_mlkit_text_recognition:processDebugJavaRes
+> Task :app:processDebugResources
+> Task :app:compileDebugKotlin
+> Task :app:compileDebugJavaWithJavac
+> Task :app:processDebugJavaRes
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:compileDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes
+> Task :app:testDebugUnitTest
+
+[Incubating] Problems report is available at: file://<repo-root>/apps/feldexa_app/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 2m 18s
+161 actionable tasks: 156 executed, 5 up-to-date

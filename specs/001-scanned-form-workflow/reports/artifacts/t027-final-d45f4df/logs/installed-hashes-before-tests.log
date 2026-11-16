@@ -1,0 +1,8 @@
+--- package paths ---
+package:/data/app/~~i7ndqv4bTTbxsJEt7CNmJQ==/de.feldexa.app-hg7pFR4Qp5AyHk9b00sSsg==/base.apk
+package:/data/app/~~n5br5YVTf32yWWvT8fPgdQ==/de.feldexa.app.test-VMAX2iR0UlhhTrcXq6CaEg==/base.apk
+--- in-guest hashes ---
+de.feldexa.app path=/data/app/~~i7ndqv4bTTbxsJEt7CNmJQ==/de.feldexa.app-hg7pFR4Qp5AyHk9b00sSsg==/base.apk
+c4d0b2258ad3dba9de570552b16ae160ade9530925c01f22f1aa326547c64dd0  /data/app/~~i7ndqv4bTTbxsJEt7CNmJQ==/de.feldexa.app-hg7pFR4Qp5AyHk9b00sSsg==/base.apk
+de.feldexa.app.test path=/data/app/~~n5br5YVTf32yWWvT8fPgdQ==/de.feldexa.app.test-VMAX2iR0UlhhTrcXq6CaEg==/base.apk
+555171ca8ff0d4f0e63fe1717ab7b6e7362d95948b43fa615020ee197faa5431  /data/app/~~n5br5YVTf32yWWvT8fPgdQ==/de.feldexa.app.test-VMAX2iR0UlhhTrcXq6CaEg==/base.apk

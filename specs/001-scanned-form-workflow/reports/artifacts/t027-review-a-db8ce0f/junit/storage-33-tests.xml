@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<testsuites tests="33" failures="0" errors="0" skipped="0" time="7.383" timestamp="2026-11-16T15:29:26" hostname="localhost">
+  <testsuite name="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" tests="21" failures="0" errors="0" skipped="0" time="6.098" timestamp="2026-11-16T15:29:26" hostname="localhost">
+    <properties>
+      <property name="device" value="T025_Pixel7_API35_KVM_20261115(AVD) - 15" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="equalTimestampRecoveryFailsClosedOnDevice" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.246" />
+    <testcase name="realKeystoreCreateSaveLoadAndReadBack" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.204" />
+    <testcase name="historyCapDoesNotEvictUnconfirmedMissingOnDevice" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.504" />
+    <testcase name="pruneFsyncFailureWithoutResurrectionRetriesOnDevice" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.304" />
+    <testcase name="everyAliasLostIsGlobalSave008" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.255" />
+    <testcase name="startupSweepRemovesStaleTempAndOrphanAlias" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.03" />
+    <testcase name="headHistoryAndPolicyOnDevice" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.58" />
+    <testcase name="lostAggregateKeyIsSave002WhileSiblingLoads" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.282" />
+    <testcase name="signatureBoundary1024IsAcceptedAnd1025IsSave007OnDevice" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.329" />
+    <testcase name="legacyHeadWithoutHistoryKeepsFilesOnDevice" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.279" />
+    <testcase name="missingHeadFallsBackToNewestRevisionOnDevice" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.203" />
+    <testcase name="tamperedCiphertextIsSave003OnDevice" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.127" />
+    <testcase name="pruneRevisionsKeepsHeadOnDevice" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.202" />
+    <testcase name="pruneFsyncFailureKeepsHistoryRetryableOnDevice" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.404" />
+    <testcase name="noPlaintextResidueInTheAggregateDirectory" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.104" />
+    <testcase name="unknownHistoryEntryIsRetainedOnDevice" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.228" />
+    <testcase name="invalidSignaturePngIsRejectedAndPreservesPriorStateOnDevice" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.253" />
+    <testcase name="injectedFsyncFailureLeavesTheOldHeadReadable" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.152" />
+    <testcase name="parallelSavesSerializeOnDevice" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.479" />
+    <testcase name="deleteRemovesObjectsAndAliasAndSiblingSurvives" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.304" />
+    <testcase name="boundarySizesRoundTripOnRealKeystore" classname="de.feldexa.app.storage.EncryptedStoreInstrumentedTest" time="0.629" />
+  </testsuite>
+  <testsuite name="de.feldexa.app.storage.KeystoreServiceInstrumentedTest" tests="12" failures="0" errors="0" skipped="0" time="0.301" timestamp="2026-11-16T15:29:26" hostname="localhost">
+    <properties>
+      <property name="device" value="T025_Pixel7_API35_KVM_20261115(AVD) - 15" />
+      <property name="flavor" value="" />
+      <property name="project" value=":app" />
+    </properties>
+    <testcase name="cleanupDoesNotDeleteForeignTestAlias" classname="de.feldexa.app.storage.KeystoreServiceInstrumentedTest" time="0.001" />
+    <testcase name="eachAggregateUsesItsOwnDistinctAlias" classname="de.feldexa.app.storage.KeystoreServiceInstrumentedTest" time="0.027" />
+    <testcase name="keyIsNonExportableAndDoesNotRequireUserAuthentication" classname="de.feldexa.app.storage.KeystoreServiceInstrumentedTest" time="0.001" />
+    <testcase name="deleteRemovesOnlyTheTargetAlias" classname="de.feldexa.app.storage.KeystoreServiceInstrumentedTest" time="0.052" />
+    <testcase name="storeStatusReportsPerAggregateAndGlobalCases" classname="de.feldexa.app.storage.KeystoreServiceInstrumentedTest" time="0.028" />
+    <testcase name="oneLostAliasIsAggregateSave002AndSiblingsStillLoad" classname="de.feldexa.app.storage.KeystoreServiceInstrumentedTest" time="0.052" />
+    <testcase name="sweepRemovesOnlyAliasesWithoutAnAggregateDirectory" classname="de.feldexa.app.storage.KeystoreServiceInstrumentedTest" time="0.026" />
+    <testcase name="realKeystoreWrapUnwrapRoundTripAndNoMasterAlias" classname="de.feldexa.app.storage.KeystoreServiceInstrumentedTest" time="0.027" />
+    <testcase name="deletingEveryAliasIsGlobalSave008" classname="de.feldexa.app.storage.KeystoreServiceInstrumentedTest" time="0.029" />
+    <testcase name="createIsIdempotentAgainstTheRealKeystore" classname="de.feldexa.app.storage.KeystoreServiceInstrumentedTest" time="0.028" />
+    <testcase name="providerGeneratesFreshTwelveByteIvForEveryWrap" classname="de.feldexa.app.storage.KeystoreServiceInstrumentedTest" time="0.028" />
+    <testcase name="testAliasesAreIsolatedFromProductionAliases" classname="de.feldexa.app.storage.KeystoreServiceInstrumentedTest" time="0.002" />
+  </testsuite>
+</testsuites>

@@ -1,0 +1,168 @@
+{
+  "apks": {
+    "apks/app-debug-androidTest.apk": {
+      "bytes": 115548,
+      "sha256": "555171ca8ff0d4f0e63fe1717ab7b6e7362d95948b43fa615020ee197faa5431"
+    },
+    "apks/app-debug-integration.apk": {
+      "bytes": 217937973,
+      "sha256": "41df822b4c61a99659452f64bc1e0e230fe8bb4c562b9b04eb2e7636349d2d10"
+    },
+    "apks/app-debug.apk": {
+      "bytes": 240765509,
+      "sha256": "c4d0b2258ad3dba9de570552b16ae160ade9530925c01f22f1aa326547c64dd0"
+    }
+  },
+  "artifacts": {
+    "apks/app-debug-androidTest.apk": {
+      "bytes": 115548,
+      "sha256": "555171ca8ff0d4f0e63fe1717ab7b6e7362d95948b43fa615020ee197faa5431"
+    },
+    "apks/app-debug-integration.apk": {
+      "bytes": 217937973,
+      "sha256": "41df822b4c61a99659452f64bc1e0e230fe8bb4c562b9b04eb2e7636349d2d10"
+    },
+    "apks/app-debug.apk": {
+      "bytes": 240765509,
+      "sha256": "c4d0b2258ad3dba9de570552b16ae160ade9530925c01f22f1aa326547c64dd0"
+    },
+    "junit/channel-19-tests.xml": {
+      "bytes": 3430,
+      "sha256": "ea6eaa127ae8eef36139938f020c4853e5416e7d77703143859d05273a788ffb"
+    },
+    "junit/storage-31-tests.xml": {
+      "bytes": 5539,
+      "sha256": "1e662a19f38de176a52e2829ca5e427a09f850d203ba31f2163a7790074160fd"
+    },
+    "logs/analyze.log": {
+      "bytes": 97,
+      "sha256": "c63f69e3df0c663ef7270d0c2bd97308cd8051eaf7b3b9a2c86d2cfd1df70864"
+    },
+    "logs/flutter-build-apk.log": {
+      "bytes": 29759,
+      "sha256": "4ebfab47b282bcc124f89b0502df9d54ee0fb1571b84a32f7fa0eff0ee57f917"
+    },
+    "logs/format-check.log": {
+      "bytes": 49,
+      "sha256": "2c77aeee75f19616976dbd0e88a01a7f2dc09aa2613b3a260ac4ebdd5cdc4f7d"
+    },
+    "logs/gradle-assemble-online.log": {
+      "bytes": 23124,
+      "sha256": "ad5e8cf869f0a1c965aa292426475c8461768ed7a1b8d38a073baa6b2487f9be"
+    },
+    "logs/gradle-assemble.log": {
+      "bytes": 23642,
+      "sha256": "bf8ab8d48519d916c18437a5d917fc17c1fe4b38d52116c0711c5c239d685877"
+    },
+    "logs/gradle-connected-channel.log": {
+      "bytes": 23494,
+      "sha256": "4041f91ec8a725c27cac8eb2fcc4668744b8b1983a404085c0cba2f6e67f515f"
+    },
+    "logs/gradle-connected-storage.log": {
+      "bytes": 23407,
+      "sha256": "617dc234eabb83a20cc6a0d7e77eeecf4f7696dd103f3d6074adc98a4e98f3e2"
+    },
+    "logs/gradle-jvm.log": {
+      "bytes": 17660,
+      "sha256": "36368090b2e760640ffc938c10581ceee650c7f63562f40db7604d785ed0bcf7"
+    },
+    "logs/installed-hashes-after-integration.log": {
+      "bytes": 585,
+      "sha256": "b088ed38eaa2477233b8d89752e3754fe6a6fc024f6e0cf1679b49b109924ede"
+    },
+    "logs/installed-hashes-before-tests.log": {
+      "bytes": 770,
+      "sha256": "98ee07c5cb7f9965f1e146e0a8c57797606518f1570c961ae464feb82466e6a5"
+    },
+    "logs/installed-hashes-final.log": {
+      "bytes": 562,
+      "sha256": "c39eb6ea6324b8c238271e61aaea37f11eba4b186a9ef4e0493d6ca41b2caa0c"
+    },
+    "logs/integration-store.log": {
+      "bytes": 6983,
+      "sha256": "34c7da6c14294b6e1e7054b6eb25434f0bb09d1aa2ac3e2e42c151bc83a175d8"
+    },
+    "logs/logcat-filtered-after-final.txt": {
+      "bytes": 322361,
+      "sha256": "2253a47d46cc760d5b8417cf8b04f676dd6f9b2a10e7cb931716e2b6826b88b7"
+    }
+  },
+  "base_origin_main": "15aab0c55c7e77df0d4c4fe199e89c6661ea3db2",
+  "branch": "xxammaxx/feldexa-t027",
+  "candidate_code_commit": "d45f4df8ec27a91d141bd2d86df77255f8fc7865",
+  "candidate_tree": "22a68776dcbc13ea673d3b20a2822c122777fb86",
+  "evidence_classes": [
+    "NONE",
+    "EMULATOR"
+  ],
+  "generated_config_manifest_sha256": "24e8df12e1bbe23e332b8b176cd650ddf6266b238a46059194221c5398eac837",
+  "host_test_logs": {
+    "host_apps_feldexa_app.log": {
+      "bytes": 11666,
+      "sha256": "1ef80da6821903f088f2ceef84ed88d4d730ec0828a294cde3290943de93af5b"
+    },
+    "host_packages_feldexa_adapters_android.log": {
+      "bytes": 2959,
+      "sha256": "24ec24c8c342a1d2cccde9e3c63b9bb973f8de0d1a05bdf3b16103e73b50a23b"
+    },
+    "host_packages_feldexa_adapters_simulated.log": {
+      "bytes": 15747,
+      "sha256": "5400c65a73cbdf6ee5757f85dd7b23665e4445ea9e24a737a953f4571f9c9698"
+    },
+    "host_packages_feldexa_core.log": {
+      "bytes": 63143,
+      "sha256": "d38f55ffe9d73be6b4ef270bbe39390a4c78cfabbdfcaaf466d8f9c037297079"
+    },
+    "host_packages_feldexa_export.log": {
+      "bytes": 8840,
+      "sha256": "65a0c1296ae8735c5ab7e45ffbd338432a68d3f3d4ae461677fed2894c81e810"
+    },
+    "host_packages_feldexa_ports.log": {
+      "bytes": 15219,
+      "sha256": "c8e53888297b221a110c566d1d7accd7ee1038bc3e2af148307f09dd2a76212d"
+    },
+    "host_packages_feldexa_testkit.log": {
+      "bytes": 21205,
+      "sha256": "95f81680b903da6c71cd5e0880eabf931175a195e2e0c793ff30498e6510342d"
+    },
+    "host_packages_feldexa_ui.log": {
+      "bytes": 1804,
+      "sha256": "ba0e994a24f3683d89ca5f1eb5335feef3a993d257de52e4eea4322d7c48f858"
+    }
+  },
+  "installed_hashes": {
+    "android_test": "555171ca8ff0d4f0e63fe1717ab7b6e7362d95948b43fa615020ee197faa5431",
+    "app_debug": "c4d0b2258ad3dba9de570552b16ae160ade9530925c01f22f1aa326547c64dd0",
+    "integration_harness": "41df822b4c61a99659452f64bc1e0e230fe8bb4c562b9b04eb2e7636349d2d10"
+  },
+  "limitations": [
+    "no DEVICE/physical-silicon claim",
+    "host /dev/kvm not visible in sandbox; KVM bound to named AVD/Orca allocation and prior T025/T026 evidence",
+    "full UI/T031/product behavior unproven",
+    "template channel payload fail-closed",
+    "native import/OCR/export/delivery engines future tasks"
+  ],
+  "source_manifest_files": 276,
+  "source_manifest_sha256": "343a3c6b60d05db0210a4b1f56f1b91ddedb297b4eef5d94b793192bd0c5bf4e",
+  "task": "T027",
+  "tests": {
+    "channel": {
+      "failures": 0,
+      "tests": 19
+    },
+    "dart_integration": {
+      "failures": 0,
+      "tests": 1
+    },
+    "jvm": {
+      "errors": 0,
+      "failures": 0,
+      "tests": 233
+    },
+    "storage": {
+      "failures": 0,
+      "tests": 31
+    }
+  },
+  "toolchain_record_sha256": "ffda99c87a1a88ad563bea411cac3041f79541bf814e630d588e8ea16d157305"
+}

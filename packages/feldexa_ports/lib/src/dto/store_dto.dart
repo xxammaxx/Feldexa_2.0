@@ -288,13 +288,38 @@ final class CreateDocumentRequest {
   /// [title] is 1–200 characters after trimming. Invalid values throw a safe
   /// [ArgumentError] that does not echo the title.
   factory CreateDocumentRequest({
+    required String documentId,
+    required Revision initialRevision,
     required String title,
     required SourceFileRef source,
   }) {
-    return CreateDocumentRequest._(title: requireTitle(title), source: source);
+    final id = requireUuidV4(documentId, 'documentId');
+    if (initialRevision.documentId != id ||
+        initialRevision.parentRevisionId != null) {
+      throw ArgumentError(
+        'initialRevision must belong to the document and have no parent',
+      );
+    }
+    return CreateDocumentRequest._(
+      documentId: id,
+      initialRevision: initialRevision,
+      title: requireTitle(title),
+      source: source,
+    );
   }
 
-  const CreateDocumentRequest._({required this.title, required this.source});
+  const CreateDocumentRequest._({
+    required this.documentId,
+    required this.initialRevision,
+    required this.title,
+    required this.source,
+  });
+
+  /// Identity assigned before persistence.
+  final String documentId;
+
+  /// The already-created first revision; the store must not generate another.
+  final Revision initialRevision;
 
   /// User-visible German title.
   final String title;

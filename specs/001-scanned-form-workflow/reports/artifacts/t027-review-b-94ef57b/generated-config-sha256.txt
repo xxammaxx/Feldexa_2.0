@@ -1,0 +1,4 @@
+23083ae759f5d49f33bc75bd56bd329017721dd7e79041be249de4a95fb0b414  apps/feldexa_app/android/local.properties
+c93ac14707711924a856669dbc4f4442bd79da1d6cfbe72bf5b4f1214f9613f7  apps/feldexa_app/.flutter-plugins-dependencies
+5c23b10f87339c1cf69ed4c8278a39ea18d26ef9cfa697babc67b1d22e3d3da9  .dart_tool/package_config.json
+3ee0bbc82e1511d67c9412a612e50369d220b91b4c20bc767ce96ef29d238482  apps/feldexa_app/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java

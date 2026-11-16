@@ -4,6 +4,9 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
+import java.math.BigDecimal
+import java.math.MathContext
+import java.math.RoundingMode
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
@@ -61,7 +64,12 @@ import javax.crypto.spec.SecretKeySpec
  * No exception carries a path, file name, title, plaintext, or key byte.
  */
 class EncryptedStore(
-    private val root: File,
+    /**
+     * Store root. Public because T027's channel service must read only the
+     * directory mtime of an aggregate whose KEK is unavailable; it never reads
+     * ciphertext to invent a title or timestamp.
+     */
+    val root: File,
     private val keystore: KeystoreService,
     private val io: StoreIo = RealStoreIo(),
     private val faultInjector: StoreFaultInjector = StoreFaultInjector.NONE,
@@ -257,6 +265,195 @@ class EncryptedStore(
             runCatching { io.deleteTree(aggregate) }
             runCatching { keystore.deleteAggregateKey(ref) }
             throw failure
+        }
+    }
+
+    /**
+     * Stages one encrypted source before the aggregate becomes visible.
+     *
+     * This is the `EncryptedStore.stageSource` seam named by
+     * `contracts/platform-channel.md` §3 and consumed by the SAF import
+     * service. It creates the aggregate KEK, writes and read-back-verifies
+     * `src/<sourceId>.fxc`, and leaves the aggregate incomplete (no `meta.fx1`,
+     * no `head.fx1`), so it is never listed as a document. A retry with the
+     * same source identity and bytes is idempotent; a different source for the
+     * same document or a visible aggregate is `SAVE-006`.
+     */
+    fun stageSource(
+        documentId: String,
+        sourceId: String,
+        sourceBytes: ByteArray,
+        expectedSha256: String? = null,
+    ): StagedSourceReceipt {
+        val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
+        requireAggregateId(ref)
+        requireObjectId(sourceId)
+        requireSourceSize(sourceBytes.size.toLong())
+        val actualSha256 = sha256Hex(sourceBytes)
+        if (expectedSha256 != null && expectedSha256 != actualSha256) {
+            throw InvalidDataException()
+        }
+        return withAggregateLock(ref) {
+            if (io.exists(fileFor(MetaObject(ref)))) throw ConcurrentSaveException()
+            val aggregate = aggregateDir(ref)
+            if (io.exists(aggregate) && !isIncomplete(ref)) throw ConcurrentSaveException()
+            val sourceObject = SourceObject(ref, sourceId)
+            val sourceFile = fileFor(sourceObject)
+            val hadExistingSource = io.exists(sourceFile)
+            if (hadExistingSource) {
+                val existing = readObject(sourceObject)
+                if (existing.size != sourceBytes.size ||
+                    sha256Hex(existing) != actualSha256
+                ) {
+                    throw ConcurrentSaveException()
+                }
+                return@withAggregateLock StagedSourceReceipt(
+                    aggregateId = documentId,
+                    sourceId = sourceId,
+                    sourceSha256 = actualSha256,
+                    sizeBytes = sourceBytes.size.toLong(),
+                    readBackVerified = true,
+                )
+            }
+            val srcDir = File(aggregate, "src")
+            if (io.isDirectory(srcDir)) {
+                val otherSources = io.list(srcDir).filter {
+                    it.isFile && it.name != sourceObject.fileName
+                }
+                if (otherSources.isNotEmpty()) throw ConcurrentSaveException()
+            }
+            keystore.createAggregateKey(ref)
+            try {
+                ensureLayout()
+                for (sub in listOf("rev", "src")) {
+                    io.mkdirs(File(aggregate, sub))
+                }
+                val receipt = commitObject(
+                    sourceObject,
+                    sourceBytes,
+                    newTxnId(),
+                    TMP_SUFFIX_PART,
+                )
+                StagedSourceReceipt(
+                    aggregateId = documentId,
+                    sourceId = sourceId,
+                    sourceSha256 = receipt.plaintextSha256,
+                    sizeBytes = receipt.plaintextLength,
+                    readBackVerified = true,
+                )
+            } catch (failure: Throwable) {
+                // Keep a caller's earlier staged object; a failed first stage
+                // removes its own partial aggregate even if the source object
+                // was promoted before read-back failed.
+                if (!hadExistingSource) {
+                    runCatching { io.deleteTree(aggregate) }
+                    runCatching { keystore.deleteAggregateKey(ref) }
+                }
+                throw failure
+            }
+        }
+    }
+
+    /**
+     * Commits the initial revision and metadata for an already staged source.
+     *
+     * The supplied document id and revision id are persisted exactly once.
+     * The staged source is authenticated and compared against the importer's
+     * verified hash and size before any revision, head, or metadata object is
+     * written, so a mismatched source never becomes visible. A visible
+     * aggregate with the same id is rejected without being overwritten.
+     */
+    fun createDocumentFromStagedSource(
+        documentId: String,
+        metaJson: ByteArray,
+        sourceId: String,
+        sourceSha256: String,
+        sourceSizeBytes: Long,
+        revisionId: String,
+        revisionJson: ByteArray,
+        revisionKind: RevisionKindWire = RevisionKindWire.EXPLICIT,
+    ): CreateReceipt {
+        val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
+        requireAggregateId(ref)
+        requireObjectId(sourceId)
+        requireObjectId(revisionId)
+        requirePayload(metaJson, MAX_META_BYTES, "meta")
+        requirePayload(revisionJson, MAX_REVISION_BYTES, "revision")
+        requireSourceSize(sourceSizeBytes)
+        if (sourceSha256.length != 64 ||
+            sourceSha256.any { it !in '0'..'9' && it !in 'a'..'f' }
+        ) {
+            throw InvalidDataException()
+        }
+        return withAggregateLock(ref) {
+            if (io.exists(fileFor(MetaObject(ref)))) throw ConcurrentSaveException()
+            val aggregate = aggregateDir(ref)
+            val srcDir = File(aggregate, "src")
+            if (!io.isDirectory(srcDir)) throw CorruptDataException()
+            val sources = io.list(srcDir).filter { it.isFile && it.name.endsWith(".fxc") }
+            val expectedName = sourceId + ".fxc"
+            if (sources.size != 1 || sources.single().name != expectedName) {
+                throw CorruptDataException()
+            }
+            val staged = readObject(SourceObject(ref, sourceId))
+            if (staged.size.toLong() != sourceSizeBytes ||
+                sha256Hex(staged) != sourceSha256
+            ) {
+                throw CorruptDataException()
+            }
+            if (!keystore.hasAggregateKey(ref)) {
+                // The staged object must already have this KEK. Re-creating a
+                // missing key would orphan the ciphertext, so fail closed.
+                throw KeyUnavailableException()
+            }
+            try {
+                ensureLayout()
+                for (sub in listOf("rev", "sig")) {
+                    io.mkdirs(File(aggregate, sub))
+                }
+                val txn = newTxnId()
+                commitObject(
+                    RevisionObject(ref, revisionId),
+                    revisionJson,
+                    txn,
+                    TMP_SUFFIX_PART,
+                    lastModifiedMillis = nextRevisionTimestampMillis(ref),
+                )
+                val head = CommittedHead(
+                    revisionId = revisionId,
+                    plaintextSha256 = sha256Hex(revisionJson),
+                    committedAt = nowIso(),
+                    parentRevisionId = null,
+                    kind = revisionKind,
+                    history = listOf(HeadHistoryEntry(revisionId, revisionKind)),
+                )
+                commitHead(ref, head, txn)
+                commitObject(MetaObject(ref), metaJson, txn, TMP_SUFFIX_PART)
+
+                readContainer(MetaObject(ref), fileFor(MetaObject(ref)))
+                require(readHeadStrict(ref) == head)
+                val readRevision = verifyContainer(
+                    RevisionObject(ref, revisionId),
+                    fileFor(RevisionObject(ref, revisionId)),
+                )
+                if (readRevision.plaintextSha256 != head.plaintextSha256) {
+                    throw CorruptDataException()
+                }
+                CreateReceipt(
+                    aggregateId = documentId,
+                    aggregateKind = AggregateKind.DOCUMENT,
+                    sourceId = sourceId,
+                    sourceSha256 = sourceSha256,
+                    revisionId = revisionId,
+                    revisionSha256 = head.plaintextSha256,
+                    committedAt = head.committedAt,
+                    readBackVerified = true,
+                )
+            } catch (failure: Throwable) {
+                runCatching { io.deleteTree(aggregate) }
+                runCatching { keystore.deleteAggregateKey(ref) }
+                throw failure
+            }
         }
     }
 
@@ -622,7 +819,15 @@ class EncryptedStore(
         )
     }
 
-    /** Writes one signature PNG and verifies it before returning (§3.4). */
+    /**
+     * Writes one signature PNG and verifies it before returning (§3.4).
+     *
+     * The 2 MiB cap is not the only check: [SignaturePng] parses and fully
+     * inflates the PNG, enforces the 1024 px long edge and positive
+     * dimensions, and rejects arbitrary/truncated/corrupt bytes as `SAVE-007`.
+     * Immutability is checked first, so an existing asset id still fails with
+     * `PLT-002` regardless of the replacement bytes.
+     */
     fun writeSignature(documentId: String, assetId: String, pngBytes: ByteArray) {
         val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
         requireAggregateId(ref)
@@ -638,10 +843,23 @@ class EncryptedStore(
         requireObjectId(assetId)
         requirePayload(pngBytes, MAX_SIGNATURE_BYTES, "signature")
         if (!io.exists(fileFor(MetaObject(ref)))) throw CorruptDataException()
+        val signature = SignatureObject(ref, assetId)
+        if (io.exists(fileFor(signature))) {
+            // `contracts/storage-format.md` §1/§3.4 mark signature PNG
+            // objects immutable. A committed revision may reference the prior
+            // bytes, so never replace them. The check is under the aggregate
+            // lock and before staging or any write; `PLT-002` is the canonical
+            // unsafe-operation guard (mirrors the simulated adapter).
+            throw PlatformSecurityException()
+        }
+        // `contracts/platform-channel.md` §10 / `data-model.md` §3.7: a
+        // signature is a real PNG with a positive, bounded long edge. Size and
+        // caller-supplied hash are not sufficient; validate before staging.
+        SignaturePng.requireValid(pngBytes)
         ensureLayout()
         io.mkdirs(File(aggregateDir(ref), "sig"))
         commitObject(
-            SignatureObject(ref, assetId),
+            signature,
             pngBytes,
             newTxnId(),
             TMP_SUFFIX_PART,
@@ -706,8 +924,12 @@ class EncryptedStore(
         if (confirmation.title != expectedTitle) throw PlatformSecurityException()
 
         var objectsDeleted = 0
+        var freedBytes = 0L
         if (io.exists(aggregate)) {
             objectsDeleted = countObjectFiles(aggregate)
+            freedBytes = io.walkFiles(aggregate)
+                .filter { it.extension in OBJECT_EXTENSIONS }
+                .sumOf { it.length() }
             try {
                 faultInjector.onFault(StoreFaultPoint.DELETE_OBJECTS, id)
             } catch (failure: Throwable) {
@@ -739,6 +961,7 @@ class EncryptedStore(
             directoryDeleted = !io.exists(aggregate),
             aliasDeleted = aliasDeleted,
             orphanAliasLeft = !aliasDeleted,
+            freedBytes = freedBytes,
         )
     }
 
@@ -2300,6 +2523,15 @@ data class CreateReceipt(
     val readBackVerified: Boolean,
 )
 
+/** Staged source after encrypted write and read-back; not yet a document. */
+data class StagedSourceReceipt(
+    val aggregateId: String,
+    val sourceId: String,
+    val sourceSha256: String,
+    val sizeBytes: Long,
+    val readBackVerified: Boolean,
+)
+
 /** Fully verified aggregate load; caller owns [sourceBytes]. */
 data class LoadedAggregate(
     val aggregateId: String,
@@ -2325,6 +2557,8 @@ data class DeletionReceipt(
     val directoryDeleted: Boolean,
     val aliasDeleted: Boolean,
     val orphanAliasLeft: Boolean,
+    /** Bytes of the deleted `fx1`/`fxc`/`fxs` objects, measured before deletion. */
+    val freedBytes: Long = 0L,
 )
 
 /** List entry produced without inventing a ciphertext-derived title. */
@@ -2840,6 +3074,8 @@ internal object CanonicalJson {
             null -> out.append("null")
             is Boolean -> out.append(if (value) "true" else "false")
             is Int, is Long -> out.append(value.toString())
+            is Double -> appendDouble(out, value)
+            is Float -> appendDouble(out, value.toDouble())
             is String -> appendString(out, value)
             is Map<*, *> -> {
                 out.append('{')
@@ -2867,6 +3103,108 @@ internal object CanonicalJson {
                 out.append(']')
             }
             else -> throw IllegalArgumentException("jsonValue")
+        }
+    }
+
+    private fun appendDouble(out: StringBuilder, value: Double) {
+        if (!value.isFinite()) throw IllegalArgumentException("jsonValue")
+        // Mirrors `canonicalJsonValue`: negative zero and integral doubles up
+        // to 2^53 become integers, so the Dart and Kotlin encoders produce the
+        // same bytes for the same revision-content tree.
+        if (value == 0.0) {
+            out.append('0')
+            return
+        }
+        if (value == Math.floor(value) &&
+            Math.abs(value) <= 9_007_199_254_740_992.0
+        ) {
+            out.append(value.toLong().toString())
+            return
+        }
+        appendDartDouble(out, value)
+    }
+
+    /**
+     * Formats a non-integral (or >2^53) double exactly like Dart's
+     * `double.toString()` / `jsonEncode`.
+     *
+     * `canonicalJsonEncode` canonicalizes the tree and hands it to Dart's
+     * `jsonEncode`, which uses the same shortest-round-trip decimal form as
+     * `double.toString()`. JVM `Double.toString` differs: it always uses
+     * scientific notation outside `1e-3..1e7`, spells the exponent `E`, and
+     * appends `.0` to integral values. A receiver that re-serialized those
+     * bytes would compute a different SHA-256, so the store must match the
+     * Dart form byte-for-byte.
+     *
+     * The shortest significant-digit sequence is found by rounding the exact
+     * binary value (a [BigDecimal]) to 1..17 significant digits and taking the
+     * first candidate that round-trips. Rounding is `HALF_EVEN`, i.e. the
+     * closest p-digit decimal to the exact value, which is the canonical
+     * shortest form Dart/Ryu selects when several p-digit candidates
+     * round-trip. The digits are then laid out with Dart's fixed/exponential
+     * thresholds: exponent `n` in `-6 < n <= 21` is fixed, integral fixed
+     * output keeps the trailing `.0`, and scientific output is lowercase
+     * `e` with an explicit `+` for non-negative exponents.
+     */
+    private fun appendDartDouble(out: StringBuilder, value: Double) {
+        val negative = value < 0.0
+        val magnitude = Math.abs(value)
+        if (negative) out.append('-')
+
+        val exact = BigDecimal(magnitude)
+        var chosen: BigDecimal? = null
+        var precision = 1
+        while (precision <= 17) {
+            val candidate = exact.round(MathContext(precision, RoundingMode.HALF_EVEN))
+            if (candidate.toDouble() == magnitude) {
+                chosen = candidate
+                break
+            }
+            precision++
+        }
+        // Every finite double has a 17-significant-digit round-trip form.
+        val rounded = chosen ?: exact.round(MathContext(17, RoundingMode.HALF_EVEN))
+        var digits = rounded.unscaledValue().toString()
+        var scale = rounded.scale()
+        while (digits.length > 1 && digits.endsWith('0')) {
+            digits = digits.dropLast(1)
+            scale--
+        }
+
+        val length = digits.length
+        // value = digits * 10^-scale, i.e. digits * 10^(exponent - length).
+        val exponent = length - scale
+        if (exponent in -5..21) {
+            when {
+                exponent <= 0 -> {
+                    out.append("0.")
+                    repeat(-exponent) { out.append('0') }
+                    out.append(digits)
+                }
+                exponent >= length -> {
+                    out.append(digits)
+                    repeat(exponent - length) { out.append('0') }
+                    // Dart keeps the double marker when fixed output has no
+                    // fractional digits (canonicalJsonValue already converted
+                    // the exactly representable <=2^53 cases to integers).
+                    out.append(".0")
+                }
+                else -> {
+                    out.append(digits, 0, exponent)
+                    out.append('.')
+                    out.append(digits, exponent, length)
+                }
+            }
+        } else {
+            out.append(digits[0])
+            if (length > 1) {
+                out.append('.')
+                out.append(digits, 1, length)
+            }
+            out.append('e')
+            val scientificExponent = exponent - 1
+            if (scientificExponent >= 0) out.append('+')
+            out.append(scientificExponent)
         }
     }
 
@@ -3015,13 +3353,37 @@ internal object CanonicalJson {
         private fun readNumber(): Any {
             val start = index
             if (peek() == '-') index++
-            while (index < text.length && text[index].isDigit()) index++
-            if (index < text.length && text[index] == '.') {
+            if (index >= text.length || !text[index].isDigit()) {
+                throw IllegalArgumentException("jsonNumber")
+            }
+            if (text[index] == '0') {
                 index++
+            } else {
                 while (index < text.length && text[index].isDigit()) index++
-                return text.substring(start, index).toDouble()
+            }
+            var fractional = false
+            if (index < text.length && text[index] == '.') {
+                fractional = true
+                index++
+                if (index >= text.length || !text[index].isDigit()) {
+                    throw IllegalArgumentException("jsonNumber")
+                }
+                while (index < text.length && text[index].isDigit()) index++
+            }
+            var exponent = false
+            if (index < text.length && (text[index] == 'e' || text[index] == 'E')) {
+                exponent = true
+                index++
+                if (index < text.length && (text[index] == '+' || text[index] == '-')) {
+                    index++
+                }
+                if (index >= text.length || !text[index].isDigit()) {
+                    throw IllegalArgumentException("jsonNumber")
+                }
+                while (index < text.length && text[index].isDigit()) index++
             }
             val raw = text.substring(start, index)
+            if (fractional || exponent) return raw.toDouble()
             return raw.toLongOrNull() ?: raw.toDouble()
         }
 

@@ -26,6 +26,10 @@ dependencies:
   # code never import an adapter package or a platform plugin directly.
   feldexa_ports:
     path: ../../packages/feldexa_ports
+  # T027: the Android composition root imports the real thin clients only on
+  # the `dart:io` branch; the Web build never resolves this package.
+  feldexa_adapters_android:
+    path: ../../packages/feldexa_adapters_android
   # State injection / observable providers (MIT).
   flutter_riverpod: 2.6.1
   # Web-addressable navigation (BSD-3-Clause).
@@ -46,6 +50,13 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # T027: real Dart -> MethodChannel -> native EncryptedStore acceptance on the
+  # exclusively allocated Android emulator.
+  integration_test:
+    sdk: flutter
+  feldexa_core:
+    path: ../../packages/feldexa_core
+  crypto: 3.0.8
 
 flutter:
   # T005: gen-l10n generates lib/l10n/app_localizations*.dart from the German

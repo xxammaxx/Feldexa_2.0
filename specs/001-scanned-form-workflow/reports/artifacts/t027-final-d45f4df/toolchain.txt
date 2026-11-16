@@ -1,0 +1,50 @@
+pwd=<REPO>
+head=d45f4df8ec27a91d141bd2d86df77255f8fc7865
+tree=22a68776dcbc13ea673d3b20a2822c122777fb86
+--- java ---
+openjdk version "17.0.20.1" 2026-08-18
+OpenJDK Runtime Environment Temurin-17.0.20.1+1 (build 17.0.20.1+1)
+OpenJDK 64-Bit Server VM Temurin-17.0.20.1+1 (build 17.0.20.1+1, mixed mode, sharing)
+--- dart ---
+Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "linux_x64"
+--- flutter ---
+Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
+Framework • revision abaf9c5237 (vor 6 Wochen) • 2026-10-08 09:51:21 -0700
+Engine • hash d8a2d6c768c334d53e16277f837970ffa1e2de81 (revision deb287481e) (1 months ago) • 2026-10-07 17:09:12.000Z
+Tools • Dart 3.13.5 • DevTools 2.60.0
+--- gradle ---
+
+------------------------------------------------------------
+Gradle 9.3.1
+------------------------------------------------------------
+
+Build time:    2026-01-29 14:15:01 UTC
+Revision:      44f4e8d3122ee6e7cbf5a248d7e20b4ca666bda3
+
+Kotlin:        2.2.21
+Groovy:        4.0.29
+Ant:           Apache Ant(TM) version 1.10.15 compiled on August 25 2024
+Launcher JVM:  17.0.20.1 (Eclipse Adoptium 17.0.20.1+1)
+Daemon JVM:    <HOME>/.feldexa-toolchain/jdk (no Daemon JVM specified, using current Java home)
+OS:            Linux 7.2.7-1-cachyos amd64
+
+--- android sdk ---
+ANDROID_HOME=<T026_WORK>/android-sdk
+android-34
+android-35
+android-36
+android-37.0
+35.0.0
+36.0.0
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+distributionUrl=https\://services.gradle.org/distributions/gradle-9.3.1-all.zip
+distributionSha256Sum=17f277867f6914d61b1aa02efab1ba7bb439ad652ca485cd8ca6842fccec6e43
+16caeaf66d57a0d1d2087fef6a97efa62de8da69afa5b908f40db35afc4342da  apps/feldexa_app/android/gradle/wrapper/gradle-wrapper.jar
+--- emulator ---
+device_avd=T025_Pixel7_API35_KVM_20261115
+T025_Pixel7_API35_KVM_20261115
+35
+1

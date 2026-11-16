@@ -128,7 +128,7 @@ Each chunk is stored sequentially after the header:
 | `src/<id>.fxc` | Raw original PDF bytes, unmodified |
 | `sig/<id>.fxs` | PNG bytes, alpha channel, trimmed |
 
-Canonical JSON: sorted keys, UTF-8, no whitespace, UTC ISO-8601 with milliseconds, numbers without trailing zeros.
+Canonical JSON: sorted keys, UTF-8, no whitespace, UTC ISO-8601 with milliseconds, numbers without trailing zeros. The canonical number form is the one produced by `canonicalJsonBytes`/Dart `jsonEncode`: integral doubles up to 2^53 become integers, negative zero becomes `0`, integral doubles above 2^53 retain a `.0`, and non-integral doubles use Dart's shortest fixed/exponential spelling (`1e-7`, `1e+21`). A native re-serializer must emit those exact bytes; JVM `Double.toString` is not equivalent.
 
 ---
 
@@ -160,6 +160,8 @@ If any step fails before step 6, the previous `head.fx1` and all previous revisi
 
 ### 3.2 Import commit (new document)
 
+The importer supplies the document ID and initial revision to the store; the store persists those exact values once. A duplicate visible document is rejected without overwriting existing data. The import call returns only after the store has verified the initial commit.
+
 Key setup: create `docs/<documentId>/` and alias `feldexa.doc.v1.<documentId>` before any encrypted object is written. If key creation fails, return `SAVE-002` with no visible document; the startup sweep removes an incomplete directory and its orphan alias.
 
 1. Validate and stage the source object (`src/<sourceId>.fxc`) from the picked stream; count bytes, cap at 80 MiB (83,886,080 bytes), compute SHA-256 of plaintext.
@@ -182,7 +184,7 @@ Template creation creates `templates/<templateId>/` and alias `feldexa.tpl.v1.<t
 
 ### 3.4 Signature asset commit
 
-Signature PNGs are written and verified before the revision that references them is committed. An orphaned signature asset (revision never committed) is unreferenced; the sweep removes it only if no revision or template version references it and it is older than 24 h.
+Signature PNGs are written and verified before the revision that references them is committed. A signature asset id is immutable: an existing `sig/<assetId>.fxs` is never replaced. A repeated write is refused under the aggregate lock before staging or writing with `PLT-002`, and the prior bytes, head, and revision set stay unchanged. An orphaned signature asset (revision never committed) is unreferenced; the sweep removes it only if no revision or template version references it and it is older than 24 h.
 
 ### 3.5 Export artifact
 

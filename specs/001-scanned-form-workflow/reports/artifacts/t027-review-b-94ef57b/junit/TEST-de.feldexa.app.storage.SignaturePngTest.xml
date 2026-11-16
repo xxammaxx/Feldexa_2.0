@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="de.feldexa.app.storage.SignaturePngTest" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-11-16T16:11:21.148Z" hostname="cachyos-x8664" time="0.21">
+  <properties/>
+  <testcase name="rejectsValidPngOver1024LongEdge" classname="de.feldexa.app.storage.SignaturePngTest" time="0.077"/>
+  <testcase name="acceptsAdam7InterlacedPng" classname="de.feldexa.app.storage.SignaturePngTest" time="0.0"/>
+  <testcase name="rejectsDecompressionBomb" classname="de.feldexa.app.storage.SignaturePngTest" time="0.012"/>
+  <testcase name="rejectsTransparencyChunkOrderViolations" classname="de.feldexa.app.storage.SignaturePngTest" time="0.0"/>
+  <testcase name="validationDoesNotMutateSignedBytes" classname="de.feldexa.app.storage.SignaturePngTest" time="0.0"/>
+  <testcase name="acceptsNativeAlphaColourTypes" classname="de.feldexa.app.storage.SignaturePngTest" time="0.001"/>
+  <testcase name="rejectsUnknownCriticalChunk" classname="de.feldexa.app.storage.SignaturePngTest" time="0.0"/>
+  <testcase name="rejectsNonPngTruncatedAndTrailingBytes" classname="de.feldexa.app.storage.SignaturePngTest" time="0.0"/>
+  <testcase name="acceptsSyntheticRgbaPngs" classname="de.feldexa.app.storage.SignaturePngTest" time="0.0"/>
+  <testcase name="rejectsOversizedPngMetadataRange" classname="de.feldexa.app.storage.SignaturePngTest" time="0.03"/>
+  <testcase name="acceptsIndependentlyGeneratedPngs" classname="de.feldexa.app.storage.SignaturePngTest" time="0.001"/>
+  <testcase name="rejectsCorruptOrMissingImageData" classname="de.feldexa.app.storage.SignaturePngTest" time="0.052"/>
+  <testcase name="acceptsLongEdgeBoundary1024" classname="de.feldexa.app.storage.SignaturePngTest" time="0.031"/>
+  <testcase name="rejectsInvalidFilterByte" classname="de.feldexa.app.storage.SignaturePngTest" time="0.0"/>
+  <testcase name="validatesTransparencySampleAgainstBitDepth" classname="de.feldexa.app.storage.SignaturePngTest" time="0.0"/>
+  <testcase name="rejectsMalformedTransparencyChunks" classname="de.feldexa.app.storage.SignaturePngTest" time="0.002"/>
+  <testcase name="acceptsTrnsBackedTransparencyForOpaqueColourTypes" classname="de.feldexa.app.storage.SignaturePngTest" time="0.0"/>
+  <testcase name="rejectsInvalidHeaderFields" classname="de.feldexa.app.storage.SignaturePngTest" time="0.001"/>
+  <testcase name="rejectsBadChunkCrc" classname="de.feldexa.app.storage.SignaturePngTest" time="0.001"/>
+  <testcase name="rejectsPaletteImageWithoutPalette" classname="de.feldexa.app.storage.SignaturePngTest" time="0.0"/>
+  <testcase name="rejectsOpaqueColourTypesWithoutAlphaOrTransparency" classname="de.feldexa.app.storage.SignaturePngTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
