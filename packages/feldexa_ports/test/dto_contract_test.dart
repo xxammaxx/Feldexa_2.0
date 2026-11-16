@@ -633,6 +633,24 @@ void main() {
         ),
         throwsArgumentError,
       );
+      final nonInitial = Revision(
+        id: fixtureUuid(3),
+        documentId: fixtureUuid(2),
+        parentRevisionId: fixtureUuid(4),
+        kind: RevisionKind.explicit,
+        createdAt: fixtureAt(),
+        plaintextSha256: fixtureSha256,
+        content: fixtureRevisionContent(),
+      );
+      expect(
+        () => CreateDocumentRequest(
+          documentId: fixtureUuid(2),
+          initialRevision: nonInitial,
+          title: 'Antrag',
+          source: fixtureSource(),
+        ),
+        throwsArgumentError,
+      );
     });
 
     test('SaveRevisionRequest carries a canonical RevisionContent', () {
