@@ -104,14 +104,13 @@ class FeldexaPluginInstrumentedTest {
 
     @Test
     fun everyContractMethodAcceptsMinimalPayloadThroughRealChannels() {
-        PlatformServiceRegistry.METHOD_PREFIXES.forEach { prefix ->
-            plugin.registerService(prefix, ReturningService(mapOf("ok" to true)))
-        }
+        registerAllServices()
+        assertEquals("contract method inventory", 24, minimalPayloads().size)
 
         val failures = mutableListOf<String>()
         for ((method, payload) in minimalPayloads()) {
             try {
-                val envelope = invoke(method, mapOf("schemaVersion" to 1) + payload)
+                val envelope = invoke(method, withSchema(payload))
                 when {
                     envelope["ok"] != true -> failures += "$method -> not ok"
                     method in ASYNC_METHODS -> {
@@ -200,6 +199,73 @@ class FeldexaPluginInstrumentedTest {
         val failure = invokeFailure("store.status", mapOf("schemaVersion" to 1, "unknown" to true))
         assertEquals("PLT-003", failure.code)
         assertNoResults()
+    }
+
+    @Test
+    fun everyMethodRejectsAnUnknownField() {
+        registerAllServices()
+        val failures = mutableListOf<String>()
+        for ((method, payload) in minimalPayloads()) {
+            val failure = invokeFailure(method, withSchema(payload) + ("unknown" to true))
+            if (failure.code != "PLT-003" || failure.message != "platform.unknownField") {
+                failures += "$method -> ${failure.code}/${failure.message}"
+            }
+        }
+        assertTrue(failures.joinToString(), failures.isEmpty())
+    }
+
+    @Test
+    fun everyDeclaredUuidFieldRejectsStrictRegexViolations() {
+        registerAllServices()
+        val minimal = minimalPayloads()
+
+        // Guard the explicit contract inventory against the payload table in
+        // both directions, so a copied or mistyped field cannot silently skip
+        // a method.
+        for ((method, fields) in UUID_FIELDS) {
+            val payload = minimal[method] ?: throw AssertionError("UUID_FIELDS names unknown method $method")
+            for (field in fields) {
+                assertTrue("$method.$field is missing from the minimal payload", payload.containsKey(field))
+            }
+        }
+        val observed = minimal.flatMap { (method, payload) ->
+            payload.filterValues { it is String && UUID_PATTERN.matches(it) }
+                .keys.map { method to it }
+        }.toSet() + OPTIONAL_UUID_FIELDS
+        val declared = UUID_FIELDS.flatMap { (method, fields) -> fields.map { method to it } }.toSet()
+        assertEquals("UUID field inventory", declared, observed)
+
+        val failures = mutableListOf<String>()
+        for ((method, fields) in UUID_FIELDS) {
+            val payload = minimal.getValue(method)
+            for (field in fields) {
+                for (invalid in INVALID_UUIDS) {
+                    val failure = invokeFailure(method, withSchema(payload) + (field to invalid))
+                    if (failure.code != "PLT-002" || failure.message != "platform.identifier") {
+                        failures += "$method.$field=${invalid.ifEmpty { "<empty>" }} -> ${failure.code}/${failure.message}"
+                    }
+                }
+            }
+        }
+        assertTrue(failures.joinToString(), failures.isEmpty())
+    }
+
+    @Test
+    fun everyMethodRejectsPayloadExceedingGlobalLimit() {
+        registerAllServices()
+        val failures = mutableListOf<String>()
+        val oversized = ByteArray(96 * 1024 * 1024 + 1)
+        for ((method, payload) in minimalPayloads()) {
+            // `schemaVersion` is the only field every method declares, so the
+            // huge value is accepted by the field allowlist and the total-size
+            // guard must reject it before any type rule. This asserts the
+            // contract's 96 MiB method-payload limit, not a field limit.
+            val failure = invokeFailure(method, payload + ("schemaVersion" to oversized))
+            if (failure.code != "PLT-003" || failure.message != "platform.payloadTooLarge") {
+                failures += "$method -> ${failure.code}/${failure.message}"
+            }
+        }
+        assertTrue(failures.joinToString(), failures.isEmpty())
     }
 
     @Test
@@ -295,6 +361,15 @@ class FeldexaPluginInstrumentedTest {
     }
 
     // ---- helpers ------------------------------------------------------------
+
+    private fun registerAllServices() {
+        PlatformServiceRegistry.METHOD_PREFIXES.forEach { prefix ->
+            plugin.registerService(prefix, ReturningService(mapOf("ok" to true)))
+        }
+    }
+
+    private fun withSchema(payload: Map<String, Any?>): Map<String, Any?> =
+        mapOf("schemaVersion" to 1) + payload
 
     private fun ocrPayload(): Map<String, Any?> = mapOf(
         "schemaVersion" to 1,
@@ -519,5 +594,51 @@ class FeldexaPluginInstrumentedTest {
         )
 
         val CODEC = StandardMethodCodec.INSTANCE
+
+        /**
+         * Every top-level UUID-bearing field declared by
+         * `contracts/platform-channel.md` §3-§7, grouped by method. Optional
+         * nullable ids are listed here because [minimalPayloads] keeps them
+         * null; the test guards this inventory against that table.
+         */
+        val UUID_FIELDS: Map<String, List<String>> = linkedMapOf(
+            "import.verifySource" to listOf("sourceId"),
+            "store.readSource" to listOf("documentId"),
+            "store.readSignature" to listOf("documentId", "assetId"),
+            "store.writeSignature" to listOf("documentId", "assetId"),
+            "store.saveRevision" to listOf("documentId", "expectedHead"),
+            "store.saveTemplateVersion" to listOf("templateId", "expectedHead"),
+            "store.loadDocument" to listOf("documentId"),
+            "store.loadTemplate" to listOf("templateId", "versionId"),
+            "store.delete" to listOf("id"),
+            "store.recoveryStamp" to listOf("id"),
+            "export.readArtifact" to listOf("artifactId"),
+            "export.deleteArtifact" to listOf("artifactId"),
+            "delivery.save" to listOf("artifactId"),
+            "delivery.share" to listOf("artifactId"),
+            "delivery.print" to listOf("artifactId"),
+            "cancel.operation" to listOf("operationId"),
+        )
+
+        val OPTIONAL_UUID_FIELDS: Set<Pair<String, String>> = setOf(
+            "store.saveRevision" to "expectedHead",
+            "store.saveTemplateVersion" to "expectedHead",
+            "store.loadTemplate" to "versionId",
+        )
+
+        val UUID_PATTERN = Regex(
+            "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}" +
+                "-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$",
+        )
+
+        /** Malformed ids that the strict UUID regex in §10 must reject. */
+        val INVALID_UUIDS = listOf(
+            "invalid-uuid",
+            "",
+            "123e4567-e89b-42d3-a456-42661417400",
+            "123e4567e89b42d3a456426614174000",
+            "123e4567-e89b-02d3-a456-426614174000",
+            "123e4567-e89b-42d3-7456-426614174000",
+        )
     }
 }
