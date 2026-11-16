@@ -8,7 +8,7 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
-import java.nio.charset.StandardCharsets
+import java.math.BigInteger
 import java.util.ArrayDeque
 import java.util.LinkedHashMap
 import java.util.UUID
@@ -40,7 +40,9 @@ import java.util.concurrent.atomic.AtomicReference
  * path, URI, OCR text, field value, signature byte, or page image is ever put in
  * an error message or details map, and this facade performs no payload logging.
  */
-class FeldexaPlugin : FlutterPlugin, ActivityAware {
+class FeldexaPlugin internal constructor(
+    private val limits: ChannelLimits = ChannelLimits(),
+) : FlutterPlugin, ActivityAware {
 
     private val mainPoster: ThreadPoster = AndroidMainThreadPoster()
     private val pendingServices = mutableListOf<Pair<String, PlatformService>>()
@@ -68,6 +70,7 @@ class FeldexaPlugin : FlutterPlugin, ActivityAware {
                 mainPoster = mainPoster,
                 events = publisher,
                 results = results,
+                limits = limits,
             )
             facade = created
 
@@ -1084,7 +1087,6 @@ class PlatformChannelFacade(
             throw PlatformFailure.invalidPayload("platform.payloadNotMap")
         }
 
-        var size = 0L
         val payload = linkedMapOf<String, Any?>()
         for ((key, value) in arguments) {
             if (key !is String) throw PlatformFailure.invalidPayload("platform.nonStringKey")
@@ -1092,10 +1094,17 @@ class PlatformChannelFacade(
                 throw PlatformFailure.invalidPayload("platform.unknownField")
             }
             payload[key] = value
-            size += PayloadSize.measure(value, limits.maxPayloadBytes - size)
-            if (size > limits.maxPayloadBytes) {
-                throw PlatformFailure.invalidPayload("platform.payloadTooLarge")
-            }
+        }
+
+        // §10 limits the method payload as a whole, not just its top-level
+        // values. Account for the StandardMethodCodec method-call encoding:
+        // the method-name string plus the root map marker, its entry count,
+        // every key's own encoding, and every value (recursively). This is
+        // allocation-free for large byte arrays and strings, so the guard
+        // never builds a second serialized copy of a near-96 MiB payload.
+        val payloadBytes = PayloadSize.measureMethodCall(method, payload, limits.maxPayloadBytes)
+        if (payloadBytes > limits.maxPayloadBytes) {
+            throw PlatformFailure.invalidPayload("platform.payloadTooLarge")
         }
 
         val schemaVersion = payload["schemaVersion"]
@@ -1360,49 +1369,182 @@ fun interface FeldexaEventSink {
     fun success(event: Any?)
 }
 
-private object PayloadSize {
+/**
+ * Allocation-free size accounting for the `StandardMessageCodec` encoding used
+ * by Flutter's `StandardMethodCodec` on method calls.
+ *
+ * It mirrors the encoder in
+ * `io.flutter.plugin.common.StandardMessageCodec`: one type byte per value, the
+ * variable-width `writeSize` prefix for strings/byte arrays/maps/lists, the
+ * 4/8-byte alignment before typed numeric arrays and doubles, and the complete
+ * encoding of every map key. [measureMethodCall] additionally counts the
+ * method-name string and the root arguments map, so the §10 "Method payload
+ * ≤ 96 MiB total" limit covers the whole method payload instead of only its
+ * top-level values.
+ *
+ * No serialized copy is allocated: byte arrays contribute their length
+ * directly and strings are measured by scanning code units. The `remaining`
+ * budget stops traversal as soon as the limit is known to be exceeded.
+ */
+internal object PayloadSize {
     private const val MAX_DEPTH = 64
+    private const val TYPE_BYTE = 1L
 
-    fun measure(value: Any?, remaining: Long): Long {
-        if (remaining <= 0L) return 1L
-        var total = 0L
-        fun add(amount: Long) {
-            total += amount.coerceAtLeast(0L)
+    fun measure(value: Any?, remaining: Long): Long =
+        Counter(remaining).also { it.writeValue(value, 0) }.size
+
+    /** Exact encoded size of `StandardMethodCodec.encodeMethodCall`. */
+    fun measureMethodCall(method: String, arguments: Map<*, *>, remaining: Long): Long =
+        Counter(remaining).also {
+            it.writeString(method)
+            it.writeValue(arguments, 0)
+        }.size
+
+    private class Counter(private val limit: Long) {
+        var size: Long = 0L
+            private set
+
+        private fun add(amount: Long) {
+            size += amount
         }
-        fun visit(current: Any?, depth: Int) {
-            if (total > remaining) return
-            when (current) {
+
+        private fun overBudget(): Boolean = size > limit
+
+        private fun writeSize(value: Long) {
+            add(
+                when {
+                    value < 254L -> 1L
+                    value <= 0xffffL -> 3L
+                    else -> 5L
+                },
+            )
+        }
+
+        private fun writeBytes(length: Long) {
+            writeSize(length)
+            add(length)
+        }
+
+        private fun align(alignment: Int) {
+            val mod = (size % alignment).toInt()
+            if (mod != 0) add((alignment - mod).toLong())
+        }
+
+        fun writeString(text: String) {
+            add(TYPE_BYTE)
+            // Each UTF-16 code unit needs at least one UTF-8 byte; when that
+            // lower bound already breaks the budget, skip the full scan.
+            if (size + 1L + text.length.toLong() > limit) {
+                size = limit + 1L
+                return
+            }
+            val bytes = utf8Length(text)
+            writeSize(bytes)
+            add(bytes)
+        }
+
+        private fun writeTypedArray(elementBytes: Int, count: Int, alignment: Int) {
+            add(TYPE_BYTE)
+            writeSize(count.toLong())
+            align(alignment)
+            add(count.toLong() * elementBytes.toLong())
+        }
+
+        private fun writeList(count: Int, depth: Int, values: Iterator<*>) {
+            if (depth >= MAX_DEPTH) throw PlatformFailure.invalidPayload("platform.payloadTooDeep")
+            add(TYPE_BYTE)
+            writeSize(count.toLong())
+            var written = 0
+            while (written < count && values.hasNext()) {
+                writeValue(values.next(), depth + 1)
+                written++
+                if (overBudget()) return
+            }
+        }
+
+        fun writeValue(value: Any?, depth: Int) {
+            if (overBudget()) return
+            when (value) {
                 null -> add(1L)
-                is String -> add(current.toByteArray(StandardCharsets.UTF_8).size.toLong())
-                is ByteArray -> add(current.size.toLong())
                 is Boolean -> add(1L)
-                is Number -> add(8L)
+                is Int, is Short, is Byte -> {
+                    add(TYPE_BYTE)
+                    add(4L)
+                }
+                is Long -> {
+                    add(TYPE_BYTE)
+                    add(8L)
+                }
+                is Float, is Double -> {
+                    add(TYPE_BYTE)
+                    align(8)
+                    add(8L)
+                }
+                is BigInteger -> {
+                    add(TYPE_BYTE)
+                    writeBytes(value.toString(16).length.toLong())
+                }
+                is String -> writeString(value)
+                is CharSequence -> writeString(value.toString())
+                is ByteArray -> {
+                    add(TYPE_BYTE)
+                    writeBytes(value.size.toLong())
+                }
+                is IntArray -> writeTypedArray(4, value.size, 4)
+                is LongArray -> writeTypedArray(8, value.size, 8)
+                is DoubleArray -> writeTypedArray(8, value.size, 8)
+                is FloatArray -> writeTypedArray(4, value.size, 4)
                 is Map<*, *> -> {
-                    if (depth >= MAX_DEPTH) throw PlatformFailure.invalidPayload("platform.payloadTooDeep")
-                    add(1L)
-                    current.forEach { (key, value) ->
+                    if (depth >= MAX_DEPTH) {
+                        throw PlatformFailure.invalidPayload("platform.payloadTooDeep")
+                    }
+                    add(TYPE_BYTE)
+                    writeSize(value.size.toLong())
+                    for ((key, child) in value) {
                         if (key !is String) {
                             throw PlatformFailure.invalidPayload("platform.nonStringKey")
                         }
-                        add(key.toByteArray(StandardCharsets.UTF_8).size.toLong())
-                        visit(value, depth + 1)
+                        writeString(key)
+                        writeValue(child, depth + 1)
+                        if (overBudget()) return
                     }
                 }
+                is List<*> -> writeList(value.size, depth, value.iterator())
+                is Array<*> -> writeList(value.size, depth, value.iterator())
                 is Iterable<*> -> {
-                    if (depth >= MAX_DEPTH) throw PlatformFailure.invalidPayload("platform.payloadTooDeep")
-                    add(1L)
-                    current.forEach { visit(it, depth + 1) }
-                }
-                is Array<*> -> {
-                    if (depth >= MAX_DEPTH) throw PlatformFailure.invalidPayload("platform.payloadTooDeep")
-                    add(1L)
-                    current.forEach { visit(it, depth + 1) }
+                    val items = value.toList()
+                    writeList(items.size, depth, items.iterator())
                 }
                 else -> throw PlatformFailure.invalidPayload("platform.unsupportedValue")
             }
         }
-        visit(value, 0)
-        return total
+    }
+
+    /**
+     * UTF-8 byte length as produced by `String.toByteArray(StandardCharsets.UTF_8)`,
+     * without allocating the byte array. Malformed surrogate code units are
+     * replaced by a single `?` byte, matching the JDK encoder's default.
+     */
+    private fun utf8Length(text: String): Long {
+        var bytes = 0L
+        var index = 0
+        while (index < text.length) {
+            val unit = text[index]
+            when {
+                unit.code < 0x80 -> bytes += 1
+                unit.code < 0x800 -> bytes += 2
+                unit.isHighSurrogate() &&
+                    index + 1 < text.length &&
+                    text[index + 1].isLowSurrogate() -> {
+                    bytes += 4
+                    index++
+                }
+                unit.isSurrogate() -> bytes += 1
+                else -> bytes += 3
+            }
+            index++
+        }
+        return bytes
     }
 }
 

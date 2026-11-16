@@ -86,6 +86,32 @@ class FeldexaPluginInstrumentedTest {
         instrumentation.waitForIdleSync()
     }
 
+    /**
+     * Rebuilds the in-process engine with test [ChannelLimits] so the real
+     * MethodChannel + StandardMethodCodec boundary can be exercised at small
+     * byte limits without allocating a second 96 MiB payload.
+     */
+    private fun reattachWithLimits(limits: ChannelLimits) {
+        instrumentation.runOnMainSync {
+            plugin.onDetachedFromEngine(binding)
+            engine.destroy()
+            messenger = RecordingMessenger()
+            val context = instrumentation.targetContext
+            engine = FlutterEngine(context)
+            binding = FlutterPlugin.FlutterPluginBinding(
+                context,
+                engine,
+                messenger,
+                engine.renderer,
+                NoPlatformViews,
+                NoAssets,
+                FlutterEngineGroup(context),
+            )
+            plugin = FeldexaPlugin(limits)
+            plugin.onAttachedToEngine(binding)
+        }
+    }
+
     // ---- registration and envelope -----------------------------------------
 
     @Test
@@ -266,6 +292,30 @@ class FeldexaPluginInstrumentedTest {
             }
         }
         assertTrue(failures.joinToString(), failures.isEmpty())
+    }
+
+    @Test
+    fun payloadLimitMatchesActualStandardMethodCodecEnvelopeAtBoundary() {
+        val method = "import.pickAndImport"
+        val titleHint = "a".repeat(40)
+        val payload = mapOf("schemaVersion" to 1, "maxBytes" to 1024, "titleHint" to titleHint)
+
+        // The real Flutter codec, not a hand formula, defines the boundary:
+        // method name 22 + root map 2 + keys 36 + values 10 + string 42.
+        val encoded = codec.encodeMethodCall(MethodCall(method, payload))
+        val exactBytes = encoded.limit().toLong()
+        assertEquals(72L + titleHint.length, exactBytes)
+        assertEquals(exactBytes, PayloadSize.measureMethodCall(method, payload, Long.MAX_VALUE))
+
+        reattachWithLimits(ChannelLimits(maxPayloadBytes = exactBytes))
+        plugin.registerService("import", ReturningService(mapOf("ok" to true)))
+        assertEquals(true, invoke(method, payload)["ok"])
+
+        reattachWithLimits(ChannelLimits(maxPayloadBytes = exactBytes - 1))
+        plugin.registerService("import", ReturningService(mapOf("ok" to true)))
+        val failure = invokeFailure(method, payload)
+        assertEquals("PLT-003", failure.code)
+        assertEquals("platform.payloadTooLarge", failure.message)
     }
 
     @Test

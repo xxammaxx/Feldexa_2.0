@@ -252,6 +252,74 @@ class FeldexaPluginTest {
         assertEquals("platform.payloadTooLarge", reply.failure?.machineMessage)
     }
 
+    // ---- §10 total method-payload accounting ------------------------------
+
+    @Test
+    fun payloadSizeMatchesStandardMessageCodecByteAccounting() {
+        // The exact byte prefixes emitted by StandardMessageCodec.writeValue.
+        assertEquals(2L, PayloadSize.measure(emptyMap<String, Any?>(), Long.MAX_VALUE))
+        assertEquals(10L, PayloadSize.measure(mapOf("a" to 1), Long.MAX_VALUE))
+        assertEquals(5L, PayloadSize.measure("abc", Long.MAX_VALUE))
+        assertEquals(258L, PayloadSize.measure("a".repeat(254), Long.MAX_VALUE))
+        assertEquals(304L, PayloadSize.measure(ByteArray(300), Long.MAX_VALUE))
+        // Doubles are aligned to an 8-byte boundary in the full message.
+        assertEquals(16L, PayloadSize.measure(1.5, Long.MAX_VALUE))
+        // map {"d": 1.5}: map header 2 + key 3 + type 1 + two pad bytes + 8.
+        assertEquals(16L, PayloadSize.measure(mapOf("d" to 1.5), Long.MAX_VALUE))
+        // Nested map keys belong to the map's encoded size.
+        assertEquals(15L, PayloadSize.measure(mapOf("a" to mapOf("b" to 1)), Long.MAX_VALUE))
+        // UTF-8 lengths: 2, 3 and a 4-byte surrogate pair, without copying.
+        assertEquals(4L, PayloadSize.measure("\u00e4", Long.MAX_VALUE))
+        assertEquals(5L, PayloadSize.measure("\u20ac", Long.MAX_VALUE))
+        assertEquals(6L, PayloadSize.measure("\uD83D\uDE00", Long.MAX_VALUE))
+        assertEquals(12L, PayloadSize.measure("a\u00e4\u20ac\uD83D\uDE00", Long.MAX_VALUE))
+        // "store.status" (12 chars) = 1 type + 1 size + 12; empty map = 2.
+        assertEquals(16L, PayloadSize.measureMethodCall("store.status", emptyMap<String, Any?>(), Long.MAX_VALUE))
+    }
+
+    @Test
+    fun payloadAtExactTotalEnvelopeIsAcceptedAndOneByteOverIsRejected() {
+        // import.pickAndImport + {schemaVersion:1, maxBytes:1024, titleHint:N}
+        // StandardMethodCodec encodes the method name (22), the root map
+        // marker+count (2), keys (15+10+11), values (5+5) and the string
+        // (1 type + 1 length + N), i.e. exactly 72 + N bytes for N < 254.
+        val titleHint = "a".repeat(40)
+        val payload = mapOf("schemaVersion" to 1, "maxBytes" to 1024, "titleHint" to titleHint)
+        val exactBytes = 72L + titleHint.length
+        assertEquals(exactBytes, PayloadSize.measureMethodCall("import.pickAndImport", payload, Long.MAX_VALUE))
+
+        val accepted = RecordingReply()
+        newFacade(servicePrefix = "import", limits = ChannelLimits(maxPayloadBytes = exactBytes))
+            .handle("import.pickAndImport", payload, accepted)
+        assertNull("expected the exact envelope to fit: ${accepted.failure}", accepted.failure)
+        assertTrue(accepted.successValue != null)
+
+        val rejected = RecordingReply()
+        newFacade(servicePrefix = "import", limits = ChannelLimits(maxPayloadBytes = exactBytes - 1))
+            .handle("import.pickAndImport", payload, rejected)
+        assertFailure(rejected, "PLT-003")
+        assertEquals("platform.payloadTooLarge", rejected.failure?.machineMessage)
+    }
+
+    @Test
+    fun payloadIsRejectedWhenValuesFitButKeysAndRootExceedTheLimit() {
+        // Review-A regression: summing only the top-level values (5+5+42 = 52)
+        // would accept this payload at a 52-byte limit, even though the real
+        // method call is 112 bytes once the method name, root map framing and
+        // the three field keys are counted.
+        val titleHint = "a".repeat(40)
+        val payload = mapOf("schemaVersion" to 1, "maxBytes" to 1024, "titleHint" to titleHint)
+        val valuesOnly = payload.values.sumOf { PayloadSize.measure(it, Long.MAX_VALUE) }
+        assertEquals(52L, valuesOnly)
+        assertTrue(PayloadSize.measureMethodCall("import.pickAndImport", payload, Long.MAX_VALUE) > valuesOnly)
+
+        val reply = RecordingReply()
+        newFacade(servicePrefix = "import", limits = ChannelLimits(maxPayloadBytes = valuesOnly))
+            .handle("import.pickAndImport", payload, reply)
+        assertFailure(reply, "PLT-003")
+        assertEquals("platform.payloadTooLarge", reply.failure?.machineMessage)
+    }
+
     @Test
     fun exportPlanLimitIsEnforced() {
         val facade = newFacade(limits = ChannelLimits(maxExportPlanBytes = 4))
