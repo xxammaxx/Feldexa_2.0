@@ -1,0 +1,7 @@
+--- local APKs after integration build ---
+apps/feldexa_app/build/app/outputs/flutter-apk/app-debug.apk size=217937973 sha256=41df822b4c61a99659452f64bc1e0e230fe8bb4c562b9b04eb2e7636349d2d10
+apps/feldexa_app/build/app/outputs/apk/debug/app-debug.apk size=217937973 sha256=41df822b4c61a99659452f64bc1e0e230fe8bb4c562b9b04eb2e7636349d2d10
+apps/feldexa_app/build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk size=115548 sha256=555171ca8ff0d4f0e63fe1717ab7b6e7362d95948b43fa615020ee197faa5431
+--- installed ---
+de.feldexa.app not installed
+de.feldexa.app.test not installed

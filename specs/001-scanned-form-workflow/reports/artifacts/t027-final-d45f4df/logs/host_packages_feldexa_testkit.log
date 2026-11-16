@@ -1,0 +1,162 @@
+00:00 +0: loading <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart
+00:00 +0: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader (setUpAll)
+00:00 +0: <REPO>/packages/feldexa_testkit/test/fixture_source_test.dart: validateFixturePath accepts portable relative paths
+00:00 +1: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader opens and validates the canonical catalogue
+00:00 +2: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader opens and validates the canonical catalogue
+00:00 +3: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader opens and validates the canonical catalogue
+00:00 +4: <REPO>/packages/feldexa_testkit/test/fixture_source_test.dart: validatePortableRelativePath rejects backslash traversal with a format error
+00:00 +5: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:00 +6: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:00 +7: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:00 +8: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:00 +9: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:00 +10: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:00 +11: <REPO>/packages/feldexa_testkit/test/fixture_source_test.dart: InMemoryFixtureSource copies caller bytes at construction
+00:00 +12: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader keeps the documented PDF shape per status
+00:00 +13: <REPO>/packages/feldexa_testkit/test/fixture_source_test.dart: FileFixtureSource reports a missing file with its delivery-relative path
+00:00 +14: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads all fixtures in catalogue order
+00:00 +15: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads all fixtures in catalogue order
+00:00 +16: <REPO>/packages/feldexa_testkit/test/fixture_source_test.dart: FileFixtureSource locates the workspace root from a nested directory
+00:00 +17: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads and validates every expected-OCR document
+00:00 +18: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader rejects expected OCR for an import-failure fixture
+00:00 +19: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader rejects an unknown fixture id
+00:00 +20: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader canonical, Web, and corpus copies are byte-identical
+00:00 +21: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader Web expected-OCR mirror is byte-identical for valid fixtures
+00:00 +22: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader marks the catalogue as SIMULATED, never Android evidence
+00:00 +23: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader (tearDownAll)
+00:00 +23: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures (setUpAll)
+00:00 +23: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures detects a checksum mismatch
+00:00 +24: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures detects a declared-size mismatch
+00:00 +25: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures detects a missing fixture file
+00:00 +26: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures detects a wrong PDF shape even without a checksum
+00:00 +27: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures skips the digest only when explicitly asked
+00:00 +28: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures rejects an invalid expected-OCR document
+00:00 +29: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures rejects a catalog with a Windows delivery traversal before I/O
+00:00 +30: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures wraps malformed catalog JSON
+00:00 +31: <REPO>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures (tearDownAll)
+00:00 +31: <REPO>/packages/feldexa_testkit/test/sha256_test.dart: sha256Hex matches the empty-message vector
+00:00 +32: <REPO>/packages/feldexa_testkit/test/sha256_test.dart: sha256Hex matches the "abc" vector
+00:00 +33: <REPO>/packages/feldexa_testkit/test/sha256_test.dart: sha256Hex matches the quick-brown-fox vector
+00:00 +34: <REPO>/packages/feldexa_testkit/test/sha256_test.dart: sha256Hex matches a 1,000,000-byte vector (multi-block boundary)
+00:00 +35: <REPO>/packages/feldexa_testkit/test/sha256_test.dart: sha256Hex hashes UTF-8 German text as bytes, not as UTF-16 code units
+00:00 +36: <REPO>/packages/feldexa_testkit/test/sha256_test.dart: sha256Hex matches an additional ASCII vector
+00:00 +37: <REPO>/packages/feldexa_testkit/test/sha256_test.dart: sha256Hex distinguishes one-byte changes
+00:01 +38: <REPO>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass consumes the canonical ports EvidenceClass declaration
+00:01 +39: <REPO>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass parses names and report tokens case-insensitively
+00:01 +40: <REPO>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass rejects unknown and empty tokens instead of defaulting
+00:01 +41: <REPO>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass separates Android classes from SIMULATED and NONE
+00:01 +42: <REPO>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass labels are distinct report tokens
+00:01 +43: <REPO>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLabel host checks carry NONE and no runtime claim
+00:01 +44: <REPO>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLabel SIMULATED browser labels are not Android evidence
+00:01 +45: <REPO>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLabel Android labels stay EMULATOR or DEVICE
+00:01 +46: <REPO>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLabel value equality covers class, surface, and detail
+00:01 +47: <REPO>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLabel detail stays available explicitly but is redacted from logs
+00:01 +48: <REPO>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLedger separates host, SIMULATED, and Android results
+00:01 +49: <REPO>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLedger host checks next to one runtime class are not a merged claim
+00:01 +50: <REPO>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLedger SIMULATED plus DEVICE is still a merged claim
+00:01 +51: <REPO>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLedger entries are a read-only view
+00:01 +52: <REPO>/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock starts at the Unix epoch in UTC
+00:01 +53: <REPO>/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock normalises an explicit local time to UTC
+00:01 +54: <REPO>/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock does not advance on reads and counts them
+00:01 +55: <REPO>/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock advances by exact durations
+00:01 +56: <REPO>/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock rejects a negative advance
+00:01 +57: <REPO>/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock advanceTo moves forward and accepts the current instant
+00:01 +58: <REPO>/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock advanceTo rejects moving backwards
+00:01 +59: <REPO>/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock setUtc allows an explicit rewind and normalises to UTC
+00:01 +60: <REPO>/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock reset returns to the creation instant and clears the read count
+00:01 +61: <REPO>/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock instances are independent
+00:01 +62: <REPO>/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock is host-only metadata, never runtime or Android evidence
+00:01 +63: <REPO>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector injects nothing without an armed rule
+00:01 +64: <REPO>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector injects a one-shot fault at the armed point
+00:01 +65: <REPO>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector honours startsAt call numbering
+00:01 +66: <REPO>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector honours times and then passes
+00:01 +67: <REPO>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector times null injects on every matching call
+00:01 +68: <REPO>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector different fault points are independent
+00:01 +69: <REPO>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector same point can arm later calls
+00:01 +70: <REPO>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector arm, disarm, and clear manage rules
+00:01 +71: <REPO>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector rejects duplicate rules for the same point and call
+00:01 +72: <REPO>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector validates rule arguments
+00:01 +73: <REPO>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector run and runAsync do not execute the action on a fault
+00:01 +74: <REPO>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector run and runAsync return the action result when clear
+00:01 +75: <REPO>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector action exceptions propagate and are not converted to faults
+00:01 +76: <REPO>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector faultsAt filters by point and kind
+00:01 +77: <REPO>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector catalog codes distinguish global, aggregate-key, and integrity failures
+00:01 +78: <REPO>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector wrapped-DEK authentication failure is SAVE-003, not key loss
+00:02 +79: <REPO>/packages/feldexa_testkit/test/faults_test.dart: ScriptedClock is deterministic and never advances on its own
+00:02 +80: <REPO>/packages/feldexa_testkit/test/faults_test.dart: ScriptedClock rejects a backward advance but allows an explicit rewind
+00:02 +81: <REPO>/packages/feldexa_testkit/test/faults_test.dart: ScriptedClock applies forward and backward jumps after the configured reads
+00:02 +82: <REPO>/packages/feldexa_testkit/test/faults_test.dart: ScriptedClock rejects a jump scheduled for a read that already happened
+00:02 +83: <REPO>/packages/feldexa_testkit/test/faults_test.dart: ScriptedClock reset returns to the origin and replays the jump script
+00:02 +84: <REPO>/packages/feldexa_testkit/test/faults_test.dart: ScriptedClock rejects non-positive jumps and a wrong descriptor kind
+00:02 +85: <REPO>/packages/feldexa_testkit/test/faults_test.dart: SequenceIds produces valid v4 ids and deterministic idempotency keys
+00:02 +86: <REPO>/packages/feldexa_testkit/test/faults_test.dart: SequenceIds reset returns to the configured first value
+00:02 +87: <REPO>/packages/feldexa_testkit/test/faults_test.dart: SequenceIds rejects a wrong descriptor kind and an invalid first value
+00:02 +88: <REPO>/packages/feldexa_testkit/test/faults_test.dart: faultExceptionFor maps every fault kind to its typed catalog exception
+00:02 +89: <REPO>/packages/feldexa_testkit/test/faults_test.dart: faultExceptionFor keeps key-loss, integrity, and global failures distinct
+00:02 +90: <REPO>/packages/feldexa_testkit/test/faults_test.dart: faultExceptionFor quota and write-interruption exceptions stay retryable
+00:02 +91: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore maps a quota fault at store.write and does not run the write
+00:02 +92: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore does not check internal fsync or commit before the delegate runs
+00:02 +93: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore checks the phase-aware seam inside the adapter transaction
+00:02 +94: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore runs the write when no fault matches
+00:02 +95: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore does not convert a real delegate exception into a fault
+00:02 +96: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore checks keystore.unwrap before a document read
+00:02 +97: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore surfaces aggregate-scoped SAVE-002 at the unwrap point
+00:02 +98: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore checks keystore.unwrap on the write path
+00:02 +99: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore surfaces both SAVE-008 contexts at the unwrap point
+00:02 +100: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore surfaces an aggregate key fault at store.read
+00:02 +101: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore surfaces a quota fault through the writeSignature port method
+00:02 +102: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore delegates a clean load to the wrapped adapter
+00:02 +103: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore guardWrite counts unwrap and pre-stage gate per attempt
+00:02 +104: <REPO>/packages/feldexa_testkit/test/faults_test.dart: StagedWriteFaultSeam promotes the head only when every phase is clear
+00:02 +105: <REPO>/packages/feldexa_testkit/test/faults_test.dart: StagedWriteFaultSeam a fault before the staged write leaves no partial state
+00:02 +106: <REPO>/packages/feldexa_testkit/test/faults_test.dart: StagedWriteFaultSeam a short write after staging removes the staged object
+00:02 +107: <REPO>/packages/feldexa_testkit/test/faults_test.dart: StagedWriteFaultSeam beforeFsync models a failed fsync, not a post-fsync abort
+00:02 +108: <REPO>/packages/feldexa_testkit/test/faults_test.dart: StagedWriteFaultSeam a commit fault after promotion keeps the old head and prunes
+00:02 +109: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FaultingPdfExport maps a validation fault to EXP-002 without running the delegate
+00:02 +110: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FaultingPdfExport maps a write fault to EXP-002 and produces no candidate
+00:02 +111: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FaultingPdfExport deletes a candidate that fails the injected verification
+00:02 +112: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FaultingPdfExport records a best-effort cleanup failure and still throws EXP-002
+00:02 +113: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FaultingPdfExport returns the candidate when both points are clear
+00:02 +114: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FakeRegistry exposes ten ports with descriptors in capability order
+00:02 +115: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FakeRegistry provides the same deterministic clock, IDs, and lifecycle
+00:02 +116: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FakeRegistry wires the same injector into store and export
+00:02 +117: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FakeRegistry injects a keystore fault through the registry store
+00:02 +118: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FakeRegistry injects an export fault through the registry export
+00:02 +119: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FakeRegistry unprovided capabilities fail with the typed PLT-001 exception
+00:02 +120: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FakeRegistry a non-simulated fake registry reports no simulated capability
+00:02 +121: <REPO>/packages/feldexa_testkit/test/faults_test.dart: FakeRegistry rejects an override descriptor for the wrong capability
+00:02 +122: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +122: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue is schema 1, fixtures-1.0.0, and SIMULATED
+00:02 +123: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue declares dev-only delivery and no Flutter assets
+00:02 +124: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue exposes four valid fixtures and three import failures
+00:02 +125: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue exposes typed pages and ground truth
+00:02 +126: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue maps each delivery target to its declared path
+00:02 +127: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue failure fixtures declare their catalog codes
+00:02 +128: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue exposes the catalogue entry as deeply immutable data
+00:02 +129: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue looks up fixtures by id and reports unknown ids
+00:02 +130: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue round-trips to a stable string summary
+00:02 +131: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (tearDownAll)
+00:02 +131: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects an unsupported schema version
+00:02 +132: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects non-SIMULATED evidence, including Android classes
+00:02 +133: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a fixture count that does not match
+00:02 +134: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects duplicate fixture ids
+00:02 +135: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a malformed SHA-256 pin
+00:02 +136: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a wrong failure code
+00:02 +137: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects Flutter-asset fixture delivery
+00:02 +138: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects personal data in the synthetic catalogue
+00:02 +139: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a page-count mismatch
+00:02 +140: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects an invalid page rotation
+00:02 +141: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects an unexpected OCR document on a failure fixture
+00:02 +142: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a path that does not match the id
+00:02 +143: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects unknown roles and statuses
+00:02 +144: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a missing required string
+00:02 +145: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects expectedError on a valid fixture
+00:02 +146: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects non-synthetic fixture kinds
+00:02 +147: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a valid fixture without ground truth
+00:02 +148: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects malformed JSON
+00:02 +149: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: path safety rejects Windows backslash traversal in every delivery directory
+00:02 +150: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: path safety rejects absolute, drive, UNC, and traversal delivery directories
+00:02 +151: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: path safety rejects unsafe Web base paths
+00:02 +152: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: path safety rejects traversal-shaped expected-OCR paths
+00:02 +153: <REPO>/packages/feldexa_testkit/test/fixture_catalog_test.dart: path safety rejects unsafe generator and fixture paths
+00:02 +154: All tests passed!

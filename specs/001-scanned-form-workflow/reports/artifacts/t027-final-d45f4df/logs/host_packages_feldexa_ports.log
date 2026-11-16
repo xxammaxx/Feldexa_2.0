@@ -1,0 +1,110 @@
+00:00 +0: loading <REPO>/packages/feldexa_ports/test/descriptor_test.dart
+00:00 +0: <REPO>/packages/feldexa_ports/test/descriptor_test.dart: CapabilityKind matches the contract declaration order
+00:00 +1: <REPO>/packages/feldexa_ports/test/descriptor_test.dart: CapabilityDescriptor describes a real Android capability
+00:00 +2: <REPO>/packages/feldexa_ports/test/descriptor_test.dart: CapabilityDescriptor describes a simulated Web capability and keeps the label
+00:00 +3: <REPO>/packages/feldexa_ports/test/descriptor_test.dart: CapabilityDescriptor accepts a dotted adapter contract version
+00:00 +4: <REPO>/packages/feldexa_ports/test/descriptor_test.dart: CapabilityDescriptor rejects a simulated flag that disagrees with the evidence
+00:00 +5: <REPO>/packages/feldexa_ports/test/descriptor_test.dart: CapabilityDescriptor rejects an adapter id that disagrees with the evidence
+00:00 +6: <REPO>/packages/feldexa_ports/test/descriptor_test.dart: CapabilityDescriptor rejects every invalid contract version without echoing it
+00:00 +7: <REPO>/packages/feldexa_ports/test/descriptor_test.dart: CapabilityDescriptor rejects unsafe supported-feature tokens without echoing them
+00:00 +8: <REPO>/packages/feldexa_ports/test/descriptor_test.dart: CapabilityDescriptor stores an unmodifiable copy of supported features
+00:00 +9: <REPO>/packages/feldexa_ports/test/descriptor_test.dart: CapabilityDescriptor implements value equality over every contract field
+00:00 +10: <REPO>/packages/feldexa_ports/test/descriptor_test.dart: CapabilityDescriptor redacts the adapter id and features from toString
+00:00 +11: <REPO>/packages/feldexa_ports/test/descriptor_test.dart: CapabilityDescriptor exposes the descriptor through PlatformCapability
+00:00 +12: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: ImportRequest defaults to the contract 80 MiB cap
+00:00 +13: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: ImportRequest accepts a lower cap and rejects zero or a larger cap
+00:00 +14: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: ImportedSource carries every contract field and the canonical geometry type
+00:00 +15: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: ImportedSource accepts partially readable sources with unique failed pages
+00:00 +16: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: ImportedSource rejects an inconsistent page count and unsafe values
+00:00 +17: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: ImportedSource redacts the display name from toString
+00:00 +18: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: SourceIntegrity represents both readable and unreadable results
+00:00 +19: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: SourceIntegrity carries the capability evidence required by §1
+00:00 +20: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: SourceIntegrity rejects invalid hashes, counts, and out-of-range failures
+00:00 +21: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: RasterRequest and RasterImage uses the documented raster defaults and formats
+00:00 +22: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: RasterRequest and RasterImage rejects invalid raster requests
+00:00 +23: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: RasterRequest and RasterImage accepts RGBA and gray8 buffers with correct row coverage
+00:00 +24: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: RasterRequest and RasterImage rejects malformed raster buffers
+00:00 +25: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: OCR DTOs carries display-point rectangles and 0-1 confidence
+00:00 +26: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: OCR DTOs rejects confidence outside 0-1 without echoing text
+00:00 +27: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: OCR DTOs rejects invalid page indexes and language tags
+00:00 +28: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: OCR DTOs redacts OCR text from toString
+00:00 +29: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs StoreStatus validates capacity counts
+00:00 +30: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs StoredMeta carries the single port-level list read model
+00:00 +31: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs StoredMeta represents an unreadable entry honestly
+00:00 +32: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs StoredMeta rejects invalid ids, titles, and timestamps
+00:00 +33: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs LoadedDocument and LoadedTemplate use canonical types
+00:00 +34: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs CreateDocumentRequest validates and trims the title
+00:00 +35: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs SaveRevisionRequest carries a canonical RevisionContent
+00:00 +36: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs CreateTemplateRequest freezes snapshots and requires pages
+00:00 +37: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs SaveTemplateVersionRequest freezes snapshots
+00:00 +38: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs WriteSignatureRequest validates bytes and hash
+00:00 +39: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs DeleteConfirmation carries explicit acknowledgement
+00:00 +40: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs RecoveryStamp validates optional evidence fields
+00:00 +41: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Export DTOs ExportOptions defaults to mandated flatten and embedFonts
+00:00 +42: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Export DTOs rejects disabling mandatory flattening
+00:00 +43: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Export DTOs ExportRequest carries the canonical plan and options
+00:00 +44: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Export DTOs ExportResult carries the canonical artifact and evidence
+00:00 +45: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Export DTOs ExportValidationResult carries canonical validation and evidence
+00:00 +46: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Export DTOs ExportValidationResult preserves blocking warnings and evidence
+00:00 +47: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Delivery and lifecycle DTOs DeliveryOutcome reports cancellation without an error
+00:00 +48: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Delivery and lifecycle DTOs DeliveryOutcome rejects internal paths and URIs in the hint
+00:00 +49: <REPO>/packages/feldexa_ports/test/dto_contract_test.dart: Delivery and lifecycle DTOs AppLifecycleSignal matches the contract order
+00:00 +50: <REPO>/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract rejects non-catalog codes without echoing them
+00:00 +51: <REPO>/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract rejects a path-bearing or spaced ARB key without echoing it
+00:00 +52: <REPO>/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract rejects German sentences, paths, and content in message safely
+00:00 +53: <REPO>/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract every contract exception is an Exception with a catalog code
+00:00 +54: <REPO>/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract toString is content-free and names the code and severity
+00:00 +55: <REPO>/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract declares exactly the four internal severity levels
+00:00 +56: <REPO>/packages/feldexa_ports/test/errors_test.dart: Ports §3 exception table matches code, retryability, and severity for every row
+00:00 +57: <REPO>/packages/feldexa_ports/test/errors_test.dart: Ports §3 exception table SAVE-008 distinguishes a temporary provider outage from a reset
+00:00 +58: <REPO>/packages/feldexa_ports/test/errors_test.dart: Ports §3 exception table SAVE-003 keeps its two concrete causes distinct
+00:00 +59: <REPO>/packages/feldexa_ports/test/errors_test.dart: ImportRejectionKind maps every kind to its catalog code and machine message
+00:00 +60: <REPO>/packages/feldexa_ports/test/errors_test.dart: ImportRejectionKind rejected imports keep the fixed non-retryable contract row
+00:00 +61: <REPO>/packages/feldexa_ports/test/errors_test.dart: ImportRejectionKind cancellation and full storage use their dedicated exceptions
+00:00 +62: <REPO>/packages/feldexa_ports/test/errors_test.dart: ImportRejectionKind unsupported encryption is not reported as unknown reason
+00:00 +63: <REPO>/packages/feldexa_ports/test/errors_test.dart: ImportRejectionKind over-limit files map to IMP-007
+00:00 +64: <REPO>/packages/feldexa_ports/test/errors_test.dart: Typed payloads ExportBlockedException keeps a defensive read-only field list
+00:00 +65: <REPO>/packages/feldexa_ports/test/errors_test.dart: Typed payloads ExportBlockedException accepts identifier-shaped boundary ids
+00:00 +66: <REPO>/packages/feldexa_ports/test/errors_test.dart: Typed payloads ExportBlockedException rejects empty, duplicate, and unsafe ids
+00:00 +67: <REPO>/packages/feldexa_ports/test/errors_test.dart: Typed payloads RenderException keeps a valid zero-based page index
+00:00 +68: <REPO>/packages/feldexa_ports/test/evidence_test.dart: EvidenceClass declares exactly the four contract classes in contract order
+00:00 +69: <REPO>/packages/feldexa_ports/test/evidence_test.dart: EvidenceClass uses the exact uppercase report tokens
+00:00 +70: <REPO>/packages/feldexa_ports/test/evidence_test.dart: EvidenceClass parses enum names and report tokens case-insensitively
+00:00 +71: <REPO>/packages/feldexa_ports/test/evidence_test.dart: EvidenceClass rejects unknown and empty tokens without echoing the input
+00:00 +72: <REPO>/packages/feldexa_ports/test/evidence_test.dart: EvidenceClass separates Android classes from SIMULATED and NONE
+00:00 +73: <REPO>/packages/feldexa_ports/test/evidence_test.dart: EvidenceClass every class has a non-empty description
+00:00 +74: <REPO>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence derives simulated only for the simulated class
+00:00 +75: <REPO>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence simulated named constructor keeps its reason
+00:00 +76: <REPO>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence android named constructor declares no simulated evidence
+00:00 +77: <REPO>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence non-simulated evidence may not carry a simulated reason
+00:00 +78: <REPO>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence accepts the documented machine-token boundaries
+00:00 +79: <REPO>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence rejects content-like or unsafe adapter ids without echoing them
+00:00 +80: <REPO>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence rejects content-like or unsafe reasons without echoing them
+00:01 +81: <REPO>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence every construction path applies runtime validation
+00:01 +82: <REPO>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence redacts adapter id and reason from toString
+00:01 +83: <REPO>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence value equality covers class, adapter, and reason
+00:01 +84: <REPO>/packages/feldexa_ports/test/ports_contract_test.dart: AdapterRegistry contract exposes one interface and descriptor per capability in order
+00:01 +85: <REPO>/packages/feldexa_ports/test/ports_contract_test.dart: AdapterRegistry contract every port is a PlatformCapability with a matching descriptor
+00:01 +86: <REPO>/packages/feldexa_ports/test/ports_contract_test.dart: AdapterRegistry contract reports a development registry with simulated capabilities
+00:01 +87: <REPO>/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values DocumentImportPort stages a verified source
+00:01 +88: <REPO>/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values PageRasterPort returns canonical geometry and pixels
+00:01 +89: <REPO>/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values OcrPort returns blocks with canonical rectangles
+00:01 +90: <REPO>/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values SecureStorePort reads, writes, lists, and recovers
+00:01 +91: <REPO>/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values PdfExportPort validates with evidence and exports the artifact
+00:01 +92: <REPO>/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values DeliveryPort reports a completed save
+00:01 +93: <REPO>/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values LifecyclePort emits the platform sequence
+00:01 +94: <REPO>/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values ClockPort and IdPort are deterministic seams
+00:01 +95: <REPO>/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values DiagnosticsPort records only scalar fields
+00:01 +96: <REPO>/packages/feldexa_ports/test/ports_contract_test.dart: Port failures use the T014 typed exceptions cancellation throws ImportCancelledException, not null
+00:01 +97: <REPO>/packages/feldexa_ports/test/ports_contract_test.dart: Port failures use the T014 typed exceptions a failed render throws RenderException
+00:01 +98: <REPO>/packages/feldexa_ports/test/ports_contract_test.dart: Port failures use the T014 typed exceptions a full store throws StorageFullException
+00:01 +99: <REPO>/packages/feldexa_ports/test/ports_contract_test.dart: Port failures use the T014 typed exceptions a failed export throws ExportFailedException
+00:01 +100: <REPO>/packages/feldexa_ports/test/type_ownership_test.dart: the barrel re-exports the canonical T014 declarations exactly once
+00:01 +101: <REPO>/packages/feldexa_ports/test/type_ownership_test.dart: port DTOs consume the canonical core and export types
+00:01 +102: <REPO>/packages/feldexa_ports/test/type_ownership_test.dart: PdfExportPort.validate wraps canonical validation with evidence
+00:01 +103: <REPO>/packages/feldexa_ports/test/type_ownership_test.dart: T013 files declare no canonical type owned by another task
+00:01 +104: <REPO>/packages/feldexa_ports/test/type_ownership_test.dart: feldexa_ports has no Flutter, platform, or plugin import
+00:01 +105: <REPO>/packages/feldexa_ports/test/type_ownership_test.dart: core and export never import feldexa_ports
+00:01 +106: <REPO>/packages/feldexa_ports/test/type_ownership_test.dart: the barrel re-exports declarations only, not canonical models
+00:01 +107: <REPO>/packages/feldexa_ports/test/type_ownership_test.dart: every T013-owned file named by the task exists
+00:01 +108: All tests passed!

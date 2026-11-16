@@ -1,5 +1,15 @@
 # T027 host evidence (`NONE`)
 
+> **Historical / superseded 2026-11-16:** This evidence was produced at
+> `HEAD=3a3202c` while the T027 code was still the uncommitted change that
+> became `5b4c295`. Review B therefore could not bind it to the committed
+> candidate source, and Review A found three defects. The corrected candidate
+> is `d45f4df8ec27a91d141bd2d86df77255f8fc7865`; canonical final evidence is
+> [2026-11-16-t027-host-evidence-final.md](./2026-11-16-t027-host-evidence-final.md)
+> and [2026-11-16-t027-emulator-store-evidence-final.md](./2026-11-16-t027-emulator-store-evidence-final.md).
+> This file is retained only as history and must not be used for final
+> acceptance.
+
 **Class**: `NONE` | **Result**: `PASS` (host checks only)
 **Date**: 2026-11-16 (Europe/Berlin)
 **Task**: issue #27 / T027
