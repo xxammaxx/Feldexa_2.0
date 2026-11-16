@@ -160,6 +160,8 @@ If any step fails before step 6, the previous `head.fx1` and all previous revisi
 
 ### 3.2 Import commit (new document)
 
+The importer supplies the document ID and initial revision to the store; the store persists those exact values once. A duplicate visible document is rejected without overwriting existing data. The import call returns only after the store has verified the initial commit.
+
 Key setup: create `docs/<documentId>/` and alias `feldexa.doc.v1.<documentId>` before any encrypted object is written. If key creation fails, return `SAVE-002` with no visible document; the startup sweep removes an incomplete directory and its orphan alias.
 
 1. Validate and stage the source object (`src/<sourceId>.fxc`) from the picked stream; count bytes, cap at 80 MiB (83,886,080 bytes), compute SHA-256 of plaintext.

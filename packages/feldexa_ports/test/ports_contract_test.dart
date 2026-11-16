@@ -565,7 +565,19 @@ void main() {
     test('SecureStorePort reads, writes, lists, and recovers', () async {
       final StoreStatus status = await registry.store.status();
       final StoredMeta created = await registry.store.createDocument(
-        CreateDocumentRequest(title: 'Antrag', source: fixtureSource()),
+        CreateDocumentRequest(
+          documentId: fixtureUuid(2),
+          initialRevision: Revision(
+            id: fixtureUuid(3),
+            documentId: fixtureUuid(2),
+            kind: RevisionKind.explicit,
+            createdAt: fixtureAt(),
+            plaintextSha256: fixtureSha256,
+            content: fixtureRevisionContent(),
+          ),
+          title: 'Antrag',
+          source: fixtureSource(),
+        ),
       );
       final StoredMeta saved = await registry.store.saveRevision(
         SaveRevisionRequest(

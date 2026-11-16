@@ -598,6 +598,15 @@ void main() {
 
     test('CreateDocumentRequest validates and trims the title', () {
       final CreateDocumentRequest request = CreateDocumentRequest(
+        documentId: fixtureUuid(2),
+        initialRevision: Revision(
+          id: fixtureUuid(3),
+          documentId: fixtureUuid(2),
+          kind: RevisionKind.explicit,
+          createdAt: fixtureAt(),
+          plaintextSha256: fixtureSha256,
+          content: fixtureRevisionContent(),
+        ),
         title: '  Antrag  ',
         source: fixtureSource(),
       );
@@ -605,7 +614,23 @@ void main() {
       expect(request.title, 'Antrag');
       expect(request.toString(), isNot(contains('Antrag')));
       expect(
-        () => CreateDocumentRequest(title: ' ', source: fixtureSource()),
+        () => CreateDocumentRequest(
+          documentId: fixtureUuid(2),
+          initialRevision: request.initialRevision,
+          title: ' ',
+          source: fixtureSource(),
+        ),
+        throwsArgumentError,
+      );
+      expect(request.documentId, fixtureUuid(2));
+      expect(request.initialRevision.id, fixtureUuid(3));
+      expect(
+        () => CreateDocumentRequest(
+          documentId: fixtureUuid(4),
+          initialRevision: request.initialRevision,
+          title: 'Antrag',
+          source: fixtureSource(),
+        ),
         throwsArgumentError,
       );
     });

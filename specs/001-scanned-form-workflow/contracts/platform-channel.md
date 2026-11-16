@@ -124,6 +124,7 @@ Internal cleanup for a failed import: `{ "txnId":"…" }` → `{ "removed": true
 | --- | --- | --- |
 | `store.status` | `{}` | `{ keyAvailable, objectCount, totalBytes }` |
 | `store.list` | `{ "kind":"document"\|"template" }` | `{ items:[StoredMeta…] }` |
+| `store.createDocument` | `{ "documentId", "title", "source":{…}, "initialRevision":{…} }` | `StoredMeta` read back from the committed aggregate |
 | `store.readSource` | `{ "documentId" }` | `Uint8List` (decrypted, capped 80 MiB) |
 | `store.readSignature` | `{ "documentId", "assetId" }` | `Uint8List` (PNG) |
 | `store.writeSignature` | `{ "documentId", "assetId", "bytes", "sha256" }` | `{ verified:true }` |
@@ -136,6 +137,7 @@ Internal cleanup for a failed import: `{ "txnId":"…" }` → `{ "removed": true
 | `store.recoveryStamp` | `{ "kind", "id" }` | `{ verifiedRevisionId, committedAt, headCorrupt, fellBackToOlderRevision }` |
 
 Rules:
+- `store.createDocument` persists the provided document ID and initial revision exactly once. The revision must belong to that document and have no parent. A duplicate visible aggregate is rejected without overwriting it; no second identity or initial revision is generated. The staged source must be verified before the aggregate becomes visible. The import flow supplies these values and returns only after this commit has been verified.
 - `saveRevision` uses optimistic concurrency: `expectedHead` must equal the current verified head, otherwise `SAVE-006` (concurrent write) and the caller re-reads. The app is single-user, but autosave/lifecycle races are real.
 - `saveRevision` performs the owner-decided retention after the verified read-back: last 3 autosave + newest explicit + newest recovery + the protected head. `prunedRevisions` is the count of known-kind files deleted by this save. Unknown/legacy entries and untracked files are retained; a legacy head without history prunes nothing.
 - `store.loadDocument` returns `head` with its bounded `history` array (`{revisionId, kind}`, oldest first, at most 16; `kind` may be null for legacy/unknown). The field is absent/empty for an old head.
