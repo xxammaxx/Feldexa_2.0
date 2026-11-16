@@ -146,7 +146,7 @@ deleted. The AVD was shut down, not wiped.
 | # | Command (cwd) | Exit | Log | Outcome |
 | ---: | --- | ---: | --- | --- |
 | 1 | `git rev-parse HEAD`, `git diff --name-status`, source/APK SHA-256 (repo root) | `0` | console only | `PASS` |
-| 2 | `./gradlew --no-daemon :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest` (`apps/feldexa_app/android`) | `0` | `build/t024-payload/logs/gradle-build2.log` | `PASS` |
+| 2 | initial host build with the new tests before the largeHeap overlay: `./gradlew --no-daemon :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest` (`apps/feldexa_app/android`) | `0` | `build/t024-payload/logs/gradle-build1.log` | `PASS` |
 | 3 | `./gradlew --offline --no-daemon :app:testDebugUnitTest --rerun-tasks` (`apps/feldexa_app/android`) | `0` | `build/t024-payload/logs/gradle-jvm-rerun.log` | `PASS` |
 | 4 | aggregate `TEST-*.xml` under `apps/feldexa_app/build/app/test-results/testDebugUnitTest` (repo root) | `0` | `build/t024-payload/logs/jvm-summary.log` | `PASS` |
 | 5 | `dexdump` scan of both APKs (repo root) | `0` | `build/t024-payload/logs/dex-check.log` | `PASS` |
@@ -155,7 +155,7 @@ deleted. The AVD was shut down, not wiped.
 | 8 | `adb -s emulator-5554 shell getprop`, `service check package`, `dumpsys package`, clocksource/CPU readback (repo root) | `0` | `build/t024-payload/logs/device-evidence.log` | `PASS` |
 | 9 | replace only `de.feldexa.app.test` and `de.feldexa.app`, `adb install -r -t` both APKs (repo root) | `0` | console only | `PASS` |
 | 10 | `am instrument -e class …#everyMethodRejectsPayloadExceedingGlobalLimit` **before** the largeHeap harness change | `1` | `build/t024-payload/logs/instrument-oversize-probe.log` | `FAIL` (diagnostic only: `OutOfMemoryError` in the harness encoder; superseded by #12) |
-| 11 | rebuild app/test APKs with the debug-only largeHeap overlay; `aapt2 dump xmltree` confirms `largeHeap=true` | `0` | `build/t024-payload/logs/gradle-build2.log` | `PASS` |
+| 11 | final rebuild of app/test APKs with the debug-only largeHeap overlay; `aapt2 dump xmltree` confirms `largeHeap=true` | `0` | `build/t024-payload/logs/gradle-build2.log` | `PASS` |
 | 12 | `am instrument -e class …#everyMethodRejectsPayloadExceedingGlobalLimit` after the harness change | `0` | `build/t024-payload/logs/instrument-oversize-after-largeheap.log` | `PASS` |
 | 13 | `am instrument -w -r -e class de.feldexa.app.FeldexaPluginInstrumentedTest` (repo root) | `0` | `build/t024-payload/logs/instrument-t024-class.log` | `PASS` |
 | 14 | `am instrument -w -r de.feldexa.app.test/androidx.test.runner.AndroidJUnitRunner` (repo root) | `0` | `build/t024-payload/logs/instrument-full.log` | `PASS` |
@@ -273,6 +273,7 @@ durations, not product performance.
 | Instrumentation test APK | `apps/feldexa_app/build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk` | 506094 | `5315ae033028c4220d8c4e1e1581eb9598583f55bcbc21b12fb42ff09ee30771` |
 | Instrumentation source | `apps/feldexa_app/android/app/src/androidTest/kotlin/de/feldexa/app/FeldexaPluginInstrumentedTest.kt` | 25875 | `b9af0ca6acf62f6226dd3bc90681a5d871154b2990d65b6099a51d30f2c4841f` |
 | Debug manifest overlay | `apps/feldexa_app/android/app/src/debug/AndroidManifest.xml` | 896 | `0b8fdc86353bc245b248439529586f221aa01a2b72d3982b7a6dd1e2e9cda1dc` |
+| Initial Gradle build | `build/t024-payload/logs/gradle-build1.log` | 21625 | `cfd73e62f9716143521f831d4fd5c5a057322e50a46b9f850d01daa185ff253f` |
 | Final Gradle build | `build/t024-payload/logs/gradle-build2.log` | 22377 | `6e8c3aba7b8226828bfbdd4d35aec00f839b2d1192512a7bf50334fa0a9a5ecc` |
 | Forced JVM rerun | `build/t024-payload/logs/gradle-jvm-rerun.log` | 24228 | `eecc005ebd3e57782bbd2b5963fa4b34dd31dd40b0df9b1a1e7875cdae323012` |
 | JVM test summary | `build/t024-payload/logs/jvm-summary.log` | 390 | `7d067b8ce8f562e760ec1198e4c877ad2829a7753ecd0fc52fee3267b9d03a00` |
