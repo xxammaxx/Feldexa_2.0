@@ -16,13 +16,17 @@
 //     (data safety and user control), and VIII (failure-case evidence).
 //
 // Division of labour, as stated in `android_platform_runtime.dart`: the native
-// T026 recovery owns stale `tmp/`, incomplete aggregates, head fallback,
-// signature assets, and orphan KEK aliases. This Dart sweep invokes that
-// recovery first on Android through the conditional platform seam, then
-// performs only the contract-visible `list` / `recoveryStamp` reads and the
-// cache-directory export-preview sweep the native store does not own. On the
-// Web the native seam is `null`; the same contract-visible reads run and no
-// `dart:io` or Android package is resolved.
+// T026 recovery owns `contracts/storage-format.md` §4 steps 1–3 and 5–6
+// (stale `tmp/`, incomplete aggregates, head fallback, signature assets, orphan
+// KEK aliases, and the counts-only recovery event). Dart owns step 4, the
+// cache-directory export previews. Because the native call is monolithic, Dart
+// step 4 runs BEFORE it so that plaintext cleanup stays before native steps
+// 5–6; running it after the native call would put it after the final recovery
+// event. The Dart `tmp/` pass is a secondary safety net only; the production
+// Dart filesystem cannot address `filesDir/feldexa/tmp` and reports no staging
+// entries, so native T026 remains the owner there. On the Web the native seam
+// is `null` and the current shell has no production store; the sweep then does
+// only its Web-safe directory pass and never invents aggregate state.
 //
 // Safety invariants:
 //   * the sweep has no API that can delete, rename, or re-encrypt a document
@@ -362,10 +366,21 @@ final class StartupSweepResult {
   int get unreadableCount =>
       aggregates.where((AggregateRecovery value) => value.unreadable).length;
 
-  /// Number of aggregates whose recovery adopted an older revision.
+  /// Number of aggregates whose recovery stamp adopted an older revision.
+  ///
+  /// A native adoption is committed before the later `recoveryStamp` reads, so
+  /// a native fallback is not necessarily visible in this stamp-only count.
+  /// [nativeFallbackCount] preserves that separate native count.
   int get fallbackCount => aggregates
       .where((AggregateRecovery value) => value.fellBackToOlderRevision)
       .length;
+
+  /// Number of fallback adoptions reported by the native T026 recovery.
+  ///
+  /// The native recovery commits the repaired head, so a later
+  /// `recoveryStamp` can report `fellBackToOlderRevision: false`; this count
+  /// is how the sweep preserves the warning across that transition.
+  int get nativeFallbackCount => nativeRecovery.fallbackAdoptions;
 
   /// Whether startup may be presented as a complete, non-degraded success.
   ///
@@ -384,6 +399,10 @@ final class StartupSweepResult {
 /// Application-side startup recovery and temporary/export-preview sweep.
 final class StartupSweep {
   /// Creates a sweep over [store], [clock], and [files].
+  ///
+  /// [store] is `null` on a target without a production encrypted store (the
+  /// current Web shell). In that case the sweep performs only the
+  /// Dart-reachable directory cleanup and never invents aggregate state.
   ///
   /// [nativeRecovery] overrides the platform binding; it is the seam tests use
   /// and the direct composition-root hook. When it is `null`,
@@ -412,8 +431,12 @@ final class StartupSweep {
     }
   }
 
-  /// Contract-visible encrypted store.
-  final SecureStorePort store;
+  /// Contract-visible encrypted store, or `null` on a target without one.
+  ///
+  /// A `null` store means the target has no production encrypted store to
+  /// read; the sweep still performs the cache-directory cleanup but performs
+  /// no `list` or `recoveryStamp` call and reports no aggregate state.
+  final SecureStorePort? store;
 
   /// Injected clock; the only time source the sweep reads.
   final ClockPort clock;
@@ -452,55 +475,50 @@ final class StartupSweep {
     r'[0-9a-f]{12}\.(part|head|meta|src|sig|ver|restore)$',
   );
 
-  /// Runs the startup recovery in contract order:
+  /// Runs the startup recovery in the required order.
   ///
-  /// 1. native T026 recovery (Android only; absent on the Web);
-  /// 2. stale/unknown `tmp/` sweep;
-  /// 3. contract-visible `list`/`recoveryStamp` reads for both kinds;
-  /// 4. export-preview sweep of artifacts older than 24 h.
+  /// The native T026 call owns `contracts/storage-format.md` §4 steps 1–3 and
+  /// steps 5–6: stale/unknown `tmp/`, incomplete aggregates and head fallback,
+  /// unreferenced signatures, orphan KEK aliases, and the redacted counts-only
+  /// recovery event. Dart owns step 4, the cache-directory export previews.
   ///
-  /// The export sweep still runs when a read failed, because stale preview
-  /// plaintext must not survive a degraded startup. No aggregate object, alias,
-  /// revision, or source is ever a candidate for deletion.
+  /// Because the native call is monolithic, Dart step 4 runs **before** the
+  /// native call. That is the only order that keeps step 4 before the native
+  /// step 5 alias sweep and step 6 recovery event; running it afterwards would
+  /// put plaintext cleanup after the final recovery event. The Dart `tmp/`
+  /// pass remains a secondary, contract-identical safety net for targets whose
+  /// filesystem seam can reach staging; the production Dart adapter cannot and
+  /// deliberately reports no staging entries. No aggregate object, alias,
+  /// revision, or source is ever a candidate for deletion here.
   Future<StartupSweepResult> run() async {
     final DateTime nowUtc = clock.nowUtc().toUtc();
     final _SweepState state = _SweepState();
 
-    // Step 1: native recovery is the prerequisite for every contract-visible
-    // read. A native failure is not a clean startup: stop before any Dart-side
-    // deletion and report the typed failure.
-    final StartupRecoveryCounts native = await _runNativeRecovery(state);
-
-    if (state.nativeFailed) {
-      // The native prerequisite failed. Do not delete anything and do not
-      // present a list that was not reconciled; the caller may retry startup,
-      // and a later successful run performs the deferred sweeps.
-      return _result(
-        native: native,
-        temporary: StartupSweepRemoval.empty,
-        exportPreviews: StartupSweepRemoval.empty,
-        aggregates: <AggregateRecovery>[],
-        state: state,
-      );
-    }
-
-    // Step 2: stale or unknown staging entries. The native recovery already
-    // did this on Android; a second, contract-identical pass is safe because
-    // it only removes names outside the persisted aggregate format.
-    final StartupSweepRemoval temporary = await _sweepTemporary(nowUtc, state);
-
-    // Step 3: the reads the contract exposes to the application. The native
-    // recovery has already reconciled heads and aliases on Android.
-    final List<AggregateRecovery> aggregates = <AggregateRecovery>[];
-    await _readKind(StoreKind.document, aggregates, state);
-    await _readKind(StoreKind.template, aggregates, state);
-
-    // Step 4: export previews are plaintext cache and are swept even when a
-    // read above degraded the run.
+    // Dart-owned step 4: remove stale plaintext export previews first. This
+    // still happens when native recovery fails (T031-A2), because plaintext
+    // previews must never be left behind by a degraded startup.
     final StartupSweepRemoval exportPreviews = await _sweepExportPreviews(
       nowUtc,
       state,
     );
+
+    // Native steps 1–3 and 5–6. The callback is the T027 composition seam.
+    final StartupRecoveryCounts native = await _runNativeRecovery(state);
+
+    // Secondary staging pass. The production Dart adapter cannot address the
+    // native `filesDir/feldexa/tmp` directory and returns no entries; native
+    // T026 owns that directory. The fake/file-system seam can still exercise
+    // this contract-identical fallback.
+    final StartupSweepRemoval temporary = await _sweepTemporary(nowUtc, state);
+
+    final List<AggregateRecovery> aggregates = <AggregateRecovery>[];
+    if (!state.nativeFailed && store != null) {
+      // Contract-visible reads only after native reconciliation. A native
+      // failure or a missing production store skips these reads because they
+      // need the aggregate key; it does not skip the plaintext cleanup above.
+      await _readKind(StoreKind.document, aggregates, state);
+      await _readKind(StoreKind.template, aggregates, state);
+    }
 
     return _result(
       native: native,
@@ -715,13 +733,17 @@ final class StartupSweep {
     List<AggregateRecovery> aggregates,
     _SweepState state,
   ) async {
+    final SecureStorePort? activeStore = store;
+    if (activeStore == null) {
+      return;
+    }
     final StartupSweepStage listStage = switch (kind) {
       StoreKind.document => StartupSweepStage.documentList,
       StoreKind.template => StartupSweepStage.templateList,
     };
     final List<StoredMeta> entries;
     try {
-      entries = await store.list(kind);
+      entries = await activeStore.list(kind);
     } on FeldexaException catch (error) {
       state.addIssue(
         StartupSweepIssue(
@@ -756,7 +778,10 @@ final class StartupSweep {
         continue;
       }
       try {
-        final RecoveryStamp stamp = await store.recoveryStamp(meta.id, kind);
+        final RecoveryStamp stamp = await activeStore.recoveryStamp(
+          meta.id,
+          kind,
+        );
         aggregates.add(AggregateRecovery(meta: meta, stamp: stamp));
         if (stamp.fellBackToOlderRevision) {
           if (stamp.verifiedRevisionId == null) {
@@ -844,6 +869,10 @@ final class StartupSweep {
           messages.save003,
           messages.save003Recovery,
         );
+      case 'SAVE-005':
+        // No status-vocabulary row exists for an unknown newer schema; the
+        // catalog message itself carries the update guidance.
+        return (null, messages.save005, messages.save005Recovery);
       case 'SAVE-008':
         return (
           messages.statusUnreadable,
@@ -862,6 +891,23 @@ final class StartupSweep {
     required List<AggregateRecovery> aggregates,
     required _SweepState state,
   }) {
+    // T031-A1: the native recovery commits the repaired head, so the later
+    // recoveryStamp reads can all report `fellBackToOlderRevision: false`.
+    // Preserve the native adoption as a store-wide SAVE-004 notice when no
+    // aggregate-specific fallback notice already carries the warning.
+    if (native.fallbackAdoptions > 0 &&
+        !state.notices.any(
+          (StartupSweepNotice value) => value.code == 'SAVE-004',
+        )) {
+      state.addNotice(
+        StartupSweepNotice(
+          code: 'SAVE-004',
+          statusLabel: messages.durabilityRecoveryFallback,
+          message: messages.save004,
+          recovery: messages.save004Recovery,
+        ),
+      );
+    }
     final bool hasUnreadable = aggregates.any(
       (AggregateRecovery value) => value.unreadable,
     );

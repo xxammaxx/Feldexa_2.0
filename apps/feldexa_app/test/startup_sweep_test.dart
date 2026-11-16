@@ -20,7 +20,10 @@
 @TestOn('vm')
 library;
 
+import 'dart:io';
+
 import 'package:feldexa_app/bootstrap/startup_sweep.dart';
+import 'package:feldexa_app/bootstrap/startup_sweep_io.dart';
 import 'package:feldexa_app/bootstrap/startup_sweep_platform.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
@@ -80,7 +83,7 @@ RecoveryStamp _healthyStamp() {
 
 void main() {
   group('order and platform seam', () {
-    test('native recovery runs before temp sweep and contract reads', () async {
+    test('export sweep precedes native recovery and contract reads', () async {
       final List<String> trace = <String>[];
       final StoredMeta document = _meta(id: _id(1));
       final StoredMeta template = _meta(id: _id(2), kind: StoreKind.template);
@@ -107,14 +110,16 @@ void main() {
 
       final StartupSweepResult result = await sweep.run();
 
+      // T031-B2: Dart-owned §4 step 4 runs before the monolithic native
+      // call so it stays before native steps 5–6.
       expect(trace, <String>[
+        'export.list',
         'native',
         'temp.list',
         'list:document',
         'stamp:${document.id}',
         'list:template',
         'stamp:${template.id}',
-        'export.list',
       ]);
       expect(result.status, StartupSweepStatus.clean);
       expect(result.isComplete, isTrue);
@@ -216,39 +221,92 @@ void main() {
       expect(notice.aggregateId, isNull);
     });
 
-    test('a native SAVE-008 short-circuits before any deletion', () async {
-      final _FakeStore store = _FakeStore(
-        documents: <StoredMeta>[_meta(id: _id(1))],
-      );
-      final _FakeFileSystem files = _FakeFileSystem(
-        temporaryEntries: <StartupSweepEntry>[
-          _entry('scratch.tmp', const Duration(days: 3)),
-        ],
-        exportArtifacts: <StartupSweepEntry>[
-          _entry('preview.pdf', const Duration(days: 3)),
-        ],
-      );
+    test(
+      'a native SAVE-008 still sweeps plaintext previews and skips reads',
+      () async {
+        final _FakeStore store = _FakeStore(
+          documents: <StoredMeta>[_meta(id: _id(1))],
+        );
+        final _FakeFileSystem files = _FakeFileSystem(
+          temporaryEntries: <StartupSweepEntry>[
+            _entry('scratch.tmp', const Duration(days: 3)),
+          ],
+          exportArtifacts: <StartupSweepEntry>[
+            _entry('preview.pdf', const Duration(days: 3)),
+          ],
+        );
 
-      final StartupSweepResult result = await StartupSweep(
-        store: store,
-        clock: _FixedClock(_now),
-        files: files,
-        nativeRecovery: () async => throw KeystoreUnavailableException(),
-      ).run();
+        final StartupSweepResult result = await StartupSweep(
+          store: store,
+          clock: _FixedClock(_now),
+          files: files,
+          nativeRecovery: () async => throw KeystoreUnavailableException(),
+        ).run();
 
-      expect(result.status, StartupSweepStatus.degraded);
-      expect(result.isComplete, isFalse);
-      expect(files.deletedTemporary, isEmpty);
-      expect(files.deletedExports, isEmpty);
-      expect(files.events, isEmpty);
-      expect(store.calls, isEmpty);
-      expect(store.deleteCalls, 0);
-      expect(result.issues.single.catalogCode, 'SAVE-008');
-      expect(result.notices.single.code, 'SAVE-008');
-    });
+        expect(result.status, StartupSweepStatus.degraded);
+        expect(result.isComplete, isFalse);
+        // T031-A2: plaintext export cleanup is never skipped by a native
+        // recovery failure. This replaces the unsafe "no deletion"
+        // expectation of the first candidate.
+        expect(files.deletedExports, <String>['preview.pdf']);
+        expect(files.deletedTemporary, <String>['scratch.tmp']);
+        expect(files.exportArtifacts, isEmpty);
+        // Aggregate reads need decryption, so they are skipped.
+        expect(store.calls, isEmpty);
+        expect(store.deleteCalls, 0);
+        expect(result.issues.single.catalogCode, 'SAVE-008');
+        expect(result.notices.single.code, 'SAVE-008');
+      },
+    );
   });
 
   group('corrupt head and recovery fallback', () {
+    test(
+      'native fallback adoption survives later stamps that report false',
+      () async {
+        // T031-A1 regression: native recovery commits the repaired head, so
+        // the later recoveryStamp reads all report
+        // `fellBackToOlderRevision: false`. The positive native adoption count
+        // must still produce the SAVE-004 warning.
+        final StoredMeta document = _meta(id: _id(1));
+        final _FakeStore store = _FakeStore(
+          documents: <StoredMeta>[document],
+          stamps: <String, RecoveryStamp>{document.id: _healthyStamp()},
+        );
+        const StartupRecoveryCounts native = StartupRecoveryCounts(
+          tempEntriesRemoved: 0,
+          incompleteAggregatesRemoved: 0,
+          unreadableAggregates: 0,
+          fallbackAdoptions: 1,
+          orphanAliasesRemoved: 0,
+          orphanAliasesRetained: 0,
+          orphanAliasesFailed: 0,
+          aliasSweepSkipped: false,
+          ambiguousRevisionOrder: 0,
+          prunedRevisions: 0,
+        );
+
+        final StartupSweepResult result = await StartupSweep(
+          store: store,
+          clock: _FixedClock(_now),
+          files: _FakeFileSystem(),
+          nativeRecovery: () async => native,
+        ).run();
+
+        expect(result.status, StartupSweepStatus.recovered);
+        expect(result.nativeFallbackCount, 1);
+        // The later stamp itself reports no fallback.
+        expect(result.fallbackCount, 0);
+        final StartupSweepNotice notice = result.notices.singleWhere(
+          (StartupSweepNotice value) => value.code == 'SAVE-004',
+        );
+        expect(notice.statusLabel, _de.durabilityRecoveryFallback);
+        expect(notice.message, _de.save004);
+        expect(notice.recovery, _de.save004Recovery);
+        expect(notice.aggregateId, isNull);
+      },
+    );
+
     test('SAVE-004 fallback surfaces the German guidance', () async {
       final StoredMeta document = _meta(id: _id(1));
       final RecoveryStamp stamp = RecoveryStamp(
@@ -385,6 +443,30 @@ void main() {
         expect(notice.statusLabel, isNull);
       },
     );
+
+    test('SAVE-005 schema-too-new surfaces the update guidance', () async {
+      final _FakeStore store = _FakeStore(
+        listErrors: <StoreKind, Object>{
+          StoreKind.document: SchemaTooNewException(),
+        },
+      );
+
+      final StartupSweepResult result = await StartupSweep(
+        store: store,
+        clock: _FixedClock(_now),
+        files: _FakeFileSystem(),
+      ).run();
+
+      expect(result.status, StartupSweepStatus.degraded);
+      expect(result.isComplete, isFalse);
+      expect(result.issues.single.catalogCode, 'SAVE-005');
+      final StartupSweepNotice notice = result.notices.singleWhere(
+        (StartupSweepNotice value) => value.code == 'SAVE-005',
+      );
+      expect(notice.statusLabel, isNull);
+      expect(notice.message, _de.save005);
+      expect(notice.recovery, _de.save005Recovery);
+    });
   });
 
   group('temporary and export-preview ages', () {
@@ -569,6 +651,111 @@ void main() {
         second.notices.map((StartupSweepNotice value) => value.code),
         first.notices.map((StartupSweepNotice value) => value.code),
       );
+    });
+  });
+
+  group('production io filesystem adapter', () {
+    late Directory root;
+    late Directory exports;
+
+    setUp(() async {
+      root = await Directory.systemTemp.createTemp('t031_io_');
+      exports = Directory(
+        '${root.path}${Platform.pathSeparator}feldexa_exports',
+      );
+      await exports.create(recursive: true);
+    });
+
+    tearDown(() async {
+      if (await root.exists()) {
+        await root.delete(recursive: true);
+      }
+    });
+
+    test('lists only exports and reports staging as native-owned', () async {
+      final File old = File('${exports.path}${Platform.pathSeparator}old.pdf')
+        ..writeAsStringSync('old');
+      old.setLastModifiedSync(_now.subtract(const Duration(hours: 25)));
+      final File fresh = File(
+        '${exports.path}${Platform.pathSeparator}fresh.pdf.tmp',
+      )..writeAsStringSync('fresh');
+      fresh.setLastModifiedSync(_now);
+      Directory('${exports.path}${Platform.pathSeparator}nested').createSync();
+      final IoStartupSweepFileSystem files = IoStartupSweepFileSystem(
+        exportDirectory: exports,
+      );
+
+      expect(await files.listTemporaryEntries(), isEmpty);
+      final List<StartupSweepEntry> entries = await files.listExportArtifacts();
+      expect(
+        entries.map((StartupSweepEntry value) => value.name).toSet(),
+        <String>{'old.pdf', 'fresh.pdf.tmp', 'nested'},
+      );
+      expect(
+        entries
+            .singleWhere((StartupSweepEntry value) => value.name == 'nested')
+            .isDirectory,
+        isTrue,
+      );
+      // Native T026 owns staging; the Dart adapter must refuse it.
+      await expectLater(
+        files.deleteTemporaryEntry(entries.first),
+        throwsA(isA<UnsupportedOperationException>()),
+      );
+      // A directory is never deleted recursively.
+      await expectLater(
+        files.deleteExportArtifact(
+          entries.singleWhere(
+            (StartupSweepEntry value) => value.name == 'nested',
+          ),
+        ),
+        throwsA(isA<SecurityException>()),
+      );
+      expect(
+        Directory('${exports.path}${Platform.pathSeparator}nested')
+            .existsSync(),
+        isTrue,
+      );
+    });
+
+    test('full sweep removes stale previews and keeps fresh ones', () async {
+      final File old = File('${exports.path}${Platform.pathSeparator}old.pdf')
+        ..writeAsStringSync('old');
+      old.setLastModifiedSync(_now.subtract(const Duration(hours: 25)));
+      final File fresh = File(
+        '${exports.path}${Platform.pathSeparator}fresh.pdf.tmp',
+      )..writeAsStringSync('fresh');
+      fresh.setLastModifiedSync(_now);
+      final StoredMeta document = _meta(id: _id(1));
+      final _FakeStore store = _FakeStore(
+        documents: <StoredMeta>[document],
+        stamps: <String, RecoveryStamp>{document.id: _healthyStamp()},
+      );
+
+      final StartupSweepResult result = await StartupSweep(
+        store: store,
+        clock: _FixedClock(_now),
+        files: IoStartupSweepFileSystem(exportDirectory: exports),
+      ).run();
+
+      expect(result.status, StartupSweepStatus.recovered);
+      expect(result.exportPreviews.removed, 1);
+      expect(result.exportPreviews.kept, 1);
+      expect(await old.exists(), isFalse);
+      expect(await fresh.exists(), isTrue);
+      expect(store.deleteCalls, 0);
+    });
+
+    test('a missing export directory is empty and is not created', () async {
+      final Directory missing = Directory(
+        '${root.path}${Platform.pathSeparator}missing_exports',
+      );
+      final IoStartupSweepFileSystem files = IoStartupSweepFileSystem(
+        exportDirectory: missing,
+      );
+
+      expect(await files.listExportArtifacts(), isEmpty);
+      expect(await missing.exists(), isFalse);
     });
   });
 }
