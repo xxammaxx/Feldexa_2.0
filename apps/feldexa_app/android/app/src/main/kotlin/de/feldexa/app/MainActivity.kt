@@ -18,12 +18,24 @@ import java.io.File
  * autosaves (§9).
  *
  * T027: the `store` service is registered here with the real
- * [EncryptedStore]/[KeystoreService]. The store root is app-private
- * `filesDir/feldexa_store`; no path is exposed to Dart. `startupRecovery` is
- * exposed as `store.startupRecovery` and is deliberately not run here: T031's
- * bootstrap owns the ordering "native recovery before the list is shown".
+ * [EncryptedStore]/[KeystoreService]. The store root is the normative
+ * `contracts/storage-format.md` §1 path `filesDir/feldexa/`; no path is exposed
+ * to Dart. `startupRecovery` is exposed as `store.startupRecovery` and is
+ * deliberately not run here: T031's bootstrap owns the ordering "native
+ * recovery before the list is shown".
+ *
+ * The earlier T027 candidate used the non-contract directory
+ * `filesDir/feldexa_store`. This unshipped build does not delete, rename, or
+ * silently migrate that directory: the canonical root is used from now on and
+ * any pre-existing test data is left where it is for explicit inspection. No
+ * production migration path is introduced.
  */
 class MainActivity : FlutterActivity() {
+
+    companion object {
+        /** `contracts/storage-format.md` §1. */
+        const val STORE_ROOT_DIR: String = "feldexa"
+    }
 
     private var feldexaPlugin: FeldexaPlugin? = null
 
@@ -35,7 +47,7 @@ class MainActivity : FlutterActivity() {
         plugin.registerImportChannel(flutterEngine.dartExecutor.binaryMessenger)
 
         val store = EncryptedStore(
-            root = File(filesDir, "feldexa_store").absoluteFile,
+            root = File(filesDir, STORE_ROOT_DIR).absoluteFile,
             keystore = KeystoreService.forAndroid(this),
         )
         runCatching { store.ensureLayout() }

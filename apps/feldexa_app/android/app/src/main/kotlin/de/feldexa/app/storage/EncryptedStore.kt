@@ -819,7 +819,15 @@ class EncryptedStore(
         )
     }
 
-    /** Writes one signature PNG and verifies it before returning (§3.4). */
+    /**
+     * Writes one signature PNG and verifies it before returning (§3.4).
+     *
+     * The 2 MiB cap is not the only check: [SignaturePng] parses and fully
+     * inflates the PNG, enforces the 1024 px long edge and positive
+     * dimensions, and rejects arbitrary/truncated/corrupt bytes as `SAVE-007`.
+     * Immutability is checked first, so an existing asset id still fails with
+     * `PLT-002` regardless of the replacement bytes.
+     */
     fun writeSignature(documentId: String, assetId: String, pngBytes: ByteArray) {
         val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
         requireAggregateId(ref)
@@ -844,6 +852,10 @@ class EncryptedStore(
             // unsafe-operation guard (mirrors the simulated adapter).
             throw PlatformSecurityException()
         }
+        // `contracts/platform-channel.md` §10 / `data-model.md` §3.7: a
+        // signature is a real PNG with a positive, bounded long edge. Size and
+        // caller-supplied hash are not sufficient; validate before staging.
+        SignaturePng.requireValid(pngBytes)
         ensureLayout()
         io.mkdirs(File(aggregateDir(ref), "sig"))
         commitObject(

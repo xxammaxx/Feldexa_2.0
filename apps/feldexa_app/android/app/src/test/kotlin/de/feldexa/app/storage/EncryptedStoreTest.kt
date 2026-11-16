@@ -717,8 +717,8 @@ class EncryptedStoreTest {
         val created = createDoc()
         val oldAsset = newId()
         val referencedAsset = newId()
-        store.writeSignature(created.aggregateId, oldAsset, byteArrayOf(1, 2, 3))
-        store.writeSignature(created.aggregateId, referencedAsset, byteArrayOf(4, 5, 6))
+        store.writeSignature(created.aggregateId, oldAsset, TestPng.validRgba(1, 1))
+        store.writeSignature(created.aggregateId, referencedAsset, TestPng.validRgba(2, 2))
         val sigDir = File(storeRoot, "docs/${created.aggregateId}/sig")
         File(sigDir, "$oldAsset.fxs").setLastModified(now.get() - EncryptedStore.STALE_TEMP_MS - 1_000)
         File(sigDir, "$referencedAsset.fxs").setLastModified(now.get() - EncryptedStore.STALE_TEMP_MS - 1_000)
@@ -823,8 +823,8 @@ class EncryptedStoreTest {
     fun existingSignatureAssetIsNeverReplacedAndPriorStateIsPreserved() {
         val created = createDoc()
         val assetId = newId()
-        val original = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 1, 2, 3)
-        val replacement = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 9, 9, 9, 9)
+        val original = TestPng.validRgba(1, 1)
+        val replacement = TestPng.validRgba(2, 2)
         store.writeSignature(created.aggregateId, assetId, original)
 
         val revDir = docFile(created.aggregateId, "rev")
@@ -852,10 +852,79 @@ class EncryptedStoreTest {
     }
 
     @Test
+    fun invalidSignaturePngIsSave007AndPreservesPriorState() {
+        val created = createDoc()
+        val keptAsset = newId()
+        val kept = TestPng.validRgba(3, 2)
+        store.writeSignature(created.aggregateId, keptAsset, kept)
+        val revDir = docFile(created.aggregateId, "rev")
+        val revisionsBefore = revDir.listFiles()!!
+            .associate { it.name to it.readBytes().toList() }
+        val headBefore = store.loadDocument(created.aggregateId).head
+        val sigDir = docFile(created.aggregateId, "sig")
+        val sigFilesBefore = sigDir.listFiles()!!.associate { it.name to it.readBytes().toList() }
+
+        val corrupt = TestPng.validRgba(2, 2).copyOf().also {
+            it[16] = (it[16].toInt() xor 0x01).toByte()
+        }
+        val invalidFixtures = listOf(
+            "%PDF-1.7 arbitrary bytes".toByteArray(),
+            TestPng.validRgba(4, 4).copyOf(20),
+            corrupt,
+        )
+        for (invalid in invalidFixtures) {
+            val assetId = newId()
+            assertFailure("SAVE-007") {
+                store.writeSignature(created.aggregateId, assetId, invalid)
+            }
+            assertFalse("rejected signature must not be stored", File(sigDir, "$assetId.fxs").exists())
+            assertArrayEquals(kept, store.readSignature(created.aggregateId, keptAsset))
+            assertEquals(headBefore, store.loadDocument(created.aggregateId).head)
+            assertEquals(
+                revisionsBefore,
+                revDir.listFiles()!!.associate { it.name to it.readBytes().toList() },
+            )
+            assertEquals(
+                sigFilesBefore,
+                sigDir.listFiles()!!.associate { it.name to it.readBytes().toList() },
+            )
+        }
+        assertFalse(File(storeRoot, "tmp").listFiles().orEmpty().any { it.isFile })
+    }
+
+    @Test
+    fun signatureBoundary1024IsAcceptedAnd1025IsSave007() {
+        val created = createDoc()
+        val acceptedAsset = newId()
+        val boundary = TestPng.validRgba(1024, 1024)
+        assertEquals(1024, TestPng.size(boundary).first)
+        store.writeSignature(created.aggregateId, acceptedAsset, boundary)
+        assertArrayEquals(boundary, store.readSignature(created.aggregateId, acceptedAsset))
+
+        val headBefore = store.loadDocument(created.aggregateId).head
+        val revDir = docFile(created.aggregateId, "rev")
+        val revisionsBefore = revDir.listFiles()!!
+            .associate { it.name to it.readBytes().toList() }
+        val tooWide = TestPng.validRgba(1025, 1024)
+        assertEquals(1025, TestPng.size(tooWide).first)
+        val refusedAsset = newId()
+        assertFailure("SAVE-007") {
+            store.writeSignature(created.aggregateId, refusedAsset, tooWide)
+        }
+        assertFalse(File(docFile(created.aggregateId, "sig"), "$refusedAsset.fxs").exists())
+        assertArrayEquals(boundary, store.readSignature(created.aggregateId, acceptedAsset))
+        assertEquals(headBefore, store.loadDocument(created.aggregateId).head)
+        assertEquals(
+            revisionsBefore,
+            revDir.listFiles()!!.associate { it.name to it.readBytes().toList() },
+        )
+    }
+
+    @Test
     fun signatureRoundTripAndTamper() {
         val created = createDoc()
         val assetId = newId()
-        val png = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 1, 2, 3)
+        val png = TestPng.validRgba(1, 1)
         store.writeSignature(created.aggregateId, assetId, png)
         assertArrayEquals(png, store.readSignature(created.aggregateId, assetId))
 

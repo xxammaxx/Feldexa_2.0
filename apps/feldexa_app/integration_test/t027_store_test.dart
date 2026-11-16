@@ -127,15 +127,7 @@ void main() {
       expect(afterConflict.meta.latestRevisionId, saved.latestRevisionId);
 
       final String signatureId = ids.newId();
-      final Uint8List signatureBytes = Uint8List.fromList(<int>[
-        0x89,
-        0x50,
-        0x4E,
-        0x47,
-        1,
-        2,
-        3,
-      ]);
+      final Uint8List signatureBytes = base64Decode(_validSignature2x2);
       final String signatureSha = crypto.sha256
           .convert(signatureBytes)
           .toString();
@@ -152,15 +144,7 @@ void main() {
         orderedEquals(signatureBytes),
       );
 
-      final Uint8List replacementSignature = Uint8List.fromList(<int>[
-        0x89,
-        0x50,
-        0x4E,
-        0x47,
-        9,
-        9,
-        9,
-      ]);
+      final Uint8List replacementSignature = base64Decode(_validSignature3x3);
       await expectLater(
         store.writeSignature(
           WriteSignatureRequest(
@@ -182,6 +166,76 @@ void main() {
       expect(
         afterSignatureConflict.meta.latestRevisionId,
         saved.latestRevisionId,
+      );
+
+      final Uint8List invalidSignature = Uint8List.fromList(
+        utf8.encode('%PDF-1.7 not a PNG at all'),
+      );
+      await expectLater(
+        store.writeSignature(
+          WriteSignatureRequest(
+            documentId: documentId,
+            assetId: ids.newId(),
+            bytes: invalidSignature,
+            sha256: crypto.sha256.convert(invalidSignature).toString(),
+          ),
+        ),
+        throwsA(isA<AndroidInvalidDataException>()),
+      );
+      final Uint8List truncatedSignature = Uint8List.sublistView(
+        signatureBytes,
+        0,
+        20,
+      );
+      await expectLater(
+        store.writeSignature(
+          WriteSignatureRequest(
+            documentId: documentId,
+            assetId: ids.newId(),
+            bytes: truncatedSignature,
+            sha256: crypto.sha256.convert(truncatedSignature).toString(),
+          ),
+        ),
+        throwsA(isA<AndroidInvalidDataException>()),
+      );
+      expect(
+        await store.readSignature(documentId, signatureId),
+        orderedEquals(signatureBytes),
+      );
+      final LoadedDocument afterInvalidSignature = await store.loadDocument(
+        documentId,
+      );
+      expect(
+        afterInvalidSignature.meta.latestRevisionId,
+        saved.latestRevisionId,
+      );
+
+      final Uint8List boundary1024 = base64Decode(_validSignature1024);
+      final String boundaryAsset = ids.newId();
+      await store.writeSignature(
+        WriteSignatureRequest(
+          documentId: documentId,
+          assetId: boundaryAsset,
+          bytes: boundary1024,
+          sha256: crypto.sha256.convert(boundary1024).toString(),
+        ),
+      );
+      expect(
+        await store.readSignature(documentId, boundaryAsset),
+        orderedEquals(boundary1024),
+      );
+
+      final Uint8List overBoundary = base64Decode(_overLimitSignature1025);
+      await expectLater(
+        store.writeSignature(
+          WriteSignatureRequest(
+            documentId: documentId,
+            assetId: ids.newId(),
+            bytes: overBoundary,
+            sha256: crypto.sha256.convert(overBoundary).toString(),
+          ),
+        ),
+        throwsA(isA<AndroidInvalidDataException>()),
       );
 
       final RecoveryStamp stamp = await store.recoveryStamp(
@@ -243,3 +297,19 @@ RevisionContent _content() {
     },
   );
 }
+
+// Real valid PNGs produced by an independent zlib/CRC encoder. They are kept
+// as constants so the integration test does not duplicate production parsing
+// or depend on an Android encoder through a second channel.
+const String _validSignature2x2 =
+    'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEUlEQVR42mMwTpv5H4QZ'
+    'YAwAScgIxevRCIwAAAAASUVORK5CYII=';
+const String _validSignature3x3 =
+    'iVBORw0KGgoAAAANSUhEUgAAAAMAAAADCAYAAABWKLW/AAAAEUlEQVR42mMwTpv5H4YZ'
+    'cHIAdSYTuuPczfEAAAAASUVORK5CYII=';
+const String _validSignature1024 =
+    'iVBORw0KGgoAAAANSUhEUgAABAAAAAABCAYAAABADtw1AAAAIUlEQVR42u3DAQ0AAAgD'
+    'IDvZyU5Pqz0cbFRPVlVVVf39AGAOxHn43lj+AAAAAElFTkSuQmCC';
+const String _overLimitSignature1025 =
+    'iVBORw0KGgoAAAANSUhEUgAABAEAAAABCAYAAACvzLcLAAAAIUlEQVR42u3DAQ0AAAgD'
+    'IDvZyU5Pqz0cbFRPVlVVVf3/AHZOxqqdEp2aAAAAAElFTkSuQmCC';

@@ -3,6 +3,7 @@ package de.feldexa.app
 import android.app.Instrumentation
 import de.feldexa.app.storage.AggregateKind
 import de.feldexa.app.storage.AggregateRef
+import de.feldexa.app.storage.AndroidTestPng
 import de.feldexa.app.storage.CanonicalJson
 import de.feldexa.app.storage.DeleteConfirmation
 import de.feldexa.app.storage.EncryptedStore
@@ -276,7 +277,7 @@ class FeldexaPluginInstrumentedTest {
             )
 
             val signatureId = UUID.randomUUID().toString()
-            val signatureBytes = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 1, 2, 3)
+            val signatureBytes = AndroidTestPng.validRgba(2, 2)
             val signatureSha = sha256(signatureBytes)
             val writeSignatureStart = invoke(
                 "store.writeSignature",
@@ -292,8 +293,7 @@ class FeldexaPluginInstrumentedTest {
             val writeSignatureResult = awaitResult(startOperationId(writeSignatureStart))
             assertEquals(true, writeSignatureResult["ok"])
 
-            val duplicateSignatureBytes =
-                byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 9, 9, 9)
+            val duplicateSignatureBytes = AndroidTestPng.validRgba(3, 3)
             val duplicateSignatureStart = invoke(
                 "store.writeSignature",
                 withSchema(
@@ -369,6 +369,166 @@ class FeldexaPluginInstrumentedTest {
                     AggregateKind.DOCUMENT,
                     documentId,
                     DeleteConfirmation(acknowledged = true, title = "T027 Kanaltest"),
+                    "Nicht lesbar",
+                )
+            }
+            runCatching {
+                keystore.deleteAggregateKey(AggregateRef(AggregateKind.DOCUMENT, documentId))
+            }
+            runCatching { root.deleteRecursively() }
+        }
+    }
+
+    @Test
+    fun realStoreSignaturePngValidationThroughChannel() {
+        val context = instrumentation.targetContext
+        val root = File(context.filesDir, "t027-signature-" + UUID.randomUUID())
+        val keystore = KeystoreService.forAndroid(context)
+        val store = EncryptedStore(root, keystore)
+        store.ensureLayout()
+        plugin.registerService("store", StoreService(store))
+        val documentId = UUID.randomUUID().toString()
+        val source = "%PDF-1.7 signature channel source".toByteArray()
+        val created = store.createDocument(
+            documentId = documentId,
+            metaJson = "{\"createdAt\":\"2026-11-16T12:00:00.000Z\",\"title\":\"Signatur\"}"
+                .toByteArray(),
+            sourceId = UUID.randomUUID().toString(),
+            sourceBytes = source,
+            revisionId = UUID.randomUUID().toString(),
+            revisionJson = "{\"pageCount\":1,\"schemaVersion\":1}".toByteArray(),
+        )
+        val headBefore = created.revisionId
+        try {
+            listenResults()
+
+            val validAsset = UUID.randomUUID().toString()
+            val validPng = AndroidTestPng.validRgba(2, 2)
+            assertEquals(2 to 2, AndroidTestPng.decodedSize(validPng))
+            val validStart = invoke(
+                "store.writeSignature",
+                withSchema(
+                    mapOf(
+                        "documentId" to documentId,
+                        "assetId" to validAsset,
+                        "bytes" to validPng,
+                        "sha256" to sha256(validPng),
+                    ),
+                ),
+            )
+            val validResult = awaitResult(startOperationId(validStart))
+            assertEquals(true, validResult["ok"])
+            assertArrayEquals(
+                validPng,
+                invoke(
+                    "store.readSignature",
+                    withSchema(
+                        mapOf("documentId" to documentId, "assetId" to validAsset),
+                    ),
+                )["data"] as ByteArray,
+            )
+
+            val sigDir = File(root, "docs/$documentId/sig")
+            val signaturesBefore = sigDir.listFiles()!!
+                .associate { it.name to it.readBytes().toList() }
+            val revDir = File(root, "docs/$documentId/rev")
+            val revisionsBefore = revDir.listFiles()!!
+                .associate { it.name to it.readBytes().toList() }
+
+            val corrupt = AndroidTestPng.validRgba(3, 3).copyOf().also {
+                it[16] = (it[16].toInt() xor 0x01).toByte()
+            }
+            for (invalid in listOf(
+                "%PDF-1.7 not a PNG".toByteArray(),
+                AndroidTestPng.validRgba(4, 4).copyOf(20),
+                corrupt,
+            )) {
+                val invalidAsset = UUID.randomUUID().toString()
+                val start = invoke(
+                    "store.writeSignature",
+                    withSchema(
+                        mapOf(
+                            "documentId" to documentId,
+                            "assetId" to invalidAsset,
+                            "bytes" to invalid,
+                            "sha256" to sha256(invalid),
+                        ),
+                    ),
+                )
+                val result = awaitResult(startOperationId(start))
+                assertEquals(false, result["ok"])
+                assertEquals(
+                    "SAVE-007",
+                    ((result["error"] as Map<*, *>)["code"]),
+                )
+                assertFalse(File(sigDir, "$invalidAsset.fxs").exists())
+                assertArrayEquals(
+                    validPng,
+                    invoke(
+                        "store.readSignature",
+                        withSchema(
+                            mapOf("documentId" to documentId, "assetId" to validAsset),
+                        ),
+                    )["data"] as ByteArray,
+                )
+                assertEquals(
+                    headBefore,
+                    ((invoke(
+                        "store.loadDocument",
+                        withSchema(mapOf("documentId" to documentId)),
+                    )["data"] as Map<*, *>)["head"] as Map<*, *>)["revisionId"],
+                )
+                assertEquals(
+                    revisionsBefore,
+                    revDir.listFiles()!!.associate { it.name to it.readBytes().toList() },
+                )
+                assertEquals(
+                    signaturesBefore,
+                    sigDir.listFiles()!!.associate { it.name to it.readBytes().toList() },
+                )
+            }
+
+            val boundaryAsset = UUID.randomUUID().toString()
+            val boundaryPng = AndroidTestPng.validRgba(1024, 1024)
+            assertEquals(1024 to 1024, AndroidTestPng.decodedSize(boundaryPng))
+            val boundaryStart = invoke(
+                "store.writeSignature",
+                withSchema(
+                    mapOf(
+                        "documentId" to documentId,
+                        "assetId" to boundaryAsset,
+                        "bytes" to boundaryPng,
+                        "sha256" to sha256(boundaryPng),
+                    ),
+                ),
+            )
+            assertEquals(true, awaitResult(startOperationId(boundaryStart))["ok"])
+
+            val tooWide = AndroidTestPng.validRgba(1025, 1024)
+            assertEquals(1025 to 1024, AndroidTestPng.decodedSize(tooWide))
+            val tooWideStart = invoke(
+                "store.writeSignature",
+                withSchema(
+                    mapOf(
+                        "documentId" to documentId,
+                        "assetId" to UUID.randomUUID().toString(),
+                        "bytes" to tooWide,
+                        "sha256" to sha256(tooWide),
+                    ),
+                ),
+            )
+            val tooWideResult = awaitResult(startOperationId(tooWideStart))
+            assertEquals(false, tooWideResult["ok"])
+            assertEquals(
+                "SAVE-007",
+                ((tooWideResult["error"] as Map<*, *>)["code"]),
+            )
+        } finally {
+            runCatching {
+                store.delete(
+                    AggregateKind.DOCUMENT,
+                    documentId,
+                    DeleteConfirmation(acknowledged = true, title = "Signatur"),
                     "Nicht lesbar",
                 )
             }

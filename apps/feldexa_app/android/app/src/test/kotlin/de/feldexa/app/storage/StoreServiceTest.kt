@@ -334,8 +334,8 @@ class StoreServiceTest {
         )
 
         val assetId = newId()
-        val original = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 1, 2, 3)
-        val replacement = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 9, 9, 9)
+        val original = TestPng.validRgba(1, 1)
+        val replacement = TestPng.validRgba(2, 2)
         val written = handle(
             "store.writeSignature",
             linkedMapOf(
@@ -389,6 +389,147 @@ class StoreServiceTest {
             )
         }
         assertEquals("PLT-002", repeatedFailure.code)
+    }
+
+    @Test
+    fun invalidSignaturePngIsSave007AndPreservesPriorState() {
+        val documentId = newId()
+        val sourceId = newId()
+        val revisionId = newId()
+        val source = "%PDF-1.7 signature validation source".toByteArray()
+        val content = linkedMapOf<String, Any?>("pageCount" to 1)
+        handle(
+            "store.stageSource",
+            linkedMapOf(
+                "documentId" to documentId,
+                "sourceId" to sourceId,
+                "bytes" to source,
+                "sha256" to sha256(source),
+            ),
+        )
+        createDocument(
+            documentId,
+            sourceId,
+            revisionId,
+            sha256(source),
+            source.size,
+            sha256(CanonicalJson.encode(content)),
+            content,
+        )
+
+        val keptAsset = newId()
+        val kept = TestPng.validRgba(3, 2)
+        handle(
+            "store.writeSignature",
+            linkedMapOf(
+                "documentId" to documentId,
+                "assetId" to keptAsset,
+                "bytes" to kept,
+                "sha256" to sha256(kept),
+            ),
+        )
+        val headBefore = headAfter(documentId)
+        val revDir = File(temporary.root, "store/docs/$documentId/rev")
+        val revisionsBefore = revDir.listFiles()!!
+            .associate { it.name to it.readBytes().toList() }
+        val sigDir = File(temporary.root, "store/docs/$documentId/sig")
+        val signaturesBefore = sigDir.listFiles()!!
+            .associate { it.name to it.readBytes().toList() }
+
+        val corrupt = TestPng.validRgba(2, 2).copyOf().also {
+            it[16] = (it[16].toInt() xor 0x01).toByte()
+        }
+        for (invalid in listOf(
+            "%PDF-1.7 not a PNG".toByteArray(),
+            TestPng.validRgba(4, 4).copyOf(20),
+            corrupt,
+        )) {
+            val assetId = newId()
+            val failure = assertThrows(PlatformFailure::class.java) {
+                handle(
+                    "store.writeSignature",
+                    linkedMapOf(
+                        "documentId" to documentId,
+                        "assetId" to assetId,
+                        "bytes" to invalid,
+                        "sha256" to sha256(invalid),
+                    ),
+                )
+            }
+            assertEquals("SAVE-007", failure.code)
+            assertFalse(File(sigDir, "$assetId.fxs").exists())
+            assertArrayEquals(
+                kept,
+                handle(
+                    "store.readSignature",
+                    linkedMapOf("documentId" to documentId, "assetId" to keptAsset),
+                ) as ByteArray,
+            )
+            assertEquals(headBefore, headAfter(documentId))
+            assertEquals(
+                revisionsBefore,
+                revDir.listFiles()!!.associate { it.name to it.readBytes().toList() },
+            )
+            assertEquals(
+                signaturesBefore,
+                sigDir.listFiles()!!.associate { it.name to it.readBytes().toList() },
+            )
+        }
+    }
+
+    @Test
+    fun signatureBoundary1024IsAcceptedAnd1025IsSave007ThroughService() {
+        val documentId = newId()
+        val sourceId = newId()
+        val revisionId = newId()
+        val source = "%PDF-1.7 signature boundary source".toByteArray()
+        val content = linkedMapOf<String, Any?>("pageCount" to 1)
+        handle(
+            "store.stageSource",
+            linkedMapOf(
+                "documentId" to documentId,
+                "sourceId" to sourceId,
+                "bytes" to source,
+                "sha256" to sha256(source),
+            ),
+        )
+        createDocument(
+            documentId,
+            sourceId,
+            revisionId,
+            sha256(source),
+            source.size,
+            sha256(CanonicalJson.encode(content)),
+            content,
+        )
+
+        val acceptedAsset = newId()
+        val boundary = TestPng.validRgba(1024, 1024)
+        val written = handle(
+            "store.writeSignature",
+            linkedMapOf(
+                "documentId" to documentId,
+                "assetId" to acceptedAsset,
+                "bytes" to boundary,
+                "sha256" to sha256(boundary),
+            ),
+        ) as Map<*, *>
+        assertEquals(true, written["verified"])
+
+        val tooWide = TestPng.validRgba(1025, 1024)
+        val refusedAsset = newId()
+        val failure = assertThrows(PlatformFailure::class.java) {
+            handle(
+                "store.writeSignature",
+                linkedMapOf(
+                    "documentId" to documentId,
+                    "assetId" to refusedAsset,
+                    "bytes" to tooWide,
+                    "sha256" to sha256(tooWide),
+                ),
+            )
+        }
+        assertEquals("SAVE-007", failure.code)
     }
 
     @Test

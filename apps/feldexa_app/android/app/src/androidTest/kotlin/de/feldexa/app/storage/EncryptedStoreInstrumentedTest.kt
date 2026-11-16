@@ -750,6 +750,72 @@ class EncryptedStoreInstrumentedTest {
         }
     }
 
+    @Test
+    fun invalidSignaturePngIsRejectedAndPreservesPriorStateOnDevice() {
+        val created = createDocument("Signatur")
+        val keptAsset = newId()
+        val kept = AndroidTestPng.validRgba(3, 2)
+        assertEquals(3 to 2, AndroidTestPng.decodedSize(kept))
+        store.writeSignature(created.aggregateId, keptAsset, kept)
+
+        val revDir = File(root, "docs/${created.aggregateId}/rev")
+        val revisionsBefore = revDir.listFiles()!!
+            .associate { it.name to it.readBytes().toList() }
+        val headBefore = store.loadDocument(created.aggregateId).head
+        val sigDir = File(root, "docs/${created.aggregateId}/sig")
+        val signaturesBefore = sigDir.listFiles()!!
+            .associate { it.name to it.readBytes().toList() }
+
+        val corrupt = AndroidTestPng.validRgba(2, 2).copyOf().also {
+            it[16] = (it[16].toInt() xor 0x01).toByte()
+        }
+        for (invalid in listOf(
+            "%PDF-1.7 definitely not a PNG".toByteArray(),
+            AndroidTestPng.validRgba(4, 4).copyOf(20),
+            corrupt,
+        )) {
+            val assetId = newId()
+            val failure = assertThrows(InvalidDataException::class.java) {
+                store.writeSignature(created.aggregateId, assetId, invalid)
+            }
+            assertEquals("SAVE-007", failure.code)
+            assertFalse(File(sigDir, "$assetId.fxs").exists())
+            assertArrayEquals(
+                kept,
+                store.readSignature(created.aggregateId, keptAsset),
+            )
+            assertEquals(headBefore, store.loadDocument(created.aggregateId).head)
+            assertEquals(
+                revisionsBefore,
+                revDir.listFiles()!!.associate { it.name to it.readBytes().toList() },
+            )
+            assertEquals(
+                signaturesBefore,
+                sigDir.listFiles()!!.associate { it.name to it.readBytes().toList() },
+            )
+        }
+    }
+
+    @Test
+    fun signatureBoundary1024IsAcceptedAnd1025IsSave007OnDevice() {
+        val created = createDocument("Signaturgrenze")
+        val acceptedAsset = newId()
+        val boundary = AndroidTestPng.validRgba(1024, 1024)
+        assertEquals(1024 to 1024, AndroidTestPng.decodedSize(boundary))
+        store.writeSignature(created.aggregateId, acceptedAsset, boundary)
+        assertArrayEquals(
+            boundary,
+            store.readSignature(created.aggregateId, acceptedAsset),
+        )
+
+        val tooWide = AndroidTestPng.validRgba(1025, 1024)
+        assertEquals(1025 to 1024, AndroidTestPng.decodedSize(tooWide))
+        val failure = assertThrows(InvalidDataException::class.java) {
+            store.writeSignature(created.aggregateId, newId(), tooWide)
+        }
+        assertEquals("SAVE-007", failure.code)
+    }
+
     // ------------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------------
