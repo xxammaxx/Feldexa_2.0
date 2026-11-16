@@ -12,6 +12,8 @@ dependencies:
     sdk: flutter
   feldexa_ports:
     path: ../feldexa_ports
+  feldexa_core:
+    path: ../feldexa_core
 
 dev_dependencies:
   flutter_test:
