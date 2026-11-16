@@ -1,0 +1,237 @@
+{
+  "schema": "feldexa-t026-mtime-evidence-v1",
+  "task": "T026",
+  "issue": 26,
+  "date": "2026-11-15",
+  "timezone": "Europe/Berlin",
+  "baseCommit": "d78114fdb703c405fe4692fe287e71095b50fc59",
+  "implementationCommit": "53ffe78e0f9c7ed1939fc1ec0846c3e391927588",
+  "classes": {
+    "host": "NONE",
+    "emulator": "EMULATOR"
+  },
+  "toolchain": {
+    "base_commit": "d78114fdb703c405fe4692fe287e71095b50fc59",
+    "implementation_commit": "53ffe78e0f9c7ed1939fc1ec0846c3e391927588",
+    "flutter": "3.47.7 engine deb287481e3c",
+    "dart": "Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on \"linux_x64\"",
+    "java": "openjdk version \"17.0.20.1\" 2026-08-18",
+    "gradle": "Gradle 9.3.1",
+    "adb": "Android Debug Bridge version 1.0.41",
+    "emulator": "Android emulator version 37.2.12.0 (build_id 16428233) (CL:N/A)",
+    "sdk_platforms": "android-34 android-35 android-36 android-37.0",
+    "build_tools": "35.0.0 36.0.0",
+    "ndk": "28.2.13676358"
+  },
+  "apk": {
+    "path": "apps/feldexa_app/build/app/outputs/apk/debug/app-debug.apk",
+    "bytes": 216359664,
+    "sha256": "93b92c585e3a5b401c5e0dbd14d322fcfdc171216b1f7760f799672d8b0e0ac5"
+  },
+  "testApk": {
+    "path": "apps/feldexa_app/build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk",
+    "bytes": 399814,
+    "sha256": "82711d4215d6fa24d754f5b26490effec216bf6db8155ff105f2d7768890d8a2"
+  },
+  "jvm": {
+    "total": 114,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "suites": {
+      "EncryptedStoreTest": 49,
+      "EncryptedStoreFaultTest": 9,
+      "EncryptedStoreReviewTest": 8,
+      "EncryptedStoreRetentionTest": 3,
+      "EncryptedStoreOrderingTest": 2,
+      "KeystoreServiceTest": 40,
+      "InstrumentedKeystoreAliasSafetyTest": 3
+    },
+    "xml": [
+      {
+        "path": "apps/feldexa_app/build/app/test-results/testDebugUnitTest/TEST-de.feldexa.app.storage.EncryptedStoreTest.xml",
+        "bytes": 6569,
+        "sha256": "e1389b9751bd5bb00b8f8883239592963d1fdbd974addb905d7ae7f299636459"
+      },
+      {
+        "path": "apps/feldexa_app/build/app/test-results/testDebugUnitTest/TEST-de.feldexa.app.storage.EncryptedStoreFaultTest.xml",
+        "bytes": 1590,
+        "sha256": "e6a583473f691244ad5a2dec1436d276c5d24435dee04b7e1e301e407f20ae2e"
+      },
+      {
+        "path": "apps/feldexa_app/build/app/test-results/testDebugUnitTest/TEST-de.feldexa.app.storage.EncryptedStoreReviewTest.xml",
+        "bytes": 1441,
+        "sha256": "57b66f4f6f76db37f03134bec09ecd14223b7cea252927503147d92316995a9b"
+      },
+      {
+        "path": "apps/feldexa_app/build/app/test-results/testDebugUnitTest/TEST-de.feldexa.app.storage.EncryptedStoreRetentionTest.xml",
+        "bytes": 781,
+        "sha256": "74561e65b5616c940bca61d98ff71ba8ec97611503842a4c8566f031d02cd6ef"
+      },
+      {
+        "path": "apps/feldexa_app/build/app/test-results/testDebugUnitTest/TEST-de.feldexa.app.storage.EncryptedStoreOrderingTest.xml",
+        "bytes": 641,
+        "sha256": "7a012fb0600f57f2157f7a3575d9b89e1baa3dfe9da74ed7a8d98b1dde3e4349"
+      },
+      {
+        "path": "apps/feldexa_app/build/app/test-results/testDebugUnitTest/TEST-de.feldexa.app.storage.KeystoreServiceTest.xml",
+        "bytes": 5949,
+        "sha256": "a1934651b093d745bed2c4f64c2c6c381c353c4b8c008d18240230b781daab5f"
+      },
+      {
+        "path": "apps/feldexa_app/build/app/test-results/testDebugUnitTest/TEST-de.feldexa.app.storage.InstrumentedKeystoreAliasSafetyTest.xml",
+        "bytes": 803,
+        "sha256": "eae948c26aa4f47a5861c692837568a7262cee3758a41b29f186a0b74dc7a2ed"
+      }
+    ]
+  },
+  "emulator": {
+    "allocationLabel": "T026-MTIME-PIXEL7-API35-20261115",
+    "avd": "T025_Pixel7_API35_KVM_20261115",
+    "api": 35,
+    "release": "15",
+    "fingerprint": "google/sdk_gphone64_x86_64/emu64xa:15/AE3A.240806.043/12960925:userdebug/dev-keys",
+    "abi": "x86_64",
+    "hardware": "ranchu",
+    "qemu": 1,
+    "bootCompleted": true,
+    "packageService": "found",
+    "guestCpuFlags": [
+      "hypervisor",
+      "avx",
+      "f16c"
+    ],
+    "t026": {
+      "tests": 13,
+      "failures": 0
+    },
+    "combinedT025T026": {
+      "tests": 25,
+      "failures": 0
+    }
+  },
+  "rawLocalLogcat": {
+    "t026": {
+      "path": "build/t026-work/logs/mtime-logcat-t026.log",
+      "bytes": 732300,
+      "sha256": "38efc38d815a324f53854ee4e4605d319d7a0bfd11baf7603cbd6e80ca0ee776",
+      "fatalExceptionLines": 0
+    },
+    "both": {
+      "path": "build/t026-work/logs/mtime-logcat-both.log",
+      "bytes": 79170,
+      "sha256": "a50e56f6b22044dc997a8fdcf9a0ff13f72cc04ef6c2ec2226d7f63121f9cbee",
+      "fatalExceptionLines": 0
+    }
+  },
+  "limitations": [
+    "EMULATOR class only; no DEVICE, performance, StrongBox, or silicon key-strength claim.",
+    "Host emulator -accel-check was UNAVAILABLE in the worker sandbox (no /dev/kvm).",
+    "A JVM/emulator run cannot prove physical power-loss durability; the correction proves the syscall order mtime -> file fsync -> rename -> parent fsync and fail-closed behavior on injected failure.",
+    "The JVM lock serializes this process only; cross-process writers are not claimed.",
+    "Retention section 3.1 step 8 remains with the owner's pending policy decision; no format decision here.",
+    "No push, merge, or self-review."
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 1149,
+      "sha256": "5ece19c3a469f2119b67dce2ef126b54214ef243d977d586cd985f5831b1bb30"
+    },
+    {
+      "path": "apk-sha256.txt",
+      "bytes": 715,
+      "sha256": "7db668001da612c64b141cdcacea408a5b185893d3df7b0765881100e301d829"
+    },
+    {
+      "path": "source-sha256.txt",
+      "bytes": 398,
+      "sha256": "44684f4acc53cce797eba0ad41002e355563564bdc1c054c12ff7e305737afd7"
+    },
+    {
+      "path": "verify.sh",
+      "bytes": 1206,
+      "sha256": "6bf0398ba141a785b5b18ee3d53698a779c0d6f08f736f5344c1081683216e63"
+    },
+    {
+      "path": "junit/EncryptedStoreFaultTest.xml",
+      "bytes": 1581,
+      "sha256": "30562f56184945280e6bd00774c305497e50879f3167d24ce5f40e4dda8225ba"
+    },
+    {
+      "path": "junit/EncryptedStoreOrderingTest.xml",
+      "bytes": 632,
+      "sha256": "dbf0e465aaf3a35456499d6e2a8c20672f76a2221f79552257c30cd5487861de"
+    },
+    {
+      "path": "junit/EncryptedStoreRetentionTest.xml",
+      "bytes": 772,
+      "sha256": "a73e3501da66b6985c1c8d1fb9e7403021e3f5c5db31b27f1e63c8678e0f982d"
+    },
+    {
+      "path": "junit/EncryptedStoreReviewTest.xml",
+      "bytes": 1432,
+      "sha256": "ef33eff53e217bd3641b125ae8c6da729ea35be0b91c09ad39ed385d44ec74e3"
+    },
+    {
+      "path": "junit/EncryptedStoreTest.xml",
+      "bytes": 6560,
+      "sha256": "52379abb1991465b7d755660787882bf91d9899a7c36bfd3bff6099feb52a8a0"
+    },
+    {
+      "path": "junit/InstrumentedKeystoreAliasSafetyTest.xml",
+      "bytes": 794,
+      "sha256": "ca4ea8291cd7e8ac9c848f975ec5eda17030e26733ebcd07487259395ed2d6e0"
+    },
+    {
+      "path": "junit/KeystoreServiceTest.xml",
+      "bytes": 5940,
+      "sha256": "dfb7c735efaeb1c7f3358c884b6506a03bc16a87ce193ad982309173ae6a165d"
+    },
+    {
+      "path": "logs/allocation-redacted.json",
+      "bytes": 324,
+      "sha256": "87832566dba34f68158e85fca06558a469913501fcbc0ed723b179c4b61cbdea"
+    },
+    {
+      "path": "logs/device-final.log",
+      "bytes": 177,
+      "sha256": "837031b2975fc1c86c99cda40c0721e14d9e4de4142053e8c12f907d4e6584fa"
+    },
+    {
+      "path": "logs/device-profile.log",
+      "bytes": 260,
+      "sha256": "5930b874c0df18754af6616413ed97d573ef71a975183d919460628a0ac691dd"
+    },
+    {
+      "path": "logs/install-app.log",
+      "bytes": 36,
+      "sha256": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7"
+    },
+    {
+      "path": "logs/install-test.log",
+      "bytes": 36,
+      "sha256": "781a31c82430c97897af612ece5e0ca2205e301cb5ff121ce2660541ea5182c7"
+    },
+    {
+      "path": "logs/instrumentation-both.log",
+      "bytes": 16943,
+      "sha256": "0e4f75f3d3344530709fd16dc56e58df006e878f3ed5ff3cbfd977f2da0c762f"
+    },
+    {
+      "path": "logs/instrumentation-t026.log",
+      "bytes": 8777,
+      "sha256": "84b259bf13ff0a8a0c82bafbfb65aef72158ebffb8416d696260bf0989ef195b"
+    },
+    {
+      "path": "logs/ordering-finding.txt",
+      "bytes": 1139,
+      "sha256": "17ea524c51aa6af354266a5f4a1d1875dba0cfdadfcc693a40746bb38ce202b2"
+    },
+    {
+      "path": "logs/toolchain-versions.log",
+      "bytes": 522,
+      "sha256": "792ee930deb008fc27a30fdbe3ea025636141f5e9b8be1171de9cb18a07a9e56"
+    }
+  ]
+}

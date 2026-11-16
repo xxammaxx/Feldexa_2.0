@@ -1,0 +1,4 @@
+# T026 prune-cap source at implementation commit df625d7
+a7788625ed2ab64f3067bb2a788fa971773ad1a79db31d4d99c65aee1fd23df8    117326  apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/storage/EncryptedStore.kt
+a899a968fa3543c444c619642d2c0f9f44e825dea38985bf5b8f6573f5db751b     15363  apps/feldexa_app/android/app/src/test/kotlin/de/feldexa/app/storage/EncryptedStorePruneRecoveryTest.kt
+fad5ec5e29874473788e197a16d3b73b87e7ad90dca1cb9aa20dcb88f5646c27     30732  apps/feldexa_app/android/app/src/androidTest/kotlin/de/feldexa/app/storage/EncryptedStoreInstrumentedTest.kt

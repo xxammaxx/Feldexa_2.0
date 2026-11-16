@@ -1,0 +1,11 @@
+base_commit=d78114fdb703c405fe4692fe287e71095b50fc59
+implementation_commit=df625d7e938cdc34b2b893191a0dea9a0bbe426a
+flutter=3.47.7 engine deb287481e3c
+dart=Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "linux_x64"
+java=openjdk version "17.0.20.1" 2026-08-18
+gradle=Gradle 9.3.1
+adb=Android Debug Bridge version 1.0.41
+emulator=Android emulator version 37.2.12.0 (build_id 16428233) (CL:N/A)
+sdk_platforms=android-34 android-35 android-36 android-37.0 
+build_tools=35.0.0 36.0.0 
+ndk=28.2.13676358 

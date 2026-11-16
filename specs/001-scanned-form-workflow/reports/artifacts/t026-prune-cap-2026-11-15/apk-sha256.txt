@@ -1,0 +1,5 @@
+# T026 prune-cap APK identity (repo-relative paths)
+753c9e285b2a847a5d30940730b7321cd20a91f471f00ffe160d24daf2c4bf0d   216366903  apps/feldexa_app/build/app/outputs/apk/debug/app-debug.apk  # app APK
+290b1fca7ffca5913dc91e4bc54a6894723fc8e39672c1799cd0e39cdc338c18      405628  apps/feldexa_app/build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk  # instrumentation test APK
+753c9e285b2a847a5d30940730b7321cd20a91f471f00ffe160d24daf2c4bf0d   216366903  build/t026-work/guest-prunecap/app-debug-installed.apk  # guest-pulled app APK
+290b1fca7ffca5913dc91e4bc54a6894723fc8e39672c1799cd0e39cdc338c18      405628  build/t026-work/guest-prunecap/app-debug-androidTest-installed.apk  # guest-pulled test APK

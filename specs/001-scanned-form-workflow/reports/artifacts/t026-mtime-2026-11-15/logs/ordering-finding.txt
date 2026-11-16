@@ -1,0 +1,25 @@
+T026 security review finding - revision-order mtime durability
+
+Review of 3197ca3: EncryptedStore setLastModified after the writer's
+FileChannel.force and before the atomic rename; only the parent directory was
+fsynced afterwards. The durability of the changed inode mtime was therefore
+not proven.
+
+Correction in 53ffe78:
+  setLastModified(staged file)
+  -> StoreIo.fsyncFile(staged file)          # flush inode metadata
+  -> atomic rename to rev/<id>.fx1
+  -> fsync(rev directory)
+
+A new ORDERING_FSYNC fault point sits before the metadata fsync. Two
+deterministic host tests record the actual order and prove that an injected
+metadata-fsync failure prevents the rename, keeps the old head, and removes the
+staged file.
+
+Limits:
+  * A JVM/unit test cannot simulate a physical power loss. The claim is limited
+    to the syscall order and the fail-closed behavior on an injected error.
+  * The per-aggregate JVM lock serializes this process only; cross-process
+    writers are not claimed.
+  * Retention (section 3.1 step 8) is unchanged and remains with the owner's
+    pending policy decision; this correction makes no format decision.

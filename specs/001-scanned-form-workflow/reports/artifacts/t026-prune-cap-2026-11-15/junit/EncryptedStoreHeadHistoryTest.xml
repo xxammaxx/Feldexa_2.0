@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="de.feldexa.app.storage.EncryptedStoreHeadHistoryTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-15T17:46:48.026Z" hostname="host" time="0.293">
+  <properties/>
+  <testcase name="legacyHeadWithoutHistoryKeepsUntrackedRevisions" classname="de.feldexa.app.storage.EncryptedStoreHeadHistoryTest" time="0.038"/>
+  <testcase name="deleteFailureIsConservativeAndRetriedOnNextCommit" classname="de.feldexa.app.storage.EncryptedStoreHeadHistoryTest" time="0.032"/>
+  <testcase name="saveAppliesPolicyAfterVerifiedCommit" classname="de.feldexa.app.storage.EncryptedStoreHeadHistoryTest" time="0.045"/>
+  <testcase name="headStoresBoundedKnownHistoryInCommitOrder" classname="de.feldexa.app.storage.EncryptedStoreHeadHistoryTest" time="0.018"/>
+  <testcase name="historyStaysBoundedAfterManyCommits" classname="de.feldexa.app.storage.EncryptedStoreHeadHistoryTest" time="0.116"/>
+  <testcase name="unknownHistoryEntriesAreRetainedConservatively" classname="de.feldexa.app.storage.EncryptedStoreHeadHistoryTest" time="0.01"/>
+  <testcase name="crashBeforePruneIsReconciledOnStartup" classname="de.feldexa.app.storage.EncryptedStoreHeadHistoryTest" time="0.033"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

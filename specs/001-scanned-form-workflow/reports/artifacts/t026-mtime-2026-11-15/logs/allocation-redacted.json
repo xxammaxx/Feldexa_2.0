@@ -1,0 +1,14 @@
+{
+  "class": "EMULATOR",
+  "allocationLabel": "T026-MTIME-PIXEL7-API35-20261115",
+  "attached": true,
+  "backend": "android",
+  "deviceUdid": "emulator-5554",
+  "sessionsBefore": 0,
+  "sessionsDuring": 1,
+  "sessionsAfter": 0,
+  "adbDevicesBefore": 0,
+  "adbDevicesDuring": 1,
+  "adbDevicesAfter": 0,
+  "shutdownOk": true
+}

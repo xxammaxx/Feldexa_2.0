@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="de.feldexa.app.storage.EncryptedStoreTest" tests="49" skipped="0" failures="0" errors="0" timestamp="2026-11-15T16:28:31.105Z" hostname="host" time="0.813">
+  <properties/>
+  <testcase name="wrongWrappedKeyLengthIsCorrupt" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.005"/>
+  <testcase name="reorderedChunksAreSave003" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.128"/>
+  <testcase name="truncatedFinalChunkIsSave003" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.003"/>
+  <testcase name="unreadableAggregateMatchesThePlaceholderAndStaysDeletable" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.018"/>
+  <testcase name="unknownFlagsAreCorrupt" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.003"/>
+  <testcase name="templateVersionsAreImmutableAndLoadable" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.023"/>
+  <testcase name="changedFileIdIsCorrupt" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.003"/>
+  <testcase name="tamperedCiphertextIsSave003" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.004"/>
+  <testcase name="missingHeadFallsBackToTheNewestVerifiedRevision" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.02"/>
+  <testcase name="noUsableAggregateKeyIsGlobalSave008" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.011"/>
+  <testcase name="tamperedSourceCiphertextIsSave003" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.008"/>
+  <testcase name="splicedChunkFromAnotherObjectIsSave003" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.006"/>
+  <testcase name="headerMatchesTheContractOffsets" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.002"/>
+  <testcase name="createDocumentRoundTripAndReadBack" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.013"/>
+  <testcase name="changedPlaintextHashIsSave003" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.005"/>
+  <testcase name="noVerifiableRevisionIsUnreadableButNeverDeleted" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.009"/>
+  <testcase name="providerOutageIsSave008AndLeavesNoVisibleAggregate" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.001"/>
+  <testcase name="missingMetaWithAnotherEntryIsUnreadableAndKept" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.005"/>
+  <testcase name="creatingADuplicateVisibleAggregateIsSave006" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.005"/>
+  <testcase name="boundaryPlaintextSizesRoundTrip" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.279"/>
+  <testcase name="wrongChunkSizeIsCorrupt" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.008"/>
+  <testcase name="listReportsSave002PlaceholderAndKeepsSiblingReadable" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.015"/>
+  <testcase name="incompleteImportIsRemovedAndItsOrphanAliasSwept" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.004"/>
+  <testcase name="listReportsGlobalSave008WhenEveryAliasIsGone" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.009"/>
+  <testcase name="twoSourceObjectsMakeTheAggregateUnreadable" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.01"/>
+  <testcase name="startupRecoverySurvivesAProviderOutageAndSkipsTheAliasSweep" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.005"/>
+  <testcase name="everyObjectGetsAFreshNonceAndWrapIv" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.004"/>
+  <testcase name="noPlaintextResidueOutsideTheContainer" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.014"/>
+  <testcase name="corruptNewestRevisionFallsBackToAnOlderVerifiedRevision" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.01"/>
+  <testcase name="perAggregateKekBindsObjectsToTheirAggregate" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.016"/>
+  <testcase name="deleteRejectsAWrongTitleWithoutTouchingData" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.007"/>
+  <testcase name="headerCrcMismatchIsSave003" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.005"/>
+  <testcase name="diagnosticsEventHasCountsOnly" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.005"/>
+  <testcase name="oversizedSignatureIsSave007" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.009"/>
+  <testcase name="signatureRoundTripAndTamper" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.017"/>
+  <testcase name="unsupportedVersionIsSave005" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.004"/>
+  <testcase name="metadataObjectsUseTheSixtyFourKiBChunkSize" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.02"/>
+  <testcase name="chunkCountMismatchIsCorrupt" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.003"/>
+  <testcase name="oneLostAggregateKeyIsSave002WhileSiblingLoads" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.014"/>
+  <testcase name="failedAliasDeleteLeavesOnlyTheOrphanForTheStartupSweep" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.01"/>
+  <testcase name="successfulSaveCleansTemporaryFilesAndUpdatesStamp" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.017"/>
+  <testcase name="invalidAggregateIdIsRejectedBeforeAnyIo" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.002"/>
+  <testcase name="staleExpectedHeadIsSave006AndOldHeadSurvives" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.011"/>
+  <testcase name="nonZeroReservedBytesAreCorrupt" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.002"/>
+  <testcase name="emptyObjectIsAValidContainer" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.002"/>
+  <testcase name="staleAndUnknownTempEntriesAreSwept" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.001"/>
+  <testcase name="orphanAliasWithoutDirectoryIsSweptButVisibleAliasIsRetained" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.005"/>
+  <testcase name="deleteRemovesObjectsThenAliasAndSiblingSurvives" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.015"/>
+  <testcase name="staleUnreferencedSignatureIsSweptAndReferencedKept" classname="de.feldexa.app.storage.EncryptedStoreTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

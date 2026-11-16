@@ -213,7 +213,7 @@ is terminal result `data`. The remaining store methods are synchronous.
 | `store.readSource` | `{ "documentId" }` | `Uint8List` (decrypted, capped 80 MiB) |
 | `store.readSignature` | `{ "documentId", "assetId" }` | `Uint8List` (PNG) |
 | `store.writeSignature` | `{ "documentId", "assetId", "bytes", "sha256" }` | `{ verified:true }` |
-| `store.saveRevision` | `{ "documentId", "revision": {…}, "expectedHead": "…", "kind":"autosave"\|"explicit"\|"recovery" }` | start reply, then `{ revisionId, committedAt, sha256, verified:true }` |
+| `store.saveRevision` | `{ "documentId", "revision": {…}, "expectedHead": "…", "kind":"autosave"\|"explicit"\|"recovery" }` | start reply, then `{ revisionId, committedAt, sha256, verified:true, prunedRevisions }` |
 | `store.createTemplate` | `{ "template": {…}, "revision": {…} }` | `StoredMeta` |
 | `store.saveTemplateVersion` | `{ "templateId", "version": {…}, "expectedHead":"…" }` | `{ versionId, versionNumber, verified:true }` |
 | `store.loadDocument` | `{ "documentId" }` | `{ meta, revision, head }` (no source bytes) |
@@ -223,6 +223,8 @@ is terminal result `data`. The remaining store methods are synchronous.
 
 Rules:
 - `saveRevision` uses optimistic concurrency: `expectedHead` must equal the current verified head, otherwise `SAVE-006` (concurrent write) and the caller re-reads. The app is single-user, but autosave/lifecycle races are real. A second concurrent save for the same `documentId` is rejected **before** the start reply with `PlatformException("SAVE-006")`; an `expectedHead` mismatch discovered by the storage service after the start reply is a terminal `operation.result` error with `SAVE-006`.
+- `saveRevision` performs the owner-decided retention after the verified read-back: last 3 autosave + newest explicit + newest recovery + the protected head. `prunedRevisions` is the count of known-kind files deleted by this save. Unknown/legacy entries and untracked files are retained; a legacy head without history prunes nothing.
+- `store.loadDocument` returns `head` with its bounded `history` array (`{revisionId, kind}`, oldest first, at most 16; `kind` may be null for legacy/unknown). The field is absent/empty for an old head.
 - `store.loadDocument` returns no source bytes; the app calls `readSource` once, then releases the buffer when the viewport closes. The adapter may cache the decrypted buffer only in memory and only for the open document.
 - `store.delete` validates `confirm.acknowledged == true`. For a readable aggregate, `confirm.title` must equal the stored title (case-sensitive, trimmed); for an unreadable aggregate it must equal the stored "Nicht lesbar" placeholder. The confirmation UI still presents a destructive confirmation for the localized unreadable state. Deletion removes the aggregate's objects first and its own KEK alias last; no other alias is touched.
 - `store.status.keyAvailable` is a store-level summary: false when at least one known aggregate key is unavailable or a global provider/reset condition exists. It does not identify the context and does not make the whole store fail; per-aggregate detail comes from `store.list` (`StoredMeta.readable`/`unreadableReasonCode`) and the `storage.status` event, whose `SAVE-002`/`SAVE-008` code distinguishes aggregate from global failure.

@@ -1,0 +1,5 @@
+# T026 prune-durability APK identity (repo-relative paths)
+2a7b04d6e7394f29c2a8cccffd34d20eac8cd011159eb6ab8e1210bf2b43f04e   216366371  apps/feldexa_app/build/app/outputs/apk/debug/app-debug.apk  # app APK
+ce28c7357d4a0cbbac64c58b8d0ea47384bca4ba1772950589fe3b41e764ffe0      403147  apps/feldexa_app/build/app/outputs/apk/androidTest/debug/app-debug-androidTest.apk  # instrumentation test APK
+2a7b04d6e7394f29c2a8cccffd34d20eac8cd011159eb6ab8e1210bf2b43f04e   216366371  build/t026-work/guest-prunefsync/app-debug-installed.apk  # guest-pulled app APK
+ce28c7357d4a0cbbac64c58b8d0ea47384bca4ba1772950589fe3b41e764ffe0      403147  build/t026-work/guest-prunefsync/app-debug-androidTest-installed.apk  # guest-pulled test APK
