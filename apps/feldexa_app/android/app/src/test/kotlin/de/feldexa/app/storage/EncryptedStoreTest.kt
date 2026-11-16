@@ -871,6 +871,15 @@ class EncryptedStoreTest {
             "%PDF-1.7 arbitrary bytes".toByteArray(),
             TestPng.validRgba(4, 4).copyOf(20),
             corrupt,
+            // `contracts/storage-format.md` §2.4 requires alpha/transparency.
+            TestPng.validGrayscale(2, 2),
+            TestPng.validRgb(2, 2),
+            TestPng.validIndexed(2, 2),
+            // A tRNS chunk alone is not enough; its content must be valid.
+            TestPng.insertBeforeIdat(
+                TestPng.validGrayscale(2, 2),
+                TestPng.chunk("tRNS", byteArrayOf(0x01, 0x00)),
+            ),
         )
         for (invalid in invalidFixtures) {
             val assetId = newId()
@@ -918,6 +927,31 @@ class EncryptedStoreTest {
             revisionsBefore,
             revDir.listFiles()!!.associate { it.name to it.readBytes().toList() },
         )
+    }
+
+    @Test
+    fun signatureAcceptsNativeAndTransparencyBackedAlphaRepresentations() {
+        val created = createDoc()
+        val fixtures = listOf(
+            TestPng.validGrayscaleAlpha(3, 2),
+            TestPng.insertBeforeIdat(
+                TestPng.validRgb(2, 2),
+                TestPng.chunk(
+                    "tRNS",
+                    byteArrayOf(0x00, 0x11, 0x00, 0x22, 0x00, 0x33),
+                ),
+            ),
+            TestPng.insertBeforeIdat(
+                TestPng.validIndexed(2, 2),
+                TestPng.chunk("tRNS", byteArrayOf(0x00, 0x80.toByte())),
+            ),
+        )
+        for (png in fixtures) {
+            val assetId = newId()
+            store.writeSignature(created.aggregateId, assetId, png)
+            assertArrayEquals(png, store.readSignature(created.aggregateId, assetId))
+        }
+        assertFalse(File(storeRoot, "tmp").listFiles().orEmpty().any { it.isFile })
     }
 
     @Test

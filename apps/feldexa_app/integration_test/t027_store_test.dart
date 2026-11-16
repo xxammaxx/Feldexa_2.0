@@ -210,6 +210,46 @@ void main() {
         saved.latestRevisionId,
       );
 
+      // `contracts/storage-format.md` §2.4 requires alpha/transparency:
+      // native gray+alpha and a valid tRNS-backed RGB image are accepted,
+      // opaque RGB and a malformed tRNS chunk are rejected with SAVE-007.
+      for (final String encoded in <String>[
+        _validGrayscaleAlphaSignature,
+        _validTrnsSignature,
+      ]) {
+        final Uint8List alphaBytes = base64Decode(encoded);
+        final String alphaAsset = ids.newId();
+        await store.writeSignature(
+          WriteSignatureRequest(
+            documentId: documentId,
+            assetId: alphaAsset,
+            bytes: alphaBytes,
+            sha256: crypto.sha256.convert(alphaBytes).toString(),
+          ),
+        );
+        expect(
+          await store.readSignature(documentId, alphaAsset),
+          orderedEquals(alphaBytes),
+        );
+      }
+      for (final String encoded in <String>[
+        _opaqueRgbSignature,
+        _malformedTrnsSignature,
+      ]) {
+        final Uint8List rejectedBytes = base64Decode(encoded);
+        await expectLater(
+          store.writeSignature(
+            WriteSignatureRequest(
+              documentId: documentId,
+              assetId: ids.newId(),
+              bytes: rejectedBytes,
+              sha256: crypto.sha256.convert(rejectedBytes).toString(),
+            ),
+          ),
+          throwsA(isA<AndroidInvalidDataException>()),
+        );
+      }
+
       final Uint8List boundary1024 = base64Decode(_validSignature1024);
       final String boundaryAsset = ids.newId();
       await store.writeSignature(
@@ -310,6 +350,18 @@ const String _validSignature3x3 =
 const String _validSignature1024 =
     'iVBORw0KGgoAAAANSUhEUgAABAAAAAABCAYAAABADtw1AAAAIUlEQVR42u3DAQ0AAAgD'
     'IDvZyU5Pqz0cbFRPVlVVVf39AGAOxHn43lj+AAAAAElFTkSuQmCC';
+// Native alpha colour type 4 (gray+alpha), 2×2.
+const String _validGrayscaleAlphaSignature =
+    'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAQAAADYv8WvAAAAEElEQVR4nGNo+N/wnwFEAAAc+AX99dMHWwAAAABJRU5ErkJggg==';
+// RGB colour type 2 with a valid tRNS transparency chunk, 2×2.
+const String _validTrnsSignature =
+    'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAABnRSTlMAEQAiADO3P0o7AAAAEUlEQVR4nGMQVDIWVDJmgFAACq4BmaLMuG4AAAAASUVORK5CYII=';
+// RGB colour type 2 with no alpha channel and no tRNS (opaque).
+const String _opaqueRgbSignature =
+    'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAEUlEQVR4nGMQVDIWVDJmgFAACq4BmaLMuG4AAAAASUVORK5CYII=';
+// RGB colour type 2 whose tRNS payload is five bytes, not six.
+const String _malformedTrnsSignature =
+    'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAABXRSTlMAEQAiAI18cGsAAAARSURBVHicYxBUMhZUMmaAUAAKrgGZosy4bgAAAABJRU5ErkJggg==';
 const String _overLimitSignature1025 =
     'iVBORw0KGgoAAAANSUhEUgAABAEAAAABCAYAAACvzLcLAAAAIUlEQVR42u3DAQ0AAAgD'
     'IDvZyU5Pqz0cbFRPVlVVVf3/AHZOxqqdEp2aAAAAAElFTkSuQmCC';

@@ -16,6 +16,16 @@ import java.util.zip.Inflater
  * or the header: truncated, corrupt, wrong-colour-type, and over-long
  * compressed streams are rejected before any signature object is staged.
  *
+ * `contracts/storage-format.md` §2.4 requires a signature PNG to carry alpha.
+ * Native alpha colour types 4 (gray+alpha) and 6 (RGBA) satisfy that directly.
+ * The opaque colour types 0 (gray), 2 (RGB) and 3 (indexed) satisfy it only
+ * through a valid `tRNS` transparency chunk, whose type/bit-depth/palette/order
+ * and content are validated here. A truly alpha-free image is rejected; an
+ * RGBA image whose pixels are all opaque is still accepted because the alpha
+ * channel itself is the requirement, not any particular pixel aesthetic. The
+ * signed bytes are never transcoded or mutated; validation only decides
+ * whether they may be stored.
+ *
  * Memory is bounded by the accepted dimensions, not by the compressed size:
  * at most 1024 × 1024 pixels and 16 bits per channel, so the decoded scanline
  * buffer stays below 9 MiB and the 2 MiB input cap is unchanged. The
@@ -42,8 +52,9 @@ internal object SignaturePng {
 
     /**
      * Rejects anything that is not a structurally valid, fully decodable PNG
-     * whose width and height are positive and whose long edge is at most
-     * [MAX_LONG_EDGE_PX]. The canonical failure is `SAVE-007`.
+     * with an alpha channel or validated `tRNS` transparency, whose width and
+     * height are positive and whose long edge is at most [MAX_LONG_EDGE_PX].
+     * The canonical failure is `SAVE-007`.
      */
     fun requireValid(pngBytes: ByteArray) {
         validate(pngBytes) ?: throw InvalidDataException()
@@ -68,6 +79,8 @@ internal object SignaturePng {
         var sawIend = false
         var idatClosed = false
         var sawPalette = false
+        var sawTransparency = false
+        var paletteEntries = 0L
         var widthPx = 0L
         var heightPx = 0L
         var bitDepth = 0
@@ -106,12 +119,33 @@ internal object SignaturePng {
                 }
 
                 "PLTE" -> {
-                    if (!sawIhdr || sawIdat || sawPalette) return null
+                    if (!sawIhdr || sawIdat || sawPalette || sawTransparency) return null
                     if (colorType == 0 || colorType == 4) return null
                     if (length <= 0L || length % 3L != 0L || length > 768L) return null
                     val entries = length / 3L
                     if (colorType == 3 && entries > (1L shl bitDepth)) return null
+                    paletteEntries = entries
                     sawPalette = true
+                }
+
+                "tRNS" -> {
+                    // The transparency chunk carries the alpha information for
+                    // the opaque colour types 0/2/3. Native-alpha types 4/6 use
+                    // their real alpha channel and must not carry tRNS.
+                    if (!sawIhdr || sawIdat || sawTransparency) return null
+                    if (colorType == 4 || colorType == 6) return null
+                    if (!isValidTransparency(
+                            bytes = pngBytes,
+                            dataStart = dataStart,
+                            length = length,
+                            colorType = colorType,
+                            bitDepth = bitDepth,
+                            paletteEntries = paletteEntries,
+                        )
+                    ) {
+                        return null
+                    }
+                    sawTransparency = true
                 }
 
                 "IDAT" -> {
@@ -141,6 +175,10 @@ internal object SignaturePng {
 
         if (!sawIhdr || !sawIdat || !sawIend) return null
         if (colorType == 3 && !sawPalette) return null
+        // `contracts/storage-format.md` §2.4: a signature PNG must carry alpha.
+        // Types 4/6 have a native alpha channel; types 0/2/3 only qualify when
+        // a validated tRNS chunk supplies transparency.
+        if (colorType != 4 && colorType != 6 && !sawTransparency) return null
         return decodeIdat(
             idatChunks = idatChunks,
             widthPx = widthPx,
@@ -349,6 +387,39 @@ internal object SignaturePng {
         4 -> bitDepth in setOf(8, 16)
         6 -> bitDepth in setOf(8, 16)
         else -> false
+    }
+
+    /**
+     * Validates a `tRNS` payload for an opaque colour type against its declared
+     * bit depth and palette, per the PNG chunk definition: two gray bytes for
+     * type 0, three 16-bit RGB samples in R/G/B order for type 2, and at most
+     * one alpha byte per palette entry for type 3. Native-alpha types are
+     * rejected before this call.
+     */
+    private fun isValidTransparency(
+        bytes: ByteArray,
+        dataStart: Int,
+        length: Long,
+        colorType: Int,
+        bitDepth: Int,
+        paletteEntries: Long,
+    ): Boolean = when (colorType) {
+        0 -> length == 2L && sampleFitsBitDepth(readU16(bytes, dataStart), bitDepth)
+        2 -> length == 6L &&
+            sampleFitsBitDepth(readU16(bytes, dataStart), bitDepth) &&
+            sampleFitsBitDepth(readU16(bytes, dataStart + 2), bitDepth) &&
+            sampleFitsBitDepth(readU16(bytes, dataStart + 4), bitDepth)
+        3 -> paletteEntries > 0L && length >= 1L && length <= paletteEntries
+        else -> false
+    }
+
+    private fun sampleFitsBitDepth(value: Int, bitDepth: Int): Boolean =
+        value >= 0 && value < (1 shl bitDepth)
+
+    private fun readU16(bytes: ByteArray, offset: Int): Int {
+        if (offset < 0 || bytes.size - offset < 2) return -1
+        return ((bytes[offset].toInt() and 0xFF) shl 8) or
+            (bytes[offset + 1].toInt() and 0xFF)
     }
 
     private fun isChunkType(type: String): Boolean =

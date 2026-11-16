@@ -428,6 +428,41 @@ class FeldexaPluginInstrumentedTest {
                 )["data"] as ByteArray,
             )
 
+            for (accepted in listOf(
+                AndroidTestPng.validGrayscaleAlpha(2, 2),
+                AndroidTestPng.validRgbWithTransparency(2, 2),
+            )) {
+                assertEquals(2 to 2, AndroidTestPng.decodedSize(accepted))
+                val acceptedAsset = UUID.randomUUID().toString()
+                val acceptedStart = invoke(
+                    "store.writeSignature",
+                    withSchema(
+                        mapOf(
+                            "documentId" to documentId,
+                            "assetId" to acceptedAsset,
+                            "bytes" to accepted,
+                            "sha256" to sha256(accepted),
+                        ),
+                    ),
+                )
+                assertEquals(
+                    true,
+                    awaitResult(startOperationId(acceptedStart))["ok"],
+                )
+                assertArrayEquals(
+                    accepted,
+                    invoke(
+                        "store.readSignature",
+                        withSchema(
+                            mapOf(
+                                "documentId" to documentId,
+                                "assetId" to acceptedAsset,
+                            ),
+                        ),
+                    )["data"] as ByteArray,
+                )
+            }
+
             val sigDir = File(root, "docs/$documentId/sig")
             val signaturesBefore = sigDir.listFiles()!!
                 .associate { it.name to it.readBytes().toList() }
@@ -442,6 +477,8 @@ class FeldexaPluginInstrumentedTest {
                 "%PDF-1.7 not a PNG".toByteArray(),
                 AndroidTestPng.validRgba(4, 4).copyOf(20),
                 corrupt,
+                // `contracts/storage-format.md` §2.4 requires alpha/transparency.
+                AndroidTestPng.opaqueRgb(2, 2),
             )) {
                 val invalidAsset = UUID.randomUUID().toString()
                 val start = invoke(

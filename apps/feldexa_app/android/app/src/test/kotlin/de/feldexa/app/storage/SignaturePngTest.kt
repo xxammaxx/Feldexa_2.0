@@ -3,6 +3,7 @@ package de.feldexa.app.storage
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
@@ -201,6 +202,218 @@ class SignaturePngTest {
         val png = TestPng.validRgba(1024, 1024)
         assertTrue(png.size < EncryptedStore.MAX_SIGNATURE_BYTES)
         assertTrue(SignaturePng.isValid(png))
+    }
+
+    @Test
+    fun acceptsNativeAlphaColourTypes() {
+        val grayAlpha = TestPng.validGrayscaleAlpha(3, 2)
+        assertEquals(3 to 2, TestPng.size(grayAlpha))
+        assertTrue(SignaturePng.isValid(grayAlpha))
+        SignaturePng.requireValid(grayAlpha)
+
+        // An RGBA image whose pixels are all opaque still has the required
+        // alpha channel; the contract does not require a transparent pixel.
+        val opaqueRgba = TestPng.validRgba(2, 2, argb = 0xFF336699.toInt())
+        assertTrue(SignaturePng.isValid(opaqueRgba))
+    }
+
+    @Test
+    fun acceptsTrnsBackedTransparencyForOpaqueColourTypes() {
+        val gray = TestPng.insertBeforeIdat(
+            TestPng.validGrayscale(2, 2, gray = 0x40),
+            TestPng.chunk("tRNS", byteArrayOf(0x00, 0x40)),
+        )
+        assertEquals(2 to 2, TestPng.size(gray))
+        assertTrue(SignaturePng.isValid(gray))
+
+        val rgb = TestPng.insertBeforeIdat(
+            TestPng.validRgb(2, 2, red = 0x11, green = 0x22, blue = 0x33),
+            TestPng.chunk(
+                "tRNS",
+                byteArrayOf(0x00, 0x11, 0x00, 0x22, 0x00, 0x33),
+            ),
+        )
+        assertTrue(SignaturePng.isValid(rgb))
+
+        val indexed = TestPng.insertBeforeIdat(
+            TestPng.validIndexed(2, 2),
+            TestPng.chunk("tRNS", byteArrayOf(0x00, 0x80.toByte())),
+        )
+        assertTrue(SignaturePng.isValid(indexed))
+        SignaturePng.requireValid(indexed)
+    }
+
+    @Test
+    fun validatesTransparencySampleAgainstBitDepth() {
+        val base = TestPng.fromRawScanlines(
+            width = 1,
+            height = 1,
+            colorType = 0,
+            bitDepth = 1,
+            interlace = 0,
+            rawScanlines = byteArrayOf(0, 0x80.toByte()),
+        )
+        val accepted = TestPng.insertBeforeIdat(
+            base,
+            TestPng.chunk("tRNS", byteArrayOf(0x00, 0x01)),
+        )
+        assertTrue(SignaturePng.isValid(accepted))
+        val rejected = TestPng.insertBeforeIdat(
+            base,
+            TestPng.chunk("tRNS", byteArrayOf(0x00, 0x02)),
+        )
+        assertFalse(SignaturePng.isValid(rejected))
+    }
+
+    @Test
+    fun rejectsOpaqueColourTypesWithoutAlphaOrTransparency() {
+        for (png in listOf(
+            TestPng.validGrayscale(2, 2),
+            TestPng.validRgb(2, 2),
+            TestPng.validIndexed(2, 2),
+        )) {
+            assertFalse(SignaturePng.isValid(png))
+            assertThrows(InvalidDataException::class.java) {
+                SignaturePng.requireValid(png)
+            }
+        }
+    }
+
+    @Test
+    fun rejectsMalformedTransparencyChunks() {
+        val gray = TestPng.validGrayscale(1, 1, gray = 0x80)
+        val rgb = TestPng.validRgb(1, 1)
+        val indexed = TestPng.validIndexed(1, 1)
+        val rgba = TestPng.validRgba(1, 1)
+        val cases = listOf(
+            "gray tRNS too short" to TestPng.insertBeforeIdat(
+                gray,
+                TestPng.chunk("tRNS", byteArrayOf(0x00)),
+            ),
+            "gray tRNS too long" to TestPng.insertBeforeIdat(
+                gray,
+                TestPng.chunk("tRNS", byteArrayOf(0x00, 0x80.toByte(), 0x00)),
+            ),
+            "gray tRNS above bit depth" to TestPng.insertBeforeIdat(
+                gray,
+                TestPng.chunk("tRNS", byteArrayOf(0x01, 0x00)),
+            ),
+            "rgb tRNS too short" to TestPng.insertBeforeIdat(
+                rgb,
+                TestPng.chunk("tRNS", byteArrayOf(0x00, 0x11, 0x00, 0x22)),
+            ),
+            "rgb tRNS too long" to TestPng.insertBeforeIdat(
+                rgb,
+                TestPng.chunk(
+                    "tRNS",
+                    byteArrayOf(0x00, 0x11, 0x00, 0x22, 0x00, 0x33, 0x00),
+                ),
+            ),
+            "rgb tRNS above bit depth" to TestPng.insertBeforeIdat(
+                rgb,
+                TestPng.chunk(
+                    "tRNS",
+                    byteArrayOf(0x01, 0x00, 0x00, 0x22, 0x00, 0x33),
+                ),
+            ),
+            "indexed tRNS exceeds palette" to TestPng.insertBeforeIdat(
+                indexed,
+                TestPng.chunk("tRNS", ByteArray(3)),
+            ),
+            "indexed tRNS empty" to TestPng.insertBeforeIdat(
+                indexed,
+                TestPng.chunk("tRNS", ByteArray(0)),
+            ),
+            "native alpha tRNS is invalid" to TestPng.insertBeforeIdat(
+                rgba,
+                TestPng.chunk("tRNS", byteArrayOf(0x00)),
+            ),
+        )
+        for ((reason, png) in cases) {
+            assertFalse("$reason must be rejected", SignaturePng.isValid(png))
+            assertThrows(
+                "$reason must map to SAVE-007",
+                InvalidDataException::class.java,
+            ) {
+                SignaturePng.requireValid(png)
+            }
+        }
+    }
+
+    @Test
+    fun rejectsTransparencyChunkOrderViolations() {
+        // tRNS before PLTE in an indexed image.
+        val trnsBeforePlte = TestPng.fromRawScanlines(
+            width = 1,
+            height = 1,
+            colorType = 3,
+            bitDepth = 8,
+            interlace = 0,
+            rawScanlines = byteArrayOf(0, 0),
+            beforeIdat = listOf(
+                TestPng.chunk("tRNS", byteArrayOf(0x00)),
+                TestPng.chunk("PLTE", TestPng.INDEXED_PALETTE),
+            ),
+        )
+        assertFalse(SignaturePng.isValid(trnsBeforePlte))
+
+        // A duplicate tRNS chunk.
+        val gray = TestPng.validGrayscale(1, 1, gray = 0x80)
+        val duplicate = TestPng.insertBeforeIdat(
+            TestPng.insertBeforeIdat(
+                gray,
+                TestPng.chunk("tRNS", byteArrayOf(0x00, 0x80.toByte())),
+            ),
+            TestPng.chunk("tRNS", byteArrayOf(0x00, 0x80.toByte())),
+        )
+        assertFalse(SignaturePng.isValid(duplicate))
+
+        // A tRNS that appears after the IDAT chunk.
+        val afterIdat = TestPng.fromRawScanlines(
+            width = 1,
+            height = 1,
+            colorType = 0,
+            bitDepth = 8,
+            interlace = 0,
+            rawScanlines = byteArrayOf(0, 0x80.toByte()),
+            afterIdat = listOf(
+                TestPng.chunk("tRNS", byteArrayOf(0x00, 0x80.toByte())),
+            ),
+        )
+        assertFalse(SignaturePng.isValid(afterIdat))
+
+        // PLTE must precede tRNS for RGB too when it is present.
+        val plteAfterTrns = TestPng.fromRawScanlines(
+            width = 1,
+            height = 1,
+            colorType = 2,
+            bitDepth = 8,
+            interlace = 0,
+            rawScanlines = byteArrayOf(0, 0x11, 0x22, 0x33),
+            beforeIdat = listOf(
+                TestPng.chunk(
+                    "tRNS",
+                    byteArrayOf(0x00, 0x11, 0x00, 0x22, 0x00, 0x33),
+                ),
+                TestPng.chunk("PLTE", TestPng.INDEXED_PALETTE),
+            ),
+        )
+        assertFalse(SignaturePng.isValid(plteAfterTrns))
+    }
+
+    @Test
+    fun validationDoesNotMutateSignedBytes() {
+        val png = TestPng.insertBeforeIdat(
+            TestPng.validRgb(2, 2),
+            TestPng.chunk(
+                "tRNS",
+                byteArrayOf(0x00, 0x11, 0x00, 0x22, 0x00, 0x33),
+            ),
+        )
+        val before = png.copyOf()
+        assertTrue(SignaturePng.isValid(png))
+        SignaturePng.requireValid(png)
+        assertArrayEquals(before, png)
     }
 
     private fun interlacedRgba(width: Int, height: Int): ByteArray {

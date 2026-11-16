@@ -75,7 +75,8 @@ internal object TestPng {
     /**
      * Builds a non-interlaced or Adam7-interlaced PNG from already-filtered
      * raw scanlines. The caller owns the row layout; the resulting bytes are
-     * a real PNG.
+     * a real PNG. Optional chunks can be placed before the first IDAT (for
+     * `PLTE`/`tRNS`) or between IDAT and IEND (for ordering negatives).
      */
     fun fromRawScanlines(
         width: Int,
@@ -84,6 +85,8 @@ internal object TestPng {
         bitDepth: Int,
         interlace: Int,
         rawScanlines: ByteArray,
+        beforeIdat: List<ByteArray> = emptyList(),
+        afterIdat: List<ByteArray> = emptyList(),
     ): ByteArray {
         val ihdr = ByteBuffer.allocate(13).order(ByteOrder.BIG_ENDIAN).apply {
             putInt(width)
@@ -94,13 +97,109 @@ internal object TestPng {
             put(0)
             put(interlace.toByte())
         }.array()
-        val chunks = listOf(
-            chunk("IHDR", ihdr),
-            chunk("IDAT", deflate(rawScanlines)),
-            chunk("IEND", ByteArray(0)),
-        )
+        val chunks = buildList {
+            add(chunk("IHDR", ihdr))
+            addAll(beforeIdat)
+            add(chunk("IDAT", deflate(rawScanlines)))
+            addAll(afterIdat)
+            add(chunk("IEND", ByteArray(0)))
+        }
         return assemble(chunks)
     }
+
+    /** RGB8 with no alpha channel and no tRNS (opaque, §2.4-rejected). */
+    fun validRgb(
+        width: Int,
+        height: Int,
+        red: Int = 0x11,
+        green: Int = 0x22,
+        blue: Int = 0x33,
+    ): ByteArray {
+        val raw = ByteArray((width * 3 + 1) * height)
+        var cursor = 0
+        repeat(height) {
+            raw[cursor++] = 0
+            repeat(width) {
+                raw[cursor++] = red.toByte()
+                raw[cursor++] = green.toByte()
+                raw[cursor++] = blue.toByte()
+            }
+        }
+        return fromRawScanlines(width, height, colorType = 2, bitDepth = 8, interlace = 0, raw)
+    }
+
+    /** Grayscale with no alpha channel and no tRNS (opaque, §2.4-rejected). */
+    fun validGrayscale(width: Int, height: Int, gray: Int = 0x80): ByteArray {
+        val raw = ByteArray((width + 1) * height)
+        var cursor = 0
+        repeat(height) {
+            raw[cursor++] = 0
+            repeat(width) { raw[cursor++] = gray.toByte() }
+        }
+        return fromRawScanlines(width, height, colorType = 0, bitDepth = 8, interlace = 0, raw)
+    }
+
+    /** Grayscale+alpha 8-bit (native alpha type 4). */
+    fun validGrayscaleAlpha(
+        width: Int,
+        height: Int,
+        gray: Int = 0x80,
+        alpha: Int = 0xFF,
+    ): ByteArray {
+        val raw = ByteArray((width * 2 + 1) * height)
+        var cursor = 0
+        repeat(height) {
+            raw[cursor++] = 0
+            repeat(width) {
+                raw[cursor++] = gray.toByte()
+                raw[cursor++] = alpha.toByte()
+            }
+        }
+        return fromRawScanlines(width, height, colorType = 4, bitDepth = 8, interlace = 0, raw)
+    }
+
+    /** Indexed8 with a two-entry palette but no tRNS (opaque, §2.4-rejected). */
+    fun validIndexed(width: Int, height: Int): ByteArray {
+        val raw = ByteArray((width + 1) * height)
+        var cursor = 0
+        repeat(height) {
+            raw[cursor++] = 0
+            repeat(width) { raw[cursor++] = 0 }
+        }
+        return fromRawScanlines(
+            width = width,
+            height = height,
+            colorType = 3,
+            bitDepth = 8,
+            interlace = 0,
+            rawScanlines = raw,
+            beforeIdat = listOf(chunk("PLTE", INDEXED_PALETTE)),
+        )
+    }
+
+    /** Inserts [newChunk] immediately before the first chunk of [type]. */
+    fun insertBeforeChunk(png: ByteArray, type: String, newChunk: ByteArray): ByteArray {
+        var offset = MAGIC.size
+        while (offset + 12 <= png.size) {
+            val length = ByteBuffer.wrap(png, offset, 4).order(ByteOrder.BIG_ENDIAN).int
+            val chunkType = String(png, offset + 4, 4, Charsets.US_ASCII)
+            val dataEnd = offset + 8 + length
+            if (dataEnd + 4 > png.size) break
+            if (chunkType == type) {
+                val out = ByteArrayOutputStream()
+                out.write(png, 0, offset)
+                out.write(newChunk)
+                out.write(png, offset, png.size - offset)
+                return out.toByteArray()
+            }
+            offset = dataEnd + 4
+        }
+        error("chunk $type not found")
+    }
+
+    /** Inserts [newChunk] immediately before the first IDAT. */
+    fun insertBeforeIdat(png: ByteArray, newChunk: ByteArray): ByteArray =
+        insertBeforeChunk(png, "IDAT", newChunk)
 
     fun assemble(chunks: List<ByteArray>): ByteArray {
         val out = ByteArrayOutputStream()
@@ -200,5 +299,10 @@ internal object TestPng {
         0x0A,
         0x1A,
         0x0A,
+    )
+
+    val INDEXED_PALETTE: ByteArray = byteArrayOf(
+        0xFF.toByte(), 0x00, 0x00,
+        0x00, 0xFF.toByte(), 0x00,
     )
 }

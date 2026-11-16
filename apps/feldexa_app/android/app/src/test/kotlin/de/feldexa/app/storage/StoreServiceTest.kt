@@ -443,6 +443,14 @@ class StoreServiceTest {
             "%PDF-1.7 not a PNG".toByteArray(),
             TestPng.validRgba(4, 4).copyOf(20),
             corrupt,
+            // `contracts/storage-format.md` §2.4 requires alpha/transparency.
+            TestPng.validGrayscale(2, 2),
+            TestPng.validRgb(2, 2),
+            TestPng.validIndexed(2, 2),
+            TestPng.insertBeforeIdat(
+                TestPng.validGrayscale(2, 2),
+                TestPng.chunk("tRNS", byteArrayOf(0x01, 0x00)),
+            ),
         )) {
             val assetId = newId()
             val failure = assertThrows(PlatformFailure::class.java) {
@@ -515,6 +523,25 @@ class StoreServiceTest {
             ),
         ) as Map<*, *>
         assertEquals(true, written["verified"])
+
+        val transparencyAsset = newId()
+        val transparencyBacked = TestPng.insertBeforeIdat(
+            TestPng.validRgb(2, 2),
+            TestPng.chunk(
+                "tRNS",
+                byteArrayOf(0x00, 0x11, 0x00, 0x22, 0x00, 0x33),
+            ),
+        )
+        val transparencyWritten = handle(
+            "store.writeSignature",
+            linkedMapOf(
+                "documentId" to documentId,
+                "assetId" to transparencyAsset,
+                "bytes" to transparencyBacked,
+                "sha256" to sha256(transparencyBacked),
+            ),
+        ) as Map<*, *>
+        assertEquals(true, transparencyWritten["verified"])
 
         val tooWide = TestPng.validRgba(1025, 1024)
         val refusedAsset = newId()
