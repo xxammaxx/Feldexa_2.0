@@ -1,31 +1,29 @@
 // T037 import-contract conformance runner for the REAL T028 adapter.
 //
 // This test wires the reusable `feldexa_testkit` import-conformance suite to
-// the shipped `SimulatedDocumentImportAdapter`, the real `SimulatedBackend`,
-// and the committed synthetic fixture catalogue. Unlike the previous fake in
-// `feldexa_ports/test/import_port_test.dart`, a change to the adapter's
+// the shipped `SimulatedDocumentImportAdapter` and the real `SimulatedBackend`.
+// The fixture catalogue is built IN MEMORY through the existing
+// `SimulatedFixtureCatalog.parse` injection seam, so this runner is independent
+// of `Directory.current` and of the checkout layout. Unlike the previous fake
+// in `feldexa_ports/test/import_port_test.dart`, a change to the adapter's
 // acceptance, cleanup, source-copying, or verification behaviour can make this
 // runner fail.
 //
 // Host-VM only. Every result is `SIMULATED`; no Android, SAF, PDF-parser,
 // encryption, emulator, or device evidence is produced.
 
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:feldexa_adapters_simulated/feldexa_adapters_simulated.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:feldexa_testkit/feldexa_testkit.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'support/simulated_world.dart';
-
 void main() {
-  late SimulatedFixtureCatalog catalog;
-
-  setUpAll(() async {
-    catalog = await loadCatalog();
-  });
-
+  final SimulatedFixtureCatalog catalog = _inMemoryCatalog();
   final _T028ImportConformanceSubject subject = _T028ImportConformanceSubject(
-    () => catalog,
+    catalog,
   );
 
   for (final ImportConformanceCheck check in importConformanceChecks(subject)) {
@@ -53,11 +51,181 @@ void main() {
   }
 }
 
+/// Builds a deterministic catalogue for the fixture ids this runner needs.
+///
+/// The bytes are synthetic and PDF-shaped; T028 never parses them. All page
+/// geometry, status, hash, and size values are pinned by the parser, so the
+/// runner still exercises the real catalogue validation path without touching
+/// the filesystem.
+SimulatedFixtureCatalog _inMemoryCatalog() {
+  final Map<String, Uint8List> pdfBytesById = <String, Uint8List>{};
+  final Map<String, Map<String, Object?>> expectedOcrById =
+      <String, Map<String, Object?>>{};
+  final List<Map<String, Object?>> fixtures = <Map<String, Object?>>[];
+
+  void addFixture({
+    required String id,
+    required String role,
+    required String status,
+    required List<Map<String, Object?>> pages,
+    String? expectedError,
+    int byteLength = 512,
+  }) {
+    final Uint8List bytes = _fixtureBytes(id, byteLength);
+    pdfBytesById[id] = bytes;
+    final Map<String, Object?> fixture = <String, Object?>{
+      'id': id,
+      'kind': 'synthetic',
+      'role': role,
+      'status': status,
+      'title': 'T037 in-memory $id',
+      'path': '$id.pdf',
+      'sha256': sha256Hex(bytes),
+      'sizeBytes': bytes.length,
+      'pageCount': pages.length,
+      'pages': pages,
+    };
+    if (expectedError != null) {
+      fixture['expectedError'] = expectedError;
+    }
+    fixtures.add(fixture);
+    if (status == 'valid') {
+      expectedOcrById[id] = <String, Object?>{
+        'schemaVersion': 1,
+        'fixtureId': id,
+        'language': 'de',
+        'evidenceClass': 'SIMULATED',
+        'pages': <Map<String, Object?>>[
+          for (final Map<String, Object?> page in pages)
+            <String, Object?>{
+              'pageIndex': page['index'],
+              'widthPt': page['widthPt'],
+              'heightPt': page['heightPt'],
+              'rotation': page['rotation'],
+              'blocks': const <Object?>[],
+            },
+        ],
+      };
+    }
+  }
+
+  addFixture(
+    id: 'sf-004',
+    role: 'fields',
+    status: 'valid',
+    pages: <Map<String, Object?>>[_a4Page(0)],
+  );
+  addFixture(
+    id: 'sf-003',
+    role: 'geometry',
+    status: 'valid',
+    pages: <Map<String, Object?>>[
+      _a4Page(0),
+      _page(1, 841.89, 595.28, 0),
+      _page(2, 841.89, 595.28, 90),
+      _page(3, 595.28, 841.89, 180),
+      _page(4, 595.28, 419.53, 270),
+    ],
+  );
+  addFixture(
+    id: 'sf-002',
+    role: 'navigation',
+    status: 'valid',
+    byteLength: 4096,
+    pages: <Map<String, Object?>>[
+      for (int index = 0; index < 5; index++) _a4Page(index),
+    ],
+  );
+  addFixture(
+    id: 'sf-protected',
+    role: 'import-failure',
+    status: 'encrypted',
+    pages: <Map<String, Object?>>[_a4Page(0)],
+    expectedError: 'IMP-001',
+  );
+  addFixture(
+    id: 'sf-truncated',
+    role: 'import-failure',
+    status: 'truncated',
+    pages: const <Map<String, Object?>>[],
+    expectedError: 'IMP-002',
+  );
+  addFixture(
+    id: 'sf-not-a-pdf',
+    role: 'import-failure',
+    status: 'not-a-pdf',
+    pages: const <Map<String, Object?>>[],
+    expectedError: 'IMP-004',
+  );
+
+  return SimulatedFixtureCatalog.parse(
+    catalogJson: jsonEncode(<String, Object?>{
+      'schemaVersion': 1,
+      'catalogVersion': 't037-r2-in-memory',
+      'evidenceClass': 'SIMULATED',
+      'rights': <String, Object?>{
+        'thirdPartyContent': false,
+        'containsPersonalData': false,
+        'rightsCleared': true,
+      },
+      'generator': <String, Object?>{
+        'path': 't037-in-memory',
+        'version': '1',
+        'deterministic': true,
+      },
+      'fixtureCount': fixtures.length,
+      'fixtures': fixtures,
+    }),
+    pdfBytesById: pdfBytesById,
+    expectedOcrById: expectedOcrById,
+  );
+}
+
+Map<String, Object?> _a4Page(int index) => _page(index, 595.28, 841.89, 0);
+
+Map<String, Object?> _page(
+  int index,
+  double widthPt,
+  double heightPt,
+  int rotation,
+) {
+  return <String, Object?>{
+    'index': index,
+    'widthPt': widthPt,
+    'heightPt': heightPt,
+    'rotation': rotation,
+  };
+}
+
+Uint8List _fixtureBytes(String id, int length) {
+  final Uint8List bytes = Uint8List(length);
+  const List<int> header = <int>[
+    0x25,
+    0x50,
+    0x44,
+    0x46,
+    0x2d,
+    0x31,
+    0x2e,
+    0x37,
+    0x0a,
+  ];
+  final List<int> idBytes = id.codeUnits;
+  for (int index = 0; index < length; index++) {
+    if (index < header.length) {
+      bytes[index] = header[index];
+    } else {
+      bytes[index] = idBytes[(index - header.length) % idBytes.length];
+    }
+  }
+  return bytes;
+}
+
 /// T028-specific coverage declarations and scenario wiring.
 final class _T028ImportConformanceSubject implements ImportConformanceSubject {
   _T028ImportConformanceSubject(this._catalog);
 
-  final SimulatedFixtureCatalog Function() _catalog;
+  final SimulatedFixtureCatalog _catalog;
 
   @override
   String get adapterLabel => 'SIMULATED T028 SimulatedDocumentImportAdapter';
@@ -68,28 +236,33 @@ final class _T028ImportConformanceSubject implements ImportConformanceSubject {
   /// never reported as passing protection.
   static const Map<ImportConformanceExpectation, String> _notCovered =
       <ImportConformanceExpectation, String>{
+        ImportConformanceExpectation.initialRevisionCommittedAndVerified:
+            'T028 import creates SimulatedDocumentRecord(head: null) with an '
+            'empty revisions map at simulated_import_adapter.dart:196-206; '
+            'the initial revision is committed later by store.createDocument. '
+            'contracts/platform-channel.md §3/§4 and '
+            'contracts/storage-format.md §3.2 require the import commit to '
+            'write and verify the initial revision and head before it returns. '
+            'Owner: T038 channel import / T040 encrypted copy.',
         ImportConformanceExpectation.imageOnlyPdfAccepted:
-            'the committed SIMULATED fixture catalogue contains no '
-            'image-only PDF; T028 selects whole fixtures and exposes no '
-            'text/form-field metadata.',
+            'the in-memory catalogue contains no image-only PDF; T028 selects '
+            'whole fixtures and exposes no text/form-field metadata. '
+            'Owner: T038/T039.',
         ImportConformanceExpectation.imp006PartialPages:
-            'T028 always returns an empty pageFailures list; no fixture '
-            'models a partially readable source.',
+            'T028 always returns an empty pageFailures list; no fixture models '
+            'a partially readable source. Owner: T038/T044.',
         ImportConformanceExpectation.imp004UnsupportedStructure:
-            'the committed catalogue has no unsupported-structure fixture; '
-            'T028 distinguishes only not-a-pdf (IMP-004 notPdf).',
+            'the in-memory catalogue has no unsupported-structure fixture; '
+            'T028 distinguishes only not-a-pdf (IMP-004 notPdf). '
+            'Owner: T038/T039.',
         ImportConformanceExpectation.save003StagedWriteFailure:
             'SimulatedBackend.stageSource has no write-fault hook and '
-            'SimulatedDocumentImportAdapter is outside this correction scope.',
-        ImportConformanceExpectation.save003StagedIntegrityMismatch:
-            'KNOWN T028 NON-CONFORMANCE: simulated_import_adapter.dart:177-182 '
-            'maps a staged read-back/hash mismatch to '
-            'ImportRejectedException(unreadable) IMP-002 instead of '
-            'CorruptDataException SAVE-003; SimulatedBackend exposes no '
-            'corruption hook and the adapter is outside this scope.',
+            'SimulatedDocumentImportAdapter exposes no staged-write fault '
+            'injection. Owner: T038/T040.',
         ImportConformanceExpectation.realSafPickerAndPasswordEntry:
-            'T028 uses SimulatedImportPicker over the fixture catalogue; it '
-            'cannot launch Android SAF or accept/deny a password.',
+            'T028 uses SimulatedImportPicker over the in-memory catalogue; it '
+            'cannot launch Android SAF or accept/deny a password. '
+            'Owner: T038.',
       };
 
   @override
@@ -132,13 +305,15 @@ final class _T028ImportConformanceSubject implements ImportConformanceSubject {
         return _cancelled();
       case ImportConformanceExpectation.save001StorageFull:
         return _importFixture('sf-002', maxTotalBytes: 1024);
+      case ImportConformanceExpectation.save003StagedIntegrityMismatch:
+        return _stagedIntegrityMismatch();
       case ImportConformanceExpectation.noRecordAfterRejection:
         return _noRecordAfterRejections();
+      case ImportConformanceExpectation.initialRevisionCommittedAndVerified:
       case ImportConformanceExpectation.imageOnlyPdfAccepted:
       case ImportConformanceExpectation.imp006PartialPages:
       case ImportConformanceExpectation.imp004UnsupportedStructure:
       case ImportConformanceExpectation.save003StagedWriteFailure:
-      case ImportConformanceExpectation.save003StagedIntegrityMismatch:
       case ImportConformanceExpectation.realSafPickerAndPasswordEntry:
         // The suite skips every one of these after `declare`; reaching here
         // would be a runner bug, not a pass.
@@ -158,7 +333,7 @@ final class _T028ImportConformanceSubject implements ImportConformanceSubject {
       backend: backend,
       adapter: SimulatedDocumentImportAdapter(
         backend: backend,
-        catalog: _catalog(),
+        catalog: _catalog,
       ),
     );
   }
@@ -171,8 +346,6 @@ final class _T028ImportConformanceSubject implements ImportConformanceSubject {
   }) async {
     final ({SimulatedBackend backend, SimulatedDocumentImportAdapter adapter})
     world = _world(maxTotalBytes: maxTotalBytes);
-    // An unknown fixture id is a deliberate IMP-005 probe: resolve what exists,
-    // then let the adapter classify the missing selection itself.
     final SimulatedFixture? fixture = _fixtureOrNull(fixtureId);
     world.adapter.picker.enqueueFixture(fixtureId);
     try {
@@ -212,7 +385,7 @@ final class _T028ImportConformanceSubject implements ImportConformanceSubject {
 
   SimulatedFixture? _fixtureOrNull(String fixtureId) {
     try {
-      return _catalog().fixture(fixtureId);
+      return _catalog.fixture(fixtureId);
     } on ArgumentError {
       return null;
     }
@@ -221,7 +394,7 @@ final class _T028ImportConformanceSubject implements ImportConformanceSubject {
   Future<ImportConformanceObservation> _immutabilityAndVerification() async {
     final ({SimulatedBackend backend, SimulatedDocumentImportAdapter adapter})
     world = _world();
-    final SimulatedFixture fixture = _catalog().fixture('sf-004');
+    final SimulatedFixture fixture = _catalog.fixture('sf-004');
     world.adapter.picker.enqueueFixture('sf-004');
     try {
       final ImportedSource source = await world.adapter.pickAndImport(
@@ -247,6 +420,7 @@ final class _T028ImportConformanceSubject implements ImportConformanceSubject {
         expectedPageHashes: _pageHashes(fixture),
         integrity: integrity,
         secondIntegrity: second,
+        descriptor: world.adapter.descriptor,
       );
     } on Object catch (error) {
       return _observation(world.backend, error: error);
@@ -256,7 +430,7 @@ final class _T028ImportConformanceSubject implements ImportConformanceSubject {
   Future<ImportConformanceObservation> _injectedStagedCorruption() async {
     final ({SimulatedBackend backend, SimulatedDocumentImportAdapter adapter})
     world = _world();
-    final SimulatedFixture fixture = _catalog().fixture('sf-004');
+    final SimulatedFixture fixture = _catalog.fixture('sf-004');
     world.adapter.picker.enqueueFixture('sf-004');
     try {
       final ImportedSource source = await world.adapter.pickAndImport(
@@ -290,6 +464,36 @@ final class _T028ImportConformanceSubject implements ImportConformanceSubject {
       );
     } on Object catch (error) {
       return _observation(world.backend, error: error);
+    }
+  }
+
+  Future<ImportConformanceObservation> _stagedIntegrityMismatch() async {
+    final ({SimulatedBackend backend, SimulatedDocumentImportAdapter adapter})
+    world = _world();
+    final SimulatedFixture fixture = _catalog.fixture('sf-004');
+    // Inject storage authentication damage into the read-back copy; the stored
+    // bytes stay unchanged. The adapter must map this to SAVE-003.
+    world.backend.corruptNextStagedReadBack();
+    world.adapter.picker.enqueueFixture('sf-004');
+    try {
+      final ImportedSource source = await world.adapter.pickAndImport(
+        ImportRequest(),
+      );
+      return _observation(
+        world.backend,
+        source: source,
+        pickedBytes: fixture.bytes,
+        expectedPages: fixture.geometries,
+        expectedPageHashes: _pageHashes(fixture),
+      );
+    } on Object catch (error) {
+      return _observation(
+        world.backend,
+        error: error,
+        pickedBytes: fixture.bytes,
+        expectedPages: fixture.geometries,
+        expectedPageHashes: _pageHashes(fixture),
+      );
     }
   }
 
@@ -391,6 +595,9 @@ final class _T028ImportConformanceSubject implements ImportConformanceSubject {
         (int sum, SimulatedDocumentRecord document) =>
             sum + document.revisions.length,
       ),
+      headPresent: source == null
+          ? null
+          : backend.document(source.documentId)?.head != null,
       templateCount: backend.templates.length,
       artifactCount: backend.artifacts.length,
       stagedSourceCount: backend.stagedSources.length,

@@ -54,6 +54,14 @@ enum ImportConformanceExpectation {
     'a five-page source is accepted with ordered page geometry',
   ),
 
+  /// `contracts/platform-channel.md` §3/§4 and
+  /// `contracts/storage-format.md` §3.2: the import commits and verifies the
+  /// initial revision and head before it returns.
+  initialRevisionCommittedAndVerified(
+    'initial-revision-committed-and-verified',
+    'the initial revision and head are committed and the source is verified',
+  ),
+
   /// FR-004: the picked bytes are never modified, the staged copy is distinct,
   /// and `verifySource` re-reads the same hash twice.
   sourceImmutabilityAndVerification(
@@ -271,6 +279,7 @@ final class ImportConformanceObservation {
     this.sourceIsImageOnly,
     this.documentCount = 0,
     this.revisionCount = 0,
+    this.headPresent,
     this.templateCount = 0,
     this.artifactCount = 0,
     this.stagedSourceCount = 0,
@@ -311,6 +320,9 @@ final class ImportConformanceObservation {
 
   /// Revisions/drafts present after the run.
   final int revisionCount;
+
+  /// Whether the imported document has a committed head, when observed.
+  final bool? headPresent;
 
   /// Templates present after the run.
   final int templateCount;
@@ -418,6 +430,8 @@ void assertImportConformance(
     case ImportConformanceExpectation.fivePageGeometryImport:
       _assertSuccess(observation, expectation);
       _assertGeometry(observation, expectation);
+    case ImportConformanceExpectation.initialRevisionCommittedAndVerified:
+      _assertInitialRevision(observation, expectation);
     case ImportConformanceExpectation.sourceImmutabilityAndVerification:
       _assertSuccess(observation, expectation);
       _assertImmutability(observation, expectation);
@@ -572,10 +586,32 @@ void _assertSuccess(
   _requireEqual(imported.sha256, sha256Hex(pickedBytes!), '$reason: sha256');
   _requireEqual(imported.sizeBytes, pickedBytes.length, '$reason: sizeBytes');
   _requireEqual(observation.documentCount, 1, '$reason: document count');
-  _requireEqual(observation.revisionCount, 0, '$reason: draft count');
+  // The generic port expectation does not prescribe a document-specific
+  // revision count; `initial-revision-committed-and-verified` owns that.
   _requireEqual(observation.templateCount, 0, '$reason: template count');
   _requireEqual(observation.artifactCount, 0, '$reason: stored record count');
   _requireEqual(observation.stagedSourceCount, 1, '$reason: staged source');
+}
+
+void _assertInitialRevision(
+  ImportConformanceObservation observation,
+  ImportConformanceExpectation expectation,
+) {
+  _assertSuccess(observation, expectation);
+  final ImportedSource source = observation.source!;
+  final String reason = expectation.id;
+  _require(
+    observation.revisionCount >= 1,
+    '$reason: at least one committed revision is required',
+  );
+  _require(
+    observation.headPresent == true,
+    '$reason: the document head must be committed',
+  );
+  final SourceIntegrity? integrity = observation.integrity;
+  _require(integrity != null, '$reason: the source must be verified');
+  _require(integrity!.readable, '$reason: the source must be readable');
+  _requireEqual(integrity.actualSha256, source.sha256, '$reason: source hash');
 }
 
 void _assertGeometry(
@@ -643,10 +679,17 @@ void _assertIntegrity(
     integrity.pageFailures.isEmpty,
     '$reason: verifySource page failures',
   );
+  final CapabilityDescriptor? descriptor = observation.descriptor;
+  _require(descriptor != null, '$reason: adapter descriptor is required');
   _requireEqual(
     integrity.evidence.evidenceClass,
-    EvidenceClass.simulated,
-    '$reason: verify evidence',
+    descriptor!.evidence.evidenceClass,
+    '$reason: verify evidence must match the adapter descriptor',
+  );
+  _requireEqual(
+    integrity.evidence,
+    descriptor.evidence,
+    '$reason: verify evidence label must match the descriptor',
   );
   final SourceIntegrity? second = observation.secondIntegrity;
   _require(second != null, '$reason: second verifySource is missing');

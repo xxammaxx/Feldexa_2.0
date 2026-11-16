@@ -310,6 +310,7 @@ final class SimulatedBackend {
 
   bool _globalKeyUnavailable = false;
   final Set<String> _lostAggregateKeys = <String>{};
+  bool _corruptNextStagedReadBack = false;
 
   /// Whether the simulated key provider is marked globally unavailable.
   ///
@@ -397,12 +398,31 @@ final class SimulatedBackend {
     return source;
   }
 
+  /// Injects storage authentication damage into the next staged read-back.
+  ///
+  /// The stored bytes remain unchanged; the returned copy differs so the
+  /// caller observes a hash mismatch, exactly like corrupt storage. This is a
+  /// deterministic test seam for the `SAVE-003` staged-integrity contract.
+  void corruptNextStagedReadBack() {
+    _corruptNextStagedReadBack = true;
+  }
+
   /// Reads back a staged source and re-verifies its hash.
   ///
   /// Returns a copy so a caller cannot mutate the stored bytes.
   Uint8List? readStagedSource(String sourceId) {
     final SimulatedStagedSource? source = _sources[sourceId];
-    return source == null ? null : copyBytes(source.bytes);
+    if (source == null) {
+      return null;
+    }
+    final Uint8List copy = copyBytes(source.bytes);
+    if (_corruptNextStagedReadBack) {
+      _corruptNextStagedReadBack = false;
+      if (copy.isNotEmpty) {
+        copy[0] = copy[0] ^ 0xFF;
+      }
+    }
+    return copy;
   }
 
   /// Looks up a document aggregate.

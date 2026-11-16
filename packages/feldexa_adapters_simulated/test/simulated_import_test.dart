@@ -316,4 +316,23 @@ void main() {
       expect(world.backend.totalBytes, beforeBytes);
     },
   );
+
+  test(
+    'staged read-back damage maps to CorruptDataException SAVE-003',
+    () async {
+      final world = await SimulatedTestWorld.create();
+      world.backend.corruptNextStagedReadBack();
+      world.importAdapter.picker.enqueueFixture('sf-004');
+      await expectLater(
+        world.importAdapter.pickAndImport(ImportRequest()),
+        throwsA(
+          isA<CorruptDataException>()
+              .having((e) => e.code, 'code', 'SAVE-003')
+              .having((e) => e.messageKey, 'messageKey', 'save003'),
+        ),
+      );
+      expect(world.backend.stagedSources, isEmpty);
+      expect(world.backend.documents, isEmpty);
+    },
+  );
 }

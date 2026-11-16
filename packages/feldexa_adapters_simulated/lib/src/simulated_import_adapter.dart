@@ -177,9 +177,12 @@ final class SimulatedDocumentImportAdapter implements DocumentImportPort {
     if (readBack == null ||
         readBack.length != fixture.sizeBytes ||
         sha256Hex(readBack) != staged.sha256) {
-      // A failed read-back must not leave an orphaned source behind.
+      // A failed read-back is storage damage, not an unreadable input:
+      // `contracts/storage-format.md` §3.1 step 3 and §5 require
+      // `CorruptDataException` (`SAVE-003`). It must not leave an orphaned
+      // source behind.
       backend.removeSourceIfUnreferenced(sourceId);
-      throw ImportRejectedException(ImportRejectionKind.unreadable);
+      throw CorruptDataException();
     }
 
     // Import creates the document aggregate so `ImportedSource.documentId` is
