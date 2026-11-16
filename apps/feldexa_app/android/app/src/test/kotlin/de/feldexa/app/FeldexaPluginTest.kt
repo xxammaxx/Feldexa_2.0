@@ -366,6 +366,100 @@ class FeldexaPluginTest {
     }
 
     @Test
+    fun hugeNegativeBigIntegerRejectsBeforeNegativeBitCountDisambiguation() {
+        // |value| = 2^8_388_608. The exact negative hexadecimal text is
+        // 2_097_154 bytes ("-" plus 2_097_153 digits) under a 5-byte prefix,
+        // but the old guard only ruled out one- and two-byte budgets before
+        // calling bitCount(), which scans the entire 8 Mi-bit magnitude.
+        val shift = 8 * 1024 * 1024
+        val magnitude = ByteArray(shift / 8 + 1).also { it[0] = 1 }
+        val hugeNegative = BitCountTrackingBigInteger(-1, magnitude)
+        val hexLength = hugeNegative.toString(16).length.toLong()
+        val exact = 1L + sizePrefix(hexLength) + hexLength
+        assertEquals(shift.toLong() / 4L + 2L, hexLength)
+        assertEquals(1L + 5L + hexLength, exact)
+
+        // Budgets above the two-byte minimum but far below the encoded
+        // length: every one must reject from the sign/bit-length lower bound
+        // without ever invoking bitCount().
+        for (budget in listOf(3L, 4L, 253L, 254L, 65_535L, 65_536L, exact - 2L)) {
+            hugeNegative.bitCountCalls = 0
+            hugeNegative.bitLengthCalls = 0
+            assertEquals("budget=$budget", budget + 1L, PayloadSize.measure(hugeNegative, budget))
+            assertEquals("budget=$budget must not scan bitCount", 0, hugeNegative.bitCountCalls)
+            assertTrue(
+                "budget=$budget must use the cheap bitLength bound",
+                hugeNegative.bitLengthCalls >= 1,
+            )
+        }
+
+        // One byte below the exact total the lower bound cannot decide the
+        // power-of-two disambiguation, so the exact path runs and rejects only
+        // after exactly one bitCount(); this proves the double is live.
+        hugeNegative.bitCountCalls = 0
+        assertEquals(exact, PayloadSize.measure(hugeNegative, exact - 1L))
+        assertEquals(1, hugeNegative.bitCountCalls)
+
+        // The exact accepted size still equals the codec's size.
+        hugeNegative.bitCountCalls = 0
+        assertEquals(exact, PayloadSize.measure(hugeNegative, Long.MAX_VALUE))
+        assertEquals(1, hugeNegative.bitCountCalls)
+
+        // One- and two-byte budgets stay decided before even bitLength().
+        hugeNegative.bitCountCalls = 0
+        hugeNegative.bitLengthCalls = 0
+        assertEquals(2L, PayloadSize.measure(hugeNegative, 1L))
+        assertEquals(3L, PayloadSize.measure(hugeNegative, 2L))
+        assertEquals(0, hugeNegative.bitCountCalls)
+        assertEquals(0, hugeNegative.bitLengthCalls)
+    }
+
+    @Test
+    fun acceptedNearBoundaryNegativeBigIntegersStayExact() {
+        // Negative hexadecimal text lengths on both sides of the 1 -> 3 and
+        // 3 -> 5 byte size-prefix thresholds, with non-power-of-two and
+        // power-of-two magnitudes so both outcomes of the bitCount()
+        // disambiguation are exercised.
+        val cases = listOf(
+            -(BigInteger.ONE.shiftLeft(4 * 252) - BigInteger.ONE) to 253L,
+            -(BigInteger.ONE.shiftLeft(4 * 253) - BigInteger.ONE) to 254L,
+            -(BigInteger.ONE.shiftLeft(4 * 254) - BigInteger.ONE) to 255L,
+            -(BigInteger.ONE.shiftLeft(4 * 65_534) - BigInteger.ONE) to 65_535L,
+            -(BigInteger.ONE.shiftLeft(4 * 65_535) - BigInteger.ONE) to 65_536L,
+            BigInteger.ONE.shiftLeft(1_008).negate() to 254L,
+            BigInteger.ONE.shiftLeft(65_536).negate() to 16_386L,
+        )
+        for ((value, textLength) in cases) {
+            assertEquals("value bits", textLength, value.toString(16).length.toLong())
+            val exact = 1L + sizePrefix(textLength) + textLength
+            assertEquals("value=$value", exact, PayloadSize.measure(value, Long.MAX_VALUE))
+            assertEquals("value=$value at the exact budget", exact, PayloadSize.measure(value, exact))
+            assertTrue(
+                "value=$value must not fit one byte under",
+                PayloadSize.measure(value, exact - 1L) > exact - 1L,
+            )
+        }
+
+        // The power-of-two case at text length 254 has a lower bound exactly
+        // one byte short of the exact size, so acceptance at the exact total
+        // envelope and rejection one byte under both go through the real
+        // facade guard rather than the lower-bound shortcut alone.
+        val boundary = BigInteger.ONE.shiftLeft(1_008).negate()
+        val method = "export.validate"
+        val payload = mapOf("schemaVersion" to 1, "plan" to mapOf("x" to boundary))
+        val exactEnvelope = PayloadSize.measureMethodCall(method, payload, Long.MAX_VALUE)
+        val accepted = RecordingReply()
+        newFacade(servicePrefix = "export", limits = ChannelLimits(maxPayloadBytes = exactEnvelope))
+            .handle(method, payload, accepted)
+        assertNull("expected the negative near-boundary payload to fit: ${accepted.failure}", accepted.failure)
+        val rejected = RecordingReply()
+        newFacade(servicePrefix = "export", limits = ChannelLimits(maxPayloadBytes = exactEnvelope - 1L))
+            .handle(method, payload, rejected)
+        assertFailure(rejected, "PLT-003")
+        assertEquals("platform.payloadTooLarge", rejected.failure?.machineMessage)
+    }
+
+    @Test
     fun payloadAtExactTotalEnvelopeIsAcceptedAndOneByteOverIsRejected() {
         // import.pickAndImport + {schemaVersion:1, maxBytes:1024, titleHint:N}
         // StandardMethodCodec encodes the method name (22), the root map
@@ -1855,6 +1949,33 @@ class FeldexaPluginTest {
         length < 254L -> 1L
         length <= 0xffffL -> 3L
         else -> 5L
+    }
+
+    /**
+     * `BigInteger` test double that counts the exact-path `bitCount()` calls.
+     * `bitCount()` is the only O(magnitude) operation in the negative
+     * disambiguation, so a zero count is deterministic proof that a rejection
+     * never scanned the magnitude. The counters are reset after construction
+     * so only the measured call is observed.
+     */
+    private class BitCountTrackingBigInteger(signum: Int, magnitude: ByteArray) :
+        BigInteger(signum, magnitude) {
+        var bitCountCalls = 0
+        var bitLengthCalls = 0
+
+        override fun toByte(): Byte = toInt().toByte()
+
+        override fun toShort(): Short = toInt().toShort()
+
+        override fun bitCount(): Int {
+            bitCountCalls++
+            return super.bitCount()
+        }
+
+        override fun bitLength(): Int {
+            bitLengthCalls++
+            return super.bitLength()
+        }
     }
 
     private class ReturningService(private val data: Any?) : PlatformService {

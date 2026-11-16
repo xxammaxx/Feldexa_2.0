@@ -1385,8 +1385,10 @@ fun interface FeldexaEventSink {
  * No serialized copy is allocated: byte arrays contribute their length
  * directly, strings and other `CharSequence`s are measured by scanning code
  * units, and a `BigInteger` contributes the length of its hexadecimal text
- * without building that string. The `remaining` budget stops traversal as soon
- * as the limit is known to be exceeded.
+ * without building that string. A cheap sign/bit-length lower bound rejects an
+ * oversized magnitude before the negative power-of-two disambiguation needs
+ * `bitCount()`. The `remaining` budget stops traversal as soon as the limit is
+ * known to be exceeded.
  */
 internal object PayloadSize {
     private const val MAX_DEPTH = 64
@@ -1412,14 +1414,15 @@ internal object PayloadSize {
 
         private fun overBudget(): Boolean = size > limit
 
+        private fun sizePrefixBytes(value: Long): Long =
+            when {
+                value < 254L -> 1L
+                value <= 0xffffL -> 3L
+                else -> 5L
+            }
+
         private fun writeSize(value: Long) {
-            add(
-                when {
-                    value < 254L -> 1L
-                    value <= 0xffffL -> 3L
-                    else -> 5L
-                },
-            )
+            add(sizePrefixBytes(value))
         }
 
         private fun writeBytes(length: Long) {
@@ -1449,8 +1452,19 @@ internal object PayloadSize {
             add(TYPE_BYTE)
             // Every hexadecimal representation has at least one byte ("0",
             // "1", "-1", ...), so the type byte plus the one-byte size prefix
-            // already decides tiny budgets without scanning a large magnitude.
+            // already decides one- and two-byte budgets without inspecting the
+            // magnitude at all.
             if (size + 1L + 1L > limit) {
+                size = limit + 1L
+                return
+            }
+            // A sign/bit-length lower bound is cheap and never scans the whole
+            // magnitude. For negatives the exact digit count still needs
+            // `bitCount()` to disambiguate a power-of-two magnitude from
+            // `|value| - 1`; run that disambiguation only after the lower bound
+            // has proven the representation cannot fit the remaining budget.
+            val lowerBound = hexStringLengthLowerBound(value)
+            if (size + sizePrefixBytes(lowerBound) + lowerBound > limit) {
                 size = limit + 1L
                 return
             }
@@ -1458,9 +1472,28 @@ internal object PayloadSize {
         }
 
         /**
-         * Byte length of `BigInteger.toString(16)` without materializing that
-         * string. `StandardMessageCodec` writes the hexadecimal text (with a
-         * leading `-` for negatives) as UTF-8, so its length equals the digit
+         * Cheap lower bound of the `toString(16)` byte length from `signum` and
+         * `bitLength()` only: no `bitCount()`, no full magnitude scan, no copy.
+         *
+         * Positives need exactly `ceil(bitLength / 4)` digits. For negatives
+         * `bitLength()` describes `|value| - 1`, so the magnitude can add at
+         * most one significant bit; `ceil(bitLength / 4)` digits plus the
+         * leading `-` therefore never overstates the exact length.
+         */
+        private fun hexStringLengthLowerBound(value: BigInteger): Long {
+            val signum = value.signum()
+            val digits = (value.bitLength().toLong() + 3L) / 4L
+            return when {
+                signum == 0 -> 1L
+                signum > 0 -> digits
+                else -> digits + 1L
+            }
+        }
+
+        /**
+         * Exact byte length of `BigInteger.toString(16)` without materializing
+         * that string. `StandardMessageCodec` writes the hexadecimal text (with
+         * a leading `-` for negatives) as UTF-8, so its length equals the digit
          * count on this ASCII path.
          *
          * Positives need `ceil(bitLength / 4)` digits. For negatives,

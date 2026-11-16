@@ -371,6 +371,8 @@ class FeldexaPluginInstrumentedTest {
             BigInteger.ONE.shiftLeft(64).negate(),
             BigInteger.ONE.shiftLeft(64).subtract(BigInteger.ONE),
             BigInteger.ONE.shiftLeft(64).subtract(BigInteger.ONE).negate(),
+            BigInteger.ONE.shiftLeft(1_008).negate(),
+            BigInteger.ONE.shiftLeft(1_008).subtract(BigInteger.ONE).negate(),
             StringBuilder("abc"),
             StringBuilder("a\u00e4\u20ac\uD83D\uDE00"),
         )
@@ -384,6 +386,37 @@ class FeldexaPluginInstrumentedTest {
                 PayloadSize.measure(value, Long.MAX_VALUE),
             )
         }
+    }
+
+    @Test
+    fun hugeNegativeBigIntegerRejectsBeforeBitCountOnAndroidRuntime() {
+        // |value| = 2^1_048_576, a 128 KiB magnitude whose exact negative
+        // hexadecimal text is 262_146 bytes. On the old path a budget above
+        // two bytes reached bitCount(), which scans every magnitude word.
+        val shift = 1_048_576
+        val magnitude = ByteArray(shift / 8 + 1).also { it[0] = 1 }
+        val hugeNegative = BitCountTrackingBigInteger(-1, magnitude)
+        val hexLength = hugeNegative.toString(16).length.toLong()
+        val exact = 1L + 5L + hexLength
+        assertEquals(shift.toLong() / 4L + 2L, hexLength)
+        val plainNegative = BigInteger.ONE.shiftLeft(shift).negate()
+        assertEquals(
+            exact,
+            StandardMessageCodec.INSTANCE.encodeMessage(plainNegative)!!.limit().toLong(),
+        )
+
+        hugeNegative.bitCountCalls = 0
+        hugeNegative.bitLengthCalls = 0
+        assertEquals(1_025L, PayloadSize.measure(hugeNegative, 1_024L))
+        assertEquals(0, hugeNegative.bitCountCalls)
+        assertTrue(hugeNegative.bitLengthCalls >= 1)
+
+        // One byte under the exact total still needs one exact disambiguation;
+        // the exact total is accepted with the same exact size.
+        hugeNegative.bitCountCalls = 0
+        assertEquals(exact, PayloadSize.measure(hugeNegative, exact - 1L))
+        assertEquals(1, hugeNegative.bitCountCalls)
+        assertEquals(exact, PayloadSize.measure(hugeNegative, exact))
     }
 
     @Test
@@ -623,6 +656,32 @@ class FeldexaPluginInstrumentedTest {
 
     private fun results(): List<Map<*, *>> =
         messenger.events(FeldexaChannels.RESULTS).mapNotNull { it as? Map<*, *> }
+
+    /**
+     * `BigInteger` test double that counts the exact-path `bitCount()` calls.
+     * `bitCount()` is the only O(magnitude) operation in the negative
+     * disambiguation, so a zero count deterministically proves that rejection
+     * never scanned the magnitude.
+     */
+    private class BitCountTrackingBigInteger(signum: Int, magnitude: ByteArray) :
+        BigInteger(signum, magnitude) {
+        var bitCountCalls = 0
+        var bitLengthCalls = 0
+
+        override fun toByte(): Byte = toInt().toByte()
+
+        override fun toShort(): Short = toInt().toShort()
+
+        override fun bitCount(): Int {
+            bitCountCalls++
+            return super.bitCount()
+        }
+
+        override fun bitLength(): Int {
+            bitLengthCalls++
+            return super.bitLength()
+        }
+    }
 
     private class ReturningService(private val data: Any?) : PlatformService {
         override fun handle(request: PlatformRequest, context: OperationContext): Any? = data
