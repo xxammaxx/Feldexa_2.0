@@ -24,3 +24,4 @@ export 'src/fixtures/fixture_loader.dart';
 export 'src/fixtures/fixture_path.dart';
 export 'src/fixtures/fixture_source.dart';
 export 'src/fixtures/sha256.dart' show sha256Hex;
+export 'src/import_conformance_suite.dart';

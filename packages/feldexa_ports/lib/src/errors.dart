@@ -59,8 +59,10 @@ abstract class FeldexaException implements Exception {
 
   /// ARB key resolved to German at the UI boundary.
   ///
-  /// Until T029 creates the ARB entries, the key is the catalog code itself;
-  /// `contracts/error-catalog.de.md` is the source of truth for both.
+  /// `contracts/error-catalog.de.md` §11.1 maps `IMP-001` to `imp001`, the key
+  /// committed in `apps/feldexa_app/lib/l10n/app_de.arb`. A catalog row that
+  /// deliberately has no German message keeps the stable code as its key; see
+  /// `_arbMessageKey`.
   final String messageKey;
 
   /// Stable machine key for logs and tests, never a German sentence.
@@ -198,7 +200,7 @@ final class ImportRejectedException extends FeldexaException {
     : kind = _validateKind(kind),
       super(
         code: kind.catalogCode,
-        messageKey: kind.catalogCode,
+        messageKey: _arbMessageKey(kind.catalogCode),
         message: kind.machineMessage,
         retryable: false,
         severity: kind.severity,
@@ -229,7 +231,7 @@ final class ImportCancelledException extends FeldexaException {
   ImportCancelledException()
     : super(
         code: 'IMP-000',
-        messageKey: 'IMP-000',
+        messageKey: _arbMessageKey('IMP-000'),
         message: 'import.cancelled',
         retryable: true,
         severity: ErrorSeverity.info,
@@ -245,7 +247,7 @@ final class StorageFullException extends FeldexaException {
   StorageFullException()
     : super(
         code: 'SAVE-001',
-        messageKey: 'SAVE-001',
+        messageKey: _arbMessageKey('SAVE-001'),
         message: 'storage.full',
         retryable: true,
         severity: ErrorSeverity.error,
@@ -262,7 +264,7 @@ final class KeyUnavailableException extends FeldexaException {
   KeyUnavailableException()
     : super(
         code: 'SAVE-002',
-        messageKey: 'SAVE-002',
+        messageKey: _arbMessageKey('SAVE-002'),
         message: 'storage.keyUnavailable',
         retryable: false,
         severity: ErrorSeverity.fatal,
@@ -286,7 +288,7 @@ final class KeystoreUnavailableException extends FeldexaException {
   KeystoreUnavailableException({super.retryable = true})
     : super(
         code: 'SAVE-008',
-        messageKey: 'SAVE-008',
+        messageKey: _arbMessageKey('SAVE-008'),
         message: 'storage.keystoreUnavailable',
         severity: ErrorSeverity.error,
       );
@@ -301,7 +303,7 @@ final class CorruptDataException extends FeldexaException {
   CorruptDataException()
     : super(
         code: 'SAVE-003',
-        messageKey: 'SAVE-003',
+        messageKey: _arbMessageKey('SAVE-003'),
         message: 'storage.corruptData',
         retryable: false,
         severity: ErrorSeverity.fatal,
@@ -317,7 +319,7 @@ final class StorageWriteException extends FeldexaException {
   StorageWriteException()
     : super(
         code: 'SAVE-003',
-        messageKey: 'SAVE-003',
+        messageKey: _arbMessageKey('SAVE-003'),
         message: 'storage.writeFailed',
         retryable: true,
         severity: ErrorSeverity.error,
@@ -329,7 +331,7 @@ final class SecurityException extends FeldexaException {
   SecurityException()
     : super(
         code: 'PLT-002',
-        messageKey: 'PLT-002',
+        messageKey: _arbMessageKey('PLT-002'),
         message: 'platform.securityRejected',
         retryable: false,
         severity: ErrorSeverity.error,
@@ -343,7 +345,7 @@ final class SchemaTooNewException extends FeldexaException {
   SchemaTooNewException()
     : super(
         code: 'SAVE-005',
-        messageKey: 'SAVE-005',
+        messageKey: _arbMessageKey('SAVE-005'),
         message: 'storage.schemaTooNew',
         retryable: false,
         severity: ErrorSeverity.error,
@@ -360,7 +362,7 @@ final class ExportBlockedException extends FeldexaException {
     : fieldIds = _validateFieldIds(fieldIds),
       super(
         code: 'EXP-001',
-        messageKey: 'EXP-001',
+        messageKey: _arbMessageKey('EXP-001'),
         message: 'export.blocked',
         retryable: true,
         severity: ErrorSeverity.warning,
@@ -408,7 +410,7 @@ final class ExportFailedException extends FeldexaException {
   ExportFailedException()
     : super(
         code: 'EXP-002',
-        messageKey: 'EXP-002',
+        messageKey: _arbMessageKey('EXP-002'),
         message: 'export.failed',
         retryable: true,
         severity: ErrorSeverity.error,
@@ -423,7 +425,7 @@ final class RenderException extends FeldexaException {
     : pageIndex = _validatePageIndex(pageIndex),
       super(
         code: 'PAGE-001',
-        messageKey: 'PAGE-001',
+        messageKey: _arbMessageKey('PAGE-001'),
         message: 'render.pageFailed',
         retryable: true,
         severity: ErrorSeverity.warning,
@@ -448,7 +450,7 @@ final class OcrUnavailableException extends FeldexaException {
   OcrUnavailableException()
     : super(
         code: 'REC-001',
-        messageKey: 'REC-001',
+        messageKey: _arbMessageKey('REC-001'),
         message: 'ocr.unavailable',
         retryable: true,
         severity: ErrorSeverity.warning,
@@ -462,7 +464,7 @@ final class SimulatedInProductionException extends FeldexaException {
   SimulatedInProductionException()
     : super(
         code: 'SIM-001',
-        messageKey: 'SIM-001',
+        messageKey: _arbMessageKey('SIM-001'),
         message: 'simulated.inProduction',
         retryable: false,
         severity: ErrorSeverity.fatal,
@@ -475,9 +477,33 @@ final class UnsupportedOperationException extends FeldexaException {
   UnsupportedOperationException()
     : super(
         code: 'PLT-001',
-        messageKey: 'PLT-001',
+        messageKey: _arbMessageKey('PLT-001'),
         message: 'platform.unsupported',
         retryable: false,
         severity: ErrorSeverity.error,
       );
+}
+
+/// Catalog rows that deliberately have no committed German ARB entry.
+///
+/// `IMP-000` has no user message (the picker returns to the previous screen),
+/// and `SIM-001`, `PLT-001`, and `PLT-002` are developer-only rows that are
+/// never shown to a user. Their `messageKey` stays the stable catalog code.
+const Set<String> _catalogCodesWithoutArbEntry = <String>{
+  'IMP-000',
+  'SIM-001',
+  'PLT-001',
+  'PLT-002',
+};
+
+/// Returns the `contracts/error-catalog.de.md` §11.1 ARB key for [code].
+///
+/// The repository's committed `apps/feldexa_app/lib/l10n/app_de.arb` uses the
+/// lower-case code without the hyphen (`IMP-001` -> `imp001`). A code whose
+/// catalog row has no German message keeps the code itself as the key.
+String _arbMessageKey(String code) {
+  if (_catalogCodesWithoutArbEntry.contains(code)) {
+    return code;
+  }
+  return code.toLowerCase().replaceAll('-', '');
 }

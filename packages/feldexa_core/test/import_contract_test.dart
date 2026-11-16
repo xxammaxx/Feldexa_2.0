@@ -87,8 +87,16 @@ void main() {
       expect(_source(sizeBytes: 1, pageCount: 1).pageCount, 1);
       expect(_source(sizeBytes: 83886080, pageCount: 100).sizeBytes, 83886080);
       expect(_source(sizeBytes: 83886080, pageCount: 100).pageCount, 100);
-      // The default integrity of a freshly imported, read-back source.
-      expect(_source().integrity, SourceIntegrityState.verified);
+      // Exercise the production constructor default directly; passing the
+      // value through the helper would hide a changed constructor default.
+      final SourceFileRef imported = SourceFileRef(
+        id: _uuid(),
+        sha256: _sha256,
+        sizeBytes: 1,
+        pageCount: 1,
+        importedAt: _at(),
+      );
+      expect(imported.integrity, SourceIntegrityState.verified);
     });
 
     test('rejects an id that is not a lowercase UUIDv4', () {
@@ -244,13 +252,11 @@ void main() {
       expect(reopened.integrity, SourceIntegrityState.unreadable);
     });
 
-    test('integrity participates in equality', () {
+    test('the imported reference compares equal to the same value', () {
+      // `Object.hashCode` is not collision-free, so equality is the only
+      // contract asserted here.
       final SourceFileRef verified = _source();
-      final SourceFileRef unreadable = _source(
-        integrity: SourceIntegrityState.unreadable,
-      );
-      expect(verified == unreadable, isFalse);
-      expect(verified.hashCode == unreadable.hashCode, isFalse);
+      expect(verified, equals(_source()));
     });
   });
 
@@ -426,7 +432,12 @@ void main() {
       expect(_a4Rotated(270).displaySize, Size(842, 595));
     });
 
-    test('rejects a non-positive media box', () {
+    test('a non-positive media box is rejected by Rect validation', () {
+      // `PageGeometry` delegates box validation to `Rect`, so the throw happens
+      // while constructing the rectangle, before the geometry constructor
+      // runs. This case is pinned as rectangle validation, not as PageGeometry
+      // validation.
+      expect(() => Rect.fromLTWH(0, 0, 0, 842), throwsArgumentError);
       expect(
         () => PageGeometry(mediaBox: Rect.fromLTWH(0, 0, 0, 842)),
         throwsArgumentError,
