@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="de.feldexa.app.storage.StoreServiceTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-11-16T16:11:21.361Z" hostname="cachyos-x8664" time="0.196">
+  <properties/>
+  <testcase name="stageCreateLoadListAndSaveKeepIdentityHeadAndSource" classname="de.feldexa.app.storage.StoreServiceTest" time="0.039"/>
+  <testcase name="parentedInitialRevisionIsRejectedBeforeAnyWrite" classname="de.feldexa.app.storage.StoreServiceTest" time="0.002"/>
+  <testcase name="repeatedSignatureAssetIsRefusedWithPlt002AndPreservesPriorState" classname="de.feldexa.app.storage.StoreServiceTest" time="0.019"/>
+  <testcase name="duplicateVisibleCreateIsRefusedAndOriginalRemainsReadable" classname="de.feldexa.app.storage.StoreServiceTest" time="0.009"/>
+  <testcase name="signatureBoundary1024IsAcceptedAnd1025IsSave007ThroughService" classname="de.feldexa.app.storage.StoreServiceTest" time="0.07"/>
+  <testcase name="expectedHeadMismatchPreservesTheVerifiedHead" classname="de.feldexa.app.storage.StoreServiceTest" time="0.01"/>
+  <testcase name="sourceHashMismatchNeverBecomesVisible" classname="de.feldexa.app.storage.StoreServiceTest" time="0.004"/>
+  <testcase name="startupRecoveryIsReachableThroughTheService" classname="de.feldexa.app.storage.StoreServiceTest" time="0.0"/>
+  <testcase name="wrongDeleteTitleIsPlatformSecurityAndPreservesTheDocument" classname="de.feldexa.app.storage.StoreServiceTest" time="0.008"/>
+  <testcase name="invalidSignaturePngIsSave007AndPreservesPriorState" classname="de.feldexa.app.storage.StoreServiceTest" time="0.034"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

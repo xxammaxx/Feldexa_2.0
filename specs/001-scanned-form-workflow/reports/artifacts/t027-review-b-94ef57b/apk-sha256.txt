@@ -1,0 +1,3 @@
+37074ddc12cc0ee1349f3ffdcefc651743728a5c1434e6993d574ff9f1d1e110  app-debug.apk
+2b236f82700f67692b1ad2f3c4bfccda39a135c819f17e5845340b80ff7ff4fb  app-debug-androidTest.apk
+8ab95d2e6d915f47d7350082eb0cbad7cd5f2e0f7b7c3cd886714eeb1bbad419  app-debug-integration.apk

@@ -1,0 +1,19 @@
+00:00 +0: loading <repo-root>/packages/feldexa_ui/test/simulated_banner_test.dart
+00:00 +0: SimulatedEvidence shared production logic every surface carries the exact untranslated SIMULATED token
+00:00 +1: SimulatedEvidence shared production logic catalogued German contexts match error-catalog.de.md §9 exactly
+00:00 +2: SimulatedEvidence shared production logic markers distinguish the banner, log, report, and overlay surfaces
+00:00 +3: SimulatedEvidence shared production logic the banner accessibility label is the contract string
+00:00 +4: SimulatedEvidence shared production logic no surface claims Android verification or production status
+00:00 +5: SimulatedEvidence shared production logic descriptors are stable value objects per surface
+00:00 +6: SimulatedBanner widget renders the token and German context exactly
+00:00 +7: SimulatedBanner widget exposes the full accessibility label as one semantic node
+00:00 +8: SimulatedBanner widget has no dismiss control that could hide the marker
+00:00 +9: SimulatedBanner widget stays readable at 200% text scale on a narrow screen
+00:00 +10: SimulatedBanner widget meets 4.5:1 contrast for token and context text
+00:00 +11: SimulatedEvidenceLabel widget renders the SimulatedSurface.globalBanner marker and semantic label
+00:01 +12: SimulatedEvidenceLabel widget renders the SimulatedSurface.log marker and semantic label
+00:01 +13: SimulatedEvidenceLabel widget renders the SimulatedSurface.exportFooter marker and semantic label
+00:01 +14: SimulatedEvidenceLabel widget renders the SimulatedSurface.report marker and semantic label
+00:01 +15: SimulatedEvidenceLabel widget renders the SimulatedSurface.storage marker and semantic label
+00:01 +16: SimulatedEvidenceLabel widget wraps the longest context at 200% text scale
+00:01 +17: All tests passed!

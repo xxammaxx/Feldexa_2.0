@@ -1,0 +1,41 @@
+--- allocation now ---
+{
+  "id": "23b4cefe-6029-4c13-9d92-a4d04e1e6376",
+  "ok": true,
+  "result": {
+    "sessions": [
+      {
+        "worktreeId": "6ed93e3c-aa20-4b60-927b-f7f0af2c0e55::<repo-root>",
+        "backend": "android",
+        "deviceUdid": "emulator-5554",
+        "wsUrl": "",
+        "streamUrl": "scrcpy://emulator-5554",
+        "streamCodec": "h264"
+      }
+    ]
+  },
+  "_meta": {
+    "runtimeId": "a50bd242-4209-4fa7-b9b0-37ca89ae3721"
+  }
+}
+Android  booted    T025_Pixel7_API35_KVM_20261115  (emulator-5554)
+Android  shutdown  Feldexa_API31  (Feldexa_API31)
+Android  shutdown  Feldexa_API36  (Feldexa_API36)
+Android  shutdown  Feldexa_ATD31  (Feldexa_ATD31)
+Android  shutdown  Feldexa_E2E_ATD31  (Feldexa_E2E_ATD31)
+Android  shutdown  Feldexa_Phone31  (Feldexa_Phone31)
+Android  shutdown  SpecKitWerkbank_QA  (SpecKitWerkbank_QA)
+Android  shutdown  SpecKitWerkbank_QA_ATD  (SpecKitWerkbank_QA_ATD)
+List of devices attached
+emulator-5554          device product:sdk_gphone64_x86_64 model:sdk_gphone64_x86_64 device:emu64xa transport_id:23
+
+--- guest ---
+ro.boot.qemu.avd_name=T025_Pixel7_API35_KVM_20261115
+ro.build.version.sdk=35
+ro.build.version.release=15
+ro.product.model=sdk_gphone64_x86_64
+ro.build.fingerprint=google/sdk_gphone64_x86_64/emu64xa:15/AE3A.240806.043/12960925:userdebug/dev-keys
+ro.kernel.qemu=1
+ro.boot.qemu=1
+MemTotal=MemTotal:        3048512 kB
+cpu_count=2
