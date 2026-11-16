@@ -30,7 +30,9 @@ final class SimulatedTestWorld {
   /// Loads the canonical fixtures and creates one backend.
   static Future<SimulatedTestWorld> create({int? maxTotalBytes}) async {
     final SimulatedFixtureCatalog catalog = await loadCatalog();
-    final SimulatedBackend backend = SimulatedBackend();
+    final SimulatedBackend backend = SimulatedBackend(
+      maxTotalBytes: maxTotalBytes,
+    );
     return SimulatedTestWorld._(
       catalog: catalog,
       backend: backend,
@@ -40,10 +42,7 @@ final class SimulatedTestWorld {
       ),
       rasterAdapter: SimulatedPageRasterAdapter(backend: backend),
       ocrAdapter: SimulatedOcrAdapter(backend: backend, catalog: catalog),
-      storeAdapter: SimulatedSecureStoreAdapter(
-        backend: backend,
-        maxTotalBytes: maxTotalBytes,
-      ),
+      storeAdapter: SimulatedSecureStoreAdapter(backend: backend),
       exportAdapter: SimulatedPdfExportAdapter(backend: backend),
       deliveryAdapter: SimulatedDeliveryAdapter(backend: backend),
     );

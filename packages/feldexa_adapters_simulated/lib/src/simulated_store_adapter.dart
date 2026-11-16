@@ -40,15 +40,21 @@ const String simulatedUnreadableTitle = 'Nicht lesbar';
 final class SimulatedSecureStoreAdapter implements SecureStorePort {
   /// Creates the store adapter.
   ///
-  /// [maxTotalBytes] optionally caps the logical object bytes so tests and the
-  /// Web surface can exercise `SAVE-001`. It is null by default (unbounded).
-  SimulatedSecureStoreAdapter({required this.backend, this.maxTotalBytes});
+  /// [maxTotalBytes] optionally configures the logical object-byte cap on the
+  /// shared backend so tests and the Web surface can exercise `SAVE-001`
+  /// through every adapter. It is null by default, in which case the backend's
+  /// existing cap (if any) applies.
+  SimulatedSecureStoreAdapter({required this.backend, int? maxTotalBytes}) {
+    if (maxTotalBytes != null) {
+      backend.maxTotalBytes = maxTotalBytes;
+    }
+  }
 
   /// Shared simulated backend.
   final SimulatedBackend backend;
 
-  /// Optional logical capacity cap.
-  final int? maxTotalBytes;
+  /// Logical capacity cap shared with the other adapters, or null.
+  int? get maxTotalBytes => backend.maxTotalBytes;
 
   bool _failNextWrite = false;
   bool _corruptNextCommit = false;
@@ -116,7 +122,7 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
               backend.document(id) != null || backend.template(id) != null,
         );
     int objectCount = 0;
-    final int totalBytes = _totalBytes();
+    final int totalBytes = backend.totalBytes;
     objectCount += backend.stagedSources.length;
     objectCount += backend.documents.length;
     objectCount += backend.templates.length;
@@ -303,9 +309,15 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
     String id,
     DeleteConfirmation confirmation,
   ) async {
+    final SimulatedDocumentRecord? document = kind == StoreKind.document
+        ? backend.document(id)
+        : null;
+    final SimulatedTemplateRecord? template = kind == StoreKind.template
+        ? backend.template(id)
+        : null;
     final String? expectedTitle = switch (kind) {
-      StoreKind.document => _documentTitleForDelete(backend.document(id)),
-      StoreKind.template => _templateTitleForDelete(backend.template(id)),
+      StoreKind.document => _documentTitleForDelete(document),
+      StoreKind.template => _templateTitleForDelete(template),
     };
     if (expectedTitle == null) {
       throw ArgumentError('aggregate does not exist');
@@ -316,8 +328,13 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
     switch (kind) {
       case StoreKind.document:
         backend.removeDocument(id);
+        // The staged source is the aggregate's object. Remove it only after
+        // this aggregate is gone and no other document/template still owns it
+        // (`contracts/ports.md` §2.4).
+        backend.removeSourceIfUnreferenced(document!.source.id);
       case StoreKind.template:
         backend.removeTemplate(id);
+        backend.removeSourceIfUnreferenced(template!.source.id);
     }
   }
 
@@ -775,33 +792,7 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
     );
   }
 
-  int _totalBytes() {
-    int total = 0;
-    for (final SimulatedStagedSource source in backend.stagedSources.values) {
-      total += source.bytes.length;
-    }
-    for (final SimulatedDocumentRecord document in backend.documents.values) {
-      for (final SimulatedRevisionRecord revision
-          in document.revisions.values) {
-        total += revision.canonicalBytes.length;
-      }
-      for (final Uint8List signature in document.signatures.values) {
-        total += signature.length;
-      }
-    }
-    for (final SimulatedTemplateRecord template in backend.templates.values) {
-      for (final SimulatedTemplateVersionRecord version
-          in template.versions.values) {
-        total += version.canonicalBytes.length;
-      }
-    }
-    return total;
-  }
-
   void _checkCapacity(int additionalBytes) {
-    final int? limit = maxTotalBytes;
-    if (limit != null && _totalBytes() + additionalBytes > limit) {
-      throw StorageFullException();
-    }
+    backend.ensureCapacityFor(additionalBytes);
   }
 }

@@ -271,4 +271,44 @@ void main() {
       ),
     );
   });
+
+  test('a full store refuses the import before source or aggregate', () async {
+    final world = await SimulatedTestWorld.create(maxTotalBytes: 100);
+    world.importAdapter.picker.enqueueFixture('sf-004');
+    await expectLater(
+      world.importAdapter.pickAndImport(ImportRequest()),
+      throwsA(
+        isA<StorageFullException>()
+            .having((e) => e.code, 'code', 'SAVE-001')
+            .having((e) => e.retryable, 'retryable', isTrue),
+      ),
+    );
+    expect(world.backend.stagedSources, isEmpty);
+    expect(world.backend.documents, isEmpty);
+    expect(world.backend.totalBytes, 0);
+  });
+
+  test(
+    'a refused import preserves the existing source and aggregate',
+    () async {
+      final world = await SimulatedTestWorld.create();
+      final ImportedSource first = await world.importFixture('sf-001');
+      final int beforeBytes = world.backend.totalBytes;
+      // No further object fits, so the second import must be refused before it
+      // stages anything or creates an aggregate.
+      world.backend.maxTotalBytes = beforeBytes;
+      world.importAdapter.picker.enqueueFixture('sf-004');
+      await expectLater(
+        world.importAdapter.pickAndImport(ImportRequest()),
+        throwsA(
+          isA<StorageFullException>().having((e) => e.code, 'code', 'SAVE-001'),
+        ),
+      );
+      expect(world.backend.stagedSources.length, 1);
+      expect(world.backend.documents.length, 1);
+      expect(world.backend.stagedSource(first.sourceId), isNotNull);
+      expect(world.backend.document(first.documentId), isNotNull);
+      expect(world.backend.totalBytes, beforeBytes);
+    },
+  );
 }

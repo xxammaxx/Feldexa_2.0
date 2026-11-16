@@ -179,12 +179,15 @@ void main() {
   });
 
   test('capacity exhaustion throws SAVE-001 before the head moves', () async {
-    final world = await SimulatedTestWorld.create(maxTotalBytes: 100);
+    final world = await SimulatedTestWorld.create();
     final imported = await world.importFixture('sf-004');
     final source = world.sourceRefFor(imported);
     final created = await world.storeAdapter.createDocument(
       CreateDocumentRequest(title: 'Cap', source: source),
     );
+    // The shared logical cap now covers the already staged source. No further
+    // object fits, so the revision write is refused before the head moves.
+    world.backend.maxTotalBytes = world.backend.totalBytes;
     await expectLater(
       world.storeAdapter.saveRevision(
         SaveRevisionRequest(
@@ -200,6 +203,7 @@ void main() {
       ),
     );
     expect(world.backend.document(created.id)!.head, isNull);
+    expect(world.backend.stagedSource(imported.sourceId), isNotNull);
   });
 
   test('global SAVE-008 blocks new document and template aggregates', () async {
@@ -493,5 +497,148 @@ void main() {
     expect(first.objectCount, greaterThan(0));
     expect(first.totalBytes, greaterThan(catalog.fixture('sf-001').sizeBytes));
     expect(first.keyAvailable, isTrue);
+  });
+
+  test(
+    'delete removes the source when the document is its last owner',
+    () async {
+      final world = await SimulatedTestWorld.create();
+      final imported = await world.importFixture('sf-004');
+      final saved = await world.createSavedDocument(
+        imported,
+        title: 'Letzter Besitzer',
+      );
+      final int beforeBytes = world.backend.totalBytes;
+      final String title = world.backend.document(saved.documentId)!.title;
+      await world.storeAdapter.delete(
+        StoreKind.document,
+        saved.documentId,
+        DeleteConfirmation(title: title, acknowledged: true),
+      );
+      expect(world.backend.document(saved.documentId), isNull);
+      expect(world.backend.stagedSource(imported.sourceId), isNull);
+      expect(world.backend.stagedSources, isEmpty);
+      expect(world.backend.totalBytes, lessThan(beforeBytes));
+    },
+  );
+
+  test(
+    'a shared source survives until its last document/template owner is gone',
+    () async {
+      final world = await SimulatedTestWorld.create();
+      final imported = await world.importFixture('sf-004');
+      final saved = await world.createSavedDocument(
+        imported,
+        title: 'Geteiltes Dokument',
+      );
+      final created = await world.storeAdapter.createTemplate(
+        CreateTemplateRequest(
+          title: 'Geteilte Vorlage',
+          source: world.sourceRefFor(imported),
+          pages: <Page>[Page(index: 0, geometry: imported.pages.first)],
+          fieldOrder: const <String>[],
+        ),
+      );
+
+      final String documentTitle = world.backend
+          .document(saved.documentId)!
+          .title;
+      await world.storeAdapter.delete(
+        StoreKind.document,
+        saved.documentId,
+        DeleteConfirmation(title: documentTitle, acknowledged: true),
+      );
+      // The template still owns the shared source, so it must remain readable.
+      expect(world.backend.stagedSource(imported.sourceId), isNotNull);
+      final LoadedTemplate loaded = await world.storeAdapter.loadTemplate(
+        created.id,
+      );
+      expect(
+        loaded.sourceBytes,
+        orderedEquals(catalog.fixture('sf-004').bytes),
+      );
+
+      await world.storeAdapter.delete(
+        StoreKind.template,
+        created.id,
+        DeleteConfirmation(title: 'Geteilte Vorlage', acknowledged: true),
+      );
+      expect(world.backend.template(created.id), isNull);
+      expect(world.backend.stagedSource(imported.sourceId), isNull);
+    },
+  );
+
+  test(
+    'deleting a shared template leaves the document source intact',
+    () async {
+      final world = await SimulatedTestWorld.create();
+      final imported = await world.importFixture('sf-004');
+      final saved = await world.createSavedDocument(
+        imported,
+        title: 'Dokument bleibt',
+      );
+      final created = await world.storeAdapter.createTemplate(
+        CreateTemplateRequest(
+          title: 'Vorlage zuerst löschen',
+          source: world.sourceRefFor(imported),
+          pages: <Page>[Page(index: 0, geometry: imported.pages.first)],
+          fieldOrder: const <String>[],
+        ),
+      );
+
+      await world.storeAdapter.delete(
+        StoreKind.template,
+        created.id,
+        DeleteConfirmation(title: 'Vorlage zuerst löschen', acknowledged: true),
+      );
+      expect(world.backend.template(created.id), isNull);
+      expect(world.backend.stagedSource(imported.sourceId), isNotNull);
+      final LoadedDocument loaded = await world.storeAdapter.loadDocument(
+        saved.documentId,
+      );
+      expect(
+        loaded.sourceBytes,
+        orderedEquals(catalog.fixture('sf-004').bytes),
+      );
+
+      final String documentTitle = world.backend
+          .document(saved.documentId)!
+          .title;
+      await world.storeAdapter.delete(
+        StoreKind.document,
+        saved.documentId,
+        DeleteConfirmation(title: documentTitle, acknowledged: true),
+      );
+      expect(world.backend.stagedSource(imported.sourceId), isNull);
+    },
+  );
+
+  test('deleting the last owner frees capacity for a new import', () async {
+    final world = await SimulatedTestWorld.create();
+    final first = await world.importFixture('sf-001');
+    final saved = await world.createSavedDocument(first);
+    world.backend.maxTotalBytes = world.backend.totalBytes;
+    world.importAdapter.picker.enqueueFixture('sf-004');
+    await expectLater(
+      world.importAdapter.pickAndImport(ImportRequest()),
+      throwsA(
+        isA<StorageFullException>().having((e) => e.code, 'code', 'SAVE-001'),
+      ),
+    );
+
+    final String title = world.backend.document(saved.documentId)!.title;
+    await world.storeAdapter.delete(
+      StoreKind.document,
+      saved.documentId,
+      DeleteConfirmation(title: title, acknowledged: true),
+    );
+    expect(world.backend.stagedSources, isEmpty);
+    expect(world.backend.totalBytes, 0);
+
+    // The cap still allows the fixture, so the new import now succeeds and
+    // accounts exactly the staged source bytes.
+    final ImportedSource second = await world.importFixture('sf-004');
+    expect(world.backend.stagedSource(second.sourceId), isNotNull);
+    expect(world.backend.totalBytes, second.sizeBytes);
   });
 }

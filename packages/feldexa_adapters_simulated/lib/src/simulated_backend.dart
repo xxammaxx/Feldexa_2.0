@@ -276,12 +276,37 @@ final class SimulatedBackend {
   /// Creates an empty backend.
   ///
   /// [context] supplies the fixed clock and UUIDv4 sequence. One backend is
-  /// shared by the adapters registered for a single Web build.
-  SimulatedBackend({SimulatedAdapterContext? context})
-    : context = context ?? SimulatedAdapterContext();
+  /// shared by the adapters registered for a single Web build. [maxTotalBytes]
+  /// optionally caps the logical object bytes shared by every adapter so
+  /// import and store operations exercise the same deterministic `SAVE-001`
+  /// capacity condition. It is null by default (unbounded); it is a logical
+  /// in-memory cap, not a real free-space measurement.
+  SimulatedBackend({SimulatedAdapterContext? context, int? maxTotalBytes})
+    : context = context ?? SimulatedAdapterContext(),
+      _maxTotalBytes = _validatedCapacity(maxTotalBytes);
 
   /// Deterministic clock and id source.
   final SimulatedAdapterContext context;
+
+  int? _maxTotalBytes;
+
+  /// Logical object-byte cap shared by import and store, or null when
+  /// unbounded.
+  ///
+  /// Lowering the cap never deletes existing data; it only makes the next
+  /// operation that would exceed the cap fail with `SAVE-001`.
+  int? get maxTotalBytes => _maxTotalBytes;
+
+  set maxTotalBytes(int? value) {
+    _maxTotalBytes = _validatedCapacity(value);
+  }
+
+  static int? _validatedCapacity(int? value) {
+    if (value != null && value < 0) {
+      throw ArgumentError.value(value, 'maxTotalBytes', 'must not be negative');
+    }
+    return value;
+  }
 
   bool _globalKeyUnavailable = false;
   final Set<String> _lostAggregateKeys = <String>{};
@@ -406,6 +431,79 @@ final class SimulatedBackend {
   /// Removes a template aggregate.
   void removeTemplate(String templateId) {
     _templates.remove(templateId);
+  }
+
+  /// Removes a staged source unless another aggregate still owns it.
+  ///
+  /// `contracts/ports.md` §2.4 requires `delete` to remove the aggregate's
+  /// objects without touching any other document or template. The staged
+  /// source is owned by every aggregate that references the same immutable
+  /// [SourceFileRef], so it is removed only after the last owner is gone. A
+  /// source that no aggregate references at all is also removed because it has
+  /// no remaining owner.
+  ///
+  /// Returns true when the source object was removed.
+  bool removeSourceIfUnreferenced(String sourceId) {
+    if (!_sources.containsKey(sourceId)) {
+      return false;
+    }
+    final bool stillReferenced =
+        _documents.values.any(
+          (SimulatedDocumentRecord record) => record.source.id == sourceId,
+        ) ||
+        _templates.values.any(
+          (SimulatedTemplateRecord record) => record.source.id == sourceId,
+        );
+    if (stillReferenced) {
+      return false;
+    }
+    return _sources.remove(sourceId) != null;
+  }
+
+  /// Total logical object bytes currently held by the backend.
+  ///
+  /// This mirrors the stored objects (`src`, revision/version bodies, and
+  /// signature assets) that the store capacity model accounts for.
+  int get totalBytes {
+    int total = 0;
+    for (final SimulatedStagedSource source in _sources.values) {
+      total += source.bytes.length;
+    }
+    for (final SimulatedDocumentRecord document in _documents.values) {
+      for (final SimulatedRevisionRecord revision
+          in document.revisions.values) {
+        total += revision.canonicalBytes.length;
+      }
+      for (final Uint8List signature in document.signatures.values) {
+        total += signature.length;
+      }
+    }
+    for (final SimulatedTemplateRecord template in _templates.values) {
+      for (final SimulatedTemplateVersionRecord version
+          in template.versions.values) {
+        total += version.canonicalBytes.length;
+      }
+    }
+    return total;
+  }
+
+  /// Refuses an operation that would exceed the shared logical capacity.
+  ///
+  /// Storage exhaustion is the canonical `StorageFullException` (`SAVE-001`)
+  /// and leaves all existing objects untouched (FR-074/FR-075). The check is
+  /// performed before the caller makes the new object visible.
+  void ensureCapacityFor(int additionalBytes) {
+    if (additionalBytes < 0) {
+      throw ArgumentError.value(
+        additionalBytes,
+        'additionalBytes',
+        'must not be negative',
+      );
+    }
+    final int? limit = _maxTotalBytes;
+    if (limit != null && totalBytes + additionalBytes > limit) {
+      throw StorageFullException();
+    }
   }
 
   /// Reads a signature asset, returning a defensive copy.

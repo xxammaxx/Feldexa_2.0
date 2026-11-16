@@ -157,6 +157,14 @@ final class SimulatedDocumentImportAdapter implements DocumentImportPort {
       throw KeystoreUnavailableException();
     }
 
+    // `contracts/ports.md` §2.1 makes storage exhaustion a
+    // `StorageFullException` (`SAVE-001`), and
+    // `contracts/storage-format.md` §6 requires the capacity preflight before
+    // the import writes anything. The shared backend model refuses before the
+    // source or its document aggregate becomes visible, so existing sources
+    // and aggregates are preserved.
+    backend.ensureCapacityFor(fixture.sizeBytes);
+
     final String documentId = backend.context.newId();
     final String sourceId = backend.context.newId();
     final SimulatedStagedSource staged = backend.stageSource(
@@ -169,6 +177,8 @@ final class SimulatedDocumentImportAdapter implements DocumentImportPort {
     if (readBack == null ||
         readBack.length != fixture.sizeBytes ||
         sha256Hex(readBack) != staged.sha256) {
+      // A failed read-back must not leave an orphaned source behind.
+      backend.removeSourceIfUnreferenced(sourceId);
       throw ImportRejectedException(ImportRejectionKind.unreadable);
     }
 
