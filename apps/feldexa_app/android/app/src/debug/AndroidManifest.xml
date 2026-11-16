@@ -4,4 +4,12 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- T024 §12 payload-round-trip instrumentation: the test harness encodes
+         and decodes the same 96 MiB + 1 payload in one process, so it holds the
+         payload and the encoded copy at the same time. A production Dart call
+         holds only the Java-side decoded copy. The debug-only large heap keeps
+         that harness artifact out of the validation result; the release manifest
+         is unchanged and the facade limit itself is still 96 MiB. -->
+    <application android:largeHeap="true"/>
 </manifest>

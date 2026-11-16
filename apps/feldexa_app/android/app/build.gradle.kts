@@ -55,8 +55,11 @@ kotlin {
 dependencies {
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
 
-    // T025 test layers: policy on the JVM, real Keystore instrumentation.
+    // T024: host-JVM contract tests for the platform-channel facade. Test-only;
+    // no runtime dependency and no production APK change.
     testImplementation("junit:junit:4.13.2")
+
+    // T025 test layers: policy on the JVM, real Keystore instrumentation.
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test:runner:1.7.0")
 
