@@ -58,6 +58,24 @@ void main() {
       expect(normalized['a'], isA<int>());
     });
 
+    test('uses Dart shortest form at exponent and 2^53 thresholds', () {
+      expect(
+        canonicalJsonEncode(<String, Object?>{
+          'a': 1e-7,
+          'b': -1e-7,
+          'c': 1e-6,
+          'd': 1e20,
+          'e': 1e21,
+          'f': 9007199254740992.0,
+          'g': 9007199254740994.0,
+          'h': 5e-324,
+        }),
+        '{"a":1e-7,"b":-1e-7,"c":0.000001,'
+        '"d":100000000000000000000.0,"e":1e+21,'
+        '"f":9007199254740992,"g":9007199254740994.0,"h":5e-324}',
+      );
+    });
+
     test('escapes quotes, backslashes, and control characters', () {
       expect(canonicalJsonEncode('a"b\\c\n'), '"a\\"b\\\\c\\n"');
       expect(canonicalJsonEncode('äöüß'), '"äöüß"');

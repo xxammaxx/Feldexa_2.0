@@ -292,6 +292,35 @@ void main() {
     },
   );
 
+  test('raster eviction forgets sizes only for the requested source', () async {
+    final AndroidPdfrxRasterClient client = AndroidPdfrxRasterClient(
+      sourceBytes: (String _) async => null,
+    );
+    final RasterImage first = _rasterImage(1);
+    final RasterImage second = _rasterImage(2);
+    client.debugRememberPageSize(
+      _sourceId,
+      first,
+      widthPt: 100.0,
+      heightPt: 200.0,
+    );
+    client.debugRememberPageSize(
+      _documentId,
+      second,
+      widthPt: 300.0,
+      heightPt: 400.0,
+    );
+
+    expect(client.pageSizeOf(first), (widthPt: 100.0, heightPt: 200.0));
+    expect(client.pageSizeOf(second), (widthPt: 300.0, heightPt: 400.0));
+
+    await client.evict(_sourceId);
+
+    expect(client.pageSizeOf(first), isNull);
+    // A different source keeps its independently cached OCR geometry.
+    expect(client.pageSizeOf(second), (widthPt: 300.0, heightPt: 400.0));
+  });
+
   test('clock, ids, and diagnostics stay content-free', () async {
     final AndroidClockClient clock = const AndroidClockClient();
     expect(clock.nowUtc().isUtc, isTrue);
@@ -322,6 +351,17 @@ void main() {
     );
     expect(diagnostics.descriptor.kind, CapabilityKind.diagnostics);
   });
+}
+
+RasterImage _rasterImage(int marker) {
+  return RasterImage(
+    bytes: Uint8List.fromList(<int>[marker, 0, 0, 255]),
+    width: 1,
+    height: 1,
+    bytesPerRow: 4,
+    format: RasterFormat.rgba8888,
+    evidence: CapabilityEvidence.android(adapterId: 'android.pdfium.v1'),
+  );
 }
 
 ExportPlan _plan() {

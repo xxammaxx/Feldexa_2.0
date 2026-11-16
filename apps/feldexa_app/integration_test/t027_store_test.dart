@@ -74,6 +74,10 @@ void main() {
       expect(loaded.meta.id, documentId);
       expect(loaded.meta.latestRevisionId, revisionId);
       expect(loaded.content.pageCount, 1);
+      expect(
+        loaded.content.unknownFields['t027CanonicalProbe'],
+        1.0000000000000002e-7,
+      );
       expect(loaded.sourceBytes, orderedEquals(source));
 
       final List<StoredMeta> listed = await store.list(StoreKind.document);
@@ -121,6 +125,64 @@ void main() {
       );
       final LoadedDocument afterConflict = await store.loadDocument(documentId);
       expect(afterConflict.meta.latestRevisionId, saved.latestRevisionId);
+
+      final String signatureId = ids.newId();
+      final Uint8List signatureBytes = Uint8List.fromList(<int>[
+        0x89,
+        0x50,
+        0x4E,
+        0x47,
+        1,
+        2,
+        3,
+      ]);
+      final String signatureSha = crypto.sha256
+          .convert(signatureBytes)
+          .toString();
+      await store.writeSignature(
+        WriteSignatureRequest(
+          documentId: documentId,
+          assetId: signatureId,
+          bytes: signatureBytes,
+          sha256: signatureSha,
+        ),
+      );
+      expect(
+        await store.readSignature(documentId, signatureId),
+        orderedEquals(signatureBytes),
+      );
+
+      final Uint8List replacementSignature = Uint8List.fromList(<int>[
+        0x89,
+        0x50,
+        0x4E,
+        0x47,
+        9,
+        9,
+        9,
+      ]);
+      await expectLater(
+        store.writeSignature(
+          WriteSignatureRequest(
+            documentId: documentId,
+            assetId: signatureId,
+            bytes: replacementSignature,
+            sha256: crypto.sha256.convert(replacementSignature).toString(),
+          ),
+        ),
+        throwsA(isA<SecurityException>()),
+      );
+      expect(
+        await store.readSignature(documentId, signatureId),
+        orderedEquals(signatureBytes),
+      );
+      final LoadedDocument afterSignatureConflict = await store.loadDocument(
+        documentId,
+      );
+      expect(
+        afterSignatureConflict.meta.latestRevisionId,
+        saved.latestRevisionId,
+      );
 
       final RecoveryStamp stamp = await store.recoveryStamp(
         documentId,
@@ -173,5 +235,11 @@ RevisionContent _content() {
       ),
     ],
     fieldOrder: const <String>[],
+    unknownFields: const <String, Object?>{
+      // A representative non-integral exponent value: Dart writes `1e-7`
+      // where JVM Double.toString would write `1.0E-7`. The native store must
+      // re-serialize the revision content to the same canonical bytes.
+      't027CanonicalProbe': 1.0000000000000002e-7,
+    },
   );
 }

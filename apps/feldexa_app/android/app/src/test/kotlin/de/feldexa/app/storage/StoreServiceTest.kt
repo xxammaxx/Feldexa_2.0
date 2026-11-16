@@ -304,6 +304,94 @@ class StoreServiceTest {
     }
 
     @Test
+    fun repeatedSignatureAssetIsRefusedWithPlt002AndPreservesPriorState() {
+        val documentId = newId()
+        val sourceId = newId()
+        val revisionId = newId()
+        val source = "%PDF-1.7 signature source".toByteArray()
+        val content = linkedMapOf<String, Any?>(
+            "pageCount" to 1,
+            "t027CanonicalProbe" to 1.0000000000000002e-7,
+        )
+        val contentSha = sha256(CanonicalJson.encode(content))
+        handle(
+            "store.stageSource",
+            linkedMapOf(
+                "documentId" to documentId,
+                "sourceId" to sourceId,
+                "bytes" to source,
+                "sha256" to sha256(source),
+            ),
+        )
+        createDocument(
+            documentId,
+            sourceId,
+            revisionId,
+            sha256(source),
+            source.size,
+            contentSha,
+            content,
+        )
+
+        val assetId = newId()
+        val original = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 1, 2, 3)
+        val replacement = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 9, 9, 9)
+        val written = handle(
+            "store.writeSignature",
+            linkedMapOf(
+                "documentId" to documentId,
+                "assetId" to assetId,
+                "bytes" to original,
+                "sha256" to sha256(original),
+            ),
+        ) as Map<*, *>
+        assertEquals(true, written["verified"])
+
+        val headBefore = headAfter(documentId)
+        val revDir = File(temporary.root, "store/docs/$documentId/rev")
+        val revisionsBefore = revDir.listFiles()!!
+            .associate { it.name to it.readBytes().toList() }
+
+        val replacementFailure = assertThrows(PlatformFailure::class.java) {
+            handle(
+                "store.writeSignature",
+                linkedMapOf(
+                    "documentId" to documentId,
+                    "assetId" to assetId,
+                    "bytes" to replacement,
+                    "sha256" to sha256(replacement),
+                ),
+            )
+        }
+        assertEquals("PLT-002", replacementFailure.code)
+        assertArrayEquals(
+            original,
+            handle(
+                "store.readSignature",
+                linkedMapOf("documentId" to documentId, "assetId" to assetId),
+            ) as ByteArray,
+        )
+        assertEquals(headBefore, headAfter(documentId))
+        assertEquals(
+            revisionsBefore,
+            revDir.listFiles()!!.associate { it.name to it.readBytes().toList() },
+        )
+
+        val repeatedFailure = assertThrows(PlatformFailure::class.java) {
+            handle(
+                "store.writeSignature",
+                linkedMapOf(
+                    "documentId" to documentId,
+                    "assetId" to assetId,
+                    "bytes" to original,
+                    "sha256" to sha256(original),
+                ),
+            )
+        }
+        assertEquals("PLT-002", repeatedFailure.code)
+    }
+
+    @Test
     fun startupRecoveryIsReachableThroughTheService() {
         val report = handle("store.startupRecovery", linkedMapOf()) as Map<*, *>
         assertEquals(0, report["tempEntriesRemoved"])

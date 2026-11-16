@@ -140,7 +140,10 @@ class FeldexaPluginInstrumentedTest {
         val revisionId = UUID.randomUUID().toString()
         val source = "%PDF-1.7\nT027 synthetic channel source\n".toByteArray()
         val sourceSha = sha256(source)
-        val content = mapOf<String, Any?>("pageCount" to 1)
+        val content = mapOf<String, Any?>(
+            "pageCount" to 1,
+            "t027CanonicalProbe" to 1.0000000000000002e-7,
+        )
         val contentSha = sha256(CanonicalJson.encode(content))
         try {
             val staged = invoke(
@@ -270,6 +273,57 @@ class FeldexaPluginInstrumentedTest {
             assertEquals(
                 savedRevision,
                 ((headAfterFailure["data"] as Map<*, *>)["head"] as Map<*, *>)["revisionId"],
+            )
+
+            val signatureId = UUID.randomUUID().toString()
+            val signatureBytes = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 1, 2, 3)
+            val signatureSha = sha256(signatureBytes)
+            val writeSignatureStart = invoke(
+                "store.writeSignature",
+                withSchema(
+                    mapOf(
+                        "documentId" to documentId,
+                        "assetId" to signatureId,
+                        "bytes" to signatureBytes,
+                        "sha256" to signatureSha,
+                    ),
+                ),
+            )
+            val writeSignatureResult = awaitResult(startOperationId(writeSignatureStart))
+            assertEquals(true, writeSignatureResult["ok"])
+
+            val duplicateSignatureBytes =
+                byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 9, 9, 9)
+            val duplicateSignatureStart = invoke(
+                "store.writeSignature",
+                withSchema(
+                    mapOf(
+                        "documentId" to documentId,
+                        "assetId" to signatureId,
+                        "bytes" to duplicateSignatureBytes,
+                        "sha256" to sha256(duplicateSignatureBytes),
+                    ),
+                ),
+            )
+            val duplicateSignatureResult =
+                awaitResult(startOperationId(duplicateSignatureStart))
+            assertEquals(false, duplicateSignatureResult["ok"])
+            assertEquals(
+                "PLT-002",
+                ((duplicateSignatureResult["error"] as Map<*, *>)["code"]),
+            )
+            val readSignature = invoke(
+                "store.readSignature",
+                withSchema(mapOf("documentId" to documentId, "assetId" to signatureId)),
+            )["data"] as ByteArray
+            assertArrayEquals(signatureBytes, readSignature)
+            val headAfterSignatureConflict = invoke(
+                "store.loadDocument",
+                withSchema(mapOf("documentId" to documentId)),
+            )
+            assertEquals(
+                savedRevision,
+                ((headAfterSignatureConflict["data"] as Map<*, *>)["head"] as Map<*, *>)["revisionId"],
             )
 
             val wrongDelete = invokeFailure(

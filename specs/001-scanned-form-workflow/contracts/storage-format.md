@@ -128,7 +128,7 @@ Each chunk is stored sequentially after the header:
 | `src/<id>.fxc` | Raw original PDF bytes, unmodified |
 | `sig/<id>.fxs` | PNG bytes, alpha channel, trimmed |
 
-Canonical JSON: sorted keys, UTF-8, no whitespace, UTC ISO-8601 with milliseconds, numbers without trailing zeros.
+Canonical JSON: sorted keys, UTF-8, no whitespace, UTC ISO-8601 with milliseconds, numbers without trailing zeros. The canonical number form is the one produced by `canonicalJsonBytes`/Dart `jsonEncode`: integral doubles up to 2^53 become integers, negative zero becomes `0`, integral doubles above 2^53 retain a `.0`, and non-integral doubles use Dart's shortest fixed/exponential spelling (`1e-7`, `1e+21`). A native re-serializer must emit those exact bytes; JVM `Double.toString` is not equivalent.
 
 ---
 
@@ -184,7 +184,7 @@ Template creation creates `templates/<templateId>/` and alias `feldexa.tpl.v1.<t
 
 ### 3.4 Signature asset commit
 
-Signature PNGs are written and verified before the revision that references them is committed. An orphaned signature asset (revision never committed) is unreferenced; the sweep removes it only if no revision or template version references it and it is older than 24 h.
+Signature PNGs are written and verified before the revision that references them is committed. A signature asset id is immutable: an existing `sig/<assetId>.fxs` is never replaced. A repeated write is refused under the aggregate lock before staging or writing with `PLT-002`, and the prior bytes, head, and revision set stay unchanged. An orphaned signature asset (revision never committed) is unreferenced; the sweep removes it only if no revision or template version references it and it is older than 24 h.
 
 ### 3.5 Export artifact
 

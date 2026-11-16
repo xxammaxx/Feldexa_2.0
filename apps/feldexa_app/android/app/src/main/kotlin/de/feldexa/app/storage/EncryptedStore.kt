@@ -4,6 +4,9 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
+import java.math.BigDecimal
+import java.math.MathContext
+import java.math.RoundingMode
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
@@ -832,10 +835,19 @@ class EncryptedStore(
         requireObjectId(assetId)
         requirePayload(pngBytes, MAX_SIGNATURE_BYTES, "signature")
         if (!io.exists(fileFor(MetaObject(ref)))) throw CorruptDataException()
+        val signature = SignatureObject(ref, assetId)
+        if (io.exists(fileFor(signature))) {
+            // `contracts/storage-format.md` §1/§3.4 mark signature PNG
+            // objects immutable. A committed revision may reference the prior
+            // bytes, so never replace them. The check is under the aggregate
+            // lock and before staging or any write; `PLT-002` is the canonical
+            // unsafe-operation guard (mirrors the simulated adapter).
+            throw PlatformSecurityException()
+        }
         ensureLayout()
         io.mkdirs(File(aggregateDir(ref), "sig"))
         commitObject(
-            SignatureObject(ref, assetId),
+            signature,
             pngBytes,
             newTxnId(),
             TMP_SUFFIX_PART,
@@ -3097,7 +3109,91 @@ internal object CanonicalJson {
             out.append(value.toLong().toString())
             return
         }
-        out.append(value.toString())
+        appendDartDouble(out, value)
+    }
+
+    /**
+     * Formats a non-integral (or >2^53) double exactly like Dart's
+     * `double.toString()` / `jsonEncode`.
+     *
+     * `canonicalJsonEncode` canonicalizes the tree and hands it to Dart's
+     * `jsonEncode`, which uses the same shortest-round-trip decimal form as
+     * `double.toString()`. JVM `Double.toString` differs: it always uses
+     * scientific notation outside `1e-3..1e7`, spells the exponent `E`, and
+     * appends `.0` to integral values. A receiver that re-serialized those
+     * bytes would compute a different SHA-256, so the store must match the
+     * Dart form byte-for-byte.
+     *
+     * The shortest significant-digit sequence is found by rounding the exact
+     * binary value (a [BigDecimal]) to 1..17 significant digits and taking the
+     * first candidate that round-trips. Rounding is `HALF_EVEN`, i.e. the
+     * closest p-digit decimal to the exact value, which is the canonical
+     * shortest form Dart/Ryu selects when several p-digit candidates
+     * round-trip. The digits are then laid out with Dart's fixed/exponential
+     * thresholds: exponent `n` in `-6 < n <= 21` is fixed, integral fixed
+     * output keeps the trailing `.0`, and scientific output is lowercase
+     * `e` with an explicit `+` for non-negative exponents.
+     */
+    private fun appendDartDouble(out: StringBuilder, value: Double) {
+        val negative = value < 0.0
+        val magnitude = Math.abs(value)
+        if (negative) out.append('-')
+
+        val exact = BigDecimal(magnitude)
+        var chosen: BigDecimal? = null
+        var precision = 1
+        while (precision <= 17) {
+            val candidate = exact.round(MathContext(precision, RoundingMode.HALF_EVEN))
+            if (candidate.toDouble() == magnitude) {
+                chosen = candidate
+                break
+            }
+            precision++
+        }
+        // Every finite double has a 17-significant-digit round-trip form.
+        val rounded = chosen ?: exact.round(MathContext(17, RoundingMode.HALF_EVEN))
+        var digits = rounded.unscaledValue().toString()
+        var scale = rounded.scale()
+        while (digits.length > 1 && digits.endsWith('0')) {
+            digits = digits.dropLast(1)
+            scale--
+        }
+
+        val length = digits.length
+        // value = digits * 10^-scale, i.e. digits * 10^(exponent - length).
+        val exponent = length - scale
+        if (exponent in -5..21) {
+            when {
+                exponent <= 0 -> {
+                    out.append("0.")
+                    repeat(-exponent) { out.append('0') }
+                    out.append(digits)
+                }
+                exponent >= length -> {
+                    out.append(digits)
+                    repeat(exponent - length) { out.append('0') }
+                    // Dart keeps the double marker when fixed output has no
+                    // fractional digits (canonicalJsonValue already converted
+                    // the exactly representable <=2^53 cases to integers).
+                    out.append(".0")
+                }
+                else -> {
+                    out.append(digits, 0, exponent)
+                    out.append('.')
+                    out.append(digits, exponent, length)
+                }
+            }
+        } else {
+            out.append(digits[0])
+            if (length > 1) {
+                out.append('.')
+                out.append(digits, 1, length)
+            }
+            out.append('e')
+            val scientificExponent = exponent - 1
+            if (scientificExponent >= 0) out.append('+')
+            out.append(scientificExponent)
+        }
     }
 
     private fun appendString(out: StringBuilder, value: String) {
@@ -3245,13 +3341,37 @@ internal object CanonicalJson {
         private fun readNumber(): Any {
             val start = index
             if (peek() == '-') index++
-            while (index < text.length && text[index].isDigit()) index++
-            if (index < text.length && text[index] == '.') {
+            if (index >= text.length || !text[index].isDigit()) {
+                throw IllegalArgumentException("jsonNumber")
+            }
+            if (text[index] == '0') {
                 index++
+            } else {
                 while (index < text.length && text[index].isDigit()) index++
-                return text.substring(start, index).toDouble()
+            }
+            var fractional = false
+            if (index < text.length && text[index] == '.') {
+                fractional = true
+                index++
+                if (index >= text.length || !text[index].isDigit()) {
+                    throw IllegalArgumentException("jsonNumber")
+                }
+                while (index < text.length && text[index].isDigit()) index++
+            }
+            var exponent = false
+            if (index < text.length && (text[index] == 'e' || text[index] == 'E')) {
+                exponent = true
+                index++
+                if (index < text.length && (text[index] == '+' || text[index] == '-')) {
+                    index++
+                }
+                if (index >= text.length || !text[index].isDigit()) {
+                    throw IllegalArgumentException("jsonNumber")
+                }
+                while (index < text.length && text[index].isDigit()) index++
             }
             val raw = text.substring(start, index)
+            if (fractional || exponent) return raw.toDouble()
             return raw.toLongOrNull() ?: raw.toDouble()
         }
 

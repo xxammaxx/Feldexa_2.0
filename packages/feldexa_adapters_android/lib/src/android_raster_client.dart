@@ -9,6 +9,7 @@ import 'dart:typed_data';
 
 import 'package:feldexa_core/feldexa_core.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:pdfrx/pdfrx.dart';
 
 // A private field cannot use an initializing formal with a public named
@@ -31,8 +32,9 @@ final class AndroidPdfrxRasterClient implements PageRasterPort {
   final SourceBytesResolver _sourceBytes;
   final CapabilityEvidence _evidence;
   final Map<String, PdfDocument> _documents = <String, PdfDocument>{};
-  final Map<RasterImage, ({double widthPt, double heightPt})> _pageSizes =
-      <RasterImage, ({double widthPt, double heightPt})>{};
+  final Map<RasterImage, ({String sourceId, double widthPt, double heightPt})>
+  _pageSizes =
+      <RasterImage, ({String sourceId, double widthPt, double heightPt})>{};
 
   static final CapabilityDescriptor _descriptor = CapabilityDescriptor(
     kind: CapabilityKind.pageRaster,
@@ -55,8 +57,28 @@ final class AndroidPdfrxRasterClient implements PageRasterPort {
   CapabilityEvidence get evidence => _evidence;
 
   /// Page display size used to render [image], for the OCR page-size seam.
-  ({double widthPt, double heightPt})? pageSizeOf(RasterImage image) =>
-      _pageSizes[image];
+  ({double widthPt, double heightPt})? pageSizeOf(RasterImage image) {
+    final ({String sourceId, double widthPt, double heightPt})? entry =
+        _pageSizes[image];
+    return entry == null
+        ? null
+        : (widthPt: entry.widthPt, heightPt: entry.heightPt);
+  }
+
+  /// Records one page size for a test without opening PDFium.
+  @visibleForTesting
+  void debugRememberPageSize(
+    String sourceId,
+    RasterImage image, {
+    required double widthPt,
+    required double heightPt,
+  }) {
+    _pageSizes[image] = (
+      sourceId: sourceId,
+      widthPt: widthPt,
+      heightPt: heightPt,
+    );
+  }
 
   @override
   Future<PageGeometry> pageDimensions(String sourceId, int pageIndex) async {
@@ -138,7 +160,11 @@ final class AndroidPdfrxRasterClient implements PageRasterPort {
         format: request.format,
         evidence: _evidence,
       );
-      _pageSizes[result] = (widthPt: page.width, heightPt: page.height);
+      _pageSizes[result] = (
+        sourceId: request.sourceId,
+        widthPt: page.width,
+        heightPt: page.height,
+      );
       return result;
     } catch (error) {
       if (error is RenderException) rethrow;
@@ -154,9 +180,13 @@ final class AndroidPdfrxRasterClient implements PageRasterPort {
     if (document != null) {
       await document.dispose();
     }
+    // Page-size entries belong to the source that produced them. Evict only
+    // that source: other cached documents must keep their OCR geometry.
     _pageSizes.removeWhere(
-      (RasterImage image, ({double widthPt, double heightPt}) _) =>
-          image.evidence.adapterId == _descriptor.adapterId,
+      (
+        RasterImage _,
+        ({String sourceId, double widthPt, double heightPt}) entry,
+      ) => entry.sourceId == sourceId,
     );
   }
 

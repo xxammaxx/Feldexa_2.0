@@ -820,6 +820,38 @@ class EncryptedStoreTest {
     }
 
     @Test
+    fun existingSignatureAssetIsNeverReplacedAndPriorStateIsPreserved() {
+        val created = createDoc()
+        val assetId = newId()
+        val original = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 1, 2, 3)
+        val replacement = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 9, 9, 9, 9)
+        store.writeSignature(created.aggregateId, assetId, original)
+
+        val revDir = docFile(created.aggregateId, "rev")
+        val revisionsBefore = revDir.listFiles()!!
+            .associate { it.name to it.readBytes().toList() }
+        val headBefore = store.loadDocument(created.aggregateId).head
+
+        assertThrows(PlatformSecurityException::class.java) {
+            store.writeSignature(created.aggregateId, assetId, replacement)
+        }
+        assertArrayEquals(original, store.readSignature(created.aggregateId, assetId))
+        assertEquals(headBefore, store.loadDocument(created.aggregateId).head)
+        assertEquals(
+            revisionsBefore,
+            revDir.listFiles()!!.associate { it.name to it.readBytes().toList() },
+        )
+
+        // A repeated write is rejected even when the bytes are identical: the
+        // asset id is immutable, not an idempotent update.
+        assertThrows(PlatformSecurityException::class.java) {
+            store.writeSignature(created.aggregateId, assetId, original)
+        }
+        assertArrayEquals(original, store.readSignature(created.aggregateId, assetId))
+        assertFalse(File(storeRoot, "tmp").listFiles().orEmpty().any { it.isFile })
+    }
+
+    @Test
     fun signatureRoundTripAndTamper() {
         val created = createDoc()
         val assetId = newId()
