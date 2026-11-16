@@ -34,6 +34,12 @@ const String simulatedExportAdapterId = 'web.sim.export.v1';
 /// Adapter id for the simulated save/share/print hand-off.
 const String simulatedDeliveryAdapterId = 'web.sim.delivery.v1';
 
+/// Canonical maximum signature PNG size in bytes.
+///
+/// `contracts/storage-format.md` §6 caps a signature PNG at 2 MiB. This is a
+/// fixed safety limit independent of the shared logical object-byte quota.
+const int simulatedMaxSignatureBytes = 2 * 1024 * 1024;
+
 /// Adapter contract version shared by the six T028 adapters.
 const String simulatedAdapterVersion = '1';
 

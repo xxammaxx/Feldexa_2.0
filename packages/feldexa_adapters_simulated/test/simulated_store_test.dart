@@ -409,6 +409,84 @@ void main() {
     },
   );
 
+  test('a signature asset at the 2 MiB cap is accepted', () async {
+    final world = await SimulatedTestWorld.create();
+    final imported = await world.importFixture('sf-004');
+    final saved = await world.createSavedDocument(imported);
+    final assetId = world.backend.context.newId();
+    final Uint8List atCap = Uint8List(simulatedMaxSignatureBytes);
+    expect(atCap.length, 2097152);
+    await world.storeAdapter.writeSignature(
+      WriteSignatureRequest(
+        documentId: saved.documentId,
+        assetId: assetId,
+        bytes: atCap,
+        sha256: sha256Hex(atCap),
+      ),
+    );
+    final Uint8List read = await world.storeAdapter.readSignature(
+      saved.documentId,
+      assetId,
+    );
+    expect(read, orderedEquals(atCap));
+    expect(world.backend.document(saved.documentId)!.head, saved.revisionId);
+  });
+
+  test(
+    'an above-cap signature is refused with SAVE-007 and retains nothing',
+    () async {
+      final world = await SimulatedTestWorld.create();
+      final imported = await world.importFixture('sf-004');
+      final saved = await world.createSavedDocument(imported);
+      final existingId = world.backend.context.newId();
+      final Uint8List existing = Uint8List.fromList(<int>[9, 8, 7, 6]);
+      await world.storeAdapter.writeSignature(
+        WriteSignatureRequest(
+          documentId: saved.documentId,
+          assetId: existingId,
+          bytes: existing,
+          sha256: sha256Hex(existing),
+        ),
+      );
+      final record = world.backend.document(saved.documentId)!;
+      final String? headBefore = record.head;
+      final int revisionsBefore = record.revisions.length;
+      final int totalBytesBefore = world.backend.totalBytes;
+
+      final oversizedId = world.backend.context.newId();
+      final Uint8List oversized = Uint8List(simulatedMaxSignatureBytes + 1);
+      await expectLater(
+        world.storeAdapter.writeSignature(
+          WriteSignatureRequest(
+            documentId: saved.documentId,
+            assetId: oversizedId,
+            bytes: oversized,
+            sha256: sha256Hex(oversized),
+          ),
+        ),
+        throwsA(
+          isA<SimulatedInvalidDataException>()
+              .having((e) => e.code, 'code', 'SAVE-007')
+              .having((e) => e.retryable, 'retryable', isFalse),
+        ),
+      );
+
+      // Rejection leaves no retained asset and mutates no prior object.
+      expect(
+        world.backend.signatureBytes(saved.documentId, oversizedId),
+        isNull,
+      );
+      expect(record.signatures.keys, isNot(contains(oversizedId)));
+      expect(
+        await world.storeAdapter.readSignature(saved.documentId, existingId),
+        orderedEquals(existing),
+      );
+      expect(record.head, headBefore);
+      expect(record.revisions.length, revisionsBefore);
+      expect(world.backend.totalBytes, totalBytesBefore);
+    },
+  );
+
   test('delete requires an acknowledged matching title', () async {
     final world = await SimulatedTestWorld.create();
     final imported = await world.importFixture('sf-004');

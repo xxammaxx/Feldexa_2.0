@@ -36,6 +36,23 @@ import 'simulated_digest.dart';
 /// Placeholder title for an unreadable aggregate (`contracts/ports.md` §2.4).
 const String simulatedUnreadableTitle = 'Nicht lesbar';
 
+/// Adapter-local invalid-payload failure (`SAVE-007`).
+///
+/// `contracts/ports.md` §3 makes `SAVE-007` catalog-only, so T014 has no
+/// dedicated Dart type; the Android store carries the equivalent local
+/// `InvalidDataException`. This substitute reports the same code for an
+/// oversized signature PNG and never includes the rejected bytes.
+final class SimulatedInvalidDataException extends FeldexaException {
+  SimulatedInvalidDataException()
+    : super(
+        code: 'SAVE-007',
+        messageKey: 'SAVE-007',
+        message: 'storage.invalidData',
+        retryable: false,
+        severity: ErrorSeverity.warning,
+      );
+}
+
 /// In-memory deterministic `SecureStorePort` substitute.
 final class SimulatedSecureStoreAdapter implements SecureStorePort {
   /// Creates the store adapter.
@@ -273,6 +290,15 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
       throw ArgumentError('document does not exist');
     }
     _ensureAggregateKey(record.id);
+    if (request.bytes.length > simulatedMaxSignatureBytes) {
+      // `contracts/storage-format.md` §6 caps a signature PNG at 2 MiB. The
+      // fixed safety limit is checked before the digest, the defensive copy, or
+      // any write; `contracts/platform-channel.md` §10 maps it to `SAVE-007`.
+      // The separate ≤1024 px long-edge rule is carried by core `SignatureMark`
+      // for the revision reference; this adapter keeps PNG bytes opaque and
+      // deliberately adds no speculative image decoder.
+      throw SimulatedInvalidDataException();
+    }
     if (backend.signatureBytes(request.documentId, request.assetId) != null) {
       // `contracts/storage-format.md` §1 marks signature PNG objects immutable.
       // A second write must never replace bytes a committed revision may
