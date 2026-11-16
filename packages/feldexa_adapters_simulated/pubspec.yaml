@@ -6,3 +6,28 @@ resolution: workspace
 
 environment:
   sdk: ^3.13.0
+
+# T028: adapters depend on the canonical ports and contract models only. The
+# Android application registry must never import this package (T023's
+# dependency-graph test asserts that), so the simulated-only dependencies below
+# never reach an Android build.
+dependencies:
+  feldexa_core:
+    path: ../feldexa_core
+  feldexa_export:
+    path: ../feldexa_export
+  feldexa_ports:
+    path: ../feldexa_ports
+  # SHA-256 for source/signature verification and the deterministic raster
+  # fingerprint. Already in the reviewed lock graph (3.0.8).
+  crypto: 3.0.8
+  # SIMULATED Web export preview only (`contracts/export-plan.md` §7). Already
+  # in the reviewed lock graph (3.13.1); never used for Android export.
+  pdf: 3.13.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  # Test-only cross-check against the canonical fixture catalogue (T011/T009).
+  feldexa_testkit:
+    path: ../feldexa_testkit
