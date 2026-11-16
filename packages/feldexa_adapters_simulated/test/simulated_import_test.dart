@@ -264,7 +264,12 @@ void main() {
     );
     await expectLater(
       world.storeAdapter.createDocument(
-        CreateDocumentRequest(title: 'Test', source: source),
+        world.documentRequest(
+          title: 'Test',
+          source: source,
+          content: world.simpleRevisionContent(imported),
+          documentId: imported.documentId,
+        ),
       ),
       throwsA(
         isA<SecurityException>().having((e) => e.code, 'code', 'PLT-002'),

@@ -1,7 +1,11 @@
 package de.feldexa.app
 
+import de.feldexa.app.storage.EncryptedStore
+import de.feldexa.app.storage.KeystoreService
+import de.feldexa.app.storage.StoreService
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
+import java.io.File
 
 /**
  * T024: hosts the single [FeldexaPlugin] facade.
@@ -12,6 +16,12 @@ import io.flutter.embedding.engine.FlutterEngine
  * `contracts/platform-channel.md` §1; the facade owns its validation and
  * envelope. Activity lifecycle is forwarded only as an event; Kotlin never
  * autosaves (§9).
+ *
+ * T027: the `store` service is registered here with the real
+ * [EncryptedStore]/[KeystoreService]. The store root is app-private
+ * `filesDir/feldexa_store`; no path is exposed to Dart. `startupRecovery` is
+ * exposed as `store.startupRecovery` and is deliberately not run here: T031's
+ * bootstrap owns the ordering "native recovery before the list is shown".
  */
 class MainActivity : FlutterActivity() {
 
@@ -23,6 +33,13 @@ class MainActivity : FlutterActivity() {
         feldexaPlugin = plugin
         flutterEngine.plugins.add(plugin)
         plugin.registerImportChannel(flutterEngine.dartExecutor.binaryMessenger)
+
+        val store = EncryptedStore(
+            root = File(filesDir, "feldexa_store").absoluteFile,
+            keystore = KeystoreService.forAndroid(this),
+        )
+        runCatching { store.ensureLayout() }
+        plugin.registerService("store", StoreService(store))
     }
 
     override fun onResume() {

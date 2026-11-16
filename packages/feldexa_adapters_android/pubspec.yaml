@@ -14,6 +14,10 @@ dependencies:
     path: ../feldexa_ports
   feldexa_core:
     path: ../feldexa_core
+  feldexa_export:
+    path: ../feldexa_export
+  crypto: 3.0.8
+  pdfrx: 2.12.0
 
 dev_dependencies:
   flutter_test:

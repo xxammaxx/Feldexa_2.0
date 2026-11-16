@@ -66,7 +66,7 @@ void main() {
           kind: RevisionKind.autosave,
         ),
       ),
-      throwsA(isA<ArgumentError>()),
+      throwsA(isA<SimulatedConcurrentWriteException>()),
     );
     final record = world.backend.document(saved.documentId)!;
     expect(record.head, saved.revisionId);
@@ -78,10 +78,14 @@ void main() {
       final world = await SimulatedTestWorld.create();
       final imported = await world.importFixture('sf-004');
       final source = world.sourceRefFor(imported);
-      final created = await world.storeAdapter.createDocument(
-        CreateDocumentRequest(title: 'Retention', source: source),
-      );
       final content = world.simpleRevisionContent(imported);
+      final created = await world.storeAdapter.createDocument(
+        world.documentRequest(
+          title: 'Retention',
+          source: source,
+          content: content,
+        ),
+      );
 
       Future<String> save(RevisionKind kind) async {
         final String? head = world.backend.document(created.id)!.head;
@@ -183,8 +187,14 @@ void main() {
     final imported = await world.importFixture('sf-004');
     final source = world.sourceRefFor(imported);
     final created = await world.storeAdapter.createDocument(
-      CreateDocumentRequest(title: 'Cap', source: source),
+      world.documentRequest(
+        title: 'Cap',
+        source: source,
+        content: world.simpleRevisionContent(imported),
+        documentId: imported.documentId,
+      ),
     );
+    final String initialHead = created.latestRevisionId!;
     // The shared logical cap now covers the already staged source. No further
     // object fits, so the revision write is refused before the head moves.
     world.backend.maxTotalBytes = world.backend.totalBytes;
@@ -192,6 +202,7 @@ void main() {
       world.storeAdapter.saveRevision(
         SaveRevisionRequest(
           documentId: created.id,
+          expectedHead: initialHead,
           content: world.simpleRevisionContent(imported),
           kind: RevisionKind.explicit,
         ),
@@ -202,7 +213,7 @@ void main() {
             .having((e) => e.retryable, 'retryable', isTrue),
       ),
     );
-    expect(world.backend.document(created.id)!.head, isNull);
+    expect(world.backend.document(created.id)!.head, initialHead);
     expect(world.backend.stagedSource(imported.sourceId), isNotNull);
   });
 
@@ -223,7 +234,14 @@ void main() {
     world.storeAdapter.simulateGlobalKeyUnavailable();
     await expectLater(
       world.storeAdapter.createDocument(
-        CreateDocumentRequest(title: 'Nicht sichtbar', source: source),
+        world.documentRequest(
+          title: 'Nicht sichtbar',
+          source: source,
+          content: RevisionContent(
+            pages: <Page>[Page(index: 0, geometry: fixture.geometries.first)],
+            fieldOrder: const <String>[],
+          ),
+        ),
       ),
       throwsA(
         isA<KeystoreUnavailableException>().having(

@@ -1,6 +1,13 @@
 package de.feldexa.app
 
 import android.app.Instrumentation
+import de.feldexa.app.storage.AggregateKind
+import de.feldexa.app.storage.AggregateRef
+import de.feldexa.app.storage.CanonicalJson
+import de.feldexa.app.storage.DeleteConfirmation
+import de.feldexa.app.storage.EncryptedStore
+import de.feldexa.app.storage.KeystoreService
+import de.feldexa.app.storage.StoreService
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.flutter.embedding.engine.FlutterEngine
@@ -13,11 +20,15 @@ import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.common.StandardMethodCodec
 import io.flutter.plugin.platform.PlatformViewFactory
 import io.flutter.plugin.platform.PlatformViewRegistry
+import java.io.File
 import java.math.BigInteger
+import java.security.MessageDigest
+import java.util.UUID
 import java.nio.ByteBuffer
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import org.junit.After
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -114,6 +125,211 @@ class FeldexaPluginInstrumentedTest {
         }
     }
 
+    // ---- T027 real store service through the real channel -------------------
+
+    @Test
+    fun realStoreServiceCreatesSavesLoadsListsAndPreservesState() {
+        val context = instrumentation.targetContext
+        val root = File(context.filesDir, "t027-channel-" + UUID.randomUUID())
+        val keystore = KeystoreService.forAndroid(context)
+        val store = EncryptedStore(root, keystore)
+        store.ensureLayout()
+        plugin.registerService("store", StoreService(store))
+        val documentId = UUID.randomUUID().toString()
+        val sourceId = UUID.randomUUID().toString()
+        val revisionId = UUID.randomUUID().toString()
+        val source = "%PDF-1.7\nT027 synthetic channel source\n".toByteArray()
+        val sourceSha = sha256(source)
+        val content = mapOf<String, Any?>("pageCount" to 1)
+        val contentSha = sha256(CanonicalJson.encode(content))
+        try {
+            val staged = invoke(
+                "store.stageSource",
+                withSchema(
+                    mapOf(
+                        "documentId" to documentId,
+                        "sourceId" to sourceId,
+                        "bytes" to source,
+                        "sha256" to sourceSha,
+                    ),
+                ),
+            )
+            assertEquals(true, (staged["data"] as Map<*, *>)["verified"])
+
+            val createPayload = withSchema(
+                mapOf(
+                    "documentId" to documentId,
+                    "title" to "T027 Kanaltest",
+                    "source" to mapOf(
+                        "id" to sourceId,
+                        "sha256" to sourceSha,
+                        "sizeBytes" to source.size,
+                        "pageCount" to 1,
+                        "importedAt" to "2026-11-16T12:00:00.000Z",
+                        "integrity" to "verified",
+                    ),
+                    "initialRevision" to mapOf(
+                        "id" to revisionId,
+                        "documentId" to documentId,
+                        "parentRevisionId" to null,
+                        "kind" to "explicit",
+                        "createdAt" to "2026-11-16T12:00:00.000Z",
+                        "plaintextSha256" to contentSha,
+                        "content" to content,
+                    ),
+                ),
+            )
+            val created = invoke("store.createDocument", createPayload)
+            val createdMeta = created["data"] as Map<*, *>
+            assertEquals(documentId, createdMeta["id"])
+            assertEquals(revisionId, createdMeta["latestRevisionId"])
+            assertEquals("T027 Kanaltest", createdMeta["title"])
+            assertEquals(true, createdMeta["readable"])
+
+            val listed = invoke("store.list", withSchema(mapOf("kind" to "document")))
+            val items = (listed["data"] as Map<*, *>)["items"] as List<*>
+            assertEquals(1, items.size)
+            assertEquals(revisionId, (items.single() as Map<*, *>)["latestRevisionId"])
+
+            val loaded = invoke(
+                "store.loadDocument",
+                withSchema(mapOf("documentId" to documentId)),
+            )
+            val loadedData = loaded["data"] as Map<*, *>
+            assertEquals(
+                revisionId,
+                (loadedData["head"] as Map<*, *>)["revisionId"],
+            )
+            assertEquals(
+                revisionId,
+                (loadedData["meta"] as Map<*, *>)["latestRevisionId"],
+            )
+            val readSource = invoke(
+                "store.readSource",
+                withSchema(mapOf("documentId" to documentId)),
+            )["data"] as ByteArray
+            assertArrayEquals(source, readSource)
+
+            listenResults()
+            val start = invoke(
+                "store.saveRevision",
+                withSchema(
+                    mapOf(
+                        "documentId" to documentId,
+                        "revision" to mapOf("pageCount" to 2),
+                        "expectedHead" to revisionId,
+                        "kind" to "explicit",
+                    ),
+                ),
+            )
+            val operation = startOperationId(start)
+            val saved = awaitResult(operation)
+            assertEquals(true, saved["ok"])
+            val receipt = saved["data"] as Map<*, *>
+            assertEquals(true, receipt["verified"])
+            val savedRevision = receipt["revisionId"] as String
+            assertEquals(36, savedRevision.length)
+
+            val afterSave = invoke("store.list", withSchema(mapOf("kind" to "document")))
+            val savedMeta = ((afterSave["data"] as Map<*, *>)["items"] as List<*>)
+                .single() as Map<*, *>
+            assertEquals(savedRevision, savedMeta["latestRevisionId"])
+
+            val duplicate = invokeFailure("store.createDocument", createPayload)
+            assertEquals("SAVE-006", duplicate.code)
+            val stillLoaded = invoke(
+                "store.loadDocument",
+                withSchema(mapOf("documentId" to documentId)),
+            )
+            assertEquals(
+                savedRevision,
+                ((stillLoaded["data"] as Map<*, *>)["head"] as Map<*, *>)["revisionId"],
+            )
+
+            val wrongHeadStart = invoke(
+                "store.saveRevision",
+                withSchema(
+                    mapOf(
+                        "documentId" to documentId,
+                        "revision" to mapOf("pageCount" to 3),
+                        "expectedHead" to UUID.randomUUID().toString(),
+                        "kind" to "autosave",
+                    ),
+                ),
+            )
+            val wrongHeadResult = awaitResult(startOperationId(wrongHeadStart))
+            assertEquals(false, wrongHeadResult["ok"])
+            assertEquals(
+                "SAVE-006",
+                ((wrongHeadResult["error"] as Map<*, *>)["code"]),
+            )
+            val headAfterFailure = invoke(
+                "store.loadDocument",
+                withSchema(mapOf("documentId" to documentId)),
+            )
+            assertEquals(
+                savedRevision,
+                ((headAfterFailure["data"] as Map<*, *>)["head"] as Map<*, *>)["revisionId"],
+            )
+
+            val wrongDelete = invokeFailure(
+                "store.delete",
+                withSchema(
+                    mapOf(
+                        "kind" to "document",
+                        "id" to documentId,
+                        "confirm" to mapOf(
+                            "title" to "Falsch",
+                            "acknowledged" to true,
+                        ),
+                    ),
+                ),
+            )
+            assertEquals("PLT-002", wrongDelete.code)
+            val deleted = invoke(
+                "store.delete",
+                withSchema(
+                    mapOf(
+                        "kind" to "document",
+                        "id" to documentId,
+                        "confirm" to mapOf(
+                            "title" to "T027 Kanaltest",
+                            "acknowledged" to true,
+                        ),
+                    ),
+                ),
+            )
+            assertEquals(true, (deleted["data"] as Map<*, *>)["deleted"])
+            val afterDelete = invoke("store.list", withSchema(mapOf("kind" to "document")))
+            assertTrue(((afterDelete["data"] as Map<*, *>)["items"] as List<*>).isEmpty())
+            assertFalse(
+                keystore.hasAggregateKey(AggregateRef(AggregateKind.DOCUMENT, documentId)),
+            )
+
+            val recovery = invoke("store.startupRecovery", withSchema(emptyMap()))
+            assertEquals(0, (recovery["data"] as Map<*, *>)["tempEntriesRemoved"])
+            assertEquals(0, (recovery["data"] as Map<*, *>)["orphanAliasesFailed"])
+        } finally {
+            runCatching {
+                store.delete(
+                    AggregateKind.DOCUMENT,
+                    documentId,
+                    DeleteConfirmation(acknowledged = true, title = "T027 Kanaltest"),
+                    "Nicht lesbar",
+                )
+            }
+            runCatching {
+                keystore.deleteAggregateKey(AggregateRef(AggregateKind.DOCUMENT, documentId))
+            }
+            runCatching { root.deleteRecursively() }
+        }
+    }
+
+    private fun sha256(bytes: ByteArray): String =
+        MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") {
+            "%02x".format(it.toInt() and 0xFF)
+        }
+
     // ---- registration and envelope -----------------------------------------
 
     @Test
@@ -133,7 +349,7 @@ class FeldexaPluginInstrumentedTest {
     @Test
     fun everyContractMethodAcceptsMinimalPayloadThroughRealChannels() {
         registerAllServices()
-        assertEquals("contract method inventory", 24, minimalPayloads().size)
+        assertEquals("contract method inventory", 27, minimalPayloads().size)
 
         val failures = mutableListOf<String>()
         for ((method, payload) in minimalPayloads()) {
@@ -540,6 +756,19 @@ class FeldexaPluginInstrumentedTest {
         "import.discardStaged" to mapOf("txnId" to "txn-1"),
         "store.status" to emptyMap(),
         "store.list" to mapOf("kind" to "document"),
+        "store.stageSource" to mapOf(
+            "documentId" to documentId,
+            "sourceId" to assetId,
+            "bytes" to ByteArray(1),
+            "sha256" to "a".repeat(64),
+        ),
+        "store.createDocument" to mapOf(
+            "documentId" to documentId,
+            "title" to "Titel",
+            "source" to mapOf("id" to assetId),
+            "initialRevision" to mapOf("id" to templateId),
+        ),
+        "store.startupRecovery" to emptyMap(),
         "store.readSource" to mapOf("documentId" to documentId),
         "store.readSignature" to mapOf("documentId" to documentId, "assetId" to assetId),
         "store.writeSignature" to mapOf(
@@ -780,6 +1009,8 @@ class FeldexaPluginInstrumentedTest {
          */
         val UUID_FIELDS: Map<String, List<String>> = linkedMapOf(
             "import.verifySource" to listOf("sourceId"),
+            "store.stageSource" to listOf("documentId", "sourceId"),
+            "store.createDocument" to listOf("documentId"),
             "store.readSource" to listOf("documentId"),
             "store.readSignature" to listOf("documentId", "assetId"),
             "store.writeSignature" to listOf("documentId", "assetId"),

@@ -64,6 +64,11 @@ dependencies {
     androidTestImplementation("androidx.test:runner:1.7.0")
 
     constraints {
+        // `integration_test` contributes androidx.test:runner to the debug
+        // runtime graph. Pin it to the same version as the instrumentation
+        // tests so AGP consistent resolution does not force the transitive
+        // 1.3.0 runner onto debugAndroidTestRuntimeClasspath.
+        implementation("androidx.test:runner:1.7.0")
         implementation("org.bouncycastle:bcprov-jdk15to18:1.87")
         implementation("org.bouncycastle:bcpkix-jdk15to18:1.87")
         implementation("org.bouncycastle:bcutil-jdk15to18:1.87")

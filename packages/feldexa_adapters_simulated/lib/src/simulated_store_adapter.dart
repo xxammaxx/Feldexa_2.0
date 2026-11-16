@@ -42,6 +42,17 @@ const String simulatedUnreadableTitle = 'Nicht lesbar';
 /// dedicated Dart type; the Android store carries the equivalent local
 /// `InvalidDataException`. This substitute reports the same code for an
 /// oversized signature PNG and never includes the rejected bytes.
+final class SimulatedConcurrentWriteException extends FeldexaException {
+  SimulatedConcurrentWriteException()
+    : super(
+        code: 'SAVE-006',
+        messageKey: 'SAVE-006',
+        message: 'storage.concurrentWrite',
+        retryable: true,
+        severity: ErrorSeverity.warning,
+      );
+}
+
 final class SimulatedInvalidDataException extends FeldexaException {
   SimulatedInvalidDataException()
     : super(
@@ -162,27 +173,61 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
   Future<StoredMeta> createDocument(CreateDocumentRequest request) async {
     final SourceFileRef source = _validatedStagedSource(request.source);
     _ensureGlobalKey();
+    final SimulatedDocumentRecord? existing = backend.document(
+      request.documentId,
+    );
+    if (existing != null && existing.head != null) {
+      // A visible aggregate already owns this identity: never overwrite it and
+      // never generate a second visible identity for the same request.
+      throw SimulatedConcurrentWriteException();
+    }
+    if (existing != null && existing.source.id != source.id) {
+      throw SecurityException();
+    }
     final DateTime now = backend.context.nowUtc();
-    // The import adapter creates the aggregate for its staged source so the
-    // `ImportedSource.documentId` DTO names a real aggregate. A later
-    // createDocument call for the same source applies the requested title to
-    // that aggregate instead of creating a second visible document.
-    for (final SimulatedDocumentRecord existing in backend.documents.values) {
-      if (existing.source.id == source.id) {
-        existing.title = request.title;
-        existing.updatedAt = now;
-        return _projectDocument(existing);
-      }
+    final Revision initial = request.initialRevision;
+    if (initial.documentId != request.documentId ||
+        initial.parentRevisionId != null) {
+      throw ArgumentError(
+        'initialRevision must belong to the document and have no parent',
+      );
+    }
+    final Uint8List canonicalBytes = Uint8List.fromList(
+      canonicalJsonBytes(initial.content.toJson()),
+    );
+    final String sha256 = sha256Hex(canonicalBytes);
+    if (sha256 != initial.plaintextSha256) {
+      throw CorruptDataException();
+    }
+    final SimulatedRevisionRecord revision = SimulatedRevisionRecord(
+      id: initial.id,
+      kind: initial.kind,
+      content: initial.content,
+      committedAt: now,
+      sequence: backend.nextSequence(),
+      canonicalBytes: canonicalBytes,
+      sha256: sha256,
+    );
+    if (existing != null) {
+      // The import adapter stages the aggregate before its initial revision is
+      // known; completing that same identity is not a duplicate visible
+      // aggregate. The source was validated above and is not replaced.
+      existing.title = request.title;
+      existing.updatedAt = now;
+      existing.revisions[revision.id] = revision;
+      existing.head = revision.id;
+      existing.lastDurableAt = now;
+      return _projectDocument(existing);
     }
     final SimulatedDocumentRecord record = SimulatedDocumentRecord(
-      id: backend.context.newId(),
+      id: request.documentId,
       title: request.title,
       createdAt: now,
       updatedAt: now,
       source: source,
-      head: null,
-      lastDurableAt: null,
-    );
+      head: revision.id,
+      lastDurableAt: now,
+    )..revisions[revision.id] = revision;
     backend.putDocument(record);
     return _projectDocument(record);
   }
@@ -197,9 +242,7 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
     }
     _ensureAggregateKey(record.id);
     if (request.expectedHead != record.head) {
-      throw ArgumentError(
-        'expectedHead does not match the last verified revision',
-      );
+      throw SimulatedConcurrentWriteException();
     }
     final RevisionContent content = request.content;
     final Uint8List canonicalBytes = Uint8List.fromList(
