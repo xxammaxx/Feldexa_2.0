@@ -60,6 +60,80 @@ void main() {
     );
   }
 
+  const String signaturePngBase64 =
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk'
+      'YPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+
+  Uint8List signaturePngBytes() => base64Decode(signaturePngBase64);
+
+  /// Saves one revision whose signature mark and value reference [assetId].
+  Future<({String revisionId, String fieldId, String assetId})>
+  saveRevisionWithSignature(
+    SimulatedTestWorld world,
+    ImportedSource imported, {
+    required Rect rect,
+  }) async {
+    final DateTime at = world.backend.context.nowUtc();
+    final String fieldId = world.backend.context.newId();
+    final String assetId = world.backend.context.newId();
+    final Uint8List bytes = signaturePngBytes();
+    await world.storeAdapter.writeSignature(
+      WriteSignatureRequest(
+        documentId: imported.documentId,
+        assetId: assetId,
+        bytes: bytes,
+        sha256: sha256Hex(bytes),
+      ),
+    );
+    final RevisionContent content = RevisionContent(
+      pages: <Page>[
+        for (int index = 0; index < imported.pageCount; index++)
+          Page(index: index, geometry: imported.pages[index]),
+      ],
+      fields: <ConfirmedField>[
+        ConfirmedField(
+          id: fieldId,
+          pageIndex: 0,
+          rect: rect,
+          type: FieldType.signature,
+          provenance: Provenance.user,
+          label: 'Unterschrift',
+          order: 0,
+          createdAt: at,
+          updatedAt: at,
+        ),
+      ],
+      fieldOrder: <String>[fieldId],
+      values: <String, FieldValue>{
+        fieldId: SignatureValue(signatureAssetId: assetId, lastEditedAt: at),
+      },
+      signatures: <String, SignatureMark>{
+        fieldId: SignatureMark(
+          assetId: assetId,
+          fieldId: fieldId,
+          pageIndex: 0,
+          rect: rect,
+          widthPx: 1,
+          heightPx: 1,
+          capturedAt: at,
+          sha256: sha256Hex(bytes),
+        ),
+      },
+    );
+    final StoredMeta saved = await world.storeAdapter.saveRevision(
+      SaveRevisionRequest(
+        documentId: imported.documentId,
+        content: content,
+        kind: RevisionKind.explicit,
+      ),
+    );
+    return (
+      revisionId: saved.latestRevisionId!,
+      fieldId: fieldId,
+      assetId: assetId,
+    );
+  }
+
   test('export descriptor is SIMULATED PDF export', () async {
     final world = await SimulatedTestWorld.create();
     final descriptor = world.exportAdapter.descriptor;
@@ -616,50 +690,149 @@ void main() {
     expect(validation.warnings.single.reason, 'signature_missing');
   });
 
-  test('a written signature asset is accepted by export validation', () async {
+  test(
+    'a post-revision signature asset is unlinked and fails export',
+    () async {
+      final world = await SimulatedTestWorld.create();
+      final imported = await world.importFixture('sf-004');
+      final saved = await world.createSavedDocument(imported);
+      final geometry = imported.pages.first;
+      final Rect rect = Rect.fromLTWH(300, 600, 120, 40);
+      final String assetId = world.backend.context.newId();
+      final Uint8List bytes = signaturePngBytes();
+      // The asset is written after the selected revision was saved, so the
+      // revision does not reference it.
+      await world.storeAdapter.writeSignature(
+        WriteSignatureRequest(
+          documentId: saved.documentId,
+          assetId: assetId,
+          bytes: bytes,
+          sha256: sha256Hex(bytes),
+        ),
+      );
+      final plan = world.buildExportPlan(
+        imported: imported,
+        documentId: saved.documentId,
+        revisionId: saved.revisionId,
+        ops: <ExportOp>[
+          ExportImageOp(
+            fieldId: 'field-signature',
+            provenance: Provenance.user,
+            rect: rect,
+            pdfRect: geometry.displayRectToPdf(rect),
+            assetId: assetId,
+          ),
+        ],
+      );
+      final ExportValidationResult validation = await world.exportAdapter
+          .validate(plan);
+      expect(validation.warnings.map((w) => w.code), contains('EXP-005'));
+      expect(validation.warnings.single.reason, 'signature_unlinked');
+      await expectLater(
+        world.exportAdapter.export(
+          ExportRequest(
+            documentId: saved.documentId,
+            revisionId: saved.revisionId,
+            plan: plan,
+          ),
+        ),
+        throwsA(
+          isA<ExportFailedException>().having((e) => e.code, 'code', 'EXP-002'),
+        ),
+      );
+      expect(world.backend.artifacts, isEmpty);
+    },
+  );
+
+  test(
+    'a revision-bound signature asset exports after hash verification',
+    () async {
+      final world = await SimulatedTestWorld.create();
+      final imported = await world.importFixture('sf-004');
+      final geometry = imported.pages.first;
+      final Rect rect = Rect.fromLTWH(300, 600, 120, 40);
+      final bound = await saveRevisionWithSignature(
+        world,
+        imported,
+        rect: rect,
+      );
+      final plan = world.buildExportPlan(
+        imported: imported,
+        documentId: imported.documentId,
+        revisionId: bound.revisionId,
+        ops: <ExportOp>[
+          ExportImageOp(
+            fieldId: bound.fieldId,
+            provenance: Provenance.user,
+            rect: rect,
+            pdfRect: geometry.displayRectToPdf(rect),
+            assetId: bound.assetId,
+          ),
+        ],
+      );
+      final ExportValidationResult validation = await world.exportAdapter
+          .validate(plan);
+      expect(validation.isValid, isTrue);
+      final ExportResult result = await world.exportAdapter.export(
+        ExportRequest(
+          documentId: imported.documentId,
+          revisionId: bound.revisionId,
+          plan: plan,
+        ),
+      );
+      expect(result.artifact.state, ExportArtifactState.succeeded);
+    },
+  );
+
+  test('a mutated signature asset is EXP-005 signature_hash_mismatch', () async {
     final world = await SimulatedTestWorld.create();
     final imported = await world.importFixture('sf-004');
-    final saved = await world.createSavedDocument(imported);
     final geometry = imported.pages.first;
     final Rect rect = Rect.fromLTWH(300, 600, 120, 40);
-    final assetId = world.backend.context.newId();
-    const String pngBase64 =
-        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk'
-        'YPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
-    final Uint8List bytes = base64Decode(pngBase64);
+    final bound = await saveRevisionWithSignature(world, imported, rect: rect);
+    // Replace the asset after the revision commit. The new declared hash is
+    // internally consistent but no longer matches the revision's SignatureMark.
+    final Uint8List mutated = signaturePngBytes();
+    mutated[mutated.length - 1] ^= 0xFF;
     await world.storeAdapter.writeSignature(
       WriteSignatureRequest(
-        documentId: saved.documentId,
-        assetId: assetId,
-        bytes: bytes,
-        sha256: sha256Hex(bytes),
+        documentId: imported.documentId,
+        assetId: bound.assetId,
+        bytes: mutated,
+        sha256: sha256Hex(mutated),
       ),
     );
     final plan = world.buildExportPlan(
       imported: imported,
-      documentId: saved.documentId,
-      revisionId: saved.revisionId,
+      documentId: imported.documentId,
+      revisionId: bound.revisionId,
       ops: <ExportOp>[
         ExportImageOp(
-          fieldId: 'field-signature',
+          fieldId: bound.fieldId,
           provenance: Provenance.user,
           rect: rect,
           pdfRect: geometry.displayRectToPdf(rect),
-          assetId: assetId,
+          assetId: bound.assetId,
         ),
       ],
     );
     final ExportValidationResult validation = await world.exportAdapter
         .validate(plan);
-    expect(validation.isValid, isTrue);
-    final ExportResult result = await world.exportAdapter.export(
-      ExportRequest(
-        documentId: saved.documentId,
-        revisionId: saved.revisionId,
-        plan: plan,
+    expect(validation.warnings.map((w) => w.code), contains('EXP-005'));
+    expect(validation.warnings.single.reason, 'signature_hash_mismatch');
+    await expectLater(
+      world.exportAdapter.export(
+        ExportRequest(
+          documentId: imported.documentId,
+          revisionId: bound.revisionId,
+          plan: plan,
+        ),
+      ),
+      throwsA(
+        isA<ExportFailedException>().having((e) => e.code, 'code', 'EXP-002'),
       ),
     );
-    expect(result.artifact.state, ExportArtifactState.succeeded);
+    expect(world.backend.artifacts, isEmpty);
   });
 
   test('request document/revision ids must match the plan', () async {

@@ -379,20 +379,96 @@ final class SimulatedPdfExportAdapter implements PdfExportPort {
             // An unchecked box draws nothing, by contract. No extra check.
             break;
           case ExportImageOp():
-            if (backend.signatureBytes(plan.documentId, op.assetId) == null) {
-              warnings.add(
-                ExportValidationWarning(
-                  code: 'EXP-005',
-                  reason: 'signature_missing',
-                  fieldId: op.fieldId,
-                  pageIndex: page.index,
-                ),
+            if (revision != null) {
+              final String? reason = _signatureWarningReason(
+                plan,
+                revision,
+                op,
+                page.index,
               );
+              if (reason != null) {
+                warnings.add(
+                  ExportValidationWarning(
+                    code: 'EXP-005',
+                    reason: reason,
+                    fieldId: op.fieldId,
+                    pageIndex: page.index,
+                  ),
+                );
+              }
             }
         }
       }
     }
     return List<ExportValidationWarning>.unmodifiable(warnings);
+  }
+
+  /// Why the selected revision cannot use [op]'s signature asset, or null.
+  ///
+  /// `contracts/export-plan.md` §2.2 requires the asset to exist in the same
+  /// document **and** be referenced by the revision. The persisted
+  /// [SignatureMark] is that reference: it names the field, page, asset id, and
+  /// plaintext SHA-256. Checking only backend existence would let a signature
+  /// written after the revision, or a mutated asset, reach the preview.
+  String? _signatureWarningReason(
+    ExportPlan plan,
+    SimulatedRevisionRecord revision,
+    ExportImageOp op,
+    int pageIndex,
+  ) {
+    final Uint8List? bytes = backend.signatureBytes(
+      plan.documentId,
+      op.assetId,
+    );
+    if (bytes == null) {
+      return 'signature_missing';
+    }
+    final SignatureMark? mark = revision.content.signatures[op.fieldId];
+    if (mark == null ||
+        mark.assetId != op.assetId ||
+        mark.pageIndex != pageIndex) {
+      return 'signature_unlinked';
+    }
+    if (sha256Hex(bytes) != mark.sha256) {
+      return 'signature_hash_mismatch';
+    }
+    return null;
+  }
+
+  /// Resolves every planned signature to revision-bound, hash-verified bytes.
+  ///
+  /// Called before drawing; a failure is the canonical `EXP-002`
+  /// [ExportFailedException] and no artifact is produced. The applier never
+  /// silently draws an unverified or missing signature.
+  Map<String, Uint8List> _verifiedSignatureAssets(ExportPlan plan) {
+    final Map<String, Uint8List> assets = <String, Uint8List>{};
+    final SimulatedDocumentRecord? document = backend.document(plan.documentId);
+    final SimulatedRevisionRecord? revision =
+        document?.revisions[plan.revisionId];
+    for (final ExportPage page in plan.pages) {
+      for (final ExportOp op in page.ops) {
+        if (op is! ExportImageOp) {
+          continue;
+        }
+        if (revision == null) {
+          throw ExportFailedException();
+        }
+        final String? reason = _signatureWarningReason(
+          plan,
+          revision,
+          op,
+          page.index,
+        );
+        if (reason != null) {
+          throw ExportFailedException();
+        }
+        assets[op.assetId] = backend.signatureBytes(
+          plan.documentId,
+          op.assetId,
+        )!;
+      }
+    }
+    return assets;
   }
 
   /// Warning codes that describe an export failure rather than a field block.
@@ -442,6 +518,10 @@ final class SimulatedPdfExportAdapter implements PdfExportPort {
     final pw.Font font = embeddedFont
         ? pw.Font.ttf(ByteData.sublistView(fontBytes!))
         : pw.Font.helvetica();
+    // Resolve and verify signatures once, before any page is drawn.
+    final Map<String, Uint8List> signatureAssets = _verifiedSignatureAssets(
+      plan,
+    );
     for (final ExportPage page in plan.pages) {
       final Size display = page.geometry.displaySize;
       final PdfPageFormat format = PdfPageFormat(
@@ -491,7 +571,7 @@ final class SimulatedPdfExportAdapter implements PdfExportPort {
                     ),
                   ),
                 for (final ExportOp op in page.ops)
-                  _opWidget(op, font, plan.documentId),
+                  _opWidget(op, font, signatureAssets),
                 pw.Positioned(
                   left: 16,
                   bottom: 12,
@@ -516,7 +596,11 @@ final class SimulatedPdfExportAdapter implements PdfExportPort {
     return _normalizeDocumentId(rendered, plan);
   }
 
-  pw.Widget _opWidget(ExportOp op, pw.Font font, String documentId) {
+  pw.Widget _opWidget(
+    ExportOp op,
+    pw.Font font,
+    Map<String, Uint8List> signatureAssets,
+  ) {
     switch (op) {
       case ExportTextOp():
         final double textTop =
@@ -554,9 +638,11 @@ final class SimulatedPdfExportAdapter implements PdfExportPort {
           ),
         );
       case ExportImageOp():
-        final Uint8List? bytes = backend.signatureBytes(documentId, op.assetId);
+        final Uint8List? bytes = signatureAssets[op.assetId];
         if (bytes == null) {
-          return pw.SizedBox();
+          // `_verifiedSignatureAssets` resolved every image op before drawing;
+          // reaching this point means the plan changed underneath the applier.
+          throw ExportFailedException();
         }
         return pw.Positioned(
           left: op.rect.left,
