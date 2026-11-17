@@ -1,0 +1,72 @@
+{
+  "avd": "T025_Pixel7_API35_KVM_20261115",
+  "checks": [
+    {
+      "name": "orca_cli",
+      "status": "PASS",
+      "detail": "/home/xxammaxx/.config/orca/linux-orca-cli-shim/orca"
+    },
+    {
+      "name": "orca_runtime",
+      "status": "PASS",
+      "detail": "1.4.253"
+    },
+    {
+      "name": "kvm",
+      "status": "PASS",
+      "detail": "host kernel KVM device is accessible from this command environment"
+    },
+    {
+      "name": "temp_space",
+      "status": "PASS",
+      "detail": "Gradle/java.io.tmpdir /home/xxammaxx/feldexa-worktrees/t031/build/tmpdir"
+    },
+    {
+      "name": "android_sdk",
+      "status": "PASS",
+      "detail": "/home/xxammaxx/Android/Sdk"
+    },
+    {
+      "name": "kvm_usable_by_emulator",
+      "status": "PASS",
+      "detail": "accel:\n0\nKVM (version 12) is installed and usable.\naccel"
+    },
+    {
+      "name": "avd_profile",
+      "status": "PASS",
+      "detail": "/home/xxammaxx/.android/avd/T025_Pixel7_API35_KVM_20261115.avd/config.ini"
+    },
+    {
+      "name": "single_emulator_instance",
+      "status": "PASS",
+      "detail": "one qemu process for the AVD"
+    },
+    {
+      "name": "device_booted",
+      "status": "PASS",
+      "detail": "emulator-5554"
+    },
+    {
+      "name": "transport",
+      "status": "PASS",
+      "detail": "T025_Pixel7_API35_KVM_20261115 adb transport"
+    },
+    {
+      "name": "transport_stability",
+      "status": "PASS",
+      "detail": "three sequential adb probes"
+    },
+    {
+      "name": "worktree_binding",
+      "status": "PASS",
+      "detail": "5cfd8bbd-7af0-43a2-b81d-7e8d50eda284::/home/xxammaxx/Schreibtisch/Feldexa_2.0/Feldexa_2.0 -> emulator-5554"
+    },
+    {
+      "name": "live_view",
+      "status": "PASS",
+      "detail": "scrcpy stream bound to this worktree"
+    }
+  ],
+  "worktreeId": "5cfd8bbd-7af0-43a2-b81d-7e8d50eda284::/home/xxammaxx/Schreibtisch/Feldexa_2.0/Feldexa_2.0",
+  "serial": "emulator-5554"
+}
