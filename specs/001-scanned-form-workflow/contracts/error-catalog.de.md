@@ -162,6 +162,8 @@ Deletion is never offered as a way to free space automatically (FR-076).
 | Save now | „Jetzt speichern“ |
 | Unsaved badge | „Nicht gespeichert“ |
 | Unsaved risk banner | „Ihre letzten Änderungen sind noch nicht dauerhaft gespeichert. Verlassen Sie die App nicht, bis „Gespeichert“ erscheint.“ |
+| Startup recovery incomplete | „Die Wiederherstellung beim Start wurde nicht vollständig abgeschlossen. Bitte starten Sie Feldexa erneut.“ |
+| Startup recovery incomplete guidance | „Ihre gespeicherten Dokumente und Vorlagen werden dabei nicht gelöscht. Prüfen Sie nach dem Neustart, ob alle Einträge lesbar sind.“ |
 
 **Accessibility semantics** (test-asserted):
 - Field overlay: „Feld {label}, Typ {type}, Seite {page}, {filled|leer}, {bestätigt|Vorschlag|selbst erstellt}{, Konflikt}{, unsicher}“.
@@ -223,7 +225,7 @@ Developer messages may appear in debug builds only, in English, without document
 | Coded message | lower-case code without `-` | `IMP-007` → `imp007` |
 | Coded recovery guidance | message key + `Recovery` | `IMP-007` → `imp007Recovery` |
 | Repeated code (the `SAVE-001` export row in §4) | first key + `Export` | `SAVE-001` → `save001Export`, recovery → `save001ExportRecovery` |
-| Non-code label, dialog, or accessibility template | semantic key listed in `app_de.arb` | `Start title` → `startTitle`; `clean` → `durabilityClean` |
+| Non-code label, dialog, or accessibility template | semantic key listed in `app_de.arb` | `Start title` → `startTitle`; `clean` → `durabilityClean`; `Startup recovery incomplete` → `startupRecoveryIncomplete` |
 | Placeholder | unchanged catalog name | `{pages}` → `{pages}` |
 | Application shell title | `appTitle` (T005; not defined in this catalog) | `appTitle` |
 

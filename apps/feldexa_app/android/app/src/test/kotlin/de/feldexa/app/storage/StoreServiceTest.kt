@@ -565,6 +565,7 @@ class StoreServiceTest {
         assertEquals(0, report["tempEntriesRemoved"])
         assertEquals(0, report["incompleteAggregatesRemoved"])
         assertEquals(false, report["aliasSweepSkipped"])
+        assertEquals(false, report["deadlineReached"])
     }
 
     private fun createDocument(

@@ -8,6 +8,7 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
+import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.ArrayDeque
 import java.util.LinkedHashMap
@@ -1687,6 +1688,26 @@ private class UuidRule(
     }
 }
 
+/**
+ * Exact integral value of a channel integer, or `null` when it is not a finite
+ * integer. Bounds must be applied to this exact value before any conversion:
+ * `Double.toLong()` saturates out-of-range magnitudes to `Long.MAX_VALUE`, so a
+ * post-conversion bound whose max is `Long.MAX_VALUE` would otherwise accept a
+ * finite but out-of-range Double such as `1e20` or the rounded `2^63` that
+ * `Long.MAX_VALUE.toDouble()` produces. Integral JVM number types are taken
+ * verbatim so a genuine `Long.MAX_VALUE` stays a valid boundary.
+ */
+private fun exactChannelInteger(number: Number): BigDecimal? {
+    val double = number.toDouble()
+    if (!double.isFinite() || double % 1.0 != 0.0) return null
+    return when (number) {
+        is Long, is Int, is Short, is Byte -> BigDecimal(number.toLong())
+        is BigInteger -> BigDecimal(number)
+        is BigDecimal -> number
+        else -> BigDecimal(double)
+    }
+}
+
 private class IntRule(
     name: String,
     private val min: Int,
@@ -1695,12 +1716,9 @@ private class IntRule(
 ) : FieldRule(name, required) {
     override fun check(value: Any?) {
         val number = value as? Number ?: throw PlatformFailure.invalidPayload("platform.invalidInteger")
-        val double = number.toDouble()
-        if (!double.isFinite() || double % 1.0 != 0.0) {
-            throw PlatformFailure.invalidPayload("platform.invalidInteger")
-        }
-        val converted = number.toLong()
-        if (converted < min.toLong() || converted > max.toLong()) {
+        val exact = exactChannelInteger(number)
+            ?: throw PlatformFailure.invalidPayload("platform.invalidInteger")
+        if (exact < BigDecimal(min) || exact > BigDecimal(max)) {
             throw PlatformFailure.invalidPayload("platform.valueOutOfRange")
         }
     }
@@ -1714,12 +1732,9 @@ private class LongRule(
 ) : FieldRule(name, required) {
     override fun check(value: Any?) {
         val number = value as? Number ?: throw PlatformFailure.invalidPayload("platform.invalidInteger")
-        val double = number.toDouble()
-        if (!double.isFinite() || double % 1.0 != 0.0) {
-            throw PlatformFailure.invalidPayload("platform.invalidInteger")
-        }
-        val converted = number.toLong()
-        if (converted < min || converted > max) {
+        val exact = exactChannelInteger(number)
+            ?: throw PlatformFailure.invalidPayload("platform.invalidInteger")
+        if (exact < BigDecimal(min) || exact > BigDecimal(max)) {
             throw PlatformFailure.invalidPayload("platform.valueOutOfRange")
         }
     }
@@ -1862,7 +1877,10 @@ private class MethodCatalog(private val limits: ChannelLimits) {
                 ),
             ),
         ),
-        MethodSpec("store.startupRecovery", emptyList()),
+        MethodSpec(
+            "store.startupRecovery",
+            listOf(LongRule("deadlineEpochMs", 1L, Long.MAX_VALUE, required = false)),
+        ),
         MethodSpec("store.readSource", listOf(UuidRule("documentId"))),
         MethodSpec(
             "store.readSignature",

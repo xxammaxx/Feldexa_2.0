@@ -8,6 +8,14 @@
   "@startTitle": {
     "description": "Heading of the start area (contracts/error-catalog.de.md §8)."
   },
+  "startupRecoveryIncomplete": "Die Wiederherstellung beim Start wurde nicht vollständig abgeschlossen. Bitte starten Sie Feldexa erneut.",
+  "@startupRecoveryIncomplete": {
+    "description": "contracts/error-catalog.de.md §8 Startup recovery incomplete: the bounded startup sweep timed out, threw, or returned a degraded result; the shell must not present this as a complete success."
+  },
+  "startupRecoveryIncompleteRecovery": "Ihre gespeicherten Dokumente und Vorlagen werden dabei nicht gelöscht. Prüfen Sie nach dem Neustart, ob alle Einträge lesbar sind.",
+  "@startupRecoveryIncompleteRecovery": {
+    "description": "contracts/error-catalog.de.md §8 Startup recovery incomplete guidance: recovery guidance for an incomplete startup sweep; states only the contract guarantee that recovery never deletes a visible document or template (contracts/storage-format.md §4)."
+  },
   "imp001": "Diese PDF-Datei ist passwortgeschützt. Feldexa kann geschützte Dateien nicht öffnen, und Ihr Passwort wird weder abgefragt noch gespeichert.",
   "@imp001": {
     "description": "contracts/error-catalog.de.md §1 IMP-001: PDF positively identified as password-protected/encrypted."

@@ -24,6 +24,13 @@ import java.io.File
  * deliberately not run here: T031's bootstrap owns the ordering "native
  * recovery before the list is shown".
  *
+ * T031 A-1: the production store is intentionally constructed WITHOUT a
+ * `signatureReferenceResolver`. `EncryptedStore` now builds the default §4
+ * step 3 reference set from its own decrypted, hash-verified revision and
+ * template-version plaintext, so production `store.startupRecovery` really
+ * deletes unreferenced signatures older than 24 h. The injected resolver
+ * remains a test-only override.
+ *
  * The earlier T027 candidate used the non-contract directory
  * `filesDir/feldexa_store`. This unshipped build does not delete, rename, or
  * silently migrate that directory: the canonical root is used from now on and

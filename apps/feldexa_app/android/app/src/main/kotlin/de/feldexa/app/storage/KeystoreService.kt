@@ -286,6 +286,7 @@ class KeystoreService(
      */
     @Synchronized
     fun sweepOrphanAliases(
+        shouldStop: () -> Boolean = { false },
         aggregateDirectoryExists: (AggregateRef) -> Boolean,
     ): OrphanAliasSweep {
         requireProvider()
@@ -298,11 +299,13 @@ class KeystoreService(
         var retained = 0
         var failed = 0
         for (alias in aliases) {
+            if (shouldStop()) break
             val ref = parseAlias(alias)
             if (ref == null) {
                 if (!hasAggregatePrefix(alias)) continue
                 // A malformed prefixed alias cannot belong to a valid
                 // aggregate directory, so it is an orphan.
+                if (shouldStop()) break
                 if (deleteQuietly(alias)) removed++ else failed++
                 continue
             }
@@ -315,6 +318,7 @@ class KeystoreService(
                 retained++
                 continue
             }
+            if (shouldStop()) break
             if (deleteQuietly(alias)) removed++ else failed++
         }
         return OrphanAliasSweep(

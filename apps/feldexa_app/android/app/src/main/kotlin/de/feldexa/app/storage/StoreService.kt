@@ -49,7 +49,7 @@ class StoreService(
                 "store.loadDocument" -> loadDocument(request)
                 "store.delete" -> delete(request)
                 "store.recoveryStamp" -> recoveryStamp(request)
-                "store.startupRecovery" -> startupRecovery()
+                "store.startupRecovery" -> startupRecovery(request)
                 // The template channel payload is not normatively specified by
                 // `contracts/platform-channel.md` §4 (it only shows `{…}`), and
                 // `CreateTemplateRequest` carries no template id. Inventing a
@@ -137,8 +137,9 @@ class StoreService(
         )
     }
 
-    private fun startupRecovery(): Map<String, Any?> {
-        val report = store.startupRecovery()
+    private fun startupRecovery(request: PlatformRequest): Map<String, Any?> {
+        val deadlineEpochMs = request.number("deadlineEpochMs")?.toLong()
+        val report = store.startupRecovery(deadlineEpochMs = deadlineEpochMs)
         return linkedMapOf(
             "tempEntriesRemoved" to report.tempEntriesRemoved,
             "incompleteAggregatesRemoved" to report.incompleteAggregatesRemoved,
@@ -150,6 +151,7 @@ class StoreService(
             "aliasSweepSkipped" to report.aliasSweepSkipped,
             "ambiguousRevisionOrder" to report.ambiguousRevisionOrder,
             "prunedRevisions" to report.prunedRevisions,
+            "deadlineReached" to report.deadlineReached,
         )
     }
 

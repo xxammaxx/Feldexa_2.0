@@ -4,6 +4,7 @@ import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.zip.CRC32
 import org.junit.Assert.assertArrayEquals
@@ -733,6 +734,411 @@ class EncryptedStoreTest {
     }
 
     @Test
+    fun productionStoreSweepsOldUnreferencedSignatureAndKeepsReferenced() {
+        val unreferenced = newId()
+        val referenced = newId()
+        val revisionJson =
+            ("{\"pageCount\":1,\"signatures\":{\"field-1\":{" +
+                "\"assetId\":\"$referenced\"}}}").toByteArray()
+        val created = createDocWithRevision(revisionJson)
+        store.writeSignature(created.aggregateId, unreferenced, TestPng.validRgba(3, 3))
+        store.writeSignature(created.aggregateId, referenced, TestPng.validRgba(4, 4))
+        val sigDir = docFile(created.aggregateId, "sig")
+        setOldSignature(sigDir, unreferenced)
+        setOldSignature(sigDir, referenced)
+
+        store.startupRecovery()
+
+        assertFalse(File(sigDir, "$unreferenced.fxs").exists())
+        assertTrue(File(sigDir, "$referenced.fxs").exists())
+    }
+
+    @Test
+    fun signatureReferencedOnlyByTemplateVersionIsKept() {
+        val assetId = newId()
+        val created = createDoc()
+        store.writeSignature(created.aggregateId, assetId, TestPng.validRgba(5, 5))
+        val sigDir = docFile(created.aggregateId, "sig")
+        setOldSignature(sigDir, assetId)
+        val versionJson =
+            ("{\"pageCount\":1,\"templateUnknown\":{" +
+                "\"assetId\":\"$assetId\"}}").toByteArray()
+        store.createTemplate(
+            newId(),
+            meta("Vorlage"),
+            newId(),
+            "%PDF-1.7 template".toByteArray(),
+            newId(),
+            versionJson,
+        )
+
+        store.startupRecovery()
+
+        assertTrue(File(sigDir, "$assetId.fxs").exists())
+    }
+
+    @Test
+    fun freshUnreferencedSignatureIsKept() {
+        val assetId = newId()
+        val created = createDoc()
+        store.writeSignature(created.aggregateId, assetId, TestPng.validRgba(6, 6))
+        val sigDir = docFile(created.aggregateId, "sig")
+
+        store.startupRecovery()
+
+        assertTrue(File(sigDir, "$assetId.fxs").exists())
+    }
+
+    @Test
+    fun unreferencedSignatureIsKeptWhenARevisionIsCorrupt() {
+        val assetId = newId()
+        val created = createDoc()
+        store.writeSignature(created.aggregateId, assetId, TestPng.validRgba(7, 7))
+        val sigDir = docFile(created.aggregateId, "sig")
+        setOldSignature(sigDir, assetId)
+        val revDir = docFile(created.aggregateId, "rev")
+        File(revDir, "${newId()}.fx1").writeBytes("not-a-container".toByteArray())
+
+        store.startupRecovery()
+
+        assertTrue(
+            "an unreadable revision must make the sweep conservative",
+            File(sigDir, "$assetId.fxs").exists(),
+        )
+    }
+
+    @Test
+    fun startupRecoveryEventReportsSignatureSweepUncertainty() {
+        val assetId = newId()
+        val created = createDoc()
+        store.writeSignature(created.aggregateId, assetId, TestPng.validRgba(8, 8))
+        val sigDir = docFile(created.aggregateId, "sig")
+        setOldSignature(sigDir, assetId)
+        val revDir = docFile(created.aggregateId, "rev")
+        File(revDir, "${newId()}.fx1").writeBytes("not-a-container".toByteArray())
+
+        store.startupRecovery()
+
+        val event = File(storeRoot, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(
+            "an uncertain signature scan must be visible in the redacted event",
+            event.contains("\"signatureSweepUncertainAggregates\":1"),
+        )
+        assertTrue(event.contains("\"signatureAssetsRemoved\":0"))
+        assertTrue(File(sigDir, "$assetId.fxs").exists())
+        assertFalse("the event must stay counts-only", event.contains(assetId))
+    }
+
+    @Test
+    fun startupRecoveryEventReportsRemovedSignatureAssets() {
+        val assetId = newId()
+        val created = createDoc()
+        store.writeSignature(created.aggregateId, assetId, TestPng.validRgba(9, 9))
+        val sigDir = docFile(created.aggregateId, "sig")
+        setOldSignature(sigDir, assetId)
+
+        store.startupRecovery()
+
+        val event = File(storeRoot, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(event.contains("\"signatureSweepUncertainAggregates\":0"))
+        assertTrue(event.contains("\"signatureAssetsRemoved\":1"))
+        assertFalse(File(sigDir, "$assetId.fxs").exists())
+    }
+
+    @Test
+    fun startupRecoveryDeadlineStopsBeforeEveryDestructiveStep() {
+        val created = createDoc()
+        val assetId = newId()
+        store.writeSignature(created.aggregateId, assetId, TestPng.validRgba(10, 10))
+        val sigDir = docFile(created.aggregateId, "sig")
+        setOldSignature(sigDir, assetId)
+        val staleTmp = File(storeRoot, "tmp/unknown-deadline-entry")
+        staleTmp.writeText("x")
+        val orphanRef = AggregateRef(AggregateKind.DOCUMENT, newId())
+        keystore.createAggregateKey(orphanRef)
+        val aliasesBefore = backend.listAliases().toSet()
+        val metaBefore = docFile(created.aggregateId, "meta.fx1").readBytes()
+        val headBefore = docFile(created.aggregateId, "head.fx1").readBytes()
+        val revBefore = docFile(created.aggregateId, "rev/${created.revisionId}.fx1").readBytes()
+
+        val report = store.startupRecovery(deadlineEpochMs = now.get() - 1)
+
+        assertTrue("an expired deadline must be reported", report.deadlineReached)
+        assertEquals(0, report.tempEntriesRemoved)
+        assertEquals(0, report.incompleteAggregatesRemoved)
+        assertEquals(0, report.prunedRevisions)
+        assertTrue("the stale tmp entry must be kept", staleTmp.exists())
+        assertTrue("the unreferenced signature must be kept", File(sigDir, "$assetId.fxs").exists())
+        assertEquals("no alias may be removed", aliasesBefore, backend.listAliases())
+        assertArrayEquals(metaBefore, docFile(created.aggregateId, "meta.fx1").readBytes())
+        assertArrayEquals(headBefore, docFile(created.aggregateId, "head.fx1").readBytes())
+        assertArrayEquals(
+            revBefore,
+            docFile(created.aggregateId, "rev/${created.revisionId}.fx1").readBytes(),
+        )
+        val event = File(storeRoot, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(event.contains("\"deadlineReached\":true"))
+        assertTrue(event.contains("\"tempRemoved\":0"))
+        assertFalse(event.contains(assetId))
+    }
+
+    @Test
+    fun startupRecoveryDeadlineStopsInsideThePerEntryLoop() {
+        val reads = AtomicLong(0)
+        val ticking = EncryptedStore(
+            storeRoot,
+            keystore,
+            clock = { now.get() + reads.getAndIncrement() },
+        )
+        ticking.ensureLayout()
+        val entries = (0 until 5).map {
+            File(storeRoot, "tmp/unknown-ticking-$it").apply { writeText("x") }
+        }
+
+        val report = ticking.startupRecovery(deadlineEpochMs = now.get() + 5)
+
+        assertTrue("the in-loop deadline must be reported", report.deadlineReached)
+        assertTrue(
+            "the deadline must stop before the whole tmp/ list is deleted",
+            report.tempEntriesRemoved in 1 until entries.size,
+        )
+        val remaining = entries.count { it.exists() }
+        assertEquals(entries.size - report.tempEntriesRemoved, remaining)
+        assertTrue("at least one entry must survive the stop", remaining > 0)
+        val event = File(storeRoot, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(event.contains("\"deadlineReached\":true"))
+        assertTrue(event.contains("\"tempRemoved\":${report.tempEntriesRemoved}"))
+    }
+
+    @Test
+    fun startupRecoveryDeadlineStopsFallbackHeadCommitDuringVerification() {
+        // Control: the identical corrupt-head document without a deadline DOES
+        // adopt a fallback head. This proves the assertion below is about a
+        // real commit, not a scenario where no head would be written anyway.
+        val control = buildCorruptHeadDocument("fallback-control-store")
+        val controlReport = control.store.startupRecovery()
+        assertEquals("control must adopt a fallback head", 1, controlReport.fallbackAdoptions)
+        assertTrue(
+            "control must write a recovered head file",
+            File(control.root, "docs/${control.documentId}/head.fx1").exists(),
+        )
+
+        // Test: the deadline expires while the fallback verifies revisions, so
+        // the older verified revision must not be adopted into a new head.
+        val fixture = buildCorruptHeadDocument("fallback-deadline-store")
+        val headFile = File(fixture.root, "docs/${fixture.documentId}/head.fx1")
+        assertFalse("precondition: the head must be absent", headFile.exists())
+        val keptRevision = File(
+            fixture.root,
+            "docs/${fixture.documentId}/rev/${fixture.keptRevisionId}.fx1",
+        )
+        val revisionBefore = keptRevision.readBytes()
+        val ticks = AtomicLong(0)
+        val expiring = EncryptedStore(
+            fixture.root,
+            fixture.keystore,
+            clock = { if (ticks.getAndIncrement() < 4) now.get() else now.get() + 1_000_000 },
+        )
+
+        val report = expiring.startupRecovery(deadlineEpochMs = now.get() + 500_000)
+
+        assertTrue("a deadline stop must be reported", report.deadlineReached)
+        assertEquals("no fallback head may be adopted after expiry", 0, report.fallbackAdoptions)
+        assertFalse("no recovered head file may be created after expiry", headFile.exists())
+        assertArrayEquals("the verified older revision must stay byte-identical", revisionBefore, keptRevision.readBytes())
+        val event = File(fixture.root, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(event.contains("\"deadlineReached\":true"))
+        assertTrue(event.contains("\"fallbackAdoptions\":0"))
+    }
+
+    @Test
+    fun startupRecoveryDeadlineStopsPruneBeforeRevisionDeletionAndHeadCommit() {
+        // Control: a normal recovery prunes the older autosaves and rewrites the
+        // head history, so the test below proves a real prune/head commit is
+        // suppressed rather than asserting an operation that would not happen.
+        val control = buildPrunableDocument("prune-control-store")
+        val controlHeadBefore = File(control.root, "docs/${control.documentId}/head.fx1").readBytes()
+        val controlReport = control.store.startupRecovery()
+        assertEquals("control must prune older autosaves", 3, controlReport.prunedRevisions)
+        assertTrue(
+            "control must delete at least one older revision",
+            control.olderAutosaveIds.any {
+                !File(control.root, "docs/${control.documentId}/rev/$it.fx1").exists()
+            },
+        )
+        assertFalse(
+            "control must commit a shortened head",
+            controlHeadBefore.contentEquals(
+                File(control.root, "docs/${control.documentId}/head.fx1").readBytes(),
+            ),
+        )
+
+        // Test: the deadline expires inside prune, before any revision deletion
+        // or shortened-head commit.
+        val fixture = buildPrunableDocument("prune-deadline-store")
+        val headFile = File(fixture.root, "docs/${fixture.documentId}/head.fx1")
+        val headBefore = headFile.readBytes()
+        val olderFiles = fixture.olderAutosaveIds.map {
+            File(fixture.root, "docs/${fixture.documentId}/rev/$it.fx1")
+        }
+        val revisionBefore = olderFiles.map { it to it.readBytes() }
+        val ticks = AtomicLong(0)
+        // Five pre-expiry ticks let the run pass the step-2 boundary checks and
+        // enter prune; the deadline then expires inside prune itself.
+        val expiring = EncryptedStore(
+            fixture.root,
+            fixture.keystore,
+            clock = { if (ticks.getAndIncrement() < 5) now.get() else now.get() + 1_000_000 },
+        )
+
+        val report = expiring.startupRecovery(deadlineEpochMs = now.get() + 500_000)
+
+        assertTrue("a deadline stop must be reported", report.deadlineReached)
+        assertEquals("no revision may be pruned after expiry", 0, report.prunedRevisions)
+        revisionBefore.forEach { (file, bytes) ->
+            assertArrayEquals("revision $file must survive the stop", bytes, file.readBytes())
+        }
+        assertArrayEquals("no shortened head may be committed after expiry", headBefore, headFile.readBytes())
+        val event = File(fixture.root, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(event.contains("\"deadlineReached\":true"))
+        assertTrue(event.contains("\"prunedRevisions\":0"))
+    }
+
+    @Test
+    fun stagingDelayCannotPromoteFallbackHeadAfterTheDeadline() {
+        // Control: the identical corrupt-head document without a delay DOES adopt
+        // a fallback head, so the assertion below is about suppressing a real
+        // commit, not about a scenario that would never write a head anyway.
+        val control = buildCorruptHeadDocument("fallback-staging-delay-control")
+        assertEquals("control must adopt a fallback head", 1, control.store.startupRecovery().fallbackAdoptions)
+
+        // The deadline is reached only INSIDE staging (STAGE_CREATE), i.e. after
+        // every pre-commitHead expiry check has already passed. A post-expiry
+        // atomicMove would therefore be a durable head commit after the deadline.
+        val fixture = buildCorruptHeadDocument("fallback-staging-delay-store")
+        val headFile = File(fixture.root, "docs/${fixture.documentId}/head.fx1")
+        assertFalse("precondition: no head before recovery", headFile.exists())
+        val revisionFile = File(
+            fixture.root,
+            "docs/${fixture.documentId}/rev/${fixture.keptRevisionId}.fx1",
+        )
+        val revisionBefore = revisionFile.readBytes()
+        val deadline = now.get() + 500_000
+        val delayedOnce = AtomicBoolean(false)
+        val stagingDelay = StoreFaultInjector { point, _ ->
+            if (point == StoreFaultPoint.STAGE_CREATE && delayedOnce.compareAndSet(false, true)) {
+                now.set(deadline + 1)
+            }
+        }
+        val delayed = EncryptedStore(
+            fixture.root,
+            fixture.keystore,
+            clock = { now.get() },
+            faultInjector = stagingDelay,
+        )
+
+        val report = delayed.startupRecovery(deadlineEpochMs = deadline)
+
+        assertTrue("a deadline reached during staging must be reported", report.deadlineReached)
+        assertEquals("no fallback head may be adopted after expiry", 0, report.fallbackAdoptions)
+        assertEquals("a deadline stop must not mark the aggregate unreadable (SAVE-003)", 0, report.unreadableAggregates)
+        assertFalse("no recovered head file may be promoted after expiry", headFile.exists())
+        assertArrayEquals("the verified older revision must stay byte-identical", revisionBefore, revisionFile.readBytes())
+        assertEquals("the staged head temp must be cleaned up", 0, File(fixture.root, "tmp").listFiles()?.size ?: 0)
+        val event = File(fixture.root, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(event.contains("\"deadlineReached\":true"))
+        assertTrue(event.contains("\"fallbackAdoptions\":0"))
+    }
+
+    @Test
+    fun stagingDelayCannotCommitPrunedHeadAfterTheDeadline() {
+        // Control: a normal recovery prunes the oldest autosaves and rewrites the
+        // head, so the assertions below suppress real prune/head work.
+        val control = buildPrunableDocument("prune-staging-delay-control")
+        assertEquals("control must prune older autosaves", 3, control.store.startupRecovery().prunedRevisions)
+
+        val fixture = buildPrunableDocument("prune-staging-delay-store")
+        val headFile = File(fixture.root, "docs/${fixture.documentId}/head.fx1")
+        val headBefore = headFile.readBytes()
+        val olderFiles = fixture.olderAutosaveIds.map {
+            File(fixture.root, "docs/${fixture.documentId}/rev/$it.fx1")
+        }
+        val deadline = now.get() + 500_000
+        val delayedOnce = AtomicBoolean(false)
+        val stagingDelay = StoreFaultInjector { point, _ ->
+            if (point == StoreFaultPoint.STAGE_CREATE && delayedOnce.compareAndSet(false, true)) {
+                now.set(deadline + 1)
+            }
+        }
+        val delayed = EncryptedStore(
+            fixture.root,
+            fixture.keystore,
+            clock = { now.get() },
+            faultInjector = stagingDelay,
+        )
+
+        val report = delayed.startupRecovery(deadlineEpochMs = deadline)
+
+        assertTrue("a deadline reached during staging must be reported", report.deadlineReached)
+        // The prune deletes are durable BEFORE the shortened head is staged, so
+        // they are counted accurately and are not undone by the deadline stop.
+        assertEquals("the completed prune deletions must still be counted", 3, report.prunedRevisions)
+        assertEquals("a deadline stop must not mark the aggregate unreadable (SAVE-003)", 0, report.unreadableAggregates)
+        olderFiles.forEach { assertFalse("prune deletion must stay durable", it.exists()) }
+        // The residual race under test: expiry during staging must not promote
+        // the shortened head after the deadline (no post-expiry atomicMove).
+        assertArrayEquals("no shortened head may be committed after expiry", headBefore, headFile.readBytes())
+        assertEquals("the staged head temp must be cleaned up", 0, File(fixture.root, "tmp").listFiles()?.size ?: 0)
+        val event = File(fixture.root, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(event.contains("\"deadlineReached\":true"))
+        assertTrue(event.contains("\"prunedRevisions\":3"))
+    }
+
+    @Test
+    fun pruneFsyncDelayReportsDurableDeletionsBeforeTheDeadlineReturn() {
+        // Control: an unbounded recovery prunes three autosaves and rewrites the
+        // head, so the count asserted below is real prune work.
+        val control = buildPrunableDocument("prune-fsync-count-control")
+        assertEquals("control must prune older autosaves", 3, control.store.startupRecovery().prunedRevisions)
+
+        val fixture = buildPrunableDocument("prune-fsync-count-store")
+        val headFile = File(fixture.root, "docs/${fixture.documentId}/head.fx1")
+        val headBefore = headFile.readBytes()
+        val olderFiles = fixture.olderAutosaveIds.map {
+            File(fixture.root, "docs/${fixture.documentId}/rev/$it.fx1")
+        }
+        val deadline = now.get() + 500_000
+        val advancedOnce = AtomicBoolean(false)
+        // PRUNE_FSYNC fires after prune deleted all three revisions but just
+        // before the directory fsync that confirms their durability. The clock
+        // advance lands during this PRUNE_FSYNC step; the following fsync still
+        // succeeds and PruneResult returns deletesDurable=true, so the expired()
+        // early return must report all three deletions as pruned.
+        val fsyncDelay = StoreFaultInjector { point, _ ->
+            if (point == StoreFaultPoint.PRUNE_FSYNC && advancedOnce.compareAndSet(false, true)) {
+                now.set(deadline + 1)
+            }
+        }
+        val delayed = EncryptedStore(
+            fixture.root,
+            fixture.keystore,
+            clock = { now.get() },
+            faultInjector = fsyncDelay,
+        )
+
+        val report = delayed.startupRecovery(deadlineEpochMs = deadline)
+
+        assertTrue("a deadline reached at prune fsync must be reported", report.deadlineReached)
+        assertEquals("durable prune deletions must be counted before the expiry return", 3, report.prunedRevisions)
+        assertEquals("a deadline stop must not mark the aggregate unreadable (SAVE-003)", 0, report.unreadableAggregates)
+        olderFiles.forEach { assertFalse("the durable prune deletion must stand", it.exists()) }
+        assertArrayEquals("no shortened head may be committed after expiry", headBefore, headFile.readBytes())
+        val event = File(fixture.root, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(event.contains("\"deadlineReached\":true"))
+        assertTrue(event.contains("\"prunedRevisions\":3"))
+    }
+
+    @Test
     fun startupRecoverySurvivesAProviderOutageAndSkipsTheAliasSweep() {
         createDoc()
         backend.providerAvailableFlag = false
@@ -989,6 +1395,29 @@ class EncryptedStoreTest {
         return parsed["title"] as? String
     }
 
+    private fun createDocWithRevision(
+        revisionJson: ByteArray,
+        title: String = "Dokument",
+    ): CreateReceipt {
+        val documentId = newId()
+        return store.createDocument(
+            documentId,
+            meta(title),
+            newId(),
+            "%PDF-1.7 synthetic".toByteArray(),
+            newId(),
+            revisionJson,
+        )
+    }
+
+    private fun setOldSignature(sigDir: File, assetId: String) {
+        assertTrue(
+            File(sigDir, "$assetId.fxs").setLastModified(
+                now.get() - EncryptedStore.STALE_TEMP_MS - 1_000,
+            ),
+        )
+    }
+
     private fun createDoc(
         title: String = "Dokument",
         source: ByteArray = "%PDF-1.7 synthetic".toByteArray(),
@@ -1003,6 +1432,104 @@ class EncryptedStoreTest {
             newId(),
             revision(1),
             revisionKind,
+        )
+    }
+
+    private data class CorruptHeadFixture(
+        val root: File,
+        val keystore: KeystoreService,
+        val store: EncryptedStore,
+        val documentId: String,
+        val keptRevisionId: String,
+    )
+
+    /** A missing head plus a corrupt newest revision forces multi-step fallback. */
+    private fun buildCorruptHeadDocument(name: String): CorruptHeadFixture {
+        val root = File(temporary.root, name)
+        val keystore = KeystoreService(TestStoreKeystoreBackend(), sleeper = {})
+        val store = EncryptedStore(root, keystore, clock = { now.get() })
+        store.ensureLayout()
+        val created = store.createDocument(
+            newId(),
+            meta("Fallback"),
+            newId(),
+            "%PDF-1.7 synthetic".toByteArray(),
+            newId(),
+            revision(1),
+        )
+        val second = newId()
+        store.saveRevision(
+            created.aggregateId,
+            second,
+            revision(2),
+            RevisionKindWire.AUTOSAVE,
+            created.revisionId,
+        )
+        flip(File(root, "docs/${created.aggregateId}/rev/$second.fx1"), 160)
+        setMtime(File(root, "docs/${created.aggregateId}/rev/${created.revisionId}.fx1"), -2_000)
+        setMtime(File(root, "docs/${created.aggregateId}/rev/$second.fx1"), -1_000)
+        File(root, "docs/${created.aggregateId}/head.fx1").delete()
+        return CorruptHeadFixture(root, keystore, store, created.aggregateId, created.revisionId)
+    }
+
+    private data class PrunableFixture(
+        val root: File,
+        val keystore: KeystoreService,
+        val store: EncryptedStore,
+        val documentId: String,
+        val olderAutosaveIds: List<String>,
+    )
+
+    /** One explicit plus six autosaves; the oldest three are prune candidates. */
+    private fun buildPrunableDocument(name: String): PrunableFixture {
+        val root = File(temporary.root, name)
+        val keystore = KeystoreService(TestStoreKeystoreBackend(), sleeper = {})
+        val store = EncryptedStore(root, keystore, clock = { now.get() })
+        store.ensureLayout()
+        val created = store.createDocument(
+            newId(),
+            meta("Prune"),
+            newId(),
+            "%PDF-1.7 synthetic".toByteArray(),
+            newId(),
+            revision(1),
+            RevisionKindWire.EXPLICIT,
+        )
+        var head = created.revisionId
+        val autosaves = mutableListOf<Pair<String, ByteArray>>()
+        repeat(6) { i ->
+            val revisionId = newId()
+            val json = revision(i + 2)
+            store.saveRevision(created.aggregateId, revisionId, json, RevisionKindWire.AUTOSAVE, head)
+            autosaves += revisionId to json
+            head = revisionId
+        }
+        // The save path prunes eagerly; restore every revision file and commit
+        // a head whose full history still references them, so startup recovery
+        // has real prune work to do (and a real head to shorten).
+        val ref = doc(created.aggregateId)
+        val all = listOf(created.revisionId to revision(1)) + autosaves
+        for ((revisionId, json) in all) {
+            val file = File(root, "docs/${created.aggregateId}/rev/$revisionId.fx1")
+            if (!file.exists()) store.commitObjectForTest(RevisionObject(ref, revisionId), json)
+        }
+        val fullHistory = all.map { (revisionId, _) ->
+            HeadHistoryEntry(
+                revisionId,
+                if (revisionId == created.revisionId) {
+                    RevisionKindWire.EXPLICIT
+                } else {
+                    RevisionKindWire.AUTOSAVE
+                },
+            )
+        }
+        store.commitHeadForTest(ref, store.readHeadForTest(ref).copy(history = fullHistory))
+        return PrunableFixture(
+            root,
+            keystore,
+            store,
+            created.aggregateId,
+            autosaves.take(3).map { it.first },
         )
     }
 

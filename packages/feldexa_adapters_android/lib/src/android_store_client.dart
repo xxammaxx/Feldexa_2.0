@@ -36,6 +36,7 @@ final class AndroidRecoveryReport {
     required this.aliasSweepSkipped,
     required this.ambiguousRevisionOrder,
     required this.prunedRevisions,
+    this.deadlineReached = false,
   });
 
   final int tempEntriesRemoved;
@@ -48,6 +49,10 @@ final class AndroidRecoveryReport {
   final bool aliasSweepSkipped;
   final int ambiguousRevisionOrder;
   final int prunedRevisions;
+
+  /// Whether native recovery stopped at the caller's deadline and returned
+  /// partial counts. Absent in older responses, which parse as `false`.
+  final bool deadlineReached;
 
   @override
   String toString() =>
@@ -372,12 +377,22 @@ final class AndroidStoreClient implements SecureStorePort {
 
   /// Runs the native T026 startup recovery.
   ///
-  /// T031's bootstrap must call this before `StartupSweep.run()` so stale temp
-  /// files, incomplete aggregates, head fallbacks, and orphan aliases are
-  /// reconciled before the list is shown. No recovery work is duplicated here.
-  Future<AndroidRecoveryReport> runStartupRecovery() async {
+  /// T031's bootstrap runs its Dart export-preview step first, then calls this
+  /// so stale temp files, incomplete aggregates, head fallbacks, and orphan
+  /// aliases are reconciled before the list is shown. No recovery work is
+  /// duplicated here.
+  ///
+  /// [deadlineEpochMs] is the bounded runner's absolute deadline. It is sent
+  /// only when present; absent means the contract's unbounded behavior. The
+  /// native layer checks it before each destructive action and reports
+  /// `deadlineReached` in the response.
+  Future<AndroidRecoveryReport> runStartupRecovery({
+    int? deadlineEpochMs,
+  }) async {
     final Map<String, Object?> data = androidEnvelopeData(
-      await _invoke('store.startupRecovery', const <String, Object?>{}),
+      await _invoke('store.startupRecovery', <String, Object?>{
+        'deadlineEpochMs': ?deadlineEpochMs,
+      }),
       method: 'store.startupRecovery',
     );
     int count(String name) {
@@ -392,6 +407,10 @@ final class AndroidStoreClient implements SecureStorePort {
     if (skipped is! bool) {
       throw const FormatException('Invalid alias sweep state');
     }
+    final Object? deadline = data['deadlineReached'];
+    if (deadline != null && deadline is! bool) {
+      throw const FormatException('Invalid recovery deadline state');
+    }
     return AndroidRecoveryReport(
       tempEntriesRemoved: count('tempEntriesRemoved'),
       incompleteAggregatesRemoved: count('incompleteAggregatesRemoved'),
@@ -403,6 +422,7 @@ final class AndroidStoreClient implements SecureStorePort {
       aliasSweepSkipped: skipped,
       ambiguousRevisionOrder: count('ambiguousRevisionOrder'),
       prunedRevisions: count('prunedRevisions'),
+      deadlineReached: deadline == true,
     );
   }
 

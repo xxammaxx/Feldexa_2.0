@@ -23,7 +23,16 @@ const String _generatedPath = 'lib/l10n/app_localizations_de.dart';
 /// T005 shell title and is documented as the one key not defined in the
 /// catalog; every other key maps to a catalog label, dialog, durability state,
 /// action, or accessibility fragment.
+///
+/// T031: `startupRecoveryIncomplete` and `startupRecoveryIncompleteRecovery`
+/// are the German notice and guidance for a timed-out, thrown, or degraded
+/// startup sweep. Owner decision 2026-11-17 added them as
+/// `contracts/error-catalog.de.md` §8 rows ("Startup recovery incomplete" and
+/// its guidance); the section-8 assertion below fails if the catalog text and
+/// the ARB text diverge.
 const Set<String> _nonCodeArbKeys = <String>{
+  'startupRecoveryIncomplete',
+  'startupRecoveryIncompleteRecovery',
   'a11yCheckbox',
   'a11yCheckboxChecked',
   'a11yCheckboxUnchecked',
@@ -439,6 +448,9 @@ void main() {
       'Save now': 'saveNow',
       'Unsaved badge': 'unsavedBadge',
       'Unsaved risk banner': 'unsavedRiskBanner',
+      'Startup recovery incomplete': 'startupRecoveryIncomplete',
+      'Startup recovery incomplete guidance':
+          'startupRecoveryIncompleteRecovery',
     };
 
     final List<String> rows = _tableCellsInSection(catalog, '## 8.');

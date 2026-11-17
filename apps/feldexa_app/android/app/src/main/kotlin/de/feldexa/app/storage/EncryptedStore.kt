@@ -77,10 +77,13 @@ class EncryptedStore(
     private val random: SecureRandom = SecureRandom(),
     private val idGenerator: () -> String = { UUID.randomUUID().toString() },
     /**
-     * Optional T031 hook. The store deliberately does not parse revision
-     * plaintext, so signature reference discovery is supplied by the caller
-     * that owns revision content. When null, §4 step 3 is skipped here and
-     * stays with T031; stale temp and orphan aliases are still swept.
+     * Optional test override for §4 step 3. When null, the store builds the
+     * reference set itself from the decrypted, hash-verified revision and
+     * template-version plaintext; production therefore always performs the
+     * unreferenced-signature sweep. An injected resolver remains available so
+     * tests can pin an explicit reference map. No JSON parser and no new
+     * dependency is involved: the canonical revision text is scanned for the
+     * on-disk asset ids.
      */
     private val signatureReferenceResolver:
         ((documentId: String, assetId: String) -> Boolean)? = null,
@@ -1056,17 +1059,34 @@ class EncryptedStore(
     }
 
     /**
-     * Startup recovery in the contract order:
+     * Native §4 recovery steps in the order this store executes them:
      *  1. stale/unknown `tmp/` entries;
      *  2. incomplete aggregates, head fallback, unreadable marking;
-     *  3. unreferenced signature assets older than 24 h (when a resolver exists);
-     *  4. orphan KEK aliases without an aggregate directory;
-     *  5. one redacted counts-only recovery event.
+     *  3. unreferenced signature assets older than 24 h;
+     *  5. orphan KEK aliases without an aggregate directory;
+     *  6. one redacted counts-only recovery event.
      *
-     * Export-artifact cleanup lives with T031 because it is in `cacheDir`, not
-     * this store.
+     * Step 4 (cache-directory export previews) is owned by T031 Dart. Under the
+     * owner decision of 2026-11-17 (`contracts/storage-format.md` §4 and
+     * `contracts/platform-channel.md` §4) the normative order is
+     * 4 → 1 → 2 → 3 → 5 → 6: Dart removes stale plaintext previews first, then
+     * this one native call performs its own 1 → 2 → 3 → 5 → 6 steps with step 6
+     * last. Step 4 is first so plaintext is removed even when native recovery
+     * fails or times out; it never touches an aggregate, KEK alias, revision,
+     * or source byte.
+     *
+     * Step 3 uses [signatureReferenceResolver] when a test injects it;
+     * otherwise the default resolver is built below from the decrypted,
+     * hash-verified revision and template-version plaintext.
+     *
+     * [deadlineEpochMs] is an optional absolute deadline. It is checked before
+     * every destructive action (step boundaries, per entry, per signature
+     * asset, per orphan alias). When reached, the method deletes nothing
+     * further, returns partial counts with `deadlineReached = true`, and still
+     * writes the redacted step-6 event. Work already in flight inside one
+     * native step may complete before its next check; no new action starts.
      */
-    fun startupRecovery(): RecoveryReport {
+    fun startupRecovery(deadlineEpochMs: Long? = null): RecoveryReport {
         ensureLayout()
         var tempRemoved = 0
         var incompleteRemoved = 0
@@ -1076,71 +1096,166 @@ class EncryptedStore(
         var pruned = 0
         var aliasSweepSkipped = false
         var aliasSweep = OrphanAliasSweep(0, 0, 0)
+        var deadlineReached = false
+
+        fun expired(): Boolean = deadlineEpochMs != null && clock() >= deadlineEpochMs
 
         // Step 1: tmp/ entries older than 24 h or with unknown names.
-        for (entry in io.list(tmpDir)) {
-            val known = TMP_NAME.matches(entry.name)
-            val stale = clock() - entry.lastModified() > STALE_TEMP_MS
-            if (!known || stale) {
-                if (io.deleteTree(entry)) tempRemoved++
+        if (!expired()) {
+            for (entry in io.list(tmpDir)) {
+                if (expired()) {
+                    deadlineReached = true
+                    break
+                }
+                val known = TMP_NAME.matches(entry.name)
+                val stale = clock() - entry.lastModified() > STALE_TEMP_MS
+                if (!known || stale) {
+                    if (expired()) {
+                        deadlineReached = true
+                        break
+                    }
+                    if (io.deleteTree(entry)) tempRemoved++
+                }
             }
+        } else {
+            deadlineReached = true
         }
 
         // Step 2: each aggregate.
-        for (kind in AggregateKind.entries) {
-            for (id in listAggregateIds(kind)) {
-                val ref = AggregateRef(kind, id)
-                withAggregateLock(ref) {
-                    if (!io.exists(fileFor(MetaObject(ref))) && isIncomplete(ref)) {
-                        if (io.deleteTree(aggregateDir(ref))) incompleteRemoved++
-                        return@withAggregateLock
+        if (!deadlineReached) {
+            aggregateLoop@ for (kind in AggregateKind.entries) {
+                for (id in listAggregateIds(kind)) {
+                    if (expired()) {
+                        deadlineReached = true
+                        break@aggregateLoop
                     }
-                    val health = recoverAggregate(ref)
-                    if (health.fellBackToOlderRevision) fallbacks++
-                    if (health.ambiguousRevisionOrder) ambiguousRevisionOrder++
-                    if (!health.readable) unreadable++
-                    if (health.readable &&
-                        kind == AggregateKind.DOCUMENT &&
-                        health.head != null
-                    ) {
-                        try {
-                            val prune = pruneDocumentFromHead(
-                                ref,
-                                health.head,
-                                newTxnId(),
-                            )
-                            if (prune.deletesDurable) pruned += prune.deleted
-                            if (prune.history != health.head.history) {
-                                commitHead(
-                                    ref,
-                                    health.head.copy(history = prune.history),
-                                    newTxnId(),
-                                )
+                    val ref = AggregateRef(kind, id)
+                    withAggregateLock(ref) {
+                        if (expired()) {
+                            deadlineReached = true
+                            return@withAggregateLock
+                        }
+                        if (!io.exists(fileFor(MetaObject(ref))) && isIncomplete(ref)) {
+                            if (expired()) {
+                                deadlineReached = true
+                                return@withAggregateLock
                             }
-                        } catch (failure: Exception) {
-                            // Conservative restart: keep all revision files
-                            // and retry on the next startup/save.
+                            if (io.deleteTree(aggregateDir(ref))) incompleteRemoved++
+                            return@withAggregateLock
+                        }
+                        val health = try {
+                            recoverAggregate(ref, deadlineEpochMs)
+                        } catch (cancelled: PromotionDeadlineReached) {
+                            // The deadline was reached inside fallback head
+                            // staging, after the pre-commit checks. No head was
+                            // promoted and no fallback was adopted: a dedicated
+                            // deadline stop, not SAVE-003 and not an unreadable
+                            // marking. Suppress all later work for this aggregate.
+                            deadlineReached = true
+                            return@withAggregateLock
+                        }
+                        // A stop inside fallback verification must suppress all
+                        // later work for this aggregate, including pruning.
+                        if (expired()) {
+                            deadlineReached = true
+                            return@withAggregateLock
+                        }
+                        if (health.fellBackToOlderRevision) fallbacks++
+                        if (health.ambiguousRevisionOrder) ambiguousRevisionOrder++
+                        if (!health.readable) unreadable++
+                        if (health.readable &&
+                            kind == AggregateKind.DOCUMENT &&
+                            health.head != null
+                        ) {
+                            try {
+                                if (expired()) {
+                                    deadlineReached = true
+                                    return@withAggregateLock
+                                }
+                                val prune = pruneDocumentFromHead(
+                                    ref,
+                                    health.head,
+                                    newTxnId(),
+                                    deadlineEpochMs,
+                                )
+                                // Deletions already fsync-confirmed by prune really
+                                // happened; count them before any expiry return so a
+                                // deadline reached during/among the prune fsync is
+                                // reported accurately. deletesDurable=false is still
+                                // uncounted, and this is the only counting site.
+                                if (prune.deletesDurable) pruned += prune.deleted
+                                if (expired()) {
+                                    deadlineReached = true
+                                    return@withAggregateLock
+                                }
+                                if (prune.history != health.head.history) {
+                                    // Fresh check immediately before the
+                                    // shortened-head durable commit.
+                                    if (expired()) {
+                                        deadlineReached = true
+                                        return@withAggregateLock
+                                    }
+                                    commitHead(
+                                        ref,
+                                        health.head.copy(history = prune.history),
+                                        newTxnId(),
+                                        deadlineEpochMs,
+                                    )
+                                }
+                            } catch (cancelled: PromotionDeadlineReached) {
+                                // Expiry during shortened-head staging cancelled
+                                // the promotion: no head rewrite after deadline.
+                                // Reached deletes stay counted; no SAVE-003 report.
+                                deadlineReached = true
+                            } catch (failure: Exception) {
+                                // Conservative restart: keep all revision files
+                                // and retry on the next startup/save.
+                            }
                         }
                     }
+                    if (deadlineReached) break@aggregateLoop
                 }
             }
         }
 
-        // Step 3: unreferenced signature assets older than 24 h.
-        if (signatureReferenceResolver != null) {
-            sweepUnreferencedSignatures(signatureReferenceResolver)
-        }
-
-        // Step 4: orphan aliases. A provider outage must not abort startup.
-        try {
-            aliasSweep = keystore.sweepOrphanAliases { ref ->
-                io.isDirectory(aggregateDir(ref))
+        // Step 3: unreferenced signature assets older than 24 h. The outcome is
+        // tracked because a conservative "scan was uncertain" run deletes
+        // nothing; that uncertainty must be visible in the redacted recovery
+        // event instead of looking like a clean, empty sweep.
+        var signatureAssetsRemoved = 0
+        var signatureSweepUncertainAggregates = 0
+        if (!deadlineReached) {
+            if (signatureReferenceResolver != null) {
+                signatureAssetsRemoved = sweepUnreferencedSignatures(
+                    deadlineEpochMs,
+                    signatureReferenceResolver,
+                )
+                if (expired()) deadlineReached = true
+            } else {
+                val outcome = sweepUnreferencedSignaturesFromCommittedContent(deadlineEpochMs)
+                signatureAssetsRemoved = outcome.removed
+                signatureSweepUncertainAggregates = outcome.uncertainAggregates
+                if (outcome.stopped) deadlineReached = true
             }
-        } catch (failure: KeystoreUnavailableException) {
-            aliasSweepSkipped = true
         }
 
-        // Step 5: redacted event, counts only.
+        // Step 5: orphan aliases. A provider outage must not abort startup.
+        if (!deadlineReached) {
+            try {
+                aliasSweep = keystore.sweepOrphanAliases(
+                    shouldStop = { expired() },
+                ) { ref ->
+                    io.isDirectory(aggregateDir(ref))
+                }
+                if (expired()) deadlineReached = true
+            } catch (failure: KeystoreUnavailableException) {
+                aliasSweepSkipped = true
+            }
+        }
+
+        // Step 6: redacted event, counts only. The event also carries the
+        // signature-sweep outcome and the deadline stop, because the contract
+        // does not enumerate the event fields.
         val event = linkedMapOf<String, Any?>(
             "type" to "startupRecovery",
             "tempRemoved" to tempRemoved,
@@ -1149,10 +1264,13 @@ class EncryptedStore(
             "fallbackAdoptions" to fallbacks,
             "ambiguousRevisionOrder" to ambiguousRevisionOrder,
             "prunedRevisions" to pruned,
+            "signatureAssetsRemoved" to signatureAssetsRemoved,
+            "signatureSweepUncertainAggregates" to signatureSweepUncertainAggregates,
             "orphanAliasesRemoved" to aliasSweep.removedAliases,
             "orphanAliasesRetained" to aliasSweep.retainedAliases,
             "orphanAliasesFailed" to aliasSweep.failedAliases,
             "aliasSweepSkipped" to aliasSweepSkipped,
+            "deadlineReached" to deadlineReached,
         )
         writeRecoveryEvent(event)
 
@@ -1167,30 +1285,59 @@ class EncryptedStore(
             orphanAliasesRetained = aliasSweep.retainedAliases,
             orphanAliasesFailed = aliasSweep.failedAliases,
             aliasSweepSkipped = aliasSweepSkipped,
+            deadlineReached = deadlineReached,
         )
     }
 
     /**
-     * §4 step 3 helper. Unreferenced signature assets are deleted only when
-     * older than 24 h; referenced assets are never touched. Supplied by T031
-     * or by tests with an explicit reference map.
+     * §4 step 3 explicit-override helper. Unreferenced signature assets are
+     * deleted only when older than 24 h; referenced assets are never touched.
+     * Production uses the default resolver below; tests can pin an explicit
+     * reference map through this method.
+     *
+     * [deadlineEpochMs] stops the sweep before the next asset deletion.
      */
     fun sweepUnreferencedSignatures(
+        deadlineEpochMs: Long? = null,
         isReferenced: (documentId: String, assetId: String) -> Boolean,
     ): Int {
         var removed = 0
+        var stopped = false
+        fun expired(): Boolean = deadlineEpochMs != null && clock() >= deadlineEpochMs
         for (id in listAggregateIds(AggregateKind.DOCUMENT)) {
+            if (stopped || expired()) {
+                stopped = true
+                break
+            }
             val ref = AggregateRef(AggregateKind.DOCUMENT, id)
             removed += withAggregateLock(ref) {
                 var local = 0
                 val sigDir = File(aggregateDir(ref), "sig")
                 if (io.isDirectory(sigDir)) {
                     for (file in io.list(sigDir)) {
+                        if (expired()) {
+                            stopped = true
+                            return@withAggregateLock local
+                        }
+                        if (!file.isFile) continue
+                        if (!file.name.endsWith(".fxs")) continue
                         val assetId = file.name.removeSuffix(".fxs")
                         if (!AggregateRef.isValidId(assetId)) continue
-                        val stale = clock() - file.lastModified() > STALE_TEMP_MS
+                        // An unreadable/stale-timestamp file is kept, never
+                        // guessed into deletion.
+                        val modified = try {
+                            file.lastModified()
+                        } catch (failure: Throwable) {
+                            0L
+                        }
+                        if (modified <= 0L) continue
+                        val stale = clock() - modified > STALE_TEMP_MS
                         if (!stale) continue
                         if (isReferenced(id, assetId)) continue
+                        if (expired()) {
+                            stopped = true
+                            return@withAggregateLock local
+                        }
                         if (io.delete(file)) local++
                     }
                 }
@@ -1199,6 +1346,224 @@ class EncryptedStore(
         }
         return removed
     }
+
+    /**
+     * Default §4 step 3 resolver. It builds the reference set from the
+     * decrypted, hash-verified canonical revision / template-version plaintext
+     * and deletes only old signatures that no committed content references.
+     *
+     * Conservative rules:
+     *  * an unreadable/corrupt revision or template version makes that scan
+     *    uncertain; no signature asset is deleted for it;
+     *  * an unreadable asset timestamp keeps that asset;
+     *  * only direct `sig/<uuid>.fxs` files inside a document aggregate are
+     *    candidates; nothing outside `sig/` is touched.
+     *
+     * The returned [SignatureSweepOutcome] carries how many assets were removed,
+     * how many scans were uncertain, and whether a deadline stopped the sweep.
+     * The caller writes the counts and the deadline stop into the redacted §4
+     * step 6 recovery event, so a run that deleted nothing because it could not
+     * read a revision or reached its deadline is not silent.
+     */
+    private fun sweepUnreferencedSignaturesFromCommittedContent(
+        deadlineEpochMs: Long? = null,
+    ): SignatureSweepOutcome {
+        fun expired(): Boolean = deadlineEpochMs != null && clock() >= deadlineEpochMs
+        if (expired()) return SignatureSweepOutcome(0, 0, stopped = true)
+        if (!hasAnyDocumentSignatureAsset()) return SignatureSweepOutcome(0, 0)
+        if (expired()) return SignatureSweepOutcome(0, 0, stopped = true)
+        val templateReferences = collectTemplateSignatureReferences()
+        if (expired()) return SignatureSweepOutcome(0, 0, stopped = true)
+        if (templateReferences.uncertain) {
+            // A template version that cannot be read may reference any asset in
+            // any document; keep every asset and report the uncertain scan.
+            return SignatureSweepOutcome(removed = 0, uncertainAggregates = 1)
+        }
+        var removed = 0
+        var uncertain = 0
+        for (id in listAggregateIds(AggregateKind.DOCUMENT)) {
+            if (expired()) return SignatureSweepOutcome(removed, uncertain, stopped = true)
+            val ref = AggregateRef(AggregateKind.DOCUMENT, id)
+            removed += withAggregateLock(ref) {
+                val references = collectDocumentSignatureReferences(ref)
+                if (references.uncertain) {
+                    uncertain++
+                    return@withAggregateLock 0
+                }
+                sweepSignatureDirectory(
+                    ref,
+                    references.referenced + templateReferences.referenced,
+                    deadlineEpochMs,
+                )
+            }
+            if (expired()) return SignatureSweepOutcome(removed, uncertain, stopped = true)
+        }
+        return SignatureSweepOutcome(removed, uncertain)
+    }
+
+    private fun hasAnyDocumentSignatureAsset(): Boolean {
+        for (id in listAggregateIds(AggregateKind.DOCUMENT)) {
+            val sigDir = File(
+                aggregateDir(AggregateRef(AggregateKind.DOCUMENT, id)),
+                "sig",
+            )
+            if (!io.isDirectory(sigDir)) continue
+            if (io.list(sigDir).any { it.isFile && it.name.endsWith(".fxs") }) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * Scans one document's committed revision plaintext for its own on-disk
+     * signature asset ids. The canonical revision text carries the asset id in
+     * the signature mark; scanning the decrypted text is sufficient and avoids
+     * a JSON parser or a new dependency.
+     */
+    private fun collectDocumentSignatureReferences(
+        ref: AggregateRef,
+    ): SignatureReferenceScan {
+        val sigDir = File(aggregateDir(ref), "sig")
+        if (!io.isDirectory(sigDir)) {
+            return SignatureReferenceScan(emptySet(), uncertain = false)
+        }
+        val assets = io.list(sigDir)
+            .asSequence()
+            .filter { it.isFile && it.name.endsWith(".fxs") }
+            .map { it.name.removeSuffix(".fxs") }
+            .filter { AggregateRef.isValidId(it) }
+            .toSet()
+        if (assets.isEmpty()) {
+            return SignatureReferenceScan(emptySet(), uncertain = false)
+        }
+        val revDir = File(aggregateDir(ref), "rev")
+        if (!io.isDirectory(revDir)) {
+            return SignatureReferenceScan(emptySet(), uncertain = false)
+        }
+        val referenced = mutableSetOf<String>()
+        for (file in io.list(revDir)) {
+            if (!file.isFile || !file.name.endsWith(".fx1")) {
+                return SignatureReferenceScan(referenced, uncertain = true)
+            }
+            val revisionId = file.name.removeSuffix(".fx1")
+            if (!AggregateRef.isValidId(revisionId)) {
+                return SignatureReferenceScan(referenced, uncertain = true)
+            }
+            val plaintext = try {
+                readContainer(RevisionObject(ref, revisionId), file)
+            } catch (failure: Error) {
+                throw failure
+            } catch (failure: Throwable) {
+                return SignatureReferenceScan(referenced, uncertain = true)
+            }
+            val text = String(plaintext, Charsets.UTF_8)
+            for (assetId in assets) {
+                if (text.contains(assetId)) referenced.add(assetId)
+            }
+        }
+        return SignatureReferenceScan(referenced, uncertain = false)
+    }
+
+    /**
+     * Scans all template-version plaintext for UUIDv4 tokens. A template
+     * version may retain an unknown same-schema reference; if any template
+     * version cannot be read, the caller keeps every signature asset rather
+     * than guessing that no template references it.
+     */
+    private fun collectTemplateSignatureReferences(): SignatureReferenceScan {
+        val referenced = mutableSetOf<String>()
+        for (id in listAggregateIds(AggregateKind.TEMPLATE)) {
+            val ref = AggregateRef(AggregateKind.TEMPLATE, id)
+            val scan = withAggregateLock(ref) {
+                collectOneTemplateSignatureReferences(ref)
+            }
+            referenced += scan.referenced
+            if (scan.uncertain) {
+                return SignatureReferenceScan(referenced, uncertain = true)
+            }
+        }
+        return SignatureReferenceScan(referenced, uncertain = false)
+    }
+
+    private fun collectOneTemplateSignatureReferences(
+        ref: AggregateRef,
+    ): SignatureReferenceScan {
+        val referenced = mutableSetOf<String>()
+        val verDir = File(aggregateDir(ref), "ver")
+        if (!io.isDirectory(verDir)) {
+            return SignatureReferenceScan(referenced, uncertain = false)
+        }
+        for (file in io.list(verDir)) {
+            if (!file.isFile || !file.name.endsWith(".fx1")) {
+                return SignatureReferenceScan(referenced, uncertain = true)
+            }
+            val versionId = file.name.removeSuffix(".fx1")
+            if (!AggregateRef.isValidId(versionId)) {
+                return SignatureReferenceScan(referenced, uncertain = true)
+            }
+            val plaintext = try {
+                readContainer(TemplateVersionObject(ref, versionId), file)
+            } catch (failure: Error) {
+                throw failure
+            } catch (failure: Throwable) {
+                return SignatureReferenceScan(referenced, uncertain = true)
+            }
+            referenced += UUID_V4_TOKEN
+                .findAll(String(plaintext, Charsets.UTF_8))
+                .map { it.value }
+                .toSet()
+        }
+        return SignatureReferenceScan(referenced, uncertain = false)
+    }
+
+    private fun sweepSignatureDirectory(
+        ref: AggregateRef,
+        referenced: Set<String>,
+        deadlineEpochMs: Long? = null,
+    ): Int {
+        val sigDir = File(aggregateDir(ref), "sig")
+        if (!io.isDirectory(sigDir)) return 0
+        var removed = 0
+        for (file in io.list(sigDir)) {
+            if (deadlineEpochMs != null && clock() >= deadlineEpochMs) return removed
+            if (!file.isFile || !file.name.endsWith(".fxs")) continue
+            val assetId = file.name.removeSuffix(".fxs")
+            if (!AggregateRef.isValidId(assetId)) continue
+            val modified = try {
+                file.lastModified()
+            } catch (failure: Throwable) {
+                0L
+            }
+            if (modified <= 0L) continue
+            if (clock() - modified <= STALE_TEMP_MS) continue
+            if (referenced.contains(assetId)) continue
+            if (deadlineEpochMs != null && clock() >= deadlineEpochMs) return removed
+            if (io.delete(file)) removed++
+        }
+        return removed
+    }
+
+    private data class SignatureReferenceScan(
+        val referenced: Set<String>,
+        val uncertain: Boolean,
+    )
+
+    /**
+     * Result of the default §4 step 3 signature sweep.
+     *
+     * [removed] is the number of old, unreferenced `sig/<uuid>.fxs` files that
+     * were deleted. [uncertainAggregates] counts the scans that could not read a
+     * revision or template version and therefore deleted nothing; it is
+     * reported in the redacted recovery event so a conservative keep is
+     * visible rather than silent. [stopped] is true when the caller deadline
+     * interrupted the sweep before every candidate was examined.
+     */
+    private data class SignatureSweepOutcome(
+        val removed: Int,
+        val uncertainAggregates: Int,
+        val stopped: Boolean = false,
+    )
 
     /**
      * Deletes known-kind revision objects that the caller explicitly excluded
@@ -1250,20 +1615,36 @@ class EncryptedStore(
     // Commit protocol internals
     // ------------------------------------------------------------------
 
+    /**
+     * Internal, dedicated cancellation outcome: the caller deadline was reached
+     * before the durable [StoreIo.atomicMove], so promotion was cancelled.
+     *
+     * This is deliberately NOT a [StorageException]: it never maps to SAVE-003,
+     * it never rewrites the head, and only `startupRecovery` translates it into
+     * `deadlineReached = true`. Ordinary no-deadline callers can never raise it.
+     */
+    private class PromotionDeadlineReached : Exception()
+
     private fun commitHead(
         ref: AggregateRef,
         head: CommittedHead,
         txnId: String,
+        deadlineEpochMs: Long? = null,
     ) {
         val headObject = HeadObject(ref)
         val headFile = fileFor(headObject)
         val previous = if (io.exists(headFile)) io.readAll(headFile) else null
         val staged = stageObject(headObject, encodeHead(head), txnId, TMP_SUFFIX_HEAD)
         try {
-            promote(staged, headObject, txnId)
+            promote(staged, headObject, txnId, deadlineEpochMs)
             faultInjector.onFault(StoreFaultPoint.HEAD_PROMOTED, txnId)
             val readBack = readHeadStrict(ref)
             if (readBack != head) throw CorruptDataException()
+        } catch (failure: PromotionDeadlineReached) {
+            // Nothing was durably changed: promote cancelled before atomicMove
+            // and cleaned up the staged temp. Restoring the head here would
+            // itself rewrite it after the deadline, so do not.
+            throw failure
         } catch (failure: Throwable) {
             // Never report success with an unverified head. Restore the exact
             // previous ciphertext when one existed; recovery handles the rest.
@@ -1440,10 +1821,12 @@ class EncryptedStore(
         ref: AggregateRef,
         head: CommittedHead,
         transactionId: String = "",
+        deadlineEpochMs: Long? = null,
     ): PruneResult {
         if (ref.kind != AggregateKind.DOCUMENT) {
             return PruneResult(0, emptyList())
         }
+        fun expired(): Boolean = deadlineEpochMs != null && clock() >= deadlineEpochMs
         val headObject = RevisionObject(ref, head.revisionId)
         val headVerification = verifyContainer(headObject, fileFor(headObject))
         if (headVerification.plaintextSha256 != head.plaintextSha256) {
@@ -1462,6 +1845,10 @@ class EncryptedStore(
                 if (revisionId == head.revisionId || revisionId in keep) continue
                 val entry = known[revisionId] ?: continue
                 if (entry.kind == null) continue
+                // Check again here: verification/iteration may have consumed
+                // the whole deadline. Once reached, delete nothing further and
+                // keep the full history so a later startup retries the prune.
+                if (expired()) return PruneResult(deleted, head.history, deletesDurable = false)
                 if (io.delete(file)) deleted++
             }
         }
@@ -1474,6 +1861,7 @@ class EncryptedStore(
                 !revisionFileExists(ref, entry.revisionId)
         }
         if (deleted > 0 || missingKnown) {
+            if (expired()) return PruneResult(deleted, head.history, deletesDurable = false)
             if (!io.isDirectory(dir)) {
                 return PruneResult(deleted, head.history, deletesDurable = false)
             }
@@ -1549,15 +1937,30 @@ class EncryptedStore(
         }
     }
 
-    private fun promote(staged: StagedObject, obj: StoreObject, txnId: String) {
+    private fun promote(
+        staged: StagedObject,
+        obj: StoreObject,
+        txnId: String,
+        deadlineEpochMs: Long? = null,
+    ) {
         val target = fileFor(obj)
         val parent = target.parentFile ?: throw CorruptDataException()
         try {
             faultInjector.onFault(StoreFaultPoint.PROMOTE, txnId)
             if (!io.isDirectory(parent)) io.mkdirs(parent)
+            // Check as close as possible to the durable move: staging/verification
+            // (stageObject) and every pre-promotion hook/mkdir have already run.
+            // Expiry during staging can no longer durably promote after the
+            // deadline. Ordinary no-deadline callers pass null and are unchanged.
+            if (deadlineEpochMs != null && clock() >= deadlineEpochMs) {
+                throw PromotionDeadlineReached()
+            }
             io.atomicMove(staged.file, target)
             faultInjector.onFault(StoreFaultPoint.PROMOTE_FSYNC, txnId)
             io.fsyncDirectory(parent)
+        } catch (failure: PromotionDeadlineReached) {
+            runCatching { io.deleteTree(staged.file) }
+            throw failure
         } catch (failure: Throwable) {
             runCatching { io.deleteTree(staged.file) }
             throw mapWriteFailure(failure)
@@ -1954,13 +2357,18 @@ class EncryptedStore(
     // Recovery internals
     // ------------------------------------------------------------------
 
-    private fun recoverAggregate(ref: AggregateRef): AggregateHealth {
+    private fun recoverAggregate(
+        ref: AggregateRef,
+        deadlineEpochMs: Long? = null,
+    ): AggregateHealth {
+        fun expired(): Boolean = deadlineEpochMs != null && clock() >= deadlineEpochMs
         val aggregate = aggregateDir(ref)
         if (!io.isDirectory(aggregate)) throw CorruptDataException()
 
         val metaObject = MetaObject(ref)
         if (!io.exists(fileFor(metaObject))) {
             if (isIncomplete(ref)) {
+                if (expired()) return unreadable(SAVE_003)
                 io.deleteTree(aggregate)
                 return AggregateHealth(
                     readable = false,
@@ -2019,7 +2427,7 @@ class EncryptedStore(
 
         // §4 step 2: head missing/corrupt or pointing to a missing/corrupt
         // revision -> adopt the newest revision whose hash verifies.
-        val search = findNewestVerifiableRevision(ref)
+        val search = findNewestVerifiableRevision(ref, deadlineEpochMs)
         if (search.ambiguous) {
             return AggregateHealth(
                 readable = false,
@@ -2038,6 +2446,9 @@ class EncryptedStore(
                 headCorrupt = true,
                 fellBackToOlderRevision = false,
             )
+        // Verification may have consumed the whole deadline. Never adopt a
+        // fallback head once time is up: no new head, no fallback count.
+        if (expired()) return unreadable(SAVE_003)
         val recovered = CommittedHead(
             revisionId = candidate.revisionId,
             plaintextSha256 = candidate.plaintextSha256,
@@ -2046,7 +2457,12 @@ class EncryptedStore(
             kind = RevisionKindWire.RECOVERY,
         )
         return try {
-            commitHead(ref, recovered, newTxnId())
+            // Final fresh check immediately before the durable head commit.
+            // promote() re-checks the deadline immediately before atomicMove so
+            // expiry during staging still cancels; that dedicated outcome
+            // propagates to startupRecovery (it is not a StorageException).
+            if (expired()) return unreadable(SAVE_003)
+            commitHead(ref, recovered, newTxnId(), deadlineEpochMs)
             AggregateHealth(
                 readable = true,
                 reasonCode = null,
@@ -2097,7 +2513,11 @@ class EncryptedStore(
             TemplateVersionObject(ref, revisionId)
         }
 
-    private fun findNewestVerifiableRevision(ref: AggregateRef): RevisionSearch {
+    private fun findNewestVerifiableRevision(
+        ref: AggregateRef,
+        deadlineEpochMs: Long? = null,
+    ): RevisionSearch {
+        fun expired(): Boolean = deadlineEpochMs != null && clock() >= deadlineEpochMs
         val dirName = if (ref.kind == AggregateKind.DOCUMENT) "rev" else "ver"
         val dir = File(aggregateDir(ref), dirName)
         if (!io.isDirectory(dir)) return RevisionSearch(null, ambiguous = false)
@@ -2106,6 +2526,9 @@ class EncryptedStore(
             .sortedByDescending { io.lastModifiedNanos(it) }
         var index = 0
         while (index < candidates.size) {
+            // Fallback verification can outlive the deadline. Stop before the
+            // next verification so no head is adopted once time is up.
+            if (expired()) return RevisionSearch(null, ambiguous = false)
             val timestamp = io.lastModifiedNanos(candidates[index])
             var end = index + 1
             while (end < candidates.size &&
@@ -2422,6 +2845,12 @@ class EncryptedStore(
                 "[89ab][0-9a-f]{3}-[0-9a-f]{12}" +
                 "\\.(part|head|meta|src|sig|ver|restore)$",
         )
+
+        /** UUIDv4 token used only to scan decrypted template-version text. */
+        private val UUID_V4_TOKEN = Regex(
+            "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-" +
+                "[89ab][0-9a-f]{3}-[0-9a-f]{12}",
+        )
         private val ALLOWED_AGGREGATE_ENTRIES = setOf(
             "meta.fx1",
             "head.fx1",
@@ -2604,6 +3033,7 @@ data class RecoveryReport(
     val aliasSweepSkipped: Boolean,
     val ambiguousRevisionOrder: Int = 0,
     val prunedRevisions: Int = 0,
+    val deadlineReached: Boolean = false,
 )
 
 // --------------------------------------------------------------------------
