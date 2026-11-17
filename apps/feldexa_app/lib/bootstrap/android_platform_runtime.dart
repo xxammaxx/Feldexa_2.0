@@ -4,10 +4,13 @@
 // It is imported by the Android bootstrap (T031) behind a conditional import;
 // the Web build must never resolve this file or the adapter package.
 //
-// `runStartupRecovery()` is the prerequisite T031 calls before its
-// `StartupSweep.run()`: the native T026 recovery owns stale-temp, incomplete
-// aggregate, head-fallback, signature, and orphan-alias reconciliation. The
-// Dart sweep then performs only the contract-visible list/recoveryStamp reads.
+// `runStartupRecovery()` is the native T026 recovery for §4 steps 1–3 and 5–6.
+// Under the owner decision of 2026-11-17 (`contracts/storage-format.md` §4 and
+// `contracts/platform-channel.md` §4) T031 runs its Dart export-preview cleanup
+// (step 4) first, then calls this native recovery, which performs its own steps
+// in the 1 → 2 → 3 → 5 → 6 order. T031 must not duplicate those native steps in
+// Dart. The Dart sweep then performs only the contract-visible
+// list/recoveryStamp reads.
 
 import 'package:feldexa_adapters_android/feldexa_adapters_android.dart';
 
@@ -65,8 +68,8 @@ final class AndroidPlatformRuntime {
     );
   }
 
-  /// Runs the native T026 startup recovery. T031 must call this before
-  /// `StartupSweep.run()`.
+  /// Runs the native T026 startup recovery (storage-format §4 native steps
+  /// 1–3 and 5–6). T031 calls this after the Dart export-preview step 4.
   Future<AndroidRecoveryReport> runStartupRecovery() =>
       store.runStartupRecovery();
 }

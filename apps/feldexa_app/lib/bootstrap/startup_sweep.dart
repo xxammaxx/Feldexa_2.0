@@ -19,17 +19,21 @@
 // T026 recovery owns `contracts/storage-format.md` §4 steps 1–3 and 5–6
 // (stale `tmp/`, incomplete aggregates, head fallback, signature assets, orphan
 // KEK aliases, and the counts-only recovery event). Dart owns step 4, the
-// cache-directory export previews. The native call is monolithic, so the
-// effective order is 4 → 1 → 2 → 3 → 5 → 6, NOT the strict §4 order
-// 1 → 2 → 3 → 4 → 5 → 6. Closing that deviation would require splitting the
-// native recovery into two calls so step 4 can sit exactly between native step
-// 3 and native step 5; that is a contract change and a later, separately
-// decided item, not a T031 implementation choice. The Dart `tmp/` pass is a
-// secondary safety net only; the production Dart filesystem cannot address
-// `filesDir/feldexa/tmp` and reports no staging entries, so native T026
-// remains the owner there. On the Web the native seam is `null` and the
-// current shell has no production store; the sweep then does
-// only its Web-safe directory pass and never invents aggregate state.
+// cache-directory export previews.
+//
+// Owner decision 2026-11-17 amended `contracts/storage-format.md` §4 and
+// `contracts/platform-channel.md` §4: the normative order is now
+// 4 → 1 → 2 → 3 → 5 → 6. Step 4 runs first because stale plaintext export
+// previews must be removed even when native recovery fails or times out, and
+// removing them first is the only ordering that keeps that guarantee for the
+// existing single `store.startupRecovery` call. Step 4 never touches an
+// aggregate, KEK alias, revision, or source byte; the native steps keep their
+// 1 → 2 → 3 → 5 → 6 order among themselves and step 6 stays last. The Dart
+// `tmp/` pass is a secondary safety net only; the production Dart filesystem
+// cannot address `filesDir/feldexa/tmp` and reports no staging entries, so
+// native T026 remains the owner there. On the Web the native seam is `null`
+// and the current shell has no production store; the sweep then does only its
+// Web-safe directory pass and never invents aggregate state.
 //
 // Safety invariants:
 //   * the sweep has no API that can delete, rename, or re-encrypt a document
@@ -43,8 +47,9 @@
 //   * the only clock used is the injected [ClockPort], read once per run, so
 //     two identical inputs produce the same outcome;
 //   * a cooperative [StartupSweepCancellation] checkpoint runs before every
-//     read and before every deletion, so a bounded-timeout stop cannot leave
-//     destructive work running after the shell already showed the start area.
+//     non-export read and before every `tmp/` deletion, so a bounded-timeout
+//     stop cannot leave store work running after the shell already showed the
+//     start area; the earlier step-4 export pass is bounded and always runs.
 
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
@@ -516,42 +521,46 @@ final class StartupSweep {
     r'[0-9a-f]{12}\.(part|head|meta|src|sig|ver|restore)$',
   );
 
-  /// Runs the startup recovery in the effective order 4 → 1 → 2 → 3 → 5 → 6.
+  /// Runs the startup recovery in the normative order 4 → 1 → 2 → 3 → 5 → 6.
   ///
   /// The native T026 call owns `contracts/storage-format.md` §4 steps 1–3 and
   /// steps 5–6: stale/unknown `tmp/`, incomplete aggregates and head fallback,
   /// unreferenced signatures, orphan KEK aliases, and the redacted counts-only
   /// recovery event. Dart owns step 4, the cache-directory export previews.
   ///
-  /// The native call is monolithic, so Dart step 4 necessarily runs **before**
-  /// it. This is a deviation from the strict §4 order 1 → 2 → 3 → 4 → 5 → 6,
-  /// not exact fulfilment. Closing it would require splitting the native
-  /// recovery into two calls so step 4 can sit exactly between native step 3
-  /// and native step 5; `store.startupRecovery` has no phase parameter and no
-  /// second native sweep method exists, so that is a contract change and a
-  /// later, separately decided item. The Dart `tmp/` pass remains a secondary
-  /// safety net for targets whose filesystem seam can reach staging; the
-  /// production Dart adapter cannot and deliberately reports no staging
-  /// entries. No aggregate object, alias, revision, or source is ever a
-  /// candidate for deletion here.
+  /// Owner decision 2026-11-17 made step 4 first normative: stale plaintext
+  /// export previews must be removed even when the native recovery fails or
+  /// times out, so the export-preview pass runs **before** the monolithic
+  /// native call and is deliberately **not** subject to the cooperative
+  /// cancellation token. It is bounded by [maxEntriesPerCategory], touches only
+  /// the dedicated cache directory, and records an explicit issue if anything
+  /// cannot be removed, so a timeout can never skip it silently. The native
+  /// steps keep their 1 → 2 → 3 → 5 → 6 order among themselves and step 6
+  /// remains last. The Dart `tmp/` pass remains a secondary safety net for
+  /// targets whose filesystem seam can reach staging; the production Dart
+  /// adapter cannot and deliberately reports no staging entries. No aggregate
+  /// object, alias, revision, or source is ever a candidate for deletion here.
   ///
-  /// Cancellation checkpoints: before the export-preview pass, before the
-  /// native recovery, before the staging pass, before each kind read, before
-  /// each `recoveryStamp` read, and before each individual deletion. A
+  /// Cancellation checkpoints for the non-priority work: before the native
+  /// recovery, before the staging pass, before each kind read, before each
+  /// `recoveryStamp` read, and before each individual `tmp/` deletion. The
+  /// export-preview pass above is the documented exception: it always runs. A
   /// cancelled run stops at the next checkpoint, performs no further read or
-  /// deletion, and returns a degraded result.
+  /// non-export deletion, and returns a degraded result.
   Future<StartupSweepResult> run() async {
     final DateTime nowUtc = clock.nowUtc().toUtc();
     final _SweepState state = _SweepState();
 
-    // Dart-owned step 4: remove stale plaintext export previews first. This
-    // still happens when native recovery fails (T031-A2), because plaintext
-    // previews must never be left behind by a degraded startup. A cancelled
-    // run performs no deletion at all.
-    StartupSweepRemoval exportPreviews = StartupSweepRemoval.empty;
-    if (!_stopIfCancelled(state)) {
-      exportPreviews = await _sweepExportPreviews(nowUtc, state);
-    }
+    // Dart-owned step 4: always remove stale plaintext export previews first,
+    // even when native recovery fails (T031-A2) and even when the bounded wait
+    // has already expired or expires during the pass (owner decision
+    // 2026-11-17). A skip here would leave plaintext in the app cache with no
+    // report, which is the failure this ordering exists to prevent.
+    final StartupSweepRemoval exportPreviews = await _sweepExportPreviews(
+      nowUtc,
+      state,
+      priority: true,
+    );
 
     // Native steps 1–3 and 5–6. The callback is the T027 composition seam.
     StartupRecoveryCounts native = const StartupRecoveryCounts.none();
@@ -691,6 +700,7 @@ final class StartupSweep {
     DateTime nowUtc,
     _SweepState state, {
     bool removeAll = false,
+    bool priority = false,
   }) async {
     final List<StartupSweepEntry> entries;
     try {
@@ -737,6 +747,9 @@ final class StartupSweep {
       // An export directory must contain files only. A directory is retained
       // and reported instead of being deleted recursively.
       rejectDirectories: true,
+      // The priority pass (startup step 4) must not be skipped by a timeout;
+      // the session-end pass has its own fresh, uncancelled state.
+      respectCancellation: !priority,
     );
     if (rejected <= 0) {
       return removal;
@@ -772,6 +785,7 @@ final class StartupSweep {
     required bool Function(StartupSweepEntry entry) shouldRemove,
     required Future<void> Function(StartupSweepEntry entry) remove,
     bool rejectDirectories = false,
+    bool respectCancellation = true,
   }) async {
     final List<StartupSweepEntry> sorted = List<StartupSweepEntry>.of(entries)
       ..sort((StartupSweepEntry a, StartupSweepEntry b) {
@@ -789,7 +803,7 @@ final class StartupSweep {
     int kept = 0;
     int failed = 0;
     for (final StartupSweepEntry entry in bounded) {
-      if (_stopIfCancelled(state)) {
+      if (respectCancellation && _stopIfCancelled(state)) {
         // A cancelled run stops before this deletion. Nothing after the stop
         // checkpoint is deleted or counted as processed.
         break;

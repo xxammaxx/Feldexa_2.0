@@ -137,6 +137,21 @@ class SignatureSweepInstrumentedTest {
             "an unreadable revision must keep the asset",
             File(sigDir, "$assetId.fxs").exists(),
         )
+        // T031 round 4: the step-6 recovery event must report the uncertain
+        // scan instead of looking like a clean, empty signature sweep.
+        val event = File(root, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(
+            "an uncertain signature scan must be visible in the redacted event",
+            event.contains("\"signatureSweepUncertainAggregates\":1"),
+        )
+        assertTrue(
+            "the conservative keep must report zero removals",
+            event.contains("\"signatureAssetsRemoved\":0"),
+        )
+        assertFalse(
+            "the step-6 event must stay counts-only",
+            event.contains(assetId),
+        )
     }
 
     private fun createDocument(revisionJson: ByteArray): CreateReceipt {

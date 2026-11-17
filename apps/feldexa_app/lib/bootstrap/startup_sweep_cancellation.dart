@@ -11,9 +11,16 @@
 // fix.
 //
 // This token is the cooperative stop signal. `StartupSweep.run()` checks it
-// before every read and before every deletion, so once the bounded runner
-// reports a timeout the sweep stops at the next check and performs no further
-// store read or deletion. The checkpoints are documented on `run()`.
+// before every store read and before every non-export deletion, so once the
+// bounded runner reports a timeout the sweep stops at the next check and
+// performs no further store read or `tmp/` deletion.
+//
+// The one deliberate exception is the Dart-owned §4 step 4 export-preview pass:
+// it runs first and is never skipped or interrupted by this token, because
+// stale plaintext previews must be removed even when native recovery fails or
+// times out (owner decision 2026-11-17). That pass stays bounded and records an
+// explicit failure instead of skipping silently. The checkpoints for the rest
+// of the run are documented on `StartupSweep.run()`.
 //
 // It is deliberately tiny and dependency-free so both the Web and the Android
 // compositions can import it.

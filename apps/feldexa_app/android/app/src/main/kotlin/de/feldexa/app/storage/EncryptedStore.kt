@@ -1066,11 +1066,14 @@ class EncryptedStore(
      *  5. orphan KEK aliases without an aggregate directory;
      *  6. one redacted counts-only recovery event.
      *
-     * Step 4 (cache-directory export previews) is owned by T031 Dart and runs
-     * BEFORE this monolithic call. Effective production order is therefore
-     * 4 → 1 → 2 → 3 → 5 → 6, not the strict 1 → 2 → 3 → 4 → 5 → 6 sequence:
-     * splitting this call so step 4 can sit exactly between 3 and 5 would be a
-     * contract change, not a T031 implementation choice.
+     * Step 4 (cache-directory export previews) is owned by T031 Dart. Under the
+     * owner decision of 2026-11-17 (`contracts/storage-format.md` §4 and
+     * `contracts/platform-channel.md` §4) the normative order is
+     * 4 → 1 → 2 → 3 → 5 → 6: Dart removes stale plaintext previews first, then
+     * this one native call performs its own 1 → 2 → 3 → 5 → 6 steps with step 6
+     * last. Step 4 is first so plaintext is removed even when native recovery
+     * fails or times out; it never touches an aggregate, KEK alias, revision,
+     * or source byte.
      *
      * Step 3 uses [signatureReferenceResolver] when a test injects it;
      * otherwise the default resolver is built below from the decrypted,

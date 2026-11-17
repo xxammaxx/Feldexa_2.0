@@ -14,8 +14,10 @@ Future<void> main() async {
     startup = sweep == null
         ? const StartupSweepStartup()
         // The timeout bounds the caller's wait. `sweep.cancel` is the
-        // cooperative stop that keeps a timed-out run from reading or deleting
-        // anything after the shell already shows the start area.
+        // cooperative stop that keeps a timed-out run from any further store
+        // read or `tmp/` deletion after the shell already shows the start area;
+        // the bounded plaintext export-preview pass runs first and always
+        // completes.
         : await runStartupSweepBounded(run: sweep.run, onTimeout: sweep.cancel);
   } catch (_) {
     // Startup recovery must never crash the shell. A construction or platform

@@ -211,6 +211,20 @@ On app start (before the list is shown), run in this order:
 5. Delete orphaned KEK aliases under `feldexa.doc.v1.` and `feldexa.tpl.v1.` that have no corresponding aggregate directory. Never delete an alias whose aggregate directory still exists.
 6. Write a redacted recovery event with counts only (including orphan aliases removed, but no IDs, titles, or content).
 
+**Execution order (normative).** Step 4 (the plaintext export-preview cleanup)
+executes **before** the native recovery steps 1–3 and 5–6. Within the native
+recovery, steps 1 → 2 → 3 → 5 → 6 keep exactly that order and step 6 remains
+last, so the effective startup order is 4 → 1 → 2 → 3 → 5 → 6.
+
+Justification: a stale export preview is decrypted plaintext in the app-private
+cache. It must be removed even when native recovery fails or times out, because
+a degraded startup must not leave plaintext behind. The existing native method
+is one call that performs steps 1–3 and 5–6 without a phase selector, so the
+only ordering that guarantees step 4 for every native outcome is to run step 4
+first. Step 4 is bounded and deletes only entries from the dedicated export
+directory; it never touches an aggregate, a KEK alias, a revision, or a source
+byte. Its failure is reported, never silently skipped.
+
 Recovery never deletes a visible document/template, never re-encrypts, and never renames an aggregate.
 
 ---

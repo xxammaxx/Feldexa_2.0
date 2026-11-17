@@ -106,13 +106,13 @@ abstract class AppLocalizations {
   /// **'Meine Dokumente'**
   String get startTitle;
 
-  /// T031 startup: the bounded startup sweep timed out, threw, or returned a degraded result; the shell must not present this as a complete success. The error catalog has no row for this notice yet (owner decision), so this is a semantic ARB key recorded in test/german_strings_test.dart.
+  /// contracts/error-catalog.de.md §8 Startup recovery incomplete: the bounded startup sweep timed out, threw, or returned a degraded result; the shell must not present this as a complete success.
   ///
   /// In de, this message translates to:
   /// **'Die Wiederherstellung beim Start wurde nicht vollständig abgeschlossen. Bitte starten Sie Feldexa erneut.'**
   String get startupRecoveryIncomplete;
 
-  /// T031 startup: recovery guidance for an incomplete startup sweep; states only the contract guarantee that recovery never deletes a visible document or template (contracts/storage-format.md §4).
+  /// contracts/error-catalog.de.md §8 Startup recovery incomplete guidance: recovery guidance for an incomplete startup sweep; states only the contract guarantee that recovery never deletes a visible document or template (contracts/storage-format.md §4).
   ///
   /// In de, this message translates to:
   /// **'Ihre gespeicherten Dokumente und Vorlagen werden dabei nicht gelöscht. Prüfen Sie nach dem Neustart, ob alle Einträge lesbar sind.'**

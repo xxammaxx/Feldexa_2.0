@@ -102,11 +102,14 @@ typedef StartupSweepRun = Future<StartupSweepResult> Function();
 /// The timeout bounds the CALLER'S wait. Dart has no cancellation for an
 /// arbitrary future, so this function also invokes [onTimeout] when the bounded
 /// wait expires. The production caller passes `StartupSweep.cancel`, whose
-/// cooperative checkpoints stop the sweep before its next store read or
+/// cooperative checkpoints stop the sweep before its next store read or `tmp/`
 /// deletion, so a timed-out run does not keep mutating the store in the
-/// background. The eventual result or error is consumed so it cannot become an
-/// unhandled asynchronous error, and the UI receives a degraded startup state
-/// with a visible German notice; it must not claim success.
+/// background. The step-4 plaintext export-preview pass deliberately runs
+/// first and is not cancelled; it is bounded, and a failure is reported rather
+/// than skipped (§4 order, owner decision 2026-11-17). The eventual result or
+/// error is consumed so it cannot become an unhandled asynchronous error, and
+/// the UI receives a degraded startup state with a visible German notice; it
+/// must not claim success.
 Future<StartupSweepStartup> runStartupSweepBounded({
   required StartupSweepRun run,
   Duration timeout = const Duration(seconds: 5),

@@ -24,13 +24,12 @@ const String _generatedPath = 'lib/l10n/app_localizations_de.dart';
 /// catalog; every other key maps to a catalog label, dialog, durability state,
 /// action, or accessibility fragment.
 ///
-/// T031 exception: `startupRecoveryIncomplete` and
-/// `startupRecoveryIncompleteRecovery` are the German notice and guidance for a
-/// timed-out, thrown, or degraded startup sweep. Constitution Principle VIII
-/// requires that a degraded startup is visible, and T031 is not allowed to edit
-/// `contracts/error-catalog.de.md`, so the catalog currently has no row for
-/// them. They are listed here explicitly rather than silently: adding the §8
-/// rows is an owner decision recorded in the T031 evidence report.
+/// T031: `startupRecoveryIncomplete` and `startupRecoveryIncompleteRecovery`
+/// are the German notice and guidance for a timed-out, thrown, or degraded
+/// startup sweep. Owner decision 2026-11-17 added them as
+/// `contracts/error-catalog.de.md` §8 rows ("Startup recovery incomplete" and
+/// its guidance); the section-8 assertion below fails if the catalog text and
+/// the ARB text diverge.
 const Set<String> _nonCodeArbKeys = <String>{
   'startupRecoveryIncomplete',
   'startupRecoveryIncompleteRecovery',
@@ -449,6 +448,9 @@ void main() {
       'Save now': 'saveNow',
       'Unsaved badge': 'unsavedBadge',
       'Unsaved risk banner': 'unsavedRiskBanner',
+      'Startup recovery incomplete': 'startupRecoveryIncomplete',
+      'Startup recovery incomplete guidance':
+          'startupRecoveryIncompleteRecovery',
     };
 
     final List<String> rows = _tableCellsInSection(catalog, '## 8.');

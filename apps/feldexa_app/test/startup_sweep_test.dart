@@ -1027,41 +1027,170 @@ void main() {
       },
     );
 
-    test('an already cancelled sweep reads and deletes nothing', () async {
-      final List<String> trace = <String>[];
-      final _FakeStore store = _FakeStore(
-        trace: trace,
-        documents: <StoredMeta>[_meta(id: _id(1))],
-      );
+    test(
+      'an already cancelled sweep still removes export previews first',
+      () async {
+        final List<String> trace = <String>[];
+        final _FakeStore store = _FakeStore(
+          trace: trace,
+          documents: <StoredMeta>[_meta(id: _id(1))],
+        );
+        final _FakeFileSystem files = _FakeFileSystem(
+          trace: trace,
+          temporaryEntries: <StartupSweepEntry>[
+            _entry('${_id(11)}.part', const Duration(hours: 30)),
+          ],
+          exportArtifacts: <StartupSweepEntry>[
+            _entry('preview.pdf', const Duration(hours: 30)),
+          ],
+        );
+        final StartupSweep sweep = StartupSweep(
+          store: store,
+          clock: _FixedClock(_now),
+          files: files,
+          nativeRecovery: () async {
+            trace.add('native');
+            return const StartupRecoveryCounts.none();
+          },
+        );
+
+        // Owner decision 2026-11-17: an early timeout (here: cancellation
+        // already requested before the run) must not skip the plaintext
+        // export-preview cleanup. Everything else still stops.
+        sweep.cancel();
+        final StartupSweepResult result = await sweep.run();
+
+        expect(trace, <String>['export.list', 'export.delete:preview.pdf']);
+        expect(files.events, <String>[
+          'export.list',
+          'export.delete:preview.pdf',
+        ]);
+        expect(files.deletedExports, <String>['preview.pdf']);
+        expect(store.calls, isEmpty);
+        expect(result.status, StartupSweepStatus.degraded);
+        expect(result.exportPreviews.removed, 1);
+        expect(result.temporary.removed, 0);
+      },
+    );
+
+    test(
+      'a native recovery timeout still removes stale previews first',
+      () async {
+        final Completer<StartupRecoveryCounts> gate =
+            Completer<StartupRecoveryCounts>();
+        addTearDown(() {
+          if (!gate.isCompleted) {
+            gate.complete(const StartupRecoveryCounts.none());
+          }
+        });
+        final _FakeFileSystem files = _FakeFileSystem(
+          exportArtifacts: <StartupSweepEntry>[
+            _entry('preview.pdf', const Duration(hours: 30)),
+          ],
+          temporaryEntries: <StartupSweepEntry>[
+            _entry('${_id(13)}.part', const Duration(hours: 30)),
+          ],
+        );
+        final StartupSweep sweep = StartupSweep(
+          store: null,
+          clock: _FixedClock(_now),
+          files: files,
+          nativeRecovery: () => gate.future,
+        );
+
+        final Future<StartupSweepResult> operation = sweep.run();
+        final StartupSweepStartup startup = await runStartupSweepBounded(
+          run: () => operation,
+          timeout: const Duration(milliseconds: 10),
+          onTimeout: sweep.cancel,
+        );
+
+        expect(startup.timedOut, isTrue);
+        expect(sweep.isCancelled, isTrue);
+        // The export pass ran before the native call, so the timeout cannot
+        // skip it; the plaintext preview is already gone.
+        expect(files.deletedExports, <String>['preview.pdf']);
+        expect(files.exportArtifacts, isEmpty);
+        // A timeout still surfaces the German degraded notice.
+        final StartupSweepNotice notice = startupRecoveryNotices(startup)
+            .single;
+        expect(notice.code, 'startupRecoveryIncomplete');
+        expect(notice.message, _de.startupRecoveryIncomplete);
+        expect(notice.recovery, _de.startupRecoveryIncompleteRecovery);
+
+        gate.complete(const StartupRecoveryCounts.none());
+        final StartupSweepResult result = await operation;
+        expect(result.exportPreviews.removed, 1);
+        expect(result.temporary.removed, 0);
+        expect(result.status, StartupSweepStatus.degraded);
+        expect(result.isComplete, isFalse);
+      },
+    );
+
+    test('a failed preview removal is reported, never silent', () async {
       final _FakeFileSystem files = _FakeFileSystem(
-        trace: trace,
-        temporaryEntries: <StartupSweepEntry>[
-          _entry('${_id(11)}.part', const Duration(hours: 30)),
-        ],
         exportArtifacts: <StartupSweepEntry>[
           _entry('preview.pdf', const Duration(hours: 30)),
         ],
-      );
+      )..deleteExportErrors['preview.pdf'] = StateError('cannot delete');
       final StartupSweep sweep = StartupSweep(
-        store: store,
+        store: null,
         clock: _FixedClock(_now),
         files: files,
-        nativeRecovery: () async {
-          trace.add('native');
-          return const StartupRecoveryCounts.none();
-        },
       );
 
-      sweep.cancel();
-      final StartupSweepResult result = await sweep.run();
+      final StartupSweepStartup startup = StartupSweepStartup(
+        result: await sweep.run(),
+      );
 
-      expect(trace, isEmpty);
-      expect(files.events, isEmpty);
-      expect(store.calls, isEmpty);
-      expect(result.status, StartupSweepStatus.degraded);
-      expect(result.temporary.removed, 0);
-      expect(result.exportPreviews.removed, 0);
+      expect(startup.isDegraded, isTrue);
+      expect(startup.result!.exportPreviews.removed, 0);
+      expect(startup.result!.exportPreviews.failed, 1);
+      expect(
+        startup.result!.issues.any(
+          (StartupSweepIssue value) =>
+              value.stage == StartupSweepStage.exportSweep,
+        ),
+        isTrue,
+      );
+      // The artifact is still present (removal genuinely failed), so the run
+      // must surface the generic German degraded notice instead of silence.
+      expect(files.exportArtifacts.single.name, 'preview.pdf');
+      final StartupSweepNotice notice = startupRecoveryNotices(startup).single;
+      expect(notice.code, 'startupRecoveryIncomplete');
+      expect(notice.message, _de.startupRecoveryIncomplete);
     });
+
+    test(
+      'a throwing native recovery still removes stale previews first',
+      () async {
+        final _FakeFileSystem files = _FakeFileSystem(
+          exportArtifacts: <StartupSweepEntry>[
+            _entry('preview.pdf', const Duration(hours: 30)),
+          ],
+        );
+        final StartupSweep sweep = StartupSweep(
+          store: null,
+          clock: _FixedClock(_now),
+          files: files,
+          nativeRecovery: () async =>
+              throw StateError('injected native failure'),
+        );
+
+        final StartupSweepResult result = await sweep.run();
+
+        expect(files.deletedExports, <String>['preview.pdf']);
+        expect(result.exportPreviews.removed, 1);
+        expect(result.status, StartupSweepStatus.degraded);
+        expect(
+          result.issues.any(
+            (StartupSweepIssue value) =>
+                value.stage == StartupSweepStage.nativeRecovery,
+          ),
+          isTrue,
+        );
+      },
+    );
 
     test('a timed-out production-shaped run still reports degraded', () async {
       final Completer<StartupRecoveryCounts> gate =
