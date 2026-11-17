@@ -4,6 +4,7 @@ import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.zip.CRC32
 import org.junit.Assert.assertArrayEquals
@@ -1001,6 +1002,96 @@ class EncryptedStoreTest {
         val event = File(fixture.root, "diagnostics/redacted.jsonl").readLines().last()
         assertTrue(event.contains("\"deadlineReached\":true"))
         assertTrue(event.contains("\"prunedRevisions\":0"))
+    }
+
+    @Test
+    fun stagingDelayCannotPromoteFallbackHeadAfterTheDeadline() {
+        // Control: the identical corrupt-head document without a delay DOES adopt
+        // a fallback head, so the assertion below is about suppressing a real
+        // commit, not about a scenario that would never write a head anyway.
+        val control = buildCorruptHeadDocument("fallback-staging-delay-control")
+        assertEquals("control must adopt a fallback head", 1, control.store.startupRecovery().fallbackAdoptions)
+
+        // The deadline is reached only INSIDE staging (STAGE_CREATE), i.e. after
+        // every pre-commitHead expiry check has already passed. A post-expiry
+        // atomicMove would therefore be a durable head commit after the deadline.
+        val fixture = buildCorruptHeadDocument("fallback-staging-delay-store")
+        val headFile = File(fixture.root, "docs/${fixture.documentId}/head.fx1")
+        assertFalse("precondition: no head before recovery", headFile.exists())
+        val revisionFile = File(
+            fixture.root,
+            "docs/${fixture.documentId}/rev/${fixture.keptRevisionId}.fx1",
+        )
+        val revisionBefore = revisionFile.readBytes()
+        val deadline = now.get() + 500_000
+        val delayedOnce = AtomicBoolean(false)
+        val stagingDelay = StoreFaultInjector { point, _ ->
+            if (point == StoreFaultPoint.STAGE_CREATE && delayedOnce.compareAndSet(false, true)) {
+                now.set(deadline + 1)
+            }
+        }
+        val delayed = EncryptedStore(
+            fixture.root,
+            fixture.keystore,
+            clock = { now.get() },
+            faultInjector = stagingDelay,
+        )
+
+        val report = delayed.startupRecovery(deadlineEpochMs = deadline)
+
+        assertTrue("a deadline reached during staging must be reported", report.deadlineReached)
+        assertEquals("no fallback head may be adopted after expiry", 0, report.fallbackAdoptions)
+        assertEquals("a deadline stop must not mark the aggregate unreadable (SAVE-003)", 0, report.unreadableAggregates)
+        assertFalse("no recovered head file may be promoted after expiry", headFile.exists())
+        assertArrayEquals("the verified older revision must stay byte-identical", revisionBefore, revisionFile.readBytes())
+        assertEquals("the staged head temp must be cleaned up", 0, File(fixture.root, "tmp").listFiles()?.size ?: 0)
+        val event = File(fixture.root, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(event.contains("\"deadlineReached\":true"))
+        assertTrue(event.contains("\"fallbackAdoptions\":0"))
+    }
+
+    @Test
+    fun stagingDelayCannotCommitPrunedHeadAfterTheDeadline() {
+        // Control: a normal recovery prunes the oldest autosaves and rewrites the
+        // head, so the assertions below suppress real prune/head work.
+        val control = buildPrunableDocument("prune-staging-delay-control")
+        assertEquals("control must prune older autosaves", 3, control.store.startupRecovery().prunedRevisions)
+
+        val fixture = buildPrunableDocument("prune-staging-delay-store")
+        val headFile = File(fixture.root, "docs/${fixture.documentId}/head.fx1")
+        val headBefore = headFile.readBytes()
+        val olderFiles = fixture.olderAutosaveIds.map {
+            File(fixture.root, "docs/${fixture.documentId}/rev/$it.fx1")
+        }
+        val deadline = now.get() + 500_000
+        val delayedOnce = AtomicBoolean(false)
+        val stagingDelay = StoreFaultInjector { point, _ ->
+            if (point == StoreFaultPoint.STAGE_CREATE && delayedOnce.compareAndSet(false, true)) {
+                now.set(deadline + 1)
+            }
+        }
+        val delayed = EncryptedStore(
+            fixture.root,
+            fixture.keystore,
+            clock = { now.get() },
+            faultInjector = stagingDelay,
+        )
+
+        val report = delayed.startupRecovery(deadlineEpochMs = deadline)
+
+        assertTrue("a deadline reached during staging must be reported", report.deadlineReached)
+        // The prune deletes are durable BEFORE the shortened head is staged, so
+        // they are counted accurately and are not undone by the deadline stop.
+        assertEquals("the completed prune deletions must still be counted", 3, report.prunedRevisions)
+        assertEquals("a deadline stop must not mark the aggregate unreadable (SAVE-003)", 0, report.unreadableAggregates)
+        olderFiles.forEach { assertFalse("prune deletion must stay durable", it.exists()) }
+        // The residual race under test: expiry during staging must not promote
+        // the shortened head after the deadline (no post-expiry atomicMove).
+        assertArrayEquals("no shortened head may be committed after expiry", headBefore, headFile.readBytes())
+        assertEquals("the staged head temp must be cleaned up", 0, File(fixture.root, "tmp").listFiles()?.size ?: 0)
+        val event = File(fixture.root, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(event.contains("\"deadlineReached\":true"))
+        assertTrue(event.contains("\"prunedRevisions\":3"))
     }
 
     @Test

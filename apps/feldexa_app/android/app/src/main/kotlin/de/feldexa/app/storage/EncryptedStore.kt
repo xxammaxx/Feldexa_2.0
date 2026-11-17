@@ -1143,7 +1143,17 @@ class EncryptedStore(
                             if (io.deleteTree(aggregateDir(ref))) incompleteRemoved++
                             return@withAggregateLock
                         }
-                        val health = recoverAggregate(ref, deadlineEpochMs)
+                        val health = try {
+                            recoverAggregate(ref, deadlineEpochMs)
+                        } catch (cancelled: PromotionDeadlineReached) {
+                            // The deadline was reached inside fallback head
+                            // staging, after the pre-commit checks. No head was
+                            // promoted and no fallback was adopted: a dedicated
+                            // deadline stop, not SAVE-003 and not an unreadable
+                            // marking. Suppress all later work for this aggregate.
+                            deadlineReached = true
+                            return@withAggregateLock
+                        }
                         // A stop inside fallback verification must suppress all
                         // later work for this aggregate, including pruning.
                         if (expired()) {
@@ -1184,8 +1194,14 @@ class EncryptedStore(
                                         ref,
                                         health.head.copy(history = prune.history),
                                         newTxnId(),
+                                        deadlineEpochMs,
                                     )
                                 }
+                            } catch (cancelled: PromotionDeadlineReached) {
+                                // Expiry during shortened-head staging cancelled
+                                // the promotion: no head rewrite after deadline.
+                                // Reached deletes stay counted; no SAVE-003 report.
+                                deadlineReached = true
                             } catch (failure: Exception) {
                                 // Conservative restart: keep all revision files
                                 // and retry on the next startup/save.
@@ -1594,20 +1610,36 @@ class EncryptedStore(
     // Commit protocol internals
     // ------------------------------------------------------------------
 
+    /**
+     * Internal, dedicated cancellation outcome: the caller deadline was reached
+     * before the durable [StoreIo.atomicMove], so promotion was cancelled.
+     *
+     * This is deliberately NOT a [StorageException]: it never maps to SAVE-003,
+     * it never rewrites the head, and only `startupRecovery` translates it into
+     * `deadlineReached = true`. Ordinary no-deadline callers can never raise it.
+     */
+    private class PromotionDeadlineReached : Exception()
+
     private fun commitHead(
         ref: AggregateRef,
         head: CommittedHead,
         txnId: String,
+        deadlineEpochMs: Long? = null,
     ) {
         val headObject = HeadObject(ref)
         val headFile = fileFor(headObject)
         val previous = if (io.exists(headFile)) io.readAll(headFile) else null
         val staged = stageObject(headObject, encodeHead(head), txnId, TMP_SUFFIX_HEAD)
         try {
-            promote(staged, headObject, txnId)
+            promote(staged, headObject, txnId, deadlineEpochMs)
             faultInjector.onFault(StoreFaultPoint.HEAD_PROMOTED, txnId)
             val readBack = readHeadStrict(ref)
             if (readBack != head) throw CorruptDataException()
+        } catch (failure: PromotionDeadlineReached) {
+            // Nothing was durably changed: promote cancelled before atomicMove
+            // and cleaned up the staged temp. Restoring the head here would
+            // itself rewrite it after the deadline, so do not.
+            throw failure
         } catch (failure: Throwable) {
             // Never report success with an unverified head. Restore the exact
             // previous ciphertext when one existed; recovery handles the rest.
@@ -1900,15 +1932,30 @@ class EncryptedStore(
         }
     }
 
-    private fun promote(staged: StagedObject, obj: StoreObject, txnId: String) {
+    private fun promote(
+        staged: StagedObject,
+        obj: StoreObject,
+        txnId: String,
+        deadlineEpochMs: Long? = null,
+    ) {
         val target = fileFor(obj)
         val parent = target.parentFile ?: throw CorruptDataException()
         try {
             faultInjector.onFault(StoreFaultPoint.PROMOTE, txnId)
             if (!io.isDirectory(parent)) io.mkdirs(parent)
+            // Check as close as possible to the durable move: staging/verification
+            // (stageObject) and every pre-promotion hook/mkdir have already run.
+            // Expiry during staging can no longer durably promote after the
+            // deadline. Ordinary no-deadline callers pass null and are unchanged.
+            if (deadlineEpochMs != null && clock() >= deadlineEpochMs) {
+                throw PromotionDeadlineReached()
+            }
             io.atomicMove(staged.file, target)
             faultInjector.onFault(StoreFaultPoint.PROMOTE_FSYNC, txnId)
             io.fsyncDirectory(parent)
+        } catch (failure: PromotionDeadlineReached) {
+            runCatching { io.deleteTree(staged.file) }
+            throw failure
         } catch (failure: Throwable) {
             runCatching { io.deleteTree(staged.file) }
             throw mapWriteFailure(failure)
@@ -2406,8 +2453,11 @@ class EncryptedStore(
         )
         return try {
             // Final fresh check immediately before the durable head commit.
+            // promote() re-checks the deadline immediately before atomicMove so
+            // expiry during staging still cancels; that dedicated outcome
+            // propagates to startupRecovery (it is not a StorageException).
             if (expired()) return unreadable(SAVE_003)
-            commitHead(ref, recovered, newTxnId())
+            commitHead(ref, recovered, newTxnId(), deadlineEpochMs)
             AggregateHealth(
                 readable = true,
                 reasonCode = null,
