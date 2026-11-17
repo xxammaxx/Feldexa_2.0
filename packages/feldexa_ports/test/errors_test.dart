@@ -41,6 +41,22 @@ List<FeldexaException> _allContractExceptions() => <FeldexaException>[
   UnsupportedOperationException(),
 ];
 
+/// The catalog rows that deliberately have no committed German ARB entry.
+const Set<String> _codesWithoutArbEntry = <String>{
+  'IMP-000',
+  'SIM-001',
+  'PLT-001',
+  'PLT-002',
+};
+
+/// Mirrors `contracts/error-catalog.de.md` §11.1 and the committed ARB.
+String _expectedMessageKey(String code) {
+  if (_codesWithoutArbEntry.contains(code)) {
+    return code;
+  }
+  return code.toLowerCase().replaceAll('-', '');
+}
+
 void main() {
   group('FeldexaException base contract', () {
     test('rejects non-catalog codes without echoing them', () {
@@ -105,11 +121,11 @@ void main() {
       }
     });
 
-    test('every contract exception is an Exception with a catalog code', () {
+    test('every contract exception carries its §11.1 ARB message key', () {
       for (final FeldexaException exception in _allContractExceptions()) {
         expect(exception, isA<Exception>());
         expect(exception.code, matches(RegExp(r'^[A-Z]{2,6}-[0-9]{3}$')));
-        expect(exception.messageKey, exception.code);
+        expect(exception.messageKey, _expectedMessageKey(exception.code));
         expect(
           exception.message,
           matches(RegExp(r'^[a-z][A-Za-z0-9]*(\.[A-Za-z0-9]+)+$')),
@@ -117,6 +133,17 @@ void main() {
         expect(exception.severity, isA<ErrorSeverity>());
       }
     });
+
+    test(
+      'a catalog row without a German message keeps the code as its key',
+      () {
+        // IMP-000 has no user message; SIM-001/PLT-001/PLT-002 are developer-only.
+        expect(ImportCancelledException().messageKey, 'IMP-000');
+        expect(SimulatedInProductionException().messageKey, 'SIM-001');
+        expect(UnsupportedOperationException().messageKey, 'PLT-001');
+        expect(SecurityException().messageKey, 'PLT-002');
+      },
+    );
 
     test('toString is content-free and names the code and severity', () {
       for (final FeldexaException exception in _allContractExceptions()) {

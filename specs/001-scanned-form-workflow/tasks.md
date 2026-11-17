@@ -207,7 +207,7 @@ These are the only genuine artifact contradictions found; each is resolved by th
 
 **Independent Test**: Import a single-page and a five-page image-only PDF; verify page count, order, orientation, dimensions, and pixel fidelity, and a byte-identical source. Import password-protected, truncated, non-PDF, unknown-failure, and partially damaged files and verify the exact German behavior and no document entry.
 
-- [ ] T037 [P] [US1] Write the import-port and preflight contract tests in `packages/feldexa_ports/test/import_port_test.dart` and `packages/feldexa_core/test/import_contract_test.dart` (FR-001/FR-002)
+- [X] T037 [P] [US1] Write the import-port and preflight contract tests in `packages/feldexa_ports/test/import_port_test.dart` and `packages/feldexa_core/test/import_contract_test.dart` (FR-001/FR-002)
 - [ ] T038 [US1] Implement the SAF `ACTION_OPEN_DOCUMENT` streaming import in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/import/ImportService.kt` (FR-001; FR-095)
 - [ ] T039 [US1] Implement PDF preflight with page geometry and encryption detection in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/pdf/PdfPreflight.kt` (FR-003/FR-005/FR-006; `contracts/platform-channel.md`)
 - [ ] T040 [US1] Implement the streaming encrypted source copy in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/import/ImportService.kt` and `.../storage/EncryptedStore.kt` (FR-004; FR-095/FR-096)
