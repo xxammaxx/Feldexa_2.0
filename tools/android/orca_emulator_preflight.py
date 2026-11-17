@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shlex
 import shutil
 import stat
 import subprocess
@@ -122,7 +123,14 @@ def session_problems(payload: object, worktree_id: str, serial: str) -> list[str
 def live_view_problems(
     payload: object, worktree_id: str, serial: str, device_ps: str, host_ps: str
 ) -> list[str]:
-    """A visible Orca pane needs a scrcpy stream, not only a booted adb device."""
+    """A visible Orca pane needs a scrcpy stream, not only a booted adb device.
+
+    This is a metadata check only: it proves that Orca bound a scrcpy stream
+    for exactly this worktree/serial and that the device and host scrcpy
+    servers run. It cannot prove that frames are rendered. Visible frames and
+    interaction are recorded separately and confirmed by the owner; do not
+    present this check as live-view proof.
+    """
     problems: list[str] = []
     sessions = []
     if isinstance(payload, dict):
@@ -153,6 +161,47 @@ def duplicate_emulator_problems(host_ps: str, avd: str) -> list[str]:
     if count > 1:
         return [f"{count} qemu processes for {avd} (expected at most 1)"]
     return []
+
+
+def single_instance_problems(
+    ps_code: int, ps_stdout: str, ps_stderr: str, avd: str
+) -> list[str]:
+    """Fail closed: an unreadable process list cannot prove a single instance."""
+    if ps_code != 0:
+        return [
+            f"ps aux exited {ps_code}: {ps_stderr.strip()[:200]}; a duplicate "
+            "start cannot be ruled out"
+        ]
+    return duplicate_emulator_problems(ps_stdout, avd)
+
+
+def serial_binding_problems(
+    serial: str | None, entries: list[dict], avd: str
+) -> list[str]:
+    """An explicit serial must belong to the target AVD, never to another device."""
+    if serial is None:
+        return [f"no serial resolved for AVD {avd}"]
+    known = sorted(str(entry.get("id")) for entry in entries if entry.get("id"))
+    if serial not in known:
+        return [
+            f"serial {serial} is not a device entry of AVD {avd} "
+            f"(known: {', '.join(known) or 'none'})"
+        ]
+    return []
+
+
+def java_tmpdir_from_env(env: dict[str, str]) -> str | None:
+    """Return the effective ``-Djava.io.tmpdir`` from the JVM/Gradle env vars."""
+    for key in ("JAVA_TOOL_OPTIONS", "JAVA_OPTS", "GRADLE_OPTS"):
+        try:
+            tokens = shlex.split(env.get(key, ""))
+        except ValueError:
+            # Malformed quoting in an unrelated env var must not mask the check.
+            continue
+        for token in tokens:
+            if token.startswith("-Djava.io.tmpdir="):
+                return token.split("=", 1)[1]
+    return None
 
 
 def adb_probe_problems(returncode: int, stdout: str, stderr: str) -> list[str]:
@@ -370,11 +419,17 @@ def main(argv: list[str] | None = None) -> int:
         "host kernel KVM device is accessible from this command environment",
     )
 
-    add(
-        "temp_space",
-        temp_dir_problems(Path(args.tmpdir)),
-        f"Gradle/java.io.tmpdir {args.tmpdir}",
-    )
+    java_tmpdir = java_tmpdir_from_env(os.environ)
+    temp_problems = temp_dir_problems(Path(args.tmpdir))
+    temp_detail = f"TMPDIR {args.tmpdir}"
+    if java_tmpdir and Path(java_tmpdir) != Path(args.tmpdir):
+        temp_problems += temp_dir_problems(Path(java_tmpdir))
+        temp_detail += f" and effective java.io.tmpdir {java_tmpdir}"
+    elif java_tmpdir:
+        temp_detail += f" = effective java.io.tmpdir {java_tmpdir}"
+    else:
+        temp_detail += " (java.io.tmpdir inherits TMPDIR)"
+    add("temp_space", temp_problems, temp_detail)
 
     sdk = resolve_sdk()
     if sdk is None:
@@ -436,11 +491,10 @@ def main(argv: list[str] | None = None) -> int:
     report["serial"] = serial
 
     host_ps_code, host_ps, host_ps_err = run(["ps", "aux"], timeout=30)
-    host_ps = host_ps if host_ps_code == 0 else ""
     add(
         "single_emulator_instance",
-        duplicate_emulator_problems(host_ps, args.avd),
-        "one qemu process for the AVD",
+        single_instance_problems(host_ps_code, host_ps, host_ps_err, args.avd),
+        "one qemu process for the AVD (fails closed if the process list is unreadable)",
     )
 
     if args.skip_device:
@@ -453,11 +507,9 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     booted = booted_devices(devices_payload, args.avd)
-    add(
-        "device_booted",
-        [] if booted else [f"{args.avd} is not booted in Orca devices"],
-        serial,
-    )
+    boot_problems = [] if booted else [f"{args.avd} is not booted in Orca devices"]
+    boot_problems += serial_binding_problems(serial, entries, args.avd)
+    add("device_booted", boot_problems, serial)
 
     state_code, state_out, state_err = run(
         [str(adb), "-s", serial, "get-state"], timeout=20
@@ -524,7 +576,8 @@ def main(argv: list[str] | None = None) -> int:
                 device_ps if device_ps_code == 0 else "",
                 host_ps,
             ),
-            "scrcpy stream bound to this worktree",
+            "scrcpy stream metadata bound to this worktree (frames are "
+            "confirmed by the owner, not by this check)",
         )
 
     _emit(report, args.json)

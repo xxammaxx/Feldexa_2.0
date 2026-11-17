@@ -1,8 +1,8 @@
 # Orca-Emulator-Integration und T031-Gerätenachweis (2026-11-17)
 
 **Kandidat:** `056de35ec8af3d1ce7e8024a8c6666565655e8ca` (tree `f3dfbb5980681b9ffe242f177a69298600b6c3cc`, Branch `xxammaxx/feldexa-t031`, Worktree `/home/xxammaxx/feldexa-worktrees/t031`)
-**Orca-Worktree (Emulator-Bindung):** `5cfd8bbd-7af0-43a2-b81d-7e8d50eda284::/home/xxammaxx/Schreibtisch/Feldexa_2.0/Feldexa_2.0`
-**Orca-Runtime:** `74b27cce-742b-4ade-a61f-7244d4af9f58`, Orca `1.4.253`
+**Orca-Worktree (Emulator-Bindung):** `5cfd8bbd…::$HOME/Schreibtisch/Feldexa_2.0/Feldexa_2.0`
+**Orca-Runtime:** `74b27cce…` (gekürzt), Orca `1.4.253`
 **Gerät:** `emulator-5554`, AVD `T025_Pixel7_API35_KVM_20261115`, Android 15 / API 35, `x86_64`, 4096 MiB AVD-RAM (Gast: 3920 MB sichtbar)
 **SDK:** `/home/xxammaxx/Android/Sdk`, `adb` 1.0.41 / 37.0.1-15733141, Emulator **37.2.13.0** (build 16740729)
 **Evidenzklasse:** `EMULATOR` für die Geräteprüfungen; Host-/JVM-Prüfungen ohne Laufzeitklasse.
@@ -79,6 +79,18 @@ Die Uhr im Pane änderte sich zwischen Aufnahmen (6:20 → 6:21 → 6:23 → 6:2
 und Settings/Launcher/App wechselten sichtbar nach Orca-Eingaben. Damit ist die Live-Ansicht
 belegt; ein headless-only-Nachweis wurde nicht als Ersatz verwendet.
 
+**Ablage-Hygiene:** Die vier Panes wurden auf den Tab-/Gerätebereich zugeschnitten, damit keine
+fremden Workspace- oder Projektnamen aus der Orca-Seitenleiste im Repository landen; die
+Geräteframes selbst sind unverändert. In Bericht, JSON und Logs sind absolute Benutzerpfade
+durch `$HOME` ersetzt und lange Orca-IDs gekürzt. Testausgaben, Statuswerte und die Hashes der
+geprüften Quellen sind davon nicht betroffen; die neuen Artefakt-Hashes stehen in §8.
+
+**Metadaten vs. Frames:** Das Repository-Preflight prüft die scrcpy-Stream-Bindung
+(`streamUrl`, Codec, laufender scrcpy-Server auf Gerät und Host) — das ist eine
+Metadatenprüfung. Es behauptet nicht, gerenderte Frames zu beobachten; die sichtbaren Frames
+und Eingaben sind oben über die Zeitfolge und die Screenshots belegt. Die sichtbare Pane hat
+der Owner bestätigt.
+
 **Accessibility:** `emulator ax` liefert für native UI (Settings) den vollständigen Baum.
 Für die Flutter-App meldet `uiautomator` nur `android:id/content` (FrameLayout), weil die
 Flutter-Semantik ohne aktivierte Accessibility-Bridge nicht exponiert wird. Das ist eine
@@ -147,17 +159,23 @@ unter Review steht und die Aufgabe keine Kandidatenänderung verlangt.
 - Orca-Runtime-Version
 - `/dev/kvm` (Existenz, Zeichengerät, `O_RDWR`) und `emulator -accel-check`
 - SDK-Komponenten (`adb`, `emulator`, `platforms/android-35`, `system-images/android-35/google_apis/x86_64`, `build-tools`)
-- Schreibbarer, quota-tauglicher `TMPDIR`/`java.io.tmpdir` (8-MiB-Schreibtest)
+- Schreibbarer, quota-tauglicher `TMPDIR` und effektives `java.io.tmpdir` (8-MiB-Schreibtest)
 - AVD-Profil (Pixel 7, API 35, x86_64, 4096 MB)
-- genau eine QEMU-Instanz je AVD
+- genau eine QEMU-Instanz je AVD (fail-closed, wenn die Prozessliste nicht lesbar ist)
 - Bootzustand, drei aufeinanderfolgende adb-Proben, `sys.boot_completed=1`
-- exakte Worktree-/Serial-Bindung aus `emulator list`
-- Live-Stream `scrcpy://<serial>`, Codec und laufender scrcpy-Server auf Gerät und Host
+- exakte Worktree-/Serial-Bindung aus `emulator list` und `emulator devices`
+  (die Serial muss ein Geräteeintrag des Ziel-AVD sein)
+- scrcpy-Stream-Metadaten `scrcpy://<serial>`, Codec und laufender scrcpy-Server auf Gerät
+  und Host (keine Frame-Beobachtung; sichtbare Frames bestätigt der Owner, §4)
 
-Regressionstests: `tools/android/test_orca_emulator_preflight.py`, **24 Tests, alle PASS**
-(`python3 -m unittest -v test_orca_emulator_preflight`). Abgedeckte RED-Fälle:
+Regressionstests: `tools/android/test_orca_emulator_preflight.py`, **33 Tests, alle PASS**
+(`python3 -m unittest discover -s tools/android -p 'test_*.py'`, aus dem Repository-Root;
+alternativ `cd tools/android && python3 -m unittest -v test_orca_emulator_preflight`).
+Abgedeckte RED-Fälle:
 3072-MB-Profil, falsche API/ABI, fehlende SDK-Komponenten, fehlendes/gesperrtes TMPDIR,
-falscher Worktree/Serial, Doppelstart, `smartsocket`-EPERM, adb-Timeout, unvollständiger Boot,
+falscher Worktree/Serial, Doppelstart, unlesbare Prozessliste (`ps`-Fehler, fail-closed),
+Serial eines fremden AVD, fehlendes effektives `java.io.tmpdir` (`JAVA_TOOL_OPTIONS`/
+`JAVA_OPTS`/`GRADLE_OPTS`), `smartsocket`-EPERM, adb-Timeout, unvollständiger Boot,
 fehlender scrcpy-Stream/Server.
 
 Realer RED→GREEN-Nachweis:
@@ -168,7 +186,21 @@ Realer RED→GREEN-Nachweis:
 | Temp-Quota | `--tmpdir /tmp` → `FAIL temp_space: cannot accept a 8 MiB probe … Disk quota exceeded` | `--tmpdir …/build/tmpdir` → PASS |
 
 Finaler Lauf: **13/13 PASS**
-(`artifacts/2026-11-17-orca-emulator/preflight-final.json`), Exit 0.
+(`artifacts/2026-11-17-orca-emulator/preflight-final.json`), Exit 0. Die aufgezeichnete
+Ausführung entstand vor der Review-Härtung; die Check-Namen und die Anzahl (13) sind
+unverändert, die geänderten Prüfungen sind unten und durch die 33 Regressionstests belegt.
+
+### 7.3 Review-A-Korrekturen (unabhängiges Review auf `2a599d0`, FAIL)
+
+| Finding | Korrektur |
+|---|---|
+| `single_emulator_instance` meldete PASS, wenn `ps aux` scheiterte (fail-open). | `single_instance_problems()` schlägt bei `ps`-Exit ≠ 0 fehl; nur eine lesbare Liste darf PASS ergeben. Test: `test_unreadable_process_list_fails_closed`. |
+| Ein explizit übergebenes `--serial` konnte zu einem anderen AVD gehören. | `serial_binding_problems()` verlangt, dass die Serial ein Geräteeintrag des Ziel-AVD ist; geprüft in `device_booted`. Tests: `test_serial_of_another_avd_is_rejected`, `test_serial_belonging_to_target_avd_passes`, `test_missing_serial_is_rejected`. |
+| `live_view` leitete „Live-Ansicht“ aus Metadaten/Prozessnamen ab. | Check bleibt `live_view`, ist aber ausdrücklich als Metadatenprüfung dokumentiert (Stream-Bindung + scrcpy-Server); sichtbare Frames bestätigt der Owner separat (§4). |
+| `quickstart.md` nannte einen nicht lauffähigen Unittest-Aufruf. | Auf `python3 -m unittest discover -s tools/android -p 'test_*.py'` bzw. `cd tools/android && python3 -m unittest -v test_orca_emulator_preflight.py` korrigiert und verifiziert. |
+| Die Temp-Prüfung betrachtete nur den übergebenen Pfad, nicht das effektive `java.io.tmpdir`. | Neue `java_tmpdir_from_env()`-Auswertung; die effektive JVM-Temp-Pfad wird zusätzlich geprüft, wenn sie abweicht. Tests: drei `java_tmpdir_*`-Fälle. |
+| Artefakte zeigten absolute Benutzerpfade, lange Orca-IDs und fremde Workspace-Namen in Screenshots. | Pfade → `$HOME`, Orca-IDs gekürzt, Screenshots auf Tab-/Gerätebereich zugeschnitten (siehe §4). Testaussagen unverändert. |
+| `git diff --check` meldete Trailing Whitespace in drei Logs. | Trailing Whitespace entfernt; Hashes in §8 aktualisiert. |
 
 ### 7.2 Maintainer-Preflight
 
@@ -211,7 +243,7 @@ Pane nach Transportverlust) wurden stattdessen am realen Gerät durchgespielt un
 | Debug-APK gebaut, über Orca installiert und gestartet | PASS |
 | Accessibility-Tree und Logcat ausgewertet | PASS (Settings vollständig; Flutter-Semantik nicht exponiert) |
 | T031 auf exakt `056de35` auf demselben Emulator | PASS (2/2; ein dokumentierter Timing-Flake) |
-| Regressionstests für alle bestätigten Fehler | PASS (24 Repository-Tests, RED/GREEN belegt) |
+| Regressionstests für alle bestätigten Fehler | PASS (33 Repository-Tests, RED/GREEN belegt) |
 | Maintainer-Preflight ergänzt und ausgeführt | PASS (35 Skill-Tests, `READY_FOR_DEVICE_TEST`) |
 | Pane nach Abschluss für den Benutzer geöffnet | PASS (finaler Screenshot 19:12) |
 
@@ -238,11 +270,16 @@ Alle Pfade relativ zu `specs/001-scanned-form-workflow/reports/artifacts/2026-11
 
 | Datei | SHA-256 |
 |---|---|
-| `pane-app.png` | `341c61ad4937c8f81403a72b9a7397264bc8c7e21565a518e6b82b49ad1a7a87` |
-| `pane-final.png` | `3e25cf1bf7779ed4cfe457a638677b13fc0cbb4d2a476072dd80f17b350585e1` |
-| `pane-live-launcher.png` | `3907c3a69bbbc98d9ac30e9fec34bec57526954f78b12c491b6c90fd06c2ade4` |
-| `pane-settings.png` | `de4f751e8769af67ab1f7ecdc77d79f4fd6ff68ff2ad662392a286d3973f18b6` |
-| `preflight-final.json` | `246e6357b254fc02fe9cbbb6d9943c991ade22183108a2acac4feb7034de5348` |
-| `t031-3712-pass.log` | `d0f0868ae82b6c0d0c3c14fb0d5f24e90f6e30d5519520db3342a081bd976922` |
-| `t031-3713-run1-fail.log` | `844d924ad56fc51b9696c28cec25bcdff0cc5ee5ed9102a8fa082b36713ec6c9` |
-| `t031-3713-run2-pass.log` | `5cc691dffb996ab41787d9e39d64d27172fae5e16d305ae53adb5b3b36093f9c` |
+| `pane-app.png` | `e8fe5689ebb3c12a09af1d48242180b9233239b5b6bc71e2806cb57c17d629fb` |
+| `pane-final.png` | `c511c55bb7e3fd029661ae22a77452f9893a93a2ab200b4267eb73a026a37f07` |
+| `pane-live-launcher.png` | `5217329b86340a0b2888b98f200f5990097a1badc89ae56c888c40fa5d3e0bd9` |
+| `pane-settings.png` | `827da5d1386fedf13558bb88f4ddc45ee9f4648ec6358d5f2478b81f6afe253b` |
+| `preflight-final.json` | `f7a6b249d91a3b89e1e93a9726649c2cf8a972540d7806f12f7b50a2bf1f0204` |
+| `t031-3712-pass.log` | `054c131d47f32ece07a81e7f84864c786cda6bb142d6aef48055c9b471e1da5c` |
+| `t031-3713-run1-fail.log` | `1b396e17b6fccdd41947ff1c12568142dc3446a4eab92ddada2e3f5b0d4565c0` |
+| `t031-3713-run2-pass.log` | `7412c38b1e78b6f2a1d35cba2598323b4422cd170babece6ea7b42212878c6ae` |
+
+Die Hashes wurden nach der Review-A-Korrektur neu berechnet: Screenshots auf den
+Tab-/Gerätebereich zugeschnitten, absolute Benutzerpfade in JSON/Logs durch `$HOME` ersetzt,
+Trailing Whitespace in den Logs entfernt. Testausgaben und Statuswerte sind inhaltlich
+unverändert; die Läufe selbst wurden nicht wiederholt.

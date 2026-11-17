@@ -4,7 +4,7 @@
     {
       "name": "orca_cli",
       "status": "PASS",
-      "detail": "/home/xxammaxx/.config/orca/linux-orca-cli-shim/orca"
+      "detail": "$HOME/.config/orca/linux-orca-cli-shim/orca"
     },
     {
       "name": "orca_runtime",
@@ -19,12 +19,12 @@
     {
       "name": "temp_space",
       "status": "PASS",
-      "detail": "Gradle/java.io.tmpdir /home/xxammaxx/feldexa-worktrees/t031/build/tmpdir"
+      "detail": "Gradle/java.io.tmpdir $HOME/feldexa-worktrees/t031/build/tmpdir"
     },
     {
       "name": "android_sdk",
       "status": "PASS",
-      "detail": "/home/xxammaxx/Android/Sdk"
+      "detail": "$HOME/Android/Sdk"
     },
     {
       "name": "kvm_usable_by_emulator",
@@ -34,7 +34,7 @@
     {
       "name": "avd_profile",
       "status": "PASS",
-      "detail": "/home/xxammaxx/.android/avd/T025_Pixel7_API35_KVM_20261115.avd/config.ini"
+      "detail": "$HOME/.android/avd/T025_Pixel7_API35_KVM_20261115.avd/config.ini"
     },
     {
       "name": "single_emulator_instance",
@@ -59,7 +59,7 @@
     {
       "name": "worktree_binding",
       "status": "PASS",
-      "detail": "5cfd8bbd-7af0-43a2-b81d-7e8d50eda284::/home/xxammaxx/Schreibtisch/Feldexa_2.0/Feldexa_2.0 -> emulator-5554"
+      "detail": "5cfd8bbd-7af0-43a2-b81d-7e8d50eda284::$HOME/Schreibtisch/Feldexa_2.0/Feldexa_2.0 -> emulator-5554"
     },
     {
       "name": "live_view",
@@ -67,6 +67,6 @@
       "detail": "scrcpy stream bound to this worktree"
     }
   ],
-  "worktreeId": "5cfd8bbd-7af0-43a2-b81d-7e8d50eda284::/home/xxammaxx/Schreibtisch/Feldexa_2.0/Feldexa_2.0",
+  "worktreeId": "5cfd8bbd-7af0-43a2-b81d-7e8d50eda284::$HOME/Schreibtisch/Feldexa_2.0/Feldexa_2.0",
   "serial": "emulator-5554"
 }

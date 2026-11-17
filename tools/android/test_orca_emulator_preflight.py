@@ -116,6 +116,51 @@ class DeviceAndBindingRegression(unittest.TestCase):
         ps = "user 1 ... qemu-system-x86_64-headless -avd AVD -no-window\n"
         self.assertEqual(preflight.duplicate_emulator_problems(ps, "AVD"), [])
 
+    def test_unreadable_process_list_fails_closed(self):
+        problems = preflight.single_instance_problems(
+            1, "", "ps: permission denied", "AVD"
+        )
+        self.assertTrue(any("ps aux exited 1" in p for p in problems))
+        self.assertTrue(any("duplicate start cannot be ruled out" in p for p in problems))
+
+    def test_readable_single_instance_passes(self):
+        ps = "user 1 ... qemu-system-x86_64-headless -avd AVD -no-window\n"
+        self.assertEqual(preflight.single_instance_problems(0, ps, "", "AVD"), [])
+
+    def test_readable_duplicate_instance_is_detected(self):
+        ps = (
+            "user 1 ... qemu-system-x86_64-headless -avd AVD -no-window\n"
+            "user 2 ... qemu-system-x86_64-headless -avd AVD -no-window\n"
+        )
+        problems = preflight.single_instance_problems(0, ps, "", "AVD")
+        self.assertTrue(any("2 qemu processes" in p for p in problems))
+
+    def test_serial_of_another_avd_is_rejected(self):
+        entries = [{"id": "emulator-5554", "name": "AVD"}]
+        problems = preflight.serial_binding_problems("emulator-5558", entries, "AVD")
+        self.assertTrue(any("is not a device entry of AVD AVD" in p for p in problems))
+
+    def test_serial_belonging_to_target_avd_passes(self):
+        entries = [{"id": "emulator-5554", "name": "AVD"}]
+        self.assertEqual(
+            preflight.serial_binding_problems("emulator-5554", entries, "AVD"), []
+        )
+
+    def test_missing_serial_is_rejected(self):
+        problems = preflight.serial_binding_problems(None, [], "AVD")
+        self.assertTrue(any("no serial resolved" in p for p in problems))
+
+    def test_java_tool_options_tmpdir_is_resolved(self):
+        env = {"JAVA_TOOL_OPTIONS": "-Djava.io.tmpdir=/repo/build/tmpdir -Xmx2g"}
+        self.assertEqual(preflight.java_tmpdir_from_env(env), "/repo/build/tmpdir")
+
+    def test_java_tmpdir_falls_back_to_gradle_opts(self):
+        env = {"GRADLE_OPTS": "-Djava.io.tmpdir=/repo/build/other"}
+        self.assertEqual(preflight.java_tmpdir_from_env(env), "/repo/build/other")
+
+    def test_java_tmpdir_is_none_without_override(self):
+        self.assertIsNone(preflight.java_tmpdir_from_env({"TMPDIR": "/tmp"}))
+
 
 class TransportAndLiveViewRegression(unittest.TestCase):
     AVD = "T025_Pixel7_API35_KVM_20261115"
