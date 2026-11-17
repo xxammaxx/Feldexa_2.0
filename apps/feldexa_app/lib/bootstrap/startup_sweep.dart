@@ -41,12 +41,16 @@
 //   * every user-facing German sentence is read from the committed ARB via the
 //     injected [AppLocalizations]; this file hard-codes no German text;
 //   * the only clock used is the injected [ClockPort], read once per run, so
-//     two identical inputs produce the same outcome.
+//     two identical inputs produce the same outcome;
+//   * a cooperative [StartupSweepCancellation] checkpoint runs before every
+//     read and before every deletion, so a bounded-timeout stop cannot leave
+//     destructive work running after the shell already showed the start area.
 
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:flutter/widgets.dart' show Locale;
 
+import 'startup_sweep_cancellation.dart';
 import 'startup_sweep_platform.dart';
 import 'startup_sweep_recovery.dart';
 
@@ -433,10 +437,12 @@ final class StartupSweep {
     NativeStartupRecovery? nativeRecovery,
     Object? platformRuntime,
     AppLocalizations? messages,
+    StartupSweepCancellation? cancellation,
     this.maxEntriesPerCategory = defaultMaxEntriesPerCategory,
   }) : nativeRecovery =
            nativeRecovery ?? platformStartupRecovery(platformRuntime),
-       messages = messages ?? lookupAppLocalizations(const Locale('de')) {
+       messages = messages ?? lookupAppLocalizations(const Locale('de')),
+       cancellation = cancellation ?? StartupSweepCancellation() {
     if (maxEntriesPerCategory < 1) {
       throw ArgumentError.value(
         maxEntriesPerCategory,
@@ -464,6 +470,26 @@ final class StartupSweep {
 
   /// German resources for every notice the sweep surfaces.
   final AppLocalizations messages;
+
+  /// Cooperative stop signal shared with the bounded startup runner.
+  ///
+  /// The sweep checks it before every store read and before every deletion, so
+  /// [cancel] stops further destructive work at the next checkpoint instead of
+  /// letting a timed-out run continue in the background. A cancelled run
+  /// returns a degraded result; it never reports success.
+  final StartupSweepCancellation cancellation;
+
+  /// Requests a cooperative stop at the next checkpoint.
+  ///
+  /// `runStartupSweepBounded` calls this when its bounded wait expires, which is
+  /// what turns a caller-side timeout into a visible, bounded recovery attempt
+  /// rather than unbounded post-timeout work. Idempotent.
+  void cancel() {
+    cancellation.cancel();
+  }
+
+  /// Whether [cancel] has been requested.
+  bool get isCancelled => cancellation.isCancelled;
 
   /// Hard cap on entries processed per category in one run.
   ///
@@ -501,34 +527,49 @@ final class StartupSweep {
   /// it. This is a deviation from the strict §4 order 1 → 2 → 3 → 4 → 5 → 6,
   /// not exact fulfilment. Closing it would require splitting the native
   /// recovery into two calls so step 4 can sit exactly between native step 3
-  /// and native step 5; that is a contract change and a later, separately
-  /// decided item. The Dart `tmp/` pass remains a secondary safety net for
-  /// targets whose filesystem seam can reach staging; the production Dart
-  /// adapter cannot and deliberately reports no staging entries. No aggregate
-  /// object, alias, revision, or source is ever a candidate for deletion here.
+  /// and native step 5; `store.startupRecovery` has no phase parameter and no
+  /// second native sweep method exists, so that is a contract change and a
+  /// later, separately decided item. The Dart `tmp/` pass remains a secondary
+  /// safety net for targets whose filesystem seam can reach staging; the
+  /// production Dart adapter cannot and deliberately reports no staging
+  /// entries. No aggregate object, alias, revision, or source is ever a
+  /// candidate for deletion here.
+  ///
+  /// Cancellation checkpoints: before the export-preview pass, before the
+  /// native recovery, before the staging pass, before each kind read, before
+  /// each `recoveryStamp` read, and before each individual deletion. A
+  /// cancelled run stops at the next checkpoint, performs no further read or
+  /// deletion, and returns a degraded result.
   Future<StartupSweepResult> run() async {
     final DateTime nowUtc = clock.nowUtc().toUtc();
     final _SweepState state = _SweepState();
 
     // Dart-owned step 4: remove stale plaintext export previews first. This
     // still happens when native recovery fails (T031-A2), because plaintext
-    // previews must never be left behind by a degraded startup.
-    final StartupSweepRemoval exportPreviews = await _sweepExportPreviews(
-      nowUtc,
-      state,
-    );
+    // previews must never be left behind by a degraded startup. A cancelled
+    // run performs no deletion at all.
+    StartupSweepRemoval exportPreviews = StartupSweepRemoval.empty;
+    if (!_stopIfCancelled(state)) {
+      exportPreviews = await _sweepExportPreviews(nowUtc, state);
+    }
 
     // Native steps 1–3 and 5–6. The callback is the T027 composition seam.
-    final StartupRecoveryCounts native = await _runNativeRecovery(state);
+    StartupRecoveryCounts native = const StartupRecoveryCounts.none();
+    if (!_stopIfCancelled(state)) {
+      native = await _runNativeRecovery(state);
+    }
 
     // Secondary staging pass. The production Dart adapter cannot address the
     // native `filesDir/feldexa/tmp` directory and returns no entries; native
     // T026 owns that directory. The fake/file-system seam can still exercise
     // this contract-identical fallback.
-    final StartupSweepRemoval temporary = await _sweepTemporary(nowUtc, state);
+    StartupSweepRemoval temporary = StartupSweepRemoval.empty;
+    if (!_stopIfCancelled(state)) {
+      temporary = await _sweepTemporary(nowUtc, state);
+    }
 
     final List<AggregateRecovery> aggregates = <AggregateRecovery>[];
-    if (!state.nativeFailed && store != null) {
+    if (!state.nativeFailed && !state.cancelled && store != null) {
       // Contract-visible reads only after native reconciliation. A native
       // failure or a missing production store skips these reads because they
       // need the aggregate key; it does not skip the plaintext cleanup above.
@@ -543,6 +584,18 @@ final class StartupSweep {
       aggregates: aggregates,
       state: state,
     );
+  }
+
+  /// Records and reports a requested cooperative stop.
+  ///
+  /// Returns `true` when the run must not continue. The cancelled flag makes
+  /// the result degraded, so a stopped run is never presented as success.
+  bool _stopIfCancelled(_SweepState state) {
+    if (!cancellation.isCancelled) {
+      return false;
+    }
+    state.cancelled = true;
+    return true;
   }
 
   /// Removes every export-preview artifact at session end.
@@ -736,6 +789,11 @@ final class StartupSweep {
     int kept = 0;
     int failed = 0;
     for (final StartupSweepEntry entry in bounded) {
+      if (_stopIfCancelled(state)) {
+        // A cancelled run stops before this deletion. Nothing after the stop
+        // checkpoint is deleted or counted as processed.
+        break;
+      }
       scanned++;
       if (rejectDirectories && entry.isDirectory) {
         failed++;
@@ -778,7 +836,7 @@ final class StartupSweep {
     _SweepState state,
   ) async {
     final SecureStorePort? activeStore = store;
-    if (activeStore == null) {
+    if (activeStore == null || _stopIfCancelled(state)) {
       return;
     }
     final StartupSweepStage listStage = switch (kind) {
@@ -813,6 +871,10 @@ final class StartupSweep {
         ? sorted.take(maxEntriesPerCategory)
         : sorted;
     for (final StoredMeta meta in bounded) {
+      if (_stopIfCancelled(state)) {
+        // No further `recoveryStamp` read after a stop request.
+        return;
+      }
       if (!meta.readable) {
         aggregates.add(AggregateRecovery(meta: meta, stamp: null));
         final String? code = meta.unreadableReasonCode;
@@ -958,6 +1020,7 @@ final class StartupSweep {
     final bool degraded =
         state.issues.isNotEmpty ||
         state.boundReached ||
+        state.cancelled ||
         hasUnreadable ||
         native.hasProblem;
     final bool repaired =
@@ -997,6 +1060,7 @@ final class _SweepState {
   final Set<String> _noticeKeys = <String>{};
   bool boundReached = false;
   bool nativeFailed = false;
+  bool cancelled = false;
 
   void addIssue(StartupSweepIssue issue) {
     issues.add(issue);

@@ -23,7 +23,17 @@ const String _generatedPath = 'lib/l10n/app_localizations_de.dart';
 /// T005 shell title and is documented as the one key not defined in the
 /// catalog; every other key maps to a catalog label, dialog, durability state,
 /// action, or accessibility fragment.
+///
+/// T031 exception: `startupRecoveryIncomplete` and
+/// `startupRecoveryIncompleteRecovery` are the German notice and guidance for a
+/// timed-out, thrown, or degraded startup sweep. Constitution Principle VIII
+/// requires that a degraded startup is visible, and T031 is not allowed to edit
+/// `contracts/error-catalog.de.md`, so the catalog currently has no row for
+/// them. They are listed here explicitly rather than silently: adding the §8
+/// rows is an owner decision recorded in the T031 evidence report.
 const Set<String> _nonCodeArbKeys = <String>{
+  'startupRecoveryIncomplete',
+  'startupRecoveryIncompleteRecovery',
   'a11yCheckbox',
   'a11yCheckboxChecked',
   'a11yCheckboxUnchecked',

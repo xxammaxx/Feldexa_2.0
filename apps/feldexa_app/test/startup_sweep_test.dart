@@ -20,9 +20,11 @@
 @TestOn('vm')
 library;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:feldexa_app/bootstrap/startup_sweep.dart';
+import 'package:feldexa_app/bootstrap/startup_sweep_bootstrap.dart';
 import 'package:feldexa_app/bootstrap/startup_sweep_io.dart';
 import 'package:feldexa_app/bootstrap/startup_sweep_platform.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
@@ -964,6 +966,134 @@ void main() {
       expect(result.exportPreviews.scanned, 1);
       expect(await broken.exists(), isTrue);
       expect(result.issues.toString().contains('broken'), isFalse);
+    });
+  });
+  group('bounded timeout and cooperative cancellation', () {
+    test(
+      'a timed-out sweep performs no read or deletion after the stop',
+      () async {
+        final List<String> trace = <String>[];
+        final Completer<void> nativeGate = Completer<void>();
+        final StoredMeta document = _meta(id: _id(1));
+        final _FakeStore store = _FakeStore(
+          trace: trace,
+          documents: <StoredMeta>[document],
+          stamps: <String, RecoveryStamp>{document.id: _healthyStamp()},
+        );
+        final _FakeFileSystem files = _FakeFileSystem(
+          trace: trace,
+          temporaryEntries: <StartupSweepEntry>[
+            _entry('${_id(10)}.part', const Duration(hours: 30)),
+            _entry('scratch.tmp', Duration.zero),
+          ],
+        );
+        final StartupSweep sweep = StartupSweep(
+          store: store,
+          clock: _FixedClock(_now),
+          files: files,
+          nativeRecovery: () async {
+            trace.add('native.start');
+            await nativeGate.future;
+            trace.add('native.end');
+            return const StartupRecoveryCounts.none();
+          },
+        );
+
+        final Future<StartupSweepResult> operation = sweep.run();
+        final StartupSweepStartup startup = await runStartupSweepBounded(
+          run: () => operation,
+          timeout: const Duration(milliseconds: 10),
+          onTimeout: sweep.cancel,
+        );
+
+        expect(startup.timedOut, isTrue);
+        expect(sweep.isCancelled, isTrue);
+
+        // The native call is monolithic: nothing can interrupt it mid-call, so
+        // its own completion is not preventable. Everything AFTER it is.
+        nativeGate.complete();
+        final StartupSweepResult result = await operation;
+
+        expect(trace, <String>['export.list', 'native.start', 'native.end']);
+        expect(files.deletedTemporary, isEmpty);
+        expect(
+          files.events.where((String e) => e.startsWith('temp.delete')),
+          isEmpty,
+        );
+        expect(store.calls, isEmpty);
+        // A stopped run is never presented as success.
+        expect(result.status, StartupSweepStatus.degraded);
+        expect(result.isComplete, isFalse);
+      },
+    );
+
+    test('an already cancelled sweep reads and deletes nothing', () async {
+      final List<String> trace = <String>[];
+      final _FakeStore store = _FakeStore(
+        trace: trace,
+        documents: <StoredMeta>[_meta(id: _id(1))],
+      );
+      final _FakeFileSystem files = _FakeFileSystem(
+        trace: trace,
+        temporaryEntries: <StartupSweepEntry>[
+          _entry('${_id(11)}.part', const Duration(hours: 30)),
+        ],
+        exportArtifacts: <StartupSweepEntry>[
+          _entry('preview.pdf', const Duration(hours: 30)),
+        ],
+      );
+      final StartupSweep sweep = StartupSweep(
+        store: store,
+        clock: _FixedClock(_now),
+        files: files,
+        nativeRecovery: () async {
+          trace.add('native');
+          return const StartupRecoveryCounts.none();
+        },
+      );
+
+      sweep.cancel();
+      final StartupSweepResult result = await sweep.run();
+
+      expect(trace, isEmpty);
+      expect(files.events, isEmpty);
+      expect(store.calls, isEmpty);
+      expect(result.status, StartupSweepStatus.degraded);
+      expect(result.temporary.removed, 0);
+      expect(result.exportPreviews.removed, 0);
+    });
+
+    test('a timed-out production-shaped run still reports degraded', () async {
+      final Completer<StartupRecoveryCounts> gate =
+          Completer<StartupRecoveryCounts>();
+      addTearDown(() {
+        if (!gate.isCompleted) {
+          gate.complete(const StartupRecoveryCounts.none());
+        }
+      });
+      final _FakeFileSystem files = _FakeFileSystem(
+        temporaryEntries: <StartupSweepEntry>[
+          _entry('${_id(12)}.part', const Duration(hours: 30)),
+        ],
+      );
+      final StartupSweep sweep = StartupSweep(
+        store: null,
+        clock: _FixedClock(_now),
+        files: files,
+        nativeRecovery: () => gate.future,
+      );
+
+      final StartupSweepStartup startup = await runStartupSweepBounded(
+        run: sweep.run,
+        timeout: const Duration(milliseconds: 10),
+        onTimeout: sweep.cancel,
+      );
+
+      expect(startup.timedOut, isTrue);
+      expect(startup.isDegraded, isTrue);
+      expect(sweep.isCancelled, isTrue);
+      await Future<void>.delayed(Duration.zero);
+      expect(files.deletedTemporary, isEmpty);
     });
   });
 }

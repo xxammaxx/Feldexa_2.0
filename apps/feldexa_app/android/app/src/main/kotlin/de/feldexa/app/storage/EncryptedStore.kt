@@ -1136,14 +1136,21 @@ class EncryptedStore(
             }
         }
 
-        // Step 3: unreferenced signature assets older than 24 h.
+        // Step 3: unreferenced signature assets older than 24 h. The outcome is
+        // tracked because a conservative "scan was uncertain" run deletes
+        // nothing; that uncertainty must be visible in the redacted recovery
+        // event instead of looking like a clean, empty sweep.
+        var signatureAssetsRemoved = 0
+        var signatureSweepUncertainAggregates = 0
         if (signatureReferenceResolver != null) {
-            sweepUnreferencedSignatures(signatureReferenceResolver)
+            signatureAssetsRemoved = sweepUnreferencedSignatures(signatureReferenceResolver)
         } else {
-            sweepUnreferencedSignaturesFromCommittedContent()
+            val outcome = sweepUnreferencedSignaturesFromCommittedContent()
+            signatureAssetsRemoved = outcome.removed
+            signatureSweepUncertainAggregates = outcome.uncertainAggregates
         }
 
-        // Step 4: orphan aliases. A provider outage must not abort startup.
+        // Step 5: orphan aliases. A provider outage must not abort startup.
         try {
             aliasSweep = keystore.sweepOrphanAliases { ref ->
                 io.isDirectory(aggregateDir(ref))
@@ -1152,7 +1159,10 @@ class EncryptedStore(
             aliasSweepSkipped = true
         }
 
-        // Step 5: redacted event, counts only.
+        // Step 6: redacted event, counts only. The contract does not enumerate
+        // the event fields, so the signature-sweep outcome is reported here
+        // rather than by adding a new `store.startupRecovery` response field
+        // (that would be a contract change).
         val event = linkedMapOf<String, Any?>(
             "type" to "startupRecovery",
             "tempRemoved" to tempRemoved,
@@ -1161,6 +1171,8 @@ class EncryptedStore(
             "fallbackAdoptions" to fallbacks,
             "ambiguousRevisionOrder" to ambiguousRevisionOrder,
             "prunedRevisions" to pruned,
+            "signatureAssetsRemoved" to signatureAssetsRemoved,
+            "signatureSweepUncertainAggregates" to signatureSweepUncertainAggregates,
             "orphanAliasesRemoved" to aliasSweep.removedAliases,
             "orphanAliasesRetained" to aliasSweep.retainedAliases,
             "orphanAliasesFailed" to aliasSweep.failedAliases,
@@ -1229,29 +1241,43 @@ class EncryptedStore(
      * and deletes only old signatures that no committed content references.
      *
      * Conservative rules:
-     *  * an unreadable/corrupt revision or template version makes the whole
-     *    scan uncertain; no signature asset is deleted in that case;
+     *  * an unreadable/corrupt revision or template version makes that scan
+     *    uncertain; no signature asset is deleted for it;
      *  * an unreadable asset timestamp keeps that asset;
      *  * only direct `sig/<uuid>.fxs` files inside a document aggregate are
      *    candidates; nothing outside `sig/` is touched.
+     *
+     * The returned [SignatureSweepOutcome] carries how many assets were removed
+     * and how many scans were uncertain. The caller writes both counts into the
+     * redacted §4 step 6 recovery event, so a run that deleted nothing because
+     * it could not read a revision is not silent. Neither count is added to the
+     * `store.startupRecovery` response, whose field set is contract-fixed.
      */
-    private fun sweepUnreferencedSignaturesFromCommittedContent(): Int {
-        if (!hasAnyDocumentSignatureAsset()) return 0
+    private fun sweepUnreferencedSignaturesFromCommittedContent(): SignatureSweepOutcome {
+        if (!hasAnyDocumentSignatureAsset()) return SignatureSweepOutcome(0, 0)
         val templateReferences = collectTemplateSignatureReferences()
-        if (templateReferences.uncertain) return 0
+        if (templateReferences.uncertain) {
+            // A template version that cannot be read may reference any asset in
+            // any document; keep every asset and report the uncertain scan.
+            return SignatureSweepOutcome(removed = 0, uncertainAggregates = 1)
+        }
         var removed = 0
+        var uncertain = 0
         for (id in listAggregateIds(AggregateKind.DOCUMENT)) {
             val ref = AggregateRef(AggregateKind.DOCUMENT, id)
             removed += withAggregateLock(ref) {
                 val references = collectDocumentSignatureReferences(ref)
-                if (references.uncertain) return@withAggregateLock 0
+                if (references.uncertain) {
+                    uncertain++
+                    return@withAggregateLock 0
+                }
                 sweepSignatureDirectory(
                     ref,
                     references.referenced + templateReferences.referenced,
                 )
             }
         }
-        return removed
+        return SignatureSweepOutcome(removed, uncertain)
     }
 
     private fun hasAnyDocumentSignatureAsset(): Boolean {
@@ -1397,6 +1423,20 @@ class EncryptedStore(
     private data class SignatureReferenceScan(
         val referenced: Set<String>,
         val uncertain: Boolean,
+    )
+
+    /**
+     * Result of the default §4 step 3 signature sweep.
+     *
+     * [removed] is the number of old, unreferenced `sig/<uuid>.fxs` files that
+     * were deleted. [uncertainAggregates] counts the scans that could not read a
+     * revision or template version and therefore deleted nothing; it is
+     * reported in the redacted recovery event so a conservative keep is
+     * visible rather than silent.
+     */
+    private data class SignatureSweepOutcome(
+        val removed: Int,
+        val uncertainAggregates: Int,
     )
 
     /**

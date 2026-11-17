@@ -3,9 +3,10 @@
 // Owner: `apps/feldexa_app/lib/bootstrap/startup_sweep_bootstrap.dart` (T031).
 //
 // The application shell must never crash, hang, or claim a startup success it
-// did not achieve. This file owns the bounded wait and the conversion of an
-// unexpected failure into a degraded startup state. It imports no platform
-// adapter and no `dart:io`, so the Web build can use it unchanged.
+// did not achieve. This file owns the bounded wait, the cooperative cancellation
+// request, the conversion of an unexpected failure into a degraded startup
+// state, and the German notice surface for a degraded startup. It imports no
+// platform adapter and no `dart:io`, so the Web build can use it unchanged.
 //
 // The wall clock here is a real app clock (`EvidenceClass.none`), not a
 // simulated adapter: it is the production wall clock for the startup sweep,
@@ -13,7 +14,9 @@
 
 import 'dart:async';
 
+import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
+import 'package:flutter/widgets.dart' show Locale;
 
 import 'startup_sweep.dart';
 
@@ -45,10 +48,44 @@ final class StartupSweepStartup {
   List<StartupSweepNotice> get notices =>
       result?.notices ?? const <StartupSweepNotice>[];
 
+  /// Whether this attempt produced no specific catalog notice of its own.
+  ///
+  /// A timed-out or thrown run has no result at all, and a degraded result can
+  /// carry only content-free issues (for example a failed directory deletion).
+  /// Both cases need the generic ARB notice from [startupRecoveryNotices].
+  bool get hasNoNotices => notices.isEmpty;
+
   @override
   String toString() =>
       'StartupSweepStartup(timedOut: $timedOut, failed: $failed, '
       'degraded: $isDegraded)';
+}
+
+/// Notices the shell must show for [startup].
+///
+/// The shell may never present a degraded startup as a complete success. When
+/// the run timed out, threw, or returned a degraded result without a specific
+/// catalog notice, the returned list carries the generic German
+/// `startupRecoveryIncomplete` notice from the committed ARB. A clean or
+/// recovered run yields exactly the notices the sweep produced, so the plain
+/// start area stays plain.
+List<StartupSweepNotice> startupRecoveryNotices(
+  StartupSweepStartup startup, {
+  AppLocalizations? messages,
+}) {
+  final List<StartupSweepNotice> notices = startup.notices;
+  if (!startup.isDegraded || notices.isNotEmpty) {
+    return notices;
+  }
+  final AppLocalizations l10n =
+      messages ?? lookupAppLocalizations(const Locale('de'));
+  return List<StartupSweepNotice>.unmodifiable(<StartupSweepNotice>[
+    StartupSweepNotice(
+      code: 'startupRecoveryIncomplete',
+      message: l10n.startupRecoveryIncomplete,
+      recovery: l10n.startupRecoveryIncompleteRecovery,
+    ),
+  ]);
 }
 
 /// One startup sweep invocation.
@@ -62,16 +99,18 @@ typedef StartupSweepRun = Future<StartupSweepResult> Function();
 /// * [StartupSweepStartup.failed] when [run] throws synchronously or
 ///   asynchronously.
 ///
-/// The timeout bounds the CALLER'S WAIT, not the recovery execution. Dart has
-/// no cancellation for an arbitrary future, so a timed-out sweep may still
-/// perform native recovery work after the UI starts: native head repair,
-/// revision pruning, alias removal, and the later store reads are not stopped
-/// by this timeout. The eventual error is consumed so it cannot become an
-/// unhandled asynchronous error. The UI receives a degraded startup state and
-/// must not claim success.
+/// The timeout bounds the CALLER'S wait. Dart has no cancellation for an
+/// arbitrary future, so this function also invokes [onTimeout] when the bounded
+/// wait expires. The production caller passes `StartupSweep.cancel`, whose
+/// cooperative checkpoints stop the sweep before its next store read or
+/// deletion, so a timed-out run does not keep mutating the store in the
+/// background. The eventual result or error is consumed so it cannot become an
+/// unhandled asynchronous error, and the UI receives a degraded startup state
+/// with a visible German notice; it must not claim success.
 Future<StartupSweepStartup> runStartupSweepBounded({
   required StartupSweepRun run,
   Duration timeout = const Duration(seconds: 5),
+  void Function()? onTimeout,
 }) async {
   final Future<StartupSweepResult> operation;
   try {
@@ -83,6 +122,9 @@ Future<StartupSweepStartup> runStartupSweepBounded({
     final StartupSweepResult result = await operation.timeout(timeout);
     return StartupSweepStartup(result: result);
   } on TimeoutException {
+    // The sweep is still running; request the cooperative stop before the
+    // caller is told the wait expired.
+    onTimeout?.call();
     unawaited(
       operation.then<void>(
         (StartupSweepResult _) {},

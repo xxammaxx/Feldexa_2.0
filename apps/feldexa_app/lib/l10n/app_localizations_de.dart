@@ -16,6 +16,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get startTitle => 'Meine Dokumente';
 
   @override
+  String get startupRecoveryIncomplete =>
+      'Die Wiederherstellung beim Start wurde nicht vollständig abgeschlossen. Bitte starten Sie Feldexa erneut.';
+
+  @override
+  String get startupRecoveryIncompleteRecovery =>
+      'Ihre gespeicherten Dokumente und Vorlagen werden dabei nicht gelöscht. Prüfen Sie nach dem Neustart, ob alle Einträge lesbar sind.';
+
+  @override
   String get imp001 =>
       'Diese PDF-Datei ist passwortgeschützt. Feldexa kann geschützte Dateien nicht öffnen, und Ihr Passwort wird weder abgefragt noch gespeichert.';
 

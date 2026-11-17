@@ -807,6 +807,44 @@ class EncryptedStoreTest {
     }
 
     @Test
+    fun startupRecoveryEventReportsSignatureSweepUncertainty() {
+        val assetId = newId()
+        val created = createDoc()
+        store.writeSignature(created.aggregateId, assetId, TestPng.validRgba(8, 8))
+        val sigDir = docFile(created.aggregateId, "sig")
+        setOldSignature(sigDir, assetId)
+        val revDir = docFile(created.aggregateId, "rev")
+        File(revDir, "${newId()}.fx1").writeBytes("not-a-container".toByteArray())
+
+        store.startupRecovery()
+
+        val event = File(storeRoot, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(
+            "an uncertain signature scan must be visible in the redacted event",
+            event.contains("\"signatureSweepUncertainAggregates\":1"),
+        )
+        assertTrue(event.contains("\"signatureAssetsRemoved\":0"))
+        assertTrue(File(sigDir, "$assetId.fxs").exists())
+        assertFalse("the event must stay counts-only", event.contains(assetId))
+    }
+
+    @Test
+    fun startupRecoveryEventReportsRemovedSignatureAssets() {
+        val assetId = newId()
+        val created = createDoc()
+        store.writeSignature(created.aggregateId, assetId, TestPng.validRgba(9, 9))
+        val sigDir = docFile(created.aggregateId, "sig")
+        setOldSignature(sigDir, assetId)
+
+        store.startupRecovery()
+
+        val event = File(storeRoot, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(event.contains("\"signatureSweepUncertainAggregates\":0"))
+        assertTrue(event.contains("\"signatureAssetsRemoved\":1"))
+        assertFalse(File(sigDir, "$assetId.fxs").exists())
+    }
+
+    @Test
     fun startupRecoverySurvivesAProviderOutageAndSkipsTheAliasSweep() {
         createDoc()
         backend.providerAvailableFlag = false
