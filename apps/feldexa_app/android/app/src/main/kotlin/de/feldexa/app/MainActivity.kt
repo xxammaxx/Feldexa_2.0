@@ -168,26 +168,33 @@ class MainActivity : FlutterActivity() {
                 discard = StagedDiscard { documentId ->
                     // An incomplete staged aggregate has no meta, so its
                     // confirmation title is the localized "not readable" one.
-                    runCatching {
-                        store.delete(
-                            kind = AggregateKind.DOCUMENT,
-                            id = documentId,
-                            confirmation = DeleteConfirmation(true, NOT_READABLE_TITLE),
-                            notReadableTitle = NOT_READABLE_TITLE,
-                        )
-                    }
+                    // Failures propagate: ImportService fails closed with a
+                    // non-cancelled storage failure instead of reporting a clean
+                    // cancellation while the aggregate is retained.
+                    store.delete(
+                        kind = AggregateKind.DOCUMENT,
+                        id = documentId,
+                        confirmation = DeleteConfirmation(true, NOT_READABLE_TITLE),
+                        notReadableTitle = NOT_READABLE_TITLE,
+                    )
                 },
             ),
         )
     }
 
-    /** Consumes a picked URI only through ContentResolver; never via a path. */
+    /**
+     * Consumes a picked URI only through ContentResolver; never via a path.
+     *
+     * The provider query for [OpenableColumns.DISPLAY_NAME] is resolved lazily
+     * on the facade worker thread that reads `displayName`, never here on the
+     * main thread inside the ActivityResult callback. The value is unchanged
+     * (the name or null) and no permission is added.
+     */
     private fun activityPickedDocument(uri: Uri): PickedDocument {
         val resolver = contentResolver
-        val displayName = queryDisplayName(uri)
         return object : PickedDocument {
             override fun openStream(): InputStream? = resolver.openInputStream(uri)
-            override val displayName: String? = displayName
+            override val displayName: String? by lazy { queryDisplayName(uri) }
         }
     }
 

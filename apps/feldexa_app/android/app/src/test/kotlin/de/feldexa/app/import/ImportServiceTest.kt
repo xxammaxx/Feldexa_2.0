@@ -15,9 +15,11 @@ import de.feldexa.app.PlatformServiceRegistry
 import de.feldexa.app.ThreadPoster
 import de.feldexa.app.storage.StagedSourceReceipt
 import de.feldexa.app.storage.StorageFullException
+import de.feldexa.app.storage.StorageWriteException
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -28,6 +30,10 @@ import java.io.IOException
 import java.io.InputStream
 import java.security.MessageDigest
 import java.util.UUID
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * T038 host-JVM tests for the SAF streaming import core.
@@ -168,6 +174,133 @@ class ImportServiceTest {
     }
 
     @Test
+    fun cancellationDuringPickerWaitAbortsPromptlyWithoutStaging() {
+        val staging = RecordingStaging()
+        val pickerEntered = CountDownLatch(1)
+        val service = ImportService(
+            // The picker never calls back: only cancellation can end the wait.
+            picker = DocumentPicker { pickerEntered.countDown() },
+            staging = staging,
+            pickerTimeoutMs = TEST_PICKER_TIMEOUT_MS,
+        )
+        val (handle, context) = context()
+        val canceller = Thread {
+            if (pickerEntered.await(5, TimeUnit.SECONDS)) {
+                Thread.sleep(50L)
+                handle.cancel()
+            }
+        }
+        canceller.start()
+
+        val startedAt = System.nanoTime()
+        val failure = expectFailure { service.handle(pickRequest(1_000L), context) }
+        val elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAt)
+        canceller.join(5_000L)
+
+        assertEquals("PLT-004", failure.code)
+        assertEquals(0, staging.calls)
+        assertTrue(
+            "picker wait took ${elapsedMs}ms; cancellation must not wait out ${TEST_PICKER_TIMEOUT_MS}ms",
+            elapsedMs < TEST_PICKER_TIMEOUT_MS / 2,
+        )
+    }
+
+    @Test
+    fun cancelAfterStageDiscardsBeforePlt004Surfaces() {
+        val (handle, context) = context()
+        val discardEntered = CountDownLatch(1)
+        val releaseDiscard = CountDownLatch(1)
+        val discard = RecordingDiscard().apply {
+            onDiscard = {
+                discardEntered.countDown()
+                releaseDiscard.await(5, TimeUnit.SECONDS)
+            }
+        }
+        val staging = RecordingStaging().apply { onStage = { handle.cancel() } }
+        val service = ImportService(
+            picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
+            staging = staging,
+            discard = discard,
+        )
+        val failure = AtomicReference<PlatformFailure?>()
+        val done = CountDownLatch(1)
+        val worker = Thread {
+            try {
+                service.handle(pickRequest(1_000L), context)
+            } catch (thrown: PlatformFailure) {
+                failure.set(thrown)
+            } finally {
+                done.countDown()
+            }
+        }
+        worker.start()
+
+        assertTrue(discardEntered.await(5, TimeUnit.SECONDS))
+        assertFalse(
+            "PLT-004 surfaced before the staged aggregate was discarded",
+            done.await(150, TimeUnit.MILLISECONDS),
+        )
+
+        releaseDiscard.countDown()
+        assertTrue(done.await(5, TimeUnit.SECONDS))
+        worker.join(5_000L)
+
+        assertEquals("PLT-004", failure.get()?.code)
+        assertEquals(listOf(staging.documentId), discard.ids)
+    }
+
+    @Test
+    fun cancelArrivingAfterServiceReturnDiscardsBeforeCancellationIsObservable() {
+        val staging = RecordingStaging()
+        val discard = RecordingDiscard()
+        val service = ImportService(
+            picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
+            staging = staging,
+            discard = discard,
+        )
+        val (handle, context) = context()
+
+        @Suppress("UNCHECKED_CAST")
+        val data = service.handle(pickRequest(1_000L), context) as Map<String, Any?>
+        val documentId = data["documentId"] as String
+        assertTrue(discard.ids.isEmpty())
+        assertFalse(handle.isCancelled)
+
+        // The facade's post-handle window: the service has returned, then a
+        // cancel arrives before the facade evaluates handle.isCancelled.
+        assertTrue(handle.cancel())
+
+        // Cleanup completed inside the cancellation linearization, so no
+        // PLT-004 publication can observe a retained staged aggregate.
+        assertEquals(listOf(documentId), discard.ids)
+        assertTrue(handle.isCancelled)
+        assertNull(handle.cancelActionFailure())
+
+        // Exactly once: a second cancel is a no-op.
+        assertFalse(handle.cancel())
+        assertEquals(1, discard.ids.size)
+    }
+
+    @Test
+    fun failingDiscardIsNotReportedAsCleanCancellation() {
+        val (handle, context) = context()
+        val staging = RecordingStaging().apply { onStage = { handle.cancel() } }
+        val discard = RecordingDiscard().apply { throwable = StorageWriteException() }
+        val service = ImportService(
+            picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
+            staging = staging,
+            discard = discard,
+        )
+
+        val failure = expectFailure { service.handle(pickRequest(1_000L), context) }
+
+        assertEquals(1, discard.ids.size)
+        assertNotEquals("PLT-004", failure.code)
+        assertEquals("SAVE-003", failure.code)
+        assertEquals("SAVE-003", context.cancellationCleanupFailure()?.code)
+    }
+
+    @Test
     fun storageFullMapsToSAVE001WithoutContent() {
         val staging = RecordingStaging().apply { throwable = StorageFullException() }
         val service = ImportService(
@@ -283,6 +416,74 @@ class ImportServiceTest {
         assertEquals("scan.pdf", data["displayName"])
     }
 
+    @Test
+    fun facadeReportsDiscardFailureInsteadOfCleanCancellation() {
+        val stagingEntered = CountDownLatch(1)
+        val releaseStaging = CountDownLatch(1)
+        val staging = RecordingStaging().apply {
+            onStage = {
+                stagingEntered.countDown()
+                releaseStaging.await(5, TimeUnit.SECONDS)
+            }
+        }
+        val discard = RecordingDiscard().apply { throwable = StorageWriteException() }
+        val service = ImportService(
+            picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
+            staging = staging,
+            discard = discard,
+        )
+        val services = PlatformServiceRegistry().apply { register("import", service) }
+        val reply = RecordingReply()
+        val sink = RecordingSink()
+        val results = PlatformResultPublisher(DirectPoster)
+        results.attachSink(sink)
+        val executor = QueueExecutor()
+        val facade = PlatformChannelFacade(
+            services = services,
+            mainPoster = DirectPoster,
+            events = PlatformEventPublisher(DirectPoster),
+            results = results,
+            executor = executor,
+            clock = { 0L },
+        )
+
+        facade.handle(
+            "import.pickAndImport",
+            mapOf("schemaVersion" to 1, "maxBytes" to 1_000L),
+            reply,
+        )
+        @Suppress("UNCHECKED_CAST")
+        val start = reply.successValue as Map<String, Any?>
+        @Suppress("UNCHECKED_CAST")
+        val operationId = (start["data"] as Map<String, Any?>)["operationId"] as String
+
+        val worker = Thread { executor.runNext() }
+        worker.start()
+        assertTrue(stagingEntered.await(5, TimeUnit.SECONDS))
+
+        val cancelReply = RecordingReply()
+        facade.handle(
+            "cancel.operation",
+            mapOf("schemaVersion" to 1, "operationId" to operationId),
+            cancelReply,
+        )
+        assertEquals(mapOf("cancelled" to true), (cancelReply.successValue as Map<*, *>)["data"])
+        releaseStaging.countDown()
+        worker.join(5_000L)
+        assertFalse(worker.isAlive)
+
+        assertEquals(1, discard.ids.size)
+        val terminal = sink.events.filterIsInstance<Map<*, *>>().filter {
+            it["event"] == "operation.result" && it["operationId"] == operationId
+        }
+        assertEquals(1, terminal.size)
+        val result = terminal.single()
+        assertEquals(false, result["ok"])
+        val error = result["error"] as Map<*, *>
+        assertEquals("SAVE-003", error["code"])
+        assertNotEquals("PLT-004", error["code"])
+    }
+
     // ---- helpers ------------------------------------------------------------
 
     private fun context(): Pair<OperationHandle, OperationContext> {
@@ -310,6 +511,11 @@ class ImportServiceTest {
         MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") {
             "%02x".format(it.toInt() and 0xFF)
         }
+
+    private companion object {
+        /** Long enough that a cancellation-blind wait would be obvious. */
+        const val TEST_PICKER_TIMEOUT_MS: Long = 5_000L
+    }
 
     private class FakePicker(private val document: PickedDocument?) : DocumentPicker {
         var calls = 0
@@ -403,8 +609,13 @@ class ImportServiceTest {
 
     private class RecordingDiscard : StagedDiscard {
         val ids = mutableListOf<String>()
+        var throwable: Throwable? = null
+        var onDiscard: (() -> Unit)? = null
+
         override fun discard(documentId: String) {
             ids.add(documentId)
+            onDiscard?.invoke()
+            throwable?.let { throw it }
         }
     }
 
@@ -433,6 +644,21 @@ class ImportServiceTest {
 
     private object DirectExecutor : BackgroundExecutor {
         override fun execute(task: () -> Unit) = task()
+        override fun shutdown() = Unit
+    }
+
+    /** Defers queued facade work so a test can inject a cancel mid-operation. */
+    private class QueueExecutor : BackgroundExecutor {
+        private val tasks = LinkedBlockingQueue<() -> Unit>()
+
+        override fun execute(task: () -> Unit) {
+            tasks.add(task)
+        }
+
+        fun runNext() {
+            tasks.take().invoke()
+        }
+
         override fun shutdown() = Unit
     }
 }

@@ -82,8 +82,9 @@ class ImportService(
         // The picker runs on the host main thread; the facade invokes the
         // service on a background worker. Deliver the picked document (or a
         // user cancellation) through a bounded wait so a lost callback can
-        // never pin a worker forever.
-        val picked = awaitPickedDocument() ?: throw PlatformFailure.cancelled()
+        // never pin a worker forever, and so a cancelled operation aborts
+        // promptly instead of waiting out the whole picker timeout.
+        val picked = awaitPickedDocument(context) ?: throw PlatformFailure.cancelled()
         val displayName = picked.displayName
 
         val digest = MessageDigest.getInstance("SHA-256")
@@ -130,12 +131,20 @@ class ImportService(
             throw mapStorageFailure(failure)
         }
 
+        // One cancellation decision covers the whole post-staging window. The
+        // handle runs this discard exactly once inside its cancellation
+        // linearization, so a cancel that wins before the service returns or in
+        // the facade's post-handle window has already discarded the staged
+        // aggregate before any PLT-004 is observable. Registering it immediately
+        // after a successful stage also covers a cancel that raced with the
+        // stage itself (setCancelAction invokes it at once when already
+        // cancelled). A discard failure is recorded on the handle and the
+        // operation fails closed with that non-cancelled failure.
+        context.registerCancellationCleanup {
+            discardStagedAggregate(context, receipt.aggregateId)
+        }
         if (context.isCancelled) {
-            // An incomplete staged aggregate has no meta, so the existing
-            // destructive-delete seam is confirmed with the localized
-            // "not readable" title; no new store method is introduced.
-            runCatching { discard.discard(documentId) }
-            context.checkCancelled()
+            throw context.cancellationCleanupFailure() ?: PlatformFailure.cancelled()
         }
         if (!receipt.readBackVerified) throw PlatformFailure.internal()
 
@@ -162,16 +171,45 @@ class ImportService(
         }
     }
 
-    private fun awaitPickedDocument(): PickedDocument? {
+    /**
+     * Runs inside the operation handle's cancellation linearization. The
+     * incomplete staged aggregate has no meta, so the existing destructive
+     * delete seam is confirmed with the localized "not readable" title; no new
+     * store method is introduced. A failure is recorded on the handle so the
+     * terminal result is a non-cancelled storage failure instead of a clean
+     * PLT-004 while the aggregate is retained.
+     */
+    private fun discardStagedAggregate(context: OperationContext, documentId: String) {
+        try {
+            discard.discard(documentId)
+        } catch (failure: PlatformFailure) {
+            context.recordCancellationCleanupFailure(failure)
+        } catch (failure: Exception) {
+            context.recordCancellationCleanupFailure(mapStorageFailure(failure))
+        } catch (failure: Throwable) {
+            context.recordCancellationCleanupFailure(PlatformFailure.internal())
+        }
+    }
+
+    private fun awaitPickedDocument(context: OperationContext): PickedDocument? {
         val latch = CountDownLatch(1)
         val result = AtomicReference<PickedDocument?>()
         picker.pick { picked ->
             result.set(picked)
             latch.countDown()
         }
-        if (!latch.await(pickerTimeoutMs, TimeUnit.MILLISECONDS)) {
-            throw PlatformFailure.cancelled()
+        val deadlineNanos = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(pickerTimeoutMs)
+        while (true) {
+            // Slice the wait so a cancelled operation is observed promptly; the
+            // overall picker timeout is still the hard bound, and the loop does
+            // not busy-spin.
+            context.checkCancelled()
+            val remainingNanos = deadlineNanos - System.nanoTime()
+            if (remainingNanos <= 0L) throw PlatformFailure.cancelled()
+            val sliceNanos = minOf(remainingNanos, PICKER_WAIT_SLICE_NANOS)
+            if (latch.await(sliceNanos, TimeUnit.NANOSECONDS)) break
         }
+        context.checkCancelled()
         return result.get()
     }
 
@@ -206,6 +244,9 @@ class ImportService(
         const val CHUNK_BYTES: Int = 64 * 1024
 
         private const val DEFAULT_PICKER_TIMEOUT_MS: Long = 10L * 60L * 1_000L
+
+        /** Cancellation is observed at least this often while awaiting the picker. */
+        private val PICKER_WAIT_SLICE_NANOS: Long = TimeUnit.MILLISECONDS.toNanos(100L)
 
         private val UUID_V4 = Regex(
             "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",

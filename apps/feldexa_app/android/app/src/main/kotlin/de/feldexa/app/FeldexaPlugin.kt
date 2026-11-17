@@ -469,6 +469,30 @@ class OperationContext internal constructor(
         if (handle.isCancelled) throw PlatformFailure.cancelled()
     }
 
+    /**
+     * T038 review correction: registers the one cleanup action the handle runs
+     * exactly once, inside its cancellation linearization, if this operation is
+     * cancelled. It must be bounded and must not call back into the handle.
+     * Because the handle runs it while it owns the cancellation lock, no
+     * cancellation is observable ([isCancelled], [checkCancelled], or the
+     * facade's post-handle check) until the cleanup has completed.
+     *
+     * A failing cleanup must be reported through
+     * [recordCancellationCleanupFailure] so the terminal result is a
+     * non-cancelled failure instead of a clean `PLT-004`.
+     */
+    internal fun registerCancellationCleanup(action: () -> Unit) {
+        handle.setCancelAction(action)
+    }
+
+    /** Records why the registered cleanup could not remove the staged state. */
+    internal fun recordCancellationCleanupFailure(failure: PlatformFailure) {
+        handle.recordCancelActionFailure(failure)
+    }
+
+    /** Non-null when cancellation won but the cleanup retained staged state. */
+    internal fun cancellationCleanupFailure(): PlatformFailure? = handle.cancelActionFailure()
+
     fun progress(kind: String, phase: String, fraction: Double, pageIndex: Int? = null) {
         checkCancelled()
         publisher.emitOperationProgress(operationId, kind, phase, fraction, pageIndex)
@@ -510,6 +534,7 @@ class OperationHandle internal constructor(val id: String) {
     private val lock = Any()
     private var state = State.ACTIVE
     private var cancelAction: (() -> Unit)? = null
+    private var cancelActionFailure: PlatformFailure? = null
     private var cancellationPublished = false
 
     val isCancelled: Boolean
@@ -526,28 +551,51 @@ class OperationHandle internal constructor(val id: String) {
                 State.COMPLETED -> null
             }
         }
-        invokeNow?.invoke()
+        invokeNow?.let(::runCancelAction)
+    }
+
+    internal fun recordCancelActionFailure(failure: PlatformFailure) {
+        synchronized(lock) {
+            if (cancelActionFailure == null) cancelActionFailure = failure
+        }
+    }
+
+    internal fun cancelActionFailure(): PlatformFailure? = synchronized(lock) {
+        cancelActionFailure
     }
 
     /**
-     * Linearizes cancellation against the terminal transition. Returns true only
-     * when this call moved an ACTIVE operation to CANCELLED.
+     * Runs the registered cleanup exactly once. It is called while the handle's
+     * cancellation lock is held, so a concurrent [isCancelled] observer cannot
+     * see CANCELLED before the cleanup finished. A cleanup failure is recorded
+     * (first failure wins) and never escapes into the channel caller.
      */
-    internal fun cancel(): Boolean {
-        var action: (() -> Unit)? = null
-        val transitioned = synchronized(lock) {
-            if (state != State.ACTIVE) {
-                false
-            } else {
-                state = State.CANCELLED
-                action = cancelAction
-                cancelAction = null
-                true
-            }
+    private fun runCancelAction(action: () -> Unit) {
+        try {
+            action()
+        } catch (failure: PlatformFailure) {
+            recordCancelActionFailure(failure)
+        } catch (_: Throwable) {
+            recordCancelActionFailure(PlatformFailure.internal())
         }
-        if (!transitioned) return false
-        action?.invoke()
-        return true
+    }
+
+    /**
+     * Linearizes cancellation against the terminal transition and runs the
+     * registered cleanup inside the same lock: once cancellation is observable
+     * by another thread, the cleanup has already run. Returns true only when
+     * this call moved an ACTIVE operation to CANCELLED.
+     */
+    internal fun cancel(): Boolean = synchronized(lock) {
+        if (state != State.ACTIVE) {
+            false
+        } else {
+            state = State.CANCELLED
+            val action = cancelAction
+            cancelAction = null
+            action?.let(::runCancelAction)
+            true
+        }
     }
 
     /**
@@ -561,12 +609,17 @@ class OperationHandle internal constructor(val id: String) {
             false
         } else {
             state = State.COMPLETED
+            cancelAction = null
             publish()
             true
         }
     }
 
-    /** Publishes the one terminal PLT-004 result if cancellation won. */
+    /**
+     * Publishes the one terminal cancellation result if cancellation won. The
+     * caller substitutes the recorded cleanup failure when cancellation left
+     * staged state behind, so PLT-004 never masks a retained aggregate.
+     */
     internal fun publishCancellation(publish: () -> Unit): Boolean = synchronized(lock) {
         if (state != State.CANCELLED || cancellationPublished) {
             false
@@ -1030,8 +1083,13 @@ class PlatformChannelFacade(
         operationId: String,
         startedAt: Long,
     ) {
+        // A cleanup failure is reported instead of PLT-004: cancelling an
+        // operation whose staged state could not be removed must not look like
+        // a clean cancellation.
+        val cleanupFailure = handle.cancelActionFailure()
         handle.publishCancellation {
-            val failure = PlatformFailure.cancelled().withDuration(elapsedSince(startedAt))
+            val failure = (cleanupFailure ?: PlatformFailure.cancelled())
+                .withDuration(elapsedSince(startedAt))
             if (async) {
                 results.publish(errorResult(operationId, failure))
             } else {
