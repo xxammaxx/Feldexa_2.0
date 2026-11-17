@@ -210,6 +210,80 @@ class FeldexaPluginTest {
     }
 
     @Test
+    fun startupRecoveryRejectsAnOutOfRangeIntegerDeadline() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+
+        // A finite, integral Double far above 2^63 used to saturate in
+        // Double.toLong() to Long.MAX_VALUE and pass the post-conversion bound.
+        facade.handle(
+            "store.startupRecovery",
+            mapOf("schemaVersion" to 1, "deadlineEpochMs" to 1e20),
+            reply,
+        )
+
+        assertFailure(reply, "PLT-003")
+        assertEquals("platform.valueOutOfRange", reply.failure?.machineMessage)
+    }
+
+    @Test
+    fun startupRecoveryRejectsAFractionalDeadline() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+
+        facade.handle(
+            "store.startupRecovery",
+            mapOf("schemaVersion" to 1, "deadlineEpochMs" to 1_760_000_000_000.5),
+            reply,
+        )
+
+        assertFailure(reply, "PLT-003")
+        assertEquals("platform.invalidInteger", reply.failure?.machineMessage)
+    }
+
+    @Test
+    fun startupRecoveryAcceptsDeadlineBoundaryValues() {
+        // 2^63 - 1024 is the largest Double exactly below 2^63; Long.MAX_VALUE
+        // itself is valid as a Long but rounds up to 2^63 as a Double.
+        val maxRepresentable = Long.MAX_VALUE - 1023
+        val validBoundaries = listOf<Any>(
+            1L,
+            Long.MAX_VALUE,
+            maxRepresentable,
+            maxRepresentable.toDouble(),
+        )
+        for (value in validBoundaries) {
+            val facade = newFacade(service = ReturningService(mapOf("deadlineReached" to false)))
+            val reply = RecordingReply()
+
+            facade.handle(
+                "store.startupRecovery",
+                mapOf("schemaVersion" to 1, "deadlineEpochMs" to value),
+                reply,
+            )
+
+            assertNull("deadline boundary $value must be accepted", reply.failure)
+        }
+    }
+
+    @Test
+    fun startupRecoveryRejectsTheRoundedLongMaxDoubleDeadline() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+
+        // Long.MAX_VALUE.toDouble() rounds up to 2^63, one past the Long range;
+        // it must not be rescued by a saturating Double.toLong() conversion.
+        facade.handle(
+            "store.startupRecovery",
+            mapOf("schemaVersion" to 1, "deadlineEpochMs" to Long.MAX_VALUE.toDouble()),
+            reply,
+        )
+
+        assertFailure(reply, "PLT-003")
+        assertEquals("platform.valueOutOfRange", reply.failure?.machineMessage)
+    }
+
+    @Test
     fun nonStringTopLevelKeyIsRejected() {
         val facade = newFacade()
         val reply = RecordingReply()

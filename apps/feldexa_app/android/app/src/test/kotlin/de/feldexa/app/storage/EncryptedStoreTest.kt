@@ -910,6 +910,100 @@ class EncryptedStoreTest {
     }
 
     @Test
+    fun startupRecoveryDeadlineStopsFallbackHeadCommitDuringVerification() {
+        // Control: the identical corrupt-head document without a deadline DOES
+        // adopt a fallback head. This proves the assertion below is about a
+        // real commit, not a scenario where no head would be written anyway.
+        val control = buildCorruptHeadDocument("fallback-control-store")
+        val controlReport = control.store.startupRecovery()
+        assertEquals("control must adopt a fallback head", 1, controlReport.fallbackAdoptions)
+        assertTrue(
+            "control must write a recovered head file",
+            File(control.root, "docs/${control.documentId}/head.fx1").exists(),
+        )
+
+        // Test: the deadline expires while the fallback verifies revisions, so
+        // the older verified revision must not be adopted into a new head.
+        val fixture = buildCorruptHeadDocument("fallback-deadline-store")
+        val headFile = File(fixture.root, "docs/${fixture.documentId}/head.fx1")
+        assertFalse("precondition: the head must be absent", headFile.exists())
+        val keptRevision = File(
+            fixture.root,
+            "docs/${fixture.documentId}/rev/${fixture.keptRevisionId}.fx1",
+        )
+        val revisionBefore = keptRevision.readBytes()
+        val ticks = AtomicLong(0)
+        val expiring = EncryptedStore(
+            fixture.root,
+            fixture.keystore,
+            clock = { if (ticks.getAndIncrement() < 4) now.get() else now.get() + 1_000_000 },
+        )
+
+        val report = expiring.startupRecovery(deadlineEpochMs = now.get() + 500_000)
+
+        assertTrue("a deadline stop must be reported", report.deadlineReached)
+        assertEquals("no fallback head may be adopted after expiry", 0, report.fallbackAdoptions)
+        assertFalse("no recovered head file may be created after expiry", headFile.exists())
+        assertArrayEquals("the verified older revision must stay byte-identical", revisionBefore, keptRevision.readBytes())
+        val event = File(fixture.root, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(event.contains("\"deadlineReached\":true"))
+        assertTrue(event.contains("\"fallbackAdoptions\":0"))
+    }
+
+    @Test
+    fun startupRecoveryDeadlineStopsPruneBeforeRevisionDeletionAndHeadCommit() {
+        // Control: a normal recovery prunes the older autosaves and rewrites the
+        // head history, so the test below proves a real prune/head commit is
+        // suppressed rather than asserting an operation that would not happen.
+        val control = buildPrunableDocument("prune-control-store")
+        val controlHeadBefore = File(control.root, "docs/${control.documentId}/head.fx1").readBytes()
+        val controlReport = control.store.startupRecovery()
+        assertEquals("control must prune older autosaves", 3, controlReport.prunedRevisions)
+        assertTrue(
+            "control must delete at least one older revision",
+            control.olderAutosaveIds.any {
+                !File(control.root, "docs/${control.documentId}/rev/$it.fx1").exists()
+            },
+        )
+        assertFalse(
+            "control must commit a shortened head",
+            controlHeadBefore.contentEquals(
+                File(control.root, "docs/${control.documentId}/head.fx1").readBytes(),
+            ),
+        )
+
+        // Test: the deadline expires inside prune, before any revision deletion
+        // or shortened-head commit.
+        val fixture = buildPrunableDocument("prune-deadline-store")
+        val headFile = File(fixture.root, "docs/${fixture.documentId}/head.fx1")
+        val headBefore = headFile.readBytes()
+        val olderFiles = fixture.olderAutosaveIds.map {
+            File(fixture.root, "docs/${fixture.documentId}/rev/$it.fx1")
+        }
+        val revisionBefore = olderFiles.map { it to it.readBytes() }
+        val ticks = AtomicLong(0)
+        // Five pre-expiry ticks let the run pass the step-2 boundary checks and
+        // enter prune; the deadline then expires inside prune itself.
+        val expiring = EncryptedStore(
+            fixture.root,
+            fixture.keystore,
+            clock = { if (ticks.getAndIncrement() < 5) now.get() else now.get() + 1_000_000 },
+        )
+
+        val report = expiring.startupRecovery(deadlineEpochMs = now.get() + 500_000)
+
+        assertTrue("a deadline stop must be reported", report.deadlineReached)
+        assertEquals("no revision may be pruned after expiry", 0, report.prunedRevisions)
+        revisionBefore.forEach { (file, bytes) ->
+            assertArrayEquals("revision $file must survive the stop", bytes, file.readBytes())
+        }
+        assertArrayEquals("no shortened head may be committed after expiry", headBefore, headFile.readBytes())
+        val event = File(fixture.root, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(event.contains("\"deadlineReached\":true"))
+        assertTrue(event.contains("\"prunedRevisions\":0"))
+    }
+
+    @Test
     fun startupRecoverySurvivesAProviderOutageAndSkipsTheAliasSweep() {
         createDoc()
         backend.providerAvailableFlag = false
@@ -1203,6 +1297,104 @@ class EncryptedStoreTest {
             newId(),
             revision(1),
             revisionKind,
+        )
+    }
+
+    private data class CorruptHeadFixture(
+        val root: File,
+        val keystore: KeystoreService,
+        val store: EncryptedStore,
+        val documentId: String,
+        val keptRevisionId: String,
+    )
+
+    /** A missing head plus a corrupt newest revision forces multi-step fallback. */
+    private fun buildCorruptHeadDocument(name: String): CorruptHeadFixture {
+        val root = File(temporary.root, name)
+        val keystore = KeystoreService(TestStoreKeystoreBackend(), sleeper = {})
+        val store = EncryptedStore(root, keystore, clock = { now.get() })
+        store.ensureLayout()
+        val created = store.createDocument(
+            newId(),
+            meta("Fallback"),
+            newId(),
+            "%PDF-1.7 synthetic".toByteArray(),
+            newId(),
+            revision(1),
+        )
+        val second = newId()
+        store.saveRevision(
+            created.aggregateId,
+            second,
+            revision(2),
+            RevisionKindWire.AUTOSAVE,
+            created.revisionId,
+        )
+        flip(File(root, "docs/${created.aggregateId}/rev/$second.fx1"), 160)
+        setMtime(File(root, "docs/${created.aggregateId}/rev/${created.revisionId}.fx1"), -2_000)
+        setMtime(File(root, "docs/${created.aggregateId}/rev/$second.fx1"), -1_000)
+        File(root, "docs/${created.aggregateId}/head.fx1").delete()
+        return CorruptHeadFixture(root, keystore, store, created.aggregateId, created.revisionId)
+    }
+
+    private data class PrunableFixture(
+        val root: File,
+        val keystore: KeystoreService,
+        val store: EncryptedStore,
+        val documentId: String,
+        val olderAutosaveIds: List<String>,
+    )
+
+    /** One explicit plus six autosaves; the oldest three are prune candidates. */
+    private fun buildPrunableDocument(name: String): PrunableFixture {
+        val root = File(temporary.root, name)
+        val keystore = KeystoreService(TestStoreKeystoreBackend(), sleeper = {})
+        val store = EncryptedStore(root, keystore, clock = { now.get() })
+        store.ensureLayout()
+        val created = store.createDocument(
+            newId(),
+            meta("Prune"),
+            newId(),
+            "%PDF-1.7 synthetic".toByteArray(),
+            newId(),
+            revision(1),
+            RevisionKindWire.EXPLICIT,
+        )
+        var head = created.revisionId
+        val autosaves = mutableListOf<Pair<String, ByteArray>>()
+        repeat(6) { i ->
+            val revisionId = newId()
+            val json = revision(i + 2)
+            store.saveRevision(created.aggregateId, revisionId, json, RevisionKindWire.AUTOSAVE, head)
+            autosaves += revisionId to json
+            head = revisionId
+        }
+        // The save path prunes eagerly; restore every revision file and commit
+        // a head whose full history still references them, so startup recovery
+        // has real prune work to do (and a real head to shorten).
+        val ref = doc(created.aggregateId)
+        val all = listOf(created.revisionId to revision(1)) + autosaves
+        for ((revisionId, json) in all) {
+            val file = File(root, "docs/${created.aggregateId}/rev/$revisionId.fx1")
+            if (!file.exists()) store.commitObjectForTest(RevisionObject(ref, revisionId), json)
+        }
+        val fullHistory = all.map { (revisionId, _) ->
+            HeadHistoryEntry(
+                revisionId,
+                if (revisionId == created.revisionId) {
+                    RevisionKindWire.EXPLICIT
+                } else {
+                    RevisionKindWire.AUTOSAVE
+                },
+            )
+        }
+        store.commitHeadForTest(ref, store.readHeadForTest(ref).copy(history = fullHistory))
+        return PrunableFixture(
+            root,
+            keystore,
+            store,
+            created.aggregateId,
+            autosaves.take(3).map { it.first },
         )
     }
 

@@ -1143,7 +1143,13 @@ class EncryptedStore(
                             if (io.deleteTree(aggregateDir(ref))) incompleteRemoved++
                             return@withAggregateLock
                         }
-                        val health = recoverAggregate(ref)
+                        val health = recoverAggregate(ref, deadlineEpochMs)
+                        // A stop inside fallback verification must suppress all
+                        // later work for this aggregate, including pruning.
+                        if (expired()) {
+                            deadlineReached = true
+                            return@withAggregateLock
+                        }
                         if (health.fellBackToOlderRevision) fallbacks++
                         if (health.ambiguousRevisionOrder) ambiguousRevisionOrder++
                         if (!health.readable) unreadable++
@@ -1160,9 +1166,20 @@ class EncryptedStore(
                                     ref,
                                     health.head,
                                     newTxnId(),
+                                    deadlineEpochMs,
                                 )
+                                if (expired()) {
+                                    deadlineReached = true
+                                    return@withAggregateLock
+                                }
                                 if (prune.deletesDurable) pruned += prune.deleted
                                 if (prune.history != health.head.history) {
+                                    // Fresh check immediately before the
+                                    // shortened-head durable commit.
+                                    if (expired()) {
+                                        deadlineReached = true
+                                        return@withAggregateLock
+                                    }
                                     commitHead(
                                         ref,
                                         health.head.copy(history = prune.history),
@@ -1767,10 +1784,12 @@ class EncryptedStore(
         ref: AggregateRef,
         head: CommittedHead,
         transactionId: String = "",
+        deadlineEpochMs: Long? = null,
     ): PruneResult {
         if (ref.kind != AggregateKind.DOCUMENT) {
             return PruneResult(0, emptyList())
         }
+        fun expired(): Boolean = deadlineEpochMs != null && clock() >= deadlineEpochMs
         val headObject = RevisionObject(ref, head.revisionId)
         val headVerification = verifyContainer(headObject, fileFor(headObject))
         if (headVerification.plaintextSha256 != head.plaintextSha256) {
@@ -1789,6 +1808,10 @@ class EncryptedStore(
                 if (revisionId == head.revisionId || revisionId in keep) continue
                 val entry = known[revisionId] ?: continue
                 if (entry.kind == null) continue
+                // Check again here: verification/iteration may have consumed
+                // the whole deadline. Once reached, delete nothing further and
+                // keep the full history so a later startup retries the prune.
+                if (expired()) return PruneResult(deleted, head.history, deletesDurable = false)
                 if (io.delete(file)) deleted++
             }
         }
@@ -1801,6 +1824,7 @@ class EncryptedStore(
                 !revisionFileExists(ref, entry.revisionId)
         }
         if (deleted > 0 || missingKnown) {
+            if (expired()) return PruneResult(deleted, head.history, deletesDurable = false)
             if (!io.isDirectory(dir)) {
                 return PruneResult(deleted, head.history, deletesDurable = false)
             }
@@ -2281,13 +2305,18 @@ class EncryptedStore(
     // Recovery internals
     // ------------------------------------------------------------------
 
-    private fun recoverAggregate(ref: AggregateRef): AggregateHealth {
+    private fun recoverAggregate(
+        ref: AggregateRef,
+        deadlineEpochMs: Long? = null,
+    ): AggregateHealth {
+        fun expired(): Boolean = deadlineEpochMs != null && clock() >= deadlineEpochMs
         val aggregate = aggregateDir(ref)
         if (!io.isDirectory(aggregate)) throw CorruptDataException()
 
         val metaObject = MetaObject(ref)
         if (!io.exists(fileFor(metaObject))) {
             if (isIncomplete(ref)) {
+                if (expired()) return unreadable(SAVE_003)
                 io.deleteTree(aggregate)
                 return AggregateHealth(
                     readable = false,
@@ -2346,7 +2375,7 @@ class EncryptedStore(
 
         // §4 step 2: head missing/corrupt or pointing to a missing/corrupt
         // revision -> adopt the newest revision whose hash verifies.
-        val search = findNewestVerifiableRevision(ref)
+        val search = findNewestVerifiableRevision(ref, deadlineEpochMs)
         if (search.ambiguous) {
             return AggregateHealth(
                 readable = false,
@@ -2365,6 +2394,9 @@ class EncryptedStore(
                 headCorrupt = true,
                 fellBackToOlderRevision = false,
             )
+        // Verification may have consumed the whole deadline. Never adopt a
+        // fallback head once time is up: no new head, no fallback count.
+        if (expired()) return unreadable(SAVE_003)
         val recovered = CommittedHead(
             revisionId = candidate.revisionId,
             plaintextSha256 = candidate.plaintextSha256,
@@ -2373,6 +2405,8 @@ class EncryptedStore(
             kind = RevisionKindWire.RECOVERY,
         )
         return try {
+            // Final fresh check immediately before the durable head commit.
+            if (expired()) return unreadable(SAVE_003)
             commitHead(ref, recovered, newTxnId())
             AggregateHealth(
                 readable = true,
@@ -2424,7 +2458,11 @@ class EncryptedStore(
             TemplateVersionObject(ref, revisionId)
         }
 
-    private fun findNewestVerifiableRevision(ref: AggregateRef): RevisionSearch {
+    private fun findNewestVerifiableRevision(
+        ref: AggregateRef,
+        deadlineEpochMs: Long? = null,
+    ): RevisionSearch {
+        fun expired(): Boolean = deadlineEpochMs != null && clock() >= deadlineEpochMs
         val dirName = if (ref.kind == AggregateKind.DOCUMENT) "rev" else "ver"
         val dir = File(aggregateDir(ref), dirName)
         if (!io.isDirectory(dir)) return RevisionSearch(null, ambiguous = false)
@@ -2433,6 +2471,9 @@ class EncryptedStore(
             .sortedByDescending { io.lastModifiedNanos(it) }
         var index = 0
         while (index < candidates.size) {
+            // Fallback verification can outlive the deadline. Stop before the
+            // next verification so no head is adopted once time is up.
+            if (expired()) return RevisionSearch(null, ambiguous = false)
             val timestamp = io.lastModifiedNanos(candidates[index])
             var end = index + 1
             while (end < candidates.size &&
