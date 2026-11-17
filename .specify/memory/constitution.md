@@ -1,7 +1,33 @@
 <!--
 Sync Impact Report
 ==================
-Version change: none → 1.0.0 (initial ratification)
+Version change: 1.0.0 → 1.0.1 (PATCH)
+
+Rationale for 1.0.1: Principle X described a fixed harness for the Maintainer and
+for the development workers. The owner ratified a harness-neutral role
+definition so that one owner-selected Maintainer harness, one native Spec Kit
+coordinator subagent, two OpenCode development worker sessions, and two
+independent Codex review sessions can work together without weakening any
+guarantee. Review independence, exact-commit binding, author/reviewer
+separation, privacy, offline operation, document integrity, and Android
+authority are unchanged.
+
+Modified principles: X. Autonomous Multi-Agent Governance
+- Role table redefined: Maintainer = owner-selected harness; Spec Kit
+  coordinator = one native subagent of the maintainer harness (non-coding,
+  sole worker-launch authority); Development Workers = at most two separate
+  OpenCode sessions in isolated worktrees, started only by the coordinator;
+  Independent Reviewers = two read-only Codex sessions (A: code quality,
+  B: requirements fulfillment).
+- Added binding rules: owner-selected maintainer harness and harness changes
+  without reinitialization or reassignment; exactly two independent reviews per
+  completed task, without shared session, context, or verdict.
+
+Added sections: none
+Removed sections: none
+Follow-up TODOs: none. Earlier 1.0.0 report retained below as history.
+
+Previous 1.0.0 ratification (2026-11-12):
 
 Rationale for 1.0.0: This is the first ratified baseline of project governance.
 No prior constitution existed, so no backward-compatibility question arises;
@@ -299,14 +325,18 @@ The project uses one accountable Maintainer and specialized agents.
 
 | Role | Agent | Responsibility |
 | --- | --- | --- |
-| Maintainer | Codex in Chat Mode | Overall coordination, prioritization, delegation, integration, recovery, and verified product delivery |
-| Spec Kit Manager | OpenCode using `deepseek/deepseek-flash` | Executing official Spec Kit workflows and managing specification artifacts |
-| Development Workers | DeepSeek Harness using the owner-configured DeepSeek Flash model | Implementing assigned tasks through the actual installed Spec Kit integration in isolated worktrees |
-| Independent Reviewer | Codex CLI | Independent code-quality and requirements-fulfillment reviews |
+| Maintainer | The agent, harness, and model the project owner selects for the maintainer session | Overall coordination, prioritization, delegation, integration, recovery, and verified product delivery |
+| Spec Kit coordinator | One native subagent of the maintainer harness; non-coding | Preparing and checking scoped assignments, starting and directing the development workers, verifying their progress and evidence, and reporting accepted handoffs to the Maintainer |
+| Development Workers | Exactly two separate OpenCode sessions at most, each in its own isolated worktree, started only by the Spec Kit coordinator, using the owner-configured DeepSeek Flash model | Implementing assigned tasks by actually invoking the installed Spec Kit implementation command within the task scope |
+| Independent Reviewers | Two independent, read-only Codex CLI sessions per completed worker task: Reviewer A for code quality and Reviewer B for requirements fulfillment | Independent review of the exact candidate revision; they report to the Maintainer only |
 
 Binding rules:
 
 - There MUST be exactly one project-level Maintainer.
+- The owner MAY select and change the maintainer harness. A maintainer harness change MUST NOT
+  change the worker or reviewer assignments, and it MUST NOT trigger Spec Kit reinitialization.
+- Every completed worker task MUST receive exactly two independent reviews, one per review role.
+  Reviews of different roles MUST NOT share a session, context, or another reviewer's verdict.
 - Workers MUST operate in isolated worktrees. A worktree MUST have at most one active
   assignment at a time.
 - Each worktree MUST remain available until verified integration or explicit abandonment.
@@ -447,4 +477,4 @@ the specification and task artifacts, and the per-worktree agent briefs. Those d
 remain consistent with this constitution; where they conflict, this constitution governs and
 the dependent document MUST be corrected.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-12 | **Last Amended**: 2026-11-12
+**Version**: 1.0.1 | **Ratified**: 2026-11-12 | **Last Amended**: 2026-11-17
