@@ -168,3 +168,94 @@ modification and is deliberately excluded from both commits.
 - No device evidence; no performance claim.
 - Full JVM suite not re-run this round; known pre-existing memory-probe failure unchanged.
 - No push, PR, merge, or other worker; branch/worktree unchanged.
+
+---
+
+## 9. Round 8 — durable prune deletions reported before the deadline return
+
+Base candidate: `882120a0a66d5062b019dbf1b8b0be903aa1b16e`
+(tree `b6ce8d81c69c760ee3ced1cf9d4ef891d49b0391`), same branch/worktree.
+
+### 9.1 Review B finding and correction
+
+`startupRecovery` added `prune.deleted` to `prunedRevisions` only *after* the
+`expired()` early return that follows `pruneDocumentFromHead`. When the deadline
+is reached at the prune's own `PRUNE_FSYNC` step (after the deletes, immediately
+before the confirming directory fsync), that fsync still completes and
+`PruneResult` returns `deletesDurable=true`, but the early return discarded the
+count, under-reporting `prunedRevisions` as `0`.
+
+Correction in `EncryptedStore.kt`: count `prune.deleted` immediately after
+`pruneDocumentFromHead` returns, before any expiry check, and remove the later
+counting site (no double count). `deletesDurable=false` remains uncounted, and
+all subsequent `expired()` checks and the shortened-head commit boundary are
+unchanged.
+
+### 9.2 Regression
+
+`EncryptedStoreTest.pruneFsyncDelayReportsDurableDeletionsBeforeTheDeadlineReturn`
+uses a control run (unbounded recovery prunes 3 and rewrites the head), then a
+`StoreFaultInjector` that advances the clock at `PRUNE_FSYNC` — after all three
+revision deletes but just before the confirming directory fsync; the fsync then
+succeeds and `PruneResult` returns `deletesDurable=true`. It asserts `prunedRevisions=3`,
+`deadlineReached=true`, `unreadableAggregates=0`, the three deletions still
+durable, head bytes unchanged (no shortened-head commit), and a redacted event
+with `deadlineReached:true` / `prunedRevisions:3`. The two round-7
+`stagingDelayCannot…` tests remain intact and passing.
+
+### 9.3 Focused tests on final source
+
+Command (cwd `apps/feldexa_app/android`; JDK 17 avoids the JDK 27 `JdkImageTransform`
+SDK-signature mismatch recorded in §4):
+
+```sh
+JAVA_HOME=/home/xxammaxx/.feldexa-toolchain/jdk \
+GRADLE_USER_HOME=/home/xxammaxx/feldexa-worktrees/t031/build/gradle-home \
+ANDROID_USER_HOME=/home/xxammaxx/feldexa-worktrees/t031/build/android-user-home \
+./gradlew :app:testDebugUnitTest --offline --no-daemon --console=plain \
+  --tests "de.feldexa.app.storage.EncryptedStoreTest" \
+  --tests "de.feldexa.app.FeldexaPluginTest"
+```
+
+A first run (`/tmp/opencode/t031-r8-tests.log`, `BUILD SUCCESSFUL in 1m 54s`,
+exit `0`, 9 executed / 152 up-to-date) passed with the same counts. A read-only
+accuracy note then corrected the test comment: `PRUNE_FSYNC` fires immediately
+before the confirming directory fsync, so the clock advance lands during that
+step and the subsequent fsync completes before `PruneResult` returns
+`deletesDurable=true`. After that comment-only correction the final source was
+re-run: `BUILD SUCCESSFUL in 1m 2s`, exit `0`, `161 actionable tasks`
+(6 executed, 155 up-to-date). Final log: `/tmp/opencode/t031-r8-final-tests.log`.
+The XMLs below are from this final run against the committed source hashes.
+
+| XML (`apps/feldexa_app/build/app/test-results/testDebugUnitTest/`) | tests | failures | errors | skipped |
+|-------------------------------------------------------------------|------:|---------:|-------:|--------:|
+| `TEST-de.feldexa.app.FeldexaPluginTest.xml` | 104 | 0 | 0 | 0 |
+| `TEST-de.feldexa.app.storage.EncryptedStoreTest.xml` | 66 | 0 | 0 | 0 |
+| **Total** | **170** | **0** | **0** | **0** |
+
+All three deadline regressions (`stagingDelayCannotPromoteFallbackHeadAfterTheDeadline`,
+`stagingDelayCannotCommitPrunedHeadAfterTheDeadline`,
+`pruneFsyncDelayReportsDurableDeletionsBeforeTheDeadlineReturn`) are present in
+the `EncryptedStoreTest` XML; neither XML contains a `<failure>` or `<error>`.
+
+Final source hashes (committed blob == tested working copy):
+
+| File | SHA-256 |
+|------|---------|
+| `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/storage/EncryptedStore.kt` | `f67cb58457be81c11499fe98acbc73dea0c86fa3f9d653cc670d87874f0e59ec` |
+| `apps/feldexa_app/android/app/src/test/kotlin/de/feldexa/app/storage/EncryptedStoreTest.kt` | `0cb001c6c3bde40eab3e3e6765339a24fe3151f1b593e4ad33b4534467d45a50` |
+
+### 9.4 Round 8 results
+
+| Criterion | Observed | Verdict |
+|-----------|----------|---------|
+| Durable prune count before expiry return | counted at the single site before `expired()` | PASS |
+| No double count / `deletesDurable=false` behavior | later site removed; false remains uncounted | PASS |
+| PRUNE_FSYNC delay regression | `prunedRevisions=3`, `deadlineReached=true`, head unchanged | PASS |
+| Round-7 staging-delay tests | both intact and passing | PASS |
+| Focused host suites | 104 + 66 = 170 tests, 0 failures/errors/skipped | PASS |
+| Reviewer checklist | 0/36, unchanged, FAIL (owner-authorized proceed) | FAIL (not passed) |
+| gradlew.bat / push / PR | excluded / none / none | PASS |
+
+Limitations unchanged from §8: no device evidence, no full-suite re-run, and
+the reviewer-owned checklist stays 0/36 FAIL and is not reported as passed.

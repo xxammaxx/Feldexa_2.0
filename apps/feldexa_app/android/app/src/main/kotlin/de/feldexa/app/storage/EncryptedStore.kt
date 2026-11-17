@@ -1178,11 +1178,16 @@ class EncryptedStore(
                                     newTxnId(),
                                     deadlineEpochMs,
                                 )
+                                // Deletions already fsync-confirmed by prune really
+                                // happened; count them before any expiry return so a
+                                // deadline reached during/among the prune fsync is
+                                // reported accurately. deletesDurable=false is still
+                                // uncounted, and this is the only counting site.
+                                if (prune.deletesDurable) pruned += prune.deleted
                                 if (expired()) {
                                     deadlineReached = true
                                     return@withAggregateLock
                                 }
-                                if (prune.deletesDurable) pruned += prune.deleted
                                 if (prune.history != health.head.history) {
                                     // Fresh check immediately before the
                                     // shortened-head durable commit.

@@ -1095,6 +1095,50 @@ class EncryptedStoreTest {
     }
 
     @Test
+    fun pruneFsyncDelayReportsDurableDeletionsBeforeTheDeadlineReturn() {
+        // Control: an unbounded recovery prunes three autosaves and rewrites the
+        // head, so the count asserted below is real prune work.
+        val control = buildPrunableDocument("prune-fsync-count-control")
+        assertEquals("control must prune older autosaves", 3, control.store.startupRecovery().prunedRevisions)
+
+        val fixture = buildPrunableDocument("prune-fsync-count-store")
+        val headFile = File(fixture.root, "docs/${fixture.documentId}/head.fx1")
+        val headBefore = headFile.readBytes()
+        val olderFiles = fixture.olderAutosaveIds.map {
+            File(fixture.root, "docs/${fixture.documentId}/rev/$it.fx1")
+        }
+        val deadline = now.get() + 500_000
+        val advancedOnce = AtomicBoolean(false)
+        // PRUNE_FSYNC fires after prune deleted all three revisions but just
+        // before the directory fsync that confirms their durability. The clock
+        // advance lands during this PRUNE_FSYNC step; the following fsync still
+        // succeeds and PruneResult returns deletesDurable=true, so the expired()
+        // early return must report all three deletions as pruned.
+        val fsyncDelay = StoreFaultInjector { point, _ ->
+            if (point == StoreFaultPoint.PRUNE_FSYNC && advancedOnce.compareAndSet(false, true)) {
+                now.set(deadline + 1)
+            }
+        }
+        val delayed = EncryptedStore(
+            fixture.root,
+            fixture.keystore,
+            clock = { now.get() },
+            faultInjector = fsyncDelay,
+        )
+
+        val report = delayed.startupRecovery(deadlineEpochMs = deadline)
+
+        assertTrue("a deadline reached at prune fsync must be reported", report.deadlineReached)
+        assertEquals("durable prune deletions must be counted before the expiry return", 3, report.prunedRevisions)
+        assertEquals("a deadline stop must not mark the aggregate unreadable (SAVE-003)", 0, report.unreadableAggregates)
+        olderFiles.forEach { assertFalse("the durable prune deletion must stand", it.exists()) }
+        assertArrayEquals("no shortened head may be committed after expiry", headBefore, headFile.readBytes())
+        val event = File(fixture.root, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(event.contains("\"deadlineReached\":true"))
+        assertTrue(event.contains("\"prunedRevisions\":3"))
+    }
+
+    @Test
     fun startupRecoverySurvivesAProviderOutageAndSkipsTheAliasSweep() {
         createDoc()
         backend.providerAvailableFlag = false
