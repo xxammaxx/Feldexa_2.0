@@ -27,6 +27,12 @@ Added sections: none
 Removed sections: none
 Follow-up TODOs: none. Earlier 1.0.0 report retained below as history.
 
+Provenance: produced through the registered `speckit.constitution` command
+(`.opencode/commands/speckit.constitution.md`); the active template was resolved
+with `.specify/scripts/bash/resolve-template.sh constitution-template --json`;
+`.specify/extensions.yml` registers no hooks. Owner approved the PATCH on
+2026-11-17.
+
 Previous 1.0.0 ratification (2026-11-12):
 
 Rationale for 1.0.0: This is the first ratified baseline of project governance.
