@@ -69,7 +69,12 @@ final class AndroidPlatformRuntime {
   }
 
   /// Runs the native T026 startup recovery (storage-format §4 native steps
-  /// 1–3 and 5–6). T031 calls this after the Dart export-preview step 4.
-  Future<AndroidRecoveryReport> runStartupRecovery() =>
-      store.runStartupRecovery();
+  /// 1–3 and 5–6).
+  ///
+  /// [deadlineEpochMs] is the bounded runner's absolute deadline; the native
+  /// store stops at its next destructive action once reached and reports
+  /// `deadlineReached` with partial counts. Absent means the unbounded
+  /// behavior used by callers that do not run under the startup bound.
+  Future<AndroidRecoveryReport> runStartupRecovery({int? deadlineEpochMs}) =>
+      store.runStartupRecovery(deadlineEpochMs: deadlineEpochMs);
 }

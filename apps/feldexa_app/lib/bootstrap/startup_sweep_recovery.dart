@@ -28,6 +28,7 @@ final class StartupRecoveryCounts {
     required this.aliasSweepSkipped,
     required this.ambiguousRevisionOrder,
     required this.prunedRevisions,
+    this.deadlineReached = false,
   });
 
   /// The all-zero result used when the target has no native recovery.
@@ -41,7 +42,8 @@ final class StartupRecoveryCounts {
       orphanAliasesFailed = 0,
       aliasSweepSkipped = false,
       ambiguousRevisionOrder = 0,
-      prunedRevisions = 0;
+      prunedRevisions = 0,
+      deadlineReached = false;
 
   /// Stale or unknown `tmp/` entries removed by the native recovery.
   final int tempEntriesRemoved;
@@ -73,6 +75,14 @@ final class StartupRecoveryCounts {
   /// Revision files pruned by the native retention step.
   final int prunedRevisions;
 
+  /// Whether the native recovery stopped because it reached the caller's
+  /// deadline before completing every step.
+  ///
+  /// A true value means the counts are partial and the native layer deleted
+  /// nothing after the deadline. It also makes the run degraded; a stopped
+  /// recovery is never presented as a complete success.
+  final bool deadlineReached;
+
   /// Whether the native recovery reported any removal or adoption.
   bool get repairedAnything =>
       tempEntriesRemoved > 0 ||
@@ -83,15 +93,17 @@ final class StartupRecoveryCounts {
 
   /// Whether the native recovery reported a condition that is not clean.
   ///
-  /// `aliasSweepSkipped` and `ambiguousRevisionOrder` are included because the
-  /// Dart layer must not present a skipped or ambiguous reconciliation as a
-  /// complete success. `orphanAliasesRetained` is not a failure: the contract
-  /// deliberately retains aliases whose aggregate directory still exists.
+  /// `aliasSweepSkipped`, `ambiguousRevisionOrder`, and `deadlineReached` are
+  /// included because the Dart layer must not present a skipped, ambiguous, or
+  /// deadline-stopped reconciliation as a complete success.
+  /// `orphanAliasesRetained` is not a failure: the contract deliberately
+  /// retains aliases whose aggregate directory still exists.
   bool get hasProblem =>
       unreadableAggregates > 0 ||
       orphanAliasesFailed > 0 ||
       aliasSweepSkipped ||
-      ambiguousRevisionOrder > 0;
+      ambiguousRevisionOrder > 0 ||
+      deadlineReached;
 
   @override
   String toString() =>
@@ -102,7 +114,16 @@ final class StartupRecoveryCounts {
 
 /// One platform native startup-recovery invocation.
 ///
+/// [deadlineEpochMs] is an absolute epoch-millisecond deadline supplied by the
+/// bounded startup runner. When absent the native recovery keeps today's
+/// unbounded behavior. When present the native layer checks it before every
+/// destructive action, stops deleting once reached, returns partial counts plus
+/// `deadlineReached: true`, and still writes the redacted step-6 event. The
+/// contract-visible Dart layer never deletes after such a stop.
+///
 /// On Android the composition root binds this to
 /// `AndroidPlatformRuntime.runStartupRecovery`; on the Web it stays `null`
 /// because there is no native store to recover.
-typedef NativeStartupRecovery = Future<StartupRecoveryCounts> Function();
+typedef NativeStartupRecovery = Future<StartupRecoveryCounts> Function({
+  int? deadlineEpochMs,
+});

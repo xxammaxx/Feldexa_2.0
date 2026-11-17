@@ -225,6 +225,19 @@ first. Step 4 is bounded and deletes only entries from the dedicated export
 directory; it never touches an aggregate, a KEK alias, a revision, or a source
 byte. Its failure is reported, never silently skipped.
 
+**Bounded native recovery (normative).** The native recovery accepts one
+optional absolute deadline. When it is absent the recovery is unbounded, as
+before. When it is present, the store checks it before every destructive action
+— at each step boundary and inside each per-entry loop, including signature
+assets and orphan aliases. Once the deadline is reached, no further delete,
+prune, head commit, or alias removal starts; the recovery returns its partial
+counts with `deadlineReached: true` and still writes the redacted step-6 event
+last. Work already in flight inside one native step may finish before its next
+check. A deadline stop never turns into a success: the caller reports a
+degraded startup, and no Dart deletion or contract-visible read follows it.
+The deadline adds no deletion candidate and changes nothing about what may be
+deleted.
+
 Recovery never deletes a visible document/template, never re-encrypts, and never renames an aggregate.
 
 ---

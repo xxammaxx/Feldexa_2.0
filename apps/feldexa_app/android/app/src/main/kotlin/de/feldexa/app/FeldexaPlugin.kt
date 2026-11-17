@@ -1862,7 +1862,10 @@ private class MethodCatalog(private val limits: ChannelLimits) {
                 ),
             ),
         ),
-        MethodSpec("store.startupRecovery", emptyList()),
+        MethodSpec(
+            "store.startupRecovery",
+            listOf(LongRule("deadlineEpochMs", 1L, Long.MAX_VALUE, required = false)),
+        ),
         MethodSpec("store.readSource", listOf(UuidRule("documentId"))),
         MethodSpec(
             "store.readSignature",

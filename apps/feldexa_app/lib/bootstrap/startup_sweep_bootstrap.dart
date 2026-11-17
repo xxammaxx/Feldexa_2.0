@@ -89,7 +89,9 @@ List<StartupSweepNotice> startupRecoveryNotices(
 }
 
 /// One startup sweep invocation.
-typedef StartupSweepRun = Future<StartupSweepResult> Function();
+typedef StartupSweepRun = Future<StartupSweepResult> Function({
+  int? deadlineEpochMs,
+});
 
 /// Runs [run] with a hard upper bound and converts every failure to a state.
 ///
@@ -99,25 +101,32 @@ typedef StartupSweepRun = Future<StartupSweepResult> Function();
 /// * [StartupSweepStartup.failed] when [run] throws synchronously or
 ///   asynchronously.
 ///
-/// The timeout bounds the CALLER'S wait. Dart has no cancellation for an
-/// arbitrary future, so this function also invokes [onTimeout] when the bounded
-/// wait expires. The production caller passes `StartupSweep.cancel`, whose
-/// cooperative checkpoints stop the sweep before its next store read or `tmp/`
-/// deletion, so a timed-out run does not keep mutating the store in the
-/// background. The step-4 plaintext export-preview pass deliberately runs
-/// first and is not cancelled; it is bounded, and a failure is reported rather
-/// than skipped (§4 order, owner decision 2026-11-17). The eventual result or
-/// error is consumed so it cannot become an unhandled asynchronous error, and
-/// the UI receives a degraded startup state with a visible German notice; it
-/// must not claim success.
+/// The timeout bounds the CALLER'S wait. It is converted into one absolute
+/// `deadlineEpochMs` value and passed into [run]: the production sweep forwards
+/// it to the native recovery, which checks it before each step and before each
+/// destructive action, so no new deletion starts after the deadline. The
+/// production caller also passes `StartupSweep.cancel` as [onTimeout]; that
+/// cooperative token stops the Dart staging pass, reads, and `tmp/` deletions
+/// after a timeout. Work already in flight inside one native step may complete
+/// before its next deadline check; this is the documented residual. The step-4
+/// plaintext export-preview pass deliberately runs first and is not cancelled;
+/// it is bounded, and a failure is reported rather than skipped (§4 order,
+/// owner decision 2026-11-17). The eventual result or error is consumed so it
+/// cannot become an unhandled asynchronous error, and the UI receives a
+/// degraded startup state with a visible German notice; it must not claim
+/// success.
 Future<StartupSweepStartup> runStartupSweepBounded({
   required StartupSweepRun run,
   Duration timeout = const Duration(seconds: 5),
   void Function()? onTimeout,
 }) async {
+  final int deadlineEpochMs = DateTime.now()
+      .toUtc()
+      .add(timeout)
+      .millisecondsSinceEpoch;
   final Future<StartupSweepResult> operation;
   try {
-    operation = run();
+    operation = run(deadlineEpochMs: deadlineEpochMs);
   } catch (_) {
     return const StartupSweepStartup(failed: true);
   }
@@ -126,7 +135,8 @@ Future<StartupSweepStartup> runStartupSweepBounded({
     return StartupSweepStartup(result: result);
   } on TimeoutException {
     // The sweep is still running; request the cooperative stop before the
-    // caller is told the wait expired.
+    // caller is told the wait expired. The native call already received the
+    // same absolute deadline and stops at its next check.
     onTimeout?.call();
     unawaited(
       operation.then<void>(

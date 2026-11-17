@@ -23,8 +23,10 @@ NativeStartupRecovery? platformStartupRecovery(Object? runtime) {
   if (runtime is! AndroidPlatformRuntime) {
     return null;
   }
-  return () async {
-    final AndroidRecoveryReport report = await runtime.runStartupRecovery();
+  return ({int? deadlineEpochMs}) async {
+    final AndroidRecoveryReport report = await runtime.runStartupRecovery(
+      deadlineEpochMs: deadlineEpochMs,
+    );
     return StartupRecoveryCounts(
       tempEntriesRemoved: report.tempEntriesRemoved,
       incompleteAggregatesRemoved: report.incompleteAggregatesRemoved,
@@ -36,6 +38,7 @@ NativeStartupRecovery? platformStartupRecovery(Object? runtime) {
       aliasSweepSkipped: report.aliasSweepSkipped,
       ambiguousRevisionOrder: report.ambiguousRevisionOrder,
       prunedRevisions: report.prunedRevisions,
+      deadlineReached: report.deadlineReached,
     );
   };
 }

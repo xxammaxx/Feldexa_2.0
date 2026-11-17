@@ -845,6 +845,71 @@ class EncryptedStoreTest {
     }
 
     @Test
+    fun startupRecoveryDeadlineStopsBeforeEveryDestructiveStep() {
+        val created = createDoc()
+        val assetId = newId()
+        store.writeSignature(created.aggregateId, assetId, TestPng.validRgba(10, 10))
+        val sigDir = docFile(created.aggregateId, "sig")
+        setOldSignature(sigDir, assetId)
+        val staleTmp = File(storeRoot, "tmp/unknown-deadline-entry")
+        staleTmp.writeText("x")
+        val orphanRef = AggregateRef(AggregateKind.DOCUMENT, newId())
+        keystore.createAggregateKey(orphanRef)
+        val aliasesBefore = backend.listAliases().toSet()
+        val metaBefore = docFile(created.aggregateId, "meta.fx1").readBytes()
+        val headBefore = docFile(created.aggregateId, "head.fx1").readBytes()
+        val revBefore = docFile(created.aggregateId, "rev/${created.revisionId}.fx1").readBytes()
+
+        val report = store.startupRecovery(deadlineEpochMs = now.get() - 1)
+
+        assertTrue("an expired deadline must be reported", report.deadlineReached)
+        assertEquals(0, report.tempEntriesRemoved)
+        assertEquals(0, report.incompleteAggregatesRemoved)
+        assertEquals(0, report.prunedRevisions)
+        assertTrue("the stale tmp entry must be kept", staleTmp.exists())
+        assertTrue("the unreferenced signature must be kept", File(sigDir, "$assetId.fxs").exists())
+        assertEquals("no alias may be removed", aliasesBefore, backend.listAliases())
+        assertArrayEquals(metaBefore, docFile(created.aggregateId, "meta.fx1").readBytes())
+        assertArrayEquals(headBefore, docFile(created.aggregateId, "head.fx1").readBytes())
+        assertArrayEquals(
+            revBefore,
+            docFile(created.aggregateId, "rev/${created.revisionId}.fx1").readBytes(),
+        )
+        val event = File(storeRoot, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(event.contains("\"deadlineReached\":true"))
+        assertTrue(event.contains("\"tempRemoved\":0"))
+        assertFalse(event.contains(assetId))
+    }
+
+    @Test
+    fun startupRecoveryDeadlineStopsInsideThePerEntryLoop() {
+        val reads = AtomicLong(0)
+        val ticking = EncryptedStore(
+            storeRoot,
+            keystore,
+            clock = { now.get() + reads.getAndIncrement() },
+        )
+        ticking.ensureLayout()
+        val entries = (0 until 5).map {
+            File(storeRoot, "tmp/unknown-ticking-$it").apply { writeText("x") }
+        }
+
+        val report = ticking.startupRecovery(deadlineEpochMs = now.get() + 5)
+
+        assertTrue("the in-loop deadline must be reported", report.deadlineReached)
+        assertTrue(
+            "the deadline must stop before the whole tmp/ list is deleted",
+            report.tempEntriesRemoved in 1 until entries.size,
+        )
+        val remaining = entries.count { it.exists() }
+        assertEquals(entries.size - report.tempEntriesRemoved, remaining)
+        assertTrue("at least one entry must survive the stop", remaining > 0)
+        val event = File(storeRoot, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(event.contains("\"deadlineReached\":true"))
+        assertTrue(event.contains("\"tempRemoved\":${report.tempEntriesRemoved}"))
+    }
+
+    @Test
     fun startupRecoverySurvivesAProviderOutageAndSkipsTheAliasSweep() {
         createDoc()
         backend.providerAvailableFlag = false

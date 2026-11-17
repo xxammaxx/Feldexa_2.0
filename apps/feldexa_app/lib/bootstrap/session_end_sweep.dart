@@ -28,6 +28,16 @@ import 'package:flutter/widgets.dart';
 
 import 'startup_sweep.dart';
 
+/// Redacted category of an unexpected session-end sweep failure.
+///
+/// The raw exception is never forwarded: its message may carry a path, title,
+/// or document content, which Constitution Principle VI forbids in a
+/// diagnostics surface.
+enum SessionEndSweepFailure {
+  /// The sweep threw before it could report removal counts.
+  sweepFailed,
+}
+
 /// Production caller of [StartupSweep.sweepSessionEnd] on session end.
 ///
 /// Register it with `WidgetsBinding.instance.addObserver` and remove it again in
@@ -35,15 +45,16 @@ import 'startup_sweep.dart';
 final class SessionEndSweepBinding extends WidgetsBindingObserver {
   /// Creates the binding for [sweep].
   ///
-  /// [onError] receives an unexpected failure so the owner can record it; the
-  /// framework callback itself never throws.
+  /// [onError] receives only a redacted [SessionEndSweepFailure] category, never
+  /// the exception object, path, name, title, or content. The framework callback
+  /// itself never throws.
   SessionEndSweepBinding({required this.sweep, this.onError});
 
   /// The sweep whose export-preview directory is cleaned at session end.
   final StartupSweep sweep;
 
-  /// Optional redacted failure hook; receives no path, name, or content.
-  final void Function(Object error)? onError;
+  /// Optional redacted failure hook; receives only a failure category.
+  final void Function(SessionEndSweepFailure failure)? onError;
 
   /// Lifecycle states that end the current editing session for this shell.
   static const Set<AppLifecycleState> sessionEndStates = <AppLifecycleState>{
@@ -87,8 +98,10 @@ final class SessionEndSweepBinding extends WidgetsBindingObserver {
   Future<StartupSweepRemoval?> _run() async {
     try {
       return await sweep.sweepSessionEnd();
-    } catch (error) {
-      onError?.call(error);
+    } catch (_) {
+      // Never forward the raw exception: it may contain a path, title, or
+      // document content. The category is the only diagnostics surface.
+      onError?.call(SessionEndSweepFailure.sweepFailed);
       return null;
     }
   }

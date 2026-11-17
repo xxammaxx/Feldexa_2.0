@@ -154,6 +154,36 @@ class SignatureSweepInstrumentedTest {
         )
     }
 
+    @Test
+    fun expiredDeadlineKeepsTmpAndSignatureOnDevice() {
+        val assetId = newId()
+        val document = createDocument(revision(1))
+        store.writeSignature(
+            document.aggregateId,
+            assetId,
+            AndroidTestPng.validRgba(11, 11),
+        )
+        val sigDir = File(root, "docs/${document.aggregateId}/sig")
+        setOld(sigDir, assetId)
+        val staleTmp = File(root, "tmp/unknown-deadline-entry")
+        staleTmp.writeText("x")
+
+        val report = store.startupRecovery(
+            deadlineEpochMs = System.currentTimeMillis() - 1,
+        )
+
+        assertTrue("the deadline stop must be reported", report.deadlineReached)
+        assertTrue("the stale tmp entry must survive", staleTmp.exists())
+        assertTrue(
+            "the old unreferenced signature must survive the deadline stop",
+            File(sigDir, "$assetId.fxs").exists(),
+        )
+        val event = File(root, "diagnostics/redacted.jsonl").readLines().last()
+        assertTrue(event.contains("\"deadlineReached\":true"))
+        assertTrue(event.contains("\"signatureAssetsRemoved\":0"))
+        assertFalse("the event must stay counts-only", event.contains(assetId))
+    }
+
     private fun createDocument(revisionJson: ByteArray): CreateReceipt {
         val documentId = newId()
         return store.createDocument(

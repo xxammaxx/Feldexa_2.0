@@ -181,6 +181,35 @@ class FeldexaPluginTest {
     }
 
     @Test
+    fun startupRecoveryAcceptsTheOptionalDeadlineField() {
+        val facade = newFacade(service = ReturningService(mapOf("deadlineReached" to false)))
+        val reply = RecordingReply()
+
+        facade.handle(
+            "store.startupRecovery",
+            mapOf("schemaVersion" to 1, "deadlineEpochMs" to 1_760_000_000_000L),
+            reply,
+        )
+
+        assertNull(reply.failure)
+    }
+
+    @Test
+    fun startupRecoveryRejectsANonIntegerDeadline() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+
+        facade.handle(
+            "store.startupRecovery",
+            mapOf("schemaVersion" to 1, "deadlineEpochMs" to "soon"),
+            reply,
+        )
+
+        assertFailure(reply, "PLT-003")
+        assertEquals("platform.invalidInteger", reply.failure?.machineMessage)
+    }
+
+    @Test
     fun nonStringTopLevelKeyIsRejected() {
         val facade = newFacade()
         val reply = RecordingReply()

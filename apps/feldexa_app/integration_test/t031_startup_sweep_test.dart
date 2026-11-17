@@ -64,7 +64,7 @@ void main() {
       store: null,
       clock: const StartupSweepWallClock(),
       files: IoStartupSweepFileSystem(exportDirectory: exportsDirectory()),
-      nativeRecovery: () async =>
+      nativeRecovery: ({int? deadlineEpochMs}) async =>
           throw StateError('injected native recovery failure'),
     );
 
@@ -94,6 +94,7 @@ void main() {
 
     final Completer<StartupRecoveryCounts> gate =
         Completer<StartupRecoveryCounts>();
+    int? seenDeadline;
     addTearDown(() {
       if (!gate.isCompleted) {
         gate.complete(const StartupRecoveryCounts.none());
@@ -103,18 +104,25 @@ void main() {
       store: null,
       clock: const StartupSweepWallClock(),
       files: IoStartupSweepFileSystem(exportDirectory: exportsDirectory()),
-      nativeRecovery: () => gate.future,
+      nativeRecovery: ({int? deadlineEpochMs}) {
+        seenDeadline = deadlineEpochMs;
+        return gate.future;
+      },
     );
 
-    final Future<StartupSweepResult> operation = sweep.run();
+    late Future<StartupSweepResult> operation;
     final StartupSweepStartup startup = await runStartupSweepBounded(
-      run: () => operation,
+      run: ({int? deadlineEpochMs}) {
+        operation = sweep.run(deadlineEpochMs: deadlineEpochMs);
+        return operation;
+      },
       timeout: const Duration(milliseconds: 250),
       onTimeout: sweep.cancel,
     );
 
     expect(startup.timedOut, isTrue);
     expect(sweep.isCancelled, isTrue);
+    expect(seenDeadline, isNotNull);
     // Step 4 ran before the native call, so the timeout cannot skip it.
     expect(await preview.exists(), isFalse);
     final StartupSweepNotice notice = startupRecoveryNotices(startup).single;

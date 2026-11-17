@@ -4,11 +4,12 @@
 // (T031).
 //
 // Why this exists: `runStartupSweepBounded` bounds the CALLER'S wait. Dart has
-// no cancellation for an arbitrary future, so a plain `Future.timeout` would
-// leave a timed-out sweep performing native recovery, store reads, and
-// directory deletions after the shell already showed the start area. That is
-// post-timeout destructive work, and a comment saying "not stopped" is not a
-// fix.
+// no cancellation for an arbitrary future, and the native recovery is one
+// awaited channel call, so this token is the Dart-side cooperative stop. The
+// bounded runner also passes the same absolute deadline into the native
+// recovery, which checks it before every destructive action and reports
+// `deadlineReached`. Together they prevent new destructive work after the
+// deadline; work already in flight inside one native step may complete.
 //
 // This token is the cooperative stop signal. `StartupSweep.run()` checks it
 // before every store read and before every non-export deletion, so once the

@@ -21,6 +21,7 @@ import 'package:feldexa_app/bootstrap/startup_sweep_io.dart';
 import 'package:feldexa_app/bootstrap/startup_sweep_bootstrap.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_app/main.dart';
+import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:flutter/widgets.dart' show AppLifecycleState, Locale, SizedBox;
 import 'package:flutter_test/flutter_test.dart';
 
@@ -62,7 +63,8 @@ void main() {
       'a hang becomes a bounded timeout, never a crash or success',
       () async {
         final StartupSweepStartup startup = await runStartupSweepBounded(
-          run: () => Completer<StartupSweepResult>().future,
+          run: ({int? deadlineEpochMs}) =>
+              Completer<StartupSweepResult>().future,
           timeout: const Duration(milliseconds: 20),
         );
 
@@ -76,7 +78,8 @@ void main() {
 
     test('a thrown sweep becomes a degraded failure, never a crash', () async {
       final StartupSweepStartup startup = await runStartupSweepBounded(
-        run: () async => throw StateError('startup sweep failed'),
+        run: ({int? deadlineEpochMs}) async =>
+            throw StateError('startup sweep failed'),
       );
 
       expect(startup.timedOut, isFalse);
@@ -91,7 +94,7 @@ void main() {
         status: StartupSweepStatus.clean,
       );
       final StartupSweepStartup startup = await runStartupSweepBounded(
-        run: () async => result,
+        run: ({int? deadlineEpochMs}) async => result,
       );
 
       expect(startup.result, same(result));
@@ -105,7 +108,7 @@ void main() {
         status: StartupSweepStatus.degraded,
       );
       final StartupSweepStartup startup = await runStartupSweepBounded(
-        run: () async => result,
+        run: ({int? deadlineEpochMs}) async => result,
       );
 
       expect(startup.result, same(result));
@@ -153,7 +156,8 @@ void main() {
 
     testWidgets('keeps the plain shell for a clean startup', (tester) async {
       final StartupSweepStartup startup = await runStartupSweepBounded(
-        run: () async => _result(status: StartupSweepStatus.clean),
+        run: ({int? deadlineEpochMs}) async =>
+            _result(status: StartupSweepStatus.clean),
       );
 
       await tester.pumpWidget(FeldexaApp(startup: startup));
@@ -199,7 +203,8 @@ void main() {
       tester,
     ) async {
       final StartupSweepStartup startup = await runStartupSweepBounded(
-        run: () async => _result(status: StartupSweepStatus.degraded),
+        run: ({int? deadlineEpochMs}) async =>
+            _result(status: StartupSweepStatus.degraded),
       );
 
       expect(startup.isDegraded, isTrue);
@@ -303,7 +308,63 @@ void main() {
         AppLifecycleState.detached,
       });
     });
+
+    test(
+      'session-end failure hook receives only a redacted category',
+      () async {
+        final List<SessionEndSweepFailure> failures =
+            <SessionEndSweepFailure>[];
+        final StartupSweep sweep = StartupSweep(
+          store: null,
+          clock: _ThrowingClock('/private/cache/dokument-titel.pdf'),
+          files: _RecordingFileSystem(),
+        );
+        final SessionEndSweepBinding binding = SessionEndSweepBinding(
+          sweep: sweep,
+          onError: failures.add,
+        );
+
+        binding.didChangeAppLifecycleState(AppLifecycleState.paused);
+        final StartupSweepRemoval? removal = await binding.pending;
+
+        expect(removal, isNull);
+        expect(failures, <SessionEndSweepFailure>[
+          SessionEndSweepFailure.sweepFailed,
+        ]);
+        // The raw exception message contained a path and a title; the hook must
+        // receive neither.
+        final String received = failures.single.toString();
+        expect(received, isNot(contains('/private/cache')));
+        expect(received, isNot(contains('dokument-titel')));
+      },
+    );
   });
+}
+
+/// Fixed clock that throws a diagnostic-looking message, used to prove the
+/// session-end failure hook receives only a redacted category.
+final class _ThrowingClock implements ClockPort {
+  _ThrowingClock(this.message);
+
+  final String message;
+
+  @override
+  DateTime nowUtc() => throw StateError(message);
+
+  @override
+  CapabilityDescriptor get descriptor => _descriptor;
+
+  static final CapabilityDescriptor _descriptor = CapabilityDescriptor(
+    kind: CapabilityKind.clock,
+    adapterId: 'test.throwing.clock.v1',
+    version: '1',
+    isSimulated: true,
+    evidence: CapabilityEvidence.simulated(
+      adapterId: 'test.throwing.clock.v1',
+      simulatedReason: 'test.throwing-clock',
+    ),
+    supportedFeatures: const <String>[],
+  );
 }
 
 /// Minimal recording filesystem for the session-end wiring tests.

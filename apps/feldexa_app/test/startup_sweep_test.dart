@@ -104,7 +104,7 @@ void main() {
         store: store,
         clock: clock,
         files: files,
-        nativeRecovery: () async {
+        nativeRecovery: ({int? deadlineEpochMs}) async {
           trace.add('native');
           return const StartupRecoveryCounts.none();
         },
@@ -242,7 +242,8 @@ void main() {
           store: store,
           clock: _FixedClock(_now),
           files: files,
-          nativeRecovery: () async => throw KeystoreUnavailableException(),
+          nativeRecovery: ({int? deadlineEpochMs}) async =>
+              throw KeystoreUnavailableException(),
         ).run();
 
         expect(result.status, StartupSweepStatus.degraded);
@@ -292,7 +293,7 @@ void main() {
           store: store,
           clock: _FixedClock(_now),
           files: _FakeFileSystem(),
-          nativeRecovery: () async => native,
+          nativeRecovery: ({int? deadlineEpochMs}) async => native,
         ).run();
 
         expect(result.status, StartupSweepStatus.recovered);
@@ -991,7 +992,7 @@ void main() {
           store: store,
           clock: _FixedClock(_now),
           files: files,
-          nativeRecovery: () async {
+          nativeRecovery: ({int? deadlineEpochMs}) async {
             trace.add('native.start');
             await nativeGate.future;
             trace.add('native.end');
@@ -1001,7 +1002,7 @@ void main() {
 
         final Future<StartupSweepResult> operation = sweep.run();
         final StartupSweepStartup startup = await runStartupSweepBounded(
-          run: () => operation,
+          run: ({int? deadlineEpochMs}) => operation,
           timeout: const Duration(milliseconds: 10),
           onTimeout: sweep.cancel,
         );
@@ -1009,8 +1010,10 @@ void main() {
         expect(startup.timedOut, isTrue);
         expect(sweep.isCancelled, isTrue);
 
-        // The native call is monolithic: nothing can interrupt it mid-call, so
-        // its own completion is not preventable. Everything AFTER it is.
+        // Worst case: this fake ignores the deadline the harness passes. The
+        // production native store checks that same absolute deadline before
+        // every destructive action; even with a fake that does not, everything
+        // after it must stop once the caller's timeout cancels the sweep.
         nativeGate.complete();
         final StartupSweepResult result = await operation;
 
@@ -1024,6 +1027,110 @@ void main() {
         // A stopped run is never presented as success.
         expect(result.status, StartupSweepStatus.degraded);
         expect(result.isComplete, isFalse);
+      },
+    );
+
+    test(
+      'the bounded runner passes one absolute deadline into the run',
+      () async {
+        int? seenDeadline;
+        final StartupSweepStartup startup = await runStartupSweepBounded(
+          run: ({int? deadlineEpochMs}) async {
+            seenDeadline = deadlineEpochMs;
+            return const StartupSweepResult(
+              status: StartupSweepStatus.clean,
+              nativeRecovery: StartupRecoveryCounts.none(),
+              temporary: StartupSweepRemoval.empty,
+              exportPreviews: StartupSweepRemoval.empty,
+              aggregates: <AggregateRecovery>[],
+              notices: <StartupSweepNotice>[],
+              issues: <StartupSweepIssue>[],
+              boundReached: false,
+            );
+          },
+          timeout: const Duration(seconds: 1),
+        );
+
+        expect(startup.result, isNotNull);
+        expect(seenDeadline, isNotNull);
+        expect(
+          seenDeadline!,
+          greaterThan(DateTime.now().millisecondsSinceEpoch),
+        );
+      },
+    );
+
+    test(
+      'a native deadline stop prevents every later destructive pass',
+      () async {
+        final List<String> trace = <String>[];
+        final StoredMeta document = _meta(id: _id(1));
+        final _FakeStore store = _FakeStore(
+          trace: trace,
+          documents: <StoredMeta>[document],
+          stamps: <String, RecoveryStamp>{document.id: _healthyStamp()},
+        );
+        final _FakeFileSystem files = _FakeFileSystem(
+          trace: trace,
+          temporaryEntries: <StartupSweepEntry>[
+            _entry('${_id(20)}.part', const Duration(hours: 30)),
+          ],
+          exportArtifacts: <StartupSweepEntry>[
+            _entry('preview.pdf', const Duration(hours: 30)),
+          ],
+        );
+        int? seenDeadline;
+        final StartupSweep sweep = StartupSweep(
+          store: store,
+          clock: _FixedClock(_now),
+          files: files,
+          nativeRecovery: ({int? deadlineEpochMs}) async {
+            seenDeadline = deadlineEpochMs;
+            trace.add('native.deadline');
+            // Truthful partial counts: the fake stopped after one step.
+            return const StartupRecoveryCounts(
+              tempEntriesRemoved: 1,
+              incompleteAggregatesRemoved: 0,
+              unreadableAggregates: 0,
+              fallbackAdoptions: 0,
+              orphanAliasesRemoved: 0,
+              orphanAliasesRetained: 0,
+              orphanAliasesFailed: 0,
+              aliasSweepSkipped: false,
+              ambiguousRevisionOrder: 0,
+              prunedRevisions: 0,
+              deadlineReached: true,
+            );
+          },
+        );
+
+        final int deadline = _now.millisecondsSinceEpoch - 1;
+        final StartupSweepResult result = await sweep.run(
+          deadlineEpochMs: deadline,
+        );
+
+        expect(seenDeadline, deadline);
+        // Step 4 still runs first; nothing after the native deadline stop does.
+        expect(trace, <String>[
+          'export.list',
+          'export.delete:preview.pdf',
+          'native.deadline',
+        ]);
+        expect(files.deletedExports, <String>['preview.pdf']);
+        expect(files.deletedTemporary, isEmpty);
+        expect(store.calls, isEmpty);
+        expect(result.nativeRecovery.deadlineReached, isTrue);
+        expect(result.nativeRecovery.tempEntriesRemoved, 1);
+        expect(result.temporary.removed, 0);
+        expect(result.status, StartupSweepStatus.degraded);
+        expect(result.isComplete, isFalse);
+        expect(
+          result.issues.any(
+            (StartupSweepIssue value) =>
+                value.stage == StartupSweepStage.nativeRecovery,
+          ),
+          isTrue,
+        );
       },
     );
 
@@ -1048,7 +1155,7 @@ void main() {
           store: store,
           clock: _FixedClock(_now),
           files: files,
-          nativeRecovery: () async {
+          nativeRecovery: ({int? deadlineEpochMs}) async {
             trace.add('native');
             return const StartupRecoveryCounts.none();
           },
@@ -1095,12 +1202,12 @@ void main() {
           store: null,
           clock: _FixedClock(_now),
           files: files,
-          nativeRecovery: () => gate.future,
+          nativeRecovery: ({int? deadlineEpochMs}) => gate.future,
         );
 
         final Future<StartupSweepResult> operation = sweep.run();
         final StartupSweepStartup startup = await runStartupSweepBounded(
-          run: () => operation,
+          run: ({int? deadlineEpochMs}) => operation,
           timeout: const Duration(milliseconds: 10),
           onTimeout: sweep.cancel,
         );
@@ -1173,7 +1280,7 @@ void main() {
           store: null,
           clock: _FixedClock(_now),
           files: files,
-          nativeRecovery: () async =>
+          nativeRecovery: ({int? deadlineEpochMs}) async =>
               throw StateError('injected native failure'),
         );
 
@@ -1209,7 +1316,7 @@ void main() {
         store: null,
         clock: _FixedClock(_now),
         files: files,
-        nativeRecovery: () => gate.future,
+        nativeRecovery: ({int? deadlineEpochMs}) => gate.future,
       );
 
       final StartupSweepStartup startup = await runStartupSweepBounded(

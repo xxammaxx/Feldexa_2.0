@@ -13,11 +13,11 @@ Future<void> main() async {
     sweep = createAppStartupSweep();
     startup = sweep == null
         ? const StartupSweepStartup()
-        // The timeout bounds the caller's wait. `sweep.cancel` is the
-        // cooperative stop that keeps a timed-out run from any further store
-        // read or `tmp/` deletion after the shell already shows the start area;
-        // the bounded plaintext export-preview pass runs first and always
-        // completes.
+        // The timeout bounds the caller's wait. The bounded runner also passes
+        // one absolute deadline into the native recovery, which stops at its
+        // next destructive check; `sweep.cancel` is the cooperative stop for
+        // the Dart staging pass and reads. The bounded plaintext export-preview
+        // pass runs first and always completes.
         : await runStartupSweepBounded(run: sweep.run, onTimeout: sweep.cancel);
   } catch (_) {
     // Startup recovery must never crash the shell. A construction or platform

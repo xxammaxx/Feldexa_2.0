@@ -530,7 +530,7 @@ final class StartupSweep {
   ///
   /// Owner decision 2026-11-17 made step 4 first normative: stale plaintext
   /// export previews must be removed even when the native recovery fails or
-  /// times out, so the export-preview pass runs **before** the monolithic
+  /// times out, so the export-preview pass runs **before** the single bounded
   /// native call and is deliberately **not** subject to the cooperative
   /// cancellation token. It is bounded by [maxEntriesPerCategory], touches only
   /// the dedicated cache directory, and records an explicit issue if anything
@@ -541,13 +541,21 @@ final class StartupSweep {
   /// adapter cannot and deliberately reports no staging entries. No aggregate
   /// object, alias, revision, or source is ever a candidate for deletion here.
   ///
+  /// [deadlineEpochMs] is the bounded runner's absolute deadline. It is passed
+  /// unchanged to the native recovery, whose own per-step and per-entry checks
+  /// stop deleting at the next destructive action once it is reached. A native
+  /// `deadlineReached` result also stops the Dart staging pass and the
+  /// contract-visible reads, so no new destructive work follows the stop. Work
+  /// already in flight inside one native step may complete; the next action
+  /// does not start.
+  ///
   /// Cancellation checkpoints for the non-priority work: before the native
   /// recovery, before the staging pass, before each kind read, before each
   /// `recoveryStamp` read, and before each individual `tmp/` deletion. The
   /// export-preview pass above is the documented exception: it always runs. A
   /// cancelled run stops at the next checkpoint, performs no further read or
   /// non-export deletion, and returns a degraded result.
-  Future<StartupSweepResult> run() async {
+  Future<StartupSweepResult> run({int? deadlineEpochMs}) async {
     final DateTime nowUtc = clock.nowUtc().toUtc();
     final _SweepState state = _SweepState();
 
@@ -563,25 +571,32 @@ final class StartupSweep {
     );
 
     // Native steps 1–3 and 5–6. The callback is the T027 composition seam.
+    // [deadlineEpochMs] is the caller's absolute deadline; the native store
+    // checks it before every destructive action and stops at the next one.
     StartupRecoveryCounts native = const StartupRecoveryCounts.none();
     if (!_stopIfCancelled(state)) {
-      native = await _runNativeRecovery(state);
+      native = await _runNativeRecovery(state, deadlineEpochMs);
     }
 
-    // Secondary staging pass. The production Dart adapter cannot address the
-    // native `filesDir/feldexa/tmp` directory and returns no entries; native
-    // T026 owns that directory. The fake/file-system seam can still exercise
-    // this contract-identical fallback.
+    // Secondary staging pass. A native deadline stop or any cooperative stop
+    // skips it: no Dart deletion may follow a bounded native stop. The
+    // production Dart adapter cannot address the native `filesDir/feldexa/tmp`
+    // directory and returns no entries; native T026 owns that directory. The
+    // fake/file-system seam can still exercise this contract-identical fallback.
     StartupSweepRemoval temporary = StartupSweepRemoval.empty;
-    if (!_stopIfCancelled(state)) {
+    if (!state.nativeDeadlineReached && !_stopIfCancelled(state)) {
       temporary = await _sweepTemporary(nowUtc, state);
     }
 
     final List<AggregateRecovery> aggregates = <AggregateRecovery>[];
-    if (!state.nativeFailed && !state.cancelled && store != null) {
+    if (!state.nativeFailed &&
+        !state.nativeDeadlineReached &&
+        !state.cancelled &&
+        store != null) {
       // Contract-visible reads only after native reconciliation. A native
-      // failure or a missing production store skips these reads because they
-      // need the aggregate key; it does not skip the plaintext cleanup above.
+      // failure, a native deadline stop, or a missing production store skips
+      // these reads because they need the aggregate key; it does not skip the
+      // plaintext cleanup above.
       await _readKind(StoreKind.document, aggregates, state);
       await _readKind(StoreKind.template, aggregates, state);
     }
@@ -617,13 +632,23 @@ final class StartupSweep {
     return _sweepExportPreviews(clock.nowUtc().toUtc(), state, removeAll: true);
   }
 
-  Future<StartupRecoveryCounts> _runNativeRecovery(_SweepState state) async {
+  Future<StartupRecoveryCounts> _runNativeRecovery(
+    _SweepState state,
+    int? deadlineEpochMs,
+  ) async {
     final NativeStartupRecovery? callback = nativeRecovery;
     if (callback == null) {
       return const StartupRecoveryCounts.none();
     }
     try {
-      final StartupRecoveryCounts counts = await callback();
+      final StartupRecoveryCounts counts = await callback(
+        deadlineEpochMs: deadlineEpochMs,
+      );
+      if (counts.deadlineReached) {
+        // A deadline stop is a bounded, partial result: no Dart deletion or
+        // contract-visible read may follow it, and the run is degraded.
+        state.nativeDeadlineReached = true;
+      }
       if (counts.hasProblem) {
         state.addIssue(
           const StartupSweepIssue(stage: StartupSweepStage.nativeRecovery),
@@ -1035,6 +1060,7 @@ final class StartupSweep {
         state.issues.isNotEmpty ||
         state.boundReached ||
         state.cancelled ||
+        state.nativeDeadlineReached ||
         hasUnreadable ||
         native.hasProblem;
     final bool repaired =
@@ -1074,6 +1100,7 @@ final class _SweepState {
   final Set<String> _noticeKeys = <String>{};
   bool boundReached = false;
   bool nativeFailed = false;
+  bool nativeDeadlineReached = false;
   bool cancelled = false;
 
   void addIssue(StartupSweepIssue issue) {

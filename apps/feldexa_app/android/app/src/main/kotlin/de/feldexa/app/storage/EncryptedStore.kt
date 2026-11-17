@@ -1078,8 +1078,15 @@ class EncryptedStore(
      * Step 3 uses [signatureReferenceResolver] when a test injects it;
      * otherwise the default resolver is built below from the decrypted,
      * hash-verified revision and template-version plaintext.
+     *
+     * [deadlineEpochMs] is an optional absolute deadline. It is checked before
+     * every destructive action (step boundaries, per entry, per signature
+     * asset, per orphan alias). When reached, the method deletes nothing
+     * further, returns partial counts with `deadlineReached = true`, and still
+     * writes the redacted step-6 event. Work already in flight inside one
+     * native step may complete before its next check; no new action starts.
      */
-    fun startupRecovery(): RecoveryReport {
+    fun startupRecovery(deadlineEpochMs: Long? = null): RecoveryReport {
         ensureLayout()
         var tempRemoved = 0
         var incompleteRemoved = 0
@@ -1089,52 +1096,86 @@ class EncryptedStore(
         var pruned = 0
         var aliasSweepSkipped = false
         var aliasSweep = OrphanAliasSweep(0, 0, 0)
+        var deadlineReached = false
+
+        fun expired(): Boolean = deadlineEpochMs != null && clock() >= deadlineEpochMs
 
         // Step 1: tmp/ entries older than 24 h or with unknown names.
-        for (entry in io.list(tmpDir)) {
-            val known = TMP_NAME.matches(entry.name)
-            val stale = clock() - entry.lastModified() > STALE_TEMP_MS
-            if (!known || stale) {
-                if (io.deleteTree(entry)) tempRemoved++
+        if (!expired()) {
+            for (entry in io.list(tmpDir)) {
+                if (expired()) {
+                    deadlineReached = true
+                    break
+                }
+                val known = TMP_NAME.matches(entry.name)
+                val stale = clock() - entry.lastModified() > STALE_TEMP_MS
+                if (!known || stale) {
+                    if (expired()) {
+                        deadlineReached = true
+                        break
+                    }
+                    if (io.deleteTree(entry)) tempRemoved++
+                }
             }
+        } else {
+            deadlineReached = true
         }
 
         // Step 2: each aggregate.
-        for (kind in AggregateKind.entries) {
-            for (id in listAggregateIds(kind)) {
-                val ref = AggregateRef(kind, id)
-                withAggregateLock(ref) {
-                    if (!io.exists(fileFor(MetaObject(ref))) && isIncomplete(ref)) {
-                        if (io.deleteTree(aggregateDir(ref))) incompleteRemoved++
-                        return@withAggregateLock
+        if (!deadlineReached) {
+            aggregateLoop@ for (kind in AggregateKind.entries) {
+                for (id in listAggregateIds(kind)) {
+                    if (expired()) {
+                        deadlineReached = true
+                        break@aggregateLoop
                     }
-                    val health = recoverAggregate(ref)
-                    if (health.fellBackToOlderRevision) fallbacks++
-                    if (health.ambiguousRevisionOrder) ambiguousRevisionOrder++
-                    if (!health.readable) unreadable++
-                    if (health.readable &&
-                        kind == AggregateKind.DOCUMENT &&
-                        health.head != null
-                    ) {
-                        try {
-                            val prune = pruneDocumentFromHead(
-                                ref,
-                                health.head,
-                                newTxnId(),
-                            )
-                            if (prune.deletesDurable) pruned += prune.deleted
-                            if (prune.history != health.head.history) {
-                                commitHead(
+                    val ref = AggregateRef(kind, id)
+                    withAggregateLock(ref) {
+                        if (expired()) {
+                            deadlineReached = true
+                            return@withAggregateLock
+                        }
+                        if (!io.exists(fileFor(MetaObject(ref))) && isIncomplete(ref)) {
+                            if (expired()) {
+                                deadlineReached = true
+                                return@withAggregateLock
+                            }
+                            if (io.deleteTree(aggregateDir(ref))) incompleteRemoved++
+                            return@withAggregateLock
+                        }
+                        val health = recoverAggregate(ref)
+                        if (health.fellBackToOlderRevision) fallbacks++
+                        if (health.ambiguousRevisionOrder) ambiguousRevisionOrder++
+                        if (!health.readable) unreadable++
+                        if (health.readable &&
+                            kind == AggregateKind.DOCUMENT &&
+                            health.head != null
+                        ) {
+                            try {
+                                if (expired()) {
+                                    deadlineReached = true
+                                    return@withAggregateLock
+                                }
+                                val prune = pruneDocumentFromHead(
                                     ref,
-                                    health.head.copy(history = prune.history),
+                                    health.head,
                                     newTxnId(),
                                 )
+                                if (prune.deletesDurable) pruned += prune.deleted
+                                if (prune.history != health.head.history) {
+                                    commitHead(
+                                        ref,
+                                        health.head.copy(history = prune.history),
+                                        newTxnId(),
+                                    )
+                                }
+                            } catch (failure: Exception) {
+                                // Conservative restart: keep all revision files
+                                // and retry on the next startup/save.
                             }
-                        } catch (failure: Exception) {
-                            // Conservative restart: keep all revision files
-                            // and retry on the next startup/save.
                         }
                     }
+                    if (deadlineReached) break@aggregateLoop
                 }
             }
         }
@@ -1145,27 +1186,38 @@ class EncryptedStore(
         // event instead of looking like a clean, empty sweep.
         var signatureAssetsRemoved = 0
         var signatureSweepUncertainAggregates = 0
-        if (signatureReferenceResolver != null) {
-            signatureAssetsRemoved = sweepUnreferencedSignatures(signatureReferenceResolver)
-        } else {
-            val outcome = sweepUnreferencedSignaturesFromCommittedContent()
-            signatureAssetsRemoved = outcome.removed
-            signatureSweepUncertainAggregates = outcome.uncertainAggregates
+        if (!deadlineReached) {
+            if (signatureReferenceResolver != null) {
+                signatureAssetsRemoved = sweepUnreferencedSignatures(
+                    deadlineEpochMs,
+                    signatureReferenceResolver,
+                )
+                if (expired()) deadlineReached = true
+            } else {
+                val outcome = sweepUnreferencedSignaturesFromCommittedContent(deadlineEpochMs)
+                signatureAssetsRemoved = outcome.removed
+                signatureSweepUncertainAggregates = outcome.uncertainAggregates
+                if (outcome.stopped) deadlineReached = true
+            }
         }
 
         // Step 5: orphan aliases. A provider outage must not abort startup.
-        try {
-            aliasSweep = keystore.sweepOrphanAliases { ref ->
-                io.isDirectory(aggregateDir(ref))
+        if (!deadlineReached) {
+            try {
+                aliasSweep = keystore.sweepOrphanAliases(
+                    shouldStop = { expired() },
+                ) { ref ->
+                    io.isDirectory(aggregateDir(ref))
+                }
+                if (expired()) deadlineReached = true
+            } catch (failure: KeystoreUnavailableException) {
+                aliasSweepSkipped = true
             }
-        } catch (failure: KeystoreUnavailableException) {
-            aliasSweepSkipped = true
         }
 
-        // Step 6: redacted event, counts only. The contract does not enumerate
-        // the event fields, so the signature-sweep outcome is reported here
-        // rather than by adding a new `store.startupRecovery` response field
-        // (that would be a contract change).
+        // Step 6: redacted event, counts only. The event also carries the
+        // signature-sweep outcome and the deadline stop, because the contract
+        // does not enumerate the event fields.
         val event = linkedMapOf<String, Any?>(
             "type" to "startupRecovery",
             "tempRemoved" to tempRemoved,
@@ -1180,6 +1232,7 @@ class EncryptedStore(
             "orphanAliasesRetained" to aliasSweep.retainedAliases,
             "orphanAliasesFailed" to aliasSweep.failedAliases,
             "aliasSweepSkipped" to aliasSweepSkipped,
+            "deadlineReached" to deadlineReached,
         )
         writeRecoveryEvent(event)
 
@@ -1194,6 +1247,7 @@ class EncryptedStore(
             orphanAliasesRetained = aliasSweep.retainedAliases,
             orphanAliasesFailed = aliasSweep.failedAliases,
             aliasSweepSkipped = aliasSweepSkipped,
+            deadlineReached = deadlineReached,
         )
     }
 
@@ -1202,18 +1256,31 @@ class EncryptedStore(
      * deleted only when older than 24 h; referenced assets are never touched.
      * Production uses the default resolver below; tests can pin an explicit
      * reference map through this method.
+     *
+     * [deadlineEpochMs] stops the sweep before the next asset deletion.
      */
     fun sweepUnreferencedSignatures(
+        deadlineEpochMs: Long? = null,
         isReferenced: (documentId: String, assetId: String) -> Boolean,
     ): Int {
         var removed = 0
+        var stopped = false
+        fun expired(): Boolean = deadlineEpochMs != null && clock() >= deadlineEpochMs
         for (id in listAggregateIds(AggregateKind.DOCUMENT)) {
+            if (stopped || expired()) {
+                stopped = true
+                break
+            }
             val ref = AggregateRef(AggregateKind.DOCUMENT, id)
             removed += withAggregateLock(ref) {
                 var local = 0
                 val sigDir = File(aggregateDir(ref), "sig")
                 if (io.isDirectory(sigDir)) {
                     for (file in io.list(sigDir)) {
+                        if (expired()) {
+                            stopped = true
+                            return@withAggregateLock local
+                        }
                         if (!file.isFile) continue
                         if (!file.name.endsWith(".fxs")) continue
                         val assetId = file.name.removeSuffix(".fxs")
@@ -1229,6 +1296,10 @@ class EncryptedStore(
                         val stale = clock() - modified > STALE_TEMP_MS
                         if (!stale) continue
                         if (isReferenced(id, assetId)) continue
+                        if (expired()) {
+                            stopped = true
+                            return@withAggregateLock local
+                        }
                         if (io.delete(file)) local++
                     }
                 }
@@ -1250,15 +1321,21 @@ class EncryptedStore(
      *  * only direct `sig/<uuid>.fxs` files inside a document aggregate are
      *    candidates; nothing outside `sig/` is touched.
      *
-     * The returned [SignatureSweepOutcome] carries how many assets were removed
-     * and how many scans were uncertain. The caller writes both counts into the
-     * redacted §4 step 6 recovery event, so a run that deleted nothing because
-     * it could not read a revision is not silent. Neither count is added to the
-     * `store.startupRecovery` response, whose field set is contract-fixed.
+     * The returned [SignatureSweepOutcome] carries how many assets were removed,
+     * how many scans were uncertain, and whether a deadline stopped the sweep.
+     * The caller writes the counts and the deadline stop into the redacted §4
+     * step 6 recovery event, so a run that deleted nothing because it could not
+     * read a revision or reached its deadline is not silent.
      */
-    private fun sweepUnreferencedSignaturesFromCommittedContent(): SignatureSweepOutcome {
+    private fun sweepUnreferencedSignaturesFromCommittedContent(
+        deadlineEpochMs: Long? = null,
+    ): SignatureSweepOutcome {
+        fun expired(): Boolean = deadlineEpochMs != null && clock() >= deadlineEpochMs
+        if (expired()) return SignatureSweepOutcome(0, 0, stopped = true)
         if (!hasAnyDocumentSignatureAsset()) return SignatureSweepOutcome(0, 0)
+        if (expired()) return SignatureSweepOutcome(0, 0, stopped = true)
         val templateReferences = collectTemplateSignatureReferences()
+        if (expired()) return SignatureSweepOutcome(0, 0, stopped = true)
         if (templateReferences.uncertain) {
             // A template version that cannot be read may reference any asset in
             // any document; keep every asset and report the uncertain scan.
@@ -1267,6 +1344,7 @@ class EncryptedStore(
         var removed = 0
         var uncertain = 0
         for (id in listAggregateIds(AggregateKind.DOCUMENT)) {
+            if (expired()) return SignatureSweepOutcome(removed, uncertain, stopped = true)
             val ref = AggregateRef(AggregateKind.DOCUMENT, id)
             removed += withAggregateLock(ref) {
                 val references = collectDocumentSignatureReferences(ref)
@@ -1277,8 +1355,10 @@ class EncryptedStore(
                 sweepSignatureDirectory(
                     ref,
                     references.referenced + templateReferences.referenced,
+                    deadlineEpochMs,
                 )
             }
+            if (expired()) return SignatureSweepOutcome(removed, uncertain, stopped = true)
         }
         return SignatureSweepOutcome(removed, uncertain)
     }
@@ -1402,11 +1482,13 @@ class EncryptedStore(
     private fun sweepSignatureDirectory(
         ref: AggregateRef,
         referenced: Set<String>,
+        deadlineEpochMs: Long? = null,
     ): Int {
         val sigDir = File(aggregateDir(ref), "sig")
         if (!io.isDirectory(sigDir)) return 0
         var removed = 0
         for (file in io.list(sigDir)) {
+            if (deadlineEpochMs != null && clock() >= deadlineEpochMs) return removed
             if (!file.isFile || !file.name.endsWith(".fxs")) continue
             val assetId = file.name.removeSuffix(".fxs")
             if (!AggregateRef.isValidId(assetId)) continue
@@ -1418,6 +1500,7 @@ class EncryptedStore(
             if (modified <= 0L) continue
             if (clock() - modified <= STALE_TEMP_MS) continue
             if (referenced.contains(assetId)) continue
+            if (deadlineEpochMs != null && clock() >= deadlineEpochMs) return removed
             if (io.delete(file)) removed++
         }
         return removed
@@ -1435,11 +1518,13 @@ class EncryptedStore(
      * were deleted. [uncertainAggregates] counts the scans that could not read a
      * revision or template version and therefore deleted nothing; it is
      * reported in the redacted recovery event so a conservative keep is
-     * visible rather than silent.
+     * visible rather than silent. [stopped] is true when the caller deadline
+     * interrupted the sweep before every candidate was examined.
      */
     private data class SignatureSweepOutcome(
         val removed: Int,
         val uncertainAggregates: Int,
+        val stopped: Boolean = false,
     )
 
     /**
@@ -2852,6 +2937,7 @@ data class RecoveryReport(
     val aliasSweepSkipped: Boolean,
     val ambiguousRevisionOrder: Int = 0,
     val prunedRevisions: Int = 0,
+    val deadlineReached: Boolean = false,
 )
 
 // --------------------------------------------------------------------------
