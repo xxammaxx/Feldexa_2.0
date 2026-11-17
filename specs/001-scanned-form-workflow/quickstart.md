@@ -14,7 +14,7 @@ This guide proves the feature works end to end in the three evidence classes. It
 | Android SDK | platform 36, build-tools, `adb` | `sdkmanager --list_installed` |
 | JDK | 17 | `java -version` |
 | Chrome | 120+ | `google-chrome --version` |
-| Orca emulator tooling | exclusive allocation | `orca --help` |
+| Orca emulator tooling | Android backend, exclusive allocation, visible pane | `python3 tools/android/orca_emulator_preflight.py --avd <AVD> --json` |
 | PDF verification tools | `qpdf`, `pdfinfo`, `pdftoppm`, `pdftotext` (Poppler), `mutool` (MuPDF) | `qpdf --version`, `mutool -v` |
 | Image comparison | ImageMagick `compare` (optional) | `compare -version` |
 
@@ -29,6 +29,18 @@ flutter test --platform chrome
 ```
 
 Expected: zero analyzer issues; all suites pass; `tools/gate.sh` prints `evidence: SIMULATED` for browser tests and does **not** print an Android acceptance claim.
+
+Before any `EMULATOR` run, resolve the Orca executable (`ORCA_CLI_COMMAND`, else `orca-ide`; never bare `orca` on Linux outside an Orca terminal) and run the repository preflight against the exact AVD:
+
+```bash
+export TMPDIR="$PWD/build/tmpdir"   # quota-sufficient worktree storage
+mkdir -p "$TMPDIR"
+export JAVA_TOOL_OPTIONS="-Djava.io.tmpdir=$TMPDIR"
+python3 tools/android/orca_emulator_preflight.py \
+  --avd T025_Pixel7_API35_KVM_20261115 --json
+```
+
+It must PASS the Orca CLI/runtime, KVM, SDK components, writable temp space (the supplied `TMPDIR` and the effective `java.io.tmpdir` from `JAVA_TOOL_OPTIONS`/`JAVA_OPTS`/`GRADLE_OPTS`), the pinned Pixel 7/API 35/x86_64/4 GB AVD profile, a readable process list with at most one QEMU per AVD, boot, repeated transport probes, exact worktree/serial binding (the serial must be a device entry of the target AVD) and scrcpy stream metadata. That last check proves the stream binding and both scrcpy servers only; the visible pane and its frames are confirmed separately by the owner and are never inferred from metadata. The helper regression suite is `python3 -m unittest discover -s tools/android -p 'test_*.py'` (run from the repository root) or `cd tools/android && python3 -m unittest -v test_orca_emulator_preflight.py`. A failed check is `BLOCKED` for `EMULATOR` evidence; do not replace it with a headless-only or simulated run.
 
 ---
 
