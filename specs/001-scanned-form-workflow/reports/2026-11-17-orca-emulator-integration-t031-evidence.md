@@ -1,10 +1,10 @@
 # Orca-Emulator-Integration und T031-Gerätenachweis (2026-11-17)
 
-**Kandidat:** `056de35ec8af3d1ce7e8024a8c6666565655e8ca` (tree `f3dfbb5980681b9ffe242f177a69298600b6c3cc`, Branch `xxammaxx/feldexa-t031`, Worktree `/home/xxammaxx/feldexa-worktrees/t031`)
+**Kandidat:** `056de35ec8af3d1ce7e8024a8c6666565655e8ca` (tree `f3dfbb5980681b9ffe242f177a69298600b6c3cc`, Branch `xxammaxx/feldexa-t031`, Worktree `$HOME/feldexa-worktrees/t031`)
 **Orca-Worktree (Emulator-Bindung):** `5cfd8bbd…::$HOME/Schreibtisch/Feldexa_2.0/Feldexa_2.0`
 **Orca-Runtime:** `74b27cce…` (gekürzt), Orca `1.4.253`
 **Gerät:** `emulator-5554`, AVD `T025_Pixel7_API35_KVM_20261115`, Android 15 / API 35, `x86_64`, 4096 MiB AVD-RAM (Gast: 3920 MB sichtbar)
-**SDK:** `/home/xxammaxx/Android/Sdk`, `adb` 1.0.41 / 37.0.1-15733141, Emulator **37.2.13.0** (build 16740729)
+**SDK:** `$HOME/Android/Sdk`, `adb` 1.0.41 / 37.0.1-15733141, Emulator **37.2.13.0** (build 16740729)
 **Evidenzklasse:** `EMULATOR` für die Geräteprüfungen; Host-/JVM-Prüfungen ohne Laufzeitklasse.
 
 ---
@@ -14,7 +14,7 @@
 Die verbindliche Schnittstelle wurde aus der laufenden Installation geladen, nicht aus dem Netz angenommen:
 
 ```bash
-ORCA=/home/xxammaxx/.config/orca/linux-orca-cli-shim/orca   # ORCA_CLI_COMMAND
+ORCA=$HOME/.config/orca/linux-orca-cli-shim/orca   # ORCA_CLI_COMMAND
 $ORCA skills get orca-emulator-android
 $ORCA emulator --help
 ```
@@ -51,9 +51,9 @@ eine Neuinstallation war nicht erforderlich.
 |---|---|
 | AVD | `T025_Pixel7_API35_KVM_20261115` (Pixel 7, API 35, x86_64, 4 GB) |
 | Seriell | `emulator-5554` |
-| Orca-Worktree | `5cfd8bbd-7af0-43a2-b81d-7e8d50eda284::/home/xxammaxx/Schreibtisch/Feldexa_2.0/Feldexa_2.0` |
+| Orca-Worktree | `5cfd8bbd…::$HOME/Schreibtisch/Feldexa_2.0/Feldexa_2.0` |
 | Orca-Session | `deviceUdid=emulator-5554`, `streamUrl=scrcpy://emulator-5554`, `streamCodec=h264` |
-| Kandidaten-Worktree | `/home/xxammaxx/feldexa-worktrees/t031` (Git-Worktree, nicht separat Orca-verwaltet; Test läuft auf demselben exklusiven Gerät) |
+| Kandidaten-Worktree | `$HOME/feldexa-worktrees/t031` (Git-Worktree, nicht separat Orca-verwaltet; Test läuft auf demselben exklusiven Gerät) |
 
 `emulator list --json` band die Session an exakt diesen Worktree; `emulator devices` meldete
 `state=booted`, `apiLevel=35`, `name=T025_Pixel7_API35_KVM_20261115`.
@@ -128,10 +128,10 @@ für den Benutzer geöffnet.
 Befehl (identisches Gerät, exklusiv):
 
 ```bash
-export TMPDIR=/home/xxammaxx/feldexa-worktrees/t031/build/tmpdir
-export JAVA_HOME=/home/xxammaxx/.feldexa-toolchain/jdk
-export GRADLE_USER_HOME=/home/xxammaxx/feldexa-worktrees/t031/build/gradle-home
-export ANDROID_USER_HOME=/home/xxammaxx/feldexa-worktrees/t031/build/android-user-home
+export TMPDIR=$HOME/feldexa-worktrees/t031/build/tmpdir
+export JAVA_HOME=$HOME/.feldexa-toolchain/jdk
+export GRADLE_USER_HOME=$HOME/feldexa-worktrees/t031/build/gradle-home
+export ANDROID_USER_HOME=$HOME/feldexa-worktrees/t031/build/android-user-home
 export JAVA_TOOL_OPTIONS="-Djava.io.tmpdir=$TMPDIR"
 flutter test integration_test/t031_startup_sweep_test.dart -d emulator-5554
 ```
