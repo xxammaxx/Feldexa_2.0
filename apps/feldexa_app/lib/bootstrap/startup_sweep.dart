@@ -19,13 +19,16 @@
 // T026 recovery owns `contracts/storage-format.md` §4 steps 1–3 and 5–6
 // (stale `tmp/`, incomplete aggregates, head fallback, signature assets, orphan
 // KEK aliases, and the counts-only recovery event). Dart owns step 4, the
-// cache-directory export previews. Because the native call is monolithic, Dart
-// step 4 runs BEFORE it so that plaintext cleanup stays before native steps
-// 5–6; running it after the native call would put it after the final recovery
-// event. The Dart `tmp/` pass is a secondary safety net only; the production
-// Dart filesystem cannot address `filesDir/feldexa/tmp` and reports no staging
-// entries, so native T026 remains the owner there. On the Web the native seam
-// is `null` and the current shell has no production store; the sweep then does
+// cache-directory export previews. The native call is monolithic, so the
+// effective order is 4 → 1 → 2 → 3 → 5 → 6, NOT the strict §4 order
+// 1 → 2 → 3 → 4 → 5 → 6. Closing that deviation would require splitting the
+// native recovery into two calls so step 4 can sit exactly between native step
+// 3 and native step 5; that is a contract change and a later, separately
+// decided item, not a T031 implementation choice. The Dart `tmp/` pass is a
+// secondary safety net only; the production Dart filesystem cannot address
+// `filesDir/feldexa/tmp` and reports no staging entries, so native T026
+// remains the owner there. On the Web the native seam is `null` and the
+// current shell has no production store; the sweep then does
 // only its Web-safe directory pass and never invents aggregate state.
 //
 // Safety invariants:
@@ -134,6 +137,18 @@ abstract interface class StartupSweepFileSystem {
 
   /// Removes one entry returned by [listExportArtifacts].
   Future<void> deleteExportArtifact(StartupSweepEntry entry);
+}
+
+/// Optional reporting seam for entries a filesystem could not inspect.
+///
+/// A [StartupSweepFileSystem] implementation that rejects an unsafe entry name
+/// (for example a name with a path separator) or cannot stat an entry must not
+/// silently drop it: the count is carried into [StartupSweepRemoval.failed] and
+/// degrades the result. The count is redacted; no path, name, or content is
+/// exposed.
+abstract interface class StartupSweepInspectionReporter {
+  /// Returns and resets the number of rejected/uninspectable entries.
+  int takeInspectionFailures();
 }
 
 /// Directory stage of a [StartupSweepIssue].
@@ -475,21 +490,22 @@ final class StartupSweep {
     r'[0-9a-f]{12}\.(part|head|meta|src|sig|ver|restore)$',
   );
 
-  /// Runs the startup recovery in the required order.
+  /// Runs the startup recovery in the effective order 4 → 1 → 2 → 3 → 5 → 6.
   ///
   /// The native T026 call owns `contracts/storage-format.md` §4 steps 1–3 and
   /// steps 5–6: stale/unknown `tmp/`, incomplete aggregates and head fallback,
   /// unreferenced signatures, orphan KEK aliases, and the redacted counts-only
   /// recovery event. Dart owns step 4, the cache-directory export previews.
   ///
-  /// Because the native call is monolithic, Dart step 4 runs **before** the
-  /// native call. That is the only order that keeps step 4 before the native
-  /// step 5 alias sweep and step 6 recovery event; running it afterwards would
-  /// put plaintext cleanup after the final recovery event. The Dart `tmp/`
-  /// pass remains a secondary, contract-identical safety net for targets whose
-  /// filesystem seam can reach staging; the production Dart adapter cannot and
-  /// deliberately reports no staging entries. No aggregate object, alias,
-  /// revision, or source is ever a candidate for deletion here.
+  /// The native call is monolithic, so Dart step 4 necessarily runs **before**
+  /// it. This is a deviation from the strict §4 order 1 → 2 → 3 → 4 → 5 → 6,
+  /// not exact fulfilment. Closing it would require splitting the native
+  /// recovery into two calls so step 4 can sit exactly between native step 3
+  /// and native step 5; that is a contract change and a later, separately
+  /// decided item. The Dart `tmp/` pass remains a secondary safety net for
+  /// targets whose filesystem seam can reach staging; the production Dart
+  /// adapter cannot and deliberately reports no staging entries. No aggregate
+  /// object, alias, revision, or source is ever a candidate for deletion here.
   Future<StartupSweepResult> run() async {
     final DateTime nowUtc = clock.nowUtc().toUtc();
     final _SweepState state = _SweepState();
@@ -627,6 +643,7 @@ final class StartupSweep {
     try {
       entries = await files.listExportArtifacts();
     } on FeldexaException catch (error) {
+      final int rejected = _takeInspectionFailures();
       state.addIssue(
         StartupSweepIssue(
           stage: StartupSweepStage.exportSweep,
@@ -634,28 +651,30 @@ final class StartupSweep {
           retryable: error.retryable,
         ),
       );
-      return const StartupSweepRemoval(
-        scanned: 0,
+      return StartupSweepRemoval(
+        scanned: rejected,
         removed: 0,
         kept: 0,
-        failed: 0,
+        failed: rejected,
         boundReached: false,
         listingFailed: true,
       );
     } catch (_) {
+      final int rejected = _takeInspectionFailures();
       state.addIssue(
         const StartupSweepIssue(stage: StartupSweepStage.exportSweep),
       );
-      return const StartupSweepRemoval(
-        scanned: 0,
+      return StartupSweepRemoval(
+        scanned: rejected,
         removed: 0,
         kept: 0,
-        failed: 0,
+        failed: rejected,
         boundReached: false,
         listingFailed: true,
       );
     }
-    return _removeEntries(
+    final int rejected = _takeInspectionFailures();
+    final StartupSweepRemoval removal = await _removeEntries(
       entries: entries,
       stage: StartupSweepStage.exportSweep,
       state: state,
@@ -666,6 +685,31 @@ final class StartupSweep {
       // and reported instead of being deleted recursively.
       rejectDirectories: true,
     );
+    if (rejected <= 0) {
+      return removal;
+    }
+    // T031-A-3: rejected or uninspectable entries are redacted cleanup
+    // failures. The count is carried; no path, name, or content is surfaced.
+    state.addIssue(
+      const StartupSweepIssue(stage: StartupSweepStage.exportSweep),
+    );
+    return StartupSweepRemoval(
+      scanned: removal.scanned + rejected,
+      removed: removal.removed,
+      kept: removal.kept,
+      failed: removal.failed + rejected,
+      boundReached: removal.boundReached,
+      listingFailed: removal.listingFailed,
+    );
+  }
+
+  int _takeInspectionFailures() {
+    final StartupSweepFileSystem source = files;
+    if (source is StartupSweepInspectionReporter) {
+      return (source as StartupSweepInspectionReporter)
+          .takeInspectionFailures();
+    }
+    return 0;
   }
 
   Future<StartupSweepRemoval> _removeEntries({

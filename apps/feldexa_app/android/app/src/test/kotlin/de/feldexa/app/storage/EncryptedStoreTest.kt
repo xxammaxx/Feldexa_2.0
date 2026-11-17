@@ -733,6 +733,80 @@ class EncryptedStoreTest {
     }
 
     @Test
+    fun productionStoreSweepsOldUnreferencedSignatureAndKeepsReferenced() {
+        val unreferenced = newId()
+        val referenced = newId()
+        val revisionJson =
+            ("{\"pageCount\":1,\"signatures\":{\"field-1\":{" +
+                "\"assetId\":\"$referenced\"}}}").toByteArray()
+        val created = createDocWithRevision(revisionJson)
+        store.writeSignature(created.aggregateId, unreferenced, TestPng.validRgba(3, 3))
+        store.writeSignature(created.aggregateId, referenced, TestPng.validRgba(4, 4))
+        val sigDir = docFile(created.aggregateId, "sig")
+        setOldSignature(sigDir, unreferenced)
+        setOldSignature(sigDir, referenced)
+
+        store.startupRecovery()
+
+        assertFalse(File(sigDir, "$unreferenced.fxs").exists())
+        assertTrue(File(sigDir, "$referenced.fxs").exists())
+    }
+
+    @Test
+    fun signatureReferencedOnlyByTemplateVersionIsKept() {
+        val assetId = newId()
+        val created = createDoc()
+        store.writeSignature(created.aggregateId, assetId, TestPng.validRgba(5, 5))
+        val sigDir = docFile(created.aggregateId, "sig")
+        setOldSignature(sigDir, assetId)
+        val versionJson =
+            ("{\"pageCount\":1,\"templateUnknown\":{" +
+                "\"assetId\":\"$assetId\"}}").toByteArray()
+        store.createTemplate(
+            newId(),
+            meta("Vorlage"),
+            newId(),
+            "%PDF-1.7 template".toByteArray(),
+            newId(),
+            versionJson,
+        )
+
+        store.startupRecovery()
+
+        assertTrue(File(sigDir, "$assetId.fxs").exists())
+    }
+
+    @Test
+    fun freshUnreferencedSignatureIsKept() {
+        val assetId = newId()
+        val created = createDoc()
+        store.writeSignature(created.aggregateId, assetId, TestPng.validRgba(6, 6))
+        val sigDir = docFile(created.aggregateId, "sig")
+
+        store.startupRecovery()
+
+        assertTrue(File(sigDir, "$assetId.fxs").exists())
+    }
+
+    @Test
+    fun unreferencedSignatureIsKeptWhenARevisionIsCorrupt() {
+        val assetId = newId()
+        val created = createDoc()
+        store.writeSignature(created.aggregateId, assetId, TestPng.validRgba(7, 7))
+        val sigDir = docFile(created.aggregateId, "sig")
+        setOldSignature(sigDir, assetId)
+        val revDir = docFile(created.aggregateId, "rev")
+        File(revDir, "${newId()}.fx1").writeBytes("not-a-container".toByteArray())
+
+        store.startupRecovery()
+
+        assertTrue(
+            "an unreadable revision must make the sweep conservative",
+            File(sigDir, "$assetId.fxs").exists(),
+        )
+    }
+
+    @Test
     fun startupRecoverySurvivesAProviderOutageAndSkipsTheAliasSweep() {
         createDoc()
         backend.providerAvailableFlag = false
@@ -987,6 +1061,29 @@ class EncryptedStoreTest {
     private fun titleOf(meta: ByteArray): String? {
         val parsed = CanonicalJson.parse(meta) as? Map<*, *> ?: return null
         return parsed["title"] as? String
+    }
+
+    private fun createDocWithRevision(
+        revisionJson: ByteArray,
+        title: String = "Dokument",
+    ): CreateReceipt {
+        val documentId = newId()
+        return store.createDocument(
+            documentId,
+            meta(title),
+            newId(),
+            "%PDF-1.7 synthetic".toByteArray(),
+            newId(),
+            revisionJson,
+        )
+    }
+
+    private fun setOldSignature(sigDir: File, assetId: String) {
+        assertTrue(
+            File(sigDir, "$assetId.fxs").setLastModified(
+                now.get() - EncryptedStore.STALE_TEMP_MS - 1_000,
+            ),
+        )
     }
 
     private fun createDoc(

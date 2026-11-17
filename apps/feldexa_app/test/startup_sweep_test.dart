@@ -758,6 +758,214 @@ void main() {
       expect(await missing.exists(), isFalse);
     });
   });
+
+  group('export boundary and inspection failures', () {
+    Future<Directory> tempRoot() => Directory.systemTemp.createTemp('t031_io_');
+
+    test(
+      'a symlinked export root is refused and deletes nothing outside',
+      () async {
+        final Directory root = await tempRoot();
+        addTearDown(() async {
+          if (await root.exists()) {
+            await root.delete(recursive: true);
+          }
+        });
+        final Directory outside = Directory(
+          '${root.path}${Platform.pathSeparator}outside',
+        )..createSync();
+        final File outsideFile = File(
+          '${outside.path}${Platform.pathSeparator}keep.pdf',
+        )..writeAsStringSync('outside');
+        final String linkPath =
+            '${root.path}${Platform.pathSeparator}feldexa_exports';
+        await Link(linkPath).create(outside.path);
+        final IoStartupSweepFileSystem files = IoStartupSweepFileSystem(
+          exportDirectory: Directory(linkPath),
+        );
+
+        final StartupSweepResult result = await StartupSweep(
+          store: _FakeStore(),
+          clock: _FixedClock(_now),
+          files: files,
+        ).run();
+
+        expect(result.status, StartupSweepStatus.degraded);
+        expect(result.exportPreviews.listingFailed, isTrue);
+        expect(
+          result.issues.any(
+            (StartupSweepIssue value) => value.catalogCode == 'PLT-002',
+          ),
+          isTrue,
+        );
+        expect(await outsideFile.exists(), isTrue);
+      },
+    );
+
+    test(
+      'a symlinked entry inside the root is refused, outside file kept',
+      () async {
+        final Directory root = await tempRoot();
+        addTearDown(() async {
+          if (await root.exists()) {
+            await root.delete(recursive: true);
+          }
+        });
+        final Directory exports = Directory(
+          '${root.path}${Platform.pathSeparator}feldexa_exports',
+        )..createSync();
+        final Directory outside = Directory(
+          '${root.path}${Platform.pathSeparator}outside',
+        )..createSync();
+        final File outsideFile = File(
+          '${outside.path}${Platform.pathSeparator}keep.pdf',
+        )..writeAsStringSync('outside');
+        outsideFile.setLastModifiedSync(
+          _now.subtract(const Duration(hours: 30)),
+        );
+        final Link link = Link(
+          '${exports.path}${Platform.pathSeparator}link.pdf',
+        );
+        await link.create(outsideFile.path);
+        final _FakeStore store = _FakeStore();
+
+        final StartupSweepResult result = await StartupSweep(
+          store: store,
+          clock: _FixedClock(_now),
+          files: IoStartupSweepFileSystem(exportDirectory: exports),
+        ).run();
+
+        expect(result.status, StartupSweepStatus.degraded);
+        expect(result.exportPreviews.removed, 0);
+        expect(result.exportPreviews.failed, 1);
+        expect(await outsideFile.exists(), isTrue);
+        expect(await link.exists(), isTrue);
+        expect(store.deleteCalls, 0);
+      },
+    );
+
+    test('the adapter directly refuses a symlink entry deletion', () async {
+      final Directory root = await tempRoot();
+      addTearDown(() async {
+        if (await root.exists()) {
+          await root.delete(recursive: true);
+        }
+      });
+      final Directory exports = Directory(
+        '${root.path}${Platform.pathSeparator}feldexa_exports',
+      )..createSync();
+      final File outsideFile = File(
+        '${root.path}${Platform.pathSeparator}outside.pdf',
+      )..writeAsStringSync('outside');
+      final Link link = Link(
+        '${exports.path}${Platform.pathSeparator}link.pdf',
+      );
+      await link.create(outsideFile.path);
+      final IoStartupSweepFileSystem files = IoStartupSweepFileSystem(
+        exportDirectory: exports,
+      );
+
+      await expectLater(
+        files.deleteExportArtifact(
+          StartupSweepEntry(
+            name: 'link.pdf',
+            lastModifiedUtc: _now.subtract(const Duration(hours: 30)),
+          ),
+        ),
+        throwsA(isA<SecurityException>()),
+      );
+      expect(await outsideFile.exists(), isTrue);
+      expect(await link.exists(), isTrue);
+    });
+
+    test('a regular old file inside the real root is still deleted', () async {
+      final Directory root = await tempRoot();
+      addTearDown(() async {
+        if (await root.exists()) {
+          await root.delete(recursive: true);
+        }
+      });
+      final Directory exports = Directory(
+        '${root.path}${Platform.pathSeparator}feldexa_exports',
+      )..createSync();
+      final File old = File('${exports.path}${Platform.pathSeparator}old.pdf')
+        ..writeAsStringSync('old');
+      old.setLastModifiedSync(_now.subtract(const Duration(hours: 30)));
+
+      final StartupSweepResult result = await StartupSweep(
+        store: _FakeStore(),
+        clock: _FixedClock(_now),
+        files: IoStartupSweepFileSystem(exportDirectory: exports),
+      ).run();
+
+      expect(result.status, StartupSweepStatus.recovered);
+      expect(result.exportPreviews.removed, 1);
+      expect(await old.exists(), isFalse);
+    });
+
+    test('a rejected backslash name is a redacted cleanup failure', () async {
+      final Directory root = await tempRoot();
+      addTearDown(() async {
+        if (await root.exists()) {
+          await root.delete(recursive: true);
+        }
+      });
+      final Directory exports = Directory(
+        '${root.path}${Platform.pathSeparator}feldexa_exports',
+      )..createSync();
+      final File rejected = File(
+        '${exports.path}${Platform.pathSeparator}bad\\name.pdf',
+      )..writeAsStringSync('x');
+
+      final StartupSweepResult result = await StartupSweep(
+        store: _FakeStore(),
+        clock: _FixedClock(_now),
+        files: IoStartupSweepFileSystem(exportDirectory: exports),
+      ).run();
+
+      expect(result.status, StartupSweepStatus.degraded);
+      expect(result.exportPreviews.failed, 1);
+      expect(result.exportPreviews.scanned, 1);
+      expect(await rejected.exists(), isTrue);
+      expect(
+        result.issues.any(
+          (StartupSweepIssue value) =>
+              value.stage == StartupSweepStage.exportSweep,
+        ),
+        isTrue,
+      );
+      expect(result.issues.toString().contains('bad'), isFalse);
+      expect(result.exportPreviews.toString().contains('bad'), isFalse);
+    });
+
+    test('an uninspectable entry is a redacted cleanup failure', () async {
+      final Directory root = await tempRoot();
+      addTearDown(() async {
+        if (await root.exists()) {
+          await root.delete(recursive: true);
+        }
+      });
+      final Directory exports = Directory(
+        '${root.path}${Platform.pathSeparator}feldexa_exports',
+      )..createSync();
+      final Link broken = Link(
+        '${exports.path}${Platform.pathSeparator}broken.pdf',
+      );
+      await broken.create('${exports.path}${Platform.pathSeparator}missing');
+
+      final StartupSweepResult result = await StartupSweep(
+        store: _FakeStore(),
+        clock: _FixedClock(_now),
+        files: IoStartupSweepFileSystem(exportDirectory: exports),
+      ).run();
+
+      expect(result.status, StartupSweepStatus.degraded);
+      expect(result.exportPreviews.failed, 1);
+      expect(result.exportPreviews.scanned, 1);
+      expect(await broken.exists(), isTrue);
+      expect(result.issues.toString().contains('broken'), isFalse);
+    });
+  });
 }
 
 StartupSweep _buildDeterministicFixture() {

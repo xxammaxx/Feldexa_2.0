@@ -28,7 +28,8 @@ import 'package:feldexa_ports/feldexa_ports.dart';
 import 'startup_sweep.dart';
 
 /// Production filesystem adapter for the app-private export-preview cache.
-final class IoStartupSweepFileSystem implements StartupSweepFileSystem {
+final class IoStartupSweepFileSystem
+    implements StartupSweepFileSystem, StartupSweepInspectionReporter {
   /// Creates the adapter for [exportDirectory].
   ///
   /// When omitted, the dedicated directory is
@@ -40,6 +41,8 @@ final class IoStartupSweepFileSystem implements StartupSweepFileSystem {
 
   /// The single directory this adapter enumerates and deletes inside.
   final Directory exportDirectory;
+
+  int _inspectionFailures = 0;
 
   static Directory _defaultExportDirectory() {
     return Directory(
@@ -68,82 +71,159 @@ final class IoStartupSweepFileSystem implements StartupSweepFileSystem {
 
   /// Lists one level of the dedicated export directory.
   ///
-  /// Directories and symbolic links are reported as entries so the sweep can
-  /// classify them; deletion of a directory or link is refused below. A
-  /// missing directory yields an empty list.
+  /// A symlinked root is refused before enumeration. Directories and symbolic
+  /// links are reported as entries so the sweep can classify them; deletion of
+  /// a directory or link is refused below. A missing directory yields an empty
+  /// list. Rejected names and uninspectable entries are counted as redacted
+  /// inspection failures and never expose their name.
   @override
   Future<List<StartupSweepEntry>> listExportArtifacts() async {
+    _inspectionFailures = 0;
     final Directory root = exportDirectory;
-    if (!await root.exists()) {
+    final FileSystemEntityType rootType;
+    try {
+      rootType = await FileSystemEntity.type(root.path, followLinks: false);
+    } on FileSystemException {
+      _inspectionFailures++;
+      return const <StartupSweepEntry>[];
+    }
+    if (rootType == FileSystemEntityType.link) {
+      // T031 A-2: a symlinked export root is an escape boundary; refuse it.
+      throw SecurityException();
+    }
+    if (rootType == FileSystemEntityType.notFound) {
+      return const <StartupSweepEntry>[];
+    }
+    if (rootType != FileSystemEntityType.directory) {
+      // A file at the dedicated root is not a sweepable export directory.
+      _inspectionFailures++;
       return const <StartupSweepEntry>[];
     }
     final List<StartupSweepEntry> entries = <StartupSweepEntry>[];
-    await for (final FileSystemEntity entity in root.list(
-      recursive: false,
-      followLinks: false,
-    )) {
-      final FileSystemEntityType type = await FileSystemEntity.type(
-        entity.path,
+    try {
+      await for (final FileSystemEntity entity in root.list(
+        recursive: false,
         followLinks: false,
-      );
-      if (type == FileSystemEntityType.notFound) {
-        continue;
+      )) {
+        final FileSystemEntityType type;
+        try {
+          type = await FileSystemEntity.type(entity.path, followLinks: false);
+        } on FileSystemException {
+          _inspectionFailures++;
+          continue;
+        }
+        if (type == FileSystemEntityType.notFound) {
+          _inspectionFailures++;
+          continue;
+        }
+        if (type == FileSystemEntityType.link) {
+          // A symlink is never a safe export artifact. Count it as a redacted
+          // inspection failure; never follow it and never return it for
+          // deletion.
+          _inspectionFailures++;
+          continue;
+        }
+        final String name = entity.path.split(Platform.pathSeparator).last;
+        if (name.isEmpty || name == '.' || name == '..') {
+          _inspectionFailures++;
+          continue;
+        }
+        final FileStat stat;
+        try {
+          stat = await entity.stat();
+        } on FileSystemException {
+          // Uninspectable (for example a broken symlink): keep it untouched
+          // and report a redacted cleanup failure.
+          _inspectionFailures++;
+          continue;
+        }
+        try {
+          entries.add(
+            StartupSweepEntry(
+              name: name,
+              lastModifiedUtc: stat.modified.toUtc(),
+              isDirectory: type == FileSystemEntityType.directory,
+            ),
+          );
+        } on ArgumentError {
+          // The entry rejects a name that is not one safe path segment; the
+          // name is never surfaced, only counted.
+          _inspectionFailures++;
+          continue;
+        }
       }
-      final String name = entity.path.split(Platform.pathSeparator).last;
-      if (name.isEmpty || name == '.' || name == '..') {
-        continue;
-      }
-      final FileStat stat;
-      try {
-        stat = await entity.stat();
-      } on FileSystemException {
-        // A disappearing or broken entry is not a stable sweep candidate.
-        continue;
-      }
-      try {
-        entries.add(
-          StartupSweepEntry(
-            name: name,
-            lastModifiedUtc: stat.modified.toUtc(),
-            isDirectory: type == FileSystemEntityType.directory,
-          ),
-        );
-      } on ArgumentError {
-        // The sweep entry rejects a name that is not one safe path segment.
-        // Skipping it is safer than inventing a path.
-        continue;
-      }
+    } on FileSystemException {
+      _inspectionFailures++;
     }
     return List<StartupSweepEntry>.unmodifiable(entries);
   }
 
-  /// Deletes one previously enumerated file inside [exportDirectory].
+  /// Returns and resets the redacted rejected/uninspectable entry count.
+  @override
+  int takeInspectionFailures() {
+    final int value = _inspectionFailures;
+    _inspectionFailures = 0;
+    return value;
+  }
+
+  /// Deletes one previously enumerated regular file inside [exportDirectory].
   ///
-  /// A directory, symbolic link, or any non-regular entry is refused with the
-  /// canonical `PLT-002` path/operation guard. A file that is already gone is
-  /// treated as a successful no-op.
+  /// The root itself and every entry are resolved before deletion. A symlinked
+  /// root, a directory, a symbolic link, or any real path outside the resolved
+  /// real root is refused with canonical `PLT-002`. A file that is already
+  /// gone is treated as a successful no-op.
   @override
   Future<void> deleteExportArtifact(StartupSweepEntry entry) async {
     final Directory root = exportDirectory.absolute;
-    final String path = '${root.path}${Platform.pathSeparator}${entry.name}';
-    final String parent = File(path).parent.absolute.path;
-    if (parent != root.path) {
+    final FileSystemEntityType rootType;
+    try {
+      rootType = await FileSystemEntity.type(root.path, followLinks: false);
+    } on FileSystemException {
       throw SecurityException();
     }
-    final FileSystemEntityType type = await FileSystemEntity.type(
-      path,
-      followLinks: false,
-    );
+    if (rootType == FileSystemEntityType.link) {
+      throw SecurityException();
+    }
+    if (rootType == FileSystemEntityType.notFound) {
+      return;
+    }
+    if (rootType != FileSystemEntityType.directory) {
+      throw SecurityException();
+    }
+    final String rootReal;
+    try {
+      rootReal = await root.resolveSymbolicLinks();
+    } on FileSystemException {
+      throw SecurityException();
+    }
+    final String path = '${root.path}${Platform.pathSeparator}${entry.name}';
+    final FileSystemEntityType type;
+    try {
+      type = await FileSystemEntity.type(path, followLinks: false);
+    } on FileSystemException {
+      throw SecurityException();
+    }
     switch (type) {
-      case FileSystemEntityType.file:
-        await File(path).delete();
       case FileSystemEntityType.notFound:
         return;
+      case FileSystemEntityType.file:
+        break;
       case FileSystemEntityType.directory:
       case FileSystemEntityType.link:
       case FileSystemEntityType.pipe:
       case FileSystemEntityType.unixDomainSock:
         throw SecurityException();
     }
+    final String entryReal;
+    try {
+      entryReal = await File(path).resolveSymbolicLinks();
+    } on FileSystemException {
+      throw SecurityException();
+    }
+    final String expected = '$rootReal${Platform.pathSeparator}${entry.name}';
+    if (entryReal != expected) {
+      throw SecurityException();
+    }
+    await File(path).delete();
   }
 }

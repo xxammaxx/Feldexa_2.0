@@ -62,10 +62,13 @@ typedef StartupSweepRun = Future<StartupSweepResult> Function();
 /// * [StartupSweepStartup.failed] when [run] throws synchronously or
 ///   asynchronously.
 ///
-/// A timed-out operation is not cancelled (Dart has no cancellation for an
-/// arbitrary future), but its eventual error is consumed so it cannot become
-/// an unhandled asynchronous error later. It can only continue to touch the
-/// dedicated cache directory, which is safe by the sweep's contract.
+/// The timeout bounds the CALLER'S WAIT, not the recovery execution. Dart has
+/// no cancellation for an arbitrary future, so a timed-out sweep may still
+/// perform native recovery work after the UI starts: native head repair,
+/// revision pruning, alias removal, and the later store reads are not stopped
+/// by this timeout. The eventual error is consumed so it cannot become an
+/// unhandled asynchronous error. The UI receives a degraded startup state and
+/// must not claim success.
 Future<StartupSweepStartup> runStartupSweepBounded({
   required StartupSweepRun run,
   Duration timeout = const Duration(seconds: 5),

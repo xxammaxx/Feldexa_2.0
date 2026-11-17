@@ -77,10 +77,13 @@ class EncryptedStore(
     private val random: SecureRandom = SecureRandom(),
     private val idGenerator: () -> String = { UUID.randomUUID().toString() },
     /**
-     * Optional T031 hook. The store deliberately does not parse revision
-     * plaintext, so signature reference discovery is supplied by the caller
-     * that owns revision content. When null, §4 step 3 is skipped here and
-     * stays with T031; stale temp and orphan aliases are still swept.
+     * Optional test override for §4 step 3. When null, the store builds the
+     * reference set itself from the decrypted, hash-verified revision and
+     * template-version plaintext; production therefore always performs the
+     * unreferenced-signature sweep. An injected resolver remains available so
+     * tests can pin an explicit reference map. No JSON parser and no new
+     * dependency is involved: the canonical revision text is scanned for the
+     * on-disk asset ids.
      */
     private val signatureReferenceResolver:
         ((documentId: String, assetId: String) -> Boolean)? = null,
@@ -1056,15 +1059,22 @@ class EncryptedStore(
     }
 
     /**
-     * Startup recovery in the contract order:
+     * Native §4 recovery steps in the order this store executes them:
      *  1. stale/unknown `tmp/` entries;
      *  2. incomplete aggregates, head fallback, unreadable marking;
-     *  3. unreferenced signature assets older than 24 h (when a resolver exists);
-     *  4. orphan KEK aliases without an aggregate directory;
-     *  5. one redacted counts-only recovery event.
+     *  3. unreferenced signature assets older than 24 h;
+     *  5. orphan KEK aliases without an aggregate directory;
+     *  6. one redacted counts-only recovery event.
      *
-     * Export-artifact cleanup lives with T031 because it is in `cacheDir`, not
-     * this store.
+     * Step 4 (cache-directory export previews) is owned by T031 Dart and runs
+     * BEFORE this monolithic call. Effective production order is therefore
+     * 4 → 1 → 2 → 3 → 5 → 6, not the strict 1 → 2 → 3 → 4 → 5 → 6 sequence:
+     * splitting this call so step 4 can sit exactly between 3 and 5 would be a
+     * contract change, not a T031 implementation choice.
+     *
+     * Step 3 uses [signatureReferenceResolver] when a test injects it;
+     * otherwise the default resolver is built below from the decrypted,
+     * hash-verified revision and template-version plaintext.
      */
     fun startupRecovery(): RecoveryReport {
         ensureLayout()
@@ -1129,6 +1139,8 @@ class EncryptedStore(
         // Step 3: unreferenced signature assets older than 24 h.
         if (signatureReferenceResolver != null) {
             sweepUnreferencedSignatures(signatureReferenceResolver)
+        } else {
+            sweepUnreferencedSignaturesFromCommittedContent()
         }
 
         // Step 4: orphan aliases. A provider outage must not abort startup.
@@ -1171,9 +1183,10 @@ class EncryptedStore(
     }
 
     /**
-     * §4 step 3 helper. Unreferenced signature assets are deleted only when
-     * older than 24 h; referenced assets are never touched. Supplied by T031
-     * or by tests with an explicit reference map.
+     * §4 step 3 explicit-override helper. Unreferenced signature assets are
+     * deleted only when older than 24 h; referenced assets are never touched.
+     * Production uses the default resolver below; tests can pin an explicit
+     * reference map through this method.
      */
     fun sweepUnreferencedSignatures(
         isReferenced: (documentId: String, assetId: String) -> Boolean,
@@ -1186,9 +1199,19 @@ class EncryptedStore(
                 val sigDir = File(aggregateDir(ref), "sig")
                 if (io.isDirectory(sigDir)) {
                     for (file in io.list(sigDir)) {
+                        if (!file.isFile) continue
+                        if (!file.name.endsWith(".fxs")) continue
                         val assetId = file.name.removeSuffix(".fxs")
                         if (!AggregateRef.isValidId(assetId)) continue
-                        val stale = clock() - file.lastModified() > STALE_TEMP_MS
+                        // An unreadable/stale-timestamp file is kept, never
+                        // guessed into deletion.
+                        val modified = try {
+                            file.lastModified()
+                        } catch (failure: Throwable) {
+                            0L
+                        }
+                        if (modified <= 0L) continue
+                        val stale = clock() - modified > STALE_TEMP_MS
                         if (!stale) continue
                         if (isReferenced(id, assetId)) continue
                         if (io.delete(file)) local++
@@ -1199,6 +1222,182 @@ class EncryptedStore(
         }
         return removed
     }
+
+    /**
+     * Default §4 step 3 resolver. It builds the reference set from the
+     * decrypted, hash-verified canonical revision / template-version plaintext
+     * and deletes only old signatures that no committed content references.
+     *
+     * Conservative rules:
+     *  * an unreadable/corrupt revision or template version makes the whole
+     *    scan uncertain; no signature asset is deleted in that case;
+     *  * an unreadable asset timestamp keeps that asset;
+     *  * only direct `sig/<uuid>.fxs` files inside a document aggregate are
+     *    candidates; nothing outside `sig/` is touched.
+     */
+    private fun sweepUnreferencedSignaturesFromCommittedContent(): Int {
+        if (!hasAnyDocumentSignatureAsset()) return 0
+        val templateReferences = collectTemplateSignatureReferences()
+        if (templateReferences.uncertain) return 0
+        var removed = 0
+        for (id in listAggregateIds(AggregateKind.DOCUMENT)) {
+            val ref = AggregateRef(AggregateKind.DOCUMENT, id)
+            removed += withAggregateLock(ref) {
+                val references = collectDocumentSignatureReferences(ref)
+                if (references.uncertain) return@withAggregateLock 0
+                sweepSignatureDirectory(
+                    ref,
+                    references.referenced + templateReferences.referenced,
+                )
+            }
+        }
+        return removed
+    }
+
+    private fun hasAnyDocumentSignatureAsset(): Boolean {
+        for (id in listAggregateIds(AggregateKind.DOCUMENT)) {
+            val sigDir = File(
+                aggregateDir(AggregateRef(AggregateKind.DOCUMENT, id)),
+                "sig",
+            )
+            if (!io.isDirectory(sigDir)) continue
+            if (io.list(sigDir).any { it.isFile && it.name.endsWith(".fxs") }) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * Scans one document's committed revision plaintext for its own on-disk
+     * signature asset ids. The canonical revision text carries the asset id in
+     * the signature mark; scanning the decrypted text is sufficient and avoids
+     * a JSON parser or a new dependency.
+     */
+    private fun collectDocumentSignatureReferences(
+        ref: AggregateRef,
+    ): SignatureReferenceScan {
+        val sigDir = File(aggregateDir(ref), "sig")
+        if (!io.isDirectory(sigDir)) {
+            return SignatureReferenceScan(emptySet(), uncertain = false)
+        }
+        val assets = io.list(sigDir)
+            .asSequence()
+            .filter { it.isFile && it.name.endsWith(".fxs") }
+            .map { it.name.removeSuffix(".fxs") }
+            .filter { AggregateRef.isValidId(it) }
+            .toSet()
+        if (assets.isEmpty()) {
+            return SignatureReferenceScan(emptySet(), uncertain = false)
+        }
+        val revDir = File(aggregateDir(ref), "rev")
+        if (!io.isDirectory(revDir)) {
+            return SignatureReferenceScan(emptySet(), uncertain = false)
+        }
+        val referenced = mutableSetOf<String>()
+        for (file in io.list(revDir)) {
+            if (!file.isFile || !file.name.endsWith(".fx1")) {
+                return SignatureReferenceScan(referenced, uncertain = true)
+            }
+            val revisionId = file.name.removeSuffix(".fx1")
+            if (!AggregateRef.isValidId(revisionId)) {
+                return SignatureReferenceScan(referenced, uncertain = true)
+            }
+            val plaintext = try {
+                readContainer(RevisionObject(ref, revisionId), file)
+            } catch (failure: Error) {
+                throw failure
+            } catch (failure: Throwable) {
+                return SignatureReferenceScan(referenced, uncertain = true)
+            }
+            val text = String(plaintext, Charsets.UTF_8)
+            for (assetId in assets) {
+                if (text.contains(assetId)) referenced.add(assetId)
+            }
+        }
+        return SignatureReferenceScan(referenced, uncertain = false)
+    }
+
+    /**
+     * Scans all template-version plaintext for UUIDv4 tokens. A template
+     * version may retain an unknown same-schema reference; if any template
+     * version cannot be read, the caller keeps every signature asset rather
+     * than guessing that no template references it.
+     */
+    private fun collectTemplateSignatureReferences(): SignatureReferenceScan {
+        val referenced = mutableSetOf<String>()
+        for (id in listAggregateIds(AggregateKind.TEMPLATE)) {
+            val ref = AggregateRef(AggregateKind.TEMPLATE, id)
+            val scan = withAggregateLock(ref) {
+                collectOneTemplateSignatureReferences(ref)
+            }
+            referenced += scan.referenced
+            if (scan.uncertain) {
+                return SignatureReferenceScan(referenced, uncertain = true)
+            }
+        }
+        return SignatureReferenceScan(referenced, uncertain = false)
+    }
+
+    private fun collectOneTemplateSignatureReferences(
+        ref: AggregateRef,
+    ): SignatureReferenceScan {
+        val referenced = mutableSetOf<String>()
+        val verDir = File(aggregateDir(ref), "ver")
+        if (!io.isDirectory(verDir)) {
+            return SignatureReferenceScan(referenced, uncertain = false)
+        }
+        for (file in io.list(verDir)) {
+            if (!file.isFile || !file.name.endsWith(".fx1")) {
+                return SignatureReferenceScan(referenced, uncertain = true)
+            }
+            val versionId = file.name.removeSuffix(".fx1")
+            if (!AggregateRef.isValidId(versionId)) {
+                return SignatureReferenceScan(referenced, uncertain = true)
+            }
+            val plaintext = try {
+                readContainer(TemplateVersionObject(ref, versionId), file)
+            } catch (failure: Error) {
+                throw failure
+            } catch (failure: Throwable) {
+                return SignatureReferenceScan(referenced, uncertain = true)
+            }
+            referenced += UUID_V4_TOKEN
+                .findAll(String(plaintext, Charsets.UTF_8))
+                .map { it.value }
+                .toSet()
+        }
+        return SignatureReferenceScan(referenced, uncertain = false)
+    }
+
+    private fun sweepSignatureDirectory(
+        ref: AggregateRef,
+        referenced: Set<String>,
+    ): Int {
+        val sigDir = File(aggregateDir(ref), "sig")
+        if (!io.isDirectory(sigDir)) return 0
+        var removed = 0
+        for (file in io.list(sigDir)) {
+            if (!file.isFile || !file.name.endsWith(".fxs")) continue
+            val assetId = file.name.removeSuffix(".fxs")
+            if (!AggregateRef.isValidId(assetId)) continue
+            val modified = try {
+                file.lastModified()
+            } catch (failure: Throwable) {
+                0L
+            }
+            if (modified <= 0L) continue
+            if (clock() - modified <= STALE_TEMP_MS) continue
+            if (referenced.contains(assetId)) continue
+            if (io.delete(file)) removed++
+        }
+        return removed
+    }
+
+    private data class SignatureReferenceScan(
+        val referenced: Set<String>,
+        val uncertain: Boolean,
+    )
 
     /**
      * Deletes known-kind revision objects that the caller explicitly excluded
@@ -2421,6 +2620,12 @@ class EncryptedStore(
             "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-" +
                 "[89ab][0-9a-f]{3}-[0-9a-f]{12}" +
                 "\\.(part|head|meta|src|sig|ver|restore)$",
+        )
+
+        /** UUIDv4 token used only to scan decrypted template-version text. */
+        private val UUID_V4_TOKEN = Regex(
+            "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-" +
+                "[89ab][0-9a-f]{3}-[0-9a-f]{12}",
         )
         private val ALLOWED_AGGREGATE_ENTRIES = setOf(
             "meta.fx1",

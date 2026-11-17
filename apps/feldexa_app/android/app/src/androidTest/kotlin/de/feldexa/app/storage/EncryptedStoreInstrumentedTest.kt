@@ -883,7 +883,7 @@ class EncryptedStoreInstrumentedTest {
      * unique `feldexa.test.v1.<runToken>.` namespace while delegating to the
      * real production [AndroidKeystoreBackend]. Cleanup is exact-only.
      */
-    private class IsolatedTestBackend : KeystoreBackend {
+    internal class IsolatedTestBackend : KeystoreBackend {
 
         private val delegate = AndroidKeystoreBackend()
         private val namespace =
