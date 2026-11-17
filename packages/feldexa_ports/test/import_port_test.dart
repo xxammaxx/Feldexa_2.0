@@ -490,16 +490,56 @@ void main() {
       expect(verify, isNotNull);
     });
 
-    test(
-      'the descriptor identifies the import capability and its evidence',
-      () {
-        final DocumentImportPort port = _SignatureProbe();
-        expect(port.descriptor.kind, CapabilityKind.documentImport);
-        expect(port.descriptor.isSimulated, isTrue);
-        expect(port.descriptor.evidence.evidenceClass, EvidenceClass.simulated);
-        expect(port.descriptor.adapterId, port.descriptor.evidence.adapterId);
-      },
-    );
+    test('the import descriptor enforces a truthful evidence label', () {
+      final DocumentImportPort port = _SignatureProbe();
+      final CapabilityDescriptor descriptor = port.descriptor;
+
+      // The probe's values are produced by production code
+      // (`CapabilityDescriptor` + `CapabilityEvidence.simulated`), not copied
+      // from this test.
+      expect(descriptor.kind, CapabilityKind.documentImport);
+      expect(descriptor.evidence.evidenceClass, EvidenceClass.simulated);
+      expect(descriptor.isSimulated, descriptor.evidence.simulated);
+      expect(descriptor.adapterId, descriptor.evidence.adapterId);
+
+      // A simulated importer must never be relabelled as a real capability:
+      // flipping only the flag keeps the production evidence and must fail.
+      expect(
+        () => CapabilityDescriptor(
+          kind: descriptor.kind,
+          adapterId: descriptor.adapterId,
+          version: descriptor.version,
+          isSimulated: !descriptor.evidence.simulated,
+          evidence: descriptor.evidence,
+        ),
+        throwsArgumentError,
+      );
+
+      // A real import adapter must not claim simulated evidence either.
+      expect(
+        () => CapabilityDescriptor(
+          kind: CapabilityKind.documentImport,
+          adapterId: 'android.pdfbox.v1',
+          version: '1',
+          isSimulated: true,
+          evidence: _androidEvidence(),
+        ),
+        throwsArgumentError,
+      );
+
+      // Identity drift between the port and its evidence is rejected, so a
+      // descriptor cannot describe one adapter while labelling another.
+      expect(
+        () => CapabilityDescriptor(
+          kind: CapabilityKind.documentImport,
+          adapterId: 'android.other.v1',
+          version: '1',
+          isSimulated: false,
+          evidence: _androidEvidence(),
+        ),
+        throwsArgumentError,
+      );
+    });
 
     test('the port signature has no File, Uri, or widget parameter', () {
       // `ImportRequest` has no path field; the two method tear-offs above have
