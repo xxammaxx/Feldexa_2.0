@@ -429,7 +429,7 @@ void main() {
       expect(controller.pan, const Offset(-10, -20));
     });
 
-    test('fitWidth clamps pan with the target scale after zoom-in', () {
+    test('zoom-in fitWidth sanity check (passes before and after; not RED evidence)', () {
       final PageViewController controller = PageViewController(
         pages: <PageViewPageSize>[
           PageViewPageSize(widthPt: 100, heightPt: 100),
@@ -444,6 +444,28 @@ void main() {
       _expectClose(page.left, 0);
       _expectClose(page.width, 200);
       _expectClose(page.top, 0);
+    });
+
+    test('fitWidth clamps pan with the target scale after zoom-out (RED on a28fbf0)', () {
+      final PageViewController controller = PageViewController(
+        pages: <PageViewPageSize>[
+          PageViewPageSize(widthPt: 100, heightPt: 100),
+        ],
+      );
+      controller.setViewportSize(const Size(200, 200));
+      // At the old scale (1) the 100 pt page is smaller than the 200 px
+      // viewport, so the pre-correction clamp returned the centering offset
+      // (50, 50). Applying the target scale 2 then clipped the page. The fixed
+      // code clamps against the target scale and yields pan (0, 0).
+      controller.setView(scale: 1, pan: Offset.zero);
+      controller.fitWidth();
+      _expectClose(controller.scale, 2);
+      _expectOffsetClose(controller.pan, Offset.zero);
+      final Rect page = controller.mappingFor(0).pageRectInViewport;
+      _expectClose(page.left, 0);
+      _expectClose(page.top, 0);
+      _expectClose(page.width, 200);
+      _expectClose(page.height, 200);
     });
 
     test('rejects an overflowing accumulated page strip', () {
