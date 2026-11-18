@@ -659,6 +659,30 @@ void main() {
       );
     });
 
+    test('keeps desiredScale finite for extreme finite inputs', () {
+      final PageViewRasterPlan hugeView = PageViewRasterPlan.forPage(
+        page: PageViewPageSize(widthPt: 0.001, heightPt: 0.001),
+        viewSize: const Size(1e308, 1e308),
+        devicePixelRatio: 1,
+      );
+      expect(hugeView.desiredScale.isFinite, isTrue);
+      expect(hugeView.effectiveScale.isFinite, isTrue);
+      expect(hugeView.effectiveScale, greaterThan(0));
+      expect(hugeView.widthPx, inInclusiveRange(1, 4096));
+      expect(hugeView.heightPx, inInclusiveRange(1, 4096));
+
+      final PageViewRasterPlan tinyView = PageViewRasterPlan.forPage(
+        page: PageViewPageSize(widthPt: 1e308, heightPt: 1e308),
+        viewSize: const Size(1e-300, 1e-300),
+        devicePixelRatio: 1,
+      );
+      expect(tinyView.desiredScale.isFinite, isTrue);
+      expect(tinyView.effectiveScale.isFinite, isTrue);
+      expect(tinyView.effectiveScale, greaterThan(0));
+      expect(tinyView.widthPx, inInclusiveRange(1, 4096));
+      expect(tinyView.heightPx, inInclusiveRange(1, 4096));
+    });
+
     test('clamps raster scale to a positive minimum on underflow', () {
       final PageViewPageSize huge = PageViewPageSize(
         widthPt: 1e308,

@@ -87,6 +87,16 @@ const double minimumPageExtentPt = 0.001;
 /// The contract's fixed UI raster cap on the long edge, in pixels.
 const int maximumRasterLongEdgePx = 4096;
 
+/// Finite upper bound for [PageViewRasterPlan.desiredScale].
+///
+/// `4096 / 0.001 = 4,096,000` raster pixels per point is the largest scale the
+/// public cap and minimum page extent can ever justify. Clamping the raw
+/// DPR-aware ratio to this documented bound keeps the public `desiredScale`
+/// finite even when a finite view extent divided by a finite page extent
+/// overflows to `Infinity`; normal inputs remain unchanged.
+const double maximumDesiredRasterScale =
+    maximumRasterLongEdgePx / minimumPageExtentPt;
+
 /// One page's display size in PDF points, derived only from
 /// `PageGeometry.displaySize`.
 ///
@@ -199,7 +209,11 @@ final class PageViewRasterPlan {
       );
     }
     final double logicalScale = viewSize.width / page.widthPt;
-    final double desiredScale = logicalScale * devicePixelRatio;
+    final double rawDesiredScale = logicalScale * devicePixelRatio;
+    final double desiredScale = math.min(
+      rawDesiredScale,
+      maximumDesiredRasterScale,
+    );
     final double dpiScale = maxDpi / 72;
     final double longEdgePt = math.max(page.widthPt, page.heightPt);
     // A finite positive ratio can still underflow to 0.0 when a tiny view is
