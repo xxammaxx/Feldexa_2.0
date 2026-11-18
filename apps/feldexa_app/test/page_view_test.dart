@@ -512,6 +512,62 @@ void main() {
       },
     );
 
+    test(
+      'rejects far-edge overflow in pageRectInViewport (RED on 219539b)',
+      () {
+        final PageViewController controller = PageViewController(
+          pages: <PageViewPageSize>[
+            PageViewPageSize(widthPt: 1e308, heightPt: 1e308),
+          ],
+        );
+        controller.setViewportSize(const Size(200, 200));
+        controller.setView(scale: 1, pan: const Offset(1e308, 1e308));
+        expect(
+          () => controller.mappingFor(0).pageRectInViewport,
+          throwsArgumentError,
+        );
+      },
+    );
+
+    test('rejects non-finite point and rectangle mapping paths', () {
+      final PageViewController controller = PageViewController(
+        pages: <PageViewPageSize>[
+          PageViewPageSize(widthPt: 1e308, heightPt: 1e308),
+        ],
+      );
+      controller.setViewportSize(const Size(200, 200));
+      controller.setView(scale: 1, pan: const Offset(1e308, 1e308));
+      final PageViewMapping mapping = controller.mappingFor(0);
+      expect(
+        () => mapping.viewToDisplay(const Offset(-1e308, -1e308)),
+        throwsArgumentError,
+      );
+      expect(
+        () => mapping.displayToView(const Offset(1e308, 1e308)),
+        throwsArgumentError,
+      );
+      expect(
+        () => mapping.contentToView(const Offset(1e308, 1e308)),
+        throwsArgumentError,
+      );
+      expect(
+        () => mapping.viewToContent(const Offset(-1e308, -1e308)),
+        throwsArgumentError,
+      );
+      expect(
+        () => mapping.viewRectToDisplay(
+          const Rect.fromLTRB(-1e308, -1e308, 1e308, 1e308),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => mapping.displayRectToView(
+          const Rect.fromLTRB(-1e308, -1e308, 1e308, 1e308),
+        ),
+        throwsArgumentError,
+      );
+    });
+
     test('rejects a hostile derived page rectangle', () {
       final PageViewController controller = PageViewController(
         pages: <PageViewPageSize>[

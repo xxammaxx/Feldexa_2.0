@@ -638,10 +638,14 @@ final class PageViewMapping {
     final double top = pan.dy + pageRect.top * scale;
     final double width = pageRect.width * scale;
     final double height = pageRect.height * scale;
+    final double right = left + width;
+    final double bottom = top + height;
     if (!left.isFinite ||
         !top.isFinite ||
         !width.isFinite ||
-        !height.isFinite) {
+        !height.isFinite ||
+        !right.isFinite ||
+        !bottom.isFinite) {
       throw ArgumentError.value(
         pageIndex,
         'pageIndex',
@@ -678,14 +682,20 @@ final class PageViewMapping {
   /// the page; clamping or rejecting is the caller's decision.
   Offset viewToDisplay(Offset viewportOffset) {
     final Offset content = viewToContent(viewportOffset);
-    return Offset(content.dx - pageRect.left, content.dy - pageRect.top);
+    return _checkedOffset(
+      Offset(content.dx - pageRect.left, content.dy - pageRect.top),
+      'derived display offset must be finite',
+    );
   }
 
   /// Converts a page display-space point (PDF points, top-left origin, y down)
   /// to a viewport offset in logical pixels.
   Offset displayToView(Offset displayPoint) {
     return contentToView(
-      Offset(pageRect.left + displayPoint.dx, pageRect.top + displayPoint.dy),
+      _checkedOffset(
+        Offset(pageRect.left + displayPoint.dx, pageRect.top + displayPoint.dy),
+        'derived content offset must be finite',
+      ),
     );
   }
 
