@@ -1,0 +1,33 @@
+# T047 SIMULATED browser test log (sanitized)
+# Evidence class: SIMULATED
+# Worktree: t047; branch: t047 (owner prefix redacted)
+# Base commit: a72d1790070a0142e72d6425a1a3dc5d2d8333f1
+# Revision at capture: 1b43ecc3a263ac4defef4849696ce756b74f33e7
+# Test content commit: 2bea7802deb62b3bec5474227d61f1d4ca08e329
+# Command (cwd apps/feldexa_app):
+#   CHROME_EXECUTABLE=<chrome> flutter test --no-pub --platform chrome test/web_import_browser_entry_test.dart
+# Environment: PATH=<flutter-sdk>/bin:$PATH
+# Browser: Google Chrome for Testing 156.0.8078.4
+# Fixture server: reused the maintainer's loopback static server already
+#   listening on 127.0.0.1:8765; GET /fixtures/catalog.json and
+#   GET /fixtures/sf-001.pdf both returned HTTP 200 from apps/feldexa_app/web;
+#   no public network was used and no server was started or stopped.
+# Exit code: 0
+# Sanitization: absolute host, SDK, and Chrome paths replaced with
+#   <repo-root>, <flutter-sdk>, <chrome>, or <home>; the environment PATH dump
+#   replaced with <path>; trailing whitespace removed. The result lines below
+#   are unchanged.
+
+which: no vswhere.exe in (<path>)
+
+
+No Visual Studio installation found with the requested Microsoft.VisualStudio.Component.VC.Tools.x86.x64 component.
+
+00:00 +0: loading <repo-root>/apps/feldexa_app/test/web_import_browser_entry_test.dart
+00:00 +0: loads the committed deterministic SIMULATED fixture catalogue
+00:00 +1: imports sf-003 through the SIMULATED adapter with page order and geometry
+00:00 +2: rejects every failure fixture with the exact German text and no stored record
+00:00 +3: cancels the SIMULATED picker without a message or stored record
+00:00 +4: composes the Web registry with SIMULATED evidence only
+00:00 +5: resolves and renders the committed SIMULATED banner in German
+00:01 +6: All tests passed!
