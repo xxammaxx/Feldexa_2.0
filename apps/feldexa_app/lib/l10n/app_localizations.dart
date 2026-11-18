@@ -682,6 +682,54 @@ abstract class AppLocalizations {
   /// **'Nicht lesbar'**
   String get statusUnreadable;
 
+  /// contracts/error-catalog.de.md §8 page analysis state `pending`: short visible form in one page-strip control.
+  ///
+  /// In de, this message translates to:
+  /// **'Wartet'**
+  String get pageAnalysisPending;
+
+  /// contracts/error-catalog.de.md §8 page analysis state `pending`: full form used as the semantic hint and in the compact page indicator.
+  ///
+  /// In de, this message translates to:
+  /// **'Analyse ausstehend'**
+  String get pageAnalysisPendingHint;
+
+  /// contracts/error-catalog.de.md §8 page analysis state `analyzing`: short visible form in one page-strip control.
+  ///
+  /// In de, this message translates to:
+  /// **'Läuft'**
+  String get pageAnalysisAnalyzing;
+
+  /// contracts/error-catalog.de.md §8 page analysis state `analyzing`: full form used as the semantic hint and in the compact page indicator.
+  ///
+  /// In de, this message translates to:
+  /// **'Analyse läuft'**
+  String get pageAnalysisAnalyzingHint;
+
+  /// contracts/error-catalog.de.md §8 page analysis state `complete`: short visible form in one page-strip control.
+  ///
+  /// In de, this message translates to:
+  /// **'Fertig'**
+  String get pageAnalysisComplete;
+
+  /// contracts/error-catalog.de.md §8 page analysis state `complete`: full form used as the semantic hint and in the compact page indicator.
+  ///
+  /// In de, this message translates to:
+  /// **'Analyse abgeschlossen'**
+  String get pageAnalysisCompleteHint;
+
+  /// contracts/error-catalog.de.md §8 page analysis state `failed`: short visible form in one page-strip control.
+  ///
+  /// In de, this message translates to:
+  /// **'Fehler'**
+  String get pageAnalysisFailed;
+
+  /// contracts/error-catalog.de.md §8 page analysis state `failed`: full form used as the semantic hint and in the compact page indicator.
+  ///
+  /// In de, this message translates to:
+  /// **'Analyse fehlgeschlagen'**
+  String get pageAnalysisFailedHint;
+
   /// §8 field count summary.
   ///
   /// In de, this message translates to:

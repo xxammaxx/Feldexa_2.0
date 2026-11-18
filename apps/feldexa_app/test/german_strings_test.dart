@@ -72,6 +72,14 @@ const Set<String> _nonCodeArbKeys = <String>{
   'fillAction',
   'importAction',
   'lastEdited',
+  'pageAnalysisAnalyzing',
+  'pageAnalysisAnalyzingHint',
+  'pageAnalysisComplete',
+  'pageAnalysisCompleteHint',
+  'pageAnalysisFailed',
+  'pageAnalysisFailedHint',
+  'pageAnalysisPending',
+  'pageAnalysisPendingHint',
   'preExportEmptyFields',
   'preExportUnreviewedSuggestions',
   'previewFooter',
@@ -451,6 +459,14 @@ void main() {
       'Startup recovery incomplete': 'startupRecoveryIncomplete',
       'Startup recovery incomplete guidance':
           'startupRecoveryIncompleteRecovery',
+      'Page analysis state: pending, short form': 'pageAnalysisPending',
+      'Page analysis state: pending, full form': 'pageAnalysisPendingHint',
+      'Page analysis state: analyzing, short form': 'pageAnalysisAnalyzing',
+      'Page analysis state: analyzing, full form': 'pageAnalysisAnalyzingHint',
+      'Page analysis state: complete, short form': 'pageAnalysisComplete',
+      'Page analysis state: complete, full form': 'pageAnalysisCompleteHint',
+      'Page analysis state: failed, short form': 'pageAnalysisFailed',
+      'Page analysis state: failed, full form': 'pageAnalysisFailedHint',
     };
 
     final List<String> rows = _tableCellsInSection(catalog, '## 8.');
@@ -514,6 +530,69 @@ void main() {
       arb['actionCheckStorage'] as String,
     ]);
   });
+
+  test(
+    'page analysis-state vocabulary matches §8, the ARB, and generated code',
+    () {
+      final Map<String, String> contextToKey = <String, String>{
+        'Page analysis state: pending, short form': 'pageAnalysisPending',
+        'Page analysis state: pending, full form': 'pageAnalysisPendingHint',
+        'Page analysis state: analyzing, short form': 'pageAnalysisAnalyzing',
+        'Page analysis state: analyzing, full form':
+            'pageAnalysisAnalyzingHint',
+        'Page analysis state: complete, short form': 'pageAnalysisComplete',
+        'Page analysis state: complete, full form': 'pageAnalysisCompleteHint',
+        'Page analysis state: failed, short form': 'pageAnalysisFailed',
+        'Page analysis state: failed, full form': 'pageAnalysisFailedHint',
+      };
+      final Map<String, String Function(AppLocalizationsDe)> getters =
+          <String, String Function(AppLocalizationsDe)>{
+            'pageAnalysisPending': (AppLocalizationsDe l10n) =>
+                l10n.pageAnalysisPending,
+            'pageAnalysisPendingHint': (AppLocalizationsDe l10n) =>
+                l10n.pageAnalysisPendingHint,
+            'pageAnalysisAnalyzing': (AppLocalizationsDe l10n) =>
+                l10n.pageAnalysisAnalyzing,
+            'pageAnalysisAnalyzingHint': (AppLocalizationsDe l10n) =>
+                l10n.pageAnalysisAnalyzingHint,
+            'pageAnalysisComplete': (AppLocalizationsDe l10n) =>
+                l10n.pageAnalysisComplete,
+            'pageAnalysisCompleteHint': (AppLocalizationsDe l10n) =>
+                l10n.pageAnalysisCompleteHint,
+            'pageAnalysisFailed': (AppLocalizationsDe l10n) =>
+                l10n.pageAnalysisFailed,
+            'pageAnalysisFailedHint': (AppLocalizationsDe l10n) =>
+                l10n.pageAnalysisFailedHint,
+          };
+      expect(getters.keys.toSet(), contextToKey.values.toSet());
+
+      final Map<String, String> catalogTexts = <String, String>{};
+      for (final String row in _tableCellsInSection(catalog, '## 8.')) {
+        final List<String> cells = _cells(row);
+        if (cells.length < 2 || !contextToKey.containsKey(cells[0])) {
+          continue;
+        }
+        final String? text = _quoted(cells[1]);
+        expect(text, isNotNull, reason: '${cells[0]} needs German quotes');
+        catalogTexts[contextToKey[cells[0]]!] = text!;
+      }
+      expect(catalogTexts.length, contextToKey.length);
+
+      final AppLocalizationsDe l10n = AppLocalizationsDe();
+      for (final MapEntry<String, String> entry in catalogTexts.entries) {
+        expect(
+          arb[entry.key],
+          entry.value,
+          reason: '${entry.key} must carry the exact §8 text',
+        );
+        expect(
+          getters[entry.key]!(l10n),
+          entry.value,
+          reason: 'generated AppLocalizationsDe.${entry.key} drifted from §8',
+        );
+      }
+    },
+  );
 
   test(
     'durability, privacy, export, and SIMULATED labels match the catalog',

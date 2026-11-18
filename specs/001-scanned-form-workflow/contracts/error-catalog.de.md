@@ -165,6 +165,23 @@ Deletion is never offered as a way to free space automatically (FR-076).
 | Startup recovery incomplete | „Die Wiederherstellung beim Start wurde nicht vollständig abgeschlossen. Bitte starten Sie Feldexa erneut.“ |
 | Startup recovery incomplete guidance | „Ihre gespeicherten Dokumente und Vorlagen werden dabei nicht gelöscht. Prüfen Sie nach dem Neustart, ob alle Einträge lesbar sind.“ |
 
+**Page analysis states** (page strip): these eight texts are the normative German
+source for the per-page analysis state. The short form is the visible label
+inside one page-strip control; the full form is the semantic hint and the text
+of the compact current-page indicator. They name only the state and never a
+code, path, URI, title, or page content.
+
+| Context | German text |
+| --- | --- |
+| Page analysis state: pending, short form | „Wartet“ |
+| Page analysis state: pending, full form | „Analyse ausstehend“ |
+| Page analysis state: analyzing, short form | „Läuft“ |
+| Page analysis state: analyzing, full form | „Analyse läuft“ |
+| Page analysis state: complete, short form | „Fertig“ |
+| Page analysis state: complete, full form | „Analyse abgeschlossen“ |
+| Page analysis state: failed, short form | „Fehler“ |
+| Page analysis state: failed, full form | „Analyse fehlgeschlagen“ |
+
 **Accessibility semantics** (test-asserted):
 - Field overlay: „Feld {label}, Typ {type}, Seite {page}, {filled|leer}, {bestätigt|Vorschlag|selbst erstellt}{, Konflikt}{, unsicher}“.
 - Suggestion: „Vorschlag für {type} bei {label}, Zuverlässigkeit {percent} Prozent, nicht bestätigt“.
