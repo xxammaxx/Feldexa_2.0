@@ -10,14 +10,19 @@ import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityOptionsCompat
 import de.feldexa.app.import.DocumentPicker
+import de.feldexa.app.import.EncryptedSourceRandomAccess
 import de.feldexa.app.import.ImportService
 import de.feldexa.app.import.PickedDocument
 import de.feldexa.app.import.SourceStaging
+import de.feldexa.app.import.StagedCommit
 import de.feldexa.app.import.StagedDiscard
+import de.feldexa.app.import.StagedPreflight
+import de.feldexa.app.pdf.PdfPreflight
 import de.feldexa.app.storage.AggregateKind
 import de.feldexa.app.storage.DeleteConfirmation
 import de.feldexa.app.storage.EncryptedStore
 import de.feldexa.app.storage.KeystoreService
+import de.feldexa.app.storage.RevisionKindWire
 import de.feldexa.app.storage.StoreService
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -141,8 +146,12 @@ class MainActivity : FlutterActivity() {
         runCatching { store.ensureLayout() }
         plugin.registerService("store", StoreService(store))
 
-        // T038: SAF streaming import. The picker callback is delivered on the
-        // main thread; ImportService consumes the stream on the facade worker.
+        // T038/T040: SAF streaming import. The picker callback is delivered on
+        // the main thread; ImportService consumes the source on the facade
+        // worker. The store streams the encrypted copy, preflight reads the
+        // staged ciphertext through a decrypting range reader, and only a
+        // verified commit makes the document visible.
+        val pdfPreflight = PdfPreflight()
         plugin.registerService(
             "import",
             ImportService(
@@ -162,8 +171,44 @@ class MainActivity : FlutterActivity() {
                         }
                     }
                 },
-                staging = SourceStaging { documentId, sourceId, bytes, sha256 ->
-                    store.stageSource(documentId, sourceId, bytes, sha256)
+                staging = SourceStaging {
+                        documentId, sourceId, countPass, openStreamForWrite,
+                        maxBytes, shouldAbort ->
+                    store.stageSourceFromStream(
+                        documentId = documentId,
+                        sourceId = sourceId,
+                        countPass = countPass,
+                        openStreamForWrite = openStreamForWrite,
+                        maxBytes = maxBytes,
+                        shouldAbort = shouldAbort,
+                    )
+                },
+                preflight = StagedPreflight { documentId, sourceId ->
+                    store.openSourceReader(documentId, sourceId).use { reader ->
+                        pdfPreflight.preflight(EncryptedSourceRandomAccess(reader))
+                    }
+                },
+                commit = StagedCommit {
+                        documentId,
+                        sourceId,
+                        sourceSha256,
+                        sourceSizeBytes,
+                        revisionId,
+                        metaJson,
+                        revisionJson,
+                        shouldAbort,
+                    ->
+                    store.createDocumentFromStagedSource(
+                        documentId = documentId,
+                        metaJson = metaJson,
+                        sourceId = sourceId,
+                        sourceSha256 = sourceSha256,
+                        sourceSizeBytes = sourceSizeBytes,
+                        revisionId = revisionId,
+                        revisionJson = revisionJson,
+                        revisionKind = RevisionKindWire.EXPLICIT,
+                        shouldAbort = shouldAbort,
+                    )
                 },
                 discard = StagedDiscard { documentId ->
                     // An incomplete staged aggregate has no meta, so its

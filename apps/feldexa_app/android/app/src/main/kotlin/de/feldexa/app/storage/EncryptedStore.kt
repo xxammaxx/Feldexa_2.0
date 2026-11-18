@@ -1,6 +1,7 @@
 package de.feldexa.app.storage
 
 import java.io.ByteArrayInputStream
+import java.io.Closeable
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -21,6 +22,7 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.UUID
+import java.util.concurrent.CancellationException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
@@ -304,9 +306,12 @@ class EncryptedStore(
             val sourceFile = fileFor(sourceObject)
             val hadExistingSource = io.exists(sourceFile)
             if (hadExistingSource) {
-                val existing = readObject(sourceObject)
-                if (existing.size != sourceBytes.size ||
-                    sha256Hex(existing) != actualSha256
+                // T040: verify the retry without materializing the whole source.
+                // The old path allocated an 80 MiB plaintext copy; verification
+                // is chunk-bounded and still fails closed on any mismatch.
+                val existing = verifyContainer(sourceObject, sourceFile)
+                if (existing.plaintextLength != sourceBytes.size.toLong() ||
+                    existing.plaintextSha256 != actualSha256
                 ) {
                     throw ConcurrentSaveException()
                 }
@@ -358,6 +363,326 @@ class EncryptedStore(
     }
 
     /**
+     * T040: true streaming staged-source import.
+     *
+     * The FXC1 chunk AAD authenticates the final plaintext length and chunk
+     * count, so the first chunk cannot be encrypted before the total size is
+     * known. This method therefore reads the picked source in two bounded
+     * passes instead of buffering it:
+     *
+     *  1. [countPass] is read in 64 KiB chunks to compute SHA-256 and the byte
+     *     count while enforcing [maxBytes]. Nothing is written in this pass.
+     *  2. [openStreamForWrite] reopens the same picked content and
+     *     [commitObjectFromStream] writes `tmp/<txn>.part` in 1 MiB chunks,
+     *     hashing while it writes and comparing the written hash/length with
+     *     pass 1 before promotion.
+     *
+     * Neither pass creates a plaintext temporary file and peak live memory is
+     * bounded by one 64 KiB hash buffer or one 1 MiB plaintext + ciphertext
+     * chunk, whichever pass is running. The source is opened read-only through
+     * the caller's stream factory; this method never converts a URI to a path
+     * and never writes back to the picked source.
+     *
+     * A mismatch between the two reads, the supplied expectations, the written
+     * header, or the read-back verdict fails closed and removes the incomplete
+     * aggregate. [SourceLimitExceededException] is a content-free import-level
+     * cap signal; the caller maps it to `IMP-007`.
+     *
+     * Stream ownership is single and explicit:
+     *  * [countPass] remains caller-owned. This method only reads it and never
+     *    closes it; the import service's `finally` closes it exactly once.
+     *  * The stream returned by [openStreamForWrite] is owned by this method.
+     *    It is wrapped in exactly one `use` at the call site, so it is closed
+     *    exactly once on success, on a pre-container failure, on an
+     *    in-container failure, and on write-pass cancellation.
+     *  * [writeContainer] and [commitObjectFromStream] are non-owning: they
+     *    never close their input.
+     */
+    fun stageSourceFromStream(
+        documentId: String,
+        sourceId: String,
+        countPass: InputStream,
+        openStreamForWrite: () -> InputStream?,
+        maxBytes: Long = MAX_SOURCE_BYTES,
+        expectedSha256: String? = null,
+        expectedSizeBytes: Long? = null,
+        shouldAbort: () -> Boolean = { false },
+        onChunk: ((SourceReadPass, Int) -> Unit)? = null,
+    ): StagedSourceReceipt {
+        val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
+        requireAggregateId(ref)
+        requireObjectId(sourceId)
+        if (maxBytes <= 0L || maxBytes > MAX_SOURCE_BYTES) throw InvalidDataException()
+        if (expectedSha256 != null && !SHA256_HEX.matches(expectedSha256)) {
+            throw InvalidDataException()
+        }
+        if (expectedSizeBytes != null &&
+            (expectedSizeBytes <= 0L || expectedSizeBytes > MAX_SOURCE_BYTES)
+        ) {
+            throw InvalidDataException()
+        }
+
+        // Pass 1: bounded hash/count only. No key, directory, or temp file is
+        // created before the source has been accepted by the cap and the
+        // caller-supplied expectations.
+        val digest = MessageDigest.getInstance("SHA-256")
+        var total = 0L
+        val hashBuffer = ByteArray(SOURCE_HASH_CHUNK_SIZE)
+        // Caller-owned: never close countPass here. ImportService's finally
+        // closes exactly one first-pass stream after this call returns.
+        while (true) {
+            if (shouldAbort()) throw CancellationException("importCancelled")
+            val read = countPass.read(hashBuffer)
+            if (read < 0) break
+            if (read == 0) continue
+            if (total + read > maxBytes) throw SourceLimitExceededException()
+            digest.update(hashBuffer, 0, read)
+            total += read
+            onChunk?.invoke(SourceReadPass.HASH, read)
+        }
+        if (total <= 0L) throw InvalidDataException()
+        val actualSha256 = hex(digest.digest())
+        if (expectedSha256 != null && expectedSha256 != actualSha256) {
+            throw InvalidDataException()
+        }
+        if (expectedSizeBytes != null && expectedSizeBytes != total) {
+            throw InvalidDataException()
+        }
+        if (shouldAbort()) throw CancellationException("importCancelled")
+
+        return withAggregateLock(ref) {
+            if (io.exists(fileFor(MetaObject(ref)))) throw ConcurrentSaveException()
+            val aggregate = aggregateDir(ref)
+            if (io.exists(aggregate) && !isIncomplete(ref)) throw ConcurrentSaveException()
+            val sourceObject = SourceObject(ref, sourceId)
+            val sourceFile = fileFor(sourceObject)
+            if (io.exists(sourceFile)) {
+                // Idempotent retry: verify the existing encrypted object
+                // chunk by chunk, without a whole-source buffer.
+                val existing = verifyContainer(sourceObject, sourceFile)
+                if (existing.plaintextLength != total ||
+                    existing.plaintextSha256 != actualSha256
+                ) {
+                    throw ConcurrentSaveException()
+                }
+                return@withAggregateLock StagedSourceReceipt(
+                    aggregateId = documentId,
+                    sourceId = sourceId,
+                    sourceSha256 = actualSha256,
+                    sizeBytes = total,
+                    readBackVerified = true,
+                )
+            }
+            val srcDir = File(aggregate, "src")
+            if (io.isDirectory(srcDir)) {
+                val otherSources = io.list(srcDir).filter {
+                    it.isFile && it.name != sourceObject.fileName
+                }
+                if (otherSources.isNotEmpty()) throw ConcurrentSaveException()
+            }
+            keystore.createAggregateKey(ref)
+            try {
+                ensureLayout()
+                io.mkdirs(File(aggregate, "src"))
+                val writePass = openStreamForWrite() ?: throw InvalidDataException()
+                // T040 review correction: own the provider stream immediately.
+                // `writeContainer` also wraps its own use for the payload, but
+                // every failure before that point (transaction setup,
+                // STAGE_CREATE fault, key wrap, output open, header write) must
+                // still close the provider stream.
+                val receipt = writePass.use { input ->
+                    commitObjectFromStream(
+                        obj = sourceObject,
+                        input = input,
+                        length = total,
+                        expectedSha256 = actualSha256,
+                        txnId = newTxnId(),
+                        suffix = TMP_SUFFIX_PART,
+                        shouldAbort = shouldAbort,
+                        onChunk = onChunk,
+                    )
+                }
+                StagedSourceReceipt(
+                    aggregateId = documentId,
+                    sourceId = sourceId,
+                    sourceSha256 = receipt.plaintextSha256,
+                    sizeBytes = receipt.plaintextLength,
+                    readBackVerified = true,
+                )
+            } catch (failure: Throwable) {
+                // A failed first stage removes its partial aggregate and key;
+                // no incomplete aggregate is retained for a retry. A cleanup
+                // failure wins over the original failure so a clean cancel is
+                // never reported while residue may remain; an Error is never
+                // masked.
+                val cleanupFailure = cleanupIncompleteAggregate(ref, aggregate)
+                if (failure is Error) throw failure
+                if (cleanupFailure != null) throw cleanupFailure
+                throw failure
+            }
+        }
+    }
+
+    /**
+     * T040: opens a decrypting range reader over one staged source object.
+     *
+     * The returned reader authenticates every FXC1 chunk it serves and keeps
+     * at most one ciphertext chunk plus one plaintext chunk live. It is used
+     * by preflight so the PDF parser can seek over the staged ciphertext
+     * without a plaintext file. The caller owns and must close the reader.
+     */
+    fun openSourceReader(documentId: String, sourceId: String): EncryptedSourceReader {
+        val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
+        requireAggregateId(ref)
+        requireObjectId(sourceId)
+        val obj = SourceObject(ref, sourceId)
+        return withAggregateLock(ref) {
+            val file = fileFor(obj)
+            if (!io.exists(file)) throw CorruptDataException()
+            var channel: FileChannel? = null
+            try {
+                channel = io.openRead(file)
+                val size = channel.size()
+                if (size < HEADER_SIZE) throw CorruptDataException()
+                val header = FxcHeader.decode(
+                    bytes = readExactly(channel, HEADER_SIZE),
+                    expectedKind = ObjectKind.SOURCE,
+                    expectedFileId = expectedFileId(obj),
+                )
+                val expectedSize =
+                    HEADER_SIZE.toLong() +
+                        header.plaintextLength +
+                        header.chunkCount.toLong() * TAG_SIZE
+                if (size != expectedSize) throw CorruptDataException()
+                val dek = keystore.unwrapDek(
+                    obj.aggregate,
+                    WrappedDek(header.wrapIv, header.wrappedKey),
+                )
+                FxcSourceReader(channel, header, dek)
+            } catch (failure: StorageException) {
+                runCatching { channel?.close() }
+                throw failure
+            } catch (failure: Throwable) {
+                runCatching { channel?.close() }
+                throw mapReadFailure(failure)
+            }
+        }
+    }
+
+    /**
+     * Decrypting range reader over one staged source. Only chunk-sized buffers
+     * are live; seek() only repositions and the next read decrypts the
+     * containing chunk on demand. It is not thread-safe.
+     */
+    private inner class FxcSourceReader(
+        private val channel: FileChannel,
+        private val header: FxcHeader,
+        private var dek: ByteArray,
+    ) : EncryptedSourceReader {
+
+        private var closed = false
+        private var offset = 0L
+        private var cachedIndex = -1
+        private var cachedLength = 0
+        private var cachedPlain: ByteArray? = null
+        private var cipherBuffer: ByteArray? = null
+
+        override val length: Long get() = header.plaintextLength
+
+        override val position: Long get() = offset
+
+        override val isClosed: Boolean get() = closed
+
+        override fun seek(position: Long) {
+            if (closed) throw IOException("closed")
+            if (position < 0L || position > header.plaintextLength) {
+                throw IOException("position")
+            }
+            offset = position
+        }
+
+        override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+            if (closed) throw IOException("closed")
+            if (offset < 0 || length < 0 || offset + length > buffer.size) {
+                throw IndexOutOfBoundsException()
+            }
+            if (length == 0) return 0
+            if (this.offset >= header.plaintextLength) return -1
+            var written = 0
+            while (written < length && this.offset < header.plaintextLength) {
+                val index = (this.offset / header.chunkSize).toInt()
+                if (index != cachedIndex) loadChunk(index)
+                val chunkStart = index.toLong() * header.chunkSize
+                val inChunk = (this.offset - chunkStart).toInt()
+                val copy = minOf(cachedLength - inChunk, length - written)
+                System.arraycopy(cachedPlain!!, inChunk, buffer, offset + written, copy)
+                this.offset += copy
+                written += copy
+            }
+            return written
+        }
+
+        private fun loadChunk(index: Int) {
+            if (index < 0 || index >= header.chunkCount) throw IOException("chunk")
+            val chunkLength = minOf(
+                header.chunkSize.toLong(),
+                header.plaintextLength - index.toLong() * header.chunkSize,
+            ).toInt()
+            if (chunkLength <= 0) throw IOException("chunk")
+            val cipher = cipherBuffer
+                ?: ByteArray(header.chunkSize + TAG_SIZE).also { cipherBuffer = it }
+            val plain = cachedPlain
+                ?: ByteArray(header.chunkSize).also { cachedPlain = it }
+            try {
+                channel.position(
+                    HEADER_SIZE.toLong() + index.toLong() * (header.chunkSize + TAG_SIZE),
+                )
+                readExactlyInto(channel, cipher, chunkLength + TAG_SIZE)
+                val iv = chunkIv(header.noncePrefix, index)
+                val aad = chunkAad(
+                    fileId = header.fileId,
+                    objectKind = header.objectKind,
+                    chunkIndex = index,
+                    chunkCount = header.chunkCount,
+                    plaintextLength = header.plaintextLength,
+                )
+                val decipher = Cipher.getInstance(TRANSFORM)
+                decipher.init(
+                    Cipher.DECRYPT_MODE,
+                    SecretKeySpec(dek, "AES"),
+                    GCMParameterSpec(TAG_BITS, iv),
+                )
+                decipher.updateAAD(aad)
+                val written = decipher.doFinal(
+                    cipher,
+                    0,
+                    chunkLength + TAG_SIZE,
+                    plain,
+                    0,
+                )
+                if (written != chunkLength) throw CorruptDataException()
+                cachedIndex = index
+                cachedLength = written
+            } catch (failure: Exception) {
+                // Never expose a path, key byte, or plaintext fragment through
+                // the PDF reader; the caller maps this to a read failure.
+                throw IOException("corruptSource")
+            }
+        }
+
+        override fun close() {
+            if (closed) return
+            closed = true
+            cachedIndex = -1
+            cachedLength = 0
+            cachedPlain?.fill(0.toByte())
+            cipherBuffer?.fill(0.toByte())
+            dek.fill(0.toByte())
+            runCatching { channel.close() }
+        }
+    }
+
+    /**
      * Commits the initial revision and metadata for an already staged source.
      *
      * The supplied document id and revision id are persisted exactly once.
@@ -365,6 +690,12 @@ class EncryptedStore(
      * verified hash and size before any revision, head, or metadata object is
      * written, so a mismatched source never becomes visible. A visible
      * aggregate with the same id is rejected without being overwritten.
+     *
+     * [shouldAbort] is checked before the revision, head, and (critically)
+     * before the metadata promotion that makes the aggregate visible. An abort
+     * before the metadata commit removes the staged aggregate and its key; an
+     * abort after that point would not be observed because the document is
+     * already durable.
      */
     fun createDocumentFromStagedSource(
         documentId: String,
@@ -375,6 +706,7 @@ class EncryptedStore(
         revisionId: String,
         revisionJson: ByteArray,
         revisionKind: RevisionKindWire = RevisionKindWire.EXPLICIT,
+        shouldAbort: () -> Boolean = { false },
     ): CreateReceipt {
         val ref = AggregateRef(AggregateKind.DOCUMENT, documentId)
         requireAggregateId(ref)
@@ -392,28 +724,43 @@ class EncryptedStore(
             if (io.exists(fileFor(MetaObject(ref)))) throw ConcurrentSaveException()
             val aggregate = aggregateDir(ref)
             val srcDir = File(aggregate, "src")
-            if (!io.isDirectory(srcDir)) throw CorruptDataException()
-            val sources = io.list(srcDir).filter { it.isFile && it.name.endsWith(".fxc") }
-            val expectedName = sourceId + ".fxc"
-            if (sources.size != 1 || sources.single().name != expectedName) {
-                throw CorruptDataException()
-            }
-            val staged = readObject(SourceObject(ref, sourceId))
-            if (staged.size.toLong() != sourceSizeBytes ||
-                sha256Hex(staged) != sourceSha256
-            ) {
-                throw CorruptDataException()
-            }
-            if (!keystore.hasAggregateKey(ref)) {
-                // The staged object must already have this KEK. Re-creating a
-                // missing key would orphan the ciphertext, so fail closed.
-                throw KeyUnavailableException()
-            }
+            // Any failure after the visible-meta check removes the incomplete
+            // aggregate; a duplicate visible aggregate was rejected above and
+            // is never touched. This includes source verification mismatches
+            // and a missing aggregate key (the import never became visible).
             try {
+                if (!io.isDirectory(srcDir)) throw CorruptDataException()
+                val sources = io.list(srcDir).filter { it.isFile && it.name.endsWith(".fxc") }
+                val expectedName = sourceId + ".fxc"
+                if (sources.size != 1 || sources.single().name != expectedName) {
+                    throw CorruptDataException()
+                }
+                // Prompt cancellation before the whole staged source is
+                // re-verified. No meta exists here, so deleting the aggregate
+                // is safe; a visible aggregate was rejected above.
+                if (shouldAbort()) throw CancellationException("importCancelled")
+                // T040: verify the staged source chunk by chunk. The old read
+                // materialized up to 80 MiB of plaintext; this path keeps only
+                // one ciphertext chunk and one plaintext chunk live.
+                val staged = verifyContainer(
+                    SourceObject(ref, sourceId),
+                    fileFor(SourceObject(ref, sourceId)),
+                )
+                if (staged.plaintextLength != sourceSizeBytes ||
+                    staged.plaintextSha256 != sourceSha256
+                ) {
+                    throw CorruptDataException()
+                }
+                if (!keystore.hasAggregateKey(ref)) {
+                    // The staged object must already have this KEK. Re-creating
+                    // a missing key would orphan the ciphertext, so fail closed.
+                    throw KeyUnavailableException()
+                }
                 ensureLayout()
                 for (sub in listOf("rev", "sig")) {
                     io.mkdirs(File(aggregate, sub))
                 }
+                if (shouldAbort()) throw CancellationException("importCancelled")
                 val txn = newTxnId()
                 commitObject(
                     RevisionObject(ref, revisionId),
@@ -422,6 +769,7 @@ class EncryptedStore(
                     TMP_SUFFIX_PART,
                     lastModifiedMillis = nextRevisionTimestampMillis(ref),
                 )
+                if (shouldAbort()) throw CancellationException("importCancelled")
                 val head = CommittedHead(
                     revisionId = revisionId,
                     plaintextSha256 = sha256Hex(revisionJson),
@@ -430,7 +778,11 @@ class EncryptedStore(
                     kind = revisionKind,
                     history = listOf(HeadHistoryEntry(revisionId, revisionKind)),
                 )
+                if (shouldAbort()) throw CancellationException("importCancelled")
                 commitHead(ref, head, txn)
+                // Last abort point: once meta.fx1 is promoted the document is
+                // visible and must never be removed by a late cancellation.
+                if (shouldAbort()) throw CancellationException("importCancelled")
                 commitObject(MetaObject(ref), metaJson, txn, TMP_SUFFIX_PART)
 
                 readContainer(MetaObject(ref), fileFor(MetaObject(ref)))
@@ -453,8 +805,14 @@ class EncryptedStore(
                     readBackVerified = true,
                 )
             } catch (failure: Throwable) {
-                runCatching { io.deleteTree(aggregate) }
-                runCatching { keystore.deleteAggregateKey(ref) }
+                // Error precedence: a cleanup failure replaces the original
+                // failure (including cancellation) because the operation must
+                // not report a clean terminal state while the incomplete
+                // aggregate or its Keystore alias may remain. Error is never
+                // masked.
+                val cleanupFailure = cleanupIncompleteAggregate(ref, aggregate)
+                if (failure is Error) throw failure
+                if (cleanupFailure != null) throw cleanupFailure
                 throw failure
             }
         }
@@ -1682,12 +2040,105 @@ class EncryptedStore(
                 faultInjector.onFault(StoreFaultPoint.ORDERING_FSYNC, txnId)
                 io.fsyncFile(staged.file)
             } catch (failure: Throwable) {
-                runCatching { io.deleteTree(staged.file) }
+                val cleanupFailure = deletePathOrFailure(staged.file)
+                if (failure is Error) throw failure
+                if (cleanupFailure != null) throw cleanupFailure
                 throw mapWriteFailure(failure)
             }
         }
         promote(staged, obj, txnId)
         return readBackObject(obj, plaintext)
+    }
+
+    /**
+     * T040 streaming counterpart of [commitObject]. The caller already knows
+     * the exact plaintext length; [writeContainer] hashes every chunk while it
+     * writes and the header digest is compared with [expectedSha256] before
+     * promotion. Read-back then re-authenticates the promoted object chunk by
+     * chunk. Peak live memory is one plaintext chunk plus one ciphertext chunk.
+     *
+     * [input] is **caller-owned** and is not closed here; [stageSourceFromStream]
+     * wraps the provider stream in exactly one `use` at its call site.
+     */
+    private fun commitObjectFromStream(
+        obj: StoreObject,
+        input: InputStream,
+        length: Long,
+        expectedSha256: String,
+        txnId: String,
+        suffix: String,
+        shouldAbort: () -> Boolean,
+        onChunk: ((SourceReadPass, Int) -> Unit)? = null,
+    ): ObjectReceipt {
+        val staged = stageObjectFromStream(
+            obj = obj,
+            input = input,
+            length = length,
+            expectedSha256 = expectedSha256,
+            txnId = txnId,
+            suffix = suffix,
+            shouldAbort = shouldAbort,
+            onChunk = onChunk,
+        )
+        promote(staged, obj, txnId)
+        val verification = verifyContainer(obj, fileFor(obj))
+        if (verification.plaintextSha256 != expectedSha256 ||
+            verification.plaintextLength != length
+        ) {
+            throw CorruptDataException()
+        }
+        return ObjectReceipt(
+            plaintextSha256 = expectedSha256,
+            fileIdHex = hex(expectedFileId(obj)),
+            plaintextLength = length,
+            fileLength = fileFor(obj).length(),
+        )
+    }
+
+    /** Non-owning: [input] is closed by the caller's single `use`. */
+    private fun stageObjectFromStream(
+        obj: StoreObject,
+        input: InputStream,
+        length: Long,
+        expectedSha256: String,
+        txnId: String,
+        suffix: String,
+        shouldAbort: () -> Boolean,
+        onChunk: ((SourceReadPass, Int) -> Unit)? = null,
+    ): StagedObject {
+        ensureLayout()
+        val staged = tmpFile(txnId, suffix)
+        try {
+            faultInjector.onFault(StoreFaultPoint.STAGE_CREATE, txnId)
+            val header = writeContainer(
+                obj = obj,
+                input = input,
+                length = length,
+                file = staged,
+                txnId = txnId,
+                shouldAbort = shouldAbort,
+                onChunk = onChunk,
+            )
+            if (hex(header.plaintextSha256) != expectedSha256 ||
+                header.plaintextLength != length
+            ) {
+                throw InvalidDataException()
+            }
+            val verified = verifyContainer(obj, staged)
+            if (verified.plaintextSha256 != expectedSha256 ||
+                verified.plaintextLength != length
+            ) {
+                throw CorruptDataException()
+            }
+            return StagedObject(obj, staged, header)
+        } catch (failure: Throwable) {
+            val cleanupFailure = deletePathOrFailure(staged)
+            if (failure is Error) throw failure
+            if (cleanupFailure != null) throw cleanupFailure
+            if (failure is CancellationException) throw failure
+            if (failure is StorageException) throw failure
+            throw mapWriteFailure(failure)
+        }
     }
 
     /**
@@ -1916,13 +2367,17 @@ class EncryptedStore(
         val staged = tmpFile(txnId, suffix)
         try {
             faultInjector.onFault(StoreFaultPoint.STAGE_CREATE, txnId)
-            val header = writeContainer(
-                obj,
-                ByteArrayInputStream(plaintext),
-                plaintext.size.toLong(),
-                staged,
-                txnId,
-            )
+            // Byte-array caller owns this stream: one `use`, exactly one close.
+            // writeContainer is non-owning by contract.
+            val header = ByteArrayInputStream(plaintext).use { input ->
+                writeContainer(
+                    obj,
+                    input,
+                    plaintext.size.toLong(),
+                    staged,
+                    txnId,
+                )
+            }
             val verified = verifyContainer(obj, staged)
             if (verified.plaintextSha256 != sha256Hex(plaintext) ||
                 verified.plaintextLength != plaintext.size.toLong()
@@ -1931,7 +2386,9 @@ class EncryptedStore(
             }
             return StagedObject(obj, staged, header)
         } catch (failure: Throwable) {
-            runCatching { io.deleteTree(staged) }
+            val cleanupFailure = deletePathOrFailure(staged)
+            if (failure is Error) throw failure
+            if (cleanupFailure != null) throw cleanupFailure
             if (failure is StorageException) throw failure
             throw mapWriteFailure(failure)
         }
@@ -1967,12 +2424,22 @@ class EncryptedStore(
         }
     }
 
+    /**
+     * T040 stream-ownership contract: [input] is **caller-owned** and is not
+     * closed here. The callers are [stageObject] (byte-array path, wraps one
+     * `use`) and [stageSourceFromStream] (provider path, wraps one `use`).
+     * [commitObjectFromStream]/[stageObjectFromStream] only forward that same
+     * caller ownership. This prevents the double close that occurred when both
+     * the caller and this method wrapped the same provider stream.
+     */
     private fun writeContainer(
         obj: StoreObject,
         input: InputStream,
         length: Long,
         file: File,
         txnId: String,
+        shouldAbort: () -> Boolean = { false },
+        onChunk: ((SourceReadPass, Int) -> Unit)? = null,
     ): FxcHeader {
         if (length < 0 || length > MAX_OBJECT_BYTES) throw InvalidDataException()
         val chunkSize = obj.objectKind.chunkSize
@@ -1992,34 +2459,35 @@ class EncryptedStore(
             var index = 0
             var total = 0L
             val buffer = ByteArray(chunkSize)
-            input.use { stream ->
-                while (total < length) {
-                    val wanted = minOf(chunkSize.toLong(), length - total).toInt()
-                    readFully(stream, buffer, wanted)
-                    digest.update(buffer, 0, wanted)
-                    val iv = chunkIv(noncePrefix, index)
-                    val aad = chunkAad(
-                        fileId = fileId,
-                        objectKind = obj.objectKind,
-                        chunkIndex = index,
-                        chunkCount = chunkCount,
-                        plaintextLength = length,
-                    )
-                    val cipher = Cipher.getInstance(TRANSFORM)
-                    cipher.init(
-                        Cipher.ENCRYPT_MODE,
-                        SecretKeySpec(dek, "AES"),
-                        GCMParameterSpec(TAG_BITS, iv),
-                    )
-                    cipher.updateAAD(aad)
-                    val ciphertext = cipher.doFinal(buffer, 0, wanted)
-                    faultInjector.onFault(StoreFaultPoint.STAGE_WRITE, txnId)
-                    writeFully(channel, ciphertext)
-                    total += wanted
-                    index++
-                }
-                if (stream.read() != -1) throw InvalidDataException()
+            // Non-owning read: the caller's single `use` closes the stream.
+            while (total < length) {
+                if (shouldAbort()) throw CancellationException("importCancelled")
+                val wanted = minOf(chunkSize.toLong(), length - total).toInt()
+                readFully(input, buffer, wanted)
+                digest.update(buffer, 0, wanted)
+                onChunk?.invoke(SourceReadPass.WRITE, wanted)
+                val iv = chunkIv(noncePrefix, index)
+                val aad = chunkAad(
+                    fileId = fileId,
+                    objectKind = obj.objectKind,
+                    chunkIndex = index,
+                    chunkCount = chunkCount,
+                    plaintextLength = length,
+                )
+                val cipher = Cipher.getInstance(TRANSFORM)
+                cipher.init(
+                    Cipher.ENCRYPT_MODE,
+                    SecretKeySpec(dek, "AES"),
+                    GCMParameterSpec(TAG_BITS, iv),
+                )
+                cipher.updateAAD(aad)
+                val ciphertext = cipher.doFinal(buffer, 0, wanted)
+                faultInjector.onFault(StoreFaultPoint.STAGE_WRITE, txnId)
+                writeFully(channel, ciphertext)
+                total += wanted
+                index++
             }
+            if (input.read() != -1) throw InvalidDataException()
             if (total != length || index != chunkCount) throw InvalidDataException()
             val header = FxcHeader(
                 version = CONTAINER_VERSION,
@@ -2045,7 +2513,9 @@ class EncryptedStore(
             return header
         } catch (failure: Throwable) {
             runCatching { channel?.close() }
-            runCatching { io.deleteTree(file) }
+            val cleanupFailure = deletePathOrFailure(file)
+            if (failure is Error) throw failure
+            if (cleanupFailure != null) throw cleanupFailure
             throw mapWriteFailure(failure)
         }
     }
@@ -2730,6 +3200,10 @@ class EncryptedStore(
 
     private fun mapWriteFailure(failure: Throwable): StorageException {
         if (failure is StorageException) return failure
+        // T040: a cooperative import abort is not a storage failure. It must
+        // reach the caller so the staged aggregate is removed and PLT-004 is
+        // reported, never SAVE-003.
+        if (failure is CancellationException) throw failure
         // Never turn a VM error (for example OutOfMemoryError) into a
         // recoverable storage diagnosis.
         if (failure is Error) throw failure
@@ -2740,6 +3214,50 @@ class EncryptedStore(
         if (failure is StorageException) return failure
         if (failure is Error) throw failure
         return if (isQuota(failure)) StorageFullException() else CorruptDataException()
+    }
+
+    /**
+     * T040 review correction: deletes one staging/aggregate path and reports a
+     * false return as a cleanup failure. A silent `false` must never be read as
+     * "clean". `Error` is rethrown and never converted.
+     */
+    private fun deletePathOrFailure(file: File): StorageException? = try {
+        if (io.deleteTree(file)) null else StorageWriteException()
+    } catch (failure: Error) {
+        throw failure
+    } catch (failure: Exception) {
+        mapWriteFailure(failure)
+    }
+
+    /**
+     * T040 review correction: removes an incomplete aggregate and its KEK.
+     *
+     * Error precedence: the first cleanup failure (aggregate deletion, then
+     * alias deletion) replaces the original failure — including a
+     * `CancellationException` — because a clean cancellation must not be
+     * reported while encrypted residue remains. The startup sweep is the
+     * backstop for a retained aggregate or orphan alias. An `Error` is never
+     * masked and is rethrown as-is.
+     */
+    private fun cleanupIncompleteAggregate(
+        ref: AggregateRef,
+        aggregate: File,
+    ): StorageException? {
+        val aggregateFailure = deletePathOrFailure(aggregate)
+        var aliasFailure: StorageException? = null
+        try {
+            if (!keystore.deleteAggregateKey(ref) && aggregateFailure == null) {
+                // False means the alias was not removed now (provider
+                // unavailable or Keystore error). That is residue, not success;
+                // the startup sweep retries the orphan alias.
+                aliasFailure = StorageWriteException()
+            }
+        } catch (failure: Error) {
+            throw failure
+        } catch (failure: Exception) {
+            if (aggregateFailure == null) aliasFailure = mapWriteFailure(failure)
+        }
+        return aggregateFailure ?: aliasFailure
     }
 
     private fun isQuota(failure: Throwable): Boolean {
@@ -2798,6 +3316,9 @@ class EncryptedStore(
         const val FLAG_CHUNKED: Int = 1
         const val META_CHUNK_SIZE: Int = 65_536
         const val LARGE_CHUNK_SIZE: Int = 1_048_576
+
+        /** T040: bounded hash/count chunk; never a whole-source buffer. */
+        const val SOURCE_HASH_CHUNK_SIZE: Int = 65_536
         const val NONCE_PREFIX_SIZE: Int = 8
         const val IV_SIZE: Int = 12
         const val TAG_SIZE: Int = 16
@@ -2960,6 +3481,40 @@ data class StagedSourceReceipt(
     val sizeBytes: Long,
     val readBackVerified: Boolean,
 )
+
+/**
+ * T040: the two bounded passes of [EncryptedStore.stageSourceFromStream].
+ *
+ * `HASH` reads 64 KiB chunks to compute SHA-256 and the byte count; `WRITE`
+ * writes 1 MiB FXC1 chunks. The callback carries only the byte count, never
+ * source content.
+ */
+enum class SourceReadPass {
+    HASH,
+    WRITE,
+}
+
+/**
+ * T040: the picked source exceeded the import byte cap during the streaming
+ * hash pass. It is deliberately not a [StorageException]: the import service
+ * maps it to `IMP-007`, while the store's own 80 MiB object bound stays
+ * `SAVE-007`. The message contains no size, path, name, or content.
+ */
+class SourceLimitExceededException : Exception("source.tooLarge")
+
+/**
+ * T040: decrypting, seekable, chunk-bounded view of a staged source object.
+ * The caller owns and must close it.
+ */
+interface EncryptedSourceReader : Closeable {
+    val length: Long
+    val position: Long
+    val isClosed: Boolean
+
+    fun seek(position: Long)
+
+    fun read(buffer: ByteArray, offset: Int, length: Int): Int
+}
 
 /** Fully verified aggregate load; caller owns [sourceBytes]. */
 data class LoadedAggregate(
