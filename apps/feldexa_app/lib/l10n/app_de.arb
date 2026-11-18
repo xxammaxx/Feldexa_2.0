@@ -478,6 +478,38 @@
   "@statusUnreadable": {
     "description": "§8 document status `unreadable`."
   },
+  "pageAnalysisPending": "Wartet",
+  "@pageAnalysisPending": {
+    "description": "contracts/error-catalog.de.md §8 page analysis state `pending`: short visible form in one page-strip control."
+  },
+  "pageAnalysisPendingHint": "Analyse ausstehend",
+  "@pageAnalysisPendingHint": {
+    "description": "contracts/error-catalog.de.md §8 page analysis state `pending`: full form used as the semantic hint and in the compact page indicator."
+  },
+  "pageAnalysisAnalyzing": "Läuft",
+  "@pageAnalysisAnalyzing": {
+    "description": "contracts/error-catalog.de.md §8 page analysis state `analyzing`: short visible form in one page-strip control."
+  },
+  "pageAnalysisAnalyzingHint": "Analyse läuft",
+  "@pageAnalysisAnalyzingHint": {
+    "description": "contracts/error-catalog.de.md §8 page analysis state `analyzing`: full form used as the semantic hint and in the compact page indicator."
+  },
+  "pageAnalysisComplete": "Fertig",
+  "@pageAnalysisComplete": {
+    "description": "contracts/error-catalog.de.md §8 page analysis state `complete`: short visible form in one page-strip control."
+  },
+  "pageAnalysisCompleteHint": "Analyse abgeschlossen",
+  "@pageAnalysisCompleteHint": {
+    "description": "contracts/error-catalog.de.md §8 page analysis state `complete`: full form used as the semantic hint and in the compact page indicator."
+  },
+  "pageAnalysisFailed": "Fehler",
+  "@pageAnalysisFailed": {
+    "description": "contracts/error-catalog.de.md §8 page analysis state `failed`: short visible form in one page-strip control."
+  },
+  "pageAnalysisFailedHint": "Analyse fehlgeschlagen",
+  "@pageAnalysisFailedHint": {
+    "description": "contracts/error-catalog.de.md §8 page analysis state `failed`: full form used as the semantic hint and in the compact page indicator."
+  },
   "fieldCount": "{count} Felder, {filled} ausgefüllt",
   "@fieldCount": {
     "description": "§8 field count summary.",

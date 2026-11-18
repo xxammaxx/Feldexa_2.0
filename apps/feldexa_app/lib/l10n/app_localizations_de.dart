@@ -398,6 +398,30 @@ class AppLocalizationsDe extends AppLocalizations {
   String get statusUnreadable => 'Nicht lesbar';
 
   @override
+  String get pageAnalysisPending => 'Wartet';
+
+  @override
+  String get pageAnalysisPendingHint => 'Analyse ausstehend';
+
+  @override
+  String get pageAnalysisAnalyzing => 'Läuft';
+
+  @override
+  String get pageAnalysisAnalyzingHint => 'Analyse läuft';
+
+  @override
+  String get pageAnalysisComplete => 'Fertig';
+
+  @override
+  String get pageAnalysisCompleteHint => 'Analyse abgeschlossen';
+
+  @override
+  String get pageAnalysisFailed => 'Fehler';
+
+  @override
+  String get pageAnalysisFailedHint => 'Analyse fehlgeschlagen';
+
+  @override
   String fieldCount(int count, int filled) {
     return '$count Felder, $filled ausgefüllt';
   }

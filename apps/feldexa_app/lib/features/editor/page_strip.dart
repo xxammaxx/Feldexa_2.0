@@ -37,13 +37,12 @@
 //
 // User-visible text
 // -----------------
-// Every string that exists in the committed German catalog is read from
-// `AppLocalizations` or the German `MaterialLocalizations`; this file adds no
-// ARB key and no catalog row. The four analysis-state words and their short
-// visible forms are local presentation vocabulary because
-// `contracts/error-catalog.de.md` §8 has no per-page analysis-state text yet;
-// they are not codes, paths, URIs, titles, or document content, and they are
-// German.
+// Every user-visible string is read from `AppLocalizations` or the German
+// `MaterialLocalizations`; this file adds no ARB key and no catalog row. The
+// four full analysis-state texts and the four short visible forms are the
+// `contracts/error-catalog.de.md` §8 "Page analysis states" rows, exposed as
+// the `pageAnalysis*` / `pageAnalysis*Hint` ARB keys. Labels contain no code,
+// path, URI, title, or document content.
 //
 // Privacy
 // -------
@@ -417,7 +416,7 @@ class _PageStripState extends State<PageStrip> {
                           const SizedBox(width: 3),
                           Flexible(
                             child: Text(
-                              _analysisShortLabel(page.analysisState),
+                              _analysisShortLabel(l10n, page.analysisState),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.labelSmall?.copyWith(
@@ -527,7 +526,7 @@ class _PageStripState extends State<PageStrip> {
                           const SizedBox(width: 3),
                           Flexible(
                             child: Text(
-                              _analysisHint(page.analysisState),
+                              _analysisHint(l10n, page.analysisState),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: theme.textTheme.labelSmall?.copyWith(
@@ -646,7 +645,9 @@ class _PageStripState extends State<PageStrip> {
   }
 
   String _stateHint(AppLocalizations l10n, PageStripPage page) {
-    final List<String> parts = <String>[_analysisHint(page.analysisState)];
+    final List<String> parts = <String>[
+      _analysisHint(l10n, page.analysisState),
+    ];
     if (page.unreadable) {
       parts.add(l10n.statusUnreadable);
     }
@@ -657,30 +658,38 @@ class _PageStripState extends State<PageStrip> {
   }
 
   /// Full German analysis-state text used by the compact indicator and hints.
-  String _analysisHint(PageStripAnalysisState state) {
+  ///
+  /// The text is the catalog §8 full form; the generated getters keep the
+  /// catalog-to-ARB mapping in one place.
+  String _analysisHint(AppLocalizations l10n, PageStripAnalysisState state) {
     switch (state) {
       case PageStripAnalysisState.pending:
-        return 'Analyse ausstehend';
+        return l10n.pageAnalysisPendingHint;
       case PageStripAnalysisState.analyzing:
-        return 'Analyse läuft';
+        return l10n.pageAnalysisAnalyzingHint;
       case PageStripAnalysisState.ready:
-        return 'Analyse abgeschlossen';
+        return l10n.pageAnalysisCompleteHint;
       case PageStripAnalysisState.failed:
-        return 'Analyse fehlgeschlagen';
+        return l10n.pageAnalysisFailedHint;
     }
   }
 
   /// Short visible analysis-state text for a narrow strip control.
-  String _analysisShortLabel(PageStripAnalysisState state) {
+  ///
+  /// The text is the catalog §8 short form.
+  String _analysisShortLabel(
+    AppLocalizations l10n,
+    PageStripAnalysisState state,
+  ) {
     switch (state) {
       case PageStripAnalysisState.pending:
-        return 'Wartet';
+        return l10n.pageAnalysisPending;
       case PageStripAnalysisState.analyzing:
-        return 'Läuft';
+        return l10n.pageAnalysisAnalyzing;
       case PageStripAnalysisState.ready:
-        return 'Fertig';
+        return l10n.pageAnalysisComplete;
       case PageStripAnalysisState.failed:
-        return 'Fehler';
+        return l10n.pageAnalysisFailed;
     }
   }
 
