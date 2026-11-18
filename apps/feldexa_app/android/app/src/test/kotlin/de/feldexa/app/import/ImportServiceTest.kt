@@ -1,6 +1,7 @@
 package de.feldexa.app.import
 
 import de.feldexa.app.BackgroundExecutor
+import de.feldexa.app.BoundedBackgroundExecutor
 import de.feldexa.app.ChannelReply
 import de.feldexa.app.FeldexaEventSink
 import de.feldexa.app.OperationContext
@@ -301,6 +302,256 @@ class ImportServiceTest {
     }
 
     @Test
+    fun lateCleanupRegistrationKeepsCancellationUnobservableUntilCleanupCompletes() {
+        val discardEntered = CountDownLatch(1)
+        val releaseDiscard = CountDownLatch(1)
+        val service = LateCleanupService {
+            discardEntered.countDown()
+            releaseDiscard.await(2, TimeUnit.SECONDS)
+        }
+        val executor = BoundedBackgroundExecutor(maxWorkers = 2)
+        val sink = LatchingSink()
+        val results = PlatformResultPublisher(DirectPoster).apply { attachSink(sink) }
+        val facade = PlatformChannelFacade(
+            services = PlatformServiceRegistry().apply { register("import", service) },
+            mainPoster = DirectPoster,
+            events = PlatformEventPublisher(DirectPoster),
+            results = results,
+            executor = executor,
+            clock = { 0L },
+        )
+        try {
+            val startReply = RecordingReply()
+            facade.handle(
+                "import.pickAndImport",
+                mapOf("schemaVersion" to 1, "maxBytes" to 1_000L),
+                startReply,
+            )
+            val operationId = startOperationId(startReply)
+            assertTrue(service.stageEntered.await(5, TimeUnit.SECONDS))
+
+            val cancelReply = RecordingReply()
+            facade.handle(
+                "cancel.operation",
+                mapOf("schemaVersion" to 1, "operationId" to operationId),
+                cancelReply,
+            )
+            assertEquals(
+                mapOf("cancelled" to true),
+                (cancelReply.successValue as Map<*, *>)["data"],
+            )
+
+            val context = service.context!!
+            assertFalse(
+                "cancellation became terminal before the late cleanup registered",
+                context.isCancelled,
+            )
+
+            service.releaseStage.countDown()
+            assertTrue(discardEntered.await(5, TimeUnit.SECONDS))
+
+            val observed = AtomicReference<Boolean?>()
+            val observerDone = CountDownLatch(1)
+            val observer = Thread {
+                observed.set(context.isCancelled)
+                observerDone.countDown()
+            }
+            observer.start()
+            assertFalse(
+                "cancellation was observable before the late cleanup finished",
+                observerDone.await(200, TimeUnit.MILLISECONDS),
+            )
+            assertTrue(
+                "PLT-004 was published before the late cleanup finished",
+                terminalEvents(sink).isEmpty(),
+            )
+
+            releaseDiscard.countDown()
+            assertTrue(observerDone.await(5, TimeUnit.SECONDS))
+            observer.join(5_000L)
+            assertFalse(observer.isAlive)
+            assertEquals(true, observed.get())
+            assertTrue(sink.terminal.await(5, TimeUnit.SECONDS))
+            val terminals = terminalEvents(sink)
+            assertEquals(1, terminals.size)
+            assertEquals(false, terminals.single()["ok"])
+            assertEquals("PLT-004", (terminals.single()["error"] as Map<*, *>)["code"])
+        } finally {
+            releaseDiscard.countDown()
+            service.releaseStage.countDown()
+            facade.dispose()
+        }
+    }
+
+    @Test
+    fun lateCleanupFailureIsPublishedInsteadOfPlt004() {
+        val service = LateCleanupService { throw StorageWriteException() }
+        val executor = BoundedBackgroundExecutor(maxWorkers = 2)
+        val sink = LatchingSink()
+        val results = PlatformResultPublisher(DirectPoster).apply { attachSink(sink) }
+        val facade = PlatformChannelFacade(
+            services = PlatformServiceRegistry().apply { register("import", service) },
+            mainPoster = DirectPoster,
+            events = PlatformEventPublisher(DirectPoster),
+            results = results,
+            executor = executor,
+            clock = { 0L },
+        )
+        try {
+            val startReply = RecordingReply()
+            facade.handle(
+                "import.pickAndImport",
+                mapOf("schemaVersion" to 1, "maxBytes" to 1_000L),
+                startReply,
+            )
+            val operationId = startOperationId(startReply)
+            assertTrue(service.stageEntered.await(5, TimeUnit.SECONDS))
+
+            val cancelReply = RecordingReply()
+            facade.handle(
+                "cancel.operation",
+                mapOf("schemaVersion" to 1, "operationId" to operationId),
+                cancelReply,
+            )
+            assertEquals(
+                mapOf("cancelled" to true),
+                (cancelReply.successValue as Map<*, *>)["data"],
+            )
+            service.releaseStage.countDown()
+
+            assertTrue(sink.terminal.await(5, TimeUnit.SECONDS))
+            val terminals = terminalEvents(sink)
+            assertEquals(1, terminals.size)
+            assertEquals(false, terminals.single()["ok"])
+            val error = terminals.single()["error"] as Map<*, *>
+            assertNotEquals("PLT-004", error["code"])
+            assertEquals("SAVE-003", error["code"])
+        } finally {
+            service.releaseStage.countDown()
+            facade.dispose()
+        }
+    }
+
+    @Test
+    fun cancelOperationRunsCleanupOffTheChannelThreadAndPublishesOnce() {
+        val caller = Thread.currentThread()
+        val discardEntered = CountDownLatch(1)
+        val releaseDiscard = CountDownLatch(1)
+        val discardDone = CountDownLatch(1)
+        val discardThread = AtomicReference<Thread?>()
+        val discardCalls = java.util.concurrent.atomic.AtomicInteger(0)
+        val service = RegisteredCleanupService {
+            discardCalls.incrementAndGet()
+            discardThread.set(Thread.currentThread())
+            discardEntered.countDown()
+            releaseDiscard.await(2, TimeUnit.SECONDS)
+            discardDone.countDown()
+        }
+        val executor = BoundedBackgroundExecutor(maxWorkers = 2)
+        val sink = LatchingSink()
+        val results = PlatformResultPublisher(DirectPoster).apply { attachSink(sink) }
+        val facade = PlatformChannelFacade(
+            services = PlatformServiceRegistry().apply { register("import", service) },
+            mainPoster = DirectPoster,
+            events = PlatformEventPublisher(DirectPoster),
+            results = results,
+            executor = executor,
+            clock = { 0L },
+        )
+        try {
+            val startReply = RecordingReply()
+            facade.handle(
+                "import.pickAndImport",
+                mapOf("schemaVersion" to 1, "maxBytes" to 1_000L),
+                startReply,
+            )
+            val operationId = startOperationId(startReply)
+            assertTrue(service.registered.await(5, TimeUnit.SECONDS))
+
+            val cancelReply = RecordingReply()
+            val startedAt = System.nanoTime()
+            facade.handle(
+                "cancel.operation",
+                mapOf("schemaVersion" to 1, "operationId" to operationId),
+                cancelReply,
+            )
+            val elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAt)
+            assertEquals(
+                mapOf("cancelled" to true),
+                (cancelReply.successValue as Map<*, *>)["data"],
+            )
+            assertTrue("cancel.operation blocked on cleanup for ${elapsedMs}ms", elapsedMs < 1_000L)
+
+            assertTrue(discardEntered.await(5, TimeUnit.SECONDS))
+            assertFalse("cleanup ran on the channel thread", caller === discardThread.get())
+            assertTrue(
+                "terminal result appeared before cleanup finished",
+                terminalEvents(sink).isEmpty(),
+            )
+
+            releaseDiscard.countDown()
+            assertTrue(discardDone.await(5, TimeUnit.SECONDS))
+            service.releaseOperation.countDown()
+            assertTrue(sink.terminal.await(5, TimeUnit.SECONDS))
+            val terminals = terminalEvents(sink)
+            assertEquals(1, terminals.size)
+            assertEquals(false, terminals.single()["ok"])
+            assertEquals("PLT-004", (terminals.single()["error"] as Map<*, *>)["code"])
+            assertEquals(1, discardCalls.get())
+        } finally {
+            service.releaseOperation.countDown()
+            releaseDiscard.countDown()
+            facade.dispose()
+        }
+    }
+
+    @Test
+    fun lateCleanupFailureIsReadInsideThePublicationCriticalSection() {
+        val (handle, context) = context()
+        val discardEntered = CountDownLatch(1)
+        val releaseDiscard = CountDownLatch(1)
+        assertTrue(handle.cancel())
+        assertFalse(handle.isCancelled)
+
+        val late = Thread {
+            context.registerCancellationCleanup {
+                discardEntered.countDown()
+                releaseDiscard.await(5, TimeUnit.SECONDS)
+                context.recordCancellationCleanupFailure(
+                    PlatformFailure("SAVE-003", "corruptData", false, "save.writeFailed"),
+                )
+            }
+        }
+        late.start()
+        try {
+            assertTrue(discardEntered.await(5, TimeUnit.SECONDS))
+            val published = AtomicReference<PlatformFailure?>()
+            val publishDone = CountDownLatch(1)
+            val publisher = Thread {
+                handle.publishCancellation { failure ->
+                    published.set(failure ?: PlatformFailure.cancelled())
+                    publishDone.countDown()
+                }
+            }
+            publisher.start()
+            assertFalse(
+                "terminal result published before the late cleanup recorded its failure",
+                publishDone.await(150, TimeUnit.MILLISECONDS),
+            )
+
+            releaseDiscard.countDown()
+            assertTrue(publishDone.await(5, TimeUnit.SECONDS))
+            late.join(5_000L)
+            publisher.join(5_000L)
+            assertEquals("SAVE-003", published.get()?.code)
+            assertTrue(handle.isCancelled)
+        } finally {
+            releaseDiscard.countDown()
+            late.join(5_000L)
+        }
+    }
+
+    @Test
     fun storageFullMapsToSAVE001WithoutContent() {
         val staging = RecordingStaging().apply { throwable = StorageFullException() }
         val service = ImportService(
@@ -497,6 +748,15 @@ class ImportServiceTest {
         mapOf("schemaVersion" to 1, "maxBytes" to maxBytes),
     )
 
+    private fun startOperationId(reply: RecordingReply): String {
+        val envelope = reply.successValue as Map<*, *>
+        val data = envelope["data"] as Map<*, *>
+        return data["operationId"] as String
+    }
+
+    private fun terminalEvents(sink: LatchingSink): List<Map<*, *>> =
+        sink.snapshot().filterIsInstance<Map<*, *>>().filter { it["event"] == "operation.result" }
+
     private fun expectFailure(block: () -> Unit): PlatformFailure {
         try {
             block()
@@ -635,6 +895,69 @@ class ImportServiceTest {
         val events = mutableListOf<Any?>()
         override fun success(event: Any?) {
             events.add(event)
+        }
+    }
+
+    /** Recording sink that also signals the first terminal operation result. */
+    private class LatchingSink : FeldexaEventSink {
+        private val lock = Any()
+        private val recorded = mutableListOf<Any?>()
+        val terminal = CountDownLatch(1)
+
+        override fun success(event: Any?) {
+            synchronized(lock) { recorded.add(event) }
+            if (event is Map<*, *> && event["event"] == "operation.result") {
+                terminal.countDown()
+            }
+        }
+
+        fun snapshot(): List<Any?> = synchronized(lock) { recorded.toList() }
+    }
+
+    /** Mimics ImportService's order: stage first, register cleanup only afterwards. */
+    private class LateCleanupService(
+        private val cleanup: () -> Unit,
+    ) : PlatformService {
+        val stageEntered = CountDownLatch(1)
+        val releaseStage = CountDownLatch(1)
+
+        @Volatile
+        var context: OperationContext? = null
+
+        override fun handle(request: PlatformRequest, context: OperationContext): Any? {
+            this.context = context
+            stageEntered.countDown()
+            releaseStage.await(5, TimeUnit.SECONDS)
+            context.registerCancellationCleanup {
+                try {
+                    cleanup()
+                } catch (failure: PlatformFailure) {
+                    context.recordCancellationCleanupFailure(failure)
+                } catch (failure: Exception) {
+                    context.recordCancellationCleanupFailure(
+                        PlatformFailure("SAVE-003", "corruptData", false, "save.writeFailed"),
+                    )
+                }
+            }
+            if (context.isCancelled) {
+                throw context.cancellationCleanupFailure() ?: PlatformFailure.cancelled()
+            }
+            return mapOf("ok" to true)
+        }
+    }
+
+    /** Registers a cleanup, then stays running so cancellation finds it registered. */
+    private class RegisteredCleanupService(
+        private val cleanup: () -> Unit,
+    ) : PlatformService {
+        val registered = CountDownLatch(1)
+        val releaseOperation = CountDownLatch(1)
+
+        override fun handle(request: PlatformRequest, context: OperationContext): Any? {
+            context.registerCancellationCleanup(cleanup)
+            registered.countDown()
+            releaseOperation.await(5, TimeUnit.SECONDS)
+            return mapOf("ok" to true)
         }
     }
 
