@@ -1,0 +1,258 @@
+/usr/bin/which: no vswhere.exe in (<redacted-home>/.feldexa-toolchain/jdk/bin:<redacted-home>/flutter/bin:<redacted-home>/.config/orca/linux-orca-cli-shim:<redacted-home>/.opencode/bin:<redacted-home>/.local/bin:<redacted-home>/.local/opt/stably-orca:<redacted-home>/.local/opt/stably-orca/usr/sbin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:<redacted-home>/.volta/bin:<redacted-home>/.asdf/shims:<redacted-home>/.fnm/aliases/default/bin:<redacted-home>/.local/share/mise/shims:<redacted-home>/.local/share/pnpm:<redacted-home>/.yarn/bin:<redacted-home>/.bun/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/snap/bin:<redacted-home-path>)
+
+
+No Visual Studio installation found with the requested Microsoft.VisualStudio.Component.VC.Tools.x86.x64 component.
+
+00:00 +0: loading <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart
+00:00 +0: <repo-root>/apps/feldexa_app/test/android_backup_rules_test.dart: manifest disables backup and points at the extraction rules
+00:00 +1: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+00:00 +2: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+00:00 +3: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+00:00 +3: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance catalog is a SIMULATED, deterministic fixture catalogue
+00:00 +4: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance catalogue contains the four editor forms and three failure fixtures
+00:00 +5: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-001 carries complete synthetic provenance
+00:00 +6: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-002 carries complete synthetic provenance
+00:00 +7: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-003 carries complete synthetic provenance
+00:00 +8: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-004 carries complete synthetic provenance
+00:00 +9: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-protected carries complete synthetic provenance
+00:00 +10: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-truncated carries complete synthetic provenance
+00:00 +11: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-not-a-pdf carries complete synthetic provenance
+00:00 +12: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures four valid forms cover every field type, rotation, and page-count need
+00:00 +13: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 PDF bytes, page geometry, and fixed metadata are valid
+00:00 +14: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 ground truth is unique, typed, and inside page bounds
+00:00 +15: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 expected OCR is sorted, bounded, and matches assertions
+00:00 +16: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 OCR labels support every ground-truth field
+00:00 +17: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 canonical, Web, and corpus copies are byte-identical
+00:00 +18: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 PDF bytes, page geometry, and fixed metadata are valid
+00:00 +19: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 ground truth is unique, typed, and inside page bounds
+00:00 +20: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 expected OCR is sorted, bounded, and matches assertions
+00:00 +21: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 OCR labels support every ground-truth field
+00:00 +22: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 canonical, Web, and corpus copies are byte-identical
+00:00 +23: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 PDF bytes, page geometry, and fixed metadata are valid
+00:00 +24: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 ground truth is unique, typed, and inside page bounds
+00:00 +25: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 expected OCR is sorted, bounded, and matches assertions
+00:00 +26: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 OCR labels support every ground-truth field
+00:00 +27: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 canonical, Web, and corpus copies are byte-identical
+00:00 +28: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 PDF bytes, page geometry, and fixed metadata are valid
+00:00 +29: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 ground truth is unique, typed, and inside page bounds
+00:00 +30: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 expected OCR is sorted, bounded, and matches assertions
+00:00 +31: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 OCR labels support every ground-truth field
+00:00 +32: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 canonical, Web, and corpus copies are byte-identical
+00:00 +33: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: dev-only delivery policy pubspec declares fonts but never fixture assets
+00:00 +34: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: dev-only delivery policy canonical and Web fixture trees are byte-identical
+00:00 +35: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: dev-only delivery policy the Web delivery mirror is outside Flutter asset directories
+00:00 +36: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: failure fixtures sf-protected is a genuine encrypted PDF for IMP-001
+00:00 +37: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: failure fixtures sf-truncated is a deterministic prefix without EOF for IMP-002
+00:00 +38: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: failure fixtures sf-not-a-pdf is text with a .pdf name for IMP-004
+00:00 +39: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: German content and synthetic marker OCR text exercises German characters and quotation marks
+00:00 +40: <repo-root>/apps/feldexa_app/test/synthetic_fixtures_test.dart: (tearDownAll)
+00:13 +40: <repo-root>/apps/feldexa_app/test/font_bundle_test.dart: asset bundle contains assets/fonts/NotoSans-Regular.ttf
+00:13 +41: <repo-root>/apps/feldexa_app/test/app_smoke_test.dart: renders the Feldexa shell in German
+00:14 +42: <repo-root>/apps/feldexa_app/test/app_smoke_test.dart: renders the Feldexa shell in German
+00:14 +43: <repo-root>/apps/feldexa_app/test/app_smoke_test.dart: renders the Feldexa shell in German
+00:15 +44: <repo-root>/apps/feldexa_app/test/font_metrics_bundle_test.dart: (setUpAll)
+00:15 +44: <repo-root>/apps/feldexa_app/test/font_metrics_bundle_test.dart: metrics.json is a schema-v1 document for both weights
+00:15 +45: <repo-root>/apps/feldexa_app/test/font_metrics_bundle_test.dart: metrics for assets/fonts/NotoSans-Regular.ttf match head/hhea/maxp/hmtx/cmap
+00:16 +46: <repo-root>/apps/feldexa_app/test/font_metrics_bundle_test.dart: assets/fonts/NotoSans-Regular.ttf covers the FR-067 German codepoints
+00:16 +47: <repo-root>/apps/feldexa_app/test/font_metrics_bundle_test.dart: metrics for assets/fonts/NotoSans-Bold.ttf match head/hhea/maxp/hmtx/cmap
+00:16 +48: <repo-root>/apps/feldexa_app/test/font_metrics_bundle_test.dart: assets/fonts/NotoSans-Bold.ttf covers the FR-067 German codepoints
+00:16 +49: <repo-root>/apps/feldexa_app/test/font_metrics_bundle_test.dart: advance keys are emitted in ascending numeric order
+00:16 +50: <repo-root>/apps/feldexa_app/test/font_metrics_bundle_test.dart: sample strings measure to the pinned point widths
+00:16 +51: <repo-root>/apps/feldexa_app/test/font_metrics_bundle_test.dart: missing glyphs stay absent and zero-width marks stay available
+00:16 +52: <repo-root>/apps/feldexa_app/test/font_metrics_bundle_test.dart: (tearDownAll)
+00:17 +52: <repo-root>/apps/feldexa_app/test/german_strings_test.dart: (setUpAll)
+00:17 +52: <repo-root>/apps/feldexa_app/test/german_strings_test.dart: ARB and corrected catalog agree on every coded message
+00:17 +53: <repo-root>/apps/feldexa_app/test/german_strings_test.dart: catalog and ARB key mapping is complete in both directions
+00:17 +54: <repo-root>/apps/feldexa_app/test/german_strings_test.dart: corrected IMP-007 and FLD-001 texts are preserved verbatim
+00:17 +55: <repo-root>/apps/feldexa_app/test/german_strings_test.dart: PRIV-001 discloses aggregate isolation and the global reset exception
+00:17 +56: <repo-root>/apps/feldexa_app/test/german_strings_test.dart: placeholder metadata is complete, typed, and German
+00:17 +57: <repo-root>/apps/feldexa_app/test/german_strings_test.dart: generated localization code exposes every ARB key
+00:17 +58: <repo-root>/apps/feldexa_app/test/german_strings_test.dart: start area, status, action, and deletion labels match the catalog
+00:17 +59: <repo-root>/apps/feldexa_app/test/german_strings_test.dart: durability, privacy, export, and SIMULATED labels match the catalog
+00:17 +60: <repo-root>/apps/feldexa_app/test/german_strings_test.dart: accessibility semantics use the catalog templates and German states
+00:17 +61: <repo-root>/apps/feldexa_app/test/german_strings_test.dart: no untranslated English UI words remain; SIMULATED is allowlisted
+00:17 +62: <repo-root>/apps/feldexa_app/test/german_strings_test.dart: (tearDownAll)
+00:18 +62: <repo-root>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+00:21 +63: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: German is the only supported release locale
+00:21 +64: <repo-root>/apps/feldexa_app/test/import_error_mapper_test.dart: catalog mapping maps every import and import-reachable storage code exactly
+00:21 +65: <repo-root>/apps/feldexa_app/test/import_error_mapper_test.dart: catalog mapping maps every import and import-reachable storage code exactly
+00:21 +66: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:21 +67: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:21 +68: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:21 +69: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:21 +70: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:21 +71: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:21 +72: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:21 +73: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:21 +74: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:21 +75: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:21 +76: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:21 +77: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:21 +78: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:21 +79: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:21 +80: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:21 +81: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:21 +82: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:21 +83: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:22 +84: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:22 +85: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:22 +86: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:22 +87: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+00:22 +88: <repo-root>/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+00:22 +89: loading <repo-root>/apps/feldexa_app/test/page_state_test.dart
+00:23 +89: <repo-root>/apps/feldexa_app/test/page_state_test.dart: readable pages a pending page is readable with its reported display size
+00:23 +90: <repo-root>/apps/feldexa_app/test/page_state_test.dart: readable pages running analysis is projected as analyzing
+00:23 +91: <repo-root>/apps/feldexa_app/test/page_state_test.dart: readable pages complete analysis is projected as ready
+00:23 +92: <repo-root>/apps/feldexa_app/test/page_state_test.dart: readable pages a failed analysis stays readable, renderable, and labeled
+00:23 +93: <repo-root>/apps/feldexa_app/test/page_state_test.dart: readable pages a fully readable document succeeds without a warning
+00:23 +94: <repo-root>/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder the placeholder page is unreadable and exposes no display size
+00:23 +95: <repo-root>/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder an unreadable page hides even a real-looking reported size
+00:23 +96: <repo-root>/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder an unreadable page may omit its reported size
+00:23 +97: <repo-root>/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder an IMP-006 failure marks a page unreadable without the flag
+00:23 +98: <repo-root>/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder the unreadable flag alone is sufficient
+00:23 +99: <repo-root>/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder a persisted T040 placeholder JSON page is suppressed
+00:23 +100: <repo-root>/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder a readable 1x1 page is treated as its reported size
+00:23 +101: <repo-root>/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder pages are ordered and affected numbers are ascending and 1-based
+00:23 +102: <repo-root>/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation a partially unreadable document succeeds with the warning
+00:23 +103: <repo-root>/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation affected pages are listed in ascending order
+00:23 +104: <repo-root>/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation a single affected page uses its 1-based number
+00:23 +105: <repo-root>/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation warning text is catalog German without codes or paths
+00:23 +106: <repo-root>/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation readable pages stay usable in a partial document
+00:23 +107: <repo-root>/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation a partial document is not an error state
+00:23 +108: <repo-root>/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation derived collections are immutable
+00:23 +109: <repo-root>/apps/feldexa_app/test/page_state_test.dart: fully unreadable document all pages unreadable yields the explicit error state
+00:23 +110: <repo-root>/apps/feldexa_app/test/page_state_test.dart: fully unreadable document a single unreadable page is a fully unreadable document
+00:23 +111: <repo-root>/apps/feldexa_app/test/page_state_test.dart: fully unreadable document the error state exposes no renderable size and no warning
+00:23 +112: <repo-root>/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects an empty page collection
+00:23 +113: <repo-root>/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects duplicate page indices
+00:23 +114: <repo-root>/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects non-contiguous page indices
+00:23 +115: <repo-root>/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects a negative page index at construction
+00:23 +116: <repo-root>/apps/feldexa_app/test/page_state_test.dart: input validation and privacy requires a failure key exactly for a failed analysis
+00:23 +117: <repo-root>/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects a malformed failure key without echoing it
+00:23 +118: <repo-root>/apps/feldexa_app/test/page_state_test.dart: input validation and privacy requires a reported size for a readable page
+00:23 +119: <repo-root>/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects a non-finite, zero, or negative display size
+00:23 +120: <repo-root>/apps/feldexa_app/test/page_state_test.dart: input validation and privacy input and state toString omit geometry and content
+00:23 +121: <repo-root>/apps/feldexa_app/test/page_state_test.dart: canonical Page compatibility every core analysis state maps to exactly one phase
+00:23 +122: <repo-root>/apps/feldexa_app/test/page_state_test.dart: canonical Page compatibility a canonical unreadable page keeps its flag and failure key
+00:26 +123: <repo-root>/apps/feldexa_app/test/page_strip_test.dart: PageStripController rejects an initial page outside the document
+00:26 +124: <repo-root>/apps/feldexa_app/test/page_strip_test.dart: PageStripController selects pages, delegates scrolling, and clamps at boundaries
+00:26 +125: <repo-root>/apps/feldexa_app/test/page_strip_test.dart: PageStripController changes selection before a viewport exists
+00:26 +126: <repo-root>/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:27 +127: <repo-root>/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+00:28 +128: <repo-root>/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+00:28 +129: <repo-root>/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation rejects a page list that does not match the viewer
+00:28 +130: <repo-root>/apps/feldexa_app/test/page_strip_test.dart: PageStrip semantics exposes one German button per page with state hints
+00:28 +131: <repo-root>/apps/feldexa_app/test/page_strip_test.dart: PageStrip semantics updates the semantic hint when analysis progresses
+00:28 +132: <repo-root>/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation collapses below 600 dp and navigates with labelled buttons
+00:28 +133: <repo-root>/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation shows unreadable and uncertain markers in compact mode
+00:28 +134: <repo-root>/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation stays usable at 200% text scaling in both presentations
+00:28 +135: <repo-root>/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation uses the full strip at exactly 600 dp
+00:28 +136: <repo-root>/apps/feldexa_app/test/page_strip_test.dart: PageStrip long documents builds lazily and reveals a distant selection
+00:29 +137: <repo-root>/apps/feldexa_app/test/page_strip_test.dart: PageStrip long documents compact mode stays usable at page 100
+00:30 +138: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageViewLayout keeps original order, display sizes, and centered page boxes
+00:30 +139: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageViewLayout rejects an empty page list, a negative gap, and bad indices
+00:30 +140: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageViewLayout validates the page display size value itself
+00:30 +141: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageGeometry.displaySize input uses the exact display size for all four rotations
+00:30 +142: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageGeometry.displaySize input keeps mixed pages independent in document order
+00:30 +143: <repo-root>/apps/feldexa_app/test/page_view_test.dart: view transform and hit testing maps view to display and back at every contract zoom level
+00:30 +144: <repo-root>/apps/feldexa_app/test/page_view_test.dart: view transform and hit testing maps a display rectangle without changing its PDF geometry
+00:30 +145: <repo-root>/apps/feldexa_app/test/page_view_test.dart: view transform and hit testing round-trips all rotations with non-zero CropBox offsets
+00:30 +146: <repo-root>/apps/feldexa_app/test/page_view_test.dart: view transform and hit testing uses the contract pan and scale formula directly
+00:30 +147: <repo-root>/apps/feldexa_app/test/page_view_test.dart: view transform and hit testing rejects zero-area rectangles
+00:30 +148: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageViewController fit width follows the widest page and the 0.5×–8× bounds
+00:30 +149: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageViewController fit page uses the tighter dimension ratio
+00:30 +150: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageViewController scrollToPage places the page top at the viewport top
+00:30 +151: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageViewController hit-tests page indices and rejects the inter-page gap
+00:30 +152: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageViewController does not depend on the device pixel ratio
+00:30 +153: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageViewController rejects invalid viewport and transform values
+00:30 +154: <repo-root>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening caps an A3 page at 4096 px on the long edge
+00:30 +155: <repo-root>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening does not downscale a small page below its DPR size
+00:30 +156: <repo-root>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening raster cap leaves view and display mapping unchanged
+00:30 +157: <repo-root>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening zoom-in fitWidth sanity check (passes before and after; not RED evidence)
+00:30 +158: <repo-root>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening fitWidth clamps pan with the target scale after zoom-out (RED on a28fbf0)
+00:30 +159: <repo-root>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects an overflowing accumulated page strip
+00:30 +160: <repo-root>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects derived rectangle extents with opposite extreme endpoints
+00:30 +161: <repo-root>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects far-edge overflow in pageRectInViewport (RED on 219539b)
+00:30 +162: <repo-root>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects non-finite point and rectangle mapping paths
+00:30 +163: <repo-root>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects viewToDisplay page-origin subtraction overflow
+00:30 +164: <repo-root>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects a hostile derived page rectangle
+00:30 +165: <repo-root>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects a public raster cap above the contract 4096
+00:30 +166: <repo-root>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening enforces the minimum page extent and a finite floor
+00:30 +167: <repo-root>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening keeps desiredScale finite for extreme finite inputs
+00:30 +168: <repo-root>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening clamps raster scale to a positive minimum on underflow
+00:30 +169: <repo-root>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects an overflowing transformed rectangle
+00:30 +170: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:31 +171: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:31 +172: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:31 +173: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:31 +174: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:31 +175: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:31 +176: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:31 +177: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:31 +178: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:31 +179: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:31 +180: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:31 +181: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:31 +182: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:31 +183: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:31 +184: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:31 +185: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget reuses the opened document across rebuilds
+00:31 +186: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget keeps the mapping when the device pixel ratio changes
+00:31 +187: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget builds only pages intersecting the viewport
+00:31 +188: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget disposes the renderer when the viewer is removed
+00:31 +189: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget reopens on a source change and disposes the old renderer
+00:31 +190: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget refuses a page-count mismatch without painting pages
+00:31 +191: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget reports an unavailable source with a content-free failure
+00:31 +192: <repo-root>/apps/feldexa_app/test/page_view_test.dart: PageView widget sanitizes a renderer exception
+00:32 +193: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: order and platform seam export sweep precedes native recovery and contract reads
+00:32 +194: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: order and platform seam the platform selector has no native recovery without a runtime
+00:32 +195: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: key material unavailable aggregate SAVE-002 deletes nothing and is reported
+00:32 +196: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: key material unavailable global SAVE-008 deletes nothing and is reported
+00:32 +197: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: key material unavailable a native SAVE-008 still sweeps plaintext previews and skips reads
+00:32 +198: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback native fallback adoption survives later stamps that report false
+00:32 +199: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback SAVE-004 fallback surfaces the German guidance
+00:32 +200: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback corrupt head without a verified revision is degraded
+00:32 +201: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback a fallback without a verified revision is never success
+00:32 +202: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: storage exhaustion SAVE-001 is surfaced and the last durable state stays intact
+00:32 +203: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: storage exhaustion SAVE-005 schema-too-new surfaces the update guidance
+00:32 +204: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages stale entries are removed, fresh entries and aggregates are kept
+00:32 +205: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages session end removes every export preview regardless of age
+00:32 +206: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages session end reports a listing failure instead of false success
+00:32 +207: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages a deletion failure is surfaced, not swallowed
+00:32 +208: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: determinism and bound the documented bound is pinned and reached deterministically
+00:32 +209: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: determinism and bound identical inputs produce the same outcome
+00:32 +210: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: production io filesystem adapter lists only exports and reports staging as native-owned
+00:32 +211: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: production io filesystem adapter full sweep removes stale previews and keeps fresh ones
+00:32 +212: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: production io filesystem adapter a missing export directory is empty and is not created
+00:32 +213: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a symlinked export root is refused and deletes nothing outside
+00:32 +214: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a symlinked entry inside the root is refused, outside file kept
+00:32 +215: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures the adapter directly refuses a symlink entry deletion
+00:32 +216: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a regular old file inside the real root is still deleted
+00:32 +217: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a rejected backslash name is a redacted cleanup failure
+00:32 +218: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures an uninspectable entry is a redacted cleanup failure
+00:32 +219: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a timed-out sweep performs no read or deletion after the stop
+00:32 +220: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation the bounded runner passes one absolute deadline into the run
+00:32 +221: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a native deadline stop prevents every later destructive pass
+00:32 +222: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation an already cancelled sweep still removes export previews first
+00:32 +223: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a native recovery timeout still removes stale previews first
+00:32 +224: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a failed preview removal is reported, never silent
+00:32 +225: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a throwing native recovery still removes stale previews first
+00:32 +226: <repo-root>/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a timed-out production-shaped run still reports degraded
+00:33 +227: <repo-root>/apps/feldexa_app/test/startup_wiring_test.dart: production composition the platform selector builds the real Android store and io adapter
+00:33 +228: <repo-root>/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a hang becomes a bounded timeout, never a crash or success
+00:33 +229: <repo-root>/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a thrown sweep becomes a degraded failure, never a crash
+00:33 +230: <repo-root>/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a clean result stays complete
+00:33 +231: <repo-root>/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a degraded result is not reported as success
+00:33 +232: <repo-root>/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface renders the localized SAVE-004 guidance
+00:34 +233: <repo-root>/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface keeps the plain shell when startup is absent
+00:34 +234: <repo-root>/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface keeps the plain shell for a clean startup
+00:34 +235: <repo-root>/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface a timed-out startup shows the ARB recovery notice
+00:34 +236: <repo-root>/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface a thrown startup shows the ARB recovery notice
+00:34 +237: <repo-root>/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface a degraded result without notices shows the ARB notice
+00:34 +238: <repo-root>/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring the shell sweeps export previews at session end
+00:34 +239: <repo-root>/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring the shell also sweeps when the engine detaches
+00:34 +240: <repo-root>/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring a transient inactive state does not sweep
+00:34 +241: <repo-root>/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring the shell stops observing after it is disposed
+00:34 +242: <repo-root>/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring only paused and detached are session-end states
+00:34 +243: <repo-root>/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring session-end failure hook receives only a redacted category
+00:34 +244: All tests passed!
