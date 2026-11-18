@@ -568,6 +568,24 @@ void main() {
       );
     });
 
+    test('rejects viewToDisplay page-origin subtraction overflow', () {
+      final PageViewController controller = PageViewController(
+        pages: <PageViewPageSize>[
+          PageViewPageSize(widthPt: 1.7e308, heightPt: 1),
+          PageViewPageSize(widthPt: 0.001, heightPt: 0.001),
+        ],
+        pageGap: 0,
+      );
+      controller.setViewportSize(const Size(200, 200));
+      controller.setView(scale: 1, pan: Offset.zero);
+      // content.dx = -1.7e308 is finite; subtracting page 1's ~8.5e307 origin
+      // overflows the result on the pre-correction code.
+      expect(
+        () => controller.mappingFor(1).viewToDisplay(const Offset(-1.7e308, 0)),
+        throwsArgumentError,
+      );
+    });
+
     test('rejects a hostile derived page rectangle', () {
       final PageViewController controller = PageViewController(
         pages: <PageViewPageSize>[
@@ -578,6 +596,65 @@ void main() {
       controller.setView(scale: 1e308, pan: Offset.zero);
       expect(
         () => controller.mappingFor(0).pageRectInViewport,
+        throwsArgumentError,
+      );
+    });
+
+    test('rejects a public raster cap above the contract 4096', () {
+      final PageViewPageSize page = PageViewPageSize(
+        widthPt: 842,
+        heightPt: 1191,
+      );
+      expect(
+        () => PageViewRasterPlan.forPage(
+          page: page,
+          viewSize: const Size(800, 1000),
+          devicePixelRatio: 1,
+          maxLongEdgePx: 8192,
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => PageViewRasterPlan.forPage(
+          page: page,
+          viewSize: const Size(800, 1000),
+          devicePixelRatio: 1,
+          maxLongEdgePx: 1000000000,
+        ),
+        throwsArgumentError,
+      );
+      final PageViewRasterPlan plan = PageViewRasterPlan.forPage(
+        page: page,
+        viewSize: const Size(800, 1000),
+        devicePixelRatio: 1,
+      );
+      expect(plan.maxLongEdgePx, 4096);
+    });
+
+    test('enforces the minimum page extent and a finite floor', () {
+      final PageViewPageSize smallest = PageViewPageSize(
+        widthPt: 0.001,
+        heightPt: 0.001,
+      );
+      final PageViewRasterPlan plan = PageViewRasterPlan.forPage(
+        page: smallest,
+        viewSize: const Size(1e-300, 1e-300),
+        devicePixelRatio: 1,
+      );
+      expect(plan.effectiveScale.isFinite, isTrue);
+      expect(plan.effectiveScale, greaterThan(0));
+      expect(plan.widthPx, lessThanOrEqualTo(4096));
+      expect(plan.heightPx, lessThanOrEqualTo(4096));
+      expect(
+        () => PageViewPageSize(widthPt: 0.0009, heightPt: 1),
+        throwsArgumentError,
+      );
+      expect(
+        () => PageViewPageSize(widthPt: 1, heightPt: 0.0009),
+        throwsArgumentError,
+      );
+      expect(
+        () => PageViewPageSize(widthPt: 0.0009, heightPt: 0.0009),
         throwsArgumentError,
       );
     });

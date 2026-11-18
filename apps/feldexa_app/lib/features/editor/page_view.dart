@@ -38,7 +38,8 @@
 // Rendering
 // ---------
 // The production renderer opens the protected source bytes with pdfrx/PDFium
-// exactly once per source and renders each original page through `PdfPageView`.
+// exactly once per source and renders each original page through the custom
+// `_PdfrxPage` widget, which calls `PdfPage.renderForDisplay` directly.
 // No page is re-laid-out, rewritten, cropped to anything smaller than its
 // contract display box, or reconstructed from OCR or a bitmap cache. The page
 // list is lazy: only pages intersecting the viewport (plus a small overscan
@@ -74,6 +75,18 @@ import 'package:pdfrx/pdfrx.dart';
 /// pdfrx/PDFium may retain them in process memory for the document lifetime.
 typedef PageViewSourceBytes = Future<Uint8List?> Function(String sourceId);
 
+/// The minimum accepted page display extent in PDF points.
+///
+/// 0.001 pt is the same three-decimal quantum used by persisted `Rect`
+/// serialization (`packages/feldexa_core/src/geometry/rect.dart`). It is far
+/// below any real page, rejects the `1e-320` degenerate sizes whose reciprocal
+/// overflows the raster floor, and keeps `1 / max(widthPt, heightPt)` finite
+/// (at most 1000).
+const double minimumPageExtentPt = 0.001;
+
+/// The contract's fixed UI raster cap on the long edge, in pixels.
+const int maximumRasterLongEdgePx = 4096;
+
 /// One page's display size in PDF points, derived only from
 /// `PageGeometry.displaySize`.
 ///
@@ -83,23 +96,24 @@ typedef PageViewSourceBytes = Future<Uint8List?> Function(String sourceId);
 final class PageViewPageSize {
   /// Creates a page display size measured in PDF points.
   ///
-  /// [widthPt] and [heightPt] must be finite and strictly positive.
+  /// [widthPt] and [heightPt] must be finite and at least
+  /// [minimumPageExtentPt].
   factory PageViewPageSize({
     required double widthPt,
     required double heightPt,
   }) {
-    if (!widthPt.isFinite || widthPt <= 0) {
+    if (!widthPt.isFinite || widthPt < minimumPageExtentPt) {
       throw ArgumentError.value(
         widthPt,
         'widthPt',
-        'must be finite and strictly positive',
+        'must be finite and at least $minimumPageExtentPt pt',
       );
     }
-    if (!heightPt.isFinite || heightPt <= 0) {
+    if (!heightPt.isFinite || heightPt < minimumPageExtentPt) {
       throw ArgumentError.value(
         heightPt,
         'heightPt',
-        'must be finite and strictly positive',
+        'must be finite and at least $minimumPageExtentPt pt',
       );
     }
     return PageViewPageSize._(widthPt, heightPt);
@@ -142,8 +156,10 @@ final class PageViewRasterPlan {
   ///
   /// [viewSize] is the page's view-space box in logical pixels, [page] is the
   /// immutable display size, and [devicePixelRatio] is the renderer DPR.
-  /// [maxLongEdgePx] defaults to the contract's 4096-pixel cap. The result is
-  /// always at least 1x1 and never exceeds [maxLongEdgePx] on either edge.
+  /// [maxLongEdgePx] defaults to the contract's 4096-pixel cap and may not
+  /// exceed [maximumRasterLongEdgePx]; larger values are rejected so callers
+  /// cannot bypass the public contract. The result is always at least 1x1 and
+  /// never exceeds [maxLongEdgePx] on either edge.
   factory PageViewRasterPlan.forPage({
     required PageViewPageSize page,
     required Size viewSize,
@@ -168,11 +184,11 @@ final class PageViewRasterPlan {
         'must be finite and positive',
       );
     }
-    if (maxLongEdgePx < 1) {
+    if (maxLongEdgePx < 1 || maxLongEdgePx > maximumRasterLongEdgePx) {
       throw ArgumentError.value(
         maxLongEdgePx,
         'maxLongEdgePx',
-        'must be at least 1',
+        'must be between 1 and $maximumRasterLongEdgePx',
       );
     }
     if (!maxDpi.isFinite || maxDpi <= 0) {
