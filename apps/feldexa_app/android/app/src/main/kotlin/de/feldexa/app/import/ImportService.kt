@@ -149,8 +149,9 @@ class ImportService(
         } catch (failure: Exception) {
             throw mapStorageFailure(failure)
         } finally {
-            // The store closes the pass while consuming it; this also covers a
-            // seam that rejects before reading. Double close is harmless.
+            // countPass is caller-owned by the SourceStaging contract: the
+            // store only reads it, and this is its single close on every path
+            // (success, validation/stage failure, and cancellation).
             runCatching { countPass.close() }
         }
 
@@ -599,9 +600,12 @@ interface PickedDocument {
 /**
  * T040 streaming staging seam.
  *
- * [countPass] is consumed exactly once for SHA-256/size; [openStreamForWrite]
- * must reopen the same read-only content for the encrypted write pass. The
- * picked source is never modified and no plaintext temp file is created.
+ * [countPass] is **caller-owned**: the seam reads it for SHA-256/size but does
+ * not close it; the import service's `finally` closes it exactly once. The
+ * stream returned by [openStreamForWrite] is **callee-owned**: the store wraps
+ * it in exactly one `use` and closes it exactly once on every path, including
+ * pre-container failures and write-pass cancellation. The picked source is
+ * never modified and no plaintext temp file is created.
  */
 fun interface SourceStaging {
     fun stage(

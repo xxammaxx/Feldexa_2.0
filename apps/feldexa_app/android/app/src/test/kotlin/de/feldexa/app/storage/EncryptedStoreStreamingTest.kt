@@ -53,18 +53,20 @@ class EncryptedStoreStreamingTest {
         val documentId = newId()
         val sourceId = newId()
         val chunks = mutableListOf<Pair<SourceReadPass, Int>>()
+        val writeStream = CloseTrackingInputStream(ByteArrayInputStream(source))
 
         val receipt = store.stageSourceFromStream(
             documentId = documentId,
             sourceId = sourceId,
             countPass = ByteArrayInputStream(source),
-            openStreamForWrite = { ByteArrayInputStream(source) },
+            openStreamForWrite = { writeStream },
             onChunk = { pass, count -> chunks += pass to count },
         )
 
         assertTrue(receipt.readBackVerified)
         assertEquals(sha256(source), receipt.sourceSha256)
         assertEquals(source.size.toLong(), receipt.sizeBytes)
+        assertEquals("success must close the provider stream exactly once", 1, writeStream.closeCount.get())
 
         val hashChunks = chunks.filter { it.first == SourceReadPass.HASH }.map { it.second }
         val writeChunks = chunks.filter { it.first == SourceReadPass.WRITE }.map { it.second }
@@ -107,6 +109,21 @@ class EncryptedStoreStreamingTest {
             assertEquals(3, reader.read(tail, 0, tail.size))
             assertEquals(-1, reader.read(tail, 0, tail.size))
         }
+    }
+
+    @Test
+    fun providerWriteStreamIsClosedExactlyOnceOnSuccess() {
+        val source = sourceBytes(1_300_000)
+        val writeStream = CloseTrackingInputStream(ByteArrayInputStream(source))
+
+        store.stageSourceFromStream(
+            documentId = newId(),
+            sourceId = newId(),
+            countPass = ByteArrayInputStream(source),
+            openStreamForWrite = { writeStream },
+        )
+
+        assertEquals("success must close the provider stream exactly once", 1, writeStream.closeCount.get())
     }
 
     @Test
@@ -171,6 +188,7 @@ class EncryptedStoreStreamingTest {
         val source = sourceBytes(2_500_000)
         val documentId = newId()
         val writeOpened = java.util.concurrent.atomic.AtomicBoolean(false)
+        val tracking = CloseTrackingInputStream(ByteArrayInputStream(source))
 
         assertThrows(CancellationException::class.java) {
             store.stageSourceFromStream(
@@ -179,12 +197,13 @@ class EncryptedStoreStreamingTest {
                 countPass = ByteArrayInputStream(source),
                 openStreamForWrite = {
                     writeOpened.set(true)
-                    ByteArrayInputStream(source)
+                    tracking
                 },
                 shouldAbort = { writeOpened.get() },
             )
         }
 
+        assertEquals("write-pass cancellation must close exactly once", 1, tracking.closeCount.get())
         assertNoAggregate(documentId)
         assertTrue(File(store.root, "tmp").listFiles().orEmpty().isEmpty())
     }
@@ -346,9 +365,68 @@ class EncryptedStoreStreamingTest {
 
         assertEquals("SAVE-003", failure.code)
         assertTrue("the provider write stream must be closed", tracking.closed.get())
+        assertEquals("pre-container failure must close exactly once", 1, tracking.closeCount.get())
         // The aggregate deletion was refused, so the encrypted residue remains;
         // it is not visible because meta.fx1 was never written.
         assertTrue(File(File(faultingStore.root, "docs"), documentId).isDirectory)
+        assertTrue(faultingStore.list(AggregateKind.DOCUMENT).isEmpty())
+    }
+
+    @Test
+    fun writeStreamIsClosedExactlyOnceWhenTheOutputCannotOpen() {
+        val io = TestFailingDeleteIo().apply { failOpenExclusive = true }
+        val faultingStore = EncryptedStore(
+            root = File(temporary.root, "output-open-failure").absoluteFile,
+            keystore = keystore,
+            io = io,
+        )
+        faultingStore.ensureLayout()
+        val source = sourceBytes(1_200_000)
+        val documentId = newId()
+        val tracking = CloseTrackingInputStream(ByteArrayInputStream(source))
+
+        val failure = assertThrows(StorageWriteException::class.java) {
+            faultingStore.stageSourceFromStream(
+                documentId = documentId,
+                sourceId = newId(),
+                countPass = ByteArrayInputStream(source),
+                openStreamForWrite = { tracking },
+            )
+        }
+
+        assertEquals("SAVE-003", failure.code)
+        assertEquals("output-open failure must close exactly once", 1, tracking.closeCount.get())
+        assertFalse(File(File(faultingStore.root, "docs"), documentId).exists())
+        assertTrue(faultingStore.list(AggregateKind.DOCUMENT).isEmpty())
+    }
+
+    @Test
+    fun writeStreamIsClosedExactlyOnceOnAnInContainerWriteFault() {
+        val faultingStore = EncryptedStore(
+            root = File(temporary.root, "in-container-failure").absoluteFile,
+            keystore = keystore,
+            faultInjector = StoreFaultInjector { point, _ ->
+                if (point == StoreFaultPoint.STAGE_WRITE) {
+                    throw IOException("synthetic in-container write fault")
+                }
+            },
+        )
+        faultingStore.ensureLayout()
+        val source = sourceBytes(1_200_000)
+        val documentId = newId()
+        val tracking = CloseTrackingInputStream(ByteArrayInputStream(source))
+
+        assertThrows(StorageWriteException::class.java) {
+            faultingStore.stageSourceFromStream(
+                documentId = documentId,
+                sourceId = newId(),
+                countPass = ByteArrayInputStream(source),
+                openStreamForWrite = { tracking },
+            )
+        }
+
+        assertEquals("in-container failure must close exactly once", 1, tracking.closeCount.get())
+        assertFalse(File(File(faultingStore.root, "docs"), documentId).exists())
         assertTrue(faultingStore.list(AggregateKind.DOCUMENT).isEmpty())
     }
 
@@ -479,6 +557,7 @@ class EncryptedStoreStreamingTest {
         }
 
         assertTrue("the provider write stream must be closed", tracking.closed.get())
+        assertEquals("post-chunk abort must close exactly once", 1, tracking.closeCount.get())
         assertFalse(File(File(faultingStore.root, "docs"), documentId).exists())
         assertTrue(faultingStore.list(AggregateKind.DOCUMENT).isEmpty())
     }
@@ -581,6 +660,7 @@ class EncryptedStoreStreamingTest {
         private val delegate: InputStream,
     ) : InputStream() {
         val closed = java.util.concurrent.atomic.AtomicBoolean(false)
+        val closeCount = java.util.concurrent.atomic.AtomicInteger(0)
 
         override fun read(): Int = delegate.read()
 
@@ -588,6 +668,9 @@ class EncryptedStoreStreamingTest {
             delegate.read(buffer, offset, length)
 
         override fun close() {
+            // Count every call, including an idempotent second close, so a
+            // double-close regression cannot hide behind a boolean flag.
+            closeCount.incrementAndGet()
             closed.set(true)
             delegate.close()
         }

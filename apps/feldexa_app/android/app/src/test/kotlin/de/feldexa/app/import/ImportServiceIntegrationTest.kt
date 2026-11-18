@@ -406,6 +406,28 @@ class ImportServiceIntegrationTest {
     }
 
     @Test
+    fun everyPickedProviderStreamIsClosedExactlyOnce() {
+        val pdf = PdfTestDocuments.pages(1)
+        val opened = mutableListOf<CloseCountingPickedStream>()
+        val picked = object : PickedDocument {
+            override val displayName: String = "streams.pdf"
+
+            override fun openStream(): InputStream {
+                val stream = CloseCountingPickedStream(ByteArrayInputStream(pdf))
+                opened += stream
+                return stream
+            }
+        }
+        val (_, context) = context()
+
+        serviceFor(picked).handle(pickRequest(), context)
+
+        assertEquals(2, opened.size)
+        assertEquals("hash/count pass must close exactly once", 1, opened[0].closeCount.get())
+        assertEquals("write pass must close exactly once", 1, opened[1].closeCount.get())
+    }
+
+    @Test
     fun requestedCapAboveTheSupportedMaximumIsClampedAndOversizeIsIMP007() {
         val pdf = PdfTestDocuments.pages(1)
         val service = serviceFor(ReopenablePickedDocument(pdf, "zu-gross.pdf"))
@@ -594,6 +616,22 @@ class ImportServiceIntegrationTest {
             opens.incrementAndGet()
             if (disabled.get()) throw IOException("picked source is no longer available")
             return ByteArrayInputStream(content)
+        }
+    }
+
+    private class CloseCountingPickedStream(
+        private val delegate: InputStream,
+    ) : InputStream() {
+        val closeCount = AtomicInteger(0)
+
+        override fun read(): Int = delegate.read()
+
+        override fun read(buffer: ByteArray, offset: Int, length: Int): Int =
+            delegate.read(buffer, offset, length)
+
+        override fun close() {
+            closeCount.incrementAndGet()
+            delegate.close()
         }
     }
 }

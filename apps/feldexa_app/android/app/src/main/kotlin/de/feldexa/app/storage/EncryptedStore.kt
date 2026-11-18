@@ -387,6 +387,16 @@ class EncryptedStore(
      * header, or the read-back verdict fails closed and removes the incomplete
      * aggregate. [SourceLimitExceededException] is a content-free import-level
      * cap signal; the caller maps it to `IMP-007`.
+     *
+     * Stream ownership is single and explicit:
+     *  * [countPass] remains caller-owned. This method only reads it and never
+     *    closes it; the import service's `finally` closes it exactly once.
+     *  * The stream returned by [openStreamForWrite] is owned by this method.
+     *    It is wrapped in exactly one `use` at the call site, so it is closed
+     *    exactly once on success, on a pre-container failure, on an
+     *    in-container failure, and on write-pass cancellation.
+     *  * [writeContainer] and [commitObjectFromStream] are non-owning: they
+     *    never close their input.
      */
     fun stageSourceFromStream(
         documentId: String,
@@ -418,17 +428,17 @@ class EncryptedStore(
         val digest = MessageDigest.getInstance("SHA-256")
         var total = 0L
         val hashBuffer = ByteArray(SOURCE_HASH_CHUNK_SIZE)
-        countPass.use { stream ->
-            while (true) {
-                if (shouldAbort()) throw CancellationException("importCancelled")
-                val read = stream.read(hashBuffer)
-                if (read < 0) break
-                if (read == 0) continue
-                if (total + read > maxBytes) throw SourceLimitExceededException()
-                digest.update(hashBuffer, 0, read)
-                total += read
-                onChunk?.invoke(SourceReadPass.HASH, read)
-            }
+        // Caller-owned: never close countPass here. ImportService's finally
+        // closes exactly one first-pass stream after this call returns.
+        while (true) {
+            if (shouldAbort()) throw CancellationException("importCancelled")
+            val read = countPass.read(hashBuffer)
+            if (read < 0) break
+            if (read == 0) continue
+            if (total + read > maxBytes) throw SourceLimitExceededException()
+            digest.update(hashBuffer, 0, read)
+            total += read
+            onChunk?.invoke(SourceReadPass.HASH, read)
         }
         if (total <= 0L) throw InvalidDataException()
         val actualSha256 = hex(digest.digest())
@@ -2046,6 +2056,9 @@ class EncryptedStore(
      * writes and the header digest is compared with [expectedSha256] before
      * promotion. Read-back then re-authenticates the promoted object chunk by
      * chunk. Peak live memory is one plaintext chunk plus one ciphertext chunk.
+     *
+     * [input] is **caller-owned** and is not closed here; [stageSourceFromStream]
+     * wraps the provider stream in exactly one `use` at its call site.
      */
     private fun commitObjectFromStream(
         obj: StoreObject,
@@ -2082,6 +2095,7 @@ class EncryptedStore(
         )
     }
 
+    /** Non-owning: [input] is closed by the caller's single `use`. */
     private fun stageObjectFromStream(
         obj: StoreObject,
         input: InputStream,
@@ -2353,13 +2367,17 @@ class EncryptedStore(
         val staged = tmpFile(txnId, suffix)
         try {
             faultInjector.onFault(StoreFaultPoint.STAGE_CREATE, txnId)
-            val header = writeContainer(
-                obj,
-                ByteArrayInputStream(plaintext),
-                plaintext.size.toLong(),
-                staged,
-                txnId,
-            )
+            // Byte-array caller owns this stream: one `use`, exactly one close.
+            // writeContainer is non-owning by contract.
+            val header = ByteArrayInputStream(plaintext).use { input ->
+                writeContainer(
+                    obj,
+                    input,
+                    plaintext.size.toLong(),
+                    staged,
+                    txnId,
+                )
+            }
             val verified = verifyContainer(obj, staged)
             if (verified.plaintextSha256 != sha256Hex(plaintext) ||
                 verified.plaintextLength != plaintext.size.toLong()
@@ -2406,6 +2424,14 @@ class EncryptedStore(
         }
     }
 
+    /**
+     * T040 stream-ownership contract: [input] is **caller-owned** and is not
+     * closed here. The callers are [stageObject] (byte-array path, wraps one
+     * `use`) and [stageSourceFromStream] (provider path, wraps one `use`).
+     * [commitObjectFromStream]/[stageObjectFromStream] only forward that same
+     * caller ownership. This prevents the double close that occurred when both
+     * the caller and this method wrapped the same provider stream.
+     */
     private fun writeContainer(
         obj: StoreObject,
         input: InputStream,
@@ -2433,36 +2459,35 @@ class EncryptedStore(
             var index = 0
             var total = 0L
             val buffer = ByteArray(chunkSize)
-            input.use { stream ->
-                while (total < length) {
-                    if (shouldAbort()) throw CancellationException("importCancelled")
-                    val wanted = minOf(chunkSize.toLong(), length - total).toInt()
-                    readFully(stream, buffer, wanted)
-                    digest.update(buffer, 0, wanted)
-                    onChunk?.invoke(SourceReadPass.WRITE, wanted)
-                    val iv = chunkIv(noncePrefix, index)
-                    val aad = chunkAad(
-                        fileId = fileId,
-                        objectKind = obj.objectKind,
-                        chunkIndex = index,
-                        chunkCount = chunkCount,
-                        plaintextLength = length,
-                    )
-                    val cipher = Cipher.getInstance(TRANSFORM)
-                    cipher.init(
-                        Cipher.ENCRYPT_MODE,
-                        SecretKeySpec(dek, "AES"),
-                        GCMParameterSpec(TAG_BITS, iv),
-                    )
-                    cipher.updateAAD(aad)
-                    val ciphertext = cipher.doFinal(buffer, 0, wanted)
-                    faultInjector.onFault(StoreFaultPoint.STAGE_WRITE, txnId)
-                    writeFully(channel, ciphertext)
-                    total += wanted
-                    index++
-                }
-                if (stream.read() != -1) throw InvalidDataException()
+            // Non-owning read: the caller's single `use` closes the stream.
+            while (total < length) {
+                if (shouldAbort()) throw CancellationException("importCancelled")
+                val wanted = minOf(chunkSize.toLong(), length - total).toInt()
+                readFully(input, buffer, wanted)
+                digest.update(buffer, 0, wanted)
+                onChunk?.invoke(SourceReadPass.WRITE, wanted)
+                val iv = chunkIv(noncePrefix, index)
+                val aad = chunkAad(
+                    fileId = fileId,
+                    objectKind = obj.objectKind,
+                    chunkIndex = index,
+                    chunkCount = chunkCount,
+                    plaintextLength = length,
+                )
+                val cipher = Cipher.getInstance(TRANSFORM)
+                cipher.init(
+                    Cipher.ENCRYPT_MODE,
+                    SecretKeySpec(dek, "AES"),
+                    GCMParameterSpec(TAG_BITS, iv),
+                )
+                cipher.updateAAD(aad)
+                val ciphertext = cipher.doFinal(buffer, 0, wanted)
+                faultInjector.onFault(StoreFaultPoint.STAGE_WRITE, txnId)
+                writeFully(channel, ciphertext)
+                total += wanted
+                index++
             }
+            if (input.read() != -1) throw InvalidDataException()
             if (total != length || index != chunkCount) throw InvalidDataException()
             val header = FxcHeader(
                 version = CONTAINER_VERSION,
