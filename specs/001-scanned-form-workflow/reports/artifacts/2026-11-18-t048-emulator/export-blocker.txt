@@ -1,0 +1,30 @@
+T048 export dependency blocker observed on the host working tree (2026-11-18)
+at candidate commit 4374414273e7b7a74c18c0870bd4a07bfdd003c4.
+
+$ git ls-tree -r --name-only HEAD -- apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export
+apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export/.gitkeep
+
+$ grep -n -A 1 'registerService(' apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/MainActivity.kt
+163:        plugin.registerService("store", StoreService(store))
+164-
+--
+186:        plugin.registerService(
+187-            "import",
+
+$ grep -n 'export.validate\|export.render' apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/FeldexaPlugin.kt
+265:    "export.validate",
+266:    "export.render",
+1187:        "export.validate", "export.render" -> {
+2247:            "export.validate",
+2251:            "export.render",
+
+$ grep -n 'T104' specs/001-scanned-form-workflow/tasks.md
+332:- [ ] T104 [US7] Implement the PDFBox flattening applier that imports original pages and appends text, checkbox, and signature overlays in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export/PdfExportService.kt` (FR-063/FR-065/FR-066/FR-069; `contracts/export-plan.md` §5)
+
+Conclusion: the facade validates and routes export.validate/export.render,
+but MainActivity registers only the 'store' and 'import' services and the
+Kotlin export/ implementation directory contains only .gitkeep. The
+production applier is owned by T104
+(apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export/PdfExportService.kt),
+which is still unchecked. The runtime call therefore fails closed with
+PLT-001/platform.unsupported; SC-019's export clause is NOT VERIFIED.

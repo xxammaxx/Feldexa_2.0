@@ -1,0 +1,6 @@
+T048 integration-test build (Flutter debug, assembled by the exact flutter test command).
+Path: apps/feldexa_app/build/app/outputs/flutter-apk/app-debug.apk
+Bytes: 172000078
+SHA-256: 2cebf916987238c25b7107a723fd4e34d50d737e025262ba5b3e573fc5689888
+
+The APK is a git-ignored local build output, not a committed artifact.
