@@ -480,6 +480,70 @@ void main() {
       );
     });
 
+    test(
+      'rejects derived rectangle extents with opposite extreme endpoints',
+      () {
+        final PageViewController controller = PageViewController(
+          pages: <PageViewPageSize>[
+            PageViewPageSize(widthPt: 100, heightPt: 100),
+          ],
+        );
+        controller.setViewportSize(const Size(200, 200));
+        controller.setView(scale: 1, pan: Offset.zero);
+        final List<Rect> hostile = <Rect>[
+          Rect.fromLTRB(-1e308, 0, 1e308, 100),
+          Rect.fromLTRB(1e308, 0, -1e308, 100),
+          Rect.fromLTRB(0, -1e308, 100, 1e308),
+          Rect.fromLTRB(-1e308, -1e308, 1e308, 1e308),
+          Rect.fromLTRB(-1e308, 1e308, 1e308, -1e308),
+        ];
+        for (final Rect rect in hostile) {
+          expect(
+            () => controller.viewRectToDisplay(0, rect),
+            throwsArgumentError,
+            reason: 'viewRectToDisplay must reject $rect',
+          );
+          expect(
+            () => controller.displayRectToView(0, rect),
+            throwsArgumentError,
+            reason: 'displayRectToView must reject $rect',
+          );
+        }
+      },
+    );
+
+    test('rejects a hostile derived page rectangle', () {
+      final PageViewController controller = PageViewController(
+        pages: <PageViewPageSize>[
+          PageViewPageSize(widthPt: 1e308, heightPt: 100),
+        ],
+      );
+      controller.setViewportSize(const Size(200, 200));
+      controller.setView(scale: 1e308, pan: Offset.zero);
+      expect(
+        () => controller.mappingFor(0).pageRectInViewport,
+        throwsArgumentError,
+      );
+    });
+
+    test('clamps raster scale to a positive minimum on underflow', () {
+      final PageViewPageSize huge = PageViewPageSize(
+        widthPt: 1e308,
+        heightPt: 1e308,
+      );
+      final PageViewRasterPlan plan = PageViewRasterPlan.forPage(
+        page: huge,
+        viewSize: const Size(1e-300, 1e-300),
+        devicePixelRatio: 1,
+      );
+      expect(plan.effectiveScale, greaterThan(0));
+      expect(plan.effectiveScale.isFinite, isTrue);
+      expect(plan.widthPx, 1);
+      expect(plan.heightPx, 1);
+      expect(plan.widthPx, lessThanOrEqualTo(4096));
+      expect(plan.heightPx, lessThanOrEqualTo(4096));
+    });
+
     test('rejects an overflowing transformed rectangle', () {
       final PageViewController controller = PageViewController(
         pages: <PageViewPageSize>[

@@ -186,9 +186,13 @@ final class PageViewRasterPlan {
     final double desiredScale = logicalScale * devicePixelRatio;
     final double dpiScale = maxDpi / 72;
     final double longEdgePt = math.max(page.widthPt, page.heightPt);
-    final double effectiveScale = math.min(
-      desiredScale,
-      math.min(dpiScale, maxLongEdgePx / longEdgePt),
+    // A finite positive ratio can still underflow to 0.0 when a tiny view is
+    // divided by a huge page. The floor 1 / longEdgePt guarantees a 1-pixel
+    // long edge, so effectiveScale is always positive and the plan stays sane.
+    final double minEffectiveScale = 1 / longEdgePt;
+    final double effectiveScale = math.max(
+      minEffectiveScale,
+      math.min(desiredScale, math.min(dpiScale, maxLongEdgePx / longEdgePt)),
     );
     final int widthPx = (page.widthPt * effectiveScale).round().clamp(
       1,
@@ -630,24 +634,39 @@ final class PageViewMapping {
   ///
   /// This is the exact area in which the untouched original page is painted.
   Rect get pageRectInViewport {
-    return Rect.fromLTWH(
-      pan.dx + pageRect.left * scale,
-      pan.dy + pageRect.top * scale,
-      pageRect.width * scale,
-      pageRect.height * scale,
-    );
+    final double left = pan.dx + pageRect.left * scale;
+    final double top = pan.dy + pageRect.top * scale;
+    final double width = pageRect.width * scale;
+    final double height = pageRect.height * scale;
+    if (!left.isFinite ||
+        !top.isFinite ||
+        !width.isFinite ||
+        !height.isFinite) {
+      throw ArgumentError.value(
+        pageIndex,
+        'pageIndex',
+        'derived page rectangle must be finite',
+      );
+    }
+    return Rect.fromLTWH(left, top, width, height);
   }
 
   /// Converts a content-space offset to view space: `view = pan + scale × c`.
   Offset contentToView(Offset content) {
-    return Offset(pan.dx + content.dx * scale, pan.dy + content.dy * scale);
+    return _checkedOffset(
+      Offset(pan.dx + content.dx * scale, pan.dy + content.dy * scale),
+      'derived view offset must be finite',
+    );
   }
 
   /// Converts a view-space offset to content space: `(view − pan) / scale`.
   Offset viewToContent(Offset viewportOffset) {
-    return Offset(
-      (viewportOffset.dx - pan.dx) / scale,
-      (viewportOffset.dy - pan.dy) / scale,
+    return _checkedOffset(
+      Offset(
+        (viewportOffset.dx - pan.dx) / scale,
+        (viewportOffset.dy - pan.dy) / scale,
+      ),
+      'derived content offset must be finite',
     );
   }
 
@@ -683,10 +702,14 @@ final class PageViewMapping {
     final double top = math.min(topLeft.dy, bottomRight.dy) - pageRect.top;
     final double right = math.max(topLeft.dx, bottomRight.dx) - pageRect.left;
     final double bottom = math.max(topLeft.dy, bottomRight.dy) - pageRect.top;
+    final double width = right - left;
+    final double height = bottom - top;
     if (!left.isFinite ||
         !top.isFinite ||
         !right.isFinite ||
-        !bottom.isFinite) {
+        !bottom.isFinite ||
+        !width.isFinite ||
+        !height.isFinite) {
       throw ArgumentError.value(
         viewportRect,
         'viewportRect',
@@ -700,7 +723,7 @@ final class PageViewMapping {
         'must map to a display rectangle with positive width and height',
       );
     }
-    return Rect.fromLTWH(left, top, right - left, bottom - top);
+    return Rect.fromLTWH(left, top, width, height);
   }
 
   /// Maps a page display-space rectangle to a viewport rectangle.
@@ -715,10 +738,14 @@ final class PageViewMapping {
     final double top = math.min(topLeft.dy, bottomRight.dy);
     final double right = math.max(topLeft.dx, bottomRight.dx);
     final double bottom = math.max(topLeft.dy, bottomRight.dy);
+    final double width = right - left;
+    final double height = bottom - top;
     if (!left.isFinite ||
         !top.isFinite ||
         !right.isFinite ||
-        !bottom.isFinite) {
+        !bottom.isFinite ||
+        !width.isFinite ||
+        !height.isFinite) {
       throw ArgumentError.value(
         displayRect,
         'displayRect',
@@ -732,7 +759,7 @@ final class PageViewMapping {
         'must map to a view rectangle with positive width and height',
       );
     }
-    return Rect.fromLTRB(left, top, right, bottom);
+    return Rect.fromLTWH(left, top, width, height);
   }
 }
 
@@ -1036,15 +1063,21 @@ final class PageViewController extends ChangeNotifier {
 
   /// Converts a viewport offset to content space.
   Offset viewToContent(Offset viewportOffset) {
-    return Offset(
-      (viewportOffset.dx - _pan.dx) / _scale,
-      (viewportOffset.dy - _pan.dy) / _scale,
+    return _checkedOffset(
+      Offset(
+        (viewportOffset.dx - _pan.dx) / _scale,
+        (viewportOffset.dy - _pan.dy) / _scale,
+      ),
+      'derived content offset must be finite',
     );
   }
 
   /// Converts a content-space offset to view space.
   Offset contentToView(Offset content) {
-    return Offset(_pan.dx + content.dx * _scale, _pan.dy + content.dy * _scale);
+    return _checkedOffset(
+      Offset(_pan.dx + content.dx * _scale, _pan.dy + content.dy * _scale),
+      'derived view offset must be finite',
+    );
   }
 
   Offset _clampPan(Offset pan) {
@@ -1385,6 +1418,13 @@ class _PageViewState extends State<PageView> {
     }
     return Stack(clipBehavior: Clip.hardEdge, children: pages);
   }
+}
+
+Offset _checkedOffset(Offset value, String message) {
+  if (!value.dx.isFinite || !value.dy.isFinite) {
+    throw ArgumentError(message);
+  }
+  return value;
 }
 
 double _clampDouble(double value, double min, double max) {
