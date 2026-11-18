@@ -2,6 +2,7 @@ package de.feldexa.app.storage
 
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.io.IOException
 import java.io.InputStream
 import java.security.MessageDigest
 import java.util.UUID
@@ -248,7 +249,7 @@ class EncryptedStoreStreamingTest {
     }
 
     @Test
-    fun abortBeforeMetaLeavesNoVisibleDocumentAndRemovesTheAggregate() {
+    fun abortAtTheFirstCheckpointLeavesNoVisibleDocumentAndRemovesTheAggregate() {
         val source = sourceBytes(600_000)
         val documentId = newId()
         val sourceId = newId()
@@ -274,6 +275,212 @@ class EncryptedStoreStreamingTest {
 
         assertNoAggregate(documentId)
         assertTrue(store.list(AggregateKind.DOCUMENT).isEmpty())
+    }
+
+    @Test
+    fun abortBeforeMetaAtTheLastCheckpointRemovesTheIncompleteAggregate() {
+        val headPromoted = java.util.concurrent.atomic.AtomicBoolean(false)
+        val faultingStore = EncryptedStore(
+            root = File(temporary.root, "last-checkpoint").absoluteFile,
+            keystore = keystore,
+            faultInjector = StoreFaultInjector { point, _ ->
+                if (point == StoreFaultPoint.HEAD_PROMOTED) headPromoted.set(true)
+            },
+        )
+        faultingStore.ensureLayout()
+        val source = sourceBytes(600_000)
+        val documentId = newId()
+        val sourceId = newId()
+        faultingStore.stageSourceFromStream(
+            documentId = documentId,
+            sourceId = sourceId,
+            countPass = ByteArrayInputStream(source),
+            openStreamForWrite = { ByteArrayInputStream(source) },
+        )
+
+        assertThrows(CancellationException::class.java) {
+            faultingStore.createDocumentFromStagedSource(
+                documentId = documentId,
+                metaJson = "meta".toByteArray(),
+                sourceId = sourceId,
+                sourceSha256 = sha256(source),
+                sourceSizeBytes = source.size.toLong(),
+                revisionId = newId(),
+                revisionJson = "revision".toByteArray(),
+                shouldAbort = { headPromoted.get() },
+            )
+        }
+
+        assertTrue(headPromoted.get())
+        assertFalse(File(File(faultingStore.root, "docs"), documentId).exists())
+        assertTrue(faultingStore.list(AggregateKind.DOCUMENT).isEmpty())
+    }
+
+    @Test
+    fun writeFailureBeforeTheFirstChunkClosesTheProviderStreamAndReportsResidue() {
+        val io = TestFailingDeleteIo()
+        val faultingStore = EncryptedStore(
+            root = File(temporary.root, "stream-ownership").absoluteFile,
+            keystore = keystore,
+            io = io,
+            faultInjector = StoreFaultInjector { point, _ ->
+                if (point == StoreFaultPoint.STAGE_CREATE) {
+                    throw IOException("synthetic pre-chunk write failure")
+                }
+            },
+        )
+        faultingStore.ensureLayout()
+        val source = sourceBytes(1_200_000)
+        val documentId = newId()
+        val tracking = CloseTrackingInputStream(ByteArrayInputStream(source))
+        io.failAggregateDelete = true
+
+        val failure = assertThrows(StorageWriteException::class.java) {
+            faultingStore.stageSourceFromStream(
+                documentId = documentId,
+                sourceId = newId(),
+                countPass = ByteArrayInputStream(source),
+                openStreamForWrite = { tracking },
+            )
+        }
+
+        assertEquals("SAVE-003", failure.code)
+        assertTrue("the provider write stream must be closed", tracking.closed.get())
+        // The aggregate deletion was refused, so the encrypted residue remains;
+        // it is not visible because meta.fx1 was never written.
+        assertTrue(File(File(faultingStore.root, "docs"), documentId).isDirectory)
+        assertTrue(faultingStore.list(AggregateKind.DOCUMENT).isEmpty())
+    }
+
+    @Test
+    fun commitAggregateCleanupFailureIsNotReportedAsCleanCancellation() {
+        val io = TestFailingDeleteIo()
+        val faultingStore = EncryptedStore(
+            root = File(temporary.root, "commit-cleanup").absoluteFile,
+            keystore = keystore,
+            io = io,
+        )
+        faultingStore.ensureLayout()
+        val source = sourceBytes(700_000)
+        val documentId = newId()
+        val sourceId = newId()
+        faultingStore.stageSourceFromStream(
+            documentId = documentId,
+            sourceId = sourceId,
+            countPass = ByteArrayInputStream(source),
+            openStreamForWrite = { ByteArrayInputStream(source) },
+        )
+        io.failAggregateDelete = true
+
+        val failure = assertThrows(StorageWriteException::class.java) {
+            faultingStore.createDocumentFromStagedSource(
+                documentId = documentId,
+                metaJson = "meta".toByteArray(),
+                sourceId = sourceId,
+                sourceSha256 = sha256(source),
+                sourceSizeBytes = source.size.toLong(),
+                revisionId = newId(),
+                revisionJson = "revision".toByteArray(),
+                shouldAbort = { true },
+            )
+        }
+
+        assertEquals("SAVE-003", failure.code)
+        assertTrue(File(File(faultingStore.root, "docs"), documentId).isDirectory)
+        assertTrue(faultingStore.list(AggregateKind.DOCUMENT).isEmpty())
+    }
+
+    @Test
+    fun commitKeyCleanupFailureIsNotReportedAsCleanCancellation() {
+        val source = sourceBytes(700_000)
+        val documentId = newId()
+        val sourceId = newId()
+        store.stageSourceFromStream(
+            documentId = documentId,
+            sourceId = sourceId,
+            countPass = ByteArrayInputStream(source),
+            openStreamForWrite = { ByteArrayInputStream(source) },
+        )
+        backend.failDeletes = true
+
+        val failure = assertThrows(StorageWriteException::class.java) {
+            store.createDocumentFromStagedSource(
+                documentId = documentId,
+                metaJson = "meta".toByteArray(),
+                sourceId = sourceId,
+                sourceSha256 = sha256(source),
+                sourceSizeBytes = source.size.toLong(),
+                revisionId = newId(),
+                revisionJson = "revision".toByteArray(),
+                shouldAbort = { true },
+            )
+        }
+
+        assertEquals("SAVE-003", failure.code)
+        // The aggregate is gone; the alias could not be removed and remains an
+        // orphan for the startup sweep. That residue must not look like a
+        // clean cancellation.
+        assertFalse(File(File(store.root, "docs"), documentId).exists())
+        assertTrue(backend.keys.keys.any { it.contains(documentId) })
+        assertTrue(store.list(AggregateKind.DOCUMENT).isEmpty())
+    }
+
+    @Test
+    fun abortBetweenWriteChunksCleansUpAndNeverPromotes() {
+        val source = sourceBytes(3 * 1_048_576 + 100)
+        val documentId = newId()
+        var writeChunks = 0
+        val abort = java.util.concurrent.atomic.AtomicBoolean(false)
+
+        assertThrows(CancellationException::class.java) {
+            store.stageSourceFromStream(
+                documentId = documentId,
+                sourceId = newId(),
+                countPass = ByteArrayInputStream(source),
+                openStreamForWrite = { ByteArrayInputStream(source) },
+                shouldAbort = { abort.get() },
+                onChunk = { pass, _ ->
+                    if (pass == SourceReadPass.WRITE) {
+                        writeChunks++
+                        if (writeChunks == 2) abort.set(true)
+                    }
+                },
+            )
+        }
+
+        assertTrue("write pass did not reach the second chunk", writeChunks >= 2)
+        assertNoAggregate(documentId)
+        assertTrue(File(store.root, "tmp").listFiles().orEmpty().isEmpty())
+    }
+
+    @Test
+    fun abortAfterTheLastChunkBeforePromotionClosesTheStreamAndCleansUp() {
+        val source = sourceBytes(1_200_000)
+        val documentId = newId()
+        val tracking = CloseTrackingInputStream(ByteArrayInputStream(source))
+        val faultingStore = EncryptedStore(
+            root = File(temporary.root, "post-chunk-abort").absoluteFile,
+            keystore = keystore,
+            faultInjector = StoreFaultInjector { point, _ ->
+                if (point == StoreFaultPoint.STAGE_PATCH) {
+                    throw CancellationException("importCancelled")
+                }
+            },
+        )
+        faultingStore.ensureLayout()
+
+        assertThrows(CancellationException::class.java) {
+            faultingStore.stageSourceFromStream(
+                documentId = documentId,
+                sourceId = newId(),
+                countPass = ByteArrayInputStream(source),
+                openStreamForWrite = { tracking },
+            )
+        }
+
+        assertTrue("the provider write stream must be closed", tracking.closed.get())
+        assertFalse(File(File(faultingStore.root, "docs"), documentId).exists())
+        assertTrue(faultingStore.list(AggregateKind.DOCUMENT).isEmpty())
     }
 
     @Test
@@ -368,6 +575,22 @@ class EncryptedStoreStreamingTest {
             return true
         }
         return false
+    }
+
+    private class CloseTrackingInputStream(
+        private val delegate: InputStream,
+    ) : InputStream() {
+        val closed = java.util.concurrent.atomic.AtomicBoolean(false)
+
+        override fun read(): Int = delegate.read()
+
+        override fun read(buffer: ByteArray, offset: Int, length: Int): Int =
+            delegate.read(buffer, offset, length)
+
+        override fun close() {
+            closed.set(true)
+            delegate.close()
+        }
     }
 
     private fun newId(): String = UUID.randomUUID().toString()

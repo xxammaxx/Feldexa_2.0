@@ -475,16 +475,23 @@ class EncryptedStore(
                 ensureLayout()
                 io.mkdirs(File(aggregate, "src"))
                 val writePass = openStreamForWrite() ?: throw InvalidDataException()
-                val receipt = commitObjectFromStream(
-                    obj = sourceObject,
-                    input = writePass,
-                    length = total,
-                    expectedSha256 = actualSha256,
-                    txnId = newTxnId(),
-                    suffix = TMP_SUFFIX_PART,
-                    shouldAbort = shouldAbort,
-                    onChunk = onChunk,
-                )
+                // T040 review correction: own the provider stream immediately.
+                // `writeContainer` also wraps its own use for the payload, but
+                // every failure before that point (transaction setup,
+                // STAGE_CREATE fault, key wrap, output open, header write) must
+                // still close the provider stream.
+                val receipt = writePass.use { input ->
+                    commitObjectFromStream(
+                        obj = sourceObject,
+                        input = input,
+                        length = total,
+                        expectedSha256 = actualSha256,
+                        txnId = newTxnId(),
+                        suffix = TMP_SUFFIX_PART,
+                        shouldAbort = shouldAbort,
+                        onChunk = onChunk,
+                    )
+                }
                 StagedSourceReceipt(
                     aggregateId = documentId,
                     sourceId = sourceId,
@@ -494,9 +501,13 @@ class EncryptedStore(
                 )
             } catch (failure: Throwable) {
                 // A failed first stage removes its partial aggregate and key;
-                // no incomplete aggregate is retained for a retry.
-                runCatching { io.deleteTree(aggregate) }
-                runCatching { keystore.deleteAggregateKey(ref) }
+                // no incomplete aggregate is retained for a retry. A cleanup
+                // failure wins over the original failure so a clean cancel is
+                // never reported while residue may remain; an Error is never
+                // masked.
+                val cleanupFailure = cleanupIncompleteAggregate(ref, aggregate)
+                if (failure is Error) throw failure
+                if (cleanupFailure != null) throw cleanupFailure
                 throw failure
             }
         }
@@ -784,8 +795,14 @@ class EncryptedStore(
                     readBackVerified = true,
                 )
             } catch (failure: Throwable) {
-                runCatching { io.deleteTree(aggregate) }
-                runCatching { keystore.deleteAggregateKey(ref) }
+                // Error precedence: a cleanup failure replaces the original
+                // failure (including cancellation) because the operation must
+                // not report a clean terminal state while the incomplete
+                // aggregate or its Keystore alias may remain. Error is never
+                // masked.
+                val cleanupFailure = cleanupIncompleteAggregate(ref, aggregate)
+                if (failure is Error) throw failure
+                if (cleanupFailure != null) throw cleanupFailure
                 throw failure
             }
         }
@@ -2013,7 +2030,9 @@ class EncryptedStore(
                 faultInjector.onFault(StoreFaultPoint.ORDERING_FSYNC, txnId)
                 io.fsyncFile(staged.file)
             } catch (failure: Throwable) {
-                runCatching { io.deleteTree(staged.file) }
+                val cleanupFailure = deletePathOrFailure(staged.file)
+                if (failure is Error) throw failure
+                if (cleanupFailure != null) throw cleanupFailure
                 throw mapWriteFailure(failure)
             }
         }
@@ -2099,7 +2118,9 @@ class EncryptedStore(
             }
             return StagedObject(obj, staged, header)
         } catch (failure: Throwable) {
-            runCatching { io.deleteTree(staged) }
+            val cleanupFailure = deletePathOrFailure(staged)
+            if (failure is Error) throw failure
+            if (cleanupFailure != null) throw cleanupFailure
             if (failure is CancellationException) throw failure
             if (failure is StorageException) throw failure
             throw mapWriteFailure(failure)
@@ -2347,7 +2368,9 @@ class EncryptedStore(
             }
             return StagedObject(obj, staged, header)
         } catch (failure: Throwable) {
-            runCatching { io.deleteTree(staged) }
+            val cleanupFailure = deletePathOrFailure(staged)
+            if (failure is Error) throw failure
+            if (cleanupFailure != null) throw cleanupFailure
             if (failure is StorageException) throw failure
             throw mapWriteFailure(failure)
         }
@@ -2465,7 +2488,9 @@ class EncryptedStore(
             return header
         } catch (failure: Throwable) {
             runCatching { channel?.close() }
-            runCatching { io.deleteTree(file) }
+            val cleanupFailure = deletePathOrFailure(file)
+            if (failure is Error) throw failure
+            if (cleanupFailure != null) throw cleanupFailure
             throw mapWriteFailure(failure)
         }
     }
@@ -3164,6 +3189,50 @@ class EncryptedStore(
         if (failure is StorageException) return failure
         if (failure is Error) throw failure
         return if (isQuota(failure)) StorageFullException() else CorruptDataException()
+    }
+
+    /**
+     * T040 review correction: deletes one staging/aggregate path and reports a
+     * false return as a cleanup failure. A silent `false` must never be read as
+     * "clean". `Error` is rethrown and never converted.
+     */
+    private fun deletePathOrFailure(file: File): StorageException? = try {
+        if (io.deleteTree(file)) null else StorageWriteException()
+    } catch (failure: Error) {
+        throw failure
+    } catch (failure: Exception) {
+        mapWriteFailure(failure)
+    }
+
+    /**
+     * T040 review correction: removes an incomplete aggregate and its KEK.
+     *
+     * Error precedence: the first cleanup failure (aggregate deletion, then
+     * alias deletion) replaces the original failure — including a
+     * `CancellationException` — because a clean cancellation must not be
+     * reported while encrypted residue remains. The startup sweep is the
+     * backstop for a retained aggregate or orphan alias. An `Error` is never
+     * masked and is rethrown as-is.
+     */
+    private fun cleanupIncompleteAggregate(
+        ref: AggregateRef,
+        aggregate: File,
+    ): StorageException? {
+        val aggregateFailure = deletePathOrFailure(aggregate)
+        var aliasFailure: StorageException? = null
+        try {
+            if (!keystore.deleteAggregateKey(ref) && aggregateFailure == null) {
+                // False means the alias was not removed now (provider
+                // unavailable or Keystore error). That is residue, not success;
+                // the startup sweep retries the orphan alias.
+                aliasFailure = StorageWriteException()
+            }
+        } catch (failure: Error) {
+            throw failure
+        } catch (failure: Exception) {
+            if (aggregateFailure == null) aliasFailure = mapWriteFailure(failure)
+        }
+        return aggregateFailure ?: aliasFailure
     }
 
     private fun isQuota(failure: Throwable): Boolean {

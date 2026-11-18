@@ -222,8 +222,12 @@ class ImportService(
                 } catch (failure: CancellationException) {
                     // The store removed the staged aggregate before meta
                     // became visible; do not ask cleanup to delete it twice.
+                    // Leave all operation-handle access to the outer catch:
+                    // the facade cleanup holds the handle lock while waiting
+                    // for this lifecycle lock, so reading the handle here would
+                    // invert the lock order and deadlock.
                     lifecycle.needsDiscard = false
-                    throw context.cancellationCleanupFailure() ?: PlatformFailure.cancelled()
+                    throw CommitCancelledException()
                 } catch (failure: ConcurrentSaveException) {
                     // A visible aggregate owns this id. Never delete it.
                     lifecycle.needsDiscard = false
@@ -239,6 +243,12 @@ class ImportService(
                 }
                 success to created
             }
+        } catch (failure: CommitCancelledException) {
+            // The lifecycle lock is released here. Handle access is safe now:
+            // if the facade cleanup is still waiting for that lock, it proceeds
+            // and releases the handle; the store has already removed the
+            // incomplete aggregate, so no cleanup residue is expected.
+            throw context.cancellationCleanupFailure() ?: PlatformFailure.cancelled()
         } catch (failure: PlatformFailure) {
             val cleanupFailure = discardForFailure(context, lifecycle, documentId)
             if (cleanupFailure != null && failure.code == "PLT-004") throw cleanupFailure
@@ -307,10 +317,13 @@ class ImportService(
     }
 
     /**
-     * Non-throwing cancellation probe for the storage seams. `isCancelled`
-     * becomes true only after cleanup finished; `checkCancelled` already sees
-     * the claimed CANCELLING state and is the facade's public cooperative
-     * cancellation check.
+     * Non-throwing cancellation probe for the storage seams.
+     *
+     * [OperationContext.isCancellationClaimed] reads the handle's
+     * `claimDecided` `AtomicBoolean` and never acquires the operation-handle
+     * lock. It is therefore safe while this service holds the lifecycle lock.
+     * All lock-taking handle access (`cancellationCleanupFailure`,
+     * `recordCancellationCleanupFailure`) happens outside that lock.
      */
     private fun cancellationRequested(context: OperationContext): Boolean =
         context.isCancellationClaimed
@@ -519,6 +532,13 @@ class ImportService(
         is InvalidDataException -> PlatformFailure("SAVE-007", "invalidData", false, "save.invalidData")
         else -> PlatformFailure.internal()
     }
+
+    /**
+     * Marker used inside the lifecycle lock so the cancellation-failure read
+     * happens only after that lock is released. It never crosses the service
+     * boundary.
+     */
+    private class CommitCancelledException : Exception("importCancelled")
 
     private class StagedLifecycle {
         val lock = ReentrantLock()

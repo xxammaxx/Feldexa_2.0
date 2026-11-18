@@ -463,6 +463,74 @@ class ImportServiceTest {
     }
 
     @Test
+    fun cancellationDuringCommitDoesNotDeadlockAndReportsPlt004() {
+        val commitEntered = CountDownLatch(1)
+        val releaseCommit = CountDownLatch(1)
+        val commit = StagedCommit {
+                documentId,
+                sourceId,
+                sourceSha256,
+                sourceSizeBytes,
+                revisionId,
+                metaJson,
+                revisionJson,
+                shouldAbort,
+            ->
+            commitEntered.countDown()
+            releaseCommit.await(5, TimeUnit.SECONDS)
+            if (shouldAbort()) throw CancellationException("importCancelled")
+            CreateReceipt(
+                aggregateId = documentId,
+                aggregateKind = AggregateKind.DOCUMENT,
+                sourceId = sourceId,
+                sourceSha256 = sourceSha256,
+                revisionId = revisionId,
+                revisionSha256 = "0".repeat(64),
+                committedAt = "2026-11-18T00:00:00.000Z",
+                readBackVerified = true,
+            )
+        }
+        val service = ImportService(
+            picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
+            staging = RecordingStaging(expectedSha, bytes.size.toLong()),
+            preflight = RecordingPreflight(successOnePage()),
+            commit = commit,
+        )
+        val (handle, context) = context()
+        val failure = AtomicReference<Throwable?>()
+        val done = CountDownLatch(1)
+        val worker = Thread {
+            try {
+                service.handle(pickRequest(1_000L), context)
+            } catch (thrown: Throwable) {
+                failure.set(thrown)
+            } finally {
+                done.countDown()
+            }
+        }.apply {
+            isDaemon = true
+            start()
+        }
+        assertTrue(commitEntered.await(5, TimeUnit.SECONDS))
+
+        val canceller = Thread { handle.cancel() }.apply {
+            isDaemon = true
+            start()
+        }
+        awaitClaim(handle)
+        releaseCommit.countDown()
+
+        assertTrue(
+            "worker did not finish; cancellation/commit deadlocked",
+            done.await(2, TimeUnit.SECONDS),
+        )
+        canceller.join(2_000L)
+        val thrown = failure.get()
+        assertTrue("expected PlatformFailure, got $thrown", thrown is PlatformFailure)
+        assertEquals("PLT-004", (thrown as PlatformFailure).code)
+    }
+
+    @Test
     fun notYetOwnedMethodsFailClosed() {
         val staging = RecordingStaging(expectedSha, bytes.size.toLong())
         val picker = FakePicker(FakePickedDocument(bytes, "scan.pdf"))

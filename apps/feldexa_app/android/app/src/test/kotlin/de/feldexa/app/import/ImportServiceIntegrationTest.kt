@@ -20,6 +20,7 @@ import de.feldexa.app.storage.LoadedAggregate
 import de.feldexa.app.storage.RevisionKindWire
 import de.feldexa.app.storage.StoreFaultInjector
 import de.feldexa.app.storage.StoreFaultPoint
+import de.feldexa.app.storage.TestFailingDeleteIo
 import de.feldexa.app.storage.TestStoreKeystoreBackend
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -36,6 +37,7 @@ import java.util.concurrent.atomic.AtomicReference
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -317,6 +319,90 @@ class ImportServiceIntegrationTest {
         assertTrue(handle.isCancelled)
         assertEquals(1, store.list(AggregateKind.DOCUMENT).size)
         assertArrayEquals(pdf, store.loadDocument(documentId).sourceBytes)
+    }
+
+    @Test
+    fun cleanupFailureDuringCommitIsNotReportedAsCleanCancellation() {
+        val io = TestFailingDeleteIo()
+        val failingStore = EncryptedStore(
+            root = File(temporary.root, "cleanup-failure").absoluteFile,
+            keystore = keystore,
+            io = io,
+            clock = { now.get() },
+        )
+        failingStore.ensureLayout()
+        val pdf = PdfTestDocuments.pages(1)
+        val commitEntered = CountDownLatch(1)
+        val releaseCommit = CountDownLatch(1)
+        val documentIdRef = AtomicReference<String>("")
+        val failingCommit = StagedCommit {
+                documentId,
+                sourceId,
+                sourceSha256,
+                sourceSizeBytes,
+                revisionId,
+                metaJson,
+                revisionJson,
+                _,
+            ->
+            documentIdRef.set(documentId)
+            commitEntered.countDown()
+            releaseCommit.await(5, TimeUnit.SECONDS)
+            io.failAggregateDelete = true
+            failingStore.createDocumentFromStagedSource(
+                documentId = documentId,
+                metaJson = metaJson,
+                sourceId = sourceId,
+                sourceSha256 = sourceSha256,
+                sourceSizeBytes = sourceSizeBytes,
+                revisionId = revisionId,
+                revisionJson = revisionJson,
+                revisionKind = RevisionKindWire.EXPLICIT,
+                shouldAbort = { true },
+            )
+        }
+        val service = serviceFor(
+            ReopenablePickedDocument(pdf, "cleanup.pdf"),
+            store = failingStore,
+            commit = failingCommit,
+        )
+        val (handle, context) = context()
+        val failure = AtomicReference<Throwable?>()
+        val done = CountDownLatch(1)
+        val worker = Thread {
+            try {
+                service.handle(pickRequest(), context)
+            } catch (thrown: Throwable) {
+                failure.set(thrown)
+            } finally {
+                done.countDown()
+            }
+        }.apply {
+            isDaemon = true
+            start()
+        }
+        assertTrue(commitEntered.await(5, TimeUnit.SECONDS))
+
+        val canceller = Thread { handle.cancel() }.apply {
+            isDaemon = true
+            start()
+        }
+        awaitClaim(handle)
+        releaseCommit.countDown()
+
+        assertTrue(
+            "worker did not finish; cancellation/commit deadlocked",
+            done.await(3, TimeUnit.SECONDS),
+        )
+        canceller.join(3_000L)
+        val thrown = failure.get()
+        assertTrue("expected PlatformFailure, got $thrown", thrown is PlatformFailure)
+        assertNotEquals("PLT-004", (thrown as PlatformFailure).code)
+        assertEquals("SAVE-003", thrown.code)
+        // The incomplete aggregate (encrypted residue) remains, but it is not
+        // a visible document because meta.fx1 was never promoted.
+        assertTrue(File(File(failingStore.root, "docs"), documentIdRef.get()).isDirectory)
+        assertTrue(failingStore.list(AggregateKind.DOCUMENT).isEmpty())
     }
 
     @Test
