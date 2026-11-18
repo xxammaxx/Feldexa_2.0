@@ -95,7 +95,7 @@ index b5e02fc..f1874dd 100644
 +++ b/apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/MainActivity.kt
 @@ -1,6 +1,7 @@
  package de.feldexa.app
- 
+
  import android.content.Intent
 +import android.content.pm.ApplicationInfo
  import android.net.Uri
@@ -113,7 +113,7 @@ index b5e02fc..f1874dd 100644
 @@ -89,6 +92,10 @@ class MainActivity : FlutterActivity() {
      private lateinit var importPickerLauncher: ActivityResultLauncher<Array<String>>
      private var pendingImportPicker: ((PickedDocument?) -> Unit)? = null
- 
+
 +    /** True only for a debug/development build; release is not debuggable. */
 +    private fun isDebuggableBuild(): Boolean =
 +        (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
@@ -124,7 +124,7 @@ index b5e02fc..f1874dd 100644
 @@ -139,6 +146,15 @@ class MainActivity : FlutterActivity() {
          flutterEngine.plugins.add(plugin)
          plugin.registerImportChannel(flutterEngine.dartExecutor.binaryMessenger)
- 
+
 +        // T046: debug-only fixture gate for the import integration test. This
 +        // is a declared test seam: the handler exists only in debug builds and
 +        // delivers a source only after the test explicitly arms one. Release
@@ -184,7 +184,7 @@ index 4609f67..fc1b3c0 100644
 @@ -416,7 +416,7 @@ internal fun interface PdfDocumentLoader {
      fun load(stream: InputStream): PDDocument
  }
- 
+
 -private object PdfBoxDocumentLoader : PdfDocumentLoader {
 +internal object PdfBoxDocumentLoader : PdfDocumentLoader {
      override fun load(stream: InputStream): PDDocument =
@@ -261,13 +261,22 @@ behaviour and are not aggregated with the `EMULATOR` result.
 | 1 | `flutter analyze --no-pub` (`apps/feldexa_app`) | `0` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t046-emulator/host-flutter-analyze.log` | `PASS` |
 | 2 | `flutter test --no-pub` (`apps/feldexa_app`) | `0` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t046-emulator/host-flutter-test.log` | `PASS` (244 tests, 0 failures) |
 | 3 | `./gradlew :app:compileReleaseKotlin --console=plain` (`apps/feldexa_app/android`) | `0` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t046-emulator/host-release-compile.log` | `PASS` |
-| 4 | `git diff --check` (repo root) | `0` | console only (not retained) | `PASS` |
-| 5 | `dart tools/evaluation/validate_report.dart specs/001-scanned-form-workflow/reports/2026-11-18-emulator-t046-evidence.md` (repo root) | `0` | console only (not retained) | `PASS` |
+| 4 | `git diff --check` (repo root; pre-commit working tree based on `59c08b5` plus the staged whitespace normalization) | `0` | console only (not retained) | `PASS` |
+| 5 | `git diff --check 0ad1b3b..HEAD` (repo root; post-commit branch check, run immediately after this docs-only correction commit) | `0` | console only (not retained) | `PASS` |
+| 6 | `dart tools/evaluation/validate_report.dart specs/001-scanned-form-workflow/reports/2026-11-18-emulator-t046-evidence.md` (repo root) | `0` | console only (not retained) | `PASS` |
 
 `flutter analyze` reported `No issues found!`. The host test run ended with
 `00:34 +244: All tests passed!`; the browser-only fixture test is skipped by
 its documented `FIXTURE_RUNTIME` gate and is not counted here. The release
 Kotlin compile passed with the seam present but unreachable.
+
+The committed log and `seam.diff` artifacts were whitespace-normalized by
+removing trailing spaces so the committed branch passes `git diff --check`;
+this is a textual normalization only. No result, claim, count, device identity,
+command, exit code, or semantic content changed. The pre-commit working-tree
+check and the binding post-commit `git diff --check 0ad1b3b..HEAD` check both
+exited `0`; the latter is recorded in the external attestation with the exact
+new HEAD.
 
 ## 5. Results
 
@@ -328,18 +337,20 @@ No performance claim.
 
 All paths are repository-relative and committed with this report unless the
 row says otherwise. The APK is a git-ignored local build output bound by
-`apk-sha256.txt`; it is not committed.
+`apk-sha256.txt`; it is not committed. The two committed log artifacts and
+`seam.diff` were whitespace-normalized (trailing spaces removed) so the
+committed branch passes `git diff --check`; no semantic content changed.
 
 | Artifact | Path | Bytes | SHA-256 |
 | --- | --- | ---: | --- |
-| `seam.diff` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t046-emulator/seam.diff` | 9714 | `3a0f6834d37a5b8108daf56a5af5ce590663f223e2cf2ed4cf17a736f7044ea3` |
+| `seam.diff` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t046-emulator/seam.diff` | 9710 | `f42a853dce75bb585c62cace7cb0aba7c198bc5f194cd6b6c6c5787a1160396c` |
 | `apk-sha256.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t046-emulator/apk-sha256.txt` | 310 | `7c72d9b4ead7b353f488392f73ac2b45e5b596f1c6e82818f4c160dee43c7e30` |
 | `device-identity.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t046-emulator/device-identity.txt` | 779 | `316d45f40f4089331cc4c7628676615cf400d1b1bd81efb49c9a1710b31ccecd` |
 | `fixture-sha256.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t046-emulator/fixture-sha256.txt` | 1008 | `860c6fc7be20eaf154e39367a53d2f5e233403bf43d5e0e0550e24cae3102de7` |
-| `host-flutter-analyze.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t046-emulator/host-flutter-analyze.log` | 97 | `884d6044564384cd1e7c0469f04bac83ca8f7a7d3ff674ed14e37f737ef92c98` |
+| `host-flutter-analyze.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t046-emulator/host-flutter-analyze.log` | 57 | `ebdbfb1ce7e68ebfe96e3eb15fff333f47592eff7f0babf740f79a6b65be3659` |
 | `host-flutter-test.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t046-emulator/host-flutter-test.log` | 36722 | `227ac7bd00361f1256833b64d60926ff0e47cd14a1f3d7c7174be1e1b9fd6755` |
 | `host-release-compile.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t046-emulator/host-release-compile.log` | 15203 | `e47c9306159833bc025ff4d09b6bf6afd11b3dae90df436e3133377be8e60144` |
-| `integration-android-import.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t046-emulator/integration-android-import.log` | 3291 | `b96325fbc84aab03978e18eefa6c1502b05ea4369172d493a4472812e6b9bff8` |
+| `integration-android-import.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t046-emulator/integration-android-import.log` | 3265 | `795d1fe170dfa871e34be631a76c32014a093e9f6b9042eedfd289c13b515557` |
 
 ## 9. Reproducibility
 
