@@ -56,6 +56,10 @@ dev_dependencies:
     sdk: flutter
   feldexa_core:
     path: ../../packages/feldexa_core
+  # T047: the SIMULATED browser import journey runs the T028 Web adapters.
+  # Test-only, so an Android build never resolves this package (T023 boundary).
+  feldexa_adapters_simulated:
+    path: ../../packages/feldexa_adapters_simulated
   crypto: 3.0.8
 
 flutter:
