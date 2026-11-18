@@ -184,6 +184,40 @@ class EncryptedStoreStreamingTest {
     }
 
     @Test
+    fun configuredByteLimitAcceptsTheExactLimitAndRejectsOneByteMore() {
+        // T045: the real store compares `total + read > maxBytes`, so a source
+        // equal to the limit is accepted and one byte more is rejected. This
+        // arbitrary 1,000-byte limit proves the exact boundary without
+        // materializing the 80 MiB import cap; ImportServiceTest binds that
+        // documented 83,886,080-byte value to this same contract.
+        for (size in listOf(999, 1_000)) {
+            val source = sourceBytes(size)
+            val receipt = store.stageSourceFromStream(
+                documentId = newId(),
+                sourceId = newId(),
+                countPass = ByteArrayInputStream(source),
+                openStreamForWrite = { ByteArrayInputStream(source) },
+                maxBytes = 1_000L,
+            )
+            assertEquals(size.toLong(), receipt.sizeBytes)
+            assertTrue(receipt.readBackVerified)
+        }
+
+        val rejectedId = newId()
+        val oversize = sourceBytes(1_001)
+        assertThrows(SourceLimitExceededException::class.java) {
+            store.stageSourceFromStream(
+                documentId = rejectedId,
+                sourceId = newId(),
+                countPass = ByteArrayInputStream(oversize),
+                openStreamForWrite = { error("must not write an oversize source") },
+                maxBytes = 1_000L,
+            )
+        }
+        assertFalse(File(File(store.root, "docs"), rejectedId).exists())
+    }
+
+    @Test
     fun abortDuringTheWritePassCleansUpAndNeverPublishesASource() {
         val source = sourceBytes(2_500_000)
         val documentId = newId()

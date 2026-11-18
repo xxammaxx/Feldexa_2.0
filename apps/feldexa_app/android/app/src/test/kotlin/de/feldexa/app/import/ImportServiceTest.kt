@@ -24,6 +24,7 @@ import de.feldexa.app.storage.AggregateKind
 import de.feldexa.app.storage.CanonicalJson
 import de.feldexa.app.storage.ConcurrentSaveException
 import de.feldexa.app.storage.CreateReceipt
+import de.feldexa.app.storage.EncryptedStore
 import de.feldexa.app.storage.InvalidDataException
 import de.feldexa.app.storage.SourceLimitExceededException
 import de.feldexa.app.storage.StagedSourceReceipt
@@ -61,6 +62,9 @@ class ImportServiceTest {
 
     private val bytes = "synthetic-pdf-bytes".toByteArray()
     private val expectedSha = sha256(bytes)
+
+    /** Opaque stand-in digest for the generated cap-boundary sources. */
+    private val syntheticSha = "a".repeat(64)
 
     @Test
     fun happyPathStagesPreflightsAndCommitsExactlyOnce() {
@@ -142,6 +146,115 @@ class ImportServiceTest {
         // No content in the failure: neither the title nor any byte text leaks.
         assertFalse(failure.machineMessage.contains("geheim"))
         assertFalse(failure.details().values.any { it is String && it.contains("geheim") })
+    }
+
+    @Test
+    fun documentedCapIsExactlyEightyMebibytesAndMatchesTheStore() {
+        // T045 / FR-005 / CR-3: 80 MiB is 80 * 1024 * 1024 = 83,886,080
+        // bytes, and the import service and store must agree on that bound.
+        assertEquals(83_886_080L, ImportService.DEFAULT_MAX_SOURCE_BYTES)
+        assertEquals(80L * 1024L * 1024L, ImportService.DEFAULT_MAX_SOURCE_BYTES)
+        assertEquals(ImportService.DEFAULT_MAX_SOURCE_BYTES, EncryptedStore.MAX_SOURCE_BYTES)
+    }
+
+    @Test
+    fun requestedMaxBytesAboveTheCapIsClampedToTheDocumentedCap() {
+        val staging = CapEnforcingStaging()
+        val service = ImportService(
+            picker = FakePicker(capPickedDocument(1L)),
+            staging = staging,
+            preflight = RecordingPreflight(successOnePage()),
+            commit = RecordingCommit(syntheticSha, 1L),
+        )
+        val (_, context) = context()
+
+        service.handle(
+            pickRequest(ImportService.DEFAULT_MAX_SOURCE_BYTES + 1L),
+            context,
+        )
+
+        // The service never forwards a larger request to the enforcing store.
+        assertEquals(ImportService.DEFAULT_MAX_SOURCE_BYTES, staging.maxBytes)
+        assertEquals(1, staging.calls)
+    }
+
+    @Test
+    fun sourceOneByteBelowTheCapIsAccepted() {
+        val size = ImportService.DEFAULT_MAX_SOURCE_BYTES - 1L
+        val staging = CapEnforcingStaging()
+        val preflight = RecordingPreflight(successOnePage())
+        val commit = RecordingCommit(syntheticSha, size)
+        val service = ImportService(
+            picker = FakePicker(capPickedDocument(size)),
+            staging = staging,
+            preflight = preflight,
+            commit = commit,
+        )
+        val (_, context) = context()
+
+        @Suppress("UNCHECKED_CAST")
+        val data = service.handle(
+            pickRequest(ImportService.DEFAULT_MAX_SOURCE_BYTES),
+            context,
+        ) as Map<String, Any?>
+
+        assertEquals(size, (data["sizeBytes"] as Number).toLong())
+        assertEquals(ImportService.DEFAULT_MAX_SOURCE_BYTES, staging.maxBytes)
+        assertEquals(1, preflight.calls)
+        assertEquals(1, commit.calls)
+    }
+
+    @Test
+    fun sourceExactlyAtTheCapIsAccepted() {
+        val size = ImportService.DEFAULT_MAX_SOURCE_BYTES
+        val staging = CapEnforcingStaging()
+        val preflight = RecordingPreflight(successOnePage())
+        val commit = RecordingCommit(syntheticSha, size)
+        val service = ImportService(
+            picker = FakePicker(capPickedDocument(size)),
+            staging = staging,
+            preflight = preflight,
+            commit = commit,
+        )
+        val (_, context) = context()
+
+        @Suppress("UNCHECKED_CAST")
+        val data = service.handle(
+            pickRequest(ImportService.DEFAULT_MAX_SOURCE_BYTES),
+            context,
+        ) as Map<String, Any?>
+
+        assertEquals(size, (data["sizeBytes"] as Number).toLong())
+        assertEquals(ImportService.DEFAULT_MAX_SOURCE_BYTES, staging.maxBytes)
+        assertEquals(1, preflight.calls)
+        assertEquals(1, commit.calls)
+    }
+
+    @Test
+    fun sourceOneByteAboveTheCapIsRejectedAsIMP007WithoutPreflight() {
+        val size = ImportService.DEFAULT_MAX_SOURCE_BYTES + 1L
+        val staging = CapEnforcingStaging()
+        val preflight = RecordingPreflight(successOnePage())
+        val commit = RecordingCommit(syntheticSha, size)
+        val service = ImportService(
+            picker = FakePicker(capPickedDocument(size)),
+            staging = staging,
+            preflight = preflight,
+            commit = commit,
+        )
+        val (_, context) = context()
+
+        val failure = expectFailure {
+            service.handle(pickRequest(ImportService.DEFAULT_MAX_SOURCE_BYTES), context)
+        }
+
+        assertEquals("IMP-007", failure.code)
+        assertEquals("tooLarge", failure.category)
+        assertEquals("import.tooLarge", failure.machineMessage)
+        assertFalse(failure.retryable)
+        assertEquals(ImportService.DEFAULT_MAX_SOURCE_BYTES, staging.maxBytes)
+        assertEquals(0, preflight.calls)
+        assertEquals(0, commit.calls)
     }
 
     @Test
@@ -1123,6 +1236,91 @@ class ImportServiceTest {
             return openStreamOverride?.invoke()
                 ?: if (nullStream) null else ByteArrayInputStream(content)
         }
+    }
+
+    /**
+     * T045: a generated picker document whose streams produce [size] bytes
+     * without materializing an 80 MiB array. Each `openStream()` call returns a
+     * fresh synthetic stream, as the SAF provider would.
+     */
+    private fun capPickedDocument(size: Long): FakePickedDocument =
+        FakePickedDocument(
+            content = ByteArray(0),
+            displayName = "zu-gross.pdf",
+            openStreamOverride = { SyntheticInputStream(size) },
+        )
+
+    /**
+     * T045: applies the store's documented cap contract
+     * (`total + read > maxBytes`) at the service seam, so the exact
+     * 83,886,080-byte boundary can be exercised without staging 80 MiB.
+     * The second pass is read too, mirroring `EncryptedStore`; an oversize
+     * source never reaches it.
+     */
+    private class CapEnforcingStaging : SourceStaging {
+        var calls = 0
+        var maxBytes: Long? = null
+
+        override fun stage(
+            documentId: String,
+            sourceId: String,
+            countPass: InputStream,
+            openStreamForWrite: () -> InputStream?,
+            maxBytes: Long,
+            shouldAbort: () -> Boolean,
+        ): StagedSourceReceipt {
+            calls++
+            this.maxBytes = maxBytes
+            val buffer = ByteArray(ImportService.CHUNK_BYTES)
+            var total = 0L
+            while (true) {
+                if (shouldAbort()) throw CancellationException("importCancelled")
+                val read = countPass.read(buffer)
+                if (read < 0) break
+                if (read == 0) continue
+                if (total + read > maxBytes) throw SourceLimitExceededException()
+                total += read
+            }
+            if (total <= 0L) throw InvalidDataException()
+            var written = 0L
+            openStreamForWrite()?.use { stream ->
+                while (true) {
+                    val read = stream.read(buffer)
+                    if (read < 0) break
+                    if (read == 0) continue
+                    written += read.toLong()
+                }
+            }
+            if (written != total) throw InvalidDataException()
+            return StagedSourceReceipt(
+                aggregateId = documentId,
+                sourceId = sourceId,
+                sourceSha256 = "a".repeat(64),
+                sizeBytes = total,
+                readBackVerified = true,
+            )
+        }
+    }
+
+    /** Bounded-memory zero-filled stream with an exact byte count. */
+    private class SyntheticInputStream(private var remaining: Long) : InputStream() {
+        override fun read(): Int {
+            if (remaining <= 0L) return -1
+            remaining--
+            return 0x20
+        }
+
+        override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+            if (length == 0) return 0
+            if (remaining <= 0L) return -1
+            val count = minOf(length.toLong(), remaining).toInt()
+            buffer.fill(0x20.toByte(), offset, offset + count)
+            remaining -= count
+            return count
+        }
+
+        override fun available(): Int =
+            minOf(remaining, Int.MAX_VALUE.toLong()).toInt()
     }
 
     private class RecordingStaging(
