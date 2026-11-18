@@ -2,8 +2,11 @@ import 'package:feldexa_app/bootstrap/session_end_sweep.dart';
 import 'package:feldexa_app/bootstrap/startup_sweep.dart';
 import 'package:feldexa_app/bootstrap/startup_sweep_app.dart';
 import 'package:feldexa_app/bootstrap/startup_sweep_bootstrap.dart';
+import 'package:feldexa_app/features/editor/page_view.dart';
+import 'package:feldexa_app/features/start/import_runtime.dart';
+import 'package:feldexa_app/features/start/start_screen.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide PageView;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,8 +45,20 @@ Future<void> main() async {
 /// `contracts/storage-format.md` §4 step 4 ("any on session end") has a
 /// production caller. Without that wiring the export-preview cleanup would only
 /// ever run at startup.
+///
+/// T148 makes the shell render the German start surface and opens the US1
+/// editor route from the production import composition. [importRuntimeFactory]
+/// and [pageRendererFactory] are explicit injection seams: production uses the
+/// real Android clients and pdfrx, while host-VM widget tests supply fakes and
+/// construct no platform channel.
 class FeldexaApp extends StatefulWidget {
-  const FeldexaApp({super.key, this.startup, this.sweep});
+  const FeldexaApp({
+    super.key,
+    this.startup,
+    this.sweep,
+    this.importRuntimeFactory = createImportRuntime,
+    this.pageRendererFactory = openPdfrxPageRenderer,
+  });
 
   /// The bounded startup result, if this app launch ran one.
   final StartupSweepStartup? startup;
@@ -53,6 +68,12 @@ class FeldexaApp extends StatefulWidget {
   /// `null` on targets without a production store/cache (and in the plain
   /// smoke shell); no lifecycle observer is then registered.
   final StartupSweep? sweep;
+
+  /// Builds the platform import composition for the start surface.
+  final ImportRuntime Function() importRuntimeFactory;
+
+  /// Opens the pdfrx renderer in the editor; tests inject a fake.
+  final PageViewRendererFactory pageRendererFactory;
 
   @override
   State<FeldexaApp> createState() => _FeldexaAppState();
@@ -109,74 +130,10 @@ class _FeldexaAppState extends State<FeldexaApp> {
       locale: const Locale('de'),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      home: Builder(
-        builder: (context) {
-          final l10n = AppLocalizations.of(context);
-          // A degraded startup always surfaces a German notice: either the
-          // specific catalog notice the sweep produced, or the committed ARB
-          // notice for an incomplete recovery. The shell never shows a plain
-          // success state for a degraded run.
-          final StartupSweepStartup? startup = widget.startup;
-          final List<StartupSweepNotice> notices = startup == null
-              ? const <StartupSweepNotice>[]
-              : startupRecoveryNotices(startup, messages: l10n);
-          return Scaffold(
-            appBar: AppBar(title: Text(l10n.appTitle)),
-            body: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text(l10n.startTitle),
-                    for (final StartupSweepNotice notice in notices)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 16),
-                        child: _StartupRecoveryNotice(notice: notice),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-/// Localized startup-recovery notice.
-///
-/// Every string comes from [StartupSweepNotice], whose text is resolved from
-/// the committed German ARB by the sweep or by [startupRecoveryNotices]. No
-/// user-facing text is authored here.
-class _StartupRecoveryNotice extends StatelessWidget {
-  const _StartupRecoveryNotice({required this.notice});
-
-  final StartupSweepNotice notice;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final String? statusLabel = notice.statusLabel;
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 560),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.errorContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          if (statusLabel != null) ...<Widget>[
-            Text(statusLabel, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 8),
-          ],
-          Text(notice.message, style: theme.textTheme.bodyMedium),
-          const SizedBox(height: 8),
-          Text(notice.recovery, style: theme.textTheme.bodySmall),
-        ],
+      home: StartScreen(
+        startup: widget.startup,
+        importRuntimeFactory: widget.importRuntimeFactory,
+        pageRendererFactory: widget.pageRendererFactory,
       ),
     );
   }
