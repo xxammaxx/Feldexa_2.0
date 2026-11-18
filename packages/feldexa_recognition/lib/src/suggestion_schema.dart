@@ -688,6 +688,9 @@ abstract final class SuggestionSchema {
     } else {
       _checkExactKeys(rawTimings, timingKeys, 'envelope.timings', findings);
       for (final String key in timingKeys) {
+        if (!rawTimings.containsKey(key)) {
+          continue;
+        }
         final Object? value = rawTimings[key];
         if (value is! int || value < 0) {
           findings.add(
@@ -817,7 +820,8 @@ abstract final class SuggestionSchema {
             ),
           );
         }
-        if (pageToken != '$envelopePageIndex') {
+        final int? pageTokenValue = int.tryParse(pageToken);
+        if (pageTokenValue == null || pageToken != '$pageTokenValue') {
           findings.add(
             SuggestionSchemaViolation('$path.id', SuggestionSchemaCodes.format),
           );
@@ -929,47 +933,51 @@ abstract final class SuggestionSchema {
     }
 
     final double? confidence = _finite(suggestion['confidence']);
-    if (confidence == null || confidence < 0 || confidence > 1) {
-      findings.add(
-        SuggestionSchemaViolation(
-          '$path.confidence',
-          SuggestionSchemaCodes.range,
-        ),
-      );
-    } else if (!_hasTwoDecimals(confidence)) {
-      findings.add(
-        SuggestionSchemaViolation(
-          '$path.confidence',
-          SuggestionSchemaCodes.format,
-        ),
-      );
-    }
-
-    final double? uncertainty = _finite(suggestion['uncertainty']);
-    if (uncertainty == null || uncertainty < 0 || uncertainty > 1) {
-      findings.add(
-        SuggestionSchemaViolation(
-          '$path.uncertainty',
-          SuggestionSchemaCodes.range,
-        ),
-      );
-    } else {
-      if (!_hasTwoDecimals(uncertainty)) {
+    if (suggestion.containsKey('confidence')) {
+      if (confidence == null || confidence < 0 || confidence > 1) {
         findings.add(
           SuggestionSchemaViolation(
-            '$path.uncertainty',
+            '$path.confidence',
+            SuggestionSchemaCodes.range,
+          ),
+        );
+      } else if (!_hasTwoDecimals(confidence)) {
+        findings.add(
+          SuggestionSchemaViolation(
+            '$path.confidence',
             SuggestionSchemaCodes.format,
           ),
         );
       }
-      if (confidence != null &&
-          (uncertainty - _round2(1 - confidence)).abs() > _epsilon) {
+    }
+
+    final double? uncertainty = _finite(suggestion['uncertainty']);
+    if (suggestion.containsKey('uncertainty')) {
+      if (uncertainty == null || uncertainty < 0 || uncertainty > 1) {
         findings.add(
           SuggestionSchemaViolation(
             '$path.uncertainty',
-            SuggestionSchemaCodes.value,
+            SuggestionSchemaCodes.range,
           ),
         );
+      } else {
+        if (!_hasTwoDecimals(uncertainty)) {
+          findings.add(
+            SuggestionSchemaViolation(
+              '$path.uncertainty',
+              SuggestionSchemaCodes.format,
+            ),
+          );
+        }
+        if (confidence != null &&
+            (uncertainty - _round2(1 - confidence)).abs() > _epsilon) {
+          findings.add(
+            SuggestionSchemaViolation(
+              '$path.uncertainty',
+              SuggestionSchemaCodes.value,
+            ),
+          );
+        }
       }
     }
 
@@ -1252,8 +1260,9 @@ abstract final class SuggestionSchema {
       );
     }
     final Object? messageKey = raw['messageKey'];
-    if (messageKey is! String ||
-        !_failureMessageKeyPattern.hasMatch(messageKey)) {
+    if (raw.containsKey('messageKey') &&
+        (messageKey is! String ||
+            !_failureMessageKeyPattern.hasMatch(messageKey))) {
       findings.add(
         SuggestionSchemaViolation(
           '$path.messageKey',

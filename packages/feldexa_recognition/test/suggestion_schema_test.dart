@@ -288,32 +288,57 @@ void _expectValid(
   );
 }
 
-/// Asserts a violation whose structural path is the prefix before `': '`.
+/// Asserts the exact findings of one invalid envelope.
 ///
-/// The descriptive text after the path is a test expectation only and is never
-/// compared with production text. [code] optionally pins the stable category.
+/// The descriptive text after the path's `': '` is a test expectation only and
+/// is never compared with production text. [count] is the exact number of
+/// findings at that path. [code] pins the intended stable category; [codes]
+/// pins every category when one path intentionally carries more than one.
+/// [additional] names every other expected finding, so an unintended
+/// double-violation cannot mask a broken rule.
 void _expectViolation(
   Map<String, Object?> envelope,
   String expected, {
   String? code,
+  Set<String>? codes,
+  int count = 1,
+  List<SuggestionSchemaViolation> additional =
+      const <SuggestionSchemaViolation>[],
   PageDisplaySize? display,
   bool persisted = true,
 }) {
   final String path = expected.contains(': ')
       ? expected.substring(0, expected.indexOf(': '))
       : expected;
-  final List<SuggestionSchemaViolation> atPath = _validateEnvelope(
+  final List<SuggestionSchemaViolation> findings = _validateEnvelope(
     envelope,
     display: display,
     persisted: persisted,
-  ).where((SuggestionSchemaViolation finding) => finding.path == path).toList();
-  expect(atPath, isNotEmpty, reason: 'expected a violation at $path');
+  );
+  final List<SuggestionSchemaViolation> atPath = findings
+      .where((SuggestionSchemaViolation finding) => finding.path == path)
+      .toList();
+  expect(atPath, hasLength(count), reason: 'unexpected finding count at $path');
+  final Iterable<String> codesAtPath = atPath.map(
+    (SuggestionSchemaViolation finding) => finding.code,
+  );
   if (code != null) {
-    expect(
-      atPath.map((SuggestionSchemaViolation finding) => finding.code),
-      contains(code),
-    );
+    expect(codesAtPath, contains(code));
   }
+  if (codes != null) {
+    expect(codesAtPath, containsAll(codes));
+  }
+  final List<SuggestionSchemaViolation> otherPaths = findings
+      .where((SuggestionSchemaViolation finding) => finding.path != path)
+      .toList();
+  final List<SuggestionSchemaViolation> expectedOthers =
+      List<SuggestionSchemaViolation>.of(additional)..sort();
+  otherPaths.sort();
+  expect(
+    otherPaths,
+    expectedOthers,
+    reason: 'unexpected additional violations for $path',
+  );
 }
 
 void _expectRunViolation(
@@ -321,20 +346,45 @@ void _expectRunViolation(
   List<PageDisplaySize> pages,
   String path, {
   String? code,
+  Set<String>? codes,
+  int count = 1,
+  List<SuggestionSchemaViolation> additional =
+      const <SuggestionSchemaViolation>[],
   bool persisted = true,
 }) {
-  final List<SuggestionSchemaViolation> atPath = _validateRun(
+  final List<SuggestionSchemaViolation> findings = _validateRun(
     run,
     pages: pages,
     persisted: persisted,
-  ).where((SuggestionSchemaViolation finding) => finding.path == path).toList();
-  expect(atPath, isNotEmpty, reason: 'expected a run violation at $path');
+  );
+  final List<SuggestionSchemaViolation> atPath = findings
+      .where((SuggestionSchemaViolation finding) => finding.path == path)
+      .toList();
+  expect(
+    atPath,
+    hasLength(count),
+    reason: 'unexpected run finding count at $path',
+  );
+  final Iterable<String> codesAtPath = atPath.map(
+    (SuggestionSchemaViolation finding) => finding.code,
+  );
   if (code != null) {
-    expect(
-      atPath.map((SuggestionSchemaViolation finding) => finding.code),
-      contains(code),
-    );
+    expect(codesAtPath, contains(code));
   }
+  if (codes != null) {
+    expect(codesAtPath, containsAll(codes));
+  }
+  final List<SuggestionSchemaViolation> otherPaths = findings
+      .where((SuggestionSchemaViolation finding) => finding.path != path)
+      .toList();
+  final List<SuggestionSchemaViolation> expectedOthers =
+      List<SuggestionSchemaViolation>.of(additional)..sort();
+  otherPaths.sort();
+  expect(
+    otherPaths,
+    expectedOthers,
+    reason: 'unexpected additional run violations for $path',
+  );
 }
 
 double _round2(double value) => (value * 100).roundToDouble() / 100;
@@ -384,85 +434,77 @@ void main() {
     test('rejects unknown envelope keys, including auto-export flags', () {
       final Map<String, Object?> envelope = _pageZeroEnvelope()
         ..['exported'] = true;
-      _expectViolation(envelope, 'envelope.exported: unexpected');
+      _expectViolation(
+        envelope,
+        'envelope.exported: unexpected',
+        code: SuggestionSchemaCodes.unexpected,
+      );
     });
 
     test('requires every §1 key, including nullable failure and reason', () {
       final Map<String, Object?> missingFailure = _copy(_pageZeroEnvelope())
         ..remove('failure');
-      _expectViolation(missingFailure, 'envelope.failure: missing');
+      _expectViolation(
+        missingFailure,
+        'envelope.failure: missing',
+        code: SuggestionSchemaCodes.missing,
+      );
 
       final Map<String, Object?> missingReason = _copy(_pageZeroEnvelope())
         ..remove('uncertaintyReason');
-      _expectViolation(missingReason, 'envelope.uncertaintyReason: missing');
+      _expectViolation(
+        missingReason,
+        'envelope.uncertaintyReason: missing',
+        code: SuggestionSchemaCodes.missing,
+      );
     });
 
     test('violations are content-free path/code pairs', () {
-      expect(
-        _validateEnvelope(_pageZeroEnvelope()..['schemaVersion'] = 2),
-        contains(
-          const SuggestionSchemaViolation(
-            'envelope.schemaVersion',
-            SuggestionSchemaCodes.value,
+      _expectViolation(
+        _pageZeroEnvelope()..['schemaVersion'] = 2,
+        'envelope.schemaVersion: must equal 1',
+        code: SuggestionSchemaCodes.value,
+      );
+      _expectViolation(
+        _copy(_pageZeroEnvelope())..remove('failure'),
+        'envelope.failure: missing',
+        code: SuggestionSchemaCodes.missing,
+      );
+      _expectViolation(
+        _pageZeroEnvelope()..['exported'] = true,
+        'envelope.exported: unexpected',
+        code: SuggestionSchemaCodes.unexpected,
+      );
+      _expectViolation(
+        _withSingle(
+          _suggestion(
+            id: 's_p0_0001',
+            pageIndex: 0,
+            rect: _rect(100, 100, 100, 20),
+            cues: <String>['underline', 'underline'],
           ),
         ),
-      );
-      final Map<String, Object?> missingEnvelope = _copy(_pageZeroEnvelope())
-        ..remove('failure');
-      expect(
-        _validateEnvelope(missingEnvelope),
-        contains(
-          const SuggestionSchemaViolation(
-            'envelope.failure',
-            SuggestionSchemaCodes.missing,
-          ),
-        ),
-      );
-      expect(
-        _validateEnvelope(_pageZeroEnvelope()..['exported'] = true),
-        contains(
-          const SuggestionSchemaViolation(
-            'envelope.exported',
-            SuggestionSchemaCodes.unexpected,
-          ),
-        ),
-      );
-
-      final Map<String, Object?> duplicateCues = _withSingle(
-        _suggestion(
-          id: 's_p0_0001',
-          pageIndex: 0,
-          rect: _rect(100, 100, 100, 20),
-          cues: <String>['underline', 'underline'],
-        ),
-      );
-      expect(
-        _validateEnvelope(duplicateCues),
-        contains(
-          const SuggestionSchemaViolation(
-            'envelope.suggestions[0].evidence.cues',
-            SuggestionSchemaCodes.duplicate,
-          ),
-        ),
+        'envelope.suggestions[0].evidence.cues: must be unique',
+        code: SuggestionSchemaCodes.duplicate,
       );
 
       final List<Map<String, Object?>> oneSided = _conflictPair();
       oneSided[1]['conflictsWith'] = <String>[];
-      expect(
-        _validateEnvelope(_envelope(pageIndex: 0, suggestions: oneSided)),
-        contains(
-          const SuggestionSchemaViolation(
-            'envelope.suggestions[0].conflictsWith',
-            SuggestionSchemaCodes.symmetry,
-          ),
-        ),
+      _expectViolation(
+        _envelope(pageIndex: 0, suggestions: oneSided),
+        'envelope.suggestions[0].conflictsWith: must be symmetric',
+        code: SuggestionSchemaCodes.symmetry,
       );
     });
 
     test('requires schemaVersion 1', () {
       final Map<String, Object?> envelope = _pageZeroEnvelope()
         ..['schemaVersion'] = 2;
-      _expectViolation(envelope, 'envelope.schemaVersion: must equal 1');
+      _expectViolation(
+        envelope,
+        'envelope.schemaVersion: must equal 1',
+        code: SuggestionSchemaCodes.value,
+      );
     });
 
     test('requires a canonical UUID analysisRunId shared by every page', () {
@@ -471,6 +513,7 @@ void main() {
       _expectViolation(
         invalid,
         'envelope.analysisRunId: must be a canonical lowercase UUID',
+        code: SuggestionSchemaCodes.format,
       );
 
       final List<Map<String, Object?>> run = _completeRun();
@@ -484,11 +527,11 @@ void main() {
     });
 
     test('requires a valid 0-based pageIndex and matching pageSizePt', () {
-      final Map<String, Object?> wrongIndex = _pageZeroEnvelope()
-        ..['pageIndex'] = 1;
+      final Map<String, Object?> wrongIndex = _envelope(pageIndex: 1);
       _expectViolation(
         wrongIndex,
         'envelope.pageIndex: must be a 0-based index within the page set',
+        code: SuggestionSchemaCodes.range,
       );
 
       final Map<String, Object?> wrongSize = _pageZeroEnvelope()
@@ -496,6 +539,7 @@ void main() {
       _expectViolation(
         wrongSize,
         'envelope.pageSizePt.width: must match the page display size',
+        code: SuggestionSchemaCodes.value,
       );
 
       _expectValid(_envelope(pageSize: _pageSizeMap(_a5)), display: _a5);
@@ -510,6 +554,7 @@ void main() {
       _expectViolation(
         invalid,
         'envelope.rotation: must be 0, 90, 180, or 270',
+        code: SuggestionSchemaCodes.value,
       );
     });
 
@@ -522,6 +567,7 @@ void main() {
       _expectViolation(
         missingFailure,
         'envelope.failure: required when status is failed',
+        code: SuggestionSchemaCodes.missing,
       );
 
       final Map<String, Object?> extraFailure = _pageZeroEnvelope()
@@ -529,11 +575,16 @@ void main() {
       _expectViolation(
         extraFailure,
         'envelope.failure: must be null unless status is failed',
+        code: SuggestionSchemaCodes.value,
       );
 
       final Map<String, Object?> pending = _pageZeroEnvelope()
         ..['status'] = 'pending';
-      _expectViolation(pending, 'envelope.status: must be complete or failed');
+      _expectViolation(
+        pending,
+        'envelope.status: must be complete or failed',
+        code: SuggestionSchemaCodes.value,
+      );
     });
 
     test('keeps pageUncertain and uncertaintyReason consistent', () {
@@ -545,6 +596,7 @@ void main() {
       _expectViolation(
         _uncertain(null),
         'envelope.uncertaintyReason: required when pageUncertain is true',
+        code: SuggestionSchemaCodes.missing,
       );
 
       // §1 does not require a null reason when pageUncertain is false.
@@ -556,6 +608,7 @@ void main() {
         _uncertain('blur'),
         'envelope.uncertaintyReason: must be skew, orientation, low_contrast, '
         'structure, or null',
+        code: SuggestionSchemaCodes.value,
       );
     });
 
@@ -569,6 +622,7 @@ void main() {
       _expectViolation(
         negative,
         'envelope.timings.rasterMs: must be a non-negative integer',
+        code: SuggestionSchemaCodes.range,
       );
 
       final Map<String, Object?> fractional = _pageZeroEnvelope()
@@ -580,11 +634,16 @@ void main() {
       _expectViolation(
         fractional,
         'envelope.timings.rasterMs: must be a non-negative integer',
+        code: SuggestionSchemaCodes.range,
       );
 
       final Map<String, Object?> missingStage = _pageZeroEnvelope()
         ..['timings'] = <String, Object?>{'rasterMs': 1, 'ocrMs': 2};
-      _expectViolation(missingStage, 'envelope.timings.detectMs: missing');
+      _expectViolation(
+        missingStage,
+        'envelope.timings.detectMs: missing',
+        code: SuggestionSchemaCodes.missing,
+      );
 
       final Map<String, Object?> extraStage = _pageZeroEnvelope()
         ..['timings'] = <String, Object?>{
@@ -593,7 +652,11 @@ void main() {
           'detectMs': 3,
           'totalMs': 6,
         };
-      _expectViolation(extraStage, 'envelope.timings.totalMs: unexpected');
+      _expectViolation(
+        extraStage,
+        'envelope.timings.totalMs: unexpected',
+        code: SuggestionSchemaCodes.unexpected,
+      );
     });
 
     test('evidenceClass is simulated, emulator, or device', () {
@@ -605,6 +668,7 @@ void main() {
       _expectViolation(
         web,
         'envelope.evidenceClass: must be simulated, emulator, or device',
+        code: SuggestionSchemaCodes.value,
       );
     });
 
@@ -664,6 +728,7 @@ void main() {
       _expectViolation(
         envelope,
         'envelope.suggestions[0].uncertainty: missing',
+        code: SuggestionSchemaCodes.missing,
       );
     });
 
@@ -687,6 +752,7 @@ void main() {
           ),
         ),
         'envelope.suggestions[0].id: page token must equal pageIndex',
+        code: SuggestionSchemaCodes.mismatch,
       );
 
       _expectViolation(
@@ -699,6 +765,7 @@ void main() {
         ),
         'envelope.suggestions[0].id: page token must be plain decimal '
         'without padding',
+        code: SuggestionSchemaCodes.format,
       );
 
       _expectViolation(
@@ -711,6 +778,7 @@ void main() {
         ),
         'envelope.suggestions[0].id: ordinal must use the canonical '
         'four-digit padding',
+        code: SuggestionSchemaCodes.format,
       );
 
       _expectViolation(
@@ -722,6 +790,7 @@ void main() {
           ),
         ),
         'envelope.suggestions[0].id: ordinal must equal the post-sort position',
+        code: SuggestionSchemaCodes.order,
       );
 
       _expectViolation(
@@ -734,6 +803,20 @@ void main() {
         ),
         'envelope.suggestions[0].id: must match '
         's_p<pageIndex>_<zero-padded ordinal>',
+        code: SuggestionSchemaCodes.format,
+      );
+
+      _expectViolation(
+        _withSingle(
+          _suggestion(
+            id: 's_p0_0001x',
+            pageIndex: 0,
+            rect: _rect(100, 100, 100, 20),
+          ),
+        ),
+        'envelope.suggestions[0].id: must match '
+        's_p<pageIndex>_<zero-padded ordinal>',
+        code: SuggestionSchemaCodes.format,
       );
     });
 
@@ -766,6 +849,14 @@ void main() {
         <String>['s_p0_0001', 's_p0_0002', 's_p0_0003'],
       );
       expect(
+        SuggestionSchema.sortedSuggestions(<Map<String, Object?>>[
+          sorted[2],
+          sorted[0],
+          sorted[1],
+        ]).map((Map<String, Object?> suggestion) => suggestion['id']).toList(),
+        <String>['s_p0_0001', 's_p0_0002', 's_p0_0003'],
+      );
+      expect(
         SuggestionSchema.compareSuggestions(
           _suggestion(
             id: 's_p1_0001',
@@ -795,6 +886,12 @@ void main() {
         reordered,
         'envelope.suggestions[0]: must follow the §5.2 deterministic order',
         code: SuggestionSchemaCodes.order,
+        additional: <SuggestionSchemaViolation>[
+          const SuggestionSchemaViolation(
+            'envelope.suggestions[1]',
+            SuggestionSchemaCodes.order,
+          ),
+        ],
       );
     });
 
@@ -818,6 +915,7 @@ void main() {
           ),
         ),
         'envelope.suggestions[0].rect: must lie inside the page display bounds',
+        code: SuggestionSchemaCodes.range,
       );
 
       _expectViolation(
@@ -829,6 +927,7 @@ void main() {
           ),
         ),
         'envelope.suggestions[0].rect: must lie inside the page display bounds',
+        code: SuggestionSchemaCodes.range,
       );
 
       _expectViolation(
@@ -840,6 +939,7 @@ void main() {
           ),
         ),
         'envelope.suggestions[0].rect.width: must be quantized to 1/8 pt',
+        code: SuggestionSchemaCodes.format,
       );
 
       _expectViolation(
@@ -847,6 +947,7 @@ void main() {
           _suggestion(id: 's_p0_0001', pageIndex: 0, rect: _rect(0, 0, 0, 10)),
         ),
         'envelope.suggestions[0].rect.width: must be positive',
+        code: SuggestionSchemaCodes.range,
       );
     });
 
@@ -877,6 +978,7 @@ void main() {
         ),
         'envelope.suggestions[0].proposedType: must be text, number, date, '
         'checkbox, multiline, or signature',
+        code: SuggestionSchemaCodes.value,
       );
     });
 
@@ -901,7 +1003,20 @@ void main() {
           ),
         ),
       );
-      for (final double invalid in <double>[-0.01, 0.825, 1.01]) {
+      _expectViolation(
+        _withSingle(
+          _suggestion(
+            id: 's_p0_0001',
+            pageIndex: 0,
+            rect: _rect(100, 100, 100, 20),
+            confidence: 0.825,
+          ),
+        ),
+        'envelope.suggestions[0].confidence: must be 0.0 … 1.0 with '
+        'two decimals',
+        code: SuggestionSchemaCodes.format,
+      );
+      for (final double invalid in <double>[-0.01, 1.01]) {
         _expectViolation(
           _withSingle(
             _suggestion(
@@ -913,6 +1028,13 @@ void main() {
           ),
           'envelope.suggestions[0].confidence: must be 0.0 … 1.0 with '
           'two decimals',
+          code: SuggestionSchemaCodes.range,
+          additional: <SuggestionSchemaViolation>[
+            const SuggestionSchemaViolation(
+              'envelope.suggestions[0].uncertainty',
+              SuggestionSchemaCodes.range,
+            ),
+          ],
         );
       }
     });
@@ -929,6 +1051,7 @@ void main() {
       _expectViolation(
         mismatched,
         'envelope.suggestions[0].uncertainty: must equal 1 - confidence',
+        code: SuggestionSchemaCodes.value,
       );
 
       final Map<String, Object?> threeDecimals = _withSingle(
@@ -943,6 +1066,11 @@ void main() {
         threeDecimals,
         'envelope.suggestions[0].uncertainty: must be 0.0 … 1.0 with '
         'two decimals',
+        count: 2,
+        codes: <String>{
+          SuggestionSchemaCodes.format,
+          SuggestionSchemaCodes.value,
+        },
       );
     });
 
@@ -980,6 +1108,7 @@ void main() {
           ),
         ),
         'envelope.suggestions[0].labelText: must be trimmed',
+        code: SuggestionSchemaCodes.format,
       );
       _expectViolation(
         _withSingle(
@@ -991,6 +1120,7 @@ void main() {
           ),
         ),
         'envelope.suggestions[0].labelText: must be null or a non-empty string',
+        code: SuggestionSchemaCodes.type,
       );
       _expectViolation(
         _withSingle(
@@ -1002,6 +1132,7 @@ void main() {
           ),
         ),
         'envelope.suggestions[0].labelText: must be at most 200 characters',
+        code: SuggestionSchemaCodes.range,
       );
     });
 
@@ -1054,6 +1185,7 @@ void main() {
           ),
         ),
         'envelope.suggestions[0].evidence.cues: must be unique',
+        code: SuggestionSchemaCodes.duplicate,
       );
       for (final String invalidCue in <String>[
         'line',
@@ -1069,11 +1201,12 @@ void main() {
               id: 's_p0_0001',
               pageIndex: 0,
               rect: _rect(100, 100, 100, 20),
-              cues: <String>[invalidCue],
+              cues: <String>['underline', invalidCue],
             ),
           ),
           'envelope.suggestions[0].evidence.cues: must use only the §3.1 '
           'closed vocabulary',
+          code: SuggestionSchemaCodes.value,
         );
       }
       _expectViolation(
@@ -1086,6 +1219,11 @@ void main() {
           ),
         ),
         'envelope.suggestions[0].evidence.cues: must be a non-empty array',
+        count: 2,
+        codes: <String>{
+          SuggestionSchemaCodes.count,
+          SuggestionSchemaCodes.forbidden,
+        },
       );
     });
 
@@ -1101,6 +1239,7 @@ void main() {
         ),
         'envelope.suggestions[0].evidence.cueAgreement: must be an integer '
         '>= 1',
+        code: SuggestionSchemaCodes.range,
       );
       for (final double skew in <double>[-10, 10]) {
         _expectValid(
@@ -1126,6 +1265,7 @@ void main() {
           ),
           'envelope.suggestions[0].evidence.skewDegrees: must be between '
           '-10 and +10',
+          code: SuggestionSchemaCodes.range,
         );
       }
       _expectViolation(
@@ -1138,6 +1278,7 @@ void main() {
           ),
         ),
         'envelope.suggestions[0].evidence.contrast: must be normal or low',
+        code: SuggestionSchemaCodes.value,
       );
       final Map<String, Object?> badOcrFlag = _withSingle(
         _suggestion(
@@ -1152,6 +1293,7 @@ void main() {
       _expectViolation(
         badOcrFlag,
         'envelope.suggestions[0].evidence.ocrUsed: must be a bool',
+        code: SuggestionSchemaCodes.type,
       );
     });
 
@@ -1179,6 +1321,7 @@ void main() {
         ),
         'envelope.suggestions[0].evidence.cues: must not include OCR cues '
         'when ocrUsed is false',
+        code: SuggestionSchemaCodes.forbidden,
       );
       _expectViolation(
         _withSingle(
@@ -1192,6 +1335,7 @@ void main() {
         ),
         'envelope.suggestions[0].evidence.cues: must not include OCR cues '
         'when ocrUsed is false',
+        code: SuggestionSchemaCodes.forbidden,
       );
     });
 
@@ -1211,21 +1355,34 @@ void main() {
       _expectViolation(
         _envelope(pageIndex: 0, suggestions: oneSided),
         'envelope.suggestions[0].conflictsWith: must be symmetric',
+        code: SuggestionSchemaCodes.symmetry,
       );
 
-      final List<Map<String, Object?>> unknownId = _conflictPair();
-      unknownId[0]['conflictsWith'] = <String>['s_p0_0099'];
       _expectViolation(
-        _envelope(pageIndex: 0, suggestions: unknownId),
+        _withSingle(
+          _suggestion(
+            id: 's_p0_0001',
+            pageIndex: 0,
+            rect: _rect(100, 100, 100, 20),
+            conflictsWith: <String>['s_p0_0099'],
+          ),
+        ),
         'envelope.suggestions[0].conflictsWith: must reference a suggestion '
         'in the same page envelope',
+        code: SuggestionSchemaCodes.reference,
       );
 
-      final List<Map<String, Object?>> selfReference = _conflictPair();
-      selfReference[0]['conflictsWith'] = <String>['s_p0_0001'];
       _expectViolation(
-        _envelope(pageIndex: 0, suggestions: selfReference),
+        _withSingle(
+          _suggestion(
+            id: 's_p0_0001',
+            pageIndex: 0,
+            rect: _rect(100, 100, 100, 20),
+            conflictsWith: <String>['s_p0_0001'],
+          ),
+        ),
         'envelope.suggestions[0].conflictsWith: must not reference itself',
+        code: SuggestionSchemaCodes.forbidden,
       );
 
       final List<Map<String, Object?>> duplicate = _conflictPair();
@@ -1233,6 +1390,7 @@ void main() {
       _expectViolation(
         _envelope(pageIndex: 0, suggestions: duplicate),
         'envelope.suggestions[0].conflictsWith: must not contain duplicates',
+        code: SuggestionSchemaCodes.duplicate,
       );
 
       final List<Map<String, Object?>> lowIou = _conflictPair();
@@ -1241,6 +1399,13 @@ void main() {
         _envelope(pageIndex: 0, suggestions: lowIou),
         'envelope.suggestions[0].conflictsWith: conflicting ids require '
         'IoU >= 0.5',
+        code: SuggestionSchemaCodes.overlap,
+        additional: <SuggestionSchemaViolation>[
+          const SuggestionSchemaViolation(
+            'envelope.suggestions[1].conflictsWith',
+            SuggestionSchemaCodes.overlap,
+          ),
+        ],
       );
     });
 
@@ -1282,6 +1447,7 @@ void main() {
         ),
         'envelope.suggestions[0].resolution: must be unresolved, confirmed, '
         'or rejected',
+        code: SuggestionSchemaCodes.value,
       );
     });
 
@@ -1297,6 +1463,7 @@ void main() {
       _expectViolation(
         autoConfirmed,
         'envelope.suggestions[0].autoConfirmed: unexpected',
+        code: SuggestionSchemaCodes.unexpected,
       );
 
       final Map<String, Object?> exported = _withSingle(
@@ -1310,6 +1477,7 @@ void main() {
       _expectViolation(
         exported,
         'envelope.suggestions[0].exported: unexpected',
+        code: SuggestionSchemaCodes.unexpected,
       );
 
       _expectViolation(
@@ -1324,6 +1492,7 @@ void main() {
         ),
         'envelope.suggestions[0].evidence.cues: must include at least one '
         'geometric cue',
+        code: SuggestionSchemaCodes.forbidden,
       );
     });
 
@@ -1346,6 +1515,7 @@ void main() {
       _expectViolation(
         envelope,
         'envelope.suggestions[0].evidence.inkDensity: unexpected',
+        code: SuggestionSchemaCodes.unexpected,
       );
     });
   });
@@ -1360,7 +1530,11 @@ void main() {
     test('failure requires category, messageKey, recoverable, count', () {
       final Map<String, Object?> missingField = _failedEnvelope();
       (missingField['failure']! as Map<String, Object?>).remove('messageKey');
-      _expectViolation(missingField, 'envelope.failure.messageKey: missing');
+      _expectViolation(
+        missingField,
+        'envelope.failure.messageKey: missing',
+        code: SuggestionSchemaCodes.missing,
+      );
 
       final Map<String, Object?> badRecoverable = _failedEnvelope();
       (badRecoverable['failure']! as Map<String, Object?>)['recoverable'] =
@@ -1368,6 +1542,7 @@ void main() {
       _expectViolation(
         badRecoverable,
         'envelope.failure.recoverable: must be a bool',
+        code: SuggestionSchemaCodes.type,
       );
 
       final Map<String, Object?> badCount = _failedEnvelope();
@@ -1375,11 +1550,16 @@ void main() {
       _expectViolation(
         badCount,
         'envelope.failure.suggestionCount: must be a non-negative integer',
+        code: SuggestionSchemaCodes.range,
       );
 
       final Map<String, Object?> extraField = _failedEnvelope();
       (extraField['failure']! as Map<String, Object?>)['detail'] = 'x';
-      _expectViolation(extraField, 'envelope.failure.detail: unexpected');
+      _expectViolation(
+        extraField,
+        'envelope.failure.detail: unexpected',
+        code: SuggestionSchemaCodes.unexpected,
+      );
     });
 
     test('failure stays code-only and uses the category vocabulary', () {
@@ -1387,10 +1567,12 @@ void main() {
         _failedEnvelope(category: 'timeout'),
         'envelope.failure.category: must be rasterization, ocr, '
         'unsupported_structure, or internal',
+        code: SuggestionSchemaCodes.value,
       );
       _expectViolation(
         _failedEnvelope(messageKey: 'content://secret'),
         'envelope.failure.messageKey: must be a REC-<nnn> code',
+        code: SuggestionSchemaCodes.format,
       );
     });
 
@@ -1421,19 +1603,26 @@ void main() {
         envelope,
         'envelope.suggestions: must be empty when status is failed '
         '(partial results are discarded)',
+        code: SuggestionSchemaCodes.forbidden,
       );
     });
   });
 
   group('run-level page isolation', () {
     test('requires unique page indexes and one envelope per page', () {
-      final List<Map<String, Object?>> duplicate = _completeRun();
-      duplicate[1]['pageIndex'] = 0;
+      final List<Map<String, Object?>> duplicate = <Map<String, Object?>>[
+        _pageZeroEnvelope(),
+        _pageZeroEnvelope(),
+      ];
       _expectRunViolation(
         duplicate,
         <PageDisplaySize>[_a4, _a4],
         'run.pageIndex',
-        code: SuggestionSchemaCodes.duplicate,
+        count: 2,
+        codes: <String>{
+          SuggestionSchemaCodes.duplicate,
+          SuggestionSchemaCodes.cardinality,
+        },
       );
 
       _expectRunViolation(
