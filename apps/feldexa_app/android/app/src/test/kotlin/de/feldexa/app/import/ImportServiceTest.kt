@@ -34,6 +34,7 @@ import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -548,6 +549,87 @@ class ImportServiceTest {
         } finally {
             releaseDiscard.countDown()
             late.join(5_000L)
+        }
+    }
+
+    @Test
+    fun repeatedCancelReturnsPromptlyWhileLateCleanupHoldsTheHandleLock() {
+        val discardEntered = CountDownLatch(1)
+        val releaseDiscard = CountDownLatch(1)
+        val discardCalls = AtomicInteger(0)
+        val service = LateCleanupService {
+            discardCalls.incrementAndGet()
+            discardEntered.countDown()
+            releaseDiscard.await(2, TimeUnit.SECONDS)
+        }
+        val executor = BoundedBackgroundExecutor(maxWorkers = 2)
+        val sink = LatchingSink()
+        val results = PlatformResultPublisher(DirectPoster).apply { attachSink(sink) }
+        val facade = PlatformChannelFacade(
+            services = PlatformServiceRegistry().apply { register("import", service) },
+            mainPoster = DirectPoster,
+            events = PlatformEventPublisher(DirectPoster),
+            results = results,
+            executor = executor,
+            clock = { 0L },
+        )
+        try {
+            val startReply = RecordingReply()
+            facade.handle(
+                "import.pickAndImport",
+                mapOf("schemaVersion" to 1, "maxBytes" to 1_000L),
+                startReply,
+            )
+            val operationId = startOperationId(startReply)
+            assertTrue(service.stageEntered.await(5, TimeUnit.SECONDS))
+
+            val firstReply = RecordingReply()
+            facade.handle(
+                "cancel.operation",
+                mapOf("schemaVersion" to 1, "operationId" to operationId),
+                firstReply,
+            )
+            assertEquals(
+                mapOf("cancelled" to true),
+                (firstReply.successValue as Map<*, *>)["data"],
+            )
+
+            service.releaseStage.countDown()
+            assertTrue(discardEntered.await(5, TimeUnit.SECONDS))
+
+            val secondReply = RecordingReply()
+            val startedAt = System.nanoTime()
+            facade.handle(
+                "cancel.operation",
+                mapOf("schemaVersion" to 1, "operationId" to operationId),
+                secondReply,
+            )
+            val elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAt)
+            assertTrue(
+                "repeat cancel blocked for ${elapsedMs}ms while cleanup held the handle lock",
+                elapsedMs < 500L,
+            )
+            assertEquals(
+                mapOf("cancelled" to true),
+                (secondReply.successValue as Map<*, *>)["data"],
+            )
+            assertTrue(
+                "terminal result appeared before cleanup finished",
+                terminalEvents(sink).isEmpty(),
+            )
+
+            releaseDiscard.countDown()
+            assertTrue(sink.terminal.await(5, TimeUnit.SECONDS))
+            val terminals = terminalEvents(sink)
+            assertEquals(1, terminals.size)
+            assertEquals(false, terminals.single()["ok"])
+            assertEquals("PLT-004", (terminals.single()["error"] as Map<*, *>)["code"])
+            assertEquals(true, service.context!!.isCancelled)
+            assertEquals(1, discardCalls.get())
+        } finally {
+            releaseDiscard.countDown()
+            service.releaseStage.countDown()
+            facade.dispose()
         }
     }
 

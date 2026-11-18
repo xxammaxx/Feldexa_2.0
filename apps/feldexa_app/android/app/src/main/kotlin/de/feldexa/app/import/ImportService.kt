@@ -137,9 +137,11 @@ class ImportService(
         // the facade's post-handle window has already discarded the staged
         // aggregate before any PLT-004 is observable. Registering it immediately
         // after a successful stage also covers a cancel that raced with the
-        // stage itself (setCancelAction invokes it at once when already
-        // cancelled). A discard failure is recorded on the handle and the
-        // operation fails closed with that non-cancelled failure.
+        // stage itself: a cancellation that already won makes
+        // setCancelCleanup run the discard inside the handle lock and record a
+        // first-wins failure before cancellation is observable. A discard
+        // failure is recorded on the handle and the operation fails closed with
+        // that non-cancelled failure.
         context.registerCancellationCleanup {
             discardStagedAggregate(context, receipt.aggregateId)
         }

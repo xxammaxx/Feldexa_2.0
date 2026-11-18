@@ -529,11 +529,6 @@ class OperationRegistry {
 
     internal fun find(operationId: String): OperationHandle? = active[operationId]
 
-    fun cancel(operationId: String): Boolean {
-        val handle = active[operationId] ?: return false
-        return handle.cancel()
-    }
-
     internal fun clear() {
         active.clear()
     }
@@ -550,6 +545,14 @@ class OperationHandle internal constructor(val id: String) {
 
     private val lock = ReentrantLock()
     private val cancelSignal = lock.newCondition()
+
+    /**
+     * Lock-free "cancellation claim decided" signal. It is set inside the
+     * winning claim, before any cleanup can run, so a repeated `cancel.operation`
+     * can acknowledge immediately without touching the handle lock (which a
+     * late cleanup may hold for the duration of storage I/O).
+     */
+    private val claimDecided = AtomicBoolean(false)
     private var state = State.ACTIVE
     private var started = false
     private var queuedCancelAction: (() -> Unit)? = null
@@ -557,6 +560,9 @@ class OperationHandle internal constructor(val id: String) {
     private var cleanupInProgress = false
     private var cancelActionFailure: PlatformFailure? = null
     private var cancellationPublished = false
+
+    /** Lock-free check used by the repeated-cancel fast path. */
+    internal fun hasClaimedCancellation(): Boolean = claimDecided.get()
 
     /** Cancellation is terminal and cleanup (if any) has completed. */
     val isCancelled: Boolean
@@ -619,11 +625,12 @@ class OperationHandle internal constructor(val id: String) {
 
     /**
      * Claims cancellation without running a registered cleanup. The facade runs
-     * this on its dedicated claim executor so the channel/UI thread performs no
-     * transition work beyond waiting for this constant-time handshake; cleanup
-     * is then handed to the separate cancellation executor. A queued
-     * operation's still-cheap cancellation action runs inline, preserving the
-     * existing queued-cancellation protocol and its single terminal result.
+     * this on its dedicated claim executor; cleanup is then handed to the
+     * separate cancellation executor. The claim sets [hasClaimedCancellation]
+     * before releasing the lock, so later cancels never need to acquire it. A
+     * queued operation's still-cheap cancellation action runs inline,
+     * preserving the existing queued-cancellation protocol and its single
+     * terminal result.
      */
     internal fun claimCancellation(): CancellationClaim = lock.withLock {
         if (state != State.ACTIVE) {
@@ -631,6 +638,7 @@ class OperationHandle internal constructor(val id: String) {
         } else if (!started && queuedCancelAction != null) {
             val action = queuedCancelAction
             queuedCancelAction = null
+            claimDecided.set(true)
             state = State.CANCELLED
             action?.let(::runCancelAction)
             CancellationClaim(true, null)
@@ -638,6 +646,7 @@ class OperationHandle internal constructor(val id: String) {
             val cleanup = cancellationCleanup
             cancellationCleanup = null
             cleanupInProgress = cleanup != null
+            claimDecided.set(true)
             state = State.CANCELLING
             CancellationClaim(true, cleanup)
         }
@@ -683,9 +692,11 @@ class OperationHandle internal constructor(val id: String) {
     }
 
     /**
-     * Inline cancellation used by direct handle callers (and kept for the
-     * queued protocol). A registered cleanup runs synchronously under the lock,
-     * so once this returns CANCELLED is observable with its cleanup complete.
+     * Direct inline cancellation used by host-JVM tests. It is deliberately not
+     * used by the channel facade: the facade calls [claimCancellation] and runs
+     * cleanup on its cancellation executor, never on the channel thread. A
+     * registered cleanup runs synchronously under the lock here, so once this
+     * returns CANCELLED is observable with its cleanup complete.
      */
     internal fun cancel(): Boolean {
         val claim = claimCancellation()
@@ -1009,18 +1020,35 @@ class PlatformChannelFacade(
                 return
             }
 
+            // The reply acknowledges that cancellation is claimed/linearized;
+            // it is not the terminal result. It may precede cleanup, while the
+            // terminal result still waits for cleanup and is published exactly
+            // once. A repeated cancel never touches the handle lock: a late
+            // cleanup can hold it for the duration of storage I/O.
+            if (handle.hasClaimedCancellation()) {
+                reply.success(successEnvelope(mapOf("cancelled" to true)))
+                return
+            }
+
             // The transition itself runs on the dedicated claim executor; the
-            // channel thread only waits for that constant-time handshake and
-            // never for storage cleanup. Cleanup is handed to the separate
-            // cancellation executor. A queued operation's still-cheap action
-            // runs inside the claim, preserving the queued-cancellation
-            // protocol and its single terminal result.
+            // channel thread only waits for the claim handshake (first cancel
+            // and terminal-race linearization), never for storage cleanup.
+            // Cleanup is handed to the separate cancellation executor. A queued
+            // operation's still-cheap action runs inside the claim, preserving
+            // the queued-cancellation protocol and its single terminal result.
             val claimRef = AtomicReference<OperationHandle.CancellationClaim?>(null)
             val claimDone = CountDownLatch(1)
             val claimTask: () -> Unit = {
                 var claim: OperationHandle.CancellationClaim? = null
                 try {
-                    claim = handle.claimCancellation()
+                    // Re-check lock-free: a concurrent first claim may have won
+                    // between the handler check and this task, and its cleanup
+                    // may already hold the handle lock.
+                    claim = if (handle.hasClaimedCancellation()) {
+                        OperationHandle.CancellationClaim(true, null)
+                    } else {
+                        handle.claimCancellation()
+                    }
                 } finally {
                     claimRef.set(claim)
                     claimDone.countDown()
