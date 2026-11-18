@@ -38,19 +38,19 @@ If no such version exists, report the issue to the plugin. If necessary, here is
 an issue against a plugin: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers#report-incompatible-kotlin-gradle-plugin-usage-to-plugin-authors
 
 If you are a plugin author, please migrate your plugin to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
-Running Gradle task 'assembleDebug'...                            204,8s
+Running Gradle task 'assembleDebug'...                             91,2s
 ✓ Built build/app/outputs/flutter-apk/app-debug.apk
-Installing build/app/outputs/flutter-apk/app-debug.apk...        1.656ms
+Installing build/app/outputs/flutter-apk/app-debug.apk...        1.519ms
 00:00 +0: (setUpAll)
 00:00 +0: mixed-geometry: moved then deleted source still reopens and renders
 T048 mixed-geometry: fixture=c19afcf6f86ed21a422426c5f01613bb9643b097d0facad3b3349f9873e4ea4f stored=c19afcf6f86ed21a422426c5f01613bb9643b097d0facad3b3349f9873e4ea4f pages=5 digests=079ff02eed3e5b25ac9b82ed3fdd04b2f631c347eb1267fbb2eb32db306d5b6d,ded794256561b7ae73b7bf233801f279738c8265f2fc66aabd51c38b06151f45,50e84d3a5ab1963da07be9d9feeeff3b39568305bdd5ec5cc2c4fce2c8568594,6ac15c6a5f6de138f59ca435bb22f1becaf1f5347553be217d2941cdc04219ee,36db069bbd9eb71814ad20d34fa4bdf3b67f9d6fced39caa08f137ab58009137
-T048 mixed-geometry: export.validate -> PLT-001/platform.unsupported (export blocker: production export service missing, owner T104)
-T048 mixed-geometry: export.render -> PLT-001/platform.unsupported (export blocker: production export service missing, owner T104)
-T048 mixed-geometry: move+delete+reopen+render PASS; SC-019 export NOT VERIFIED (T104 production export missing)
-00:03 +1: two-page: moved then deleted source still reopens and renders
+T048 mixed-geometry: export capability unavailable: PLT-001/platform.unsupported; SC-019 export clause SKIPPED (NOT VERIFIED), owner T104
+T048 mixed-geometry: unavailable branch asserted no success payload, no verification record, no readable artifact, no artifact file
+T048 mixed-geometry: move+delete+reopen+render PASS; SC-019 export clause SKIPPED (capability unavailable, PLT-001/platform.unsupported); NOT VERIFIED pending T104
+00:04 +1: two-page: moved then deleted source still reopens and renders
 T048 two-page: fixture=22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038 stored=22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038 pages=2 digests=008f1e501fbdf9df9f5f7f1cee20cd69d123209280ae3d26858e20baf9f37a4b,2326f6df44633c1b2d62eac40e1895f8fc1e896f1da3b56cabb3b685cf5ca31a
-T048 two-page: export.validate -> PLT-001/platform.unsupported (export blocker: production export service missing, owner T104)
-T048 two-page: export.render -> PLT-001/platform.unsupported (export blocker: production export service missing, owner T104)
-T048 two-page: move+delete+reopen+render PASS; SC-019 export NOT VERIFIED (T104 production export missing)
-00:04 +2: (tearDownAll)
-00:06 +2: All tests passed!
+T048 two-page: export capability unavailable: PLT-001/platform.unsupported; SC-019 export clause SKIPPED (NOT VERIFIED), owner T104
+T048 two-page: unavailable branch asserted no success payload, no verification record, no readable artifact, no artifact file
+T048 two-page: move+delete+reopen+render PASS; SC-019 export clause SKIPPED (capability unavailable, PLT-001/platform.unsupported); NOT VERIFIED pending T104
+00:05 +2: (tearDownAll)
+00:08 +2: All tests passed!

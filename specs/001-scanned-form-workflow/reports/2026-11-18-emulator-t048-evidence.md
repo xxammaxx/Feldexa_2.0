@@ -5,10 +5,10 @@
 | Evidence class | `EMULATOR` |
 | Result | `PARTIAL` |
 | Task / issue | `T048` / `#48` |
-| Date / timezone | `2026-11-18 15:20 Europe/Berlin` |
-| Revision | base commit `e8c29cf3795e798ed9ce35efc9ac2d5f6ec70bf9`; candidate code commit `4374414273e7b7a74c18c0870bd4a07bfdd003c4` (tree `4eab0570efad290fb1d3008616930623b0e47384`); working tree clean for the run; the report and its artifacts are in a later docs-only commit whose SHA is recorded in the external attestation |
+| Date / timezone | `2026-11-18 15:51 Europe/Berlin` |
+| Revision | base commit `e8c29cf3795e798ed9ce35efc9ac2d5f6ec70bf9`; previous docs HEAD `5c4679c9b418447cd2ed216c6f74dd1c863dd874`; candidate code commit `bef5dc3d32011fda5d70fadb71705af7cfe89762` (tree `105fcce86a86dc6be569692283582bff6fc57246`); working tree clean for the run; the report and its artifacts are in a later docs-only commit whose SHA is recorded in the external attestation |
 | External attestation | the active `worker_done` transport record for this dispatched worker (role label; raw task/dispatch identifiers withheld per `reports/README.md` §4.2); it records the base and candidate code SHA/tree, checks/counts, report bytes/hash, and limitations. No attestation ref was created |
-| Build identity | version `0.1.0+1`; mode `debug`; APK `apps/feldexa_app/build/app/outputs/flutter-apk/app-debug.apk`, 172000078 bytes, SHA-256 `2cebf916987238c25b7107a723fd4e34d50d737e025262ba5b3e573fc5689888`; built and installed by the exact `flutter test` command in §4; no release or release-signing claim |
+| Build identity | version `0.1.0+1`; mode `debug`; APK `apps/feldexa_app/build/app/outputs/flutter-apk/app-debug.apk`, 172007988 bytes, SHA-256 `8aafc08348d7b3b95d546ef8cb5d1da74e467370d030e231b5d8374bbae6323c`; built and installed by the exact `flutter test` command in §4; no release or release-signing claim |
 | Toolchain | Flutter `3.47.7` stable (framework `abaf9c5237`), Dart `3.13.5`; Gradle `9.3.1`, AGP `9.1.0`, Kotlin `2.4.0`, Temurin JDK `17.0.20.1`; Android SDK platform `36`, build-tools `36.0.0`; PDFBox-Android `2.0.27.0`; pdfrx `2.12.0` (PDFium) |
 | Input | synthetic fixture catalogue `fixtures-1.0.0` (`sf-001` 2 pages A4 portrait, `sf-003` 5 pages mixed geometry/rotation); exact device-side SHA-256 values equal the committed catalogue and are recorded in `fixture-sha256.txt`; no real or personal document |
 
@@ -39,32 +39,47 @@ The test asserts the SC-019 lifecycle in two independent trials
    `store.readSource`, and render every page with PDFium;
 5. delete the moved file, assert no filesystem copy remains, and reopen and
    re-render the document again;
-6. exercise the production export surface (`export.validate` and
-   `export.render`).
+6. probe the production export capability (`export.validate`) and, when it is
+   available, assert the real exported artifact (`export.render`,
+   `export.readArtifact`).
 
-The export clause of SC-019 is **not verified**. The Kotlin `export/`
-implementation directory contains only `.gitkeep`, no `export` service is
-registered by `MainActivity`, and T104's `PdfExportService.kt` does not exist.
-The test therefore asserts that the production facade fails closed with
-`PLT-001`/`platform.unsupported` and records that blocker; it does not fake an
-export result. This is why the report result is `PARTIAL`.
+The export clause of SC-019 is **capability-conditional and not verified in
+this run**. The test probes `export.validate` with the contract-shaped plan
+built from the reopened document:
+
+- **unavailable branch** — taken in this run, because the Kotlin `export/`
+  implementation directory contains only `.gitkeep`, no `export` service is
+  registered by `MainActivity`, and T104's `PdfExportService.kt` does not
+  exist. The documented `PLT-001`/`platform.unsupported` fail-closed signature
+  is required, the clause is skipped with that machine-readable reason, and
+  the test still asserts that no export success payload, verification record,
+  readable artifact, or artifact file is produced. The blocker is never
+  asserted as a passing export result.
+- **available branch** — activates automatically once a real export service
+  validates the plan. The same test then asserts the `export.render` result,
+  the contract verification record, the artifact bytes/SHA-256/PDF header, and
+  PDFium render-digest equivalence of every exported page with the protected
+  source.
+
+This is why the report result is `PARTIAL`; no export success is claimed.
 
 Host-only checks are reported separately in §4.2 and are not runtime evidence.
 
 ### Spec Kit implementation provenance
 
-- **Command:** `/speckit.implement Implement ONLY task T048 (GitHub issue #48)
-  ...` was invoked through the installed OpenCode `speckit-implement` skill
-  before any code change; the scope argument limited execution to T048.
+- **Command:** `/speckit.implement Implement ONLY the T048
+  capability-conditional export adaptation (GitHub issue #48) ...` was invoked
+  through the installed OpenCode `speckit-implement` skill before any code
+  change; the scope argument limited execution to this T048 adaptation.
   Model/provider: `deepseek/deepseek-flash` (DeepSeek V4.1 Flash 1017).
 - **Prerequisite output/exit:**
-  `SPECIFY_FEATURE_DIRECTORY=specs/001-scanned-form-workflow
-  .specify/scripts/bash/check-prerequisites.sh --json --require-tasks
-  --include-tasks` exited `0` with `FEATURE_DIR` = the feature directory and
-  `AVAILABLE_DOCS = [research.md, data-model.md, contracts/, quickstart.md,
-  tasks.md]`. The first invocation without `SPECIFY_FEATURE_DIRECTORY` exited
-  `1` with `Feature directory not found`; the corrected invocation above is the
-  recorded prerequisite.
+  `.specify/scripts/bash/check-prerequisites.sh --json --require-tasks
+  --include-tasks` (repo root) exited `0` with `FEATURE_DIR` = the feature
+  directory and `AVAILABLE_DOCS = [research.md, data-model.md, contracts/,
+  quickstart.md, tasks.md]`; setting
+  `SPECIFY_FEATURE_DIRECTORY=specs/001-scanned-form-workflow` produces the same
+  output. The feature directory is resolved from the repository
+  `.specify/feature.json`.
 - **Extension hooks:** `.specify/extensions.yml` exists and registers no hooks
   (`hooks: {}`); no before/after hook was executed.
 - **Checklist gate:** `checklists/requirements.md` is 16/16 checked (`PASS`);
@@ -79,12 +94,22 @@ Host-only checks are reported separately in §4.2 and are not runtime evidence.
 ## 2. Revision and build
 
 The run started from base commit `e8c29cf3795e798ed9ce35efc9ac2d5f6ec70bf9`.
-The only code change is the new test file
+The previous T048 docs HEAD was `5c4679c9b418447cd2ed216c6f74dd1c863dd874`.
+The only code change is
 `apps/feldexa_app/integration_test/source_integrity_test.dart`, committed as
-`4374414273e7b7a74c18c0870bd4a07bfdd003c4` (tree
-`4eab0570efad290fb1d3008616930623b0e47384`). `git status --porcelain` was
+`bef5dc3d32011fda5d70fadb71705af7cfe89762` (tree
+`105fcce86a86dc6be569692283582bff6fc57246`). `git status --porcelain` was
 empty before the `EMULATOR` run. The report, `README.md` index row, and the
-artifact directory are added afterwards in a docs-only commit.
+artifact directory are updated afterwards in a docs-only commit.
+
+This revision of the report records the verifier-accepted correction of the
+export clause: the earlier test pinned `PLT-001` as an expected passing
+outcome, which would have become a false regression once T104 implemented the
+applier. The export expectation is now capability-conditional (§1, §5). The
+source-integrity assertions, both trials, all page digests, the `EMULATOR`
+class, the `PARTIAL` result, and the SC-019 **NOT VERIFIED** wording are
+unchanged. No production code, seam, ARB/catalog, Gradle, task, or checklist
+file was modified.
 
 **No production or test seam was added.** The test reuses the T046 declared
 debug-only seam unchanged: `ImportTestHooks` (`de.feldexa/test.import`) and
@@ -111,7 +136,7 @@ EMULATOR: Pixel 7 API 35, exclusive allocation T048 2026-11-18
           ro.kernel.qemu=1; ro.boot.qemu=1; sys.boot_completed=1
           vCPU 2; RAM 4096 MB (MemTotal 4014392 kB); 1080x2400 at density 420
           APK apps/feldexa_app/build/app/outputs/flutter-apk/app-debug.apk
-          APK SHA-256 2cebf916987238c25b7107a723fd4e34d50d737e025262ba5b3e573fc5689888
+          APK SHA-256 8aafc08348d7b3b95d546ef8cb5d1da74e467370d030e231b5d8374bbae6323c
           build mode debug
 ```
 
@@ -137,7 +162,7 @@ physical-device or silicon-specific behavior.
 | ---: | --- | ---: | --- | --- |
 | 1 | `flutter test integration_test/source_integrity_test.dart -d emulator-5554` (`apps/feldexa_app`) | `0` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t048-emulator/integration-android-source-integrity.log` | `PASS` |
 | 2 | `adb devices -l`; `adb -s emulator-5554 shell getprop`; `adb -s emulator-5554 shell wm size`; `adb -s emulator-5554 shell wm density` (repo root) | `0` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t048-emulator/device-identity.txt` | `PASS` |
-| 3 | Export the saved document from the protected copy after the move/delete (`export.validate` and `export.render` on `emulator-5554`) | `-` | not run | `UNAVAILABLE` |
+| 3 | Export verification of the saved document from the protected copy after the move/delete (available branch of the capability-conditional check; requires T104) | `-` | not run | `UNAVAILABLE` |
 
 The runtime command ran with Temurin JDK 17 as `JAVA_HOME` and with Flutter and
 Android platform-tools on `PATH`. Fixture staging into the device-local
@@ -145,7 +170,9 @@ temporary directory was setup, not a separate test: the `adb push` and `chmod`
 commands are in the integration-test file header, and the resulting
 device-side hashes are recorded in `fixture-sha256.txt`. The integration run
 passed 2 of 2 trials with 0 failures. The log shows
-`00:06 +2: All tests passed!`.
+`00:08 +2: All tests passed!`. Each trial logs the unavailable-branch decision
+with its machine-readable reason, the negative artifact/fabrication
+assertions, and the skipped SC-019 export clause.
 
 ### 4.2 Host-only checks (`NONE` class; not runtime evidence)
 
@@ -185,21 +212,50 @@ count, device identity, command, or exit code changed.
 | Protected source read-back | both trials | explicit `store.readSource` returns bytes whose SHA-256 and byte content equal the original fixture | `PASS` |
 | Render from the protected copy | both trials | PDFium renders every page at its display size; page raster SHA-256 values are identical between the fixture bytes and the decrypted stored bytes (5 digests for `sf-003`, 2 for `sf-001`) | `PASS` |
 | Delete the moved file and reopen again | both trials | both filesystem paths are gone and both trial directories are empty; the document is still listed; `store.loadDocument` succeeds; re-render digests equal the pre-delete digests | `PASS` |
-| Export the saved document from the protected copy | both trials | `export.validate` and `export.render` both fail closed with `PLT-001`/`platform.unsupported` (details `category=unsupported`, `retryable=false`); no export service is registered and no applier exists | `UNAVAILABLE` |
+| Conditional export clause from the protected copy | both trials | capability probe `export.validate` returned the documented `PLT-001`/`platform.unsupported` signature (`category=unsupported`, `retryable=false`); the unavailable branch was selected, the clause was skipped with that reason, and no success payload, verification record, readable/exportable artifact, or artifact file existed; `export.render` was deliberately not called | `UNAVAILABLE` |
 
-**Export blocker (exact dependency).** The production applier is owned by
-**T104**, which is still unchecked in `tasks.md`:
+**Conditional export check and exact dependency.** The production applier is
+owned by **T104**, which is still unchecked in `tasks.md`:
 `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export/PdfExportService.kt`.
 The `export/` directory contains only `.gitkeep`; `MainActivity` registers only
 the `store` and `import` services; the facade still validates, routes, and
-serializes `export.validate`/`export.render`, so the call reaches the
-fail-closed `PLT-001` branch instead of a service. The test attempted both
-methods with a contract-shaped plan built from the reopened document
-(`documentId`, `revisionId`, `sourceSha256`, page count, per-page geometry, font
-contract) and asserted the fail-closed code, category, and non-retryable flag.
-No export assertion is passed and no artifact is fabricated. SC-019's export
-clause is therefore **not verified / blocked**, and the overall report result is
-`PARTIAL`.
+serializes `export.validate`/`export.render`, so the probe reaches the
+fail-closed `PLT-001` branch instead of a service.
+
+The probe and both branches are contract-shaped, not T104-specific:
+
+- The plan is built from the reopened document (`documentId`,
+  `revisionId`, SHA-256 of the decrypted protected bytes, page count, per-page
+  MediaBox/CropBox/display size, and the display-to-PDF CTM from
+  `contracts/coordinates-and-geometry.md` §5, with no ops).
+- **Unavailable branch (ran in both trials).** Only the exact
+  `PLT-001`/`platform.unsupported`/`category=unsupported` signature selects
+  it. It asserts that the failure carries none of `artifactId`, `pageCount`,
+  `byteSize`, `sha256`, `verification`, or `warnings`; that
+  `export.readArtifact` for a UUID the test never produced returns no bytes
+  (and fails closed rather than serving an artifact); and that no
+  `feldexa_exports` artifact directory exists under the test's temporary
+  directory. The test then skips the SC-019 export clause with that
+  machine-readable reason. Any *other* validation failure fails the test as a
+  real regression, and `export.render` is not called while the capability is
+  unavailable.
+- **Available branch (not executed in this run; activates with T104).** A
+  successful `export.validate` (`ok:true`, warnings list) makes the same test
+  call `export.render` and assert: an artifact UUID, `pageCount` equal to the
+  source, positive `byteSize`, a 64-hex `sha256`, and a verification record
+  whose `pageCountMatches`, `mediaBoxesMatch`, `fontGlyphsPresent`,
+  `noInteractiveFields`, and `overlayBoundsWithinPage` are all `true` with a
+  UTC `checkedAt`. It then reads the artifact through `export.readArtifact`,
+  checks the byte length, SHA-256, and `%PDF-` header, opens it with PDFium,
+  and requires every page to render with the same digest as the protected
+  source (contract `export-plan.md` §6: original appearance, no overlays), and
+  finally deletes the artifact through `export.deleteArtifact`.
+
+No export assertion is passed in this run and no artifact is fabricated.
+SC-019's export clause is therefore **not verified / blocked**, and the overall
+report result is `PARTIAL`. Because the blocker is no longer pinned as an
+expected export result, the same test will exercise the available branch
+instead of failing when T104 lands.
 
 **Rendered page digests (PDFium BGRA raster SHA-256 at the page display size).**
 
@@ -235,9 +291,16 @@ No performance claim.
 ## 7. Limitations
 
 - **SC-019 export clause is unverified.** T104's production PDFBox applier does
-  not exist yet. The test records the precise `PLT-001` blocker; it does not
-  prove that a saved document exports after its source was moved or deleted.
-  This report's `PARTIAL` result is caused by that missing dependency.
+  not exist yet, so the conditional check took its unavailable branch and the
+  export assertions were skipped with the machine-readable `PLT-001` reason.
+  This does not prove that a saved document exports after its source was moved
+  or deleted; the report's `PARTIAL` result is caused by that dependency.
+- The available branch is implemented against the current contract but was not
+  executed in this run because no production export service exists. It is
+  therefore unproven in practice until T104 lands; the first T104 candidate
+  that makes `export.validate` succeed will exercise it, and any contract
+  mismatch (result shape, verification flags, artifact bytes, or page render
+  equivalence) fails with a precise assertion instead of silently passing.
 - No `DEVICE`, release-runtime, physical-silicon, StrongBox, or performance
   claim. KVM acceleration was not freshly probed from this sandbox; see §3.
 - The system SAF picker UI itself was not driven. The unchanged T046
@@ -269,20 +332,20 @@ row says otherwise. The APK is a git-ignored local build output bound by
 
 | Artifact | Path | Bytes | SHA-256 |
 | --- | --- | ---: | --- |
-| `apk-sha256.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t048-emulator/apk-sha256.txt` | 320 | `2b68070d0223cd71d4f3462e96a31e5a22d7f981c1ea3685d7f96632d6db0d55` |
-| `device-identity.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t048-emulator/device-identity.txt` | 722 | `728e4ac37cf26a81d4347bfa1f79e36157cb59264b18f02a3736c8b6b52e02ae` |
-| `export-blocker.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t048-emulator/export-blocker.txt` | 1701 | `ffbdd204b524e466370a02309e255514347b7d78a5df1efa17abdd8e141aa5e9` |
+| `apk-sha256.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t048-emulator/apk-sha256.txt` | 320 | `f1bf86f8714b80eecbabd745a047d5edd2eb62fae7c8f4cf3a1f7f1631fec57f` |
+| `device-identity.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t048-emulator/device-identity.txt` | 722 | `45b18517e4def2f399dc7ec925a91d3b253d582374e4611bfaaa18f4817bbe58` |
+| `export-blocker.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t048-emulator/export-blocker.txt` | 2597 | `06028fd80aa15263216e29ac9e5e06a234cc219a32a0c04cd18798dbb476d248` |
 | `fixture-sha256.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t048-emulator/fixture-sha256.txt` | 648 | `9f2e684a66c066ff6136703a83c57f67120c88343399049e21b3f7bfb75fda94` |
-| `host-flutter-analyze.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t048-emulator/host-flutter-analyze.log` | 57 | `ec8ef7b261ed2d9fc47b15354b019a8447823b6a86b4d3f4d88c2eaa51c420a1` |
-| `host-flutter-test.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t048-emulator/host-flutter-test.log` | 36545 | `66de12fc9c0ef882cff94ed2bfca78525d41dff73fb862439c2a0a226c88e996` |
-| `host-release-compile.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t048-emulator/host-release-compile.log` | 15322 | `169433692321df4bc8b7afb1f467dd1480bb74d378692b777618bbeaa60a2090` |
-| `integration-android-source-integrity.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t048-emulator/integration-android-source-integrity.log` | 4409 | `377e21c9bdde620d65088cb5825cc7d1726c4976deb49d981aea9e8dfdc1541e` |
+| `host-flutter-analyze.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t048-emulator/host-flutter-analyze.log` | 57 | `ca4035c8a66ce58725bebf081e1e682205cdf7b2a91ee50ed767fc83f388d8a3` |
+| `host-flutter-test.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t048-emulator/host-flutter-test.log` | 35221 | `dd6fcfdaf05e8d2746e09b7e993862c22ce9a9f3a9514830fca81f51dca34846` |
+| `host-release-compile.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t048-emulator/host-release-compile.log` | 15466 | `688dc1401dfce268d424b690c71e4086ffe35f8e9e8ff501e0daaa6c7bdf7d44` |
+| `integration-android-source-integrity.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-18-t048-emulator/integration-android-source-integrity.log` | 4523 | `18da3528a200a75ac355a7932a84a8fb2445d37318d0acb1de196770444f11fd` |
 
 ## 9. Reproducibility
 
 1. Start from base commit `e8c29cf3795e798ed9ce35efc9ac2d5f6ec70bf9` and check
-   out candidate code commit `4374414273e7b7a74c18c0870bd4a07bfdd003c4`;
-   confirm tree `4eab0570efad290fb1d3008616930623b0e47384` and a clean working
+   out candidate code commit `bef5dc3d32011fda5d70fadb71705af7cfe89762`;
+   confirm tree `105fcce86a86dc6be569692283582bff6fc57246` and a clean working
    tree.
 2. Use the pre-booted, exclusively allocated `T025_Pixel7_API35_KVM_20261115`
    AVD on serial `emulator-5554`; do not boot, wipe, reset, or snapshot it.
@@ -292,9 +355,11 @@ row says otherwise. The APK is a git-ignored local build output bound by
 4. From `apps/feldexa_app`, with Flutter `3.47.7`, Temurin JDK 17, and Android
    platform-tools on `PATH`, run
    `flutter test integration_test/source_integrity_test.dart -d emulator-5554`;
-   expected `00:06 +2: All tests passed!` and exit `0`. The test logs one
-   `PLT-001` export-blocker line per trial; that is the expected outcome while
-   T104 is unimplemented.
+   expected `00:08 +2: All tests passed!` and exit `0`. With T104
+   unimplemented, each trial logs the unavailable-branch decision with
+   `PLT-001`/`platform.unsupported` and the skipped SC-019 export clause; once
+   a real export service validates the plan, the same run asserts the exported
+   artifact instead and logs the verified branch.
 5. Host-only reproduction: `flutter analyze --no-pub` and `flutter test
    --no-pub` from `apps/feldexa_app`; release check:
    `./gradlew :app:compileReleaseKotlin --console=plain` from
