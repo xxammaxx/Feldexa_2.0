@@ -1,6 +1,7 @@
 package de.feldexa.app
 
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
@@ -17,6 +18,8 @@ import de.feldexa.app.import.SourceStaging
 import de.feldexa.app.import.StagedCommit
 import de.feldexa.app.import.StagedDiscard
 import de.feldexa.app.import.StagedPreflight
+import de.feldexa.app.pdf.PdfBoxDocumentLoader
+import de.feldexa.app.pdf.PdfDocumentLoader
 import de.feldexa.app.pdf.PdfPreflight
 import de.feldexa.app.storage.AggregateKind
 import de.feldexa.app.storage.DeleteConfirmation
@@ -89,6 +92,10 @@ class MainActivity : FlutterActivity() {
     private lateinit var importPickerLauncher: ActivityResultLauncher<Array<String>>
     private var pendingImportPicker: ((PickedDocument?) -> Unit)? = null
 
+    /** True only for a debug/development build; release is not debuggable. */
+    private fun isDebuggableBuild(): Boolean =
+        (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+
     /**
      * FlutterActivity is not a ComponentActivity, so it has no
      * `registerForActivityResult`. This registry provides the same
@@ -139,6 +146,15 @@ class MainActivity : FlutterActivity() {
         flutterEngine.plugins.add(plugin)
         plugin.registerImportChannel(flutterEngine.dartExecutor.binaryMessenger)
 
+        // T046: debug-only fixture gate for the import integration test. This
+        // is a declared test seam: the handler exists only in debug builds and
+        // delivers a source only after the test explicitly arms one. Release
+        // builds never register it, and the production import semantics below
+        // are unchanged.
+        if (isDebuggableBuild()) {
+            ImportTestHooks.register(flutterEngine.dartExecutor.binaryMessenger)
+        }
+
         val store = EncryptedStore(
             root = File(filesDir, STORE_ROOT_DIR).absoluteFile,
             keystore = KeystoreService.forAndroid(this),
@@ -151,11 +167,38 @@ class MainActivity : FlutterActivity() {
         // worker. The store streams the encrypted copy, preflight reads the
         // staged ciphertext through a decrypting range reader, and only a
         // verified commit makes the document visible.
-        val pdfPreflight = PdfPreflight()
+        // T046: in debug builds the test may force the real preflight
+        // classifier's synthetic-unknown branch. The loader is otherwise the
+        // production PDFBox loader; release builds construct the plain
+        // PdfPreflight() and cannot reach this branch.
+        val pdfPreflight = if (isDebuggableBuild()) {
+            PdfPreflight(
+                loader = PdfDocumentLoader { stream ->
+                    if (ImportTestHooks.forceUnknownPreflight) {
+                        throw IllegalStateException("t046 synthetic unknown preflight")
+                    }
+                    PdfBoxDocumentLoader.load(stream)
+                },
+            )
+        } else {
+            PdfPreflight()
+        }
         plugin.registerService(
             "import",
             ImportService(
                 picker = DocumentPicker { onResult ->
+                    // T046: a declared debug-only seam for the integration
+                    // test. Without an armed fixture the ordinary system
+                    // picker below is launched exactly as in production.
+                    val armed = if (isDebuggableBuild()) {
+                        ImportTestHooks.takePickedDocument()
+                    } else {
+                        null
+                    }
+                    if (armed != null) {
+                        onResult(armed)
+                        return@DocumentPicker
+                    }
                     runOnUiThread {
                         if (!::importPickerLauncher.isInitialized || pendingImportPicker != null) {
                             // No parallel picker and no result before registration.

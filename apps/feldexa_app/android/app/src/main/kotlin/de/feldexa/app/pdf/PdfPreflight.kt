@@ -416,7 +416,7 @@ internal fun interface PdfDocumentLoader {
     fun load(stream: InputStream): PDDocument
 }
 
-private object PdfBoxDocumentLoader : PdfDocumentLoader {
+internal object PdfBoxDocumentLoader : PdfDocumentLoader {
     override fun load(stream: InputStream): PDDocument =
         // Main-memory-only keeps PDFBox's working copy off disk: preflight
         // must not create a plaintext scratch file for a private document.
