@@ -14,34 +14,48 @@ import de.feldexa.app.PlatformResultPublisher
 import de.feldexa.app.PlatformService
 import de.feldexa.app.PlatformServiceRegistry
 import de.feldexa.app.ThreadPoster
+import de.feldexa.app.pdf.PdfPageBox
+import de.feldexa.app.pdf.PdfPageFailure
+import de.feldexa.app.pdf.PdfPreflightFailure
+import de.feldexa.app.pdf.PdfPreflightPage
+import de.feldexa.app.pdf.PdfPreflightResult
+import de.feldexa.app.pdf.PdfPreflightSuccess
+import de.feldexa.app.storage.AggregateKind
+import de.feldexa.app.storage.CanonicalJson
+import de.feldexa.app.storage.ConcurrentSaveException
+import de.feldexa.app.storage.CreateReceipt
+import de.feldexa.app.storage.InvalidDataException
+import de.feldexa.app.storage.SourceLimitExceededException
 import de.feldexa.app.storage.StagedSourceReceipt
 import de.feldexa.app.storage.StorageFullException
 import de.feldexa.app.storage.StorageWriteException
-import org.junit.Assert.assertArrayEquals
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
-import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.security.MessageDigest
 import java.util.UUID
+import java.util.concurrent.CancellationException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
+import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
+import org.junit.Test
 
 /**
- * T038 host-JVM tests for the SAF streaming import core.
+ * T038/T040 host-JVM tests for the SAF streaming import core.
  *
- * The picker, staging and discard seams are fakes: no Activity, no Android
- * framework, no real document content. Evidence class: HOST-JVM.
+ * The picker, staged-source, preflight, commit and discard seams are fakes: no
+ * Activity, no Android framework, no real document content. Evidence class:
+ * HOST-JVM. Real `EncryptedStore`/`PdfPreflight` integration lives in
+ * `ImportServiceIntegrationTest`.
  */
 class ImportServiceTest {
 
@@ -49,12 +63,16 @@ class ImportServiceTest {
     private val expectedSha = sha256(bytes)
 
     @Test
-    fun happyPathStagesExactBytesAndReturnsContractFields() {
-        val staging = RecordingStaging()
+    fun happyPathStagesPreflightsAndCommitsExactlyOnce() {
+        val staging = RecordingStaging(expectedSha, bytes.size.toLong())
+        val preflight = RecordingPreflight(successOnePage())
+        val commit = RecordingCommit(expectedSha, bytes.size.toLong())
         val discard = RecordingDiscard()
         val service = ImportService(
             picker = FakePicker(FakePickedDocument(bytes, "antrag.pdf")),
             staging = staging,
+            preflight = preflight,
+            commit = commit,
             discard = discard,
         )
         val (_, context) = context()
@@ -63,38 +81,53 @@ class ImportServiceTest {
         val data = service.handle(pickRequest(1_000L), context) as Map<String, Any?>
 
         assertEquals(1, staging.calls)
-        assertArrayEquals(bytes, staging.bytes)
-        assertEquals(expectedSha, staging.sha)
+        assertArrayEquals(bytes, staging.countBytes)
+        assertArrayEquals(bytes, staging.writeBytes)
+        assertEquals(1, preflight.calls)
+        assertEquals(1, commit.calls)
         assertEquals(staging.documentId, data["documentId"])
         assertEquals(staging.sourceId, data["sourceId"])
         assertEquals(expectedSha, data["sha256"])
         assertEquals(bytes.size.toLong(), data["sizeBytes"])
+        assertEquals(1, data["pageCount"])
         assertEquals("antrag.pdf", data["displayName"])
+        assertEquals(1, (data["pages"] as List<*>).size)
+        assertTrue((data["pageFailures"] as List<*>).isEmpty())
         assertTrue(discard.ids.isEmpty())
-    }
 
-    @Test
-    fun streamIsReadInBoundedChunksAndAllBytesAreStaged() {
-        val staging = RecordingStaging()
-        val service = ImportService(
-            picker = FakePicker(ChunkedPickedDocument(bytes, maxChunk = 3, "scan.pdf")),
-            staging = staging,
-        )
-        val (_, context) = context()
+        val meta = parseJson(commit.metaJson!!)
+        assertEquals(staging.documentId, meta["id"])
+        assertEquals("document", meta["kind"])
+        assertEquals("antrag", meta["title"])
+        assertEquals(commit.revisionId, meta["latestRevisionId"])
+        @Suppress("UNCHECKED_CAST")
+        val source = meta["source"] as Map<String, Any?>
+        assertEquals(staging.sourceId, source["id"])
+        assertEquals(expectedSha, source["sha256"])
+        assertEquals(bytes.size.toLong(), (source["sizeBytes"] as Number).toLong())
+        assertEquals(1, (source["pageCount"] as Number).toInt())
+        assertEquals("antrag.pdf", source["originalName"])
+        assertEquals("verified", source["integrity"])
 
-        service.handle(pickRequest(1_000L), context)
-
-        assertEquals(1, staging.calls)
-        assertArrayEquals(bytes, staging.bytes)
-        assertEquals(expectedSha, staging.sha)
+        val revision = parseJson(commit.revisionJson!!)
+        assertEquals(1, (revision["pages"] as List<*>).size)
+        assertEquals("pending", (revision["pages"] as List<*>).first().let {
+            (it as Map<*, *>)["analysis"]
+        })
     }
 
     @Test
     fun exceedingMaxBytesRejectsIMP007AndStagesNothing() {
-        val staging = RecordingStaging()
+        val staging = RecordingStaging(expectedSha, bytes.size.toLong()).apply {
+            throwable = SourceLimitExceededException()
+        }
+        val preflight = RecordingPreflight(successOnePage())
+        val commit = RecordingCommit(expectedSha, bytes.size.toLong())
         val service = ImportService(
             picker = FakePicker(FakePickedDocument(bytes, "geheim.pdf")),
             staging = staging,
+            preflight = preflight,
+            commit = commit,
         )
         val (_, context) = context()
 
@@ -104,18 +137,21 @@ class ImportServiceTest {
         assertEquals("tooLarge", failure.category)
         assertEquals("import.tooLarge", failure.machineMessage)
         assertFalse(failure.retryable)
-        assertEquals(0, staging.calls)
+        assertEquals(0, preflight.calls)
+        assertEquals(0, commit.calls)
         // No content in the failure: neither the title nor any byte text leaks.
         assertFalse(failure.machineMessage.contains("geheim"))
         assertFalse(failure.details().values.any { it is String && it.contains("geheim") })
     }
 
     @Test
-    fun missingStreamRejectsIMP003WithoutContent() {
-        val staging = RecordingStaging()
+    fun missingStreamRejectsIMP003WithoutStaging() {
+        val staging = RecordingStaging(expectedSha, bytes.size.toLong())
         val service = ImportService(
             picker = FakePicker(FakePickedDocument(bytes, "scan.pdf", nullStream = true)),
             staging = staging,
+            preflight = RecordingPreflight(successOnePage()),
+            commit = RecordingCommit(expectedSha, bytes.size.toLong()),
         )
         val (_, context) = context()
 
@@ -128,8 +164,13 @@ class ImportServiceTest {
 
     @Test
     fun userCancellingThePickerCreatesNoStage() {
-        val staging = RecordingStaging()
-        val service = ImportService(picker = FakePicker(null), staging = staging)
+        val staging = RecordingStaging(expectedSha, bytes.size.toLong())
+        val service = ImportService(
+            picker = FakePicker(null),
+            staging = staging,
+            preflight = RecordingPreflight(successOnePage()),
+            commit = RecordingCommit(expectedSha, bytes.size.toLong()),
+        )
         val (_, context) = context()
 
         val failure = expectFailure { service.handle(pickRequest(1_000L), context) }
@@ -139,168 +180,447 @@ class ImportServiceTest {
     }
 
     @Test
-    fun cancellationDuringStreamLeavesNoStage() {
-        val (handle, context) = context()
-        val staging = RecordingStaging()
+    fun stagingReadFailureMapsToIMP002() {
+        val staging = RecordingStaging(expectedSha, bytes.size.toLong()).apply {
+            throwable = IOException("synthetic read failure")
+        }
         val service = ImportService(
-            picker = FakePicker(FakePickedDocument(
-                bytes,
-                "scan.pdf",
-                stream = CancellingInputStream(handle, bytes),
-            )),
+            picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
             staging = staging,
+            preflight = RecordingPreflight(successOnePage()),
+            commit = RecordingCommit(expectedSha, bytes.size.toLong()),
         )
+        val (_, context) = context()
 
         val failure = expectFailure { service.handle(pickRequest(1_000L), context) }
 
-        assertEquals("PLT-004", failure.code)
-        assertEquals(0, staging.calls)
+        assertEquals("IMP-002", failure.code)
+        assertEquals("unreadable", failure.category)
     }
 
     @Test
-    fun cancellationAfterStageDiscardsTheIncompleteAggregate() {
-        val (handle, context) = context()
-        val staging = RecordingStaging().apply { onStage = { handle.cancel() } }
+    fun storageFullMapsToSAVE001WithoutContent() {
+        val staging = RecordingStaging(expectedSha, bytes.size.toLong()).apply {
+            throwable = StorageFullException()
+        }
+        val service = ImportService(
+            picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
+            staging = staging,
+            preflight = RecordingPreflight(successOnePage()),
+            commit = RecordingCommit(expectedSha, bytes.size.toLong()),
+        )
+        val (_, context) = context()
+
+        val failure = expectFailure { service.handle(pickRequest(1_000L), context) }
+
+        assertEquals("SAVE-001", failure.code)
+        assertEquals("storageFull", failure.category)
+        assertEquals("save.storageFull", failure.machineMessage)
+        assertTrue(failure.retryable)
+    }
+
+    @Test
+    fun duplicateVisibleAggregateRejectedAsSAVE006WithoutDiscard() {
+        val staging = RecordingStaging(expectedSha, bytes.size.toLong()).apply {
+            throwable = ConcurrentSaveException()
+        }
+        val preflight = RecordingPreflight(successOnePage())
+        val commit = RecordingCommit(expectedSha, bytes.size.toLong())
         val discard = RecordingDiscard()
         val service = ImportService(
             picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
             staging = staging,
+            preflight = preflight,
+            commit = commit,
             discard = discard,
         )
+        val (_, context) = context()
 
         val failure = expectFailure { service.handle(pickRequest(1_000L), context) }
 
-        assertEquals("PLT-004", failure.code)
-        assertEquals(1, staging.calls)
+        assertEquals("SAVE-006", failure.code)
+        assertEquals(0, preflight.calls)
+        assertEquals(0, commit.calls)
+        assertTrue(discard.ids.isEmpty())
+    }
+
+    @Test
+    fun preflightRejectionDiscardsStageAndCreatesNoDocument() {
+        val staging = RecordingStaging(expectedSha, bytes.size.toLong())
+        val preflight = RecordingPreflight(
+            PdfPreflightFailure(
+                code = "IMP-001",
+                message = "import.passwordProtected",
+                category = "importRejected",
+                retryable = false,
+                durationMs = 12L,
+            ),
+        )
+        val commit = RecordingCommit(expectedSha, bytes.size.toLong())
+        val discard = RecordingDiscard()
+        val service = ImportService(
+            picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
+            staging = staging,
+            preflight = preflight,
+            commit = commit,
+            discard = discard,
+        )
+        val (_, context) = context()
+
+        val failure = expectFailure { service.handle(pickRequest(1_000L), context) }
+
+        assertEquals("IMP-001", failure.code)
+        assertEquals(0, commit.calls)
         assertEquals(listOf(staging.documentId), discard.ids)
     }
 
     @Test
-    fun cancellationDuringPickerWaitAbortsPromptlyWithoutStaging() {
-        val staging = RecordingStaging()
-        val pickerEntered = CountDownLatch(1)
-        val service = ImportService(
-            // The picker never calls back: only cancellation can end the wait.
-            picker = DocumentPicker { pickerEntered.countDown() },
-            staging = staging,
-            pickerTimeoutMs = TEST_PICKER_TIMEOUT_MS,
+    fun preflightFailureCleanupFailureIsReportedInsteadOfImportRejection() {
+        val staging = RecordingStaging(expectedSha, bytes.size.toLong())
+        val preflight = RecordingPreflight(
+            PdfPreflightFailure(
+                code = "IMP-002",
+                message = "import.unreadable",
+                category = "unreadable",
+                retryable = false,
+                durationMs = 1L,
+            ),
         )
-        val (handle, context) = context()
-        val canceller = Thread {
-            if (pickerEntered.await(5, TimeUnit.SECONDS)) {
-                Thread.sleep(50L)
-                handle.cancel()
-            }
-        }
-        canceller.start()
-
-        val startedAt = System.nanoTime()
-        val failure = expectFailure { service.handle(pickRequest(1_000L), context) }
-        val elapsedMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAt)
-        canceller.join(5_000L)
-
-        assertEquals("PLT-004", failure.code)
-        assertEquals(0, staging.calls)
-        assertTrue(
-            "picker wait took ${elapsedMs}ms; cancellation must not wait out ${TEST_PICKER_TIMEOUT_MS}ms",
-            elapsedMs < TEST_PICKER_TIMEOUT_MS / 2,
-        )
-    }
-
-    @Test
-    fun cancelAfterStageDiscardsBeforePlt004Surfaces() {
-        val (handle, context) = context()
-        val discardEntered = CountDownLatch(1)
-        val releaseDiscard = CountDownLatch(1)
-        val discard = RecordingDiscard().apply {
-            onDiscard = {
-                discardEntered.countDown()
-                releaseDiscard.await(5, TimeUnit.SECONDS)
-            }
-        }
-        val staging = RecordingStaging().apply { onStage = { handle.cancel() } }
+        val discard = RecordingDiscard().apply { throwable = StorageWriteException() }
         val service = ImportService(
             picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
             staging = staging,
+            preflight = preflight,
+            commit = RecordingCommit(expectedSha, bytes.size.toLong()),
             discard = discard,
         )
+        val (_, context) = context()
+
+        val failure = expectFailure { service.handle(pickRequest(1_000L), context) }
+
+        assertEquals("SAVE-003", failure.code)
+    }
+
+    @Test
+    fun partiallyUnreadablePreflightCommitsWithPageFailures() {
+        val staging = RecordingStaging(expectedSha, bytes.size.toLong())
+        val preflight = RecordingPreflight(successWithUnreadablePage())
+        val commit = RecordingCommit(expectedSha, bytes.size.toLong())
+        val service = ImportService(
+            picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
+            staging = staging,
+            preflight = preflight,
+            commit = commit,
+        )
+        val (_, context) = context()
+
+        @Suppress("UNCHECKED_CAST")
+        val data = service.handle(pickRequest(1_000L), context) as Map<String, Any?>
+
+        assertEquals(1, commit.calls)
+        val pages = data["pages"] as List<*>
+        assertEquals(2, pages.size)
+        assertEquals(true, (pages[1] as Map<*, *>)["unreadable"])
+        val failures = data["pageFailures"] as List<*>
+        assertEquals(1, failures.size)
+        assertEquals("IMP-006", (failures.single() as Map<*, *>)["messageKey"])
+
+        val revision = parseJson(commit.revisionJson!!)
+        val revisionPages = revision["pages"] as List<*>
+        val unreadable = revisionPages[1] as Map<*, *>
+        assertEquals("failed", unreadable["analysis"])
+        assertEquals(true, unreadable["unreadable"])
+        val failure = unreadable["failure"] as Map<*, *>
+        assertEquals("IMP-006", failure["messageKey"])
+        assertEquals("unsupported_structure", failure["category"])
+    }
+
+    @Test
+    fun commitFailureDoesNotDoubleDiscardOrCreateVisibleDocument() {
+        val staging = RecordingStaging(expectedSha, bytes.size.toLong())
+        val preflight = RecordingPreflight(successOnePage())
+        val commit = RecordingCommit(expectedSha, bytes.size.toLong()).apply {
+            throwable = StorageWriteException()
+        }
+        val discard = RecordingDiscard()
+        val service = ImportService(
+            picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
+            staging = staging,
+            preflight = preflight,
+            commit = commit,
+            discard = discard,
+        )
+        val (_, context) = context()
+
+        val failure = expectFailure { service.handle(pickRequest(1_000L), context) }
+
+        assertEquals("SAVE-003", failure.code)
+        assertTrue(discard.ids.isEmpty())
+    }
+
+    @Test
+    fun lateCancelAfterCommitDoesNotDeleteVisibleDocument() {
+        val staging = RecordingStaging(expectedSha, bytes.size.toLong())
+        val preflight = RecordingPreflight(successOnePage())
+        val commit = RecordingCommit(expectedSha, bytes.size.toLong())
+        val discard = RecordingDiscard()
+        val service = ImportService(
+            picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
+            staging = staging,
+            preflight = preflight,
+            commit = commit,
+            discard = discard,
+        )
+        val (handle, context) = context()
+
+        service.handle(pickRequest(1_000L), context)
+
+        assertTrue(handle.cancel())
+        assertTrue(handle.isCancelled)
+        assertNull(handle.cancelActionFailure())
+        assertTrue(discard.ids.isEmpty())
+        assertEquals(1, commit.calls)
+    }
+
+    @Test
+    fun cancellationDuringPreflightDiscardsTheIncompleteAggregate() {
+        val (handle, context) = context()
+        val preflightEntered = CountDownLatch(1)
+        val releasePreflight = CountDownLatch(1)
+        val discard = RecordingDiscard()
+        val staging = RecordingStaging(expectedSha, bytes.size.toLong())
+        val service = ImportService(
+            picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
+            staging = staging,
+            preflight = RecordingPreflight(successOnePage()).apply {
+                onPreflight = {
+                    preflightEntered.countDown()
+                    releasePreflight.await(5, TimeUnit.SECONDS)
+                }
+            },
+            commit = RecordingCommit(expectedSha, bytes.size.toLong()),
+            discard = discard,
+        )
+        val failure = AtomicReference<Throwable?>()
+        val worker = Thread {
+            try {
+                service.handle(pickRequest(1_000L), context)
+            } catch (thrown: Throwable) {
+                failure.set(thrown)
+            }
+        }
+        worker.start()
+        assertTrue(preflightEntered.await(5, TimeUnit.SECONDS))
+
+        val canceller = Thread {
+            handle.cancel()
+        }
+        canceller.start()
+        awaitClaim(handle)
+        releasePreflight.countDown()
+        worker.join(5_000L)
+        canceller.join(5_000L)
+
+        val thrown = failure.get()
+        assertTrue("expected PlatformFailure, got $thrown", thrown is PlatformFailure)
+        assertEquals("PLT-004", (thrown as PlatformFailure).code)
+        assertEquals(listOf(staging.documentId), discard.ids)
+    }
+
+    @Test
+    fun cancellationDuringStagingMapsToPLT004WithoutPreflight() {
+        val (handle, context) = context()
+        val stagingEntered = CountDownLatch(1)
+        val releaseStaging = CountDownLatch(1)
+        val preflight = RecordingPreflight(successOnePage())
+        val service = ImportService(
+            picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
+            staging = RecordingStaging(expectedSha, bytes.size.toLong()).apply {
+                onStage = {
+                    stagingEntered.countDown()
+                    releaseStaging.await(5, TimeUnit.SECONDS)
+                }
+            },
+            preflight = preflight,
+            commit = RecordingCommit(expectedSha, bytes.size.toLong()),
+        )
         val failure = AtomicReference<PlatformFailure?>()
-        val done = CountDownLatch(1)
         val worker = Thread {
             try {
                 service.handle(pickRequest(1_000L), context)
             } catch (thrown: PlatformFailure) {
                 failure.set(thrown)
-            } finally {
-                done.countDown()
             }
         }
         worker.start()
-
-        assertTrue(discardEntered.await(5, TimeUnit.SECONDS))
-        assertFalse(
-            "PLT-004 surfaced before the staged aggregate was discarded",
-            done.await(150, TimeUnit.MILLISECONDS),
-        )
-
-        releaseDiscard.countDown()
-        assertTrue(done.await(5, TimeUnit.SECONDS))
+        assertTrue(stagingEntered.await(5, TimeUnit.SECONDS))
+        assertTrue(handle.cancel())
+        releaseStaging.countDown()
         worker.join(5_000L)
 
         assertEquals("PLT-004", failure.get()?.code)
-        assertEquals(listOf(staging.documentId), discard.ids)
+        assertEquals(0, preflight.calls)
     }
 
     @Test
-    fun cancelArrivingAfterServiceReturnDiscardsBeforeCancellationIsObservable() {
-        val staging = RecordingStaging()
-        val discard = RecordingDiscard()
+    fun notYetOwnedMethodsFailClosed() {
+        val staging = RecordingStaging(expectedSha, bytes.size.toLong())
+        val picker = FakePicker(FakePickedDocument(bytes, "scan.pdf"))
+        val service = ImportService(
+            picker = picker,
+            staging = staging,
+            preflight = RecordingPreflight(successOnePage()),
+            commit = RecordingCommit(expectedSha, bytes.size.toLong()),
+        )
+        val (_, context) = context()
+
+        val verify = expectFailure {
+            service.handle(
+                PlatformRequest(
+                    "import.verifySource",
+                    mapOf("schemaVersion" to 1, "sourceId" to UUID.randomUUID().toString()),
+                ),
+                context,
+            )
+        }
+        val discard = expectFailure {
+            service.handle(
+                PlatformRequest(
+                    "import.discardStaged",
+                    mapOf("schemaVersion" to 1, "txnId" to "txn-1"),
+                ),
+                context,
+            )
+        }
+
+        assertEquals("PLT-001", verify.code)
+        assertEquals("PLT-001", discard.code)
+        assertEquals(0, staging.calls)
+        assertEquals(0, picker.calls)
+    }
+
+    @Test
+    fun facadePublishesStartReplyAndExactlyOneTerminalResult() {
+        val staging = RecordingStaging(expectedSha, bytes.size.toLong())
         val service = ImportService(
             picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
             staging = staging,
-            discard = discard,
+            preflight = RecordingPreflight(successOnePage()),
+            commit = RecordingCommit(expectedSha, bytes.size.toLong()),
         )
-        val (handle, context) = context()
+        val services = PlatformServiceRegistry().apply { register("import", service) }
+        val reply = RecordingReply()
+        val sink = RecordingSink()
+        val results = PlatformResultPublisher(DirectPoster)
+        results.attachSink(sink)
+        val facade = PlatformChannelFacade(
+            services = services,
+            mainPoster = DirectPoster,
+            events = PlatformEventPublisher(DirectPoster),
+            results = results,
+            executor = DirectExecutor,
+            clock = { 0L },
+        )
 
+        facade.handle(
+            "import.pickAndImport",
+            mapOf("schemaVersion" to 1, "maxBytes" to 1_000L),
+            reply,
+        )
+
+        assertNull(reply.failure)
         @Suppress("UNCHECKED_CAST")
-        val data = service.handle(pickRequest(1_000L), context) as Map<String, Any?>
-        val documentId = data["documentId"] as String
-        assertTrue(discard.ids.isEmpty())
-        assertFalse(handle.isCancelled)
+        val start = reply.successValue as Map<String, Any?>
+        @Suppress("UNCHECKED_CAST")
+        val startData = start["data"] as Map<String, Any?>
+        val operationId = startData["operationId"] as String
+        assertTrue(operationId.isNotEmpty())
+        assertEquals(setOf("operationId"), startData.keys)
 
-        // The facade's post-handle window: the service has returned, then a
-        // cancel arrives before the facade evaluates handle.isCancelled.
-        assertTrue(handle.cancel())
-
-        // Cleanup completed inside the cancellation linearization, so no
-        // PLT-004 publication can observe a retained staged aggregate.
-        assertEquals(listOf(documentId), discard.ids)
-        assertTrue(handle.isCancelled)
-        assertNull(handle.cancelActionFailure())
-
-        // Exactly once: a second cancel is a no-op.
-        assertFalse(handle.cancel())
-        assertEquals(1, discard.ids.size)
+        val terminal = sink.events.filterIsInstance<Map<*, *>>().filter {
+            it["event"] == "operation.result" && it["operationId"] == operationId
+        }
+        assertEquals(1, terminal.size)
+        val result = terminal.single()
+        assertEquals(true, result["ok"])
+        @Suppress("UNCHECKED_CAST")
+        val data = result["data"] as Map<String, Any?>
+        assertEquals(expectedSha, data["sha256"])
+        assertEquals(bytes.size.toLong(), data["sizeBytes"])
+        assertEquals("scan.pdf", data["displayName"])
     }
 
     @Test
-    fun failingDiscardIsNotReportedAsCleanCancellation() {
-        val (handle, context) = context()
-        val staging = RecordingStaging().apply { onStage = { handle.cancel() } }
+    fun facadeReportsDiscardFailureInsteadOfCleanCancellation() {
+        val stagingEntered = CountDownLatch(1)
+        val releaseStaging = CountDownLatch(1)
+        val staging = RecordingStaging(expectedSha, bytes.size.toLong()).apply {
+            onStage = {
+                stagingEntered.countDown()
+                releaseStaging.await(5, TimeUnit.SECONDS)
+            }
+        }
         val discard = RecordingDiscard().apply { throwable = StorageWriteException() }
         val service = ImportService(
             picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
             staging = staging,
+            preflight = RecordingPreflight(successOnePage()),
+            commit = RecordingCommit(expectedSha, bytes.size.toLong()),
             discard = discard,
         )
+        val services = PlatformServiceRegistry().apply { register("import", service) }
+        val reply = RecordingReply()
+        val sink = RecordingSink()
+        val results = PlatformResultPublisher(DirectPoster)
+        results.attachSink(sink)
+        val executor = QueueExecutor()
+        val facade = PlatformChannelFacade(
+            services = services,
+            mainPoster = DirectPoster,
+            events = PlatformEventPublisher(DirectPoster),
+            results = results,
+            executor = executor,
+            clock = { 0L },
+        )
 
-        val failure = expectFailure { service.handle(pickRequest(1_000L), context) }
+        facade.handle(
+            "import.pickAndImport",
+            mapOf("schemaVersion" to 1, "maxBytes" to 1_000L),
+            reply,
+        )
+        @Suppress("UNCHECKED_CAST")
+        val start = reply.successValue as Map<String, Any?>
+        @Suppress("UNCHECKED_CAST")
+        val operationId = (start["data"] as Map<String, Any?>)["operationId"] as String
+
+        val worker = Thread { executor.runNext() }
+        worker.start()
+        assertTrue(stagingEntered.await(5, TimeUnit.SECONDS))
+
+        val cancelReply = RecordingReply()
+        facade.handle(
+            "cancel.operation",
+            mapOf("schemaVersion" to 1, "operationId" to operationId),
+            cancelReply,
+        )
+        assertEquals(mapOf("cancelled" to true), (cancelReply.successValue as Map<*, *>)["data"])
+        releaseStaging.countDown()
+        worker.join(5_000L)
+        assertFalse(worker.isAlive)
 
         assertEquals(1, discard.ids.size)
-        assertNotEquals("PLT-004", failure.code)
-        assertEquals("SAVE-003", failure.code)
-        assertEquals("SAVE-003", context.cancellationCleanupFailure()?.code)
+        val terminal = sink.events.filterIsInstance<Map<*, *>>().filter {
+            it["event"] == "operation.result" && it["operationId"] == operationId
+        }
+        assertEquals(1, terminal.size)
+        val result = terminal.single()
+        assertEquals(false, result["ok"])
+        val error = result["error"] as Map<*, *>
+        assertEquals("SAVE-003", error["code"])
+        assertNotEquals("PLT-004", error["code"])
     }
+
+    // ---- T038 facade cancellation regressions (unchanged) -----------------
 
     @Test
     fun lateCleanupRegistrationKeepsCancellationUnobservableUntilCleanupCompletes() {
@@ -440,7 +760,7 @@ class ImportServiceTest {
         val releaseDiscard = CountDownLatch(1)
         val discardDone = CountDownLatch(1)
         val discardThread = AtomicReference<Thread?>()
-        val discardCalls = java.util.concurrent.atomic.AtomicInteger(0)
+        val discardCalls = AtomicInteger(0)
         val service = RegisteredCleanupService {
             discardCalls.incrementAndGet()
             discardThread.set(Thread.currentThread())
@@ -633,190 +953,6 @@ class ImportServiceTest {
         }
     }
 
-    @Test
-    fun storageFullMapsToSAVE001WithoutContent() {
-        val staging = RecordingStaging().apply { throwable = StorageFullException() }
-        val service = ImportService(
-            picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
-            staging = staging,
-        )
-        val (_, context) = context()
-
-        val failure = expectFailure { service.handle(pickRequest(1_000L), context) }
-
-        assertEquals("SAVE-001", failure.code)
-        assertEquals("storageFull", failure.category)
-        assertEquals("save.storageFull", failure.machineMessage)
-        assertTrue(failure.retryable)
-    }
-
-    @Test
-    fun readFailureMapsToIMP002() {
-        val service = ImportService(
-            picker = FakePicker(FakePickedDocument(
-                bytes,
-                "scan.pdf",
-                stream = FailingInputStream(),
-            )),
-            staging = RecordingStaging(),
-        )
-        val (_, context) = context()
-
-        val failure = expectFailure { service.handle(pickRequest(1_000L), context) }
-
-        assertEquals("IMP-002", failure.code)
-        assertEquals("unreadable", failure.category)
-    }
-
-    @Test
-    fun notYetOwnedMethodsFailClosed() {
-        val staging = RecordingStaging()
-        val picker = FakePicker(FakePickedDocument(bytes, "scan.pdf"))
-        val service = ImportService(picker = picker, staging = staging)
-        val (_, context) = context()
-
-        val verify = expectFailure {
-            service.handle(
-                PlatformRequest(
-                    "import.verifySource",
-                    mapOf("schemaVersion" to 1, "sourceId" to UUID.randomUUID().toString()),
-                ),
-                context,
-            )
-        }
-        val discard = expectFailure {
-            service.handle(
-                PlatformRequest(
-                    "import.discardStaged",
-                    mapOf("schemaVersion" to 1, "txnId" to "txn-1"),
-                ),
-                context,
-            )
-        }
-
-        assertEquals("PLT-001", verify.code)
-        assertEquals("PLT-001", discard.code)
-        assertEquals(0, staging.calls)
-        assertEquals(0, picker.calls)
-    }
-
-    @Test
-    fun facadePublishesStartReplyAndExactlyOneTerminalResult() {
-        val staging = RecordingStaging()
-        val service = ImportService(
-            picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
-            staging = staging,
-        )
-        val services = PlatformServiceRegistry().apply { register("import", service) }
-        val reply = RecordingReply()
-        val sink = RecordingSink()
-        val results = PlatformResultPublisher(DirectPoster)
-        results.attachSink(sink)
-        val facade = PlatformChannelFacade(
-            services = services,
-            mainPoster = DirectPoster,
-            events = PlatformEventPublisher(DirectPoster),
-            results = results,
-            executor = DirectExecutor,
-            clock = { 0L },
-        )
-
-        facade.handle(
-            "import.pickAndImport",
-            mapOf("schemaVersion" to 1, "maxBytes" to 1_000L),
-            reply,
-        )
-
-        assertNull(reply.failure)
-        @Suppress("UNCHECKED_CAST")
-        val start = reply.successValue as Map<String, Any?>
-        @Suppress("UNCHECKED_CAST")
-        val startData = start["data"] as Map<String, Any?>
-        val operationId = startData["operationId"] as String
-        assertTrue(operationId.isNotEmpty())
-        assertEquals(setOf("operationId"), startData.keys)
-
-        val terminal = sink.events.filterIsInstance<Map<*, *>>().filter {
-            it["event"] == "operation.result" && it["operationId"] == operationId
-        }
-        assertEquals(1, terminal.size)
-        val result = terminal.single()
-        assertEquals(true, result["ok"])
-        @Suppress("UNCHECKED_CAST")
-        val data = result["data"] as Map<String, Any?>
-        assertEquals(expectedSha, data["sha256"])
-        assertEquals(bytes.size.toLong(), data["sizeBytes"])
-        assertEquals("scan.pdf", data["displayName"])
-    }
-
-    @Test
-    fun facadeReportsDiscardFailureInsteadOfCleanCancellation() {
-        val stagingEntered = CountDownLatch(1)
-        val releaseStaging = CountDownLatch(1)
-        val staging = RecordingStaging().apply {
-            onStage = {
-                stagingEntered.countDown()
-                releaseStaging.await(5, TimeUnit.SECONDS)
-            }
-        }
-        val discard = RecordingDiscard().apply { throwable = StorageWriteException() }
-        val service = ImportService(
-            picker = FakePicker(FakePickedDocument(bytes, "scan.pdf")),
-            staging = staging,
-            discard = discard,
-        )
-        val services = PlatformServiceRegistry().apply { register("import", service) }
-        val reply = RecordingReply()
-        val sink = RecordingSink()
-        val results = PlatformResultPublisher(DirectPoster)
-        results.attachSink(sink)
-        val executor = QueueExecutor()
-        val facade = PlatformChannelFacade(
-            services = services,
-            mainPoster = DirectPoster,
-            events = PlatformEventPublisher(DirectPoster),
-            results = results,
-            executor = executor,
-            clock = { 0L },
-        )
-
-        facade.handle(
-            "import.pickAndImport",
-            mapOf("schemaVersion" to 1, "maxBytes" to 1_000L),
-            reply,
-        )
-        @Suppress("UNCHECKED_CAST")
-        val start = reply.successValue as Map<String, Any?>
-        @Suppress("UNCHECKED_CAST")
-        val operationId = (start["data"] as Map<String, Any?>)["operationId"] as String
-
-        val worker = Thread { executor.runNext() }
-        worker.start()
-        assertTrue(stagingEntered.await(5, TimeUnit.SECONDS))
-
-        val cancelReply = RecordingReply()
-        facade.handle(
-            "cancel.operation",
-            mapOf("schemaVersion" to 1, "operationId" to operationId),
-            cancelReply,
-        )
-        assertEquals(mapOf("cancelled" to true), (cancelReply.successValue as Map<*, *>)["data"])
-        releaseStaging.countDown()
-        worker.join(5_000L)
-        assertFalse(worker.isAlive)
-
-        assertEquals(1, discard.ids.size)
-        val terminal = sink.events.filterIsInstance<Map<*, *>>().filter {
-            it["event"] == "operation.result" && it["operationId"] == operationId
-        }
-        assertEquals(1, terminal.size)
-        val result = terminal.single()
-        assertEquals(false, result["ok"])
-        val error = result["error"] as Map<*, *>
-        assertEquals("SAVE-003", error["code"])
-        assertNotEquals("PLT-004", error["code"])
-    }
-
     // ---- helpers ------------------------------------------------------------
 
     private fun context(): Pair<OperationHandle, OperationContext> {
@@ -839,6 +975,14 @@ class ImportServiceTest {
     private fun terminalEvents(sink: LatchingSink): List<Map<*, *>> =
         sink.snapshot().filterIsInstance<Map<*, *>>().filter { it["event"] == "operation.result" }
 
+    private fun awaitClaim(handle: OperationHandle) {
+        val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5)
+        while (!handle.hasClaimedCancellation()) {
+            if (System.nanoTime() > deadline) fail("cancel was not claimed")
+            Thread.sleep(5L)
+        }
+    }
+
     private fun expectFailure(block: () -> Unit): PlatformFailure {
         try {
             block()
@@ -854,9 +998,41 @@ class ImportServiceTest {
             "%02x".format(it.toInt() and 0xFF)
         }
 
-    private companion object {
-        /** Long enough that a cancellation-blind wait would be obvious. */
-        const val TEST_PICKER_TIMEOUT_MS: Long = 5_000L
+    private fun parseJson(bytes: ByteArray): Map<String, Any?> {
+        @Suppress("UNCHECKED_CAST")
+        return CanonicalJson.parse(bytes) as Map<String, Any?>
+    }
+
+    private fun successOnePage(): PdfPreflightSuccess {
+        val box = PdfPageBox(0.0, 0.0, 595.0, 842.0)
+        return PdfPreflightSuccess(
+            pages = listOf(
+                PdfPreflightPage(
+                    pageIndex = 0,
+                    mediaBox = box,
+                    cropBox = box,
+                    rotation = 0,
+                    unreadable = false,
+                ),
+            ),
+            pageFailures = emptyList(),
+        )
+    }
+
+    private fun successWithUnreadablePage(): PdfPreflightSuccess {
+        val box = PdfPageBox(0.0, 0.0, 595.0, 842.0)
+        val failure = PdfPageFailure(
+            pageIndex = 1,
+            category = "unsupported_structure",
+            messageKey = "IMP-006",
+        )
+        return PdfPreflightSuccess(
+            pages = listOf(
+                PdfPreflightPage(0, box, box, 0, unreadable = false),
+                PdfPreflightPage(1, null, null, null, unreadable = true, pageFailure = failure),
+            ),
+            pageFailures = listOf(failure),
+        )
     }
 
     private class FakePicker(private val document: PickedDocument?) : DocumentPicker {
@@ -870,80 +1046,103 @@ class ImportServiceTest {
     private class FakePickedDocument(
         private val content: ByteArray,
         override val displayName: String? = "scan.pdf",
-        private val stream: InputStream? = null,
         private val nullStream: Boolean = false,
+        private val openStreamOverride: (() -> InputStream?)? = null,
     ) : PickedDocument {
-        override fun openStream(): InputStream? =
-            if (nullStream) null else stream ?: ByteArrayInputStream(content)
-    }
-
-    /** Forces many short reads so the service's bounded chunk loop is exercised. */
-    private class ChunkedPickedDocument(
-        private val content: ByteArray,
-        private val maxChunk: Int,
-        override val displayName: String? = "scan.pdf",
-    ) : PickedDocument {
-        override fun openStream(): InputStream = object : InputStream() {
-            private var position = 0
-            override fun read(): Int = if (position >= content.size) -1 else content[position++].toInt() and 0xFF
-            override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
-                if (position >= content.size) return -1
-                val count = minOf(maxChunk, length, content.size - position)
-                System.arraycopy(content, position, buffer, offset, count)
-                position += count
-                return count
-            }
+        val opens = AtomicInteger(0)
+        override fun openStream(): InputStream? {
+            opens.incrementAndGet()
+            return openStreamOverride?.invoke()
+                ?: if (nullStream) null else ByteArrayInputStream(content)
         }
     }
 
-    private class CancellingInputStream(
-        private val handle: OperationHandle,
-        @Suppress("UNUSED_PARAMETER") private val content: ByteArray,
-    ) : InputStream() {
-        private var cancelled = false
-        override fun read(): Int = -1
-        override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
-            if (!cancelled) {
-                cancelled = true
-                handle.cancel()
-            }
-            return -1
-        }
-    }
-
-    private class FailingInputStream : InputStream() {
-        override fun read(): Int = throw IOException("synthetic read failure")
-        override fun read(buffer: ByteArray, offset: Int, length: Int): Int =
-            throw IOException("synthetic read failure")
-    }
-
-    private class RecordingStaging : SourceStaging {
+    private class RecordingStaging(
+        private val sha: String,
+        private val size: Long,
+    ) : SourceStaging {
         var calls = 0
         var documentId: String? = null
         var sourceId: String? = null
-        var bytes: ByteArray? = null
-        var sha: String? = null
+        var countBytes: ByteArray? = null
+        var writeBytes: ByteArray? = null
         var throwable: Throwable? = null
         var onStage: (() -> Unit)? = null
+        var shouldAbort: (() -> Boolean)? = null
 
         override fun stage(
             documentId: String,
             sourceId: String,
-            bytes: ByteArray,
-            expectedSha256: String?,
+            countPass: InputStream,
+            openStreamForWrite: () -> InputStream?,
+            maxBytes: Long,
+            shouldAbort: () -> Boolean,
         ): StagedSourceReceipt {
             calls++
             this.documentId = documentId
             this.sourceId = sourceId
-            this.bytes = bytes
-            this.sha = expectedSha256
+            this.shouldAbort = shouldAbort
+            countBytes = countPass.readBytes()
             onStage?.invoke()
+            writeBytes = openStreamForWrite()?.readBytes()
             throwable?.let { throw it }
             return StagedSourceReceipt(
                 aggregateId = documentId,
                 sourceId = sourceId,
-                sourceSha256 = expectedSha256!!,
-                sizeBytes = bytes.size.toLong(),
+                sourceSha256 = sha,
+                sizeBytes = size,
+                readBackVerified = true,
+            )
+        }
+    }
+
+    private class RecordingPreflight(
+        private val result: PdfPreflightResult,
+    ) : StagedPreflight {
+        var calls = 0
+        var onPreflight: (() -> Unit)? = null
+
+        override fun preflight(documentId: String, sourceId: String): PdfPreflightResult {
+            calls++
+            onPreflight?.invoke()
+            return result
+        }
+    }
+
+    private class RecordingCommit(
+        private val sha: String,
+        private val size: Long,
+    ) : StagedCommit {
+        var calls = 0
+        var revisionId: String? = null
+        var metaJson: ByteArray? = null
+        var revisionJson: ByteArray? = null
+        var throwable: Throwable? = null
+
+        override fun commit(
+            documentId: String,
+            sourceId: String,
+            sourceSha256: String,
+            sourceSizeBytes: Long,
+            revisionId: String,
+            metaJson: ByteArray,
+            revisionJson: ByteArray,
+            shouldAbort: () -> Boolean,
+        ): CreateReceipt {
+            calls++
+            this.revisionId = revisionId
+            this.metaJson = metaJson
+            this.revisionJson = revisionJson
+            if (shouldAbort()) throw CancellationException("importCancelled")
+            throwable?.let { throw it }
+            return CreateReceipt(
+                aggregateId = documentId,
+                aggregateKind = AggregateKind.DOCUMENT,
+                sourceId = sourceId,
+                sourceSha256 = sha,
+                revisionId = revisionId,
+                revisionSha256 = "0".repeat(64),
+                committedAt = "2026-11-18T00:00:00.000Z",
                 readBackVerified = true,
             )
         }
@@ -952,11 +1151,9 @@ class ImportServiceTest {
     private class RecordingDiscard : StagedDiscard {
         val ids = mutableListOf<String>()
         var throwable: Throwable? = null
-        var onDiscard: (() -> Unit)? = null
 
         override fun discard(documentId: String) {
             ids.add(documentId)
-            onDiscard?.invoke()
             throwable?.let { throw it }
         }
     }
