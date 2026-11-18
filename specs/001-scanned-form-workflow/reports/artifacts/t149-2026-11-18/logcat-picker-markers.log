@@ -1,0 +1,10 @@
+11-18 17:58:29.698   629  1225 I ActivityTaskManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x30000000 cmp=de.feldexa.app/.MainActivity (has extras)} with LAUNCH_SINGLE_TOP from uid 2000 (BAL_ALLOW_PERMISSION) result code=0
+11-18 17:58:37.500   629   662 I ActivityTaskManager: Displayed de.feldexa.app/.MainActivity for user 0: +7s823ms
+11-18 17:58:37.500   629   662 I ActivityTaskManager: Fully drawn de.feldexa.app/.MainActivity: +7s823ms
+11-18 17:58:40.878   629  1590 I ActivityTaskManager: START u0 {act=android.intent.action.OPEN_DOCUMENT typ=*/* cmp=com.google.android.documentsui/com.android.documentsui.picker.PickActivity (has extras)} with LAUNCH_MULTIPLE from uid 10226 (BAL_ALLOW_VISIBLE_WINDOW) result code=0
+11-18 17:58:42.827   629   662 I ActivityTaskManager: Displayed com.google.android.documentsui/com.android.documentsui.picker.PickActivity for user 0: +1s918ms
+11-18 17:58:59.636   629  2126 I ActivityTaskManager: START u0 {act=android.intent.action.OPEN_DOCUMENT typ=*/* cmp=com.google.android.documentsui/com.android.documentsui.picker.PickActivity (has extras)} with LAUNCH_MULTIPLE from uid 10226 (BAL_ALLOW_VISIBLE_WINDOW) result code=0
+11-18 17:59:00.973   629   662 I ActivityTaskManager: Displayed com.google.android.documentsui/com.android.documentsui.picker.PickActivity for user 0: +1s168ms
+11-18 17:59:06.676   629  1040 W ActivityTaskManager: Force removing ActivityRecord{294c564 u0 de.feldexa.app/.MainActivity t33 f}}: app died, no saved state
+11-18 17:59:07.155   629   666 W ActivityTaskManager: Unable to send transaction to client proc de.feldexa.app: no app thread
+11-18 17:59:08.336   629   666 W ActivityTaskManager: Unable to send transaction to client proc de.feldexa.app: no app thread
