@@ -232,7 +232,47 @@ void main() {
       expect(presentation.presentationCode, 'IMP-005');
       expect(presentation.message, l10n.imp005);
       expect(presentation.recovery, l10n.imp005Recovery);
+      expect(presentation.isUnrecognized, isTrue);
       expect(presentation.passwordProtectionConfirmed, isFalse);
+    });
+
+    test('isUnrecognized is true only for the unknown-cause fallback', () {
+      final List<FeldexaException> mapped = <FeldexaException>[
+        ImportRejectedException(ImportRejectionKind.passwordProtected),
+        ImportRejectedException(ImportRejectionKind.unsupportedEncryption),
+        _CodeException('IMP-001', message: 'import.unsupportedEncryption'),
+        ImportRejectedException(ImportRejectionKind.unreadable),
+        ImportRejectedException(ImportRejectionKind.truncated),
+        ImportRejectedException(ImportRejectionKind.missing),
+        ImportRejectedException(ImportRejectionKind.notPdf),
+        ImportRejectedException(ImportRejectionKind.unsupportedStructure),
+        ImportRejectedException(ImportRejectionKind.unknownReason),
+        ImportRejectedException(ImportRejectionKind.tooLarge),
+        ImportCancelledException(),
+        _CodeException('PLT-004', message: 'platform.cancelled'),
+        StorageFullException(),
+        KeyUnavailableException(),
+        StorageWriteException(),
+        CorruptDataException(),
+        SchemaTooNewException(),
+        _CodeException('SAVE-006', message: 'storage.concurrentWrite'),
+        _CodeException('SAVE-007', message: 'storage.invalidData'),
+        KeystoreUnavailableException(),
+      ];
+      for (final FeldexaException error in mapped) {
+        expect(
+          mapper.describe(error).isUnrecognized,
+          isFalse,
+          reason: '${error.code} is a mapped failure',
+        );
+      }
+      expect(
+        mapper
+            .describe(_CodeException('XYZ-999', message: 'future.unknown'))
+            .isUnrecognized,
+        isTrue,
+      );
+      expect(mapper.unclassified().isUnrecognized, isTrue);
     });
   });
 
@@ -241,8 +281,10 @@ void main() {
       final ImportFailurePresentation password = mapper.describe(
         ImportRejectedException(ImportRejectionKind.passwordProtected),
       );
+      expect(password.presentationCode, 'IMP-001');
       expect(password.message, l10n.imp001);
       expect(password.message, contains('passwortgeschützt'));
+      expect(password.isUnrecognized, isFalse);
       expect(password.passwordProtectionConfirmed, isTrue);
     });
 
@@ -255,6 +297,7 @@ void main() {
       expect(presentation.presentationCode, 'IMP-004');
       expect(presentation.message, l10n.imp004);
       expect(presentation.recovery, l10n.imp004Recovery);
+      expect(presentation.isUnrecognized, isFalse);
       expect(presentation.passwordProtectionConfirmed, isFalse);
     });
 
@@ -268,6 +311,7 @@ void main() {
         expect(presentation.presentationCode, 'IMP-004');
         expect(presentation.message, l10n.imp004);
         expect(presentation.recovery, l10n.imp004Recovery);
+        expect(presentation.isUnrecognized, isFalse);
         expect(presentation.passwordProtectionConfirmed, isFalse);
       },
     );
@@ -281,6 +325,7 @@ void main() {
         expect(presentation.message, l10n.imp004);
         expect(presentation.recovery, l10n.imp004Recovery);
         expect(presentation.message, isNot(l10n.imp001));
+        expect(presentation.isUnrecognized, isFalse);
         expect(presentation.passwordProtectionConfirmed, isFalse);
         expect(presentation.message, isNot(contains('passwortgeschützt')));
         expect(presentation.recovery, isNot(contains('passwortgeschützt')));
@@ -493,7 +538,7 @@ void main() {
         expect(outcome, isA<ImportRejected>());
         final ImportRejected rejected = outcome as ImportRejected;
         expect(rejected.failure.message, l10n.imp005);
-        expect(rejected.failure.isUnrecognized, isFalse);
+        expect(rejected.failure.isUnrecognized, isTrue);
         expect(created, isEmpty);
       },
     );

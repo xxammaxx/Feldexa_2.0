@@ -53,6 +53,7 @@ final class ImportFailurePresentation {
     required this.severity,
     required this.isCancellation,
     required this.passwordProtectionConfirmed,
+    required this.isUnrecognized,
   });
 
   /// Stable catalog code observed from the platform, for tests and diagnostics.
@@ -93,9 +94,18 @@ final class ImportFailurePresentation {
   /// `IMP-007`, storage codes, cancellation, and unknown codes are all false.
   final bool passwordProtectionConfirmed;
 
-  /// Whether the observed code had no dedicated presentation and `IMP-005`
-  /// semantics (cause unknown) were used.
-  bool get isUnrecognized => code != presentationCode;
+  /// Whether this presentation is the unknown-cause `IMP-005` fallback.
+  ///
+  /// It is true only when the platform did not identify a mapped failure and
+  /// the `IMP-005` "cause cannot be determined" text was used: an unmapped
+  /// catalog code (the mapper's default branch) or
+  /// [ImportErrorMapper.unclassified] for a non-[FeldexaException] with no
+  /// observed code. Every mapped code is false, including
+  /// `import.unsupportedEncryption`, which keeps the observed `IMP-001` code
+  /// while deliberately presenting the `IMP-004` text. This is explicit state,
+  /// not derived from `code != presentationCode`, because a mapped code may
+  /// legitimately present a different catalog row.
+  final bool isUnrecognized;
 
   /// Whether the platform defined a user-visible message for this failure.
   bool get hasMessage => message != null;
@@ -174,6 +184,7 @@ final class ImportErrorMapper {
           severity: error.severity,
           isCancellation: true,
           passwordProtectionConfirmed: false,
+          isUnrecognized: false,
         );
       case 'IMP-001':
         // FR-007: only the positive `import.passwordProtected` diagnosis may
@@ -299,6 +310,7 @@ final class ImportErrorMapper {
           presentationCode: 'IMP-005',
           message: localizations.imp005,
           recovery: localizations.imp005Recovery,
+          isUnrecognized: true,
         );
     }
   }
@@ -308,7 +320,10 @@ final class ImportErrorMapper {
   /// The flow uses this only for an [Exception] that is not a
   /// [FeldexaException], for example an adapter format error or an unknown
   /// channel code that the adapter rethrew unchanged. The cause is unknown by
-  /// definition, so this never claims password protection.
+  /// definition, so this uses the `IMP-005` fallback and reports
+  /// `isUnrecognized = true` even though no catalog code was observed; that is
+  /// the explicit choice for a failure with no mapped code. It never claims
+  /// password protection.
   ImportFailurePresentation unclassified() => ImportFailurePresentation._(
     code: 'IMP-005',
     presentationCode: 'IMP-005',
@@ -318,6 +333,7 @@ final class ImportErrorMapper {
     severity: ErrorSeverity.error,
     isCancellation: false,
     passwordProtectionConfirmed: false,
+    isUnrecognized: true,
   );
 
   /// Returns the `IMP-006` warning for a successful partial import, or `null`
@@ -352,6 +368,7 @@ final class ImportErrorMapper {
     required String message,
     required String? recovery,
     bool passwordProtectionConfirmed = false,
+    bool isUnrecognized = false,
   }) {
     return ImportFailurePresentation._(
       code: error.code,
@@ -362,6 +379,7 @@ final class ImportErrorMapper {
       severity: error.severity,
       isCancellation: false,
       passwordProtectionConfirmed: passwordProtectionConfirmed,
+      isUnrecognized: isUnrecognized,
     );
   }
 }
