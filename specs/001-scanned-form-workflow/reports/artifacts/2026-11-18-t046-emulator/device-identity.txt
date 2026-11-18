@@ -1,0 +1,18 @@
+T046 device identity observed by the agent on 2026-11-18 14:32 Europe/Berlin.
+Serial: emulator-5554
+AVD: T025_Pixel7_API35_KVM_20261115
+ro.boot.qemu.avd_name: T025_Pixel7_API35_KVM_20261115
+ro.kernel.qemu: 1
+ro.boot.qemu: 1
+ro.build.version.sdk: 35
+ro.build.version.release: 15
+ro.build.fingerprint: google/sdk_gphone64_x86_64/emu64xa:15/AE3A.240806.043/12960925:userdebug/dev-keys
+ro.product.model: sdk_gphone64_x86_64
+sys.boot_completed: 1
+MemTotal: 4014392 kB
+vCPU: 4
+adb devices -l: emulator-5554 device product:sdk_gphone64_x86_64 model:sdk_gphone64_x86_64 device:emu64xa transport_id:11
+Physical size: 1080x2400; density: 420
+
+`adb devices -l` showed exactly this one Android device before and after the
+run. The AVD definition, boot state, and identity were not modified.

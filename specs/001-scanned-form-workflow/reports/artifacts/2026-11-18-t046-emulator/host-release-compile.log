@@ -1,0 +1,244 @@
+> Task :gradle:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle:pluginDescriptors UP-TO-DATE
+> Task :gradle:processResources UP-TO-DATE
+
+> Task :gradle:compileKotlin
+w: file://<redacted-home>/flutter/packages/flutter_tools/gradle/src/main/kotlin/Deeplink.kt:13:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to property.
+- To opt in to applying to both value parameter and property, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file://<redacted-home>/flutter/packages/flutter_tools/gradle/src/main/kotlin/Deeplink.kt:15:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to property.
+- To opt in to applying to both value parameter and property, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file://<redacted-home>/flutter/packages/flutter_tools/gradle/src/main/kotlin/Deeplink.kt:17:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to property.
+- To opt in to applying to both value parameter and property, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file://<redacted-home>/flutter/packages/flutter_tools/gradle/src/main/kotlin/Deeplink.kt:19:5 This annotation is currently applied to the value parameter only, but in the future it will also be applied to property.
+- To opt in to applying to both value parameter and property, add '-Xannotation-default-target=param-property' to your compiler arguments.
+- To keep applying to the value parameter only, use the '@param:' annotation target.
+
+See https://youtrack.jetbrains.com/issue/KT-73255 for more details.
+w: file://<redacted-home>/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterPlugin.kt:12:8 'interface ApkVariant : Any, BaseVariant, InstallableVariant, AndroidArtifactVariant, InternalBaseVariant' is deprecated. Deprecated in Java.
+w: file://<redacted-home>/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterPlugin.kt:664:69 'interface ApkVariant : Any, BaseVariant, InstallableVariant, AndroidArtifactVariant, InternalBaseVariant' is deprecated. Deprecated in Java.
+w: file://<redacted-home>/flutter/packages/flutter_tools/gradle/src/main/kotlin/FlutterPluginUtils.kt:766:29 Condition is always 'true'.
+w: file://<redacted-home>/flutter/packages/flutter_tools/gradle/src/main/kotlin/plugins/PluginHandler.kt:168:70 Unchecked cast of 'NamedDomainObjectContainer<out BuildType>' to 'NamedDomainObjectContainer<BuildType>'.
+w: file://<redacted-home>/flutter/packages/flutter_tools/gradle/src/main/kotlin/plugins/PluginHandler.kt:169:75 Unchecked cast of 'NamedDomainObjectContainer<out BuildType>' to 'NamedDomainObjectContainer<BuildType>'.
+
+> Task :gradle:compileJava NO-SOURCE
+> Task :gradle:compileGroovy NO-SOURCE
+> Task :gradle:classes UP-TO-DATE
+> Task :gradle:jar UP-TO-DATE
+
+> Configure project :app
+WARNING: The option setting 'android.builtInKotlin=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.newDsl=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':app' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :google_mlkit_commons
+w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':google_mlkit_commons' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :google_mlkit_text_recognition
+w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':google_mlkit_text_recognition' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :integration_test
+w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':integration_test' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :jni
+w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':jni' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :jni_flutter
+w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':jni_flutter' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :printing
+w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':printing' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :share_plus
+w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':share_plus' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+
+> Configure project :url_launcher_android
+w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
+The 'org.jetbrains.kotlin.android' plugin in project ':url_launcher_android' is no longer required for Kotlin support since AGP 9.0.
+Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
+See https://kotl.in/gradle/agp-built-in-kotlin for more details.
+
+WARNING: Your app uses the following plugins that apply Kotlin Gradle Plugin (KGP): share_plus
+Future versions of Flutter will fail to build if your app uses plugins that apply KGP.
+
+Please check the changelogs of these plugins and upgrade to a version that supports Built-in Kotlin.
+If no such version exists, report the issue to the plugin. If necessary, here is a guide on filing
+an issue against a plugin: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers#report-incompatible-kotlin-gradle-plugin-usage-to-plugin-authors
+
+If you are a plugin author, please migrate your plugin to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
+
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:cleanMergeReleaseAssets UP-TO-DATE
+> Task :app:compileFlutterBuildRelease
+> Task :app:generateReleaseAssets UP-TO-DATE
+> Task :app:validateCompileSdkVersion
+> Task :app:preBuild
+> Task :app:preReleaseBuild
+> Task :google_mlkit_commons:generateReleaseAssets UP-TO-DATE
+> Task :google_mlkit_commons:preBuild UP-TO-DATE
+> Task :google_mlkit_commons:preReleaseBuild UP-TO-DATE
+> Task :google_mlkit_commons:mergeReleaseAssets
+> Task :google_mlkit_text_recognition:generateReleaseAssets UP-TO-DATE
+> Task :google_mlkit_text_recognition:preBuild UP-TO-DATE
+> Task :google_mlkit_text_recognition:preReleaseBuild UP-TO-DATE
+> Task :google_mlkit_text_recognition:mergeReleaseAssets
+> Task :jni:generateReleaseAssets UP-TO-DATE
+> Task :jni:preBuild UP-TO-DATE
+> Task :jni:preReleaseBuild UP-TO-DATE
+> Task :jni:mergeReleaseAssets
+> Task :jni_flutter:generateReleaseAssets UP-TO-DATE
+> Task :jni_flutter:preBuild UP-TO-DATE
+> Task :jni_flutter:preReleaseBuild UP-TO-DATE
+> Task :jni_flutter:mergeReleaseAssets
+> Task :printing:generateReleaseAssets UP-TO-DATE
+> Task :printing:preBuild UP-TO-DATE
+> Task :printing:preReleaseBuild UP-TO-DATE
+> Task :printing:mergeReleaseAssets
+> Task :share_plus:generateReleaseAssets UP-TO-DATE
+> Task :share_plus:preBuild UP-TO-DATE
+> Task :share_plus:preReleaseBuild UP-TO-DATE
+> Task :share_plus:mergeReleaseAssets
+> Task :url_launcher_android:generateReleaseAssets UP-TO-DATE
+> Task :url_launcher_android:preBuild UP-TO-DATE
+> Task :url_launcher_android:preReleaseBuild UP-TO-DATE
+> Task :url_launcher_android:mergeReleaseAssets
+> Task :app:mergeReleaseAssets
+> Task :app:copyFlutterAssetsRelease
+> Task :app:generateReleaseResources
+> Task :app:packageReleaseResources
+> Task :google_mlkit_commons:processReleaseNavigationResources
+> Task :google_mlkit_text_recognition:processReleaseNavigationResources
+> Task :jni:processReleaseNavigationResources
+> Task :jni_flutter:processReleaseNavigationResources
+> Task :printing:processReleaseNavigationResources
+> Task :share_plus:processReleaseNavigationResources
+> Task :url_launcher_android:processReleaseNavigationResources
+> Task :app:processReleaseNavigationResources
+> Task :google_mlkit_commons:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :google_mlkit_commons:generateReleaseResources
+> Task :google_mlkit_commons:packageReleaseResources
+> Task :google_mlkit_text_recognition:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :google_mlkit_commons:javaPreCompileRelease
+> Task :google_mlkit_text_recognition:generateReleaseResources
+> Task :google_mlkit_text_recognition:packageReleaseResources
+> Task :google_mlkit_text_recognition:javaPreCompileRelease
+> Task :jni:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :jni:generateReleaseResources
+> Task :jni:packageReleaseResources
+> Task :google_mlkit_text_recognition:parseReleaseLocalResources
+> Task :google_mlkit_commons:parseReleaseLocalResources
+> Task :google_mlkit_text_recognition:generateReleaseRFile
+> Task :jni:javaPreCompileRelease
+> Task :jni_flutter:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :google_mlkit_commons:generateReleaseRFile
+> Task :jni_flutter:generateReleaseResources
+> Task :app:parseReleaseLocalResources
+> Task :jni:parseReleaseLocalResources
+> Task :app:generateReleaseRFile
+> Task :jni:generateReleaseRFile
+> Task :jni_flutter:packageReleaseResources
+> Task :jni:compileReleaseKotlin NO-SOURCE
+> Task :jni:compileReleaseJavaWithJavac
+> Task :jni:bundleLibCompileToJarRelease
+> Task :printing:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :jni_flutter:javaPreCompileRelease
+> Task :printing:generateReleaseResources
+> Task :jni_flutter:parseReleaseLocalResources
+> Task :printing:packageReleaseResources
+> Task :printing:javaPreCompileRelease
+> Task :share_plus:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :jni_flutter:generateReleaseRFile
+> Task :jni_flutter:compileReleaseKotlin NO-SOURCE
+
+> Task :google_mlkit_commons:compileReleaseKotlin
+w: file://<redacted-home>/.pub-cache/hosted/pub.dev/google_mlkit_commons-1.0.2/android/src/main/kotlin/com/google_mlkit_commons/InputImageConverter.kt:52:64 Java type mismatch: inferred type is 'String?', but 'String' was expected.
+
+> Task :printing:parseReleaseLocalResources
+> Task :jni_flutter:compileReleaseJavaWithJavac
+> Task :google_mlkit_commons:compileReleaseJavaWithJavac NO-SOURCE
+> Task :google_mlkit_commons:bundleLibCompileToJarRelease
+> Task :jni_flutter:bundleLibCompileToJarRelease
+> Task :printing:generateReleaseRFile
+> Task :printing:compileReleaseKotlin NO-SOURCE
+> Task :printing:compileReleaseJavaWithJavac
+> Task :printing:bundleLibCompileToJarRelease
+> Task :share_plus:generateReleaseResources
+> Task :share_plus:packageReleaseResources
+> Task :url_launcher_android:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :share_plus:javaPreCompileRelease
+> Task :url_launcher_android:generateReleaseBuildConfig
+> Task :share_plus:parseReleaseLocalResources
+> Task :url_launcher_android:generateReleaseResources
+> Task :google_mlkit_text_recognition:compileReleaseKotlin
+> Task :url_launcher_android:packageReleaseResources
+> Task :google_mlkit_text_recognition:compileReleaseJavaWithJavac NO-SOURCE
+> Task :google_mlkit_text_recognition:bundleLibCompileToJarRelease
+> Task :share_plus:generateReleaseRFile
+> Task :url_launcher_android:javaPreCompileRelease
+> Task :url_launcher_android:parseReleaseLocalResources
+> Task :url_launcher_android:generateReleaseRFile
+> Task :url_launcher_android:compileReleaseKotlin
+> Task :share_plus:compileReleaseKotlin
+> Task :url_launcher_android:compileReleaseJavaWithJavac
+> Task :share_plus:compileReleaseJavaWithJavac NO-SOURCE
+> Task :share_plus:bundleLibCompileToJarRelease
+> Task :url_launcher_android:bundleLibCompileToJarRelease
+
+> Task :app:compileReleaseKotlin
+w: file://<repo-root>/apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/FeldexaPlugin.kt:1072:22 Unnecessary safe call on a non-null receiver of type 'OperationHandle.CancellationClaim'.
+w: file://<repo-root>/apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/FeldexaPlugin.kt:1081:17 Expression is unused.
+
+[Incubating] Problems report is available at: file://<repo-root>/apps/feldexa_app/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 3m 21s
+80 actionable tasks: 76 executed, 4 up-to-date
