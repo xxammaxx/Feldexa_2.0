@@ -85,11 +85,11 @@ final class ImportFailurePresentation {
   /// Whether the `IMP-001` sentence's claim of password protection is exact.
   ///
   /// It is true only for a positively classified
-  /// `import.passwordProtected` failure. A PDF that is positively encrypted
-  /// but reported as `import.unsupportedEncryption` still uses the single
-  /// committed `IMP-001` catalog sentence, because the catalog has no second
-  /// German text and this mapper must not invent one; for that case the flag
-  /// is false to mark the open T041/owner wording question. `IMP-002`…
+  /// `import.passwordProtected` failure. A PDF that is positively reported as
+  /// `import.unsupportedEncryption` keeps the observed `IMP-001` code but is
+  /// rendered with the truthful `IMP-004` catalog text, because the catalog
+  /// has no German sentence for "encrypted with an unsupported mechanism";
+  /// this flag is false for that and every other failure. `IMP-002`…
   /// `IMP-007`, storage codes, cancellation, and unknown codes are all false.
   final bool passwordProtectionConfirmed;
 
@@ -152,8 +152,10 @@ final class ImportErrorMapper {
   /// Known import codes (`IMP-001`…`IMP-005`, `IMP-007`), cancellation
   /// (`IMP-000`, `PLT-004`), and the storage codes an import can surface
   /// (`SAVE-001`, `SAVE-002`, `SAVE-003`, `SAVE-005`, `SAVE-006`, `SAVE-007`,
-  /// `SAVE-008`) use their own catalog text. Any other code falls back to
-  /// `IMP-005` semantics (cause unknown), never to a password claim.
+  /// `SAVE-008`) use their own catalog text. An `IMP-001` finding that is not
+  /// the exact password diagnosis keeps the observed code but uses the
+  /// truthful `IMP-004` text (FR-007). Any other code falls back to `IMP-005`
+  /// semantics (cause unknown), never to a password claim.
   ///
   /// `IMP-006` is absent from this method by design: a partially readable
   /// source is a successful import and is presented through
@@ -175,21 +177,32 @@ final class ImportErrorMapper {
         );
       case 'IMP-001':
         // FR-007: only the positive `import.passwordProtected` diagnosis may
-        // claim password protection. `import.unsupportedEncryption` is a
-        // positive encryption finding but not necessarily a password, and the
-        // catalog has one shared IMP-001 sentence; the flag records that this
-        // wording is the open T041/owner question rather than silently
-        // rewording the catalog.
+        // claim password protection. T039 reports an encrypted PDF with an
+        // empty user password or an unsupported security handler as
+        // `IMP-001` / `import.unsupportedEncryption`; the catalog has no
+        // German sentence for "encrypted with an unsupported mechanism", so
+        // that finding is rendered with the existing truthful IMP-004
+        // ("not a supported PDF") text. The observed code stays IMP-001 for
+        // callers and diagnostics; only the presented sentence changes. A
+        // dedicated catalog code/wording remains an owner/T045 follow-up.
         final bool password =
             (error is ImportRejectedException &&
                 error.kind == ImportRejectionKind.passwordProtected) ||
             error.message == 'import.passwordProtected';
+        if (!password) {
+          return _catalog(
+            error: error,
+            presentationCode: 'IMP-004',
+            message: localizations.imp004,
+            recovery: localizations.imp004Recovery,
+          );
+        }
         return _catalog(
           error: error,
           presentationCode: 'IMP-001',
           message: localizations.imp001,
           recovery: localizations.imp001Recovery,
-          passwordProtectionConfirmed: password,
+          passwordProtectionConfirmed: true,
         );
       case 'IMP-002':
         return _catalog(

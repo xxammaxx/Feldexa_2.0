@@ -48,6 +48,19 @@ PageFailure _failure(int pageIndex) => PageFailure(
   messageKey: 'IMP-006',
 );
 
+/// The catalog row a failure is expected to present.
+///
+/// T039 reports `import.unsupportedEncryption` with the observed `IMP-001`
+/// code; T041 renders it with the truthful `IMP-004` sentence (FR-007). Every
+/// other failure presents the row named by its own code.
+String _presentedCode(FeldexaException error) {
+  if (error is ImportRejectedException &&
+      error.kind == ImportRejectionKind.unsupportedEncryption) {
+    return 'IMP-004';
+  }
+  return error.code;
+}
+
 /// A typed failure with an arbitrary catalog code, like a future adapter code
 /// the mapper has not seen yet.
 final class _CodeException extends FeldexaException {
@@ -104,8 +117,8 @@ void main() {
         ),
         (
           ImportRejectedException(ImportRejectionKind.unsupportedEncryption),
-          l10n.imp001,
-          l10n.imp001Recovery,
+          l10n.imp004,
+          l10n.imp004Recovery,
         ),
         (
           ImportRejectedException(ImportRejectionKind.unreadable),
@@ -175,8 +188,8 @@ void main() {
         );
         expect(
           presentation.presentationCode,
-          error.code,
-          reason: '${error.code} must use its own catalog row',
+          _presentedCode(error),
+          reason: '${error.code} catalog presentation',
         );
         expect(presentation.isCancellation, isFalse, reason: error.code);
       }
@@ -233,27 +246,44 @@ void main() {
       expect(password.passwordProtectionConfirmed, isTrue);
     });
 
+    test('unsupported encryption uses the truthful IMP-004 text with a false '
+        'exactness flag', () {
+      final ImportFailurePresentation presentation = mapper.describe(
+        ImportRejectedException(ImportRejectionKind.unsupportedEncryption),
+      );
+      expect(presentation.code, 'IMP-001');
+      expect(presentation.presentationCode, 'IMP-004');
+      expect(presentation.message, l10n.imp004);
+      expect(presentation.recovery, l10n.imp004Recovery);
+      expect(presentation.passwordProtectionConfirmed, isFalse);
+    });
+
     test(
-      'unsupported encryption uses IMP-001 text with a false exactness flag',
+      'a raw IMP-001 code with the unsupported-encryption key renders IMP-004',
       () {
         final ImportFailurePresentation presentation = mapper.describe(
-          ImportRejectedException(ImportRejectionKind.unsupportedEncryption),
+          _CodeException('IMP-001', message: 'import.unsupportedEncryption'),
         );
         expect(presentation.code, 'IMP-001');
-        expect(presentation.presentationCode, 'IMP-001');
-        expect(presentation.message, l10n.imp001);
+        expect(presentation.presentationCode, 'IMP-004');
+        expect(presentation.message, l10n.imp004);
+        expect(presentation.recovery, l10n.imp004Recovery);
         expect(presentation.passwordProtectionConfirmed, isFalse);
       },
     );
 
     test(
-      'an IMP-001 code with the unsupported-encryption key is not exact',
+      'regression: unsupported encryption never renders the password sentence',
       () {
         final ImportFailurePresentation presentation = mapper.describe(
-          _CodeException('IMP-001', message: 'import.unsupportedEncryption'),
+          ImportRejectedException(ImportRejectionKind.unsupportedEncryption),
         );
-        expect(presentation.message, l10n.imp001);
+        expect(presentation.message, l10n.imp004);
+        expect(presentation.recovery, l10n.imp004Recovery);
+        expect(presentation.message, isNot(l10n.imp001));
         expect(presentation.passwordProtectionConfirmed, isFalse);
+        expect(presentation.message, isNot(contains('passwortgeschützt')));
+        expect(presentation.recovery, isNot(contains('passwortgeschützt')));
       },
     );
 
