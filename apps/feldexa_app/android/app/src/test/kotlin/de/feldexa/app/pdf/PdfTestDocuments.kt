@@ -47,6 +47,12 @@ internal object PdfTestDocuments {
 
     fun emptyDocument(): ByteArray = PDDocument().use { document -> save(document) }
 
+    /** A synthetic document with [count] simple A4 pages, in page order. */
+    fun pages(count: Int): ByteArray {
+        require(count >= 0) { "page count must be non-negative" }
+        return document(*Array(count) { PageSpec() })
+    }
+
     fun inheritedMediaBox(media: BoxSpec, pageCount: Int): ByteArray =
         PDDocument().use { document ->
             document.pages.cosObject.setItem(COSName.MEDIA_BOX, media.toRectangle())

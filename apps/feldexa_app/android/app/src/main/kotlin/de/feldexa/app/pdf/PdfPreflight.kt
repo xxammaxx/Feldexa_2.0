@@ -122,6 +122,13 @@ class PdfPreflight private constructor(
             if (pageCount <= 0) {
                 return reject(Rejection.UNSUPPORTED_STRUCTURE, startedAt)
             }
+            // `plan.md` §Scale/Scope and `contracts/storage-format.md` §6 cap
+            // a document at 100 pages. Bound the single reported count before
+            // any per-page collection or walk, so a hostile page tree cannot
+            // force unbounded allocation or page access.
+            if (pageCount > MAX_PAGE_COUNT) {
+                return reject(Rejection.UNSUPPORTED_STRUCTURE, startedAt)
+            }
 
             val pages = ArrayList<PdfPreflightPage>(pageCount)
             for (index in 0 until pageCount) {
@@ -389,6 +396,7 @@ class PdfPreflight private constructor(
         private const val TAIL_WINDOW_BYTES = 64 * 1024
         private const val XREF_MARKER_WINDOW_BYTES = 64
         private const val MINIMUM_PDF_BYTES = 8L
+        private const val MAX_PAGE_COUNT = 100
         private const val MAX_OFFSET_DIGITS = 18
         private const val PDF_HEADER = "%PDF-"
         private const val EOF_MARKER = "%%EOF"

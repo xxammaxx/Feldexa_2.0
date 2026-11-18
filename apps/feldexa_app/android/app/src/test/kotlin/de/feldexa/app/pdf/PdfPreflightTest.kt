@@ -281,6 +281,56 @@ class PdfPreflightTest {
     }
 
     @Test
+    fun `rejects an absurd reported page count before any page access`() {
+        val document = ReportedPageCountDocument(10_000) {
+            throw AssertionError("page access must not happen before the page-count bound")
+        }
+        val guarded = PdfPreflight(loader = PdfDocumentLoader { document })
+
+        val failure = failure(
+            guarded.preflight(source(PdfTestDocuments.document(PdfTestDocuments.PageSpec()))),
+        )
+
+        assertFailure(failure, "IMP-004", "import.unsupportedStructure", "notPdf")
+        assertEquals(0, document.pageAccessCalls)
+        assertTrue(document.closed)
+    }
+
+    @Test
+    fun `rejects a 101-page document as IMP-004`() {
+        val failure = failure(preflight.preflight(source(PdfTestDocuments.pages(101))))
+
+        assertFailure(failure, "IMP-004", "import.unsupportedStructure", "notPdf")
+    }
+
+    @Test
+    fun `accepts the 100-page boundary with every page geometry`() {
+        val result = success(preflight.preflight(source(PdfTestDocuments.pages(100))))
+
+        assertEquals(100, result.pageCount)
+        assertTrue(result.pageFailures.isEmpty())
+        assertEquals((0 until 100).toList(), result.pages.map { it.pageIndex })
+        assertBox(result.pages.first().mediaBox, 0.0, 0.0, 595.28, 841.89)
+        assertBox(result.pages.last().mediaBox, 0.0, 0.0, 595.28, 841.89)
+    }
+
+    @Test
+    fun `rejects an over-limit page tree whose pages do not exist without walking`() {
+        val document = ReportedPageCountDocument(101) {
+            throw IOException("synthetic page does not exist")
+        }
+        val guarded = PdfPreflight(loader = PdfDocumentLoader { document })
+
+        val failure = failure(
+            guarded.preflight(source(PdfTestDocuments.document(PdfTestDocuments.PageSpec()))),
+        )
+
+        assertFailure(failure, "IMP-004", "import.unsupportedStructure", "notPdf")
+        assertEquals(0, document.pageAccessCalls)
+        assertTrue(document.closed)
+    }
+
+    @Test
     fun `classifies damaged parse failures as IMP-002`() {
         val guarded = PdfPreflight(
             loader = PdfDocumentLoader {
@@ -511,6 +561,30 @@ class PdfPreflightTest {
 
         var closed: Boolean = false
             private set
+
+        override fun close() {
+            closed = true
+            super.close()
+        }
+    }
+
+    private class ReportedPageCountDocument(
+        private val reportedPageCount: Int,
+        private val pageAccessor: (Int) -> PDPage,
+    ) : PDDocument() {
+
+        var pageAccessCalls: Int = 0
+            private set
+
+        var closed: Boolean = false
+            private set
+
+        override fun getNumberOfPages(): Int = reportedPageCount
+
+        override fun getPage(pageIndex: Int): PDPage {
+            pageAccessCalls++
+            return pageAccessor(pageIndex)
+        }
 
         override fun close() {
             closed = true
