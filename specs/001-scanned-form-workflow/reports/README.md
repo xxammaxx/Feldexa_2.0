@@ -403,6 +403,7 @@ the git bundle and are not bundle-verifiable.
 | [2026-11-12-task-issue-mapping.md](./2026-11-12-task-issue-mapping.md) | `NONE` | Historical snapshot | 2026-11-12T15:50Z all-open mapping; not live issue state |
 | [2026-11-12-task-issue-mapping.json](./2026-11-12-task-issue-mapping.json) | `NONE` | Historical snapshot | Machine-readable dated snapshot; do not overwrite with current state |
 | `backups/` | — | Not evidence | Pre-edit snapshots |
+| [2026-11-18-t049-evidence.md](./2026-11-18-t049-evidence.md) | `NONE` | Task evidence | T049 German import-message and error-semantics tests; 14 new host-VM tests (258 total, 16 VM suites, 0 failures); exact catalog text for 21 import-reachable cases, FR-007 password truthfulness including the truthful `IMP-004` unsupported-encryption rendering, FR-094 no codes/paths/URIs/content in text or identities, FR-009 zero document creation for every rejection/cancellation/untyped failure, and `IMP-006` success with ascending 1-based pages matching T044; no Android runtime, emulator, browser or device evidence; no production, ARB or Gradle change |
 
 New reports append a row here in the same change. Results are run outcomes, not
 approval.
