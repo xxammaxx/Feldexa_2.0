@@ -61,8 +61,12 @@ final class ImportFailurePresentation {
 
   /// Catalog code whose German text is shown.
   ///
-  /// This differs from [code] only when the observed code has no dedicated
-  /// import presentation; the mapper then uses the `IMP-005` text.
+  /// This is the observed [code] for every ordinary mapping. It deliberately
+  /// differs when a mapped failure has no dedicated catalog row: an
+  /// `IMP-001` / `import.rejected.unsupportedEncryption` finding keeps the
+  /// observed `IMP-001` code but presents the truthful `IMP-004` text, and an
+  /// unmapped code presents the `IMP-005` text. Callers and diagnostics read
+  /// [code]; only the sentence selection follows [presentationCode].
   final String presentationCode;
 
   /// Exact German primary message, or `null` when the catalog defines none.
@@ -86,12 +90,13 @@ final class ImportFailurePresentation {
   /// Whether the `IMP-001` sentence's claim of password protection is exact.
   ///
   /// It is true only for a positively classified
-  /// `import.passwordProtected` failure. A PDF that is positively reported as
-  /// `import.unsupportedEncryption` keeps the observed `IMP-001` code but is
-  /// rendered with the truthful `IMP-004` catalog text, because the catalog
-  /// has no German sentence for "encrypted with an unsupported mechanism";
-  /// this flag is false for that and every other failure. `IMP-002`…
-  /// `IMP-007`, storage codes, cancellation, and unknown codes are all false.
+  /// `import.rejected.passwordProtected` failure. A PDF that is positively
+  /// reported as `import.rejected.unsupportedEncryption` keeps the observed
+  /// `IMP-001` code but is rendered with the truthful `IMP-004` catalog text,
+  /// because the catalog has no German sentence for "encrypted with an
+  /// unsupported mechanism"; this flag is false for that and every other
+  /// failure. `IMP-002`… `IMP-007`, storage codes, cancellation, and unknown
+  /// codes are all false.
   final bool passwordProtectionConfirmed;
 
   /// Whether this presentation is the unknown-cause `IMP-005` fallback.
@@ -101,10 +106,10 @@ final class ImportFailurePresentation {
   /// catalog code (the mapper's default branch) or
   /// [ImportErrorMapper.unclassified] for a non-[FeldexaException] with no
   /// observed code. Every mapped code is false, including
-  /// `import.unsupportedEncryption`, which keeps the observed `IMP-001` code
-  /// while deliberately presenting the `IMP-004` text. This is explicit state,
-  /// not derived from `code != presentationCode`, because a mapped code may
-  /// legitimately present a different catalog row.
+  /// `import.rejected.unsupportedEncryption`, which keeps the observed
+  /// `IMP-001` code while deliberately presenting the `IMP-004` text. This is
+  /// explicit state, not derived from `code != presentationCode`, because a
+  /// mapped code may legitimately present a different catalog row.
   final bool isUnrecognized;
 
   /// Whether the platform defined a user-visible message for this failure.
@@ -187,19 +192,24 @@ final class ImportErrorMapper {
           isUnrecognized: false,
         );
       case 'IMP-001':
-        // FR-007: only the positive `import.passwordProtected` diagnosis may
-        // claim password protection. T039 reports an encrypted PDF with an
-        // empty user password or an unsupported security handler as
-        // `IMP-001` / `import.unsupportedEncryption`; the catalog has no
-        // German sentence for "encrypted with an unsupported mechanism", so
-        // that finding is rendered with the existing truthful IMP-004
-        // ("not a supported PDF") text. The observed code stays IMP-001 for
-        // callers and diagnostics; only the presented sentence changes. A
-        // dedicated catalog code/wording remains an owner/T045 follow-up.
+        // FR-007: only the positive password diagnosis may claim password
+        // protection. The typed kind is the primary signal; a raw
+        // FeldexaException is accepted only when its machine message equals the
+        // canonical ports key for `ImportRejectionKind.passwordProtected`.
+        // Deriving that key from the ports extension keeps one source of truth.
+        // T039 reports an encrypted PDF with an empty user password or an
+        // unsupported security handler as `IMP-001` /
+        // `import.rejected.unsupportedEncryption`; the catalog has no German
+        // sentence for "encrypted with an unsupported mechanism", so that
+        // finding is rendered with the existing truthful IMP-004 ("not a
+        // supported PDF") text. The observed code stays IMP-001 for callers
+        // and diagnostics; only the presented sentence changes. A dedicated
+        // catalog code/wording remains an owner/T045 follow-up.
         final bool password =
             (error is ImportRejectedException &&
                 error.kind == ImportRejectionKind.passwordProtected) ||
-            error.message == 'import.passwordProtected';
+            error.message ==
+                ImportRejectionKind.passwordProtected.machineMessage;
         if (!password) {
           return _catalog(
             error: error,
