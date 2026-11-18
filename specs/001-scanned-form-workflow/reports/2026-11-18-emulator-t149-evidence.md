@@ -114,7 +114,7 @@ the sanitized logcat excerpts (§8). No result is inferred from a screenshot.
 ```text
 EMULATOR: Pixel 7 API 35, exclusive allocation T149 2026-11-18
           AVD T025_Pixel7_API35_KVM_20261115
-          serial emulator-5554; exactly one adb device before and after
+          serial emulator-5554; exactly one adb device attached before the run
           system image google/sdk_gphone64_x86_64/emu64xa (API 35, userdebug)
           fingerprint google/sdk_gphone64_x86_64/emu64xa:15/AE3A.240806.043/12960925:userdebug/dev-keys
           guest model sdk_gphone64_x86_64; ro.build.version.sdk=35
@@ -212,11 +212,13 @@ behaviour and are not aggregated with the `EMULATOR` result.
 | 5 | `git diff --check` (repository root, final tree) | `0` | console only (not retained) | `PASS` |
 
 `flutter analyze` reported `No issues found!`. The full host run ended with
-`00:15 +264: All tests passed!` and no failure or skip line. The default runner
-loaded 16 VM test files in that log; the dispatch baseline cites 17 VM suites /
-19 files for the repository's wider test set (browser-tagged and separately
-invoked files are not discovered by this default command). The observed
-authoritative numbers for this command are 264 tests, 0 failures.
+`00:15 +264: All tests passed!` and no failure line: 264 tests, 0 failures.
+Those 264 tests are the 17 VM suites among the 20 test files at this base; the
+other three files are browser-only (`platform_registry_web_test.dart`,
+`web_fixtures_browser_test.dart`, `web_import_browser_entry_test.dart`). The
+captured progress text is lossy — the runner rewrites progress lines and omits
+`android_backup_rules_test.dart`'s three tests from the text while the final
+counter remains 264 — so a file-name count in that log is not a suite count.
 
 ### 4.3 Conditional checks not run
 
@@ -238,7 +240,7 @@ The following were not run and are **not** presented as passes:
 
 | Scenario | Input / action | Observed | Verdict |
 | --- | --- | --- | --- |
-| Round 1 accepted import through the real system picker | In-app `PDF importieren` action; `DocumentsUI` → `Downloads` → `t149-sf-001.pdf` | Picker opened as `ACTION_OPEN_DOCUMENT`; the selection returned to the app; the editor route appeared; `EditorScreen.source.pageCount == 2`; no `IMP-006` warning; both `page-strip-page-1` and `page-strip-page-2` are present | `PASS` |
+| Round 1 accepted import through the real system picker | In-app `PDF importieren` action; `DocumentsUI` → `Downloads` → `t149-sf-001.pdf` | Picker opened as `ACTION_OPEN_DOCUMENT`; the selection returned to the app; the editor route appeared; `EditorScreen.source.pageCount == 2`; no page failures (therefore no `IMP-006` warning); both `page-strip-page-1` and `page-strip-page-2` are present | `PASS` |
 | German navigation text and page strip | Full strip in landscape (914.3 dp) | Page 1 semantics label `Seite 1 von 2`, page 2 label `Seite 2 von 2`, both from `AppLocalizations.a11yPageNavigation`; page 1 selected, page 2 not selected | `PASS` |
 | Page navigation | Tap the page-2 strip control | Page 2 selected; page 1 no longer selected; `PageViewController.mappingFor(1).pageRectInViewport.top` is 0 (±1 logical pixel) and page 1 is above the viewport | `PASS` |
 | Viewer composition and real render | Mounted `PageView` | Controller reports 2 pages; a `RawImage` with a non-null `ui.Image` exists inside the page-1 slot after the production pdfrx renderer completes | `PASS` |
@@ -349,10 +351,14 @@ identifiers, and system UI labels; no document content.
    it. Confirm exactly one adb device and `sys.boot_completed=1`.
 3. From the repository root, with Flutter `3.47.7` and Android platform-tools
    on `PATH`, run `tools/android/t149_drive_picker.sh`. The driver resolves the
-   worktree, app, APK, artifact directory, and serial; it pushes the two
-   committed synthetic fixtures to the device Downloads and staging
+   worktree, app, APK, a fresh `mktemp` run directory, and serial; it writes
+   pulled dumps, intermediates, logs, and the working sequence there, pushes
+   the two committed synthetic fixtures to the device Downloads and staging
    directories, verifies both SHA-256 values, sets landscape, clears the
-   logcat buffer, and starts the test.
+   logcat buffer, and starts the test. A rerun must not overwrite report-bound
+   artifacts: the driver writes to a fresh `mktemp` run directory by default
+   and only replaces an explicitly bound `T149_EVIDENCE_DIR` after a full
+   backup with `T149_REPLACE_EVIDENCE=1`.
 4. Wait for `T149_PICKER_READY:1`; after `DocumentsUI` is resumed, the driver
    taps `Show roots` at `209,137`, `Downloads` at `577,588`, and the
    `t149-sf-001.pdf` row at `405,850`. After `T149_PICKER_READY:2`, it taps the
@@ -363,7 +369,8 @@ identifiers, and system UI labels; no document content.
    mounted viewer, rendered page, exact rejection text, store counts 0 → 1,
    read-back SHA-256, page-1 render digest, and deletion. Its final cleanup
    returns the `document` set to the pre-run set; the driver removes the pushed
-   fixtures, staging directory, device dumps, and restores rotation.
+   fixtures, staging directory, device dumps, and temporary host dumps, and
+   restores rotation.
 6. Host-only reproduction: from `apps/feldexa_app` run
    `flutter analyze --no-pub`, `flutter test --no-pub`, and
    `dart format --output=none --set-exit-if-changed integration_test/android_us1_journey_test.dart`;

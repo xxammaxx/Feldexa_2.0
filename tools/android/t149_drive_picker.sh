@@ -11,8 +11,18 @@
 #      the background and waits for the `T149_PICKER_READY:<n>` logcat markers;
 #   5. drives DocumentsUI with `uiautomator dump` + `input tap`: open the
 #      roots drawer, select Downloads, and tap the exact `t149-sf-*.pdf` row;
-#   6. captures logs, dumps, device identity, and fixture hashes;
-#   7. restores rotation and removes every pushed fixture and dump.
+#   6. captures logs, dumps, device identity, and fixture hashes in a fresh
+#      per-run directory;
+#   7. restores rotation and removes every pushed fixture and device dump.
+#
+# Report-bound artifacts are never deleted or truncated. By default every
+# working file and the final evidence set are written under a fresh `mktemp`
+# run directory (`$T149_RUN_DIR` may name a new, not-yet-existing directory).
+# `T149_EVIDENCE_DIR` may bind an explicit evidence directory; a non-empty
+# target is refused unless `T149_REPLACE_EVIDENCE=1` is set, in which case the
+# existing directory is backed up under the run directory before files are
+# replaced. Temporary host dumps are removed by the cleanup trap; the run
+# directory itself is retained for review.
 #
 # Test-only tooling: it adds no production dependency and changes no app file.
 # Usage (repo root): tools/android/t149_drive_picker.sh
@@ -23,8 +33,12 @@ ADB="${T149_ADB:-$HOME/Android/Sdk/platform-tools/adb}"
 FLUTTER="${T149_FLUTTER:-$HOME/flutter/bin/flutter}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 APP="$ROOT/apps/feldexa_app"
-ART="${T149_ARTIFACT_DIR:-$ROOT/specs/001-scanned-form-workflow/reports/artifacts/t149-2026-11-18}"
-LOG="$ART/integration-android-us1.log"
+RUN_DIR="${T149_RUN_DIR:-$(mktemp -d "${TMPDIR:-/tmp}/feldexa-t149-run.XXXXXX")}"
+EVIDENCE_DIR="${T149_EVIDENCE_DIR:-$RUN_DIR/evidence}"
+LOG="$RUN_DIR/integration-android-us1.log"
+XML_DIR="$RUN_DIR/working-xml"
+SEQUENCE="$RUN_DIR/picker-sequence.txt"
+BACKUP_DIR=""
 
 DOWNLOADS="/sdcard/Download"
 STAGING="/data/local/tmp/t149-fixtures"
@@ -35,11 +49,6 @@ FIXTURES=(
   "sf-protected.pdf:t149-sf-protected.pdf"
 )
 ROUND_FILES=("t149-sf-001.pdf" "t149-sf-protected.pdf")
-
-mkdir -p "$ART"
-rm -f "$ART"/picker-round*.xml "$ART"/logcat-*.log "$ART"/integration-android-us1.log
-SEQUENCE="$ART/picker-sequence.txt"
-: >"$SEQUENCE"
 
 TEST_PID=""
 TEST_EXIT=255
@@ -62,9 +71,31 @@ record() {
   printf '%s\n' "$*" >>"$SEQUENCE"
 }
 
-ORIGINAL_ROTATION="$(settings_get system user_rotation || true)"
-ORIGINAL_ACCELEROMETER="$(settings_get system accelerometer_rotation || true)"
-ORIGINAL_STAY_ON="$(settings_get global stay_on_while_plugged_in || true)"
+fail() {
+  log "T149 DRIVER: $*"
+  exit 1
+}
+
+if [[ -n "${T149_RUN_DIR:-}" ]]; then
+  if [[ -e "$RUN_DIR" ]]; then
+    log "T149 DRIVER: refusing to reuse existing run directory $RUN_DIR"
+    exit 1
+  fi
+  mkdir -p "$RUN_DIR" "$XML_DIR" || {
+    log "T149 DRIVER: cannot create run directory $RUN_DIR"
+    exit 1
+  }
+else
+  [[ -n "$RUN_DIR" ]] || {
+    log "T149 DRIVER: cannot create a temporary run directory"
+    exit 1
+  }
+  mkdir -p "$XML_DIR" || {
+    log "T149 DRIVER: cannot create $XML_DIR"
+    exit 1
+  }
+fi
+: >"$SEQUENCE"
 
 cleanup() {
   if [[ "$CLEANED" -eq 1 ]]; then
@@ -79,6 +110,8 @@ cleanup() {
   adb_shell rm -f "$DOWNLOADS"/t149-sf-001.pdf "$DOWNLOADS"/t149-sf-protected.pdf >/dev/null
   adb_shell rm -rf "$STAGING" >/dev/null
   adb_shell rm -f "${DUMPS[@]}" /sdcard/t149-probe.pdf >/dev/null
+  rm -rf "$XML_DIR"
+  rm -f "$RUN_DIR/logcat-full.txt"
   if [[ -n "${ORIGINAL_ROTATION:-}" ]]; then
     adb_shell settings put system user_rotation "$ORIGINAL_ROTATION" >/dev/null
   fi
@@ -91,10 +124,56 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-fail() {
-  log "T149 DRIVER: $*"
-  exit 1
+prepare_evidence_dir() {
+  if [[ "$EVIDENCE_DIR" == "$RUN_DIR" ]]; then
+    fail "evidence directory must not be the run directory root"
+  fi
+  if [[ -L "$EVIDENCE_DIR" ]]; then
+    fail "evidence path must not be a symbolic link: $EVIDENCE_DIR"
+  fi
+  if [[ -e "$EVIDENCE_DIR" ]]; then
+    [[ -d "$EVIDENCE_DIR" ]] || fail "evidence path is not a directory: $EVIDENCE_DIR"
+    local first
+    first="$(find "$EVIDENCE_DIR" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null || true)"
+    if [[ -n "$first" ]]; then
+      if [[ "${T149_REPLACE_EVIDENCE:-0}" != "1" ]]; then
+        fail "refusing to overwrite existing evidence in $EVIDENCE_DIR; bind a fresh T149_EVIDENCE_DIR or set T149_REPLACE_EVIDENCE=1 to back up and replace"
+      fi
+      BACKUP_DIR="$RUN_DIR/evidence-backup"
+      mkdir -p "$BACKUP_DIR" || fail "cannot create evidence backup directory"
+      cp -a "$EVIDENCE_DIR"/. "$BACKUP_DIR"/ || fail "evidence backup failed"
+      log "T149 DRIVER: backed up existing evidence to $BACKUP_DIR"
+    fi
+  else
+    mkdir -p "$EVIDENCE_DIR" || fail "cannot create evidence directory $EVIDENCE_DIR"
+  fi
 }
+
+collect_evidence() {
+  local file
+  for file in \
+    integration-android-us1.log \
+    picker-sequence.txt \
+    picker-round1-roots.xml \
+    picker-round1-drawer.xml \
+    picker-round1-downloads.xml \
+    picker-round2-downloads.xml \
+    device-identity.txt \
+    fixture-sha256.txt \
+    apk-sha256.txt \
+    logcat-flutter.log \
+    logcat-picker-markers.log; do
+    if [[ -f "$RUN_DIR/$file" ]]; then
+      cp "$RUN_DIR/$file" "$EVIDENCE_DIR/$file" ||
+        fail "cannot write evidence file $file"
+    fi
+  done
+  log "T149 DRIVER: evidence written to $EVIDENCE_DIR"
+}
+
+prepare_evidence_dir
+log "T149 DRIVER: run directory $RUN_DIR"
+log "T149 DRIVER: evidence directory $EVIDENCE_DIR"
 
 # --- 1. Device identity -----------------------------------------------------
 DEVICES="$("$ADB" devices | awk 'NR>1 && NF>=2 && $2=="device" {print $1}')"
@@ -102,6 +181,10 @@ DEVICES="$("$ADB" devices | awk 'NR>1 && NF>=2 && $2=="device" {print $1}')"
   fail "expected exactly one attached device, got: ${DEVICES:-none}"
 [[ "$DEVICES" == "$SERIAL" ]] ||
   fail "attached device is $DEVICES, expected $SERIAL"
+
+ORIGINAL_ROTATION="$(settings_get system user_rotation || true)"
+ORIGINAL_ACCELEROMETER="$(settings_get system accelerometer_rotation || true)"
+ORIGINAL_STAY_ON="$(settings_get global stay_on_while_plugged_in || true)"
 
 {
   log "serial=$SERIAL"
@@ -116,7 +199,7 @@ DEVICES="$("$ADB" devices | awk 'NR>1 && NF>=2 && $2=="device" {print $1}')"
   log "wm_density=$(adb_shell wm density | tr '\n' ' ')"
   log "mem_total_kb=$(adb_shell cat /proc/meminfo | awk '/MemTotal/ {print $2}')"
   log "documentsui=$(adb_shell pm list packages com.google.android.documentsui)"
-} >"$ART/device-identity.txt"
+} >"$RUN_DIR/device-identity.txt"
 
 # --- 2. Fixtures ------------------------------------------------------------
 adb_shell mkdir -p "$STAGING" >/dev/null
@@ -139,7 +222,7 @@ adb_shell chmod 644 "$STAGING"/*.pdf >/dev/null
     log "picker $DOWNLOADS/$picker_name $(adb_shell sha256sum "$DOWNLOADS/$picker_name")"
     log "staging $STAGING/$source_name $(adb_shell sha256sum "$STAGING/$source_name")"
   done
-} >"$ART/fixture-sha256.txt"
+} >"$RUN_DIR/fixture-sha256.txt"
 
 # --- 3. Device setup: landscape and screen awake ---------------------------
 adb_shell settings put system accelerometer_rotation 0 >/dev/null
@@ -305,7 +388,7 @@ PY
 
 drive_picker() {
   local round="$1" target="$2"
-  local xml="$ART/picker-round$round.xml"
+  local xml="$XML_DIR/picker-round$round.xml"
   local device_dump="${DUMPS[$((round - 1))]}"
   local attempts=0
 
@@ -323,9 +406,9 @@ drive_picker() {
         # shellcheck disable=SC2086
         set -- $action
         case "$4" in
-          roots) cp "$xml" "$ART/picker-round$round-roots.xml" ;;
-          downloads) cp "$xml" "$ART/picker-round$round-drawer.xml" ;;
-          file) cp "$xml" "$ART/picker-round$round-downloads.xml" ;;
+          roots) cp "$xml" "$RUN_DIR/picker-round$round-roots.xml" ;;
+          downloads) cp "$xml" "$RUN_DIR/picker-round$round-drawer.xml" ;;
+          file) cp "$xml" "$RUN_DIR/picker-round$round-downloads.xml" ;;
         esac
         record "round $round attempt $attempts tab $4 at $2,$3"
         adb_shell input tap "$2" "$3" >/dev/null
@@ -388,13 +471,15 @@ TEST_EXIT=$?
     [[ -f "$apk" ]] || continue
     sha256sum "$apk"
   done
-} >"$ART/apk-sha256.txt"
+} >"$RUN_DIR/apk-sha256.txt"
 
-adb_shell logcat -d -v threadtime >"$ART/logcat-full.txt" 2>/dev/null
-"$ADB" -s "$SERIAL" logcat -d -v threadtime -s flutter >"$ART/logcat-flutter.log" 2>/dev/null
+adb_shell logcat -d -v threadtime >"$RUN_DIR/logcat-full.txt" 2>/dev/null
+"$ADB" -s "$SERIAL" logcat -d -v threadtime -s flutter >"$RUN_DIR/logcat-flutter.log" 2>/dev/null
 grep -E "T149_|ActivityTaskManager.*(documentsui|de\.feldexa)|ActivityTaskManager.*START" \
-  "$ART/logcat-full.txt" >"$ART/logcat-picker-markers.log" 2>/dev/null
-rm -f "$ART/logcat-full.txt"
+  "$RUN_DIR/logcat-full.txt" >"$RUN_DIR/logcat-picker-markers.log" 2>/dev/null
+rm -f "$RUN_DIR/logcat-full.txt"
+
+collect_evidence
 
 if [[ "$TEST_EXIT" -eq 0 ]] && marker_present "CLEANUP_DONE"; then
   log "T149 DRIVER: PASS (flutter test exit 0; cleanup marker observed)"
