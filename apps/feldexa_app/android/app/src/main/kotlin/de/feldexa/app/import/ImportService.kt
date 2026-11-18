@@ -534,7 +534,10 @@ class ImportService(
         /** Bounded read chunk; the picked source is never read whole. */
         const val CHUNK_BYTES: Int = 64 * 1024
 
-        private const val DEFAULT_TITLE = "Dokument"
+        // Neutral fallback when the provider supplies no display name. T041
+        // owns any localized default title wording; this task adds no German
+        // UI text.
+        private const val DEFAULT_TITLE = "PDF"
         private const val MAX_TITLE_LENGTH = 200
         private const val MAX_ORIGINAL_NAME_LENGTH = 255
 
