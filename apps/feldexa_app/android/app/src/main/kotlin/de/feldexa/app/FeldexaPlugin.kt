@@ -332,6 +332,9 @@ private val ALLOWED_MACHINE_MESSAGES: Set<String> = setOf(
     "save.keyUnavailable", "save.corruptData", "save.writeFailed",
     "save.schemaTooNew", "save.keystoreUnavailable",
     "import.passwordProtected", "import.unreadable", "import.missing", "import.notPdf",
+    // T040: T039's precise IMP-001/IMP-004 distinctions must survive the
+    // channel without over-claiming password protection or not-PDF.
+    "import.unsupportedEncryption", "import.unsupportedStructure",
     "import.unknown", "import.partiallyUnreadable", "import.tooLarge", "import.cancelled",
     "export.blocked", "export.failed", "export.geometryInvalid", "export.missingGlyph",
     "export.sourceUnreadable", "export.pageNotCopiable", "export.cancelled",
@@ -467,6 +470,19 @@ class OperationContext internal constructor(
 ) {
     val isCancelled: Boolean
         get() = handle.isCancelled
+
+    /**
+     * T040: lock-free cancellation-claim signal.
+     *
+     * Services that hold their own staged-state cleanup lock while running a
+     * long operation must not call [checkCancelled] there: the facade's
+     * cancellation cleanup holds the operation-handle lock while it waits for
+     * that staged-state lock, so taking the handle lock on the service side
+     * would invert the order. This flag is set by the winning claim before any
+     * cleanup runs and never acquires the handle lock.
+     */
+    internal val isCancellationClaimed: Boolean
+        get() = handle.hasClaimedCancellation()
 
     fun checkCancelled() {
         if (handle.isCancellationRequested) throw PlatformFailure.cancelled()
