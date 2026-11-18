@@ -16,12 +16,15 @@ import java.util.UUID
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * T024: the single Flutter <-> Android platform facade.
@@ -466,8 +469,38 @@ class OperationContext internal constructor(
         get() = handle.isCancelled
 
     fun checkCancelled() {
-        if (handle.isCancelled) throw PlatformFailure.cancelled()
+        if (handle.isCancellationRequested) throw PlatformFailure.cancelled()
     }
+
+    /**
+     * T038 review correction rounds 1-2: registers the one cleanup action for
+     * this operation. The action runs exactly once inside the handle's
+     * cancellation linearization:
+     *
+     * * if cancellation is already pending, it runs immediately while the
+     *   handle lock is held, so the recorded failure is visible before
+     *   cancellation is observable or published;
+     * * if cancellation is claimed after registration, the facade hands the
+     *   detached action to its cancellation executor, which still runs it under
+     *   the same lock.
+     *
+     * The action must be bounded and must not call back into the handle.
+     * Cancellation cannot be observed as terminal ([isCancelled], terminal
+     * publication) until the action finished. A failing cleanup must be
+     * reported through [recordCancellationCleanupFailure] so the terminal
+     * result is a non-cancelled failure instead of a clean `PLT-004`.
+     */
+    internal fun registerCancellationCleanup(action: () -> Unit) {
+        handle.setCancelCleanup(action)
+    }
+
+    /** Records why the registered cleanup could not remove the staged state. */
+    internal fun recordCancellationCleanupFailure(failure: PlatformFailure) {
+        handle.recordCancelActionFailure(failure)
+    }
+
+    /** Non-null when cancellation won but the cleanup retained staged state. */
+    internal fun cancellationCleanupFailure(): PlatformFailure? = handle.cancelActionFailure()
 
     fun progress(kind: String, phase: String, fraction: Double, pageIndex: Int? = null) {
         checkCancelled()
@@ -494,10 +527,7 @@ class OperationRegistry {
         active.remove(handle.id, handle)
     }
 
-    fun cancel(operationId: String): Boolean {
-        val handle = active[operationId] ?: return false
-        return handle.cancel()
-    }
+    internal fun find(operationId: String): OperationHandle? = active[operationId]
 
     internal fun clear() {
         active.clear()
@@ -505,48 +535,173 @@ class OperationRegistry {
 }
 
 class OperationHandle internal constructor(val id: String) {
-    private enum class State { ACTIVE, CANCELLED, COMPLETED }
+    private enum class State { ACTIVE, CANCELLING, CANCELLED, COMPLETED }
 
-    private val lock = Any()
+    /** One cancellation claim; [cleanup] is set when a registered action was detached. */
+    internal class CancellationClaim(
+        val cancelled: Boolean,
+        val cleanup: (() -> Unit)?,
+    )
+
+    private val lock = ReentrantLock()
+    private val cancelSignal = lock.newCondition()
+
+    /**
+     * Lock-free "cancellation claim decided" signal. It is set inside the
+     * winning claim, before any cleanup can run, so a repeated `cancel.operation`
+     * can acknowledge immediately without touching the handle lock (which a
+     * late cleanup may hold for the duration of storage I/O).
+     */
+    private val claimDecided = AtomicBoolean(false)
     private var state = State.ACTIVE
-    private var cancelAction: (() -> Unit)? = null
+    private var started = false
+    private var queuedCancelAction: (() -> Unit)? = null
+    private var cancellationCleanup: (() -> Unit)? = null
+    private var cleanupInProgress = false
+    private var cancelActionFailure: PlatformFailure? = null
     private var cancellationPublished = false
 
-    val isCancelled: Boolean
-        get() = synchronized(lock) { state == State.CANCELLED }
+    /** Lock-free check used by the repeated-cancel fast path. */
+    internal fun hasClaimedCancellation(): Boolean = claimDecided.get()
 
-    internal fun setCancelAction(action: () -> Unit) {
-        val invokeNow = synchronized(lock) {
-            when (state) {
-                State.ACTIVE -> {
-                    cancelAction = action
-                    null
-                }
-                State.CANCELLED -> action
-                State.COMPLETED -> null
-            }
+    /** Cancellation is terminal and cleanup (if any) has completed. */
+    val isCancelled: Boolean
+        get() = lock.withLock { state == State.CANCELLED }
+
+    /**
+     * Cancellation has won the transition race, even if its cleanup is still
+     * running. Services poll this to abort; [isCancelled] stays false until the
+     * cleanup finished.
+     */
+    internal val isCancellationRequested: Boolean
+        get() = lock.withLock {
+            state == State.CANCELLING || state == State.CANCELLED
         }
-        invokeNow?.invoke()
+
+    /** A queued operation is no longer cancellable through the queued path. */
+    internal fun markStarted() {
+        lock.withLock {
+            started = true
+            queuedCancelAction = null
+        }
+    }
+
+    /** Registers the facade's queued-operation cancellation action. */
+    internal fun setCancelAction(action: () -> Unit) {
+        lock.withLock {
+            if (state == State.ACTIVE && !started) queuedCancelAction = action
+        }
     }
 
     /**
-     * Linearizes cancellation against the terminal transition. Returns true only
-     * when this call moved an ACTIVE operation to CANCELLED.
+     * Registers the service's staged-state cleanup. A registration that arrives
+     * after cancellation won runs inside the handle lock and records its
+     * failure before the terminal cancellation becomes observable.
+     */
+    internal fun setCancelCleanup(action: () -> Unit) {
+        var notify = false
+        lock.withLock {
+            when (state) {
+                State.ACTIVE -> cancellationCleanup = action
+                State.CANCELLING -> {
+                    // Late registration: stay inside the cancellation lock so an
+                    // observer cannot see CANCELLED before the cleanup and its
+                    // failure are recorded.
+                    runCancelAction(action)
+                    if (!cleanupInProgress) {
+                        state = State.CANCELLED
+                        notify = true
+                    }
+                }
+                // Defensive: the facade seals publication only after the service
+                // call ended, so a cleanup must not arrive here. Run it anyway
+                // rather than silently retaining staged state.
+                State.CANCELLED -> runCancelAction(action)
+                State.COMPLETED -> Unit
+            }
+            if (notify) cancelSignal.signalAll()
+        }
+    }
+
+    /**
+     * Claims cancellation without running a registered cleanup. The facade runs
+     * this on its dedicated claim executor; cleanup is then handed to the
+     * separate cancellation executor. The claim sets [hasClaimedCancellation]
+     * before releasing the lock, so later cancels never need to acquire it. A
+     * queued operation's still-cheap cancellation action runs inline,
+     * preserving the existing queued-cancellation protocol and its single
+     * terminal result.
+     */
+    internal fun claimCancellation(): CancellationClaim = lock.withLock {
+        if (state != State.ACTIVE) {
+            CancellationClaim(false, null)
+        } else if (!started && queuedCancelAction != null) {
+            val action = queuedCancelAction
+            queuedCancelAction = null
+            claimDecided.set(true)
+            state = State.CANCELLED
+            action?.let(::runCancelAction)
+            CancellationClaim(true, null)
+        } else {
+            val cleanup = cancellationCleanup
+            cancellationCleanup = null
+            cleanupInProgress = cleanup != null
+            claimDecided.set(true)
+            state = State.CANCELLING
+            CancellationClaim(true, cleanup)
+        }
+    }
+
+    internal fun recordCancelActionFailure(failure: PlatformFailure) {
+        lock.withLock {
+            if (cancelActionFailure == null) cancelActionFailure = failure
+        }
+    }
+
+    internal fun cancelActionFailure(): PlatformFailure? = lock.withLock {
+        cancelActionFailure
+    }
+
+    /**
+     * Runs a claimed cleanup under the same lock as the cancellation transition,
+     * so the recorded failure is complete before CANCELLED becomes observable.
+     * Called on the facade's cancellation executor (off the channel thread).
+     */
+    internal fun runClaimedCleanup(cleanup: () -> Unit) {
+        lock.withLock {
+            if (state != State.CANCELLING || !cleanupInProgress) return
+            runCancelAction(cleanup)
+            cleanupInProgress = false
+            state = State.CANCELLED
+            cancelSignal.signalAll()
+        }
+    }
+
+    /**
+     * Runs a cleanup exactly once. A failure is recorded (first failure wins)
+     * and never escapes into the channel caller.
+     */
+    private fun runCancelAction(action: () -> Unit) {
+        try {
+            action()
+        } catch (failure: PlatformFailure) {
+            recordCancelActionFailure(failure)
+        } catch (_: Throwable) {
+            recordCancelActionFailure(PlatformFailure.internal())
+        }
+    }
+
+    /**
+     * Direct inline cancellation used by host-JVM tests. It is deliberately not
+     * used by the channel facade: the facade calls [claimCancellation] and runs
+     * cleanup on its cancellation executor, never on the channel thread. A
+     * registered cleanup runs synchronously under the lock here, so once this
+     * returns CANCELLED is observable with its cleanup complete.
      */
     internal fun cancel(): Boolean {
-        var action: (() -> Unit)? = null
-        val transitioned = synchronized(lock) {
-            if (state != State.ACTIVE) {
-                false
-            } else {
-                state = State.CANCELLED
-                action = cancelAction
-                cancelAction = null
-                true
-            }
-        }
-        if (!transitioned) return false
-        action?.invoke()
+        val claim = claimCancellation()
+        if (!claim.cancelled) return false
+        claim.cleanup?.let(::runClaimedCleanup)
         return true
     }
 
@@ -556,24 +711,48 @@ class OperationHandle internal constructor(val id: String) {
      * (false) or observes a completed terminal state (false); it never observes
      * an active operation after the result was published.
      */
-    internal fun complete(publish: () -> Unit): Boolean = synchronized(lock) {
+    internal fun complete(publish: () -> Unit): Boolean = lock.withLock {
         if (state != State.ACTIVE) {
             false
         } else {
             state = State.COMPLETED
+            queuedCancelAction = null
+            cancellationCleanup = null
             publish()
             true
         }
     }
 
-    /** Publishes the one terminal PLT-004 result if cancellation won. */
-    internal fun publishCancellation(publish: () -> Unit): Boolean = synchronized(lock) {
-        if (state != State.CANCELLED || cancellationPublished) {
-            false
-        } else {
+    /**
+     * Publishes the one terminal cancellation result if cancellation won.
+     *
+     * The cleanup failure is read inside this critical section, not snapshotted
+     * before it, so a late registration cannot be missed. If a claimed cleanup
+     * is still running, publication waits for it: `PLT-004` is never emitted
+     * while the staged aggregate may still be retained. If the service ended
+     * without registering a cleanup, the pending claim is folded into CANCELLED
+     * here. [publish] receives the recorded failure (null for a clean cancel).
+     */
+    internal fun publishCancellation(publish: (PlatformFailure?) -> Unit): Boolean {
+        lock.withLock {
+            if (state == State.CANCELLING) {
+                if (!cleanupInProgress) {
+                    state = State.CANCELLED
+                    cancelSignal.signalAll()
+                }
+                while (state == State.CANCELLING) {
+                    try {
+                        cancelSignal.await()
+                    } catch (interrupted: InterruptedException) {
+                        Thread.currentThread().interrupt()
+                        return false
+                    }
+                }
+            }
+            if (state != State.CANCELLED || cancellationPublished) return false
             cancellationPublished = true
-            publish()
-            true
+            publish(cancelActionFailure)
+            return true
         }
     }
 }
@@ -796,6 +975,15 @@ class PlatformChannelFacade(
     val events: PlatformEventPublisher = PlatformEventPublisher(mainPoster),
     val results: PlatformResultPublisher = PlatformResultPublisher(mainPoster),
     private val executor: BackgroundExecutor = BoundedBackgroundExecutor(),
+    /**
+     * Dedicated cancellation paths. They intentionally bypass the keyed serial
+     * executor: the running operation holds its key, so a cancel queued behind
+     * it would stall until the operation finished. The claim executor only runs
+     * the constant-time transition handshake; the cleanup executor runs storage
+     * cleanup. The channel handler waits only for the claim, never for cleanup.
+     */
+    private val cancelClaimExecutor: BackgroundExecutor = BoundedBackgroundExecutor(maxWorkers = 1),
+    private val cancelExecutor: BackgroundExecutor = BoundedBackgroundExecutor(maxWorkers = 1),
     val limits: ChannelLimits = ChannelLimits(),
     private val operations: OperationRegistry = OperationRegistry(),
     private val operationIdFactory: () -> String = { UUID.randomUUID().toString() },
@@ -826,7 +1014,71 @@ class PlatformChannelFacade(
 
         if (method == "cancel.operation") {
             val operationId = request.payload["operationId"] as String
-            reply.success(successEnvelope(mapOf("cancelled" to operations.cancel(operationId))))
+            val handle = operations.find(operationId)
+            if (handle == null) {
+                reply.success(successEnvelope(mapOf("cancelled" to false)))
+                return
+            }
+
+            // The reply acknowledges that cancellation is claimed/linearized;
+            // it is not the terminal result. It may precede cleanup, while the
+            // terminal result still waits for cleanup and is published exactly
+            // once. A repeated cancel never touches the handle lock: a late
+            // cleanup can hold it for the duration of storage I/O.
+            if (handle.hasClaimedCancellation()) {
+                reply.success(successEnvelope(mapOf("cancelled" to true)))
+                return
+            }
+
+            // The transition itself runs on the dedicated claim executor; the
+            // channel thread only waits for the claim handshake (first cancel
+            // and terminal-race linearization), never for storage cleanup.
+            // Cleanup is handed to the separate cancellation executor. A queued
+            // operation's still-cheap action runs inside the claim, preserving
+            // the queued-cancellation protocol and its single terminal result.
+            val claimRef = AtomicReference<OperationHandle.CancellationClaim?>(null)
+            val claimDone = CountDownLatch(1)
+            val claimTask: () -> Unit = {
+                var claim: OperationHandle.CancellationClaim? = null
+                try {
+                    // Re-check lock-free: a concurrent first claim may have won
+                    // between the handler check and this task, and its cleanup
+                    // may already hold the handle lock.
+                    claim = if (handle.hasClaimedCancellation()) {
+                        OperationHandle.CancellationClaim(true, null)
+                    } else {
+                        handle.claimCancellation()
+                    }
+                } finally {
+                    claimRef.set(claim)
+                    claimDone.countDown()
+                }
+                claim?.cleanup?.let { cleanup ->
+                    try {
+                        cancelExecutor.execute { handle.runClaimedCleanup(cleanup) }
+                    } catch (rejected: RejectedExecutionException) {
+                        // Fail-safe: run the cleanup on this already-off-channel
+                        // claim thread rather than retaining staged state.
+                        handle.runClaimedCleanup(cleanup)
+                    }
+                }
+                Unit
+            }
+            try {
+                cancelClaimExecutor.execute(claimTask)
+            } catch (rejected: RejectedExecutionException) {
+                // Extreme fallback (claim executor exhausted/shut down): this
+                // is the only path that can perform the claim on the channel
+                // thread; cleanup still goes to the cancellation executor.
+                claimTask()
+            }
+            try {
+                claimDone.await()
+            } catch (interrupted: InterruptedException) {
+                Thread.currentThread().interrupt()
+            }
+            val claim = claimRef.get()
+            reply.success(successEnvelope(mapOf("cancelled" to (claim?.cancelled == true))))
             return
         }
 
@@ -935,7 +1187,8 @@ class PlatformChannelFacade(
     ) {
         try {
             val data = try {
-                if (handle.isCancelled) throw PlatformFailure.cancelled()
+                handle.markStarted()
+                if (handle.isCancellationRequested) throw PlatformFailure.cancelled()
                 service.handle(
                     request,
                     OperationContext(operationId, handle, events),
@@ -1030,8 +1283,14 @@ class PlatformChannelFacade(
         operationId: String,
         startedAt: Long,
     ) {
-        handle.publishCancellation {
-            val failure = PlatformFailure.cancelled().withDuration(elapsedSince(startedAt))
+        // The failure is read inside handle.publishCancellation's critical
+        // section, not snapshotted before it: a late cleanup registration or a
+        // claimed cleanup running on the cancellation executor cannot be
+        // missed. A cleanup failure is reported instead of PLT-004, so a
+        // retained aggregate never looks like a clean cancellation.
+        handle.publishCancellation { cleanupFailure ->
+            val failure = (cleanupFailure ?: PlatformFailure.cancelled())
+                .withDuration(elapsedSince(startedAt))
             if (async) {
                 results.publish(errorResult(operationId, failure))
             } else {
@@ -1073,6 +1332,8 @@ class PlatformChannelFacade(
     fun dispose() {
         if (!disposed.compareAndSet(false, true)) return
         serialExecutor.shutdown()
+        cancelClaimExecutor.shutdown()
+        cancelExecutor.shutdown()
         operations.clear()
         inFlightSaves.clear()
         events.dispose()
