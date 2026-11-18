@@ -157,10 +157,10 @@ The worktree started at base `a72d1790070a0142e72d6425a1a3dc5d2d8333f1`
 originally ran with a clean tree at that commit. The committed browser log was
 re-captured at `1b43ecc3a263ac4defef4849696ce756b74f33e7`, tree
 `09470f37a26613498ca25b03dda77cbb46c91310`, with the same test content, also on
-a clean tree. The report, the sanitized log artifact, and the one README index
-row are a later docs/artifacts commit; that commit, this report's byte size, and
-this report's SHA-256 are recorded in the external attestation, not embedded
-here.
+a clean tree. The report and the sanitized log artifact are a later
+docs/artifacts commit; the README index row was added in the preceding report
+commit. That docs/artifacts commit, this report's byte size, and this report's
+SHA-256 are recorded in the external attestation, not embedded here.
 
 The test change contains:
 
