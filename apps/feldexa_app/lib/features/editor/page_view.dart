@@ -59,6 +59,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:flutter/widgets.dart' hide PageView;
@@ -129,6 +130,128 @@ final class PageViewPageSize {
   String toString() => 'PageViewPageSize(${widthPt}pt, ${heightPt}pt)';
 }
 
+/// The bounded raster plan for one visible page.
+///
+/// The plan is derived from the page display box, the current view size, the
+/// device pixel ratio, the 300-DPI UI limit, and the contract's 4096-pixel
+/// long-edge cap. [effectiveScale] is raster pixels per PDF point; it is
+/// reported to the painter only and never feeds [PageViewController] or any
+/// stored geometry.
+final class PageViewRasterPlan {
+  /// Computes the bounded raster dimensions for one page.
+  ///
+  /// [viewSize] is the page's view-space box in logical pixels, [page] is the
+  /// immutable display size, and [devicePixelRatio] is the renderer DPR.
+  /// [maxLongEdgePx] defaults to the contract's 4096-pixel cap. The result is
+  /// always at least 1x1 and never exceeds [maxLongEdgePx] on either edge.
+  factory PageViewRasterPlan.forPage({
+    required PageViewPageSize page,
+    required Size viewSize,
+    required double devicePixelRatio,
+    int maxLongEdgePx = 4096,
+    double maxDpi = 300,
+  }) {
+    if (!viewSize.width.isFinite ||
+        !viewSize.height.isFinite ||
+        viewSize.width <= 0 ||
+        viewSize.height <= 0) {
+      throw ArgumentError.value(
+        viewSize,
+        'viewSize',
+        'must be finite and positive',
+      );
+    }
+    if (!devicePixelRatio.isFinite || devicePixelRatio <= 0) {
+      throw ArgumentError.value(
+        devicePixelRatio,
+        'devicePixelRatio',
+        'must be finite and positive',
+      );
+    }
+    if (maxLongEdgePx < 1) {
+      throw ArgumentError.value(
+        maxLongEdgePx,
+        'maxLongEdgePx',
+        'must be at least 1',
+      );
+    }
+    if (!maxDpi.isFinite || maxDpi <= 0) {
+      throw ArgumentError.value(
+        maxDpi,
+        'maxDpi',
+        'must be finite and positive',
+      );
+    }
+    final double logicalScale = viewSize.width / page.widthPt;
+    final double desiredScale = logicalScale * devicePixelRatio;
+    final double dpiScale = maxDpi / 72;
+    final double longEdgePt = math.max(page.widthPt, page.heightPt);
+    final double effectiveScale = math.min(
+      desiredScale,
+      math.min(dpiScale, maxLongEdgePx / longEdgePt),
+    );
+    final int widthPx = (page.widthPt * effectiveScale).round().clamp(
+      1,
+      maxLongEdgePx,
+    );
+    final int heightPx = (page.heightPt * effectiveScale).round().clamp(
+      1,
+      maxLongEdgePx,
+    );
+    return PageViewRasterPlan._(
+      widthPx: widthPx,
+      heightPx: heightPx,
+      effectiveScale: effectiveScale,
+      desiredScale: desiredScale,
+      maxLongEdgePx: maxLongEdgePx,
+    );
+  }
+
+  const PageViewRasterPlan._({
+    required this.widthPx,
+    required this.heightPx,
+    required this.effectiveScale,
+    required this.desiredScale,
+    required this.maxLongEdgePx,
+  });
+
+  /// Raster width in pixels; at least 1 and at most [maxLongEdgePx].
+  final int widthPx;
+
+  /// Raster height in pixels; at least 1 and at most [maxLongEdgePx].
+  final int heightPx;
+
+  /// Effective raster pixels per PDF point, reduced when a cap applies.
+  final double effectiveScale;
+
+  /// The unconstrained DPR-aware raster scale before any cap.
+  final double desiredScale;
+
+  /// The long-edge cap applied to this plan.
+  final int maxLongEdgePx;
+
+  /// Whether either cap reduced [desiredScale].
+  bool get isCapped => effectiveScale < desiredScale;
+
+  @override
+  bool operator ==(Object other) =>
+      other is PageViewRasterPlan &&
+      other.widthPx == widthPx &&
+      other.heightPx == heightPx &&
+      other.effectiveScale == effectiveScale &&
+      other.desiredScale == desiredScale &&
+      other.maxLongEdgePx == maxLongEdgePx;
+
+  @override
+  int get hashCode => Object.hash(
+    widthPx,
+    heightPx,
+    effectiveScale,
+    desiredScale,
+    maxLongEdgePx,
+  );
+}
+
 /// One opened, immutable source document that can paint its original pages.
 ///
 /// This is the narrow seam between [PageView] and pdfrx. Production uses
@@ -143,7 +266,11 @@ abstract interface class PageViewRenderer {
   /// The returned widget is given tight constraints equal to the page's
   /// display box multiplied by the current view scale. Implementations must
   /// paint the unchanged original page and must never rewrite its content.
-  Widget buildPage(BuildContext context, int pageIndex);
+  Widget buildPage(
+    BuildContext context,
+    int pageIndex, {
+    required ValueChanged<PageViewLoadException> onFailure,
+  });
 
   /// Releases the underlying document and its in-memory page caches.
   ///
@@ -187,14 +314,16 @@ final class _PdfrxPageRenderer implements PageViewRenderer {
   int get pageCount => _document.pages.length;
 
   @override
-  Widget buildPage(BuildContext context, int pageIndex) {
+  Widget buildPage(
+    BuildContext context,
+    int pageIndex, {
+    required ValueChanged<PageViewLoadException> onFailure,
+  }) {
     return RepaintBoundary(
-      child: PdfPageView(
+      child: _PdfrxPage(
         document: _document,
-        pageNumber: pageIndex + 1,
-        maximumDpi: 300,
-        decoration: const BoxDecoration(color: Color(0xFFFFFFFF)),
-        backgroundColor: const Color(0xFFFFFFFF),
+        pageIndex: pageIndex,
+        onFailure: onFailure,
       ),
     );
   }
@@ -206,6 +335,125 @@ final class _PdfrxPageRenderer implements PageViewRenderer {
     }
     _disposed = true;
     await _document.dispose();
+  }
+}
+
+/// Renders one pdfrx page with an explicit raster cap and sanitized failures.
+///
+/// This deliberately does not use pdfrx's `PdfPageView`: that widget catches
+/// asynchronous render errors and writes the raw exception text through
+/// `developer.log`, bypassing the viewer's content-free failure contract. This
+/// widget calls `PdfPage.renderForDisplay` itself, cancels stale renders, and
+/// converts every failure to [PageViewLoadFailure.renderFailed].
+class _PdfrxPage extends StatefulWidget {
+  const _PdfrxPage({
+    required this.document,
+    required this.pageIndex,
+    required this.onFailure,
+  });
+
+  final PdfDocument document;
+  final int pageIndex;
+  final ValueChanged<PageViewLoadException> onFailure;
+
+  @override
+  State<_PdfrxPage> createState() => _PdfrxPageState();
+}
+
+class _PdfrxPageState extends State<_PdfrxPage> {
+  ui.Image? _image;
+  PageViewRasterPlan? _plan;
+  PdfPageRenderCancellationToken? _token;
+  bool _scheduled = false;
+
+  @override
+  void dispose() {
+    _token?.cancel();
+    _image?.dispose();
+    super.dispose();
+  }
+
+  void _schedule(PageViewRasterPlan plan) {
+    if (_plan == plan || _scheduled) return;
+    _plan = plan;
+    _scheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scheduled = false;
+      if (!mounted) return;
+      final PageViewRasterPlan? current = _plan;
+      if (current != null) unawaited(_render(current));
+    });
+  }
+
+  Future<void> _render(PageViewRasterPlan plan) async {
+    if (widget.pageIndex < 0 ||
+        widget.pageIndex >= widget.document.pages.length) {
+      widget.onFailure(
+        const PageViewLoadException(PageViewLoadFailure.renderFailed),
+      );
+      return;
+    }
+    _token?.cancel();
+    final PdfPageRenderCancellationToken token = widget
+        .document
+        .pages[widget.pageIndex]
+        .createCancellationToken();
+    _token = token;
+    try {
+      final ui.Image? image = await widget.document.pages[widget.pageIndex]
+          .renderForDisplay(
+            fullWidth: plan.widthPx.toDouble(),
+            fullHeight: plan.heightPx.toDouble(),
+            cancellationToken: token,
+            pixelSizeThreshold: plan.maxLongEdgePx,
+          );
+      if (!mounted || token.isCanceled) {
+        image?.dispose();
+        return;
+      }
+      if (image == null) {
+        widget.onFailure(
+          const PageViewLoadException(PageViewLoadFailure.renderFailed),
+        );
+        return;
+      }
+      setState(() {
+        _image?.dispose();
+        _image = image;
+      });
+    } catch (_) {
+      if (mounted && !token.isCanceled) {
+        widget.onFailure(
+          const PageViewLoadException(PageViewLoadFailure.renderFailed),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final Size viewSize = constraints.biggest;
+        final PageViewPageSize page = PageViewPageSize(
+          widthPt: widget.document.pages[widget.pageIndex].width,
+          heightPt: widget.document.pages[widget.pageIndex].height,
+        );
+        final PageViewRasterPlan plan = PageViewRasterPlan.forPage(
+          page: page,
+          viewSize: viewSize,
+          devicePixelRatio: MediaQuery.devicePixelRatioOf(context),
+        );
+        _schedule(plan);
+        final ui.Image? image = _image;
+        return ColoredBox(
+          color: const Color(0xFFFFFFFF),
+          child: image == null
+              ? const SizedBox.expand()
+              : RawImage(image: image, fit: BoxFit.fill),
+        );
+      },
+    );
   }
 }
 
@@ -222,6 +470,9 @@ enum PageViewLoadFailure {
 
   /// pdfrx/PDFium could not open the supplied bytes.
   unreadableSource,
+
+  /// A page raster could not be rendered; the raw error was discarded.
+  renderFailed,
 }
 
 /// A content-free viewer failure.
@@ -289,10 +540,16 @@ final class PageViewLayout {
           page.heightPt,
         ),
       );
-      top += page.heightPt;
-      if (index != owned.length - 1) {
-        top += pageGap;
+      final double nextTop =
+          top + page.heightPt + (index != owned.length - 1 ? pageGap : 0);
+      if (!nextTop.isFinite) {
+        throw ArgumentError.value(
+          pages,
+          'pages',
+          'accumulated page-strip height must be finite',
+        );
       }
+      top = nextTop;
     }
     return PageViewLayout._(
       pages: owned,
@@ -426,6 +683,16 @@ final class PageViewMapping {
     final double top = math.min(topLeft.dy, bottomRight.dy) - pageRect.top;
     final double right = math.max(topLeft.dx, bottomRight.dx) - pageRect.left;
     final double bottom = math.max(topLeft.dy, bottomRight.dy) - pageRect.top;
+    if (!left.isFinite ||
+        !top.isFinite ||
+        !right.isFinite ||
+        !bottom.isFinite) {
+      throw ArgumentError.value(
+        viewportRect,
+        'viewportRect',
+        'mapped display rectangle must be finite',
+      );
+    }
     if (!(right > left) || !(bottom > top)) {
       throw ArgumentError.value(
         viewportRect,
@@ -448,6 +715,16 @@ final class PageViewMapping {
     final double top = math.min(topLeft.dy, bottomRight.dy);
     final double right = math.max(topLeft.dx, bottomRight.dx);
     final double bottom = math.max(topLeft.dy, bottomRight.dy);
+    if (!left.isFinite ||
+        !top.isFinite ||
+        !right.isFinite ||
+        !bottom.isFinite) {
+      throw ArgumentError.value(
+        displayRect,
+        'displayRect',
+        'mapped view rectangle must be finite',
+      );
+    }
     if (!(right > left) || !(bottom > top)) {
       throw ArgumentError.value(
         displayRect,
@@ -644,7 +921,8 @@ final class PageViewController extends ChangeNotifier {
     if (_viewportSize == null) {
       return;
     }
-    setView(scale: fitWidthScale, pan: _clampPan(Offset.zero));
+    final double targetScale = fitWidthScale;
+    setView(scale: targetScale, pan: _clampPanFor(Offset.zero, targetScale));
   }
 
   /// Fits page [pageIndex] entirely into the viewport and centers it.
@@ -977,6 +1255,17 @@ class _PageViewState extends State<PageView> {
     }
   }
 
+  void _reportRenderFailure(PageViewLoadException error) {
+    if (!mounted || _error != null) return;
+    final PageViewRenderer? renderer = _renderer;
+    setState(() {
+      _renderer = null;
+      _error = error;
+    });
+    if (renderer != null) unawaited(renderer.dispose());
+    widget.onLoadError?.call(error);
+  }
+
   void _handleScaleStart(ScaleStartDetails details) {
     _gestureActive = true;
     _gestureStartScale = widget.controller.scale;
@@ -1086,7 +1375,11 @@ class _PageViewState extends State<PageView> {
           top: viewportRect.top,
           width: viewportRect.width,
           height: viewportRect.height,
-          child: renderer.buildPage(context, index),
+          child: renderer.buildPage(
+            context,
+            index,
+            onFailure: _reportRenderFailure,
+          ),
         ),
       );
     }

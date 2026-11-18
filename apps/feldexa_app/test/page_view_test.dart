@@ -1,6 +1,7 @@
 @TestOn('vm')
 library;
 
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:feldexa_app/features/editor/page_view.dart';
@@ -370,6 +371,104 @@ void main() {
       );
       expect(
         () => controller.setView(scale: 1, pan: const Offset(double.nan, 0)),
+        throwsArgumentError,
+      );
+    });
+  });
+
+  group('raster cap and hardening', () {
+    test('caps an A3 page at 4096 px on the long edge', () {
+      final PageViewPageSize a3 = PageViewPageSize(
+        widthPt: 842,
+        heightPt: 1191,
+      );
+      final PageViewRasterPlan plan = PageViewRasterPlan.forPage(
+        page: a3,
+        viewSize: const Size(842 * 8, 1191 * 8),
+        devicePixelRatio: 3,
+      );
+      expect(math.max(plan.widthPx, plan.heightPx), 4096);
+      expect(plan.widthPx, lessThanOrEqualTo(4096));
+      expect(plan.heightPx, lessThanOrEqualTo(4096));
+      expect(plan.isCapped, isTrue);
+      expect(plan.effectiveScale, lessThan(plan.desiredScale));
+    });
+
+    test('does not downscale a small page below its DPR size', () {
+      final PageViewPageSize small = PageViewPageSize(
+        widthPt: 100,
+        heightPt: 150,
+      );
+      final PageViewRasterPlan plan = PageViewRasterPlan.forPage(
+        page: small,
+        viewSize: const Size(200, 300),
+        devicePixelRatio: 2,
+      );
+      expect(plan.widthPx, 400);
+      expect(plan.heightPx, 600);
+      expect(plan.isCapped, isFalse);
+    });
+
+    test('raster cap leaves view and display mapping unchanged', () {
+      final PageViewController controller = PageViewController(
+        pages: <PageViewPageSize>[
+          PageViewPageSize(widthPt: 842, heightPt: 1191),
+        ],
+      );
+      controller.setViewportSize(const Size(400, 800));
+      controller.setView(scale: 4, pan: const Offset(-10, -20));
+      final Offset before = controller.viewToDisplay(0, const Offset(200, 300));
+      final PageViewRasterPlan plan = PageViewRasterPlan.forPage(
+        page: controller.layout.pageSizeFor(0),
+        viewSize: const Size(3368, 4764),
+        devicePixelRatio: 3,
+      );
+      expect(plan.isCapped, isTrue);
+      expect(controller.viewToDisplay(0, const Offset(200, 300)), before);
+      expect(controller.scale, 4);
+      expect(controller.pan, const Offset(-10, -20));
+    });
+
+    test('fitWidth clamps pan with the target scale after zoom-in', () {
+      final PageViewController controller = PageViewController(
+        pages: <PageViewPageSize>[
+          PageViewPageSize(widthPt: 100, heightPt: 100),
+        ],
+      );
+      controller.setViewportSize(const Size(200, 200));
+      controller.setView(scale: 4, pan: const Offset(-150, -150));
+      controller.fitWidth();
+      _expectClose(controller.scale, 2);
+      _expectOffsetClose(controller.pan, Offset.zero);
+      final Rect page = controller.mappingFor(0).pageRectInViewport;
+      _expectClose(page.left, 0);
+      _expectClose(page.width, 200);
+      _expectClose(page.top, 0);
+    });
+
+    test('rejects an overflowing accumulated page strip', () {
+      expect(
+        () => PageViewController(
+          pages: <PageViewPageSize>[
+            PageViewPageSize(widthPt: 10, heightPt: 1e308),
+            PageViewPageSize(widthPt: 10, heightPt: 1e308),
+          ],
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('rejects an overflowing transformed rectangle', () {
+      final PageViewController controller = PageViewController(
+        pages: <PageViewPageSize>[
+          PageViewPageSize(widthPt: 100, heightPt: 100),
+        ],
+      );
+      controller.setViewportSize(const Size(200, 200));
+      controller.setView(scale: 1e308, pan: Offset.zero);
+      expect(
+        () =>
+            controller.displayRectToView(0, Rect.fromLTWH(0, 0, 1e308, 1e308)),
         throwsArgumentError,
       );
     });
@@ -748,7 +847,11 @@ final class _FakePageRenderer implements PageViewRenderer {
   bool disposed = false;
 
   @override
-  Widget buildPage(BuildContext context, int pageIndex) {
+  Widget buildPage(
+    BuildContext context,
+    int pageIndex, {
+    required ValueChanged<PageViewLoadException> onFailure,
+  }) {
     built.add(pageIndex);
     return ColoredBox(key: _pageKey(pageIndex), color: const Color(0xFF00FF00));
   }
