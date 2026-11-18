@@ -1,0 +1,4 @@
+picker /sdcard/Download/t149-sf-001.pdf 22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038  /sdcard/Download/t149-sf-001.pdf
+staging /data/local/tmp/t149-fixtures/sf-001.pdf 22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038  /data/local/tmp/t149-fixtures/sf-001.pdf
+picker /sdcard/Download/t149-sf-protected.pdf 090290f77e77d904a11870951b06f0139c5abd1d263ad862b60a7b15ff69f221  /sdcard/Download/t149-sf-protected.pdf
+staging /data/local/tmp/t149-fixtures/sf-protected.pdf 090290f77e77d904a11870951b06f0139c5abd1d263ad862b60a7b15ff69f221  /data/local/tmp/t149-fixtures/sf-protected.pdf
