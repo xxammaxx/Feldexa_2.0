@@ -1,0 +1,11 @@
+Synthetic fixture bytes staged in a device-local temporary directory outside the
+app sandbox (the directory was created with mode 755 and every file with mode
+644 for the debug app to read; no fixture was used as a Flutter asset or release
+input). T048 reuses the T046 staging; only sf-001 and sf-003 are read.
+
+Device sha256sum output:
+22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038  sf-001.pdf
+c19afcf6f86ed21a422426c5f01613bb9643b097d0facad3b3349f9873e4ea4f  sf-003.pdf
+
+These values equal the committed apps/feldexa_app/assets/fixtures/catalog.json
+SHA-256 entries, so the runtime used the exact committed synthetic fixtures.

@@ -1,0 +1,44 @@
+T048 export dependency blocker and conditional-check surface observed on the
+host working tree (2026-11-18) at candidate commit bef5dc3d32011fda5d70fadb71705af7cfe89762.
+
+$ git ls-tree -r --name-only HEAD -- apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export
+apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export/.gitkeep
+
+$ grep -n -A 1 'registerService(' apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/MainActivity.kt
+163:        plugin.registerService("store", StoreService(store))
+164-
+--
+186:        plugin.registerService(
+187-            "import",
+
+$ grep -n 'export.validate\|export.render' apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/FeldexaPlugin.kt
+265:    "export.validate",
+266:    "export.render",
+1187:        "export.validate", "export.render" -> {
+2247:            "export.validate",
+2251:            "export.render",
+
+$ grep -n 'T104' specs/001-scanned-form-workflow/tasks.md
+332:- [ ] T104 [US7] Implement the PDFBox flattening applier that imports original pages and appends text, checkbox, and signature overlays in `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export/PdfExportService.kt` (FR-063/FR-065/FR-066/FR-069; `contracts/export-plan.md` §5)
+
+$ grep -n '_isMissingExportCapability\|_ExportCheck\|export capability unavailable' apps/feldexa_app/integration_test/source_integrity_test.dart
+401:          final _ExportCheck exportCheck = await _checkExportFromProtectedCopy(
+412:          if (exportCheck == _ExportCheck.unavailable) {
+523:enum _ExportCheck {
+537:/// branch. Returns [_ExportCheck.unavailable] only for the documented
+539:Future<_ExportCheck> _checkExportFromProtectedCopy({
+561:    if (_isMissingExportCapability(error)) {
+563:        'T048 $label: export capability unavailable: '
+568:      return _ExportCheck.unavailable;
+651:  return _ExportCheck.verified;
+655:bool _isMissingExportCapability(PlatformException error) {
+
+Conclusion: the facade validates and routes export.validate/export.render,
+but MainActivity registers only the 'store' and 'import' services and the
+Kotlin export/ implementation directory contains only .gitkeep. The
+production applier is owned by T104
+(apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export/PdfExportService.kt),
+which is still unchecked. The T048 test probes export.validate and takes the
+documented fail-closed unavailable branch (PLT-001/platform.unsupported); it
+does not pin that blocker as a passing export result and will assert the real
+artifact once T104 lands. SC-019's export clause is NOT VERIFIED in this run.
