@@ -390,6 +390,7 @@ the git bundle and are not bundle-verifiable.
 | [artifacts/t027-final-d45f4df/README.md](./artifacts/t027-final-d45f4df/README.md) | `NONE` | Historical/superseded | T027 `d45f4df` evidence bundle retained as history; superseded by `artifacts/t027-review-a-db8ce0f/` and `artifacts/t027-review-b-94ef57b/` |
 | [2026-11-16-t027-host-evidence.md](./2026-11-16-t027-host-evidence.md) | `NONE` | Historical/superseded | Pre-correction run recorded `HEAD=3a3202c` before the code commit `5b4c295`; retained only as history and must not be used for final acceptance |
 | [2026-11-16-t027-emulator-store-evidence.md](./2026-11-16-t027-emulator-store-evidence.md) | `EMULATOR` | Historical/superseded | Pre-correction run recorded `HEAD=3a3202c` before the code commit `5b4c295`; retained only as history and must not be used for final acceptance |
+| [2026-11-17-t038-evidence.md](./2026-11-17-t038-evidence.md) | `NONE` | Task evidence | T038 SAF streaming import (host-JVM tests, `flutter analyze`), correction rounds 1-3, no emulator/device evidence, no channel wiring (T040/T041) |
 
 | [2026-11-12-task-issue-mapping.md](./2026-11-12-task-issue-mapping.md) | `NONE` | Historical snapshot | 2026-11-12T15:50Z all-open mapping; not live issue state |
 | [2026-11-12-task-issue-mapping.json](./2026-11-12-task-issue-mapping.json) | `NONE` | Historical snapshot | Machine-readable dated snapshot; do not overwrite with current state |
