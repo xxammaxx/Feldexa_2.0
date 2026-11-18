@@ -32,14 +32,23 @@
 // the protected copy, the moved file is then deleted, the document is reopened
 // and rendered again, and the export surface is exercised.
 //
-// Export is a recorded dependency blocker, not a pass. The Kotlin `export/`
-// implementation directory contains only `.gitkeep`, `MainActivity` registers
-// no `export` service, and T104
-// (`android/app/src/main/kotlin/de/feldexa/app/export/PdfExportService.kt`) is
-// unimplemented. The test therefore asserts that the production facade fails
-// closed for `export.validate`/`export.render` with
-// `PLT-001`/`platform.unsupported` and records that observation; no export
-// artifact is fabricated and no export success is claimed.
+// Export is capability-conditional, not a fixed "expect the blocker" pass and
+// not a claimed export result. `export.validate` is probed with the
+// contract-shaped plan built from the reopened document:
+//   * unavailable branch (the documented `PLT-001`/`platform.unsupported`
+//     fail-closed signature while T104
+//     `android/app/src/main/kotlin/de/feldexa/app/export/PdfExportService.kt`
+//     is unimplemented): the SC-019 export clause is skipped with that
+//     machine-readable reason, and the test still asserts that no export
+//     success payload, verification record, readable artifact, or artifact
+//     file is produced;
+//   * available branch (a real `export.validate` success): the same test
+//     asserts the real `export.render` result and verification record, reads
+//     the artifact through `export.readArtifact`, checks its SHA-256 and PDF
+//     header, and renders every exported page with PDFium against the
+//     protected-copy reference digests.
+// This keeps the current run honest (export NOT VERIFIED) without turning the
+// current blocker into a regression gate for T104.
 //
 // The test writes only synthetic fixture copies, moves and deletes only those
 // copies, and deletes every document it creates. It never reads or deletes
@@ -380,26 +389,41 @@ void main() {
             'digests=${referenceDigests.join(',')}',
           );
 
-          // 5. Export from the protected copy. No production export service
-          //    exists; the facade must fail closed with PLT-001 and the test
-          //    records that blocker instead of asserting an export success.
+          // 5. Capability-conditional export check. While T104's applier is
+          //    missing the probe takes the unavailable branch, which skips the
+          //    SC-019 export clause with the machine-readable reason and
+          //    asserts that nothing is fabricated; once a real export service
+          //    exists the same test asserts the exported artifact instead.
           final String? latestRevisionId = afterDelete.meta.latestRevisionId;
           if (latestRevisionId == null || latestRevisionId.isEmpty) {
             fail('the reopened document must have a latest revision id');
           }
-          await _expectExportUnavailable(
+          final _ExportCheck exportCheck = await _checkExportFromProtectedCopy(
+            operations: operations,
             documentId: imported.documentId,
             revisionId: latestRevisionId,
-            sourceSha256: _fixtureSha256[trial.fixtureId]!,
+            protectedBytes: afterDelete.sourceBytes,
             pages: afterDelete.content.pages
                 .map((Page page) => page.geometry)
                 .toList(),
+            referenceDigests: referenceDigests,
             label: trial.slug,
           );
-          debugPrint(
-            'T048 ${trial.slug}: move+delete+reopen+render PASS; '
-            'SC-019 export NOT VERIFIED (T104 production export missing)',
-          );
+          if (exportCheck == _ExportCheck.unavailable) {
+            // The probe only validated the plan; no export file may exist.
+            expect(originDirectory.listSync(), isEmpty);
+            expect(movedDirectory.listSync(), isEmpty);
+            debugPrint(
+              'T048 ${trial.slug}: move+delete+reopen+render PASS; '
+              'SC-019 export clause SKIPPED (capability unavailable, '
+              'PLT-001/platform.unsupported); NOT VERIFIED pending T104',
+            );
+          } else {
+            debugPrint(
+              'T048 ${trial.slug}: move+delete+reopen+render+export PASS; '
+              'SC-019 export clause verified from the protected copy',
+            );
+          }
         } finally {
           await _disposeDocument(store, imported.documentId);
           await _clearHook();
@@ -495,83 +519,329 @@ Future<Uint8List> _readProtectedSource(String documentId) async {
   return bytes;
 }
 
-Future<void> _expectExportUnavailable({
+/// Outcome of the capability-conditional SC-019 export check.
+enum _ExportCheck {
+  /// The production export capability is absent; the clause is skipped.
+  unavailable,
+
+  /// The production export capability is present and the artifact was
+  /// asserted end to end.
+  verified,
+}
+
+/// Artifact id used to prove that no artifact is served while export is
+/// unavailable. Version-4 shape, variant 8; never produced by the app.
+const String _unproducedArtifactId = '00000000-0000-4000-8000-000000000000';
+
+/// Probes the production export capability and runs the matching SC-019
+/// branch. Returns [_ExportCheck.unavailable] only for the documented
+/// fail-closed signature; every other failure is a real regression.
+Future<_ExportCheck> _checkExportFromProtectedCopy({
+  required AndroidOperationClient operations,
+  required String documentId,
+  required String revisionId,
+  required Uint8List protectedBytes,
+  required List<PageGeometry> pages,
+  required List<String> referenceDigests,
+  required String label,
+}) async {
+  final Map<String, Object?> plan = _exportPlanJson(
+    documentId: documentId,
+    revisionId: revisionId,
+    sourceSha256: _sha256(protectedBytes),
+    pages: pages,
+  );
+
+  Object? validation;
+  try {
+    validation = await operations.invoke('export.validate', <String, Object?>{
+      'plan': plan,
+    });
+  } on PlatformException catch (error) {
+    if (_isMissingExportCapability(error)) {
+      debugPrint(
+        'T048 $label: export capability unavailable: '
+        '${error.code}/${error.message}; SC-019 export clause SKIPPED '
+        '(NOT VERIFIED), owner T104',
+      );
+      await _expectNoExportArtifactOrSuccess(error, label);
+      return _ExportCheck.unavailable;
+    }
+    fail(
+      'export capability is present but export.validate failed with '
+      '${error.code}/${error.message}; the contract-shaped plan must '
+      'validate once T104 lands',
+    );
+  }
+  if (validation == null) {
+    fail('export.validate returned no validation data');
+  }
+  final Map<String, Object?> validationData = androidMap(
+    validation,
+    'export validation',
+  );
+  expect(
+    validationData['ok'],
+    isTrue,
+    reason: 'export.validate must report a successful validation',
+  );
+  expect(validationData['warnings'], isA<List<Object?>>());
+
+  // Available branch: assert the real artifact and its verification record.
+  final Map<String, Object?> result = androidMap(
+    await operations.invoke('export.render', <String, Object?>{'plan': plan}),
+    'export result',
+  );
+  final String artifactId = androidUuid(result['artifactId'], 'artifactId');
+  final Object? pageCount = result['pageCount'];
+  final Object? byteSize = result['byteSize'];
+  if (pageCount is! int || byteSize is! int || byteSize < 1) {
+    fail('export.render returned an invalid pageCount/byteSize');
+  }
+  expect(pageCount, pages.length, reason: 'exported page count');
+  final String artifactSha256 = androidSha256(result['sha256'], 'sha256');
+  final Map<String, Object?> verification = androidMap(
+    result['verification'],
+    'verification',
+  );
+  for (final String flag in <String>[
+    'pageCountMatches',
+    'mediaBoxesMatch',
+    'fontGlyphsPresent',
+    'noInteractiveFields',
+    'overlayBoundsWithinPage',
+  ]) {
+    expect(
+      verification[flag],
+      isTrue,
+      reason: 'export verification must confirm $flag',
+    );
+  }
+  final Object? checkedAt = verification['checkedAt'];
+  if (checkedAt is! String) {
+    fail('export verification carries no checkedAt timestamp');
+  }
+  expect(
+    DateTime.parse(checkedAt).isUtc,
+    isTrue,
+    reason: 'export verification checkedAt must be UTC',
+  );
+
+  final Uint8List artifactBytes = await _readArtifactBytes(artifactId);
+  expect(artifactBytes.length, byteSize, reason: 'artifact byte size');
+  expect(_sha256(artifactBytes), artifactSha256, reason: 'artifact SHA-256');
+  expect(
+    String.fromCharCodes(artifactBytes.take(5)),
+    '%PDF-',
+    reason: 'the artifact must be a PDF',
+  );
+  final List<String> artifactDigests = await _renderDigests(
+    artifactBytes,
+    pages,
+    'artifact-$label',
+  );
+  expect(
+    artifactDigests,
+    orderedEquals(referenceDigests),
+    reason:
+        'exported pages must render identically to the protected source '
+        '(contracts/export-plan.md §6: original appearance, no overlays)',
+  );
+  await _deleteArtifact(artifactId);
+  return _ExportCheck.verified;
+}
+
+/// The documented fail-closed signature for an absent export capability.
+bool _isMissingExportCapability(PlatformException error) {
+  if (error.code != 'PLT-001' || error.message != 'platform.unsupported') {
+    return false;
+  }
+  final Object? details = error.details;
+  return details is Map && details['category'] == 'unsupported';
+}
+
+/// Unavailable branch: no success payload, no artifact, no verification record.
+Future<void> _expectNoExportArtifactOrSuccess(
+  PlatformException error,
+  String label,
+) async {
+  final Object? details = error.details;
+  if (details is! Map) {
+    fail('$label export failure carries no details map');
+  }
+  expect(details['category'], 'unsupported');
+  expect(details['retryable'], isFalse);
+  for (final String key in <String>[
+    'artifactId',
+    'pageCount',
+    'byteSize',
+    'sha256',
+    'verification',
+    'warnings',
+  ]) {
+    expect(
+      details.containsKey(key),
+      isFalse,
+      reason: 'an unavailable capability cannot carry export payload $key',
+    );
+  }
+  // No artifact bytes may be readable for an id the app never produced.
+  try {
+    final Object? raw = await _platform.invokeMethod<Object?>(
+      'export.readArtifact',
+      <String, Object?>{
+        'schemaVersion': 1,
+        'artifactId': _unproducedArtifactId,
+      },
+    );
+    final Object? value = androidEnvelopeValue(
+      raw,
+      method: 'export.readArtifact',
+    );
+    final Uint8List? bytes = androidBytes(value);
+    if (bytes != null && bytes.isNotEmpty) {
+      fail('export.readArtifact returned bytes for an unproduced artifact');
+    }
+  } on PlatformException catch (readError) {
+    expect(
+      readError.code,
+      anyOf('PLT-001', 'EXP-002'),
+      reason: 'an unproduced artifact must never be served',
+    );
+    if (readError.code == 'PLT-001') {
+      expect(readError.message, 'platform.unsupported');
+    }
+  }
+  // The session artifact directory (contract: `cacheDir/feldexa_exports`)
+  // must not exist while the capability is unavailable.
+  final Directory exports = Directory(
+    '${Directory.systemTemp.path}${Platform.pathSeparator}feldexa_exports',
+  );
+  expect(
+    exports.existsSync(),
+    isFalse,
+    reason: 'no export file may be produced while export is unavailable',
+  );
+  debugPrint(
+    'T048 $label: unavailable branch asserted no success payload, no '
+    'verification record, no readable artifact, no artifact file',
+  );
+}
+
+Map<String, Object?> _exportPlanJson({
   required String documentId,
   required String revisionId,
   required String sourceSha256,
   required List<PageGeometry> pages,
-  required String label,
-}) async {
-  final Map<String, Object?> plan = <String, Object?>{
-    'schemaVersion': 1,
-    'documentId': documentId,
-    'revisionId': revisionId,
-    'sourceSha256': sourceSha256,
-    'pageCount': pages.length,
-    'evidenceClass': 'emulator',
-    'font': <String, Object?>{
-      'family': 'NotoSans',
-      'regularAsset': 'assets/fonts/NotoSans-Regular.ttf',
-      'boldAsset': 'assets/fonts/NotoSans-Bold.ttf',
-      'metricsVersion': 'noto-sans-2.013-v1',
-    },
-    'pages': <Object?>[
-      for (final (int index, PageGeometry page) in pages.indexed)
-        <String, Object?>{
-          'index': index,
-          'rotation': page.rotation,
-          'mediaBox': _rectJson(page.mediaBox),
-          'cropBox': _rectJson(page.cropBox),
-          'displaySize': <String, Object?>{
-            'width': page.displaySize.width,
-            'height': page.displaySize.height,
-          },
-          'ctm': <String, Object?>{
-            'a': 1.0,
-            'b': 0.0,
-            'c': 0.0,
-            'd': -1.0,
-            'e': 0.0,
-            'f': page.displaySize.height,
-          },
-          'ops': <Object?>[],
+}) => <String, Object?>{
+  'schemaVersion': 1,
+  'documentId': documentId,
+  'revisionId': revisionId,
+  'sourceSha256': sourceSha256,
+  'pageCount': pages.length,
+  'evidenceClass': 'emulator',
+  'font': <String, Object?>{
+    'family': 'NotoSans',
+    'regularAsset': 'assets/fonts/NotoSans-Regular.ttf',
+    'boldAsset': 'assets/fonts/NotoSans-Bold.ttf',
+    'metricsVersion': 'noto-sans-2.013-v1',
+  },
+  'pages': <Object?>[
+    for (final (int index, PageGeometry page) in pages.indexed)
+      <String, Object?>{
+        'index': index,
+        'rotation': page.rotation,
+        'mediaBox': _rectJson(page.mediaBox),
+        'cropBox': _rectJson(page.cropBox),
+        'displaySize': <String, Object?>{
+          'width': page.displaySize.width,
+          'height': page.displaySize.height,
         },
-    ],
-    'warnings': <Object?>[],
-    'info': <String, Object?>{
-      'emptyFieldCount': 0,
-      'unresolvedSuggestionCount': 0,
-    },
-  };
-  await _expectExportFailure('export.validate', label, plan);
-  await _expectExportFailure('export.render', label, plan);
+        'ctm': _ctmJson(page),
+        'ops': <Object?>[],
+      },
+  ],
+  'warnings': <Object?>[],
+  'info': <String, Object?>{
+    'emptyFieldCount': 0,
+    'unresolvedSuggestionCount': 0,
+  },
+};
+
+/// Display-to-PDF CTM from `contracts/coordinates-and-geometry.md` §5.
+Map<String, Object?> _ctmJson(PageGeometry page) {
+  final Rect crop = page.cropBox;
+  final double cx0 = crop.left;
+  final double cy0 = crop.top;
+  final double cx1 = crop.right;
+  final double cy1 = crop.bottom;
+  switch (page.rotation) {
+    case 0:
+      return <String, Object?>{
+        'a': 1.0,
+        'b': 0.0,
+        'c': 0.0,
+        'd': -1.0,
+        'e': cx0,
+        'f': cy1,
+      };
+    case 90:
+      return <String, Object?>{
+        'a': 0.0,
+        'b': 1.0,
+        'c': 1.0,
+        'd': 0.0,
+        'e': cx0,
+        'f': cy0,
+      };
+    case 180:
+      return <String, Object?>{
+        'a': -1.0,
+        'b': 0.0,
+        'c': 0.0,
+        'd': -1.0,
+        'e': cx1,
+        'f': cy0,
+      };
+    case 270:
+      return <String, Object?>{
+        'a': 0.0,
+        'b': -1.0,
+        'c': -1.0,
+        'd': 0.0,
+        'e': cx1,
+        'f': cy1,
+      };
+    default:
+      fail('unsupported page rotation ${page.rotation}');
+  }
 }
 
-Future<void> _expectExportFailure(
-  String method,
-  String label,
-  Map<String, Object?> plan,
-) async {
-  try {
-    final Object? result = await _platform.invokeMethod<Object?>(
-      method,
-      <String, Object?>{'schemaVersion': 1, 'plan': plan},
-    );
-    fail('$method returned $result although no export service is registered');
-  } on PlatformException catch (error) {
-    expect(error.code, 'PLT-001', reason: '$method must fail closed');
-    expect(error.message, 'platform.unsupported');
-    final Object? details = error.details;
-    if (details is! Map) {
-      fail('$method failure carries no details map');
-    }
-    expect(details['category'], 'unsupported');
-    expect(details['retryable'], isFalse);
-    debugPrint(
-      'T048 $label: $method -> ${error.code}/${error.message} '
-      '(export blocker: production export service missing, owner T104)',
-    );
+Future<Uint8List> _readArtifactBytes(String artifactId) async {
+  final Object? raw = await _platform.invokeMethod<Object?>(
+    'export.readArtifact',
+    <String, Object?>{'schemaVersion': 1, 'artifactId': artifactId},
+  );
+  final Object? value = androidEnvelopeValue(
+    raw,
+    method: 'export.readArtifact',
+  );
+  final Uint8List? bytes = androidBytes(value);
+  if (bytes == null || bytes.isEmpty) {
+    fail('export.readArtifact returned no artifact bytes');
   }
+  return bytes;
+}
+
+Future<void> _deleteArtifact(String artifactId) async {
+  final Map<String, Object?> data = androidEnvelopeData(
+    await _platform.invokeMethod<Object?>(
+      'export.deleteArtifact',
+      <String, Object?>{'schemaVersion': 1, 'artifactId': artifactId},
+    ),
+    method: 'export.deleteArtifact',
+  );
+  expect(data['deleted'], isTrue, reason: 'artifact cleanup');
 }
 
 Map<String, Object?> _rectJson(Rect rect) => <String, Object?>{
