@@ -165,6 +165,38 @@ void main() {
       );
     });
 
+    test('the documented extent cap is accepted at the boundary', () {
+      final double inside = (maxRasterExtentPx + 0.4) / rasterScale;
+      final double outside = (maxRasterExtentPx + 0.6) / rasterScale;
+      expect(RasterSize.widthPxFor(inside), maxRasterExtentPx);
+      expect(RasterSize.heightPxFor(inside), maxRasterExtentPx);
+      expect(() => RasterSize.widthPxFor(outside), throwsArgumentError);
+      expect(() => RasterSize.heightPxFor(outside), throwsArgumentError);
+      // 14,400 pt is the PDF maximum page dimension and maps to 40,000 px.
+      expect(RasterSize.widthPxFor(14400.0), maxRasterExtentPx);
+      expect(() => RasterSize.widthPxFor(14401.0), throwsArgumentError);
+    });
+
+    test('huge finite page sizes fail closed instead of saturating', () {
+      for (final double huge in <double>[1e20, 1e100, 1e308]) {
+        expect(
+          () => RasterSize.widthPxFor(huge),
+          throwsArgumentError,
+          reason: 'width $huge',
+        );
+        expect(
+          () => RasterSize.heightPxFor(huge),
+          throwsArgumentError,
+          reason: 'height $huge',
+        );
+        expect(
+          () => RasterSize.fromDisplaySize(widthPt: huge, heightPt: huge),
+          throwsArgumentError,
+          reason: 'size $huge',
+        );
+      }
+    });
+
     test('value equality and hashCode', () {
       final RasterSize a = RasterSize.fromDisplaySize(
         widthPt: 10,
@@ -239,6 +271,20 @@ void main() {
       expect(() => pointToPixel(double.nan), throwsArgumentError);
       expect(() => pointToPixel(double.infinity), throwsArgumentError);
     });
+
+    test('huge finite points fail closed at the documented extent', () {
+      final double inside = (maxRasterExtentPx - 0.5) / rasterScale;
+      final double outside = (maxRasterExtentPx + 0.5) / rasterScale;
+      expect(pointToPixel(inside), maxRasterExtentPx - 1);
+      expect(() => pointToPixel(outside), throwsArgumentError);
+      for (final double huge in <double>[1e20, 1e100, 1e308]) {
+        expect(
+          () => pointToPixel(huge),
+          throwsArgumentError,
+          reason: 'point $huge',
+        );
+      }
+    });
   });
 
   group('PixelRect half-open semantics', () {
@@ -293,6 +339,82 @@ void main() {
       expect(() => PixelRect.fromLTRB(-1, 0, 1, 1), throwsArgumentError);
       expect(() => PixelRect.fromLTRB(0, -1, 1, 1), throwsArgumentError);
     });
+
+    test('the documented field cap is accepted at the boundary', () {
+      final PixelRect rect = PixelRect(
+        left: maxRasterExtentPx,
+        top: maxRasterExtentPx,
+        width: maxRasterExtentPx,
+        height: maxRasterExtentPx,
+      );
+      expect(rect.right, 2 * maxRasterExtentPx);
+      expect(rect.bottom, 2 * maxRasterExtentPx);
+      expect(rect.area, maxRasterPixels);
+      expect(rect.right - rect.left, rect.width);
+      expect(
+        PixelRect.fromLTRB(
+          maxRasterExtentPx,
+          maxRasterExtentPx,
+          2 * maxRasterExtentPx,
+          2 * maxRasterExtentPx,
+        ),
+        rect,
+      );
+    });
+
+    test('extreme fields are rejected without wrap', () {
+      const int maxInt = 0x7FFFFFFFFFFFFFFF;
+      expect(
+        () =>
+            PixelRect(left: maxRasterExtentPx + 1, top: 0, width: 1, height: 1),
+        throwsArgumentError,
+      );
+      expect(
+        () =>
+            PixelRect(left: 0, top: maxRasterExtentPx + 1, width: 1, height: 1),
+        throwsArgumentError,
+      );
+      expect(
+        () =>
+            PixelRect(left: 0, top: 0, width: maxRasterExtentPx + 1, height: 1),
+        throwsArgumentError,
+      );
+      expect(
+        () =>
+            PixelRect(left: 0, top: 0, width: 1, height: maxRasterExtentPx + 1),
+        throwsArgumentError,
+      );
+      expect(
+        () => PixelRect(left: maxInt, top: 0, width: 1, height: 1),
+        throwsArgumentError,
+      );
+      expect(
+        () => PixelRect(left: 0, top: 0, width: maxInt, height: 1),
+        throwsArgumentError,
+      );
+      expect(
+        () => PixelRect(left: 0, top: 0, width: 1, height: maxInt),
+        throwsArgumentError,
+      );
+      expect(
+        () => PixelRect.fromLTRB(0, 0, maxRasterExtentPx + 1, 1),
+        throwsArgumentError,
+      );
+      expect(
+        () => PixelRect.fromLTRB(
+          maxRasterExtentPx,
+          0,
+          (2 * maxRasterExtentPx) + 1,
+          1,
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => PixelRect.fromLTRB(maxInt - 1, 0, maxInt, 1),
+        throwsArgumentError,
+      );
+      expect(() => PixelRect.fromLTRB(0, 0, maxInt, 1), throwsArgumentError);
+    });
   });
 
   group('GrayRaster construction and access', () {
@@ -344,6 +466,25 @@ void main() {
       );
       expect(
         () => GrayRaster.fromGrayBytes(width: 1, height: 0, bytes: <int>[]),
+        throwsArgumentError,
+      );
+    });
+
+    test('dimensions above the documented raster extent are rejected', () {
+      expect(
+        () => GrayRaster.fromGrayBytes(
+          width: maxRasterExtentPx + 1,
+          height: 1,
+          bytes: <int>[],
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => GrayRaster.fromGrayBytes(
+          width: 1,
+          height: maxRasterExtentPx + 1,
+          bytes: <int>[],
+        ),
         throwsArgumentError,
       );
     });
@@ -723,6 +864,82 @@ void main() {
       expect(
         () => InkCoverage(inkPixels: 0, totalPixels: 1).exceedsPercent(101),
         throwsArgumentError,
+      );
+    });
+
+    test('huge counts are compared without signed 64-bit overflow', () {
+      const int total = 1 << 60;
+      final int tenth = total ~/ 10;
+      // 10 % ink must not exceed 25 %; the old int expression overflowed
+      // signed 64-bit on both products and returned true.
+      expect(
+        InkCoverage(inkPixels: tenth, totalPixels: total).exceedsPercent(25),
+        isFalse,
+      );
+      expect(
+        InkCoverage(inkPixels: tenth, totalPixels: total).exceedsPercent(9),
+        isTrue,
+      );
+    });
+
+    test('huge zero, full, and exact-equality boundaries are exact', () {
+      const int total = 1 << 60;
+      const int quarter = 1 << 58;
+      expect(
+        InkCoverage(inkPixels: 0, totalPixels: total).exceedsPercent(0),
+        isFalse,
+      );
+      expect(
+        InkCoverage(inkPixels: 0, totalPixels: total).exceedsPercent(100),
+        isFalse,
+      );
+      expect(
+        InkCoverage(inkPixels: 1, totalPixels: total).exceedsPercent(0),
+        isTrue,
+      );
+      expect(
+        InkCoverage(inkPixels: 1, totalPixels: total).exceedsPercent(1),
+        isFalse,
+      );
+      expect(
+        InkCoverage(inkPixels: total, totalPixels: total).exceedsPercent(0),
+        isTrue,
+      );
+      expect(
+        InkCoverage(inkPixels: total, totalPixels: total).exceedsPercent(100),
+        isFalse,
+      );
+      expect(
+        InkCoverage(inkPixels: quarter, totalPixels: total).exceedsPercent(25),
+        isFalse,
+      );
+      expect(
+        InkCoverage(
+          inkPixels: quarter + 1,
+          totalPixels: total,
+        ).exceedsPercent(25),
+        isTrue,
+      );
+      expect(
+        InkCoverage(
+          inkPixels: quarter - 1,
+          totalPixels: total,
+        ).exceedsPercent(25),
+        isFalse,
+      );
+    });
+
+    test('comparisons stay exact above 2^63 on both sides', () {
+      const int total = 1 << 62;
+      const int ink = (1 << 61) + 12345;
+      // ink * 100 and total * 37 are both far above signed 64-bit.
+      expect(
+        InkCoverage(inkPixels: ink, totalPixels: total).exceedsPercent(37),
+        isTrue,
+      );
+      expect(
+        InkCoverage(inkPixels: ink, totalPixels: total).exceedsPercent(51),
+        isFalse,
       );
     });
 

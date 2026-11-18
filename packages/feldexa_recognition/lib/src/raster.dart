@@ -29,6 +29,10 @@
 //    [left, right) and rows [top, bottom). APIs never clamp implicitly; a
 //    rectangle that extends outside the raster raises [RangeError], and a
 //    rectangle with non-positive width or height is rejected at construction.
+//  * Raster dimensions, pixel coordinates, and rectangle fields are capped at
+//    [maxRasterExtentPx] (40,000 px), so `right`, `bottom`, and `area` stay
+//    exact in signed 64-bit arithmetic. Larger finite values raise a
+//    content-free [ArgumentError] instead of saturating or wrapping.
 //  * All arithmetic is deterministic. There is no clock, randomness, file or
 //    network I/O, locale, or platform dependency in this library.
 //
@@ -54,6 +58,25 @@ const double rasterScale = analysisDpi / 72.0;
 /// density against this default).
 const int defaultInkThreshold = 128;
 
+/// Largest accepted raster width, height, or pixel coordinate, in pixels.
+///
+/// 40,000 px is the 14,400-pt maximum PDF page dimension at 200 DPI
+/// (`14,400 × 200 / 72 = 40,000`). Capping every raster dimension, point
+/// coordinate, and [PixelRect] field at this value keeps `left + width`,
+/// `bottom`, `area`, and every other derived integer far inside the signed
+/// 64-bit range; `2 × 40,000 = 80,000` and `40,000² = 1,600,000,000` are also
+/// exact on the 53-bit Web runtime. Values above this cap are rejected with a
+/// content-free [ArgumentError] instead of being rounded, saturated, or
+/// allowed to wrap.
+const int maxRasterExtentPx = 40000;
+
+/// Largest accepted number of pixels in one raster:
+/// `maxRasterExtentPx² = 1,600,000,000`, below the signed 32-bit limit.
+///
+/// [GrayRaster] validates both its dimensions and this total so a raster can
+/// never exceed the documented extent or overflow its own index arithmetic.
+const int maxRasterPixels = maxRasterExtentPx * maxRasterExtentPx;
+
 /// The 200 DPI analysis raster dimensions for a page display size.
 ///
 /// `widthPx = round(displayWidthPt * rasterScale)` and likewise for the
@@ -61,18 +84,21 @@ const int defaultInkThreshold = 128;
 /// Dart's [double.round] rounds halves away from zero; for the positive
 /// dimensions accepted here that is "half up".
 ///
-/// A size must be finite and strictly positive on both axes, and each rounded
-/// dimension must be at least one pixel. Sizes that are too small to produce a
+/// A size must be finite and strictly positive on both axes, each rounded
+/// dimension must be at least one pixel, and each dimension may not exceed
+/// [maxRasterExtentPx] (40,000 px). Sizes that are too small to produce a
 /// pixel (below `0.5 / rasterScale` pt, about 0.18 pt) are rejected rather
-/// than clamped, so a caller never silently analyses a zero-pixel page.
+/// than clamped, and oversized or non-finite sizes fail closed with
+/// [ArgumentError] instead of rounding unpredictably.
 final class RasterSize {
   const RasterSize._(this.widthPx, this.heightPx);
 
   /// Computes the analysis raster size for a display-space page size in
   /// points.
   ///
-  /// Throws [ArgumentError] for a non-finite or non-positive dimension, or
-  /// for a dimension that rounds to fewer than one pixel.
+  /// Throws [ArgumentError] for a non-finite or non-positive dimension, a
+  /// dimension that rounds to fewer than one pixel, or a dimension above
+  /// [maxRasterExtentPx].
   factory RasterSize.fromDisplaySize({
     required double widthPt,
     required double heightPt,
@@ -82,16 +108,18 @@ final class RasterSize {
 
   /// Rounds one display-space width in points to analysis pixels.
   ///
-  /// Throws [ArgumentError] for a non-finite or non-positive [widthPt], or
-  /// when the rounded width is below one pixel.
+  /// Throws [ArgumentError] for a non-finite or non-positive [widthPt], a
+  /// rounded width below one pixel, or a rounded width above
+  /// [maxRasterExtentPx].
   static int widthPxFor(double widthPt) {
     return _dimensionPx(widthPt, 'widthPt');
   }
 
   /// Rounds one display-space height in points to analysis pixels.
   ///
-  /// Throws [ArgumentError] for a non-finite or non-positive [heightPt], or
-  /// when the rounded height is below one pixel.
+  /// Throws [ArgumentError] for a non-finite or non-positive [heightPt], a
+  /// rounded height below one pixel, or a rounded height above
+  /// [maxRasterExtentPx].
   static int heightPxFor(double heightPt) {
     return _dimensionPx(heightPt, 'heightPt');
   }
@@ -103,7 +131,14 @@ final class RasterSize {
     if (!(points > 0)) {
       throw ArgumentError.value(points, name, 'must be strictly positive');
     }
-    final int pixels = (points * rasterScale).round();
+    final double scaled = points * rasterScale;
+    // Reject before `round()` so a huge finite double can neither saturate to
+    // the maximum int nor throw an implementation-defined UnsupportedError.
+    // The extra half pixel admits values that round to exactly the cap.
+    if (!scaled.isFinite || scaled > maxRasterExtentPx + 0.5) {
+      throw _extentError(points, name);
+    }
+    final int pixels = scaled.round();
     if (pixels < 1) {
       throw ArgumentError.value(
         points,
@@ -111,7 +146,18 @@ final class RasterSize {
         'must produce at least one pixel at $analysisDpi DPI',
       );
     }
+    if (pixels > maxRasterExtentPx) {
+      throw _extentError(points, name);
+    }
     return pixels;
+  }
+
+  static ArgumentError _extentError(double points, String name) {
+    return ArgumentError.value(
+      points,
+      name,
+      'must map to at most $maxRasterExtentPx pixels at $analysisDpi DPI',
+    );
   }
 
   /// Raster width in pixels; always at least 1.
@@ -145,52 +191,77 @@ final class RasterSize {
 /// rectangles that share an edge do not overlap. The rectangle is independent
 /// of any particular raster; a raster operation checks that it lies inside
 /// that raster and raises [RangeError] instead of clamping.
+///
+/// Every field is capped at [maxRasterExtentPx] (40,000). Consequently
+/// `right` and `bottom` are at most 80,000 and [area] is at most
+/// 1,600,000,000, so the derived getters cannot overflow or wrap. A field
+/// outside the documented range raises a content-free [ArgumentError].
 final class PixelRect {
   const PixelRect._(this.left, this.top, this.width, this.height);
 
   /// Creates a pixel rectangle from its top-left corner and positive size.
   ///
-  /// Throws [ArgumentError] if [left] or [top] is negative, or if [width] or
-  /// [height] is not strictly positive.
+  /// Throws [ArgumentError] if [left] or [top] is negative or above
+  /// [maxRasterExtentPx], or if [width] or [height] is not strictly positive
+  /// or above [maxRasterExtentPx].
   factory PixelRect({
     required int left,
     required int top,
     required int width,
     required int height,
   }) {
-    if (left < 0) {
-      throw ArgumentError.value(left, 'left', 'must be non-negative');
-    }
-    if (top < 0) {
-      throw ArgumentError.value(top, 'top', 'must be non-negative');
-    }
-    if (width <= 0) {
-      throw ArgumentError.value(width, 'width', 'must be strictly positive');
-    }
-    if (height <= 0) {
-      throw ArgumentError.value(height, 'height', 'must be strictly positive');
-    }
+    _checkCoordinate(left, 'left');
+    _checkCoordinate(top, 'top');
+    _checkSize(width, 'width');
+    _checkSize(height, 'height');
     return PixelRect._(left, top, width, height);
   }
 
   /// Creates a pixel rectangle from half-open left/top/right/bottom edges.
   ///
-  /// Throws [ArgumentError] if an edge is negative or if `right <= left` or
-  /// `bottom <= top`.
+  /// Throws [ArgumentError] if an edge is negative, if `right <= left` or
+  /// `bottom <= top`, or if the resulting `left`/`top`/width/height exceeds
+  /// [maxRasterExtentPx].
   factory PixelRect.fromLTRB(int left, int top, int right, int bottom) {
-    if (left < 0) {
-      throw ArgumentError.value(left, 'left', 'must be non-negative');
-    }
-    if (top < 0) {
-      throw ArgumentError.value(top, 'top', 'must be non-negative');
-    }
+    _checkCoordinate(left, 'left');
+    _checkCoordinate(top, 'top');
     if (right <= left) {
       throw ArgumentError.value(right, 'right', 'must be greater than left');
     }
     if (bottom <= top) {
       throw ArgumentError.value(bottom, 'bottom', 'must be greater than top');
     }
-    return PixelRect._(left, top, right - left, bottom - top);
+    final int width = right - left;
+    final int height = bottom - top;
+    _checkSize(width, 'right - left');
+    _checkSize(height, 'bottom - top');
+    return PixelRect._(left, top, width, height);
+  }
+
+  static void _checkCoordinate(int value, String name) {
+    if (value < 0) {
+      throw ArgumentError.value(value, name, 'must be non-negative');
+    }
+    if (value > maxRasterExtentPx) {
+      throw ArgumentError.value(
+        value,
+        name,
+        'must not exceed $maxRasterExtentPx',
+      );
+    }
+  }
+
+  static void _checkSize(int value, String name) {
+    if (value <= 0) {
+      throw ArgumentError.value(value, name, 'must be strictly positive');
+    }
+    if (value > maxRasterExtentPx) {
+      throw ArgumentError.value(
+        value,
+        name,
+        'must not exceed $maxRasterExtentPx',
+      );
+    }
   }
 
   /// First covered column (inclusive).
@@ -239,8 +310,10 @@ final class PixelRect {
 ///
 /// [fraction] is the only floating-point value; all counting is exact integer
 /// arithmetic. For threshold comparisons, prefer [exceedsPercent], which
-/// compares `inkPixels * 100` against `area * percent` exactly instead of
-/// comparing floating-point fractions.
+/// performs the comparison with [BigInt] on both sides. That keeps the result
+/// exact for any integer count, including values whose products exceed the
+/// signed 64-bit range. The method allocates a few [BigInt] values per call and
+/// is intended for candidate rectangles, not per-pixel loops.
 final class InkCoverage {
   const InkCoverage._(this.inkPixels, this.totalPixels);
 
@@ -277,9 +350,10 @@ final class InkCoverage {
 
   /// Whether the ink fraction is strictly greater than [percent] percent.
   ///
-  /// Uses exact integer arithmetic:
-  /// `inkPixels * 100 > totalPixels * percent`. Throws [ArgumentError] if
-  /// [percent] is outside `0 ... 100`.
+  /// Compares `inkPixels × 100` with `totalPixels × percent` using [BigInt] on
+  /// both sides, so the result is exact even when either product exceeds the
+  /// signed 64-bit range. Throws [ArgumentError] if [percent] is outside
+  /// `0 ... 100`.
   bool exceedsPercent(int percent) {
     if (percent < 0 || percent > 100) {
       throw ArgumentError.value(
@@ -288,7 +362,8 @@ final class InkCoverage {
         'must be between 0 and 100',
       );
     }
-    return inkPixels * 100 > totalPixels * percent;
+    return BigInt.from(inkPixels) * BigInt.from(100) >
+        BigInt.from(totalPixels) * BigInt.from(percent);
   }
 
   @override
@@ -328,8 +403,8 @@ final class GrayRaster {
   /// Each byte is a luminance value from 0 (black) to 255 (white). The buffer
   /// must have no row padding: its length must equal `width * height`, which is
   /// the documented stride of [width]. Throws [ArgumentError] for a
-  /// non-positive or overflowing dimension, a wrong buffer length, or a byte
-  /// outside `0 ... 255`.
+  /// non-positive dimension, a dimension above [maxRasterExtentPx], a wrong
+  /// buffer length, or a byte outside `0 ... 255`.
   factory GrayRaster.fromGrayBytes({
     required int width,
     required int height,
@@ -484,15 +559,27 @@ final class GrayRaster {
     if (height <= 0) {
       throw ArgumentError.value(height, 'height', 'must be strictly positive');
     }
-    // Guard the `width * height` byte count against 32-bit overflow on
-    // platforms whose `int` is smaller than the host VM's. The analysis
-    // raster is allowed to exceed 2^31 pixels only where the platform can
-    // address it; rejecting keeps the stride and index arithmetic exact.
-    if (width * height > 0x7FFFFFFF) {
+    if (width > maxRasterExtentPx) {
+      throw ArgumentError.value(
+        width,
+        'width',
+        'must not exceed $maxRasterExtentPx',
+      );
+    }
+    if (height > maxRasterExtentPx) {
+      throw ArgumentError.value(
+        height,
+        'height',
+        'must not exceed $maxRasterExtentPx',
+      );
+    }
+    // Both dimensions are now at most 40,000, so this product is exact and
+    // cannot approach the signed 64-bit or 53-bit limits.
+    if (width * height > maxRasterPixels) {
       throw ArgumentError.value(
         '$width x $height',
         'width x height',
-        'exceeds the supported 2^31 - 1 pixels',
+        'exceeds the supported $maxRasterPixels pixels',
       );
     }
   }
@@ -774,18 +861,24 @@ double pixelEdgeToPoint(int edge) {
 ///
 /// The result is `floor(point * rasterScale)`: the pixel whose centre is
 /// nearest to the point. Pixel `i` owns the scaled interval `[i, i + 1)`, so a
-/// point exactly at a boundary is assigned to the right/lower pixel. The
-/// returned index is not range-checked against a page size; for a point on the
-/// right or bottom page edge it can equal the raster dimension. Mapping a
-/// pixel centre back with [pixelCenterToPoint] returns the original index.
+/// point exactly at a boundary is assigned to the right/lower pixel. A point
+/// is accepted only when `point × rasterScale` is finite and strictly below
+/// [maxRasterExtentPx], so the result is in `0 ... maxRasterExtentPx - 1`;
+/// larger finite points (for example `1e20` or `1e308`) and non-finite points
+/// raise a content-free [ArgumentError] before any `floor` or integer
+/// conversion can saturate or throw an implementation-defined error. A point
+/// exactly at the right/bottom edge of the maximum raster is therefore
+/// rejected: it belongs to no pixel.
 ///
-/// Like every double mapping, a boundary point reconstructed by dividing an
-/// integer index by [rasterScale] can fall on the lower side of the boundary
-/// by one floating-point ulp; use [pixelCenterToPoint] for index-exact
-/// round-trips and compare edges with an explicit tolerance when a caller
-/// derives points by division.
+/// Mapping a pixel centre back with [pixelCenterToPoint] returns the original
+/// index. Like every double mapping, a boundary point reconstructed by
+/// dividing an integer index by [rasterScale] can fall on the lower side of
+/// the boundary by one floating-point ulp; use [pixelCenterToPoint] for
+/// index-exact round-trips and compare edges with an explicit tolerance when
+/// a caller derives points by division.
 ///
-/// Throws [ArgumentError] for a non-finite or negative [point].
+/// Throws [ArgumentError] for a non-finite or negative [point], or for a
+/// point outside the documented raster extent.
 int pointToPixel(double point) {
   if (!point.isFinite) {
     throw ArgumentError.value(point, 'point', 'must be finite');
@@ -793,5 +886,14 @@ int pointToPixel(double point) {
   if (point < 0) {
     throw ArgumentError.value(point, 'point', 'must be non-negative');
   }
-  return (point * rasterScale).floor();
+  final double scaled = point * rasterScale;
+  if (!scaled.isFinite || scaled >= maxRasterExtentPx) {
+    throw ArgumentError.value(
+      point,
+      'point',
+      'must map inside the supported raster extent of '
+          '$maxRasterExtentPx pixels',
+    );
+  }
+  return scaled.floor();
 }
