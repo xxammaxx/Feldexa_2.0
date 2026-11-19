@@ -18,6 +18,8 @@ import de.feldexa.app.import.SourceStaging
 import de.feldexa.app.import.StagedCommit
 import de.feldexa.app.import.StagedDiscard
 import de.feldexa.app.import.StagedPreflight
+import de.feldexa.app.ocr.MlKitOcrService
+import de.feldexa.app.ocr.MlKitTextRecognizer
 import de.feldexa.app.pdf.PdfBoxDocumentLoader
 import de.feldexa.app.pdf.PdfDocumentLoader
 import de.feldexa.app.pdf.PdfPreflight
@@ -161,6 +163,12 @@ class MainActivity : FlutterActivity() {
         )
         runCatching { store.ensureLayout() }
         plugin.registerService("store", StoreService(store))
+
+        // T056: bundled Latin ML Kit OCR. The production recognizer owns one
+        // lazily created, reused TextRecognizer and is closed when the facade
+        // detaches. The bundled model needs no Play Services download and the
+        // service opens no sockets; recognized text is returned in memory only.
+        plugin.registerService("ocr", MlKitOcrService(MlKitTextRecognizer()))
 
         // T038/T040: SAF streaming import. The picker callback is delivered on
         // the main thread; ImportService consumes the source on the facade
