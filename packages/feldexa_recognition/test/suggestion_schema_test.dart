@@ -28,6 +28,12 @@
 //     Euclidean center distance ≤ 4 pt (inclusive). Every qualifying pair must
 //     be recorded symmetrically. The >12 % printed-ink rule is detector-owned,
 //     not schema-expressible.
+//   * Diagnostics are content-free: an unexpected input key is reported at
+//     `<parent>.<unknown-field>` and never echoed in a path or message. A
+//     canonical-JSON error does not echo keys or values either.
+//   * Integer-declared fields (`schemaVersion`, envelope/suggestion
+//     `pageIndex`, rotation, cueAgreement, suggestionCount, timings) reject
+//     numerically equal doubles such as `1.0` or `0.0`.
 //
 // Not covered here: detection quality, ink measurement, OCR, rasterization,
 // persistence, logging behavior, runtime evidence, or a production envelope
@@ -435,7 +441,7 @@ void main() {
         ..['exported'] = true;
       _expectViolation(
         envelope,
-        'envelope.exported: unexpected',
+        'envelope.<unknown-field>: unexpected',
         code: SuggestionSchemaCodes.unexpected,
       );
     });
@@ -471,7 +477,7 @@ void main() {
       );
       _expectViolation(
         _pageZeroEnvelope()..['exported'] = true,
-        'envelope.exported: unexpected',
+        'envelope.<unknown-field>: unexpected',
         code: SuggestionSchemaCodes.unexpected,
       );
       _expectViolation(
@@ -514,6 +520,15 @@ void main() {
         'envelope.schemaVersion: must equal 1',
         code: SuggestionSchemaCodes.value,
       );
+    });
+
+    test('rejects a numerically equal double schemaVersion', () {
+      _expectViolation(
+        _pageZeroEnvelope()..['schemaVersion'] = 1.0,
+        'envelope.schemaVersion: must be an int equal to 1',
+        code: SuggestionSchemaCodes.value,
+      );
+      _expectValid(_pageZeroEnvelope()..['schemaVersion'] = 1);
     });
 
     test('requires a canonical UUID analysisRunId shared by every page', () {
@@ -663,7 +678,7 @@ void main() {
         };
       _expectViolation(
         extraStage,
-        'envelope.timings.totalMs: unexpected',
+        'envelope.timings.<unknown-field>: unexpected',
         code: SuggestionSchemaCodes.unexpected,
       );
     });
@@ -681,36 +696,79 @@ void main() {
       );
     });
 
-    test('canonical projection excludes timings and evidenceClass', () {
-      final Map<String, Object?> baseline = _pageZeroEnvelope();
-      final Map<String, Object?> diagnosticsOnly = _pageZeroEnvelope()
-        ..['timings'] = <String, Object?>{
-          'rasterMs': 1,
-          'ocrMs': 2,
-          'detectMs': 3,
-        }
-        ..['evidenceClass'] = 'device';
+    test(
+      'canonical projection excludes analysisRunId, timings, evidenceClass',
+      () {
+        final Map<String, Object?> baseline = _pageZeroEnvelope();
+        final Map<String, Object?> diagnosticsOnly = _pageZeroEnvelope()
+          ..['analysisRunId'] = '00000000-0000-4000-8000-000000000001'
+          ..['timings'] = <String, Object?>{
+            'rasterMs': 1,
+            'ocrMs': 2,
+            'detectMs': 3,
+          }
+          ..['evidenceClass'] = 'device';
 
-      final Map<String, Object?> projection =
-          SuggestionSchema.canonicalProjection(baseline);
-      expect(projection, isNot(contains('timings')));
-      expect(projection, isNot(contains('evidenceClass')));
-      expect(
-        SuggestionSchema.canonicalJson(projection),
-        SuggestionSchema.canonicalJson(
-          SuggestionSchema.canonicalProjection(diagnosticsOnly),
-        ),
-      );
-
-      diagnosticsOnly['rotation'] = 90;
-      expect(
-        SuggestionSchema.canonicalJson(projection),
-        isNot(
+        final Map<String, Object?> projection =
+            SuggestionSchema.canonicalProjection(baseline);
+        expect(projection, isNot(contains('analysisRunId')));
+        expect(projection, isNot(contains('timings')));
+        expect(projection, isNot(contains('evidenceClass')));
+        expect(
+          SuggestionSchema.canonicalJson(projection),
           SuggestionSchema.canonicalJson(
             SuggestionSchema.canonicalProjection(diagnosticsOnly),
           ),
-        ),
-      );
+        );
+
+        final Map<String, Object?> runIdOnly = _pageZeroEnvelope()
+          ..['analysisRunId'] = '00000000-0000-4000-8000-000000000002';
+        expect(
+          SuggestionSchema.canonicalJson(projection),
+          SuggestionSchema.canonicalJson(
+            SuggestionSchema.canonicalProjection(runIdOnly),
+          ),
+        );
+
+        final Map<String, Object?> rotated = _pageZeroEnvelope()
+          ..['rotation'] = 90;
+        expect(
+          SuggestionSchema.canonicalJson(projection),
+          isNot(
+            SuggestionSchema.canonicalJson(
+              SuggestionSchema.canonicalProjection(rotated),
+            ),
+          ),
+        );
+      },
+    );
+
+    test('canonicalJson errors never echo keys or values', () {
+      const String sensitiveKey = 'SYNTHETIC-OCR-SECRET.pdf';
+      const String sensitiveValue = 'content://SYNTHETIC-OCR-VALUE';
+      final List<Object?> inputs = <Object?>[
+        <String, Object?>{
+          sensitiveKey: <String, Object?>{
+            'nested': <Object?>[sensitiveValue, double.nan],
+          },
+        },
+        <String, Object?>{
+          sensitiveKey: <String, Object?>{
+            'nested': <Object?>[sensitiveValue, Object()],
+          },
+        },
+      ];
+      for (final Object? input in inputs) {
+        late ArgumentError error;
+        try {
+          SuggestionSchema.canonicalJson(input);
+          fail('expected ArgumentError');
+        } on ArgumentError catch (caught) {
+          error = caught;
+        }
+        expect(error.toString(), isNot(contains(sensitiveKey)));
+        expect(error.toString(), isNot(contains(sensitiveValue)));
+      }
     });
   });
 
@@ -738,6 +796,32 @@ void main() {
         envelope,
         'envelope.suggestions[0].uncertainty: missing',
         code: SuggestionSchemaCodes.missing,
+      );
+    });
+
+    test('rejects a numerically equal double pageIndex', () {
+      final Map<String, Object?> envelope = _withSingle(
+        _suggestion(
+          id: 's_p0_0001',
+          pageIndex: 0,
+          rect: _rect(100, 100, 100, 20),
+        ),
+      );
+      _suggestionAt(envelope, 0)['pageIndex'] = 0.0;
+      _expectViolation(
+        envelope,
+        'envelope.suggestions[0].pageIndex: must equal the envelope pageIndex '
+        'as an int',
+        code: SuggestionSchemaCodes.mismatch,
+      );
+      _expectValid(
+        _withSingle(
+          _suggestion(
+            id: 's_p0_0001',
+            pageIndex: 0,
+            rect: _rect(100, 100, 100, 20),
+          ),
+        ),
       );
     });
 
@@ -1582,7 +1666,7 @@ void main() {
       _suggestionAt(autoConfirmed, 0)['autoConfirmed'] = true;
       _expectViolation(
         autoConfirmed,
-        'envelope.suggestions[0].autoConfirmed: unexpected',
+        'envelope.suggestions[0].<unknown-field>: unexpected',
         code: SuggestionSchemaCodes.unexpected,
       );
 
@@ -1596,7 +1680,7 @@ void main() {
       _suggestionAt(exported, 0)['exported'] = true;
       _expectViolation(
         exported,
-        'envelope.suggestions[0].exported: unexpected',
+        'envelope.suggestions[0].<unknown-field>: unexpected',
         code: SuggestionSchemaCodes.unexpected,
       );
 
@@ -1634,7 +1718,7 @@ void main() {
       evidence['inkDensity'] = 0.99;
       _expectViolation(
         envelope,
-        'envelope.suggestions[0].evidence.inkDensity: unexpected',
+        'envelope.suggestions[0].evidence.<unknown-field>: unexpected',
         code: SuggestionSchemaCodes.unexpected,
       );
     });
@@ -1677,7 +1761,7 @@ void main() {
       (extraField['failure']! as Map<String, Object?>)['detail'] = 'x';
       _expectViolation(
         extraField,
-        'envelope.failure.detail: unexpected',
+        'envelope.failure.<unknown-field>: unexpected',
         code: SuggestionSchemaCodes.unexpected,
       );
     });
@@ -1724,6 +1808,127 @@ void main() {
         'envelope.suggestions: must be empty when status is failed '
         '(partial results are discarded)',
         code: SuggestionSchemaCodes.forbidden,
+      );
+    });
+  });
+
+  group('content-free diagnostics', () {
+    const String sensitiveKey = 'SYNTHETIC-OCR-SECRET.pdf';
+    const String sensitiveValue = 'content://SYNTHETIC-OCR-VALUE';
+
+    void expectFixedUnexpectedKey(
+      Map<String, Object?> envelope,
+      String expectedPath,
+      String fixture,
+    ) {
+      final List<SuggestionSchemaViolation> findings = _validateEnvelope(
+        envelope,
+      );
+      expect(findings, hasLength(1), reason: '$fixture: one finding');
+      final SuggestionSchemaViolation finding = findings.single;
+      expect(finding.path, expectedPath, reason: '$fixture: fixed path');
+      expect(
+        finding.code,
+        SuggestionSchemaCodes.unexpected,
+        reason: '$fixture: stable code',
+      );
+      for (final SuggestionSchemaViolation candidate in findings) {
+        expect(
+          candidate.path,
+          isNot(contains(sensitiveKey)),
+          reason: '$fixture: path echoes the key',
+        );
+        expect(
+          candidate.path,
+          isNot(contains(sensitiveValue)),
+          reason: '$fixture: path echoes the value',
+        );
+        expect(
+          candidate.toString(),
+          isNot(contains(sensitiveKey)),
+          reason: '$fixture: toString echoes the key',
+        );
+        expect(
+          candidate.toString(),
+          isNot(contains(sensitiveValue)),
+          reason: '$fixture: toString echoes the value',
+        );
+      }
+    }
+
+    Map<String, Object?> singleSuggestion() {
+      return _withSingle(
+        _suggestion(
+          id: 's_p0_0001',
+          pageIndex: 0,
+          rect: _rect(100, 100, 100, 20),
+        ),
+      );
+    }
+
+    test('envelope unknown key uses a fixed marker', () {
+      final Map<String, Object?> envelope = _pageZeroEnvelope()
+        ..[sensitiveKey] = sensitiveValue;
+      expectFixedUnexpectedKey(
+        envelope,
+        'envelope.<unknown-field>',
+        'envelope',
+      );
+    });
+
+    test('suggestion unknown key uses a fixed marker', () {
+      final Map<String, Object?> envelope = singleSuggestion();
+      _suggestionAt(envelope, 0)[sensitiveKey] = sensitiveValue;
+      expectFixedUnexpectedKey(
+        envelope,
+        'envelope.suggestions[0].<unknown-field>',
+        'suggestion',
+      );
+    });
+
+    test('evidence unknown key uses a fixed marker', () {
+      final Map<String, Object?> envelope = singleSuggestion();
+      final Map<String, Object?> evidence =
+          _suggestionAt(envelope, 0)['evidence']! as Map<String, Object?>;
+      evidence[sensitiveKey] = sensitiveValue;
+      expectFixedUnexpectedKey(
+        envelope,
+        'envelope.suggestions[0].evidence.<unknown-field>',
+        'evidence',
+      );
+    });
+
+    test('failure unknown key uses a fixed marker', () {
+      final Map<String, Object?> envelope = _failedEnvelope();
+      (envelope['failure']! as Map<String, Object?>)[sensitiveKey] =
+          sensitiveValue;
+      expectFixedUnexpectedKey(
+        envelope,
+        'envelope.failure.<unknown-field>',
+        'failure',
+      );
+    });
+
+    test('rect unknown key uses a fixed marker', () {
+      final Map<String, Object?> envelope = singleSuggestion();
+      final Map<String, Object?> rect =
+          _suggestionAt(envelope, 0)['rect']! as Map<String, Object?>;
+      rect[sensitiveKey] = sensitiveValue;
+      expectFixedUnexpectedKey(
+        envelope,
+        'envelope.suggestions[0].rect.<unknown-field>',
+        'rect',
+      );
+    });
+
+    test('timings unknown key uses a fixed marker', () {
+      final Map<String, Object?> envelope = _pageZeroEnvelope();
+      (envelope['timings']! as Map<String, Object?>)[sensitiveKey] =
+          sensitiveValue;
+      expectFixedUnexpectedKey(
+        envelope,
+        'envelope.timings.<unknown-field>',
+        'timings',
       );
     });
   });

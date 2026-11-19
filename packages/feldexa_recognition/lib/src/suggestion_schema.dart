@@ -42,7 +42,11 @@
 // threshold. The >12 % printed-ink rule (§2.1) and OCR quality remain
 // detector-owned and cannot be decided from the wire shape.
 // Violation messages contain only structural paths and stable codes, never
-// labels, OCR text, file names, URIs, or document content.
+// labels, OCR text, file names, URIs, or document content. Unexpected input
+// keys are reported at the fixed structural marker `<parent>.<unknown-field>`;
+// supplied key text and values are never interpolated into a path or message.
+// Integer-declared fields reject numerically equal doubles (`1.0`, `0.0`) so
+// the wire type stays distinct from the floating-point fields.
 
 library;
 
@@ -476,7 +480,7 @@ abstract final class SuggestionSchema {
     bool persisted = true,
   }) {
     if (pageCount < 1) {
-      throw ArgumentError.value(pageCount, 'pageCount', 'must be at least 1');
+      throw ArgumentError('pageCount must be at least 1.');
     }
     final List<SuggestionSchemaViolation> findings =
         <SuggestionSchemaViolation>[];
@@ -487,7 +491,8 @@ abstract final class SuggestionSchema {
     }
     _checkExactKeys(raw, envelopeKeys, 'envelope', findings);
 
-    if (raw['schemaVersion'] != version) {
+    final Object? rawSchemaVersion = raw['schemaVersion'];
+    if (rawSchemaVersion is! int || rawSchemaVersion != version) {
       findings.add(
         const SuggestionSchemaViolation(
           'envelope.schemaVersion',
@@ -768,16 +773,22 @@ abstract final class SuggestionSchema {
     return List<Map<String, Object?>>.unmodifiable(sorted);
   }
 
-  /// Deep-copies [envelope] without `timings` and `evidenceClass`.
+  /// Deep-copies [envelope] without `analysisRunId`, `timings`, and
+  /// `evidenceClass`.
   ///
-  /// This is the input to canonical revision hashing and golden equality
-  /// (§1; §5.5). Diagnostics cannot affect the projection.
+  /// This is the §5 item 5 determinism projection used for byte-identical
+  /// canonical JSON and golden equality, not a revision-identity hash. Run
+  /// identity and diagnostics cannot affect the projection. This module has no
+  /// separate run-identity-retaining revision projection; callers that need
+  /// run identity must keep it outside this projection.
   static Map<String, Object?> canonicalProjection(
     Map<String, Object?> envelope,
   ) {
     return <String, Object?>{
       for (final MapEntry<String, Object?> entry in envelope.entries)
-        if (entry.key != 'timings' && entry.key != 'evidenceClass')
+        if (entry.key != 'analysisRunId' &&
+            entry.key != 'timings' &&
+            entry.key != 'evidenceClass')
           entry.key: _deepCopy(entry.value),
     };
   }
@@ -786,9 +797,10 @@ abstract final class SuggestionSchema {
   /// whitespace, UTF-8-compatible scalars.
   ///
   /// Throws [ArgumentError] for a non-finite number or an unsupported value.
-  /// The error never echoes document content.
+  /// The error is content-free: it never echoes document keys, values, or
+  /// recursive structural paths.
   static String canonicalJson(Object? value) {
-    return jsonEncode(_canonicalize(value, r'$'));
+    return jsonEncode(_canonicalize(value));
   }
 
   static void _validateSuggestion(
@@ -858,8 +870,10 @@ abstract final class SuggestionSchema {
       }
     }
 
+    final Object? rawSuggestionPageIndex = suggestion['pageIndex'];
     if (envelopePageIndex == null ||
-        suggestion['pageIndex'] != envelopePageIndex) {
+        rawSuggestionPageIndex is! int ||
+        rawSuggestionPageIndex != envelopePageIndex) {
       findings.add(
         SuggestionSchemaViolation(
           '$path.pageIndex',
@@ -1386,7 +1400,7 @@ abstract final class SuggestionSchema {
       if (!keys.contains(key)) {
         findings.add(
           SuggestionSchemaViolation(
-            '$path.$key',
+            '$path.<unknown-field>',
             SuggestionSchemaCodes.unexpected,
           ),
         );
@@ -1533,29 +1547,26 @@ abstract final class SuggestionSchema {
     return union <= 0 ? 0 : intersection / union;
   }
 
-  static Object? _canonicalize(Object? value, String path) {
+  static Object? _canonicalize(Object? value) {
     if (value == null || value is bool || value is String || value is int) {
       return value;
     }
     if (value is double) {
       if (!value.isFinite) {
-        throw ArgumentError('Non-finite number at $path');
+        throw ArgumentError('Canonical JSON requires finite numbers.');
       }
       return value;
     }
     if (value is Map<String, Object?>) {
       final List<String> keys = value.keys.toList()..sort();
       return <String, Object?>{
-        for (final String key in keys) key: _canonicalize(value[key], path),
+        for (final String key in keys) key: _canonicalize(value[key]),
       };
     }
     if (value is List<Object?>) {
-      return <Object?>[
-        for (int i = 0; i < value.length; i++)
-          _canonicalize(value[i], '$path[$i]'),
-      ];
+      return <Object?>[for (final Object? item in value) _canonicalize(item)];
     }
-    throw ArgumentError('Unsupported canonical JSON value at $path');
+    throw ArgumentError('Unsupported canonical JSON value.');
   }
 
   static Object? _deepCopy(Object? value) {
