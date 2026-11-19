@@ -25,17 +25,22 @@
 // `package:feldexa_recognition/src/suggestion_schema.dart` directly. Do not
 // duplicate these rules in `FieldSuggestionSet`.
 //
-// Two deliberate non-rules:
-//   * Cues must be unique and belong to the §3.1 vocabulary, but the contract
-//     names no collation, so this validator does not require an order. A
-//     producer may sort cues for stable diffs; that is a producer assumption,
-//     not a contract rule.
+// Cue ordering is a rule: `evidence.cues` must be sorted ascending by UTF-16
+// code unit (`String.compareTo` on every adjacent pair < 0), in addition to
+// uniqueness and §3.1 vocabulary membership. For the ASCII §3.1 tokens this is
+// ASCII lexicographic order.
+//
+// One deliberate non-rule:
 //   * `uncertaintyReason` is required only when `pageUncertain` is true and
 //     must then be one of the four values. §1 does not require it to be null
 //     when `pageUncertain` is false, so a valid reason is accepted there.
 //
-// The >12 % printed-ink rule (§2.1), the §6 center-containment conflict clause,
-// and OCR quality are detector-owned and cannot be decided from the wire shape.
+// The §6 conflict predicate is decidable from the wire shape: two rects
+// conflict when IoU >= 0.5 or when one rect contains the other's center and
+// the Euclidean center distance is <= 4 pt (both inclusive). Each coordinate
+// is rounded to 1/8 pt before comparison so float noise cannot change a
+// threshold. The >12 % printed-ink rule (§2.1) and OCR quality remain
+// detector-owned and cannot be decided from the wire shape.
 // Violation messages contain only structural paths and stable codes, never
 // labels, OCR text, file names, URIs, or document content.
 
@@ -69,7 +74,7 @@ abstract final class SuggestionSchemaCodes {
   /// A collection contains a duplicate.
   static const String duplicate = 'duplicate';
 
-  /// A suggestion id does not match its post-sort position.
+  /// A value does not match the required canonical order.
   static const String order = 'order';
 
   /// A conflict references an absent suggestion.
@@ -78,7 +83,7 @@ abstract final class SuggestionSchemaCodes {
   /// A conflict is not recorded by both candidates.
   static const String symmetry = 'symmetry';
 
-  /// A conflicting pair has IoU below the contract threshold.
+  /// A declared conflicting pair does not qualify under the §6 rule.
   static const String overlap = 'overlap';
 
   /// A persisted result carries forbidden state or fields.
@@ -675,6 +680,7 @@ abstract final class SuggestionSchema {
           findings: findings,
         );
       }
+      _validateConflictCompleteness(suggestions, findings: findings);
     }
 
     final Object? rawTimings = raw['timings'];
@@ -1084,6 +1090,20 @@ abstract final class SuggestionSchema {
           ),
         );
       }
+      // Ascending UTF-16 code-unit order: every adjacent pair must satisfy
+      // `compareTo(next) < 0`. A duplicate pair is therefore also unsorted and
+      // yields both findings. One `order` finding covers the whole list.
+      for (int i = 0; i + 1 < cues.length; i++) {
+        if (cues[i].compareTo(cues[i + 1]) >= 0) {
+          findings.add(
+            SuggestionSchemaViolation(
+              '$path.cues',
+              SuggestionSchemaCodes.order,
+            ),
+          );
+          break;
+        }
+      }
       for (final String cue in cues) {
         if (!isKnownCue(cue)) {
           findings.add(
@@ -1112,8 +1132,6 @@ abstract final class SuggestionSchema {
           ),
         );
       }
-      // No cue-order finding: the contract requires uniqueness and vocabulary
-      // membership, not a collation. Producers may sort for stable diffs.
     }
 
     final Object? cueAgreement = evidence['cueAgreement'];
@@ -1227,14 +1245,73 @@ abstract final class SuggestionSchema {
           ),
         );
       }
-      final double? iou = _iou(suggestion['rect'], other['rect']);
-      if (iou == null || iou < 0.5 - _epsilon) {
+      if (!_conflictQualifies(suggestion['rect'], other['rect'])) {
         findings.add(
           SuggestionSchemaViolation(
             '$path.conflictsWith',
             SuggestionSchemaCodes.overlap,
           ),
         );
+      }
+    }
+  }
+
+  /// Emits `symmetry` for every missing side of a §6-qualifying pair.
+  ///
+  /// Runs after individual suggestion validation, over structurally usable
+  /// suggestions in envelope order: a string `id`, a parseable `rect`, and a
+  /// `conflictsWith` array. For each unordered pair whose rects qualify under
+  /// [_conflictQualifies], each side must list the other's id. A fully
+  /// undeclared pair yields two findings, one per direction; a declared
+  /// one-sided pair yields the missing reverse direction here in addition to
+  /// the declared-symmetry finding from [_validateConflicts].
+  static void _validateConflictCompleteness(
+    List<Map<String, Object?>> suggestions, {
+    required List<SuggestionSchemaViolation> findings,
+  }) {
+    final List<int> usable = <int>[];
+    for (int index = 0; index < suggestions.length; index++) {
+      final Object? id = suggestions[index]['id'];
+      final ({double x, double y, double width, double height})? rect =
+          _rectValues(suggestions[index]['rect']);
+      final Object? conflicts = suggestions[index]['conflictsWith'];
+      if (id is String &&
+          rect != null &&
+          rect.width > 0 &&
+          rect.height > 0 &&
+          conflicts is List<Object?>) {
+        usable.add(index);
+      }
+    }
+    for (int i = 0; i < usable.length; i++) {
+      for (int j = i + 1; j < usable.length; j++) {
+        final int aIndex = usable[i];
+        final int bIndex = usable[j];
+        final Map<String, Object?> a = suggestions[aIndex];
+        final Map<String, Object?> b = suggestions[bIndex];
+        if (!_conflictQualifies(a['rect'], b['rect'])) {
+          continue;
+        }
+        final String aId = a['id']! as String;
+        final String bId = b['id']! as String;
+        final List<Object?> aConflicts = a['conflictsWith']! as List<Object?>;
+        final List<Object?> bConflicts = b['conflictsWith']! as List<Object?>;
+        if (!aConflicts.contains(bId)) {
+          findings.add(
+            SuggestionSchemaViolation(
+              'envelope.suggestions[$aIndex].conflictsWith',
+              SuggestionSchemaCodes.symmetry,
+            ),
+          );
+        }
+        if (!bConflicts.contains(aId)) {
+          findings.add(
+            SuggestionSchemaViolation(
+              'envelope.suggestions[$bIndex].conflictsWith',
+              SuggestionSchemaCodes.symmetry,
+            ),
+          );
+        }
       }
     }
   }
@@ -1376,7 +1453,14 @@ abstract final class SuggestionSchema {
     return (x: x, y: y, width: width, height: height);
   }
 
-  static double? _iou(Object? rawA, Object? rawB) {
+  /// Whether two rects qualify as a §6 conflict.
+  ///
+  /// Each coordinate is rounded to 1/8 pt first. The pair qualifies when
+  /// `IoU >= 0.5` (inclusive) or when one rect contains the other's center
+  /// (boundary inclusive) and the Euclidean center distance is `<= 4 pt`
+  /// (inclusive). Threshold comparisons use [_epsilon]; invalid rects do not
+  /// qualify.
+  static bool _conflictQualifies(Object? rawA, Object? rawB) {
     final ({double x, double y, double width, double height})? a = _rectValues(
       rawA,
     );
@@ -1384,8 +1468,53 @@ abstract final class SuggestionSchema {
       rawB,
     );
     if (a == null || b == null) {
-      return null;
+      return false;
     }
+    final ({double x, double y, double width, double height}) roundedA =
+        _roundedRect(a);
+    final ({double x, double y, double width, double height}) roundedB =
+        _roundedRect(b);
+    if (_iou(roundedA, roundedB) >= 0.5 - _epsilon) {
+      return true;
+    }
+    final double aCenterX = roundedA.x + roundedA.width / 2;
+    final double aCenterY = roundedA.y + roundedA.height / 2;
+    final double bCenterX = roundedB.x + roundedB.width / 2;
+    final double bCenterY = roundedB.y + roundedB.height / 2;
+    final double dx = aCenterX - bCenterX;
+    final double dy = aCenterY - bCenterY;
+    final double distanceLimit = 4 + _epsilon;
+    if (dx * dx + dy * dy > distanceLimit * distanceLimit) {
+      return false;
+    }
+    final bool aCenterInB =
+        aCenterX >= roundedB.x - _epsilon &&
+        aCenterX <= roundedB.x + roundedB.width + _epsilon &&
+        aCenterY >= roundedB.y - _epsilon &&
+        aCenterY <= roundedB.y + roundedB.height + _epsilon;
+    final bool bCenterInA =
+        bCenterX >= roundedA.x - _epsilon &&
+        bCenterX <= roundedA.x + roundedA.width + _epsilon &&
+        bCenterY >= roundedA.y - _epsilon &&
+        bCenterY <= roundedA.y + roundedA.height + _epsilon;
+    return aCenterInB || bCenterInA;
+  }
+
+  static ({double x, double y, double width, double height}) _roundedRect(
+    ({double x, double y, double width, double height}) rect,
+  ) {
+    return (
+      x: _roundToEighth(rect.x),
+      y: _roundToEighth(rect.y),
+      width: _roundToEighth(rect.width),
+      height: _roundToEighth(rect.height),
+    );
+  }
+
+  static double _iou(
+    ({double x, double y, double width, double height}) a,
+    ({double x, double y, double width, double height}) b,
+  ) {
     final double left = a.x > b.x ? a.x : b.x;
     final double top = a.y > b.y ? a.y : b.y;
     final double right = a.x + a.width < b.x + b.width

@@ -17,18 +17,17 @@
 // contract-derived vocabulary lists and paths as expectations, but calls the
 // production validator for the verdict.
 //
-// Deliberate non-rules in this correction:
-//   * §2 requires cues to be sorted and unique but names no collation, so the
-//     production validator enforces membership and uniqueness only. The test
-//     accepts an unsorted, unique cue list; any producer-side sorting is an
-//     assumption, not a contract rule.
+// Rules covered in this correction:
+//   * §2 requires cues to be sorted and unique. The production validator
+//     enforces membership, uniqueness, and ascending UTF-16 code-unit order
+//     (`String.compareTo`): every adjacent pair must compare < 0.
 //   * §1 requires an `uncertaintyReason` when `pageUncertain` is true and
 //     restricts it to four values; it does not require null when false. The
 //     test accepts a valid reason with `pageUncertain == false`.
-//   * §6 allows a conflict from IoU ≥ 0.5 or the center-containment clause.
-//     The production validator pins the IoU ≥ 0.5 subset; T055 owns the second
-//     clause. The >12 % printed-ink rule is detector-owned, not
-//     schema-expressible.
+//   * §6 qualifies a conflict by IoU ≥ 0.5 or by center containment with a
+//     Euclidean center distance ≤ 4 pt (inclusive). Every qualifying pair must
+//     be recorded symmetrically. The >12 % printed-ink rule is detector-owned,
+//     not schema-expressible.
 //
 // Not covered here: detection quality, ink measurement, OCR, rasterization,
 // persistence, logging behavior, runtime evidence, or a production envelope
@@ -154,7 +153,7 @@ List<Map<String, Object?>> _conflictPair() {
       rect: _rect(100, 100, 100, 20),
       confidence: 0.82,
       labelText: 'Name',
-      cues: <String>['underline', 'ocr_alignment_right', 'keyword_name'],
+      cues: <String>['keyword_name', 'ocr_alignment_right', 'underline'],
       cueAgreement: 3,
       skewDegrees: 0.4,
       conflictsWith: <String>['s_p0_0002'],
@@ -185,7 +184,7 @@ Map<String, Object?> _pageZeroEnvelope() {
         proposedType: 'multiline',
         confidence: 0.5,
         labelText: 'Bemerkung',
-        cues: <String>['whitespace', 'alignment_left'],
+        cues: <String>['alignment_left', 'whitespace'],
         cueAgreement: 2,
         skewDegrees: 0.4,
       ),
@@ -204,7 +203,7 @@ Map<String, Object?> _pageOneEnvelope() {
         proposedType: 'date',
         confidence: 0.9,
         labelText: null,
-        cues: <String>['underline', 'date_context'],
+        cues: <String>['date_context', 'underline'],
         cueAgreement: 2,
         skewDegrees: 0.4,
       ),
@@ -484,8 +483,12 @@ void main() {
             cues: <String>['underline', 'underline'],
           ),
         ),
-        'envelope.suggestions[0].evidence.cues: must be unique',
-        code: SuggestionSchemaCodes.duplicate,
+        'envelope.suggestions[0].evidence.cues: must be unique and sorted',
+        count: 2,
+        codes: <String>{
+          SuggestionSchemaCodes.duplicate,
+          SuggestionSchemaCodes.order,
+        },
       );
 
       final List<Map<String, Object?>> oneSided = _conflictPair();
@@ -494,6 +497,12 @@ void main() {
         _envelope(pageIndex: 0, suggestions: oneSided),
         'envelope.suggestions[0].conflictsWith: must be symmetric',
         code: SuggestionSchemaCodes.symmetry,
+        additional: <SuggestionSchemaViolation>[
+          const SuggestionSchemaViolation(
+            'envelope.suggestions[1].conflictsWith',
+            SuggestionSchemaCodes.symmetry,
+          ),
+        ],
       );
     });
 
@@ -831,6 +840,9 @@ void main() {
           id: 's_p0_0002',
           pageIndex: 0,
           rect: _rect(200, 100, 100, 20),
+          // The identical rect is required for the type-ordinal tiebreak, so
+          // this §6-qualifying pair is declared symmetrically.
+          conflictsWith: <String>['s_p0_0003'],
         ),
         _suggestion(
           id: 's_p0_0003',
@@ -840,6 +852,7 @@ void main() {
           confidence: 0.7,
           labelText: null,
           cues: <String>['box'],
+          conflictsWith: <String>['s_p0_0002'],
         ),
       ];
       expect(
@@ -1144,27 +1157,27 @@ void main() {
             pageIndex: 0,
             rect: _rect(100, 100, 100, 20),
             cues: <String>[
-              'underline',
-              'box',
-              'grid_cell',
-              'whitespace',
               'alignment_left',
-              'label_below',
-              'ocr_alignment_right',
-              'ocr_alignment_below',
+              'box',
+              'date_context',
+              'grid_cell',
               'keyword_name',
+              'label_below',
+              'numeric_context',
+              'ocr_alignment_below',
+              'ocr_alignment_right',
+              'signature_area',
               'small_square',
               'table_cell',
-              'signature_area',
-              'numeric_context',
-              'date_context',
+              'underline',
+              'whitespace',
             ],
             cueAgreement: 14,
           ),
         ),
       );
 
-      // The contract requires membership and uniqueness, not a collation.
+      // Membership, uniqueness, and ascending code-unit order all hold here.
       _expectValid(
         _withSingle(
           _suggestion(
@@ -1184,8 +1197,12 @@ void main() {
             cues: <String>['underline', 'underline'],
           ),
         ),
-        'envelope.suggestions[0].evidence.cues: must be unique',
-        code: SuggestionSchemaCodes.duplicate,
+        'envelope.suggestions[0].evidence.cues: must be unique and sorted',
+        count: 2,
+        codes: <String>{
+          SuggestionSchemaCodes.duplicate,
+          SuggestionSchemaCodes.order,
+        },
       );
       for (final String invalidCue in <String>[
         'line',
@@ -1195,13 +1212,14 @@ void main() {
         'keyword_unknown',
         'keyword_Name',
       ]) {
+        final List<String> cues = <String>['underline', invalidCue]..sort();
         _expectViolation(
           _withSingle(
             _suggestion(
               id: 's_p0_0001',
               pageIndex: 0,
               rect: _rect(100, 100, 100, 20),
-              cues: <String>['underline', invalidCue],
+              cues: cues,
             ),
           ),
           'envelope.suggestions[0].evidence.cues: must use only the §3.1 '
@@ -1224,6 +1242,32 @@ void main() {
           SuggestionSchemaCodes.count,
           SuggestionSchemaCodes.forbidden,
         },
+      );
+    });
+
+    test('cues are sorted in ascending code-unit order', () {
+      _expectValid(
+        _withSingle(
+          _suggestion(
+            id: 's_p0_0001',
+            pageIndex: 0,
+            rect: _rect(100, 100, 100, 20),
+            cues: <String>['box', 'underline'],
+          ),
+        ),
+      );
+      _expectViolation(
+        _withSingle(
+          _suggestion(
+            id: 's_p0_0001',
+            pageIndex: 0,
+            rect: _rect(100, 100, 100, 20),
+            cues: <String>['underline', 'box'],
+          ),
+        ),
+        'envelope.suggestions[0].evidence.cues: must be sorted in ascending '
+        'code-unit order',
+        code: SuggestionSchemaCodes.order,
       );
     });
 
@@ -1314,7 +1358,7 @@ void main() {
             id: 's_p0_0001',
             pageIndex: 0,
             rect: _rect(100, 100, 100, 20),
-            cues: <String>['underline', 'keyword_name'],
+            cues: <String>['keyword_name', 'underline'],
             cueAgreement: 2,
             ocrUsed: false,
           ),
@@ -1339,7 +1383,7 @@ void main() {
       );
     });
 
-    test('conflicts are symmetric, real, IoU ≥ 0.5, and both remain', () {
+    test('conflicts are symmetric, real, §6-qualifying, and both remain', () {
       final Map<String, Object?> envelope = _envelope(
         pageIndex: 0,
         suggestions: _conflictPair(),
@@ -1356,6 +1400,12 @@ void main() {
         _envelope(pageIndex: 0, suggestions: oneSided),
         'envelope.suggestions[0].conflictsWith: must be symmetric',
         code: SuggestionSchemaCodes.symmetry,
+        additional: <SuggestionSchemaViolation>[
+          const SuggestionSchemaViolation(
+            'envelope.suggestions[1].conflictsWith',
+            SuggestionSchemaCodes.symmetry,
+          ),
+        ],
       );
 
       _expectViolation(
@@ -1397,8 +1447,8 @@ void main() {
       lowIou[1]['rect'] = _rect(400, 400, 100, 20);
       _expectViolation(
         _envelope(pageIndex: 0, suggestions: lowIou),
-        'envelope.suggestions[0].conflictsWith: conflicting ids require '
-        'IoU >= 0.5',
+        'envelope.suggestions[0].conflictsWith: declared conflicts must '
+        'qualify under the §6 IoU or center-containment rule',
         code: SuggestionSchemaCodes.overlap,
         additional: <SuggestionSchemaViolation>[
           const SuggestionSchemaViolation(
@@ -1407,6 +1457,76 @@ void main() {
           ),
         ],
       );
+    });
+
+    test('undeclared §6 conflicts are rejected on both sides', () {
+      final Map<String, Object?> envelope = _envelope(
+        pageIndex: 0,
+        suggestions: <Map<String, Object?>>[
+          _suggestion(
+            id: 's_p0_0001',
+            pageIndex: 0,
+            rect: _rect(100, 100, 100, 20),
+          ),
+          _suggestion(
+            id: 's_p0_0002',
+            pageIndex: 0,
+            rect: _rect(110, 105, 100, 20),
+          ),
+        ],
+      );
+      _expectViolation(
+        envelope,
+        'envelope.suggestions[0].conflictsWith: §6-qualifying conflicts must '
+        'be recorded symmetrically',
+        code: SuggestionSchemaCodes.symmetry,
+        additional: <SuggestionSchemaViolation>[
+          const SuggestionSchemaViolation(
+            'envelope.suggestions[1].conflictsWith',
+            SuggestionSchemaCodes.symmetry,
+          ),
+        ],
+      );
+    });
+
+    test('non-qualifying pairs may keep empty conflicts', () {
+      final Map<String, Object?> envelope = _envelope(
+        pageIndex: 0,
+        suggestions: <Map<String, Object?>>[
+          _suggestion(
+            id: 's_p0_0001',
+            pageIndex: 0,
+            rect: _rect(100, 100, 100, 20),
+          ),
+          _suggestion(
+            id: 's_p0_0002',
+            pageIndex: 0,
+            rect: _rect(400, 400, 100, 20),
+          ),
+        ],
+      );
+      _expectValid(envelope);
+    });
+
+    test('declared §6 center-containment conflict with IoU < 0.5 is valid', () {
+      final Map<String, Object?> envelope = _envelope(
+        pageIndex: 0,
+        suggestions: <Map<String, Object?>>[
+          _suggestion(
+            id: 's_p0_0001',
+            pageIndex: 0,
+            rect: _rect(100, 100, 100, 100),
+            conflictsWith: <String>['s_p0_0002'],
+          ),
+          _suggestion(
+            id: 's_p0_0002',
+            pageIndex: 0,
+            rect: _rect(145, 145, 10, 10),
+            conflictsWith: <String>['s_p0_0001'],
+          ),
+        ],
+      );
+      _expectValid(envelope);
     });
 
     test('resolution vocabulary; persisted output stays unresolved', () {
