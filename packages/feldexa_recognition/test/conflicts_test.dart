@@ -277,11 +277,13 @@ void main() {
       expect(result.collapsedCount, 1);
     });
 
-    test('a duplicate at or below IoU 0.98 is retained', () {
-      final ConflictItem a = _item('a', _rect(0, 0, 10, 10));
-      final ConflictItem b = _item('b', _rect(0, 0, 10, 9.75));
+    test('a duplicate at exactly IoU 0.98 is retained', () {
+      final ConflictItem a = _item('a', _rect(0, 0, 100, 100));
+      final ConflictItem b = _item('b', _rect(0, 0, 100, 98));
 
-      expect(ConflictDetector.iou(a.rect, b.rect), lessThanOrEqualTo(0.98));
+      // 98 / 100 is exactly representable on the 1/8 pt lattice and the
+      // contract threshold is strict: IoU > 0.98, so 0.98 itself is kept.
+      expect(ConflictDetector.iou(a.rect, b.rect), 0.98);
       expect(ExactDuplicateCollapser.areExactDuplicates(a, b), isFalse);
 
       final DuplicateCollapseResult result = ExactDuplicateCollapser.collapse(
