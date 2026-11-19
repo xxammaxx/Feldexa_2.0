@@ -277,9 +277,15 @@ final class RevisionContent extends JsonObject {
   ///
   /// [pages] must be non-empty and ordered contiguously from index 0.
   /// Suggestions must reference existing pages, fit their display box, have
-  /// unique ids, and carry symmetric conflicts. Fields must have unique ids,
-  /// fit their page, and be a permutation of [fieldOrder] whose `order` equals
-  /// the field's position. Values exist only for fields and must be compatible
+  /// unique ids, and carry symmetric conflicts. Suggestion resolution and
+  /// machine-field provenance are cross-checked per
+  /// `contracts/recognition-output.md` §7: a confirmed suggestion has exactly
+  /// one matching machine field, a machine field points back to a confirmed
+  /// same-page suggestion with equal confidence, and a `duplicateOfConfirmed`
+  /// suggestion is never confirmed and needs a matching machine field. Fields
+  /// must have unique ids, fit their page, and be a permutation of [fieldOrder]
+  /// whose `order` equals the field's position. Values exist only for fields
+  /// and must be compatible
   /// or preserved as [IncompatibleValue] flagged by the `incompatible_content`
   /// warning or a blocking field error; signatures exist only for signature
   /// fields on the same page; verification entries exist only for fields.
@@ -385,6 +391,13 @@ final class RevisionContent extends JsonObject {
     final List<ConfirmedField> orderedFields = <ConfirmedField>[
       for (final String fieldId in suppliedOrder) fieldById[fieldId]!,
     ];
+
+    // recognition-output §7: suggestions and their resolution/provenance must
+    // stay consistent with the confirmed machine fields.
+    validateSuggestionFieldProvenance(
+      suggestions: suggestionList,
+      fields: orderedFields,
+    );
 
     final Map<String, FieldValue> valueMap = Map<String, FieldValue>.from(
       values,
