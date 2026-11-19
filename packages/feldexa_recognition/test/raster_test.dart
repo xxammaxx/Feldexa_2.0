@@ -2,13 +2,8 @@
 //
 // The test package is `flutter_test` because the widget/unit suites in this
 // repository standardise on it and `@TestOn('vm')` keeps this file on the host
-// VM. `packages/feldexa_recognition/pubspec.yaml` deliberately has no
-// dev_dependency yet: T050 owns the single `flutter_test` addition for this
-// parallel US2 slice, and this worktree must not edit the pubspec. The shared
-// pub workspace resolves `flutter_test` from the other member packages, so the
-// import works; remove the suppression below once T050's dev_dependency is
-// merged.
-// ignore_for_file: depend_on_referenced_packages
+// VM. `packages/feldexa_recognition/pubspec.yaml` declares the `flutter_test`
+// dev dependency.
 
 @TestOn('vm')
 library;
