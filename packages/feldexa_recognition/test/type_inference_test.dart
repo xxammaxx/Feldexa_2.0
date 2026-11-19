@@ -78,11 +78,9 @@ void main() {
         'summe': 'number',
         'iban': 'number',
         'steuernummer': 'number',
-        // text-guarded numeric and date labels
+        // §3.2 text-guarded numeric and date labels
         'plz': 'text',
-        'postleitzahl': 'text',
         'telefon': 'text',
-        'telefax': 'text',
         'monat': 'text',
         'zeitraum': 'text',
         'von': 'text',
@@ -102,6 +100,8 @@ void main() {
         'hausnummer',
         'ort',
         'wohnort',
+        'postleitzahl',
+        'telefax',
         'e-mail',
         'email',
         'bic',
@@ -264,6 +264,30 @@ void main() {
         labels: <LabelObservation>[_label('Name')],
       );
       expect(neutral.addedCues, isNot(contains('numeric_context')));
+    });
+
+    test('postleitzahl and telefax are neutral, not forced text', () {
+      final GeometryCandidate checkbox = _candidate(
+        rect: _rect(100, 100, 12, 12),
+      );
+      for (final String word in <String>['Postleitzahl', 'Telefax']) {
+        final TypeInferenceResult square = _infer(
+          candidate: checkbox,
+          labels: <LabelObservation>[_label(word)],
+        );
+        expect(square.proposedType, 'checkbox', reason: word);
+        expect(
+          square.addedCues,
+          contains('keyword_${word.toLowerCase()}'),
+          reason: word,
+        );
+        expect(square.addedCues, isNot(contains('numeric_context')));
+
+        final TypeInferenceResult singleLine = _infer(
+          labels: <LabelObservation>[_label(word)],
+        );
+        expect(singleLine.proposedType, 'text', reason: word);
+      }
     });
   });
 
@@ -600,9 +624,9 @@ void main() {
   });
 
   group('alignment cues', () {
-    test('a right-side vertically overlapping label gets the right cue', () {
+    test('a label left of the candidate gets the right cue', () {
       final TypeInferenceResult result = _infer(
-        labels: <LabelObservation>[_label('Betrag', x: 220, y: 101, width: 50)],
+        labels: <LabelObservation>[_label('Betrag', x: 50, y: 101, width: 40)],
       );
       expect(result.addedCues, <String>[
         'keyword_betrag',
@@ -611,30 +635,36 @@ void main() {
       ]);
     });
 
-    test('a right-side label without vertical overlap gets no right cue', () {
+    test('a label above the candidate gets the below cue', () {
       final TypeInferenceResult result = _infer(
-        labels: <LabelObservation>[_label('Name', x: 220, y: 70, width: 30)],
+        labels: <LabelObservation>[_label('Name', x: 100, y: 70, width: 40)],
+      );
+      expect(result.addedCues, <String>['keyword_name', 'ocr_alignment_below']);
+    });
+
+    test('a label to the right does not get the right cue', () {
+      final TypeInferenceResult result = _infer(
+        labels: <LabelObservation>[_label('Name', x: 220, y: 101, width: 50)],
       );
       expect(result.addedCues, isNot(contains('ocr_alignment_right')));
       expect(result.addedCues, isNot(contains('ocr_alignment_below')));
+      expect(result.addedCues, isNot(contains('label_below')));
     });
 
-    test('a directly below label gets below and label_below', () {
+    test('a directly below label gets label_below only', () {
       final TypeInferenceResult result = _infer(
         labels: <LabelObservation>[_label('Name', x: 100, y: 112, width: 120)],
       );
-      expect(result.addedCues, <String>[
-        'keyword_name',
-        'label_below',
-        'ocr_alignment_below',
-      ]);
+      expect(result.addedCues, <String>['keyword_name', 'label_below']);
+      expect(result.addedCues, isNot(contains('ocr_alignment_below')));
     });
 
-    test('an offset below label gets only ocr_alignment_below', () {
+    test('an offset below label gets no alignment cue', () {
       final TypeInferenceResult result = _infer(
         labels: <LabelObservation>[_label('Name', x: 230, y: 112, width: 30)],
       );
-      expect(result.addedCues, contains('ocr_alignment_below'));
+      expect(result.addedCues, <String>['keyword_name']);
+      expect(result.addedCues, isNot(contains('ocr_alignment_below')));
       expect(result.addedCues, isNot(contains('label_below')));
     });
 
@@ -647,20 +677,16 @@ void main() {
       final TypeInferenceResult justUnderHalf = _infer(
         labels: <LabelObservation>[_label('Name', x: 171, y: 112, width: 100)],
       );
-      expect(justUnderHalf.addedCues, contains('ocr_alignment_below'));
       expect(justUnderHalf.addedCues, isNot(contains('label_below')));
+      expect(justUnderHalf.addedCues, isNot(contains('ocr_alignment_below')));
     });
 
-    test('labels above or left add no alignment cue', () {
-      final TypeInferenceResult above = _infer(
-        labels: <LabelObservation>[_label('Name', x: 100, y: 70, width: 40)],
+    test('ocr_alignment_below requires horizontal overlap', () {
+      final TypeInferenceResult result = _infer(
+        labels: <LabelObservation>[_label('Name', x: 230, y: 70, width: 30)],
       );
-      expect(above.addedCues, <String>['keyword_name']);
-
-      final TypeInferenceResult left = _infer(
-        labels: <LabelObservation>[_label('Name', x: 50, y: 100, width: 40)],
-      );
-      expect(left.addedCues, <String>['keyword_name']);
+      expect(result.addedCues, <String>['keyword_name']);
+      expect(result.addedCues, isNot(contains('ocr_alignment_below')));
     });
   });
 
@@ -729,7 +755,7 @@ void main() {
 
     test('added cues are sorted, unique, and unmodifiable', () {
       final TypeInferenceResult result = _infer(
-        labels: <LabelObservation>[_label('IBAN', x: 220, y: 100, width: 40)],
+        labels: <LabelObservation>[_label('IBAN', x: 50, y: 100, width: 40)],
       );
       expect(result.addedCues, <String>[
         'keyword_iban',

@@ -40,14 +40,17 @@
 // yields the same selection.
 //
 // Alignment cues emitted for the selected label:
-//  * `ocr_alignment_right` when the label's left edge is at or beyond the
-//    candidate's right edge and the two rectangles overlap vertically;
-//  * `ocr_alignment_below` when the label's top edge is at or below the
-//    candidate's bottom edge;
-//  * `label_below` additionally when the label is below the candidate and the
-//    horizontal overlap is at least half of the narrower rectangle (the
-//    documented direct-below case). A diagonally placed label therefore gets
-//    `ocr_alignment_below` without `label_below`.
+//  * `ocr_alignment_right` when the candidate is to the right of the label
+//    line: the label's right edge is at or before the candidate's left edge
+//    and the two rectangles overlap vertically;
+//  * `ocr_alignment_below` when the candidate is below the label line: the
+//    label's bottom edge is at or before the candidate's top edge and the two
+//    rectangles overlap horizontally;
+//  * `label_below` when the label is directly below the candidate: the label's
+//    top edge is at or below the candidate's bottom edge and the horizontal
+//    overlap is at least half of the narrower rectangle (the documented
+//    direct-below case). This is the signature-line orientation and is
+//    independent of the two OCR-line cues above.
 //
 // Keyword matching. The §3.1 lexicon v1 is read from
 // `SuggestionSchema.keywordLexiconV1` (single source of truth). For matching,
@@ -67,8 +70,9 @@
 //     `signature_area` → `signature`;
 //  2. label keyword class:
 //     * date: `geburtsdatum`, `datum`, `jahr` → `date`;
-//     * numeric-formatting text: `plz`, `postleitzahl`, `telefon`,
-//       `telefax` → `text` (leading zeros/formatting);
+//     * numeric-formatting text: `plz`, `telefon` → `text` (leading
+//       zeros/formatting); `postleitzahl` and `telefax` are neutral because
+//       §3.2 names only those two keywords for this exception;
 //     * date-guarded text: `monat`, `zeitraum`, `von`, `bis` → `text`
 //       (the "never force a fake date" rule);
 //     * signature: `unterschrift`, `datum/unterschrift` → `signature`;
@@ -168,12 +172,10 @@ const Map<String, _KeywordClass> _keywordClasses = <String, _KeywordClass>{
   'summe': _KeywordClass.number,
   'iban': _KeywordClass.number,
   'steuernummer': _KeywordClass.number,
-  // Numeric-looking fields that stay text (leading zeros/formatting), plus
-  // the §3.2 date-guarded labels that must never become a fake date.
+  // §3.2 names only plz and telefon as numeric-looking text fields.
   'plz': _KeywordClass.textNumeric,
-  'postleitzahl': _KeywordClass.textNumeric,
   'telefon': _KeywordClass.textNumeric,
-  'telefax': _KeywordClass.textNumeric,
+  // The §3.2 date-guarded labels must never become a fake date.
   'monat': _KeywordClass.textDateGuard,
   'zeitraum': _KeywordClass.textDateGuard,
   'von': _KeywordClass.textDateGuard,
@@ -192,6 +194,9 @@ const Map<String, _KeywordClass> _keywordClasses = <String, _KeywordClass>{
   'hausnummer': _KeywordClass.neutral,
   'ort': _KeywordClass.neutral,
   'wohnort': _KeywordClass.neutral,
+  // §3.2 does not authorize forced text for these two synonyms.
+  'postleitzahl': _KeywordClass.neutral,
+  'telefax': _KeywordClass.neutral,
   'e-mail': _KeywordClass.neutral,
   'email': _KeywordClass.neutral,
   'bic': _KeywordClass.neutral,
@@ -469,29 +474,33 @@ final class TypeInference {
     final List<String> cues = <String>[];
     final double candidateRight = candidate.x + candidate.width;
     final double candidateBottom = candidate.y + candidate.height;
+    final double labelRight = label.x + label.width;
+    final double labelBottom = label.y + label.height;
+    final double horizontalOverlap = _overlap(
+      label.x,
+      labelRight,
+      candidate.x,
+      candidateRight,
+    );
 
-    final bool isRight = label.x >= candidateRight - _epsilon;
+    // `ocr_alignment_right`: the candidate is to the right of the label line.
+    final bool candidateIsRight = labelRight <= candidate.x + _epsilon;
     final bool verticalOverlap =
-        _overlap(
-          label.y,
-          label.y + label.height,
-          candidate.y,
-          candidateBottom,
-        ) >
-        _epsilon;
-    if (isRight && verticalOverlap) {
+        _overlap(label.y, labelBottom, candidate.y, candidateBottom) > _epsilon;
+    if (candidateIsRight && verticalOverlap) {
       cues.add(_ocrAlignmentRightCue);
     }
 
-    final bool isBelow = label.y >= candidateBottom - _epsilon;
-    if (isBelow) {
+    // `ocr_alignment_below`: the candidate is below the label line.
+    final bool candidateIsBelow = labelBottom <= candidate.y + _epsilon;
+    if (candidateIsBelow && horizontalOverlap > _epsilon) {
       cues.add(_ocrAlignmentBelowCue);
-      final double horizontalOverlap = _overlap(
-        label.x,
-        label.x + label.width,
-        candidate.x,
-        candidateRight,
-      );
+    }
+
+    // `label_below`: the label is directly below the candidate (signature
+    // line), independent of the OCR-line orientation above.
+    final bool labelIsBelow = label.y >= candidateBottom - _epsilon;
+    if (labelIsBelow) {
       final double narrowerWidth = math.min(label.width, candidate.width);
       if (horizontalOverlap >= 0.5 * narrowerWidth - _epsilon) {
         cues.add(_labelBelowCue);
