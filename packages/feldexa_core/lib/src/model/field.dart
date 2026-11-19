@@ -773,6 +773,13 @@ final class SuggestionEvidence extends JsonObject {
 /// T057's `FieldSuggestionSet` and are not part of this model. Unknown
 /// same-schema JSON fields are retained across a read/write round
 /// (`data-model.md` §6).
+///
+/// [duplicateOfConfirmed] implements the `recognition-output.md` §7 reanalysis
+/// marker: a new suggestion that duplicates an existing machine field is
+/// auditable but hidden by default in review. It is persisted under the
+/// camelCase key `duplicateOfConfirmed` only when true; a missing key decodes
+/// as false so older documents remain readable. A flagged suggestion is never
+/// [SuggestionResolution.confirmed].
 final class FieldSuggestion extends JsonObject {
   /// Creates a suggestion.
   ///
@@ -790,8 +797,14 @@ final class FieldSuggestion extends JsonObject {
   /// [FieldType.signature] suggestion requires the
   /// [SuggestionCue.signatureArea] cue. [conflictsWith] must reference other
   /// canonical same-page suggestion ids with positive ordinals, contain no
-  /// duplicates, and never reference [id]. [unknownFields] are opaque
-  /// same-schema JSON extensions retained for a later write.
+  /// duplicates, and never reference [id]. [duplicateOfConfirmed] is the
+  /// reanalysis marker from `contracts/recognition-output.md` §7: it records
+  /// that a machine field with the same type and a canonical-rect IoU of at
+  /// least 0.8 already exists on the page. A duplicate is never confirmed
+  /// automatically, so combining it with [SuggestionResolution.confirmed] is
+  /// rejected; [SuggestionResolution.unresolved] and
+  /// [SuggestionResolution.rejected] remain allowed. [unknownFields] are
+  /// opaque same-schema JSON extensions retained for a later write.
   ///
   /// Throws [ArgumentError] for every invalid value. The error never echoes a
   /// label or any other document content.
@@ -805,6 +818,7 @@ final class FieldSuggestion extends JsonObject {
     required SuggestionEvidence evidence,
     Iterable<String> conflictsWith = const <String>[],
     SuggestionResolution resolution = SuggestionResolution.unresolved,
+    bool duplicateOfConfirmed = false,
     Map<String, Object?> unknownFields = const <String, Object?>{},
   }) {
     final int checkedPage = _checkPageIndex(pageIndex);
@@ -828,6 +842,11 @@ final class FieldSuggestion extends JsonObject {
         'A signature suggestion requires the signature_area cue',
       );
     }
+    if (duplicateOfConfirmed && resolution == SuggestionResolution.confirmed) {
+      throw ArgumentError(
+        'a duplicate-of-confirmed suggestion must not be confirmed',
+      );
+    }
     return FieldSuggestion._(
       id: checkedId,
       pageIndex: checkedPage,
@@ -838,6 +857,7 @@ final class FieldSuggestion extends JsonObject {
       evidence: evidence,
       conflictsWith: checkedConflicts,
       resolution: resolution,
+      duplicateOfConfirmed: duplicateOfConfirmed,
       unknownFields: freezeUnknownJsonFields(unknownFields),
     );
   }
@@ -852,6 +872,7 @@ final class FieldSuggestion extends JsonObject {
     required this.evidence,
     required this.conflictsWith,
     required this.resolution,
+    required this.duplicateOfConfirmed,
     required super.unknownFields,
   });
 
@@ -892,6 +913,11 @@ final class FieldSuggestion extends JsonObject {
             : SuggestionEvidence.fromJson(_readObject(json, 'evidence')),
         conflictsWith: _readStringList(json, 'conflictsWith'),
         resolution: SuggestionResolution.fromWire(json['resolution']),
+        duplicateOfConfirmed: _readOptionalBool(
+          json,
+          'duplicateOfConfirmed',
+          defaultValue: false,
+        ),
         unknownFields: unknownJsonFields(json, _fieldSuggestionJsonKeys),
       );
       // `uncertainty` is derived from confidence. The contract requires a
@@ -955,6 +981,15 @@ final class FieldSuggestion extends JsonObject {
   /// Current review state; persisted suggestions are [unresolved] until the
   /// user acts.
   final SuggestionResolution resolution;
+
+  /// Whether reanalysis found a matching machine field on this page
+  /// (`contracts/recognition-output.md` §7).
+  ///
+  /// Matching means [Provenance.machine], the same [proposedType], and a
+  /// canonical-rect IoU of at least 0.8. A flagged suggestion is hidden from
+  /// the default review stream but remains auditable; it is never
+  /// auto-confirmed. Persisted under `duplicateOfConfirmed` only when true.
+  final bool duplicateOfConfirmed;
 
   /// Returns the canonical 1/8 pt rounding of a suggestion rectangle.
   ///
@@ -1034,6 +1069,7 @@ final class FieldSuggestion extends JsonObject {
     SuggestionEvidence? evidence,
     Iterable<String>? conflictsWith,
     SuggestionResolution? resolution,
+    bool? duplicateOfConfirmed,
     Map<String, Object?>? unknownFields,
   }) {
     return FieldSuggestion(
@@ -1048,6 +1084,7 @@ final class FieldSuggestion extends JsonObject {
       evidence: evidence ?? this.evidence,
       conflictsWith: conflictsWith ?? this.conflictsWith,
       resolution: resolution ?? this.resolution,
+      duplicateOfConfirmed: duplicateOfConfirmed ?? this.duplicateOfConfirmed,
       unknownFields: unknownFields ?? this.unknownFields,
     );
   }
@@ -1055,11 +1092,13 @@ final class FieldSuggestion extends JsonObject {
   /// Serializes to the recognition-output §2 suggestion object.
   ///
   /// `uncertainty` is always written as the two-decimal derived value, and
-  /// `evidence.contrast` is `normal | low`. Unknown same-schema fields are
-  /// emitted beneath the modeled keys. Key ordering is not canonical here; the
-  /// T017 canonical JSON encoder owns that.
+  /// `evidence.contrast` is `normal | low`. `duplicateOfConfirmed` is written
+  /// only when true so older documents keep byte-identical canonical JSON and
+  /// a missing key always means false. Unknown same-schema fields are emitted
+  /// beneath the modeled keys. Key ordering is not canonical here; the T017
+  /// canonical JSON encoder owns that.
   Map<String, Object?> toJson() {
-    return toJsonWithUnknown(<String, Object?>{
+    final Map<String, Object?> known = <String, Object?>{
       'id': id,
       'pageIndex': pageIndex,
       'rect': rect.toJson(),
@@ -1070,7 +1109,11 @@ final class FieldSuggestion extends JsonObject {
       'evidence': evidence.toJson(),
       'conflictsWith': List<String>.unmodifiable(conflictsWith),
       'resolution': resolution.wireName,
-    });
+    };
+    if (duplicateOfConfirmed) {
+      known['duplicateOfConfirmed'] = true;
+    }
+    return toJsonWithUnknown(known);
   }
 
   @override
@@ -1084,7 +1127,8 @@ final class FieldSuggestion extends JsonObject {
         other.labelText == labelText &&
         other.evidence == evidence &&
         _listsEqual<String>(other.conflictsWith, conflictsWith) &&
-        other.resolution == resolution;
+        other.resolution == resolution &&
+        other.duplicateOfConfirmed == duplicateOfConfirmed;
   }
 
   @override
@@ -1099,6 +1143,7 @@ final class FieldSuggestion extends JsonObject {
       evidence,
       Object.hashAll(conflictsWith),
       resolution,
+      duplicateOfConfirmed,
     );
   }
 
@@ -1396,6 +1441,209 @@ final class ConfirmedField extends JsonObject {
         'type: ${type.wireName}, provenance: ${provenance.wireName}, '
         'order: $order)';
   }
+}
+
+/// The inclusive IoU threshold for reanalysis duplicate marking
+/// (`contracts/recognition-output.md` §7).
+const double duplicateOfConfirmedIouThreshold = 0.8;
+
+/// Marks reanalysis suggestions that duplicate an existing machine field.
+///
+/// A suggestion is marked [FieldSuggestion.duplicateOfConfirmed] exactly when
+/// a [Provenance.machine] field exists on the same page with the same
+/// [ConfirmedField.type] and a canonical-rect IoU of at least
+/// [duplicateOfConfirmedIouThreshold]. Both rectangles are rounded to the
+/// canonical 1/8 pt grid per component, and the comparison uses exact integer
+/// eighth-point areas (`intersection * 5 >= union * 4`), so the inclusive 0.8
+/// boundary is stable and independent of floating-point division.
+///
+/// The helper is pure and deterministic: it never mutates or removes an input,
+/// never auto-confirms or auto-rejects, and preserves the input order. A
+/// suggestion already in [SuggestionResolution.confirmed] is returned
+/// unchanged. Non-machine fields are ignored.
+List<FieldSuggestion> markDuplicatesOfConfirmed({
+  required Iterable<FieldSuggestion> suggestions,
+  required Iterable<ConfirmedField> confirmedFields,
+}) {
+  final List<ConfirmedField> machineFields = <ConfirmedField>[
+    for (final ConfirmedField field in confirmedFields)
+      if (field.provenance == Provenance.machine) field,
+  ];
+  final List<FieldSuggestion> result = <FieldSuggestion>[];
+  for (final FieldSuggestion suggestion in suggestions) {
+    if (suggestion.resolution == SuggestionResolution.confirmed) {
+      result.add(suggestion);
+      continue;
+    }
+    final bool duplicate = machineFields.any(
+      (ConfirmedField field) =>
+          field.pageIndex == suggestion.pageIndex &&
+          field.type == suggestion.proposedType &&
+          _rectIouAtLeast(field.rect, suggestion.rect, 4, 5),
+    );
+    result.add(
+      suggestion.duplicateOfConfirmed == duplicate
+          ? suggestion
+          : suggestion.copyWith(duplicateOfConfirmed: duplicate),
+    );
+  }
+  return List<FieldSuggestion>.unmodifiable(result);
+}
+
+/// Validates the suggestion/confirmed-field consistency invariants of
+/// `contracts/recognition-output.md` §7.
+///
+/// Enforced for every suggestion and field on the same document or revision
+/// snapshot:
+///
+/// * a [SuggestionResolution.confirmed] suggestion has exactly one
+///   [Provenance.machine] field whose
+///   [ConfirmedField.sourceSuggestionId] equals the suggestion id;
+/// * a machine field references an existing suggestion on the same page whose
+///   resolution is confirmed and whose confidence equals
+///   [ConfirmedField.suggestionConfidence];
+/// * an [SuggestionResolution.unresolved] or
+///   [SuggestionResolution.rejected] suggestion has no machine field;
+/// * a [FieldSuggestion.duplicateOfConfirmed] suggestion is not confirmed and
+///   has at least one machine field on its page with the same
+///   [FieldType] and a canonical-rect IoU of at least 0.8.
+///
+/// The document and revision aggregate constructors call this after their
+/// structural validations. Throws [ArgumentError] with a content-free message;
+/// no label, id, path, or OCR text is ever echoed.
+void validateSuggestionFieldProvenance({
+  required Iterable<FieldSuggestion> suggestions,
+  required Iterable<ConfirmedField> fields,
+}) {
+  final Map<String, FieldSuggestion> suggestionById = <String, FieldSuggestion>{
+    for (final FieldSuggestion suggestion in suggestions)
+      suggestion.id: suggestion,
+  };
+  final List<ConfirmedField> machineFields = <ConfirmedField>[
+    for (final ConfirmedField field in fields)
+      if (field.provenance == Provenance.machine) field,
+  ];
+  final Map<String, int> machineFieldCount = <String, int>{};
+  for (final ConfirmedField field in machineFields) {
+    final String? sourceId = field.sourceSuggestionId;
+    if (sourceId == null) {
+      throw ArgumentError('a machine field must reference a suggestion');
+    }
+    final FieldSuggestion? suggestion = suggestionById[sourceId];
+    if (suggestion == null ||
+        suggestion.pageIndex != field.pageIndex ||
+        suggestion.resolution != SuggestionResolution.confirmed) {
+      throw ArgumentError(
+        'a machine field must reference a confirmed suggestion on its page',
+      );
+    }
+    if (suggestion.confidence != field.suggestionConfidence) {
+      throw ArgumentError(
+        'a machine field confidence must match its suggestion confidence',
+      );
+    }
+    machineFieldCount[sourceId] = (machineFieldCount[sourceId] ?? 0) + 1;
+  }
+  for (final FieldSuggestion suggestion in suggestions) {
+    final int count = machineFieldCount[suggestion.id] ?? 0;
+    if (suggestion.resolution == SuggestionResolution.confirmed) {
+      if (count != 1) {
+        throw ArgumentError(
+          'a confirmed suggestion requires exactly one machine field',
+        );
+      }
+    } else if (count != 0) {
+      throw ArgumentError(
+        'an unresolved or rejected suggestion must not be referenced by a '
+        'machine field',
+      );
+    }
+    if (suggestion.duplicateOfConfirmed) {
+      if (suggestion.resolution == SuggestionResolution.confirmed) {
+        throw ArgumentError(
+          'a duplicate-of-confirmed suggestion must not be confirmed',
+        );
+      }
+      final bool hasMatchingField = machineFields.any(
+        (ConfirmedField field) =>
+            field.pageIndex == suggestion.pageIndex &&
+            field.type == suggestion.proposedType &&
+            _rectIouAtLeast(field.rect, suggestion.rect, 4, 5),
+      );
+      if (!hasMatchingField) {
+        throw ArgumentError(
+          'a duplicate-of-confirmed suggestion requires a matching machine '
+          'field on its page',
+        );
+      }
+    }
+  }
+}
+
+/// Whether two page rects reach [numerator] / [denominator] IoU after both are
+/// rounded to the canonical 1/8 pt grid.
+///
+/// Areas are exact integers in eighth-point units, so the boundary comparison
+/// never depends on binary floating-point division. Degenerate rounded rects
+/// have no area and therefore no match.
+bool _rectIouAtLeast(Rect first, Rect second, int numerator, int denominator) {
+  final _EighthRect a = _EighthRect.fromRect(first);
+  final _EighthRect b = _EighthRect.fromRect(second);
+  if (a.area <= 0 || b.area <= 0) {
+    return false;
+  }
+  final int left = a.left > b.left ? a.left : b.left;
+  final int top = a.top > b.top ? a.top : b.top;
+  final int right = a.right < b.right ? a.right : b.right;
+  final int bottom = a.bottom < b.bottom ? a.bottom : b.bottom;
+  if (right <= left || bottom <= top) {
+    return false;
+  }
+  final int intersection = (right - left) * (bottom - top);
+  final int union = a.area + b.area - intersection;
+  return intersection * denominator >= union * numerator;
+}
+
+/// A rectangle quantized to integer 1/8 pt units.
+final class _EighthRect {
+  const _EighthRect({
+    required this.left,
+    required this.top,
+    required this.right,
+    required this.bottom,
+  });
+
+  factory _EighthRect.fromRect(Rect rect) {
+    final int left = _eighthUnits(rect.left);
+    final int top = _eighthUnits(rect.top);
+    final int width = _eighthUnits(rect.width);
+    final int height = _eighthUnits(rect.height);
+    return _EighthRect(
+      left: left,
+      top: top,
+      right: left + width,
+      bottom: top + height,
+    );
+  }
+
+  final int left;
+  final int top;
+  final int right;
+  final int bottom;
+
+  int get area => (right - left) * (bottom - top);
+}
+
+/// Rounds one rect component to the canonical 1/8 pt grid in integer units.
+///
+/// The arithmetic matches [FieldSuggestion.canonicalRect]: scale by 8, round
+/// half away from zero, and fail closed on overflow. The error is content-free.
+int _eighthUnits(double value) {
+  final double scaled = value * 8;
+  if (!scaled.isFinite) {
+    throw ArgumentError('rect is too large for 1/8 pt duplicate detection');
+  }
+  return scaled.round();
 }
 
 /// A handwritten signature asset reference (`data-model.md` §3.7).
@@ -2539,6 +2787,7 @@ const Set<String> _fieldSuggestionJsonKeys = <String>{
   'evidence',
   'conflictsWith',
   'resolution',
+  'duplicateOfConfirmed',
 };
 
 /// Modeled keys of a persisted confirmed field.
@@ -3121,6 +3370,21 @@ bool _readBool(Map<String, Object?> json, String key) {
     throw FormatException('JSON field "$key" must be a boolean');
   }
   return value;
+}
+
+/// Reads an optional boolean; a missing key yields [defaultValue].
+///
+/// An explicit null or any non-boolean value is rejected: only a genuinely
+/// absent key is the legacy-compatible form.
+bool _readOptionalBool(
+  Map<String, Object?> json,
+  String key, {
+  required bool defaultValue,
+}) {
+  if (!json.containsKey(key)) {
+    return defaultValue;
+  }
+  return _readBool(json, key);
 }
 
 /// Reads the contract `contrast` key.
