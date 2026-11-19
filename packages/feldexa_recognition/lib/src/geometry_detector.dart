@@ -29,11 +29,14 @@
 // edges with `pixelEdgeToPoint(edge) = edge / rasterScale`. Each edge is then
 // rounded exactly once to the nearest 1/8 pt (ties away from zero, Dart
 // `double.round`), width/height are recomputed from the rounded edges, and
-// degenerate results are dropped. The result is clamped to
-// `[0, 0, pageWidthPt, pageHeightPt]`; clamping is done after rounding so a
-// page edge is exact even when it is not itself a 1/8 pt multiple. Ink is
-// always measured on the exact half-open raster rectangle *before* display
-// rounding or clamping.
+// degenerate results are dropped. The result is clamped inward to
+// `[0, 0, floor(pageWidthPt * 8) / 8, floor(pageHeightPt * 8) / 8]`: each
+// rounded edge is lowered to the largest 1/8 pt multiple that does not exceed
+// its page extent. This keeps every emitted `x`, `y`, `width`, and `height` an
+// exact 1/8 pt multiple *and* inside the page even when the page size is not
+// itself a multiple of 1/8 pt. Clamping is done after rounding. Ink is always
+// measured on the exact half-open raster rectangle *before* display rounding
+// or clamping.
 //
 // Rule model. A raster row is scanned left-to-right and a raster column
 // top-to-bottom. An ink run must be at least [_minRunLengthPx] (3.6 pt) long;
@@ -187,9 +190,10 @@ const double _alignmentTolerancePt = 1.0;
 /// An immutable rectangle in page display-space points.
 ///
 /// `x` and `y` are the top-left corner; `width` and `height` are strictly
-/// positive. Coordinates are finite. Value equality is exact because the
-/// detector's edges are multiples of 1/8 pt (except page-bound clamping, which
-/// uses the exact page size).
+/// positive. Coordinates are finite. Value equality is exact because every
+/// edge is a 1/8 pt multiple, including the inward page-bound clamp; a page
+/// whose size is not a 1/8 pt multiple therefore never leaks an unrounded
+/// extent into a rectangle.
 final class DisplayRect {
   /// Creates a validated display-space rectangle.
   factory DisplayRect({
@@ -958,6 +962,10 @@ final class GeometryDetector {
   ) {
     final int pixelCount = mask.width * mask.height;
     final Uint8List visited = Uint8List(pixelCount);
+    // Queue entries are linear pixel indices `y * width + x`. Packing y and x
+    // into 16-bit lanes overflowed for rasters taller than 32767 px, which the
+    // supported 40,000 px extent allows; the linear index stays below
+    // `maxRasterPixels` (1.6e9) and therefore fits a signed 32-bit cell.
     final Int32List queue = Int32List(pixelCount);
     final List<_RawCandidate> candidates = <_RawCandidate>[];
 
@@ -970,7 +978,7 @@ final class GeometryDetector {
 
         int head = 0;
         int tail = 0;
-        queue[tail++] = (y << 16) | x;
+        queue[tail++] = start;
         visited[start] = 1;
         int minX = x;
         int maxX = x;
@@ -996,13 +1004,13 @@ final class GeometryDetector {
             return;
           }
           visited[index] = 1;
-          queue[tail++] = (nextY << 16) | nextX;
+          queue[tail++] = index;
         }
 
         while (head < tail) {
-          final int packed = queue[head++];
-          final int currentX = packed & 0xFFFF;
-          final int currentY = packed >> 16;
+          final int current = queue[head++];
+          final int currentX = current % mask.width;
+          final int currentY = current ~/ mask.width;
           area++;
           if (currentX < minX) {
             minX = currentX;
@@ -1141,21 +1149,23 @@ final class GeometryDetector {
     double pageWidthPt,
     double pageHeightPt,
   ) {
+    final double maxX = _inwardPageExtent(pageWidthPt);
+    final double maxY = _inwardPageExtent(pageHeightPt);
     final double left = _clampToPage(
       _roundToEighth(pixelEdgeToPoint(pixel.left)),
-      pageWidthPt,
+      maxX,
     );
     final double top = _clampToPage(
       _roundToEighth(pixelEdgeToPoint(pixel.top)),
-      pageHeightPt,
+      maxY,
     );
     final double right = _clampToPage(
       _roundToEighth(pixelEdgeToPoint(pixel.right)),
-      pageWidthPt,
+      maxX,
     );
     final double bottom = _clampToPage(
       _roundToEighth(pixelEdgeToPoint(pixel.bottom)),
-      pageHeightPt,
+      maxY,
     );
     final double width = right - left;
     final double height = bottom - top;
@@ -1166,6 +1176,13 @@ final class GeometryDetector {
   }
 
   static double _roundToEighth(double value) => (value * 8).round() / 8;
+
+  /// Largest 1/8 pt multiple that does not exceed [pageExtent].
+  ///
+  /// Clamping inward rather than to the exact extent keeps rounded edges on
+  /// the 1/8 pt lattice when the page size itself is not a 1/8 pt multiple.
+  static double _inwardPageExtent(double pageExtent) =>
+      (pageExtent * 8).floor() / 8;
 
   static double _clampToPage(double value, double pageExtent) {
     if (value <= 0) {

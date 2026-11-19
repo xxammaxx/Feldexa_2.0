@@ -334,6 +334,40 @@ void main() {
 
       expect(_detect(canvas.build()), isEmpty);
     });
+
+    test('an enclosed hole below y = 32767 still yields one candidate', () {
+      // 100 x 40000 px is the supported tall-page extent and maps exactly to
+      // 36 x 14400 pt. A 1 px ink frame at [44,56) x [39000,39012) encloses a
+      // 10 x 10 background hole; y = 39001 overflows a 16-bit queue lane.
+      final _Canvas canvas = _Canvas(width: 100, height: 40000)
+        ..fillRect(44, 39000, 56, 39001)
+        ..fillRect(44, 39011, 56, 39012)
+        ..fillRect(44, 39000, 45, 39012)
+        ..fillRect(55, 39000, 56, 39012);
+
+      final List<GeometryCandidate> candidates = _detect(
+        canvas.build(),
+        pageWidthPt: 36,
+        pageHeightPt: 14400,
+      );
+      final List<GeometryCandidate> whitespace = candidates
+          .where(
+            (GeometryCandidate candidate) =>
+                candidate.cues.contains('whitespace'),
+          )
+          .toList();
+
+      expect(whitespace, hasLength(1));
+      final DisplayRect rect = whitespace.single.rect;
+      expect(
+        rect,
+        DisplayRect(x: 16.25, y: 14040.375, width: 3.5, height: 3.625),
+      );
+      expect(rect.x, greaterThanOrEqualTo(0));
+      expect(rect.y, greaterThanOrEqualTo(0));
+      expect(rect.x + rect.width, lessThanOrEqualTo(36));
+      expect(rect.y + rect.height, lessThanOrEqualTo(14400));
+    });
   });
 
   group('alignment', () {
@@ -438,6 +472,39 @@ void main() {
         expect(rect.y + rect.height, lessThanOrEqualTo(100));
       },
     );
+
+    test('a page edge that is not a 1/8 pt multiple clamps inward', () {
+      // 143.928 pt is not a 1/8 pt multiple; its largest inward 1/8 pt
+      // multiple is 143.875 pt. The rule ends at the raster right edge, so a
+      // clamp to the exact page width would emit a non-1/8 pt width.
+      const double pagePt = 143.928;
+      final _Canvas canvas = _Canvas()..fillRect(300, 200, 400, 202);
+
+      final List<GeometryCandidate> candidates = _detect(
+        canvas.build(),
+        pageWidthPt: pagePt,
+        pageHeightPt: pagePt,
+      );
+
+      expect(candidates, hasLength(1));
+      final DisplayRect rect = candidates.single.rect;
+      expect(rect, DisplayRect(x: 108, y: 54, width: 35.875, height: 18));
+      for (final double value in <double>[
+        rect.x,
+        rect.y,
+        rect.width,
+        rect.height,
+      ]) {
+        expect(
+          (value * 8 - (value * 8).round()).abs(),
+          lessThanOrEqualTo(1e-9),
+        );
+      }
+      expect(rect.x, greaterThanOrEqualTo(0));
+      expect(rect.y, greaterThanOrEqualTo(0));
+      expect(rect.x + rect.width, lessThanOrEqualTo(pagePt));
+      expect(rect.y + rect.height, lessThanOrEqualTo(pagePt));
+    });
 
     test('an all-white page returns an empty list', () {
       expect(_detect(_Canvas().build()), isEmpty);
