@@ -23,8 +23,10 @@
 // remains the single oracle for the section 1/2/4 wire shape, suggestion
 // vocabulary, conflict rules, and deterministic sort order. This model adds
 // only rules the wire contract leaves to the envelope owner:
-//   * `uncertaintyReason` is required when and only when `pageUncertain` is
-//     true (recognition-output.md section 1);
+//   * `uncertaintyReason` is required when `pageUncertain` is true; a valid
+//     reason may be retained when `pageUncertain` is false for wire
+//     compatibility (the T050 validator documents that as a deliberate
+//     non-rule), so this model does not reject it;
 //   * suggestions are sorted and deep-frozen on input, so caller mutations
 //     cannot change a constructed envelope;
 //   * failed envelopes carry no suggestions; the discarded partial count is
@@ -614,8 +616,9 @@ abstract final class PageAnalysisBatch {
 /// returns a fresh mutable copy, so no caller can mutate the stored state.
 ///
 /// Validation delegates to [SuggestionSchema.validateEnvelope]. The model adds
-/// only the `uncertaintyReason` iff rule and the one documented `PAGE-001`
-/// allowance described in the library comment.
+/// only the `uncertaintyReason` retention rule (required when uncertain,
+/// accepted when certain) and the one documented `PAGE-001` allowance
+/// described in the library comment.
 final class FieldSuggestionSet {
   const FieldSuggestionSet._({
     required this.pageIndex,
@@ -641,8 +644,11 @@ final class FieldSuggestionSet {
   ///
   /// [suggestions] may be empty and in any input order; it is sorted
   /// deterministically before validation. The envelope is rejected with a
-  /// content-free [ArgumentError] when any section 1/2/4 rule fails or when
-  /// [uncertaintyReason] is non-null while [pageUncertain] is false.
+  /// content-free [ArgumentError] when any section 1/2/4 rule fails.
+  ///
+  /// [uncertaintyReason] is required when [pageUncertain] is true. A valid
+  /// reason supplied while [pageUncertain] is false is accepted and retained,
+  /// matching the shared validator's documented non-rule.
   ///
   /// A failed envelope must carry a [failure] and no suggestions; a complete
   /// envelope must carry no [failure]. [failure] is required exactly when
@@ -662,11 +668,6 @@ final class FieldSuggestionSet {
   }) {
     if (pageIndex < 0) {
       throw ArgumentError('pageIndex must be non-negative.');
-    }
-    if (!pageUncertain && uncertaintyReason != null) {
-      throw ArgumentError(
-        'uncertaintyReason must be null when pageUncertain is false.',
-      );
     }
     final List<Map<String, Object?>> sorted =
         SuggestionSchema.sortedSuggestions(suggestions);
@@ -760,12 +761,6 @@ final class FieldSuggestionSet {
     final bool pageUncertain = normalized['pageUncertain'] as bool;
     final String? uncertaintyReason =
         normalized['uncertaintyReason'] as String?;
-    if (!pageUncertain && uncertaintyReason != null) {
-      throw const FormatException(
-        'Invalid page analysis envelope: uncertaintyReason must be null when '
-        'pageUncertain is false.',
-      );
-    }
     final Object? rawFailure = normalized['failure'];
     final PageAnalysisFailure? failure = rawFailure == null
         ? null
@@ -812,8 +807,8 @@ final class FieldSuggestionSet {
   /// Whether page-level uncertainty prevents reliable placement.
   final bool pageUncertain;
 
-  /// `skew | orientation | low_contrast | structure`; required exactly when
-  /// [pageUncertain] is true.
+  /// `skew | orientation | low_contrast | structure`; required when
+  /// [pageUncertain] is true and accepted (retained) when it is false.
   final String? uncertaintyReason;
 
   /// The terminal failure; required exactly when [status] is `failed`.

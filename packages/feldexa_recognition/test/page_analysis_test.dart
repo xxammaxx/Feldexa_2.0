@@ -399,26 +399,47 @@ void main() {
       expect(fromJsonError.toString(), contains('uncertaintyReason'));
     });
 
-    test('a reason is forbidden when pageUncertain is false', () {
-      final Object constructorError = _errorOf(
-        () => _set(uncertaintyReason: 'skew'),
-      );
-      expect(constructorError, isA<ArgumentError>());
-      expect(constructorError.toString(), contains('uncertaintyReason'));
+    test('a valid reason is retained when pageUncertain is false', () {
+      for (final String reason in SuggestionSchema.uncertaintyReasons) {
+        final FieldSuggestionSet set = _set(uncertaintyReason: reason);
+        expect(set.pageUncertain, isFalse);
+        expect(set.uncertaintyReason, reason);
+        expect(set.toJson()['uncertaintyReason'], reason);
 
-      final Object fromJsonError = _errorOf(
-        () => FieldSuggestionSet.fromJson(_wireJson(uncertaintyReason: 'skew')),
-      );
-      expect(fromJsonError, isA<FormatException>());
-      expect(fromJsonError.toString(), contains('uncertaintyReason'));
+        final FieldSuggestionSet decoded = FieldSuggestionSet.fromJson(
+          set.toJson(),
+        );
+        expect(decoded.pageUncertain, isFalse);
+        expect(decoded.uncertaintyReason, reason);
+        expect(decoded.toJson(), set.toJson());
+
+        final FieldSuggestionSet direct = FieldSuggestionSet.fromJson(
+          _wireJson(uncertaintyReason: reason),
+        );
+        expect(direct.pageUncertain, isFalse);
+        expect(direct.uncertaintyReason, reason);
+      }
     });
 
-    test('an invalid uncertainty reason is rejected', () {
-      final Object error = _errorOf(
-        () => _set(pageUncertain: true, uncertaintyReason: 'blur'),
-      );
-      expect(error, isA<ArgumentError>());
-      expect(error.toString(), contains('envelope.uncertaintyReason'));
+    test('an invalid uncertainty reason is rejected in both states', () {
+      for (final bool uncertain in <bool>[true, false]) {
+        final Object error = _errorOf(
+          () => _set(pageUncertain: uncertain, uncertaintyReason: 'blur'),
+        );
+        expect(error, isA<ArgumentError>());
+        expect(error.toString(), contains('envelope.uncertaintyReason'));
+
+        final Object fromJsonError = _errorOf(
+          () => FieldSuggestionSet.fromJson(
+            _wireJson(pageUncertain: uncertain, uncertaintyReason: 'blur'),
+          ),
+        );
+        expect(fromJsonError, isA<FormatException>());
+        expect(
+          fromJsonError.toString(),
+          contains('envelope.uncertaintyReason'),
+        );
+      }
     });
 
     test('an invalid status is rejected', () {
