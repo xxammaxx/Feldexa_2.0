@@ -1271,7 +1271,18 @@ void main() {
         core.SuggestionResolution.rejected,
       );
       expect(find.text(de.suggestionReviewProgress(1, 1)), findsOneWidget);
-      expect(find.byKey(const ValueKey<String>(undoReviewKey)), findsOneWidget);
+      final Finder undoFinder = find.byKey(
+        const ValueKey<String>(undoReviewKey),
+      );
+      expect(undoFinder, findsOneWidget);
+      final TextButton undoButton = tester.widget<TextButton>(undoFinder);
+      expect(
+        undoButton.onPressed,
+        isNotNull,
+        reason: 'undo must stay enabled after a confirm + reject pair',
+      );
+      expect(state.canUndoReview, isTrue);
+      expect(state.reviewBusy, isFalse);
 
       // Undo the rejection: rejected -> unresolved, no field change.
       await tester.tap(find.byKey(const ValueKey<String>(undoReviewKey)));

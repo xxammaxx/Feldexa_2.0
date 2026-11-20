@@ -733,14 +733,62 @@ void main() {
       );
       await _pumpUntil(
         tester,
-        () => _resolutionIs(
-          state,
-          rejectTarget.id,
-          SuggestionResolution.rejected,
-        ),
+        () =>
+            _resolutionIs(
+              state,
+              rejectTarget.id,
+              SuggestionResolution.rejected,
+            ) &&
+            !state.reviewBusy &&
+            state.canUndoReview,
         timeout: const Duration(seconds: 60),
         reason: 'the final rejection was not saved',
       );
+
+      // The after-review capture must show the real final review state: the
+      // undo control enabled after the confirm + reject pair, no save in
+      // flight, and a row action still enabled. This is asserted before the
+      // screenshot marker; a disabled undo would fail the journey.
+      final Finder undoFinder = find.byKey(
+        const ValueKey<String>(undoReviewKey),
+      );
+      expect(undoFinder, findsOneWidget);
+      final TextButton undoButton = tester.widget<TextButton>(undoFinder);
+      expect(
+        undoButton.onPressed,
+        isNotNull,
+        reason: 'undo must be enabled after the final confirm + reject pair',
+      );
+      expect(state.reviewBusy, isFalse);
+      expect(state.canUndoReview, isTrue);
+      expect(
+        find.byKey(const ValueKey<String>('suggestion-review-busy')),
+        findsNothing,
+      );
+
+      final FieldSuggestion stillUnresolved = suggestions.firstWhere(
+        (FieldSuggestion suggestion) =>
+            suggestion.id != confirmTarget.id &&
+            suggestion.id != rejectTarget.id &&
+            suggestion.resolution == SuggestionResolution.unresolved,
+        orElse: () => confirmTarget,
+      );
+      await _ensurePanelRowVisible(tester, stillUnresolved.id);
+      final Finder rowConfirmFinder = find.byKey(
+        ValueKey<String>('$confirmSuggestionKeyPrefix${stillUnresolved.id}'),
+      );
+      expect(rowConfirmFinder, findsOneWidget);
+      final TextButton rowConfirmButton = tester.widget<TextButton>(
+        rowConfirmFinder,
+      );
+      expect(
+        rowConfirmButton.onPressed,
+        isNotNull,
+        reason: 'row actions must stay enabled when undo is enabled',
+      );
+      _marker('UNDO_ENABLED_ASSERTED');
+      await tester.pump();
+
       _marker('AFTER_REVIEW');
       _marker('SCREENSHOT_AFTER_REVIEW');
       await _waitForDriver('after-review');

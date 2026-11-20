@@ -40,9 +40,9 @@ If no such version exists, report the issue to the plugin. If necessary, here is
 an issue against a plugin: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers#report-incompatible-kotlin-gradle-plugin-usage-to-plugin-authors
 
 If you are a plugin author, please migrate your plugin to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
-Running Gradle task 'assembleDebug'...                             75,1s
+Running Gradle task 'assembleDebug'...                             89,1s
 ✓ Built build/app/outputs/flutter-apk/app-debug.apk
-Installing build/app/outputs/flutter-apk/app-debug.apk...        1.415ms
+Installing build/app/outputs/flutter-apk/app-debug.apk...        1.987ms
 00:00 +0: (setUpAll)
 00:00 +0: US2 real picker import, analysis, review, and persistence
 US2_PICKER_READY
@@ -149,9 +149,10 @@ US2_FALLBACK_LABEL_CONFIRMED
 US2_REJECTED_SAVED
 US2_REJECTION_UNDONE
 US2_CONFIRMATION_UNDONE
+US2_UNDO_ENABLED_ASSERTED
 US2_AFTER_REVIEW
 US2_SCREENSHOT_AFTER_REVIEW
 US2_STORE_VERIFIED
 US2_CLEANUP_DONE
-07:28 +1: (tearDownAll)
-07:31 +1: All tests passed!
+07:19 +1: (tearDownAll)
+07:21 +1: All tests passed!

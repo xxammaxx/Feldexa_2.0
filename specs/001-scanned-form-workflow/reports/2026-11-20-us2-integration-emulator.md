@@ -5,9 +5,9 @@
 | Evidence class | `EMULATOR` |
 | Result | `PASS` for the emulator journey and every claimed B2 criterion; conditional sub-checks are listed as `UNVERIFIED` in §7 |
 | Task / issue | US2-INT-B2 / `#217` Phase B2 |
-| Date / timezone | `2026-11-20 13:20–13:29 Europe/Berlin` (final run) |
-| Revision | base `c1141470ad63c110ebe02277f0f98c70ee2cf26a`; implementation commit `5540d8a32aedfc6edb8003309429912e893c5397`, tree `80b1fbbb702ff86fc6e05f1d27ecdf33386ac310`; this report and its artifacts are in the following docs-only commit, whose SHA/tree are recorded in `handoff-us2-int-b2.json` |
-| Build identity | version `0.1.0+1`; mode `debug`; APK `apps/feldexa_app/build/app/outputs/flutter-apk/app-debug.apk`, SHA-256 `5ed8ab4e32f51e1dc0f1484773df0bfbc72846ecf5e0784445129b2caded1913`; built and installed by the exact `flutter test` invocation in §5; no release or release-signing claim |
+| Date / timezone | `2026-11-20 14:51 Europe/Berlin` (final correction 2 run) |
+| Revision | base `c1141470ad63c110ebe02277f0f98c70ee2cf26a`; implementation commit `5540d8a32aedfc6edb8003309429912e893c5397`, tree `80b1fbbb702ff86fc6e05f1d27ecdf33386ac310`; accepted pre-correction-2 candidate `71d3662d4cbb6aa7ef8544d1a59b3726d99913b3`, tree `569dd0219c9eaf59330c70c6216c412e98ee1480`; this report, its artifacts, and the correction 2 test changes are in the correction 2 commit, whose SHA/tree are recorded in `handoff-us2-int-b2.json` |
+| Build identity | version `0.1.0+1`; mode `debug`; APK `apps/feldexa_app/build/app/outputs/flutter-apk/app-debug.apk`, SHA-256 `bb6bb47f6cf4cc3f7fa3db197de337cda7990a5b7c19ea25589d390e6fff429e`; built and installed by the exact `flutter test` invocation in §5; no release or release-signing claim |
 | Toolchain | Flutter `3.47.7` stable (framework `abaf9c5237`), Dart `3.13.5`; Gradle `9.3.1`; JDK `27.0.1` (default host Java); adb `1.0.41` (`37.0.1`); emulator `37.2.13.0`; pdfrx `2.12.0` (PDFium); Android SDK platforms 34/35/36 installed |
 | Input | committed synthetic fixture `sf-001.pdf` (2 pages, SHA-256 `22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038`, 5,956 bytes); no real or personal document |
 
@@ -20,6 +20,17 @@
 > `git diff --check` now exits 0. No production/test/tool code changed, and the
 > EMULATOR journey above remains the evidence for the identical code tree
 > `5540d8a`. This note is carried in the final documentation commit.
+
+> **Correction 2 2026-11-20:** the prior `after-review` capture showed the
+> `Rückgängig` control in the disabled colour while row actions were enabled.
+> The journey now waits for the final save to settle, asserts
+> `TextButton.onPressed != null` for the undo control, `reviewBusy == false`,
+> `canUndoReview == true`, and an enabled unresolved-row action *before* it
+> emits `US2_AFTER_REVIEW`. The real emulator journey was rerun on the same
+> production code tree; the new `after-review.png` shows the enabled
+> `Rückgängig` control, and the new APK SHA-256 is
+> `bb6bb47f6cf4cc3f7fa3db197de337cda7990a5b7c19ea25589d390e6fff429e`. All
+> other evidence, production behavior, and UNVERIFIED items are unchanged.
 
 ## 1. Scope
 
@@ -170,12 +181,13 @@ US2_FALLBACK_LABEL_CONFIRMED
 US2_REJECTED_SAVED
 US2_REJECTION_UNDONE
 US2_CONFIRMATION_UNDONE
+US2_UNDO_ENABLED_ASSERTED
 US2_AFTER_REVIEW
 US2_STORE_VERIFIED
 US2_CLEANUP_DONE
 ```
 
-The test process ended with `07:31 +1: All tests passed!` and exit `0`. The
+The test process ended with `07:21 +1: All tests passed!` and exit `0`. The
 screenshot handshakes are acknowledged by the driver through
 `/data/local/tmp/us2-fixtures/ack-<phase>`, so each image is captured while the
 journey is paused at the intended state rather than racing the test.
@@ -239,8 +251,9 @@ The panel showed the visible row label, German type name, one-based page,
 row and conflict marker were asserted after the deterministic
 `ensureVisible` scroll. The host panel test additionally covers deterministic
 page/position/type ordering, grouping, both empty states, all six German type
-names (including `signature`), both action callbacks, undo, busy disabling, and
-no overflow at 200 % text scale.
+names (including `signature`), both action callbacks, undo, busy disabling,
+that the undo `TextButton` stays enabled after a confirm + reject pair, and no
+overflow at 200 % text scale.
 
 ### 5.2 Confirm, reject, undo, and persistence
 
@@ -257,13 +270,18 @@ no overflow at 200 % text scale.
 - **Undo confirmation**: removed the untouched generated `Feld 1`, restored
   `s_p0_0014` to `unresolved`, and saved. No suggestion was duplicated or
   dropped.
-- **Final state**: `s_p0_0014` confirmed and `s_p0_0001` rejected, then the
-  editor returned to the start surface. A separate `AndroidStoreClient`
-  `loadDocument` read-back proved: 2 pages; 80 unique suggestions with the same
-  id set; `s_p0_0014 == confirmed`; `s_p0_0001 == rejected`; one field with
-  machine provenance, the same id/label/rect/type/confidence; both pages
-  `AnalysisState.complete`. The test then deleted the document and restored the
-  pre-run document set.
+- **Final state**: `s_p0_0014` confirmed and `s_p0_0001` rejected. Before the
+  `US2_AFTER_REVIEW` marker and screenshot, the test waited for the final save to
+  settle and asserted the undo `TextButton.onPressed != null`,
+  `reviewBusy == false`, `canUndoReview == true`, no busy band, and an enabled
+  confirm action on an unresolved row. The marker `US2_UNDO_ENABLED_ASSERTED`
+  records that assertion; the corrected screenshot shows the enabled
+  `Rückgängig` control. Then the editor returned to the start surface. A
+  separate `AndroidStoreClient` `loadDocument` read-back proved: 2 pages; 80
+  unique suggestions with the same id set; `s_p0_0014 == confirmed`;
+  `s_p0_0001 == rejected`; one field with machine provenance, the same
+  id/label/rect/type/confidence; both pages `AnalysisState.complete`. The test
+  then deleted the document and restored the pre-run document set.
 
 `expectedHead` was advanced from each successful save's returned
 `latestRevisionId` (host test asserts the sequence across confirm, reject, and
@@ -290,7 +308,7 @@ saves. No duplicate suggestions or lost confirmed fields were observed.
 | --- | --- | --- |
 | `editor-ready` | `screenshots/editor-ready.png` | Editor route with `Seite 1 von 2`, `Analyse ausstehend`, page strip, and viewer before the first analysis completed |
 | `suggestions-visible` | `screenshots/suggestions-visible.png` | `Vorschläge`, `80 offen`, `Keine Felder bestätigt`, first suggestion rows with German metadata, and the rendered page |
-| `after-review` | `screenshots/after-review.png` | `78 offen`, `1 Feld bestätigt`, `1 bestätigt, 1 abgelehnt`, `Rückgängig`, and the remaining review rows after the final confirm + reject |
+| `after-review` | `screenshots/after-review.png` | `78 offen`, `1 Feld bestätigt`, `1 bestätigt, 1 abgelehnt`, an enabled `Rückgängig` control (purple, after `US2_UNDO_ENABLED_ASSERTED`), and enabled remaining review rows after the final confirm + reject |
 
 The screenshots are device framebuffer captures, not golden-image comparisons.
 No pixel-fidelity, contrast, TalkBack, or 200 % text-scale claim is made from
@@ -348,25 +366,25 @@ git-ignored local build output bound by `apk-sha256.txt`; it is not committed.
 
 | Artifact | Path | Bytes | SHA-256 |
 | --- | --- | ---: | --- |
-| `apk-sha256.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/apk-sha256.txt` | 178 | `e54314195f621427d16de074975ea49080718c9a1c80595adbc5c1fecb11cb43` |
+| `apk-sha256.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/apk-sha256.txt` | 178 | `989b28595e7379758e733cfac1b3994f8dbcd28a1f72ee5aa676639d4b4bc53f` |
 | `device-identity.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/device-identity.txt` | 411 | `b233366b2899c927522902bda676a492352211a9f0ebed6e06b7f6b444941d23` |
 | `fixture-sha256.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/fixture-sha256.txt` | 457 | `50bc57114bfafb4e4faf94e73b2a5b794ff30cf9e0566dc8017b50f250cd9ba6` |
-| `host-application-analyze.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-application-analyze.log` | 64 | `db4d5cd07371ba9326600a52bff16d74b2ccdccf2b909f160321f463b11d2082` |
-| `host-application-test.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-application-test.log` | 26632 | `1d4b8a6414faa4fa85bef3457677ad38bb62f166d5a9ec561678a149473f4722` |
-| `host-dart-format.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-dart-format.log` | 48 | `84d03ff6064fb8f68a8e67469536b6ae4b66c2d355623bcaa81f15b6ca8fd176` |
-| `host-flutter-analyze.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-flutter-analyze.log` | 56 | `9839e06a095fdb40a39fa10ccc8d6e87dca0546c06025f5c12b089e9d24e2327` |
+| `host-application-analyze.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-application-analyze.log` | 64 | `cf69a9be4cd7c0211440f8a8f4fda7b430bdf6a80b174bd2c8371762493b3005` |
+| `host-application-test.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-application-test.log` | 26466 | `1291ddfc9dffccb97fc81f2290e5e830cd42ab790be4e02a58dfcc7311eaa04a` |
+| `host-dart-format.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-dart-format.log` | 48 | `e79b4f400a42a6b30c7915c7b4fd9ff348fd399d6e3992bf2ecb65b68d3626b8` |
+| `host-flutter-analyze.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-flutter-analyze.log` | 57 | `cc5dc800d9625c5028ba182e160e8de990e27dd700b90eeccebce8dd67c956bc` |
 | `host-flutter-pub-get.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-flutter-pub-get.log` | 333 | `30c4a53996ef24e0570a7e2e73ef530280d7156226af11ec49732f428804603e` |
-| `host-flutter-test.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-flutter-test.log` | 54699 | `9f4c3f829a6f0c624939aaea410fc4a83c380c631da4f01034dc35bd9f271b0e` |
-| `host-git-checks.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-git-checks.log` | 1179 | `a5ff10d0395b7ea38f1b1fd39cdc31842520c28eb3c5487f49a03d5def3c5ec6` |
-| `integration-android-us2.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/integration-android-us2.log` | 9032 | `4a0c023083d6984e8c3b6e91689a0e04551282083ff8c8d5c7f5590d9b96693f` |
-| `logcat-flutter.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/logcat-flutter.log` | 315 | `c6bcf59dd9ab02d044b4d561365923d3607204de1b81b96d07607e6fb6c24e85` |
-| `logcat-us2-markers.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/logcat-us2-markers.log` | 1215 | `0e66f5ed10416995b22942213953111754c654979ff37cf71b1f036120517f43` |
-| `orca-emulator-session.json` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/orca-emulator-session.json` | 479 | `5745e9fd0ac7d3bf5b0a1e49a845086efd7d40a3871af6e814b77207d76a0be0` |
+| `host-flutter-test.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-flutter-test.log` | 54716 | `fc63424be2d65d65192ca951f9b4f8ff5abd6bc863e9786ce7b0cb686f5bcded` |
+| `host-git-checks.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-git-checks.log` | 3834 | `ec6a21845d1340b90d3ddacf3ed0559e9434fc8bea665310d657b1ad25a1ed9d` |
+| `integration-android-us2.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/integration-android-us2.log` | 9058 | `78f104168a7afbbfdac04b2ee9672218ff6fac208d8abc8e0a0c881e7839e689` |
+| `logcat-flutter.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/logcat-flutter.log` | 315 | `1ece3bb35f3e203f51c3eade580e3c74f6dd30d636c4a6dec217e2daea888463` |
+| `logcat-us2-markers.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/logcat-us2-markers.log` | 1217 | `cb2aab0e4bebced9c7a2d56f754509ab1af63e097c9bc8110ccf2fef42dcf780` |
+| `orca-emulator-session.json` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/orca-emulator-session.json` | 479 | `09ed8a2ffeab12f52f37fadd7b887a1c086f287e67f3945f52173fa24bee38c5` |
 | `picker-round1-downloads.xml` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/picker-round1-downloads.xml` | 20125 | `7a08ab9e56af8a0f7697baa970b53f1bcc4bbf24e5baeebc1cdb3cf4e88bebd3` |
 | `picker-sequence.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/picker-sequence.txt` | 200 | `836714b7c433638775109b2a10bf93c7005757d8b7650bbb9efda5ddda510a18` |
-| `screenshots/after-review.png` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/screenshots/after-review.png` | 210243 | `3505bbabd139e59a576c28c5f3a7971d4770f18cbcb931e1dfd1d3c7e67d4882` |
-| `screenshots/editor-ready.png` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/screenshots/editor-ready.png` | 42265 | `3f0064d13ec25f21488a872c056ef7acec69ca4f980e326de6eeb9ad2f1d1171` |
-| `screenshots/suggestions-visible.png` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/screenshots/suggestions-visible.png` | 229358 | `e968e04b32cb97c6661056658c717387393081cecaaf78054d270db099d121e2` |
+| `screenshots/after-review.png` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/screenshots/after-review.png` | 229990 | `f9639aa3ba586905f2b103b82bcc581606c8f7d7db2546c668d43c0abae41a5c` |
+| `screenshots/editor-ready.png` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/screenshots/editor-ready.png` | 42540 | `7f961b5a1ba0d72256554e8f3f5618dbc21e5df2f8eed77efa798e2d1f8c7d45` |
+| `screenshots/suggestions-visible.png` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/screenshots/suggestions-visible.png` | 229226 | `04351e01d2dda77ac945ececf8129d698858bddbd1f810435fbba63671995196` |
 | `spec-kit-invocation.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/spec-kit-invocation.txt` | 3206 | `ea93246f23300d13f29147d77797b48002a87ee58d7993377a188a08de46d2bd` |
 
 ## 10. Reproducibility

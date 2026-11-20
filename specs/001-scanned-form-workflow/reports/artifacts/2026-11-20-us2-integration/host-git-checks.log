@@ -1,12 +1,21 @@
-$ git diff --check
-(exit 0)
+# Issue #217 Phase B2 correction 2 — repository checks
+# Accepted candidate before correction 2: 71d3662d4cbb6aa7ef8544d1a59b3726d99913b3
 
-$ git status --porcelain (implementation commit 5540d8a; report/artifacts excluded from this commit)
+$ git diff --check c1141470ad63c110ebe02277f0f98c70ee2cf26a..71d3662d4cbb6aa7ef8544d1a59b3726d99913b3
+(exit 0; no output)
+
+# Corrected working tree with the undo-enabled assertion, fresh emulator evidence, and report/artifact updates (before the correction 2 commit)
+$ git diff --check c1141470ad63c110ebe02277f0f98c70ee2cf26a
+(exit 0; no output)
+
+# Final candidate after the correction 2 commit:
+$ git diff --check c1141470ad63c110ebe02277f0f98c70ee2cf26a..HEAD
+(exit 0; no output; verified after the correction 2 commit)
+
+$ git status --porcelain
  M apps/feldexa_app/android/gradlew.bat
-?? specs/001-scanned-form-workflow/reports/2026-11-20-us2-integration-emulator.md
-?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/
 
-$ git diff --name-status c114147..5540d8a
+$ git diff --name-status c1141470ad63c110ebe02277f0f98c70ee2cf26a..HEAD
 A	apps/feldexa_app/integration_test/android_us2_journey_test.dart
 M	apps/feldexa_app/lib/features/editor/editor_runtime.dart
 M	apps/feldexa_app/lib/features/editor/editor_runtime_android.dart
@@ -19,7 +28,28 @@ M	apps/feldexa_app/lib/l10n/app_localizations_de.dart
 M	apps/feldexa_app/test/editor_analysis_test.dart
 A	apps/feldexa_app/test/editor_review_panel_test.dart
 M	apps/feldexa_app/test/german_strings_test.dart
+A	specs/001-scanned-form-workflow/reports/2026-11-20-us2-integration-emulator.md
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/apk-sha256.txt
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/device-identity.txt
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/fixture-sha256.txt
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-application-analyze.log
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-application-test.log
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-dart-format.log
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-flutter-analyze.log
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-flutter-pub-get.log
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-flutter-test.log
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-git-checks.log
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/integration-android-us2.log
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/logcat-flutter.log
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/logcat-us2-markers.log
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/orca-emulator-session.json
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/picker-round1-downloads.xml
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/picker-sequence.txt
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/screenshots/after-review.png
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/screenshots/editor-ready.png
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/screenshots/suggestions-visible.png
+A	specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/spec-kit-invocation.txt
 A	tools/android/us2_drive_journey.sh
 
-$ git diff --check c114147..10f7ea9 (after trailing-space correction)
-(exit 0)
+# The final candidate SHA/tree and the post-commit command results are recorded in
+# /home/xxammaxx/Feldexa_Handover_2026-11-19/scratch/handoff-us2-int-b2.json.
