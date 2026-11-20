@@ -20,3 +20,6 @@ M	apps/feldexa_app/test/editor_analysis_test.dart
 A	apps/feldexa_app/test/editor_review_panel_test.dart
 M	apps/feldexa_app/test/german_strings_test.dart
 A	tools/android/us2_drive_journey.sh
+
+$ git diff --check c114147..10f7ea9 (after trailing-space correction)
+(exit 0)

@@ -11,6 +11,16 @@
 | Toolchain | Flutter `3.47.7` stable (framework `abaf9c5237`), Dart `3.13.5`; Gradle `9.3.1`; JDK `27.0.1` (default host Java); adb `1.0.41` (`37.0.1`); emulator `37.2.13.0`; pdfrx `2.12.0` (PDFium); Android SDK platforms 34/35/36 installed |
 | Input | committed synthetic fixture `sf-001.pdf` (2 pages, SHA-256 `22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038`, 5,956 bytes); no real or personal document |
 
+
+> **Correction 2026-11-20:** four committed evidence logs contained trailing
+> spaces, so the final `git diff --check c114147..HEAD` failed after the
+> artifacts commit. Commit `10f7ea9` trims exactly those spaces in
+> `device-identity.txt`, `host-application-analyze.log`,
+> `host-flutter-analyze.log`, and `integration-android-us2.log`; the final
+> `git diff --check` now exits 0. No production/test/tool code changed, and the
+> EMULATOR journey above remains the evidence for the identical code tree
+> `5540d8a`. This note is carried in the final documentation commit.
+
 ## 1. Scope
 
 This is the Phase B2 acceptance run for issue #217. It proves the visible
