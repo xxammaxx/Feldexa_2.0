@@ -201,6 +201,33 @@ class AppLocalizationsDe extends AppLocalizations {
   String get suggestionUndoAction => 'Rückgängig';
 
   @override
+  String get reviewConflictSheetTitle => 'Konflikt lösen';
+
+  @override
+  String get reviewConflictSheetBody =>
+      'Beide Vorschläge bleiben erhalten, bis Sie für jeden einzeln entschieden haben. Durch Wischen wird kein Konflikt gelöst.';
+
+  @override
+  String get reviewConflictCloseAction => 'Schließen';
+
+  @override
+  String get reviewConflictStateUnresolved => 'Offen';
+
+  @override
+  String get reviewConflictStateConfirmed => 'Bestätigt';
+
+  @override
+  String get reviewConflictStateRejected => 'Abgelehnt';
+
+  @override
+  String get reviewConflictSingleCandidateNote =>
+      'Zu diesem Konflikt ist kein zweiter Vorschlag vorhanden. Der angezeigte Vorschlag bleibt einzeln entscheidbar.';
+
+  @override
+  String get reviewConflictBadgeHint =>
+      'Konflikt zwischen Vorschlägen. Tippen, um beide Vorschläge einzeln zu entscheiden.';
+
+  @override
   String get save001 =>
       'Der Speicherplatz reicht nicht aus. Der letzte gespeicherte Stand ist erhalten; die neuesten Änderungen sind noch nicht dauerhaft gespeichert.';
 

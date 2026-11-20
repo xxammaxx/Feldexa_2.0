@@ -13,16 +13,16 @@
 //     FR-025, FR-027, FR-028, FR-083, FR-085;
 //   * constitution Principles II, III, V, VI, VIII, and X.
 //
-// This is a list-only B2 surface: it renders each suggestion in deterministic
-// document order and exposes confirm/reject/undo callbacks. It paints no
-// overlay and no page geometry; T068 (conflict sheet) and T069 (field overlay)
-// own those surfaces. Every user-visible sentence comes from the German ARB;
-// this widget holds no German literal.
+// This is the B2 review list. Its conflict badge is the T068 entry point into
+// the per-candidate resolution sheet; the panel itself paints no overlay and
+// no page geometry (T069 owns the field overlay). Every user-visible sentence
+// comes from the German ARB; this widget holds no German literal.
 //
 // The list is intentionally the unresolved review queue. Confirmed and rejected
 // suggestions leave the queue, while the header's counts keep the resolution
 // visible and reversible through the undo affordance.
 
+import 'package:feldexa_app/features/editor/review_conflict_sheet.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:flutter/material.dart';
@@ -179,6 +179,8 @@ class SuggestionReviewPanel extends StatelessWidget {
                               suggestion: suggestion,
                               onConfirm: onConfirm,
                               onReject: onReject,
+                              onOpenConflict: () =>
+                                  _showConflictSheet(context, suggestion),
                               busy: busy,
                             ),
                         ],
@@ -191,37 +193,33 @@ class SuggestionReviewPanel extends StatelessWidget {
     );
   }
 
+  /// Opens the T068 conflict sheet for one tapped conflicting suggestion.
+  ///
+  /// The whole suggestion set is passed through so the sheet can render every
+  /// candidate in the symmetric conflict group, including resolved records.
+  void _showConflictSheet(
+    BuildContext context,
+    core.FieldSuggestion suggestion,
+  ) {
+    showReviewConflictSheet(
+      context: context,
+      tapped: suggestion,
+      suggestions: suggestions,
+      onConfirm: onConfirm,
+      onReject: onReject,
+      busy: busy,
+    );
+  }
+
   /// Deterministic document order: page, rounded y, rounded x, type, id.
   static List<core.FieldSuggestion> _ordered(
     Iterable<core.FieldSuggestion> input,
   ) {
     final List<core.FieldSuggestion> ordered = List<core.FieldSuggestion>.of(
       input,
-    )..sort(_compare);
+    )..sort(compareReviewSuggestions);
     return ordered;
   }
-
-  static int _compare(core.FieldSuggestion a, core.FieldSuggestion b) {
-    int result = a.pageIndex.compareTo(b.pageIndex);
-    if (result != 0) {
-      return result;
-    }
-    result = _roundEighth(a.rect.top).compareTo(_roundEighth(b.rect.top));
-    if (result != 0) {
-      return result;
-    }
-    result = _roundEighth(a.rect.left).compareTo(_roundEighth(b.rect.left));
-    if (result != 0) {
-      return result;
-    }
-    result = a.proposedType.index.compareTo(b.proposedType.index);
-    if (result != 0) {
-      return result;
-    }
-    return a.id.compareTo(b.id);
-  }
-
-  static double _roundEighth(double value) => (value * 8).round() / 8;
 }
 
 class _SuggestionRow extends StatelessWidget {
@@ -229,12 +227,14 @@ class _SuggestionRow extends StatelessWidget {
     required this.suggestion,
     required this.onConfirm,
     required this.onReject,
+    required this.onOpenConflict,
     required this.busy,
   });
 
   final core.FieldSuggestion suggestion;
   final ValueChanged<core.FieldSuggestion> onConfirm;
   final ValueChanged<core.FieldSuggestion> onReject;
+  final VoidCallback onOpenConflict;
   final bool busy;
 
   @override
@@ -276,7 +276,13 @@ class _SuggestionRow extends StatelessWidget {
               if (uncertain)
                 _Badge(text: l10n.suggestionUncertain, severe: true),
               if (conflicting)
-                _Badge(text: l10n.suggestionConflict, severe: true),
+                _ConflictBadgeButton(
+                  suggestionId: suggestion.id,
+                  text: l10n.suggestionConflict,
+                  hint: l10n.reviewConflictBadgeHint,
+                  enabled: !busy,
+                  onPressed: onOpenConflict,
+                ),
             ],
           ),
           const SizedBox(height: 2),
@@ -325,6 +331,59 @@ class _MetaText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(text, style: Theme.of(context).textTheme.bodySmall);
+  }
+}
+
+class _ConflictBadgeButton extends StatelessWidget {
+  const _ConflictBadgeButton({
+    required this.suggestionId,
+    required this.text,
+    required this.hint,
+    required this.enabled,
+    required this.onPressed,
+  });
+
+  final String suggestionId;
+  final String text;
+  final String hint;
+  final bool enabled;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final Color color = enabled ? theme.colorScheme.error : theme.disabledColor;
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: hint,
+      onTap: enabled ? onPressed : null,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: hint,
+        child: InkWell(
+          key: ValueKey<String>('$conflictBadgeKeyPrefix$suggestionId'),
+          onTap: enabled ? onPressed : null,
+          borderRadius: BorderRadius.circular(4),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                decoration: BoxDecoration(
+                  border: Border.all(color: color),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  text,
+                  style: theme.textTheme.labelSmall?.copyWith(color: color),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

@@ -382,6 +382,54 @@ abstract class AppLocalizations {
   /// **'Rückgängig'**
   String get suggestionUndoAction;
 
+  /// T068 conflict sheet title: the per-candidate resolution surface for overlapping suggestions (contracts/editor-interactions.md §3, FR-025).
+  ///
+  /// In de, this message translates to:
+  /// **'Konflikt lösen'**
+  String get reviewConflictSheetTitle;
+
+  /// T068 conflict sheet explanation: both symmetric candidates remain and each needs an explicit confirm or reject; swiping never resolves a conflict (contracts/recognition-output.md §6, FR-025).
+  ///
+  /// In de, this message translates to:
+  /// **'Beide Vorschläge bleiben erhalten, bis Sie für jeden einzeln entschieden haben. Durch Wischen wird kein Konflikt gelöst.'**
+  String get reviewConflictSheetBody;
+
+  /// T068 conflict sheet action: close the sheet without resolving any candidate.
+  ///
+  /// In de, this message translates to:
+  /// **'Schließen'**
+  String get reviewConflictCloseAction;
+
+  /// T068 candidate state badge: the suggestion still needs an explicit confirm or reject (data-model.md §3.4).
+  ///
+  /// In de, this message translates to:
+  /// **'Offen'**
+  String get reviewConflictStateUnresolved;
+
+  /// T068 candidate state badge: the suggestion was confirmed and is shown without resolution actions (data-model.md §3.4).
+  ///
+  /// In de, this message translates to:
+  /// **'Bestätigt'**
+  String get reviewConflictStateConfirmed;
+
+  /// T068 candidate state badge: the suggestion was rejected and is shown without resolution actions (data-model.md §3.4).
+  ///
+  /// In de, this message translates to:
+  /// **'Abgelehnt'**
+  String get reviewConflictStateRejected;
+
+  /// T068 conflict sheet note: a stale conflict reference, self-only group, or empty group matches no second candidate; the tapped suggestion is still shown and remains individually resolvable.
+  ///
+  /// In de, this message translates to:
+  /// **'Zu diesem Konflikt ist kein zweiter Vorschlag vorhanden. Der angezeigte Vorschlag bleibt einzeln entscheidbar.'**
+  String get reviewConflictSingleCandidateNote;
+
+  /// T068 review-panel conflict badge tooltip and semantic hint: opens the per-candidate resolution sheet (contracts/editor-interactions.md §3).
+  ///
+  /// In de, this message translates to:
+  /// **'Konflikt zwischen Vorschlägen. Tippen, um beide Vorschläge einzeln zu entscheiden.'**
+  String get reviewConflictBadgeHint;
+
   /// contracts/error-catalog.de.md §3 SAVE-001: Storage full / quota exceeded.
   ///
   /// In de, this message translates to:
