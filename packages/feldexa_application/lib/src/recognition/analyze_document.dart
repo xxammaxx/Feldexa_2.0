@@ -45,11 +45,15 @@
 ///    order and ordinal ids. The `height → width → cues` phrase in the task
 ///    package cannot be the primary sort: assigning ordinals in that order
 ///    would violate the T050 `order` rule whenever the type ordinal differs.
-///  * OCR receives a tight-row `RasterImage` rebuilt from the stripped
-///    `GrayRaster`: the original port image may carry `bytesPerRow` padding,
-///    while the OCR adapter contract and the Android channel read
-///    `width × height` grayscale bytes. Width, height, format, and evidence
-///    are preserved so the composed page-size resolver keeps working.
+///  * OCR receives a tight-row `RasterImage`. When the rendered port image is
+///    already tight (`bytesPerRow == width * bytesPerPixel`), the same object
+///    is passed through so an identity-keyed page-size resolver such as
+///    `AndroidPdfrxRasterClient.pageSizeOf(image)` still resolves it. Only a
+///    padded image is rebuilt, because the OCR adapter contract and the
+///    Android channel read `width × height` grayscale bytes; the rebuild
+///    preserves width, height, gray8 format, and evidence, but deliberately
+///    yields a new identity and therefore fails closed if a page-size resolver
+///    only knows the padded source object.
 ///  * Failure mapping is stage-correct: a `renderPage` exception or a
 ///    dimension/format mismatch is `rasterization` (`PAGE-001`); a failure
 ///    while stripping row padding or constructing `RasterAnalysis` after a
@@ -511,30 +515,34 @@ abstract final class AnalyzeDocument {
     return image;
   }
 
-  /// Strips row padding, builds the analysis tables, and rebuilds the tight
+  /// Strips row padding, builds the analysis tables, and supplies the tight
   /// OCR image. Every failure here is a post-render internal failure
   /// (`REC-002`), not a rasterization or page-structure failure.
+  ///
+  /// A port image that is already tight is passed to OCR unchanged. Passing
+  /// the same object preserves identity-keyed page-size lookups in the Android
+  /// raster adapter. A padded image must be rebuilt because OCR consumes one
+  /// tight grayscale byte per pixel; the new object intentionally has no
+  /// page-size entry, so the composed resolver fails closed instead of
+  /// guessing a page size.
   static _RasterStage _analyzeRaster(
     RasterImage source,
     RasterAnalysisBuilder rasterAnalysis,
   ) {
     final GrayRaster gray = _stripRowPadding(source);
     final RasterAnalysis analysis = rasterAnalysis(gray);
-    // OCR consumes one tight grayscale byte per pixel: the port image may
-    // carry row padding, and the OCR adapter/channel reads `width × height`
-    // bytes. Rebuilding the image preserves width, height, gray8 format, and
-    // the source evidence so the composed page-size resolver still works.
-    return _RasterStage(
-      RasterImage(
-        bytes: Uint8List.fromList(gray.pixels),
-        width: gray.width,
-        height: gray.height,
-        bytesPerRow: gray.width,
-        format: RasterFormat.gray8,
-        evidence: source.evidence,
-      ),
-      analysis,
-    );
+    final int tightBytesPerRow = source.width * source.format.bytesPerPixel;
+    final RasterImage ocrImage = source.bytesPerRow == tightBytesPerRow
+        ? source
+        : RasterImage(
+            bytes: Uint8List.fromList(gray.pixels),
+            width: gray.width,
+            height: gray.height,
+            bytesPerRow: gray.width,
+            format: RasterFormat.gray8,
+            evidence: source.evidence,
+          );
+    return _RasterStage(ocrImage, analysis);
   }
 
   static GrayRaster _stripRowPadding(RasterImage image) {

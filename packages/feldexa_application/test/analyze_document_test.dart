@@ -12,8 +12,8 @@
 //   * ids and order are deterministic, including shuffled page input;
 //   * conflicts are symmetric and both candidates are retained;
 //   * OCR absence/failure is recoverable, geometry-only, and page-isolated;
-//   * OCR receives a tight width-by-height raster even when the source has row
-//     padding;
+//   * OCR receives the tight source object unchanged and a rebuilt tight
+//     width-by-height raster only when the source has row padding;
 //   * raster failures isolate one page and mismatch is `rasterization`, while
 //     post-render strip/analysis failures are `internal`;
 //   * detector preconditions are `internal`; only an explicit structure signal
@@ -645,36 +645,56 @@ void main() {
     expect(suggestion['confidence'], 0.32);
   });
 
-  test(
-    'OCR receives a tight width-by-height raster from a padded source',
-    () async {
-      final _RasterSpec base = _underlinePage();
-      final _FakeRaster raster = _FakeRaster(<int, _RasterSpec>{
-        0: _paddedRaster(base),
-      });
-      final _FakeOcr ocr = _FakeOcr();
+  test('OCR receives the tight source object unchanged and a rebuilt tight '
+      'raster only when the source has row padding', () async {
+    final _RasterSpec base = _underlinePage();
 
-      final DocumentAnalysisResult result = await AnalyzeDocument.run(
-        _request(raster: raster, ocr: ocr),
-      );
+    // Tight source: the very object returned by the raster port must reach
+    // OCR so an identity-keyed page-size resolver still resolves it.
+    final _FakeRaster tightRaster = _FakeRaster(<int, _RasterSpec>{0: base});
+    final _FakeOcr tightOcr = _FakeOcr();
+    final DocumentAnalysisResult tightResult = await AnalyzeDocument.run(
+      _request(raster: tightRaster, ocr: tightOcr),
+    );
+    expect(tightResult.pages.single.isComplete, isTrue);
+    expect(tightOcr.requests, hasLength(1));
+    final RasterImage tightImage = tightOcr.requests.single.image;
+    expect(identical(tightImage, tightRaster.renderedImages.single), isTrue);
+    expect(tightImage.width, _rasterWidth);
+    expect(tightImage.height, _rasterHeight);
+    expect(tightImage.format, RasterFormat.gray8);
+    expect(tightImage.bytesPerRow, _rasterWidth);
+    expect(tightImage.bytes, base.bytes);
 
-      expect(result.pages.single.isComplete, isTrue);
-      expect(ocr.requests, hasLength(1));
-      final RasterImage image = ocr.requests.single.image;
-      expect(image.width, _rasterWidth);
-      expect(image.height, _rasterHeight);
-      expect(image.format, RasterFormat.gray8);
-      expect(image.bytesPerRow, _rasterWidth);
-      expect(image.bytes.length, _rasterWidth * _rasterHeight);
-      expect(image.bytes, base.bytes);
-      expect(
-        identical(image.evidence, raster.renderedImages.single.evidence),
-        isTrue,
-      );
-      expect(image.width / (200 / 72), closeTo(_pageWidthPt, 1e-12));
-      expect(image.height / (200 / 72), closeTo(_pageHeightPt, 1e-12));
-    },
-  );
+    // Padded source: OCR still gets a tight width-by-height raster, but it
+    // is deliberately a new object and keeps the source evidence.
+    final _FakeRaster paddedRaster = _FakeRaster(<int, _RasterSpec>{
+      0: _paddedRaster(base),
+    });
+    final _FakeOcr paddedOcr = _FakeOcr();
+    final DocumentAnalysisResult paddedResult = await AnalyzeDocument.run(
+      _request(raster: paddedRaster, ocr: paddedOcr),
+    );
+    expect(paddedResult.pages.single.isComplete, isTrue);
+    expect(paddedOcr.requests, hasLength(1));
+    final RasterImage paddedImage = paddedOcr.requests.single.image;
+    expect(identical(paddedImage, paddedRaster.renderedImages.single), isFalse);
+    expect(paddedImage.width, _rasterWidth);
+    expect(paddedImage.height, _rasterHeight);
+    expect(paddedImage.format, RasterFormat.gray8);
+    expect(paddedImage.bytesPerRow, _rasterWidth);
+    expect(paddedImage.bytes.length, _rasterWidth * _rasterHeight);
+    expect(paddedImage.bytes, base.bytes);
+    expect(
+      identical(
+        paddedImage.evidence,
+        paddedRaster.renderedImages.single.evidence,
+      ),
+      isTrue,
+    );
+    expect(paddedImage.width / (200 / 72), closeTo(_pageWidthPt, 1e-12));
+    expect(paddedImage.height / (200 / 72), closeTo(_pageHeightPt, 1e-12));
+  });
 
   test('a non-gray8 render is a rasterization failure', () async {
     final Uint8List rgba = Uint8List(

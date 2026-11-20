@@ -26,6 +26,20 @@ dependencies:
   # code never import an adapter package or a platform plugin directly.
   feldexa_ports:
     path: ../../packages/feldexa_ports
+  # Issue #217 Phase B1: the editor now consumes the canonical revision,
+  # suggestion, and page value objects directly when it validates an analysis
+  # result through `RevisionContent`. This is the same already-resolved path
+  # dependency that the tests used; it is promoted from dev_dependencies so
+  # `lib/` may import it without a `depend_on_referenced_packages` violation.
+  feldexa_core:
+    path: ../../packages/feldexa_core
+  # Issue #217 Phase B1: the editor invokes the Phase A analysis use case and
+  # consumes the T057 per-page envelope directly. No orchestrator, store, or
+  # second runtime is added.
+  feldexa_application:
+    path: ../../packages/feldexa_application
+  feldexa_recognition:
+    path: ../../packages/feldexa_recognition
   # T027: the Android composition root imports the real thin clients only on
   # the `dart:io` branch; the Web build never resolves this package.
   feldexa_adapters_android:
@@ -54,8 +68,6 @@ dev_dependencies:
   # exclusively allocated Android emulator.
   integration_test:
     sdk: flutter
-  feldexa_core:
-    path: ../../packages/feldexa_core
   # T047: the SIMULATED browser import journey runs the T028 Web adapters.
   # Test-only, so an Android build never resolves this package (T023 boundary).
   feldexa_adapters_simulated:
