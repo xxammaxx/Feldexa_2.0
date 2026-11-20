@@ -6,3 +6,13 @@ resolution: workspace
 
 environment:
   sdk: ^3.13.0
+
+dependencies:
+  # Canonical immutable document, suggestion, field, and revision value objects
+  # consumed by the pure review commands (T065).
+  feldexa_core:
+    path: ../feldexa_core
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
