@@ -258,6 +258,14 @@ void main() {
     expect(find.text(de.suggestionTypeSignature), findsOneWidget);
     expect(find.text(de.suggestionUncertain), findsOneWidget);
     expect(find.text(de.suggestionConflict), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('conflict-badge-s_p0_0001')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('conflict-badge-s_p0_0004')),
+      findsNothing,
+    );
     expect(find.text(de.suggestionConfidence(49)), findsOneWidget);
     expect(find.text(de.suggestionOpenCount(2)), findsOneWidget);
     expect(find.text(de.suggestionFieldCount(1)), findsOneWidget);

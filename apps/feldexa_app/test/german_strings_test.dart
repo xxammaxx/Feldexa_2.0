@@ -121,6 +121,16 @@ const Set<String> _nonCodeArbKeys = <String>{
   'suggestionConfirmAction',
   'suggestionRejectAction',
   'suggestionUndoAction',
+  // T068 review-surface keys: conflict sheet title/body/close, candidate
+  // states, stale-reference note, and the conflict-badge hint.
+  'reviewConflictSheetTitle',
+  'reviewConflictSheetBody',
+  'reviewConflictCloseAction',
+  'reviewConflictStateUnresolved',
+  'reviewConflictStateConfirmed',
+  'reviewConflictStateRejected',
+  'reviewConflictSingleCandidateNote',
+  'reviewConflictBadgeHint',
   'templateEditorHint',
   'templateLabel',
   'templateNewVersionSaved',

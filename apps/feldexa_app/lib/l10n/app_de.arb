@@ -253,6 +253,38 @@
   "@suggestionUndoAction": {
     "description": "Phase B2 review action: undo the most recent reject or untouched confirm (FR-027)."
   },
+  "reviewConflictSheetTitle": "Konflikt lösen",
+  "@reviewConflictSheetTitle": {
+    "description": "T068 conflict sheet title: the per-candidate resolution surface for overlapping suggestions (contracts/editor-interactions.md §3, FR-025)."
+  },
+  "reviewConflictSheetBody": "Beide Vorschläge bleiben erhalten, bis Sie für jeden einzeln entschieden haben. Durch Wischen wird kein Konflikt gelöst.",
+  "@reviewConflictSheetBody": {
+    "description": "T068 conflict sheet explanation: both symmetric candidates remain and each needs an explicit confirm or reject; swiping never resolves a conflict (contracts/recognition-output.md §6, FR-025)."
+  },
+  "reviewConflictCloseAction": "Schließen",
+  "@reviewConflictCloseAction": {
+    "description": "T068 conflict sheet action: close the sheet without resolving any candidate."
+  },
+  "reviewConflictStateUnresolved": "Offen",
+  "@reviewConflictStateUnresolved": {
+    "description": "T068 candidate state badge: the suggestion still needs an explicit confirm or reject (data-model.md §3.4)."
+  },
+  "reviewConflictStateConfirmed": "Bestätigt",
+  "@reviewConflictStateConfirmed": {
+    "description": "T068 candidate state badge: the suggestion was confirmed and is shown without resolution actions (data-model.md §3.4)."
+  },
+  "reviewConflictStateRejected": "Abgelehnt",
+  "@reviewConflictStateRejected": {
+    "description": "T068 candidate state badge: the suggestion was rejected and is shown without resolution actions (data-model.md §3.4)."
+  },
+  "reviewConflictSingleCandidateNote": "Zu diesem Konflikt ist kein zweiter Vorschlag vorhanden. Der angezeigte Vorschlag bleibt einzeln entscheidbar.",
+  "@reviewConflictSingleCandidateNote": {
+    "description": "T068 conflict sheet note: a stale conflict reference, self-only group, or empty group matches no second candidate; the tapped suggestion is still shown and remains individually resolvable."
+  },
+  "reviewConflictBadgeHint": "Konflikt zwischen Vorschlägen. Tippen, um beide Vorschläge einzeln zu entscheiden.",
+  "@reviewConflictBadgeHint": {
+    "description": "T068 review-panel conflict badge tooltip and semantic hint: opens the per-candidate resolution sheet (contracts/editor-interactions.md §3)."
+  },
   "save001": "Der Speicherplatz reicht nicht aus. Der letzte gespeicherte Stand ist erhalten; die neuesten Änderungen sind noch nicht dauerhaft gespeichert.",
   "@save001": {
     "description": "contracts/error-catalog.de.md §3 SAVE-001: Storage full / quota exceeded."
