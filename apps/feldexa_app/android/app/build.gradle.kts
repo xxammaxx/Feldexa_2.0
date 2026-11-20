@@ -55,6 +55,11 @@ kotlin {
 dependencies {
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
 
+    // T056: bundled Latin ML Kit text recognition. The bundled artifact ships
+    // the model in the APK; no Play Services model download and no network
+    // call are used by the OCR service.
+    implementation("com.google.mlkit:text-recognition:16.0.1")
+
     // T024: host-JVM contract tests for the platform-channel facade. Test-only;
     // no runtime dependency and no production APK change.
     testImplementation("junit:junit:4.13.2")
