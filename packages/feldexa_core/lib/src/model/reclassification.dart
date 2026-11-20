@@ -86,15 +86,15 @@
 //
 // ## Parsing
 //
-// The number and date parsers are deliberately small, pure, and documented
-// instead of a second input-control implementation. They accept the German
-// display forms the filling contract accepts and the canonical forms this
-// model stores:
+// The number grammar is owned by `lib/src/validation/number.dart` and exposed
+// as [parseGermanNumber]; this module delegates to it instead of keeping a
+// second copy. The date parser remains here because it also distinguishes
+// `DATE-001` from `DATE-002`:
 //
-//   * number: `-?\d+(\.\d+)?` (canonical), `-?\d+(,\d+)?` (German decimal
-//     comma), or `-?\d{1,3}(\.\d{3})+(,\d+)?` (German grouping). A valid
-//     grouping is preferred over a canonical dot decimal, so the German
-//     display `1.234` becomes `1234` rather than `1.234`.
+//   * number: the T019 German and canonical forms parsed by
+//     [parseGermanNumber]. A valid German grouping is preferred over a
+//     canonical dot decimal, so the German display `1.234` becomes `1234`
+//     rather than `1.234`.
 //   * date: `d.m.yyyy` with one or two digits for day/month and four for the
 //     year, or the canonical `yyyy-mm-dd` emitted by date → text. A
 //     structurally valid date that is not a real calendar date is
@@ -105,6 +105,7 @@
 
 library;
 
+import '../validation/number.dart';
 import 'field.dart';
 
 /// Why a reclassification preserved content as
@@ -610,7 +611,7 @@ ReclassificationResult _toNumber({
       updatedAt: updatedAt,
     );
   }
-  final String? canonical = _parseNumber(text);
+  final String? canonical = parseGermanNumber(text);
   if (canonical != null) {
     return _converted(
       field: field,
@@ -1025,41 +1026,6 @@ bool _containsUnsupportedControlCharacters(
     }
   }
   return false;
-}
-
-final RegExp _canonicalNumberPattern = RegExp(r'^-?\d+(?:\.\d+)?$');
-final RegExp _germanGroupedNumberPattern = RegExp(
-  r'^(-?)(\d{1,3}(?:\.\d{3})+)(?:,(\d+))?$',
-);
-final RegExp _germanDecimalNumberPattern = RegExp(r'^(-?)(\d+)(?:,(\d+))?$');
-
-/// Parses the documented German or canonical number forms.
-///
-/// Returns the canonical `-?\d+(\.\d+)?` form, or null when [raw] is not a
-/// supported number. The caller keeps [raw] verbatim as `rawGerman`.
-String? _parseNumber(String raw) {
-  final String text = raw.trim();
-  if (text.isEmpty) {
-    return null;
-  }
-  final RegExpMatch? grouped = _germanGroupedNumberPattern.firstMatch(text);
-  if (grouped != null) {
-    final String sign = grouped.group(1)!;
-    final String integer = grouped.group(2)!.replaceAll('.', '');
-    final String? fraction = grouped.group(3);
-    return '$sign$integer${fraction == null ? '' : '.$fraction'}';
-  }
-  final RegExpMatch? german = _germanDecimalNumberPattern.firstMatch(text);
-  if (german != null) {
-    final String sign = german.group(1)!;
-    final String integer = german.group(2)!;
-    final String? fraction = german.group(3);
-    return '$sign$integer${fraction == null ? '' : '.$fraction'}';
-  }
-  if (_canonicalNumberPattern.hasMatch(text)) {
-    return text;
-  }
-  return null;
 }
 
 final RegExp _germanDatePattern = RegExp(r'^(\d{1,2})\.(\d{1,2})\.(\d{4})$');
