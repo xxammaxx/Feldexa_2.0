@@ -13,6 +13,7 @@
 
 import 'package:feldexa_ports/feldexa_ports.dart';
 
+import '../editor/editor_runtime_unavailable.dart';
 import 'import_runtime.dart';
 
 /// Builds the fail-closed non-Android composition.
@@ -20,6 +21,7 @@ ImportRuntime createImportRuntime() {
   return ImportRuntime(
     importPort: const _UnavailableDocumentImportPort(),
     readSourceBytes: (String documentId) async => null,
+    editorRuntimeFactory: createUnavailableEditorRuntime,
   );
 }
 

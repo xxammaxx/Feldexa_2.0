@@ -23,6 +23,7 @@
 
 import 'package:feldexa_app/bootstrap/startup_sweep.dart';
 import 'package:feldexa_app/bootstrap/startup_sweep_bootstrap.dart';
+import 'package:feldexa_app/features/editor/editor_runtime.dart';
 import 'package:feldexa_app/features/editor/editor_screen.dart';
 import 'package:feldexa_app/features/editor/page_view.dart';
 import 'package:feldexa_app/features/start/import_error_mapper.dart';
@@ -132,6 +133,9 @@ class _StartScreenState extends State<StartScreen> {
   Future<void> _documentAccepted(ImportedDocumentCandidate document) async {}
 
   Future<void> _openEditor(ImportedSource source, ImportRuntime runtime) async {
+    // One editor composition per session. The editor disposes it on close; a
+    // shared import operation client is not disposed by the editor runtime.
+    final EditorRuntime editorRuntime = runtime.createEditorRuntime();
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
         builder: (BuildContext context) => EditorScreen(
@@ -140,6 +144,7 @@ class _StartScreenState extends State<StartScreen> {
           // `PageView` passes its opaque source id to this closure; the
           // protected bytes are resolved by the runtime store for documentId.
           sourceBytes: (String _) => runtime.readSourceBytes(source.documentId),
+          runtime: editorRuntime,
           rendererFactory: widget.pageRendererFactory,
         ),
       ),
