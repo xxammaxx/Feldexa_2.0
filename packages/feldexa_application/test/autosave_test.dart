@@ -304,6 +304,32 @@ void main() {
     await h.dispose(tester);
   });
 
+  testWidgets('uses the production 2 s default when debounce is omitted', (
+    WidgetTester tester,
+  ) async {
+    final _FakeStore store = _FakeStore();
+    final AutosaveCoordinator coordinator = AutosaveCoordinator(
+      store: store,
+      clock: _FixedClock(_createdAt),
+      lifecycle: _FakeLifecycle(),
+      documentId: _documentId,
+      content: _content,
+      initialHead: _initialHead,
+    );
+
+    coordinator.markDirty();
+    await tester.pump(const Duration(milliseconds: 1999));
+    expect(store.requests, isEmpty);
+
+    await tester.pump(const Duration(milliseconds: 1));
+    await tester.pump();
+    expect(store.requests, hasLength(1));
+    expect(store.requests.single.kind, RevisionKind.autosave);
+    expect(coordinator.status, isA<SavedDurabilityStatus>());
+
+    await tester.runAsync(() => coordinator.dispose());
+  });
+
   testWidgets('restarts the debounce timer on every mark and saves once', (
     WidgetTester tester,
   ) async {
@@ -403,6 +429,38 @@ void main() {
 
     expect(h.store.requests, hasLength(beforeResume));
     expect(h.coordinator.status, DurabilityStatus.unsaved);
+    await h.dispose(tester);
+  });
+
+  testWidgets('inactive then paused with one pending change saves once', (
+    WidgetTester tester,
+  ) async {
+    final _Harness h = _Harness();
+    final Completer<StoredMeta> gate = Completer<StoredMeta>();
+    h.store.gate = gate;
+
+    h.coordinator.markDirty();
+    h.lifecycle.emit(AppLifecycleSignal.inactive);
+    await tester.pump();
+    expect(h.store.requests, hasLength(1));
+    expect(h.coordinator.status, DurabilityStatus.saving);
+
+    // The first save has not verified yet, so pending is still true. This
+    // second lifecycle flush must join the active save, not queue an identical
+    // follow-up revision.
+    h.lifecycle.emit(AppLifecycleSignal.paused);
+    await tester.pump();
+    expect(h.store.requests, hasLength(1));
+
+    gate.complete(h.store.newMeta());
+    h.store.gate = null;
+    await tester.pump();
+    await tester.pump();
+
+    expect(h.store.requests, hasLength(1));
+    expect(h.coordinator.hasPendingChanges, isFalse);
+    expect(h.coordinator.status, isA<SavedDurabilityStatus>());
+
     await h.dispose(tester);
   });
 

@@ -93,6 +93,9 @@ final class AutosaveCoordinator {
   List<Completer<bool>> _queuedWaiters = <Completer<bool>>[];
   List<Completer<bool>>? _activeWaiters;
 
+  /// The change generation captured by the save currently in flight.
+  int? _activeSaveGeneration;
+
   /// The last change generation captured by a save.
   int _changeGeneration = 0;
 
@@ -137,9 +140,10 @@ final class AutosaveCoordinator {
   ///
   /// Returns true only after [SecureStorePort.saveRevision] verified the save
   /// requested by this call. It returns false for a no-op, a disposed
-  /// coordinator, or a failed save. A call during an in-flight save queues a
-  /// coalesced follow-up revision; an explicit call upgrades that follow-up to
-  /// [RevisionKind.explicit] and resolves after it.
+  /// coordinator, or a failed save. A non-explicit call during an in-flight
+  /// save joins that save when no newer change exists, and otherwise queues a
+  /// coalesced follow-up revision; an explicit call always queues an explicit
+  /// follow-up and resolves after it.
   Future<bool> flush({bool explicit = false}) {
     if (_disposed) {
       return Future<bool>.value(false);
@@ -221,6 +225,17 @@ final class AutosaveCoordinator {
       return Future<bool>.value(false);
     }
     if (_saveInFlight) {
+      final bool noNewChanges = _changeGeneration == _activeSaveGeneration;
+      final List<Completer<bool>>? active = _activeWaiters;
+      if (kind != RevisionKind.explicit && noNewChanges && active != null) {
+        // The active save already captures every change this caller needs to
+        // persist. Join its verified completion instead of queueing an
+        // identical follow-up revision (for example lifecycle inactive then
+        // paused with one pending change).
+        final Completer<bool> waiter = Completer<bool>();
+        active.add(waiter);
+        return waiter.future;
+      }
       _queuedFollowUpKind = _upgradeKind(_queuedFollowUpKind, kind);
       final Completer<bool> queued = Completer<bool>();
       _queuedWaiters.add(queued);
@@ -273,6 +288,7 @@ final class AutosaveCoordinator {
       _queuedWaiters = <Completer<bool>>[];
     }
 
+    _activeSaveGeneration = null;
     _saveInFlight = false;
   }
 
@@ -281,6 +297,7 @@ final class AutosaveCoordinator {
     try {
       final RevisionContent snapshot = _content();
       final int snapshotGeneration = _changeGeneration;
+      _activeSaveGeneration = snapshotGeneration;
       final StoredMeta stored = await _store.saveRevision(
         SaveRevisionRequest(
           documentId: _documentId,
