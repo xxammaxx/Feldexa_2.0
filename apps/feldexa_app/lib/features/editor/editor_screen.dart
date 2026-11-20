@@ -47,8 +47,12 @@
 //   pending) while preventing a completed zero-suggestion run from
 //   re-analyzing and autosaving on every reopen. The resulting
 //   `analysis-skipped` state is deterministic.
-// * Before any analysis, every loaded revision page display size must equal
-//   the imported source page display size, and the page counts must match. A
+// * Before any analysis, every loaded revision page must have the same
+//   `PageGeometry` as the imported source page, and the page counts must
+//   match. Rotation is compared exactly; the media and crop box edges may
+//   differ by at most [pageGeometryTolerancePt] (0.001 pt) to absorb persisted
+//   three-decimal quantization. Display size alone is insufficient because a
+//   square page rotated 90° and one rotated 270° have the same size. A
 //   mismatch is a content-free `analysis-failed` state: no analysis and no
 //   save.
 // * Otherwise the first analysis run covers every page the import did not mark
@@ -107,6 +111,13 @@ const String editorAnalysisSkippedKey = 'analysis-skipped';
 
 /// Stable key for a content-free load/analysis/validation/save failure.
 const String editorAnalysisFailedKey = 'analysis-failed';
+
+/// Maximum per-edge difference in PDF points when comparing page geometry.
+///
+/// Persisted revisions may quantize geometry to three decimal places. An
+/// inclusive 0.001 pt tolerance therefore absorbs storage round-tripping while
+/// still rejecting a genuinely different media box, crop box, or orientation.
+const double pageGeometryTolerancePt = 0.001;
 
 /// Evidence class written into a Phase A envelope for the current build mode.
 ///
@@ -488,19 +499,39 @@ class EditorScreenState extends State<EditorScreen> {
     return false;
   }
 
-  /// Whether every loaded page display size matches the imported source.
+  /// Whether every loaded page geometry matches the imported source page.
   ///
-  /// The page count is checked by the caller. Size equality includes rotation
-  /// and crop-box effects because [core.PageGeometry.displaySize] is already
-  /// derived in display space.
+  /// The page count is checked by the caller. Rotation must match exactly. The
+  /// media and crop box edges are compared per coordinate with the documented
+  /// [pageGeometryTolerancePt] tolerance, which absorbs persisted three-decimal
+  /// quantization. A same-size 90°/270° page therefore fails, and so does a
+  /// genuinely different media or crop box.
   bool _geometryMatchesSource(LoadedDocument loaded) {
     for (int index = 0; index < widget.source.pageCount; index++) {
-      if (loaded.content.pages[index].geometry.displaySize !=
-          widget.source.pages[index].displaySize) {
+      if (!_pageGeometryMatches(
+        loaded.content.pages[index].geometry,
+        widget.source.pages[index],
+      )) {
         return false;
       }
     }
     return true;
+  }
+
+  bool _pageGeometryMatches(
+    core.PageGeometry loaded,
+    core.PageGeometry source,
+  ) {
+    return loaded.rotation == source.rotation &&
+        _rectMatchesWithinTolerance(loaded.mediaBox, source.mediaBox) &&
+        _rectMatchesWithinTolerance(loaded.cropBox, source.cropBox);
+  }
+
+  bool _rectMatchesWithinTolerance(core.Rect loaded, core.Rect source) {
+    return (loaded.left - source.left).abs() <= pageGeometryTolerancePt &&
+        (loaded.top - source.top).abs() <= pageGeometryTolerancePt &&
+        (loaded.right - source.right).abs() <= pageGeometryTolerancePt &&
+        (loaded.bottom - source.bottom).abs() <= pageGeometryTolerancePt;
   }
 
   Future<void> _loadAndAnalyze() async {

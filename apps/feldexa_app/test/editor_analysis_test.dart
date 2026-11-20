@@ -16,12 +16,13 @@
 //     revision is written;
 //   * a completed zero-suggestion run is durable across reopen and a partially
 //     unreadable first import still analyzes its readable pages;
-//   * divergent loaded/source page geometry fails before analysis or save;
+//   * full loaded/source page geometry equality: page-count, orientation-only,
+//     real divergent-box, and quantized-within-tolerance cases;
 //   * a page failure is isolated while the healthy page is saved;
 //   * the viewer and strip are available while analysis is still running;
 //   * a save failure keeps the viewer and the in-memory result;
-//   * `applyDocumentAnalysis` rejects existing suggestions without mutating the
-//     base revision;
+//   * `applyDocumentAnalysis` leaves the base revision immutable on both the
+//     successful path and the non-empty-suggestions guard path;
 //   * `ImportRuntime` falls back to the unavailable runtime for any
 //     object-level construction failure;
 //   * every recognition failure category maps to the fixed core failure
@@ -174,9 +175,14 @@ OcrBlock _ocrBlock({
   );
 }
 
-core.PageGeometry _geometryOf(double widthPt, double heightPt) {
+core.PageGeometry _geometryOf(
+  double widthPt,
+  double heightPt, {
+  int rotation = 0,
+}) {
   return core.PageGeometry(
     mediaBox: core.Rect.fromLTWH(0, 0, widthPt, heightPt),
+    rotation: rotation,
   );
 }
 
@@ -270,6 +276,7 @@ LoadedDocument _loaded({int pageCount = 1, core.RevisionContent? content}) {
 ImportedSource _source({
   int pageCount = 1,
   List<int> unreadablePages = const <int>[],
+  core.PageGeometry? geometry,
 }) {
   return ImportedSource(
     documentId: _documentId,
@@ -278,7 +285,7 @@ ImportedSource _source({
     sizeBytes: _sourceBytes.length,
     pageCount: pageCount,
     pages: <core.PageGeometry>[
-      for (int index = 0; index < pageCount; index++) _geometry(),
+      for (int index = 0; index < pageCount; index++) geometry ?? _geometry(),
     ],
     pageFailures: <core.PageFailure>[
       for (final int pageIndex in unreadablePages)
@@ -795,6 +802,101 @@ void main() {
     expect(find.byKey(const ValueKey<String>('editor-screen')), findsOneWidget);
   });
 
+  testWidgets('a loaded/source page-count mismatch fails before analysis', (
+    tester,
+  ) async {
+    final _FakeStore store = _FakeStore(
+      loaded: _loaded(pageCount: 2, content: _initialContent(pageCount: 1)),
+    );
+    final _FakeRaster raster = _FakeRaster(
+      images: <int, RasterImage>{0: _blankImage()},
+    );
+    final _FakeIds ids = _FakeIds();
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(
+      raster: raster,
+      ocr: null,
+      store: store,
+      ids: ids,
+    );
+
+    await _pumpEditor(tester, runtime: runtime, source: _source(pageCount: 2));
+    await tester.pumpAndSettle();
+
+    final EditorScreenState state = _editorState(tester);
+    expect(state.analysisStateKey, editorAnalysisFailedKey);
+    expect(state.content, isNull);
+    expect(raster.requests, isEmpty);
+    expect(ids.calls, 0);
+    expect(store.saves, isEmpty);
+    expect(find.byKey(const ValueKey<String>('editor-screen')), findsOneWidget);
+  });
+
+  testWidgets('same-size different rotation fails before analysis', (
+    tester,
+  ) async {
+    final _FakeStore store = _FakeStore(
+      loaded: _loaded(
+        content: _initialContent(
+          geometry: _geometryOf(_pageWidthPt, _pageHeightPt, rotation: 270),
+        ),
+      ),
+    );
+    final _FakeRaster raster = _FakeRaster(
+      images: <int, RasterImage>{0: _blankImage()},
+    );
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(
+      raster: raster,
+      ocr: null,
+      store: store,
+    );
+
+    await _pumpEditor(
+      tester,
+      runtime: runtime,
+      source: _source(
+        geometry: _geometryOf(_pageWidthPt, _pageHeightPt, rotation: 90),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final EditorScreenState state = _editorState(tester);
+    expect(state.analysisStateKey, editorAnalysisFailedKey);
+    expect(state.content, isNull);
+    expect(raster.requests, isEmpty);
+    expect(store.saves, isEmpty);
+  });
+
+  testWidgets('quantized geometry within 0.001 pt per edge is accepted', (
+    tester,
+  ) async {
+    final core.PageGeometry quantized = core.PageGeometry(
+      mediaBox: core.Rect.fromLTWH(0.0005, 0.0005, _pageWidthPt, _pageHeightPt),
+    );
+    final _FakeStore store = _FakeStore(
+      loaded: _loaded(content: _initialContent(geometry: quantized)),
+    );
+    final _FakeRaster raster = _FakeRaster(
+      images: <int, RasterImage>{0: _image()},
+    );
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(
+      raster: raster,
+      ocr: null,
+      store: store,
+    );
+
+    await _pumpEditor(tester, runtime: runtime, source: _source());
+    await tester.pumpAndSettle();
+
+    final EditorScreenState state = _editorState(tester);
+    expect(state.analysisStateKey, editorAnalysisReadyKey);
+    expect(raster.requests, hasLength(1));
+    expect(store.saves, hasLength(1));
+    expect(
+      store.saves.single.content.pages.single.geometry.mediaBox.left,
+      closeTo(0.0005, 1e-12),
+    );
+  });
+
   testWidgets('a page failure is isolated while the healthy page is saved', (
     tester,
   ) async {
@@ -910,6 +1012,46 @@ void main() {
     );
     expect(find.byKey(const ValueKey<String>('fake-page-0')), findsOneWidget);
   });
+
+  test(
+    'applyDocumentAnalysis leaves the base revision immutable on success',
+    () async {
+      final core.RevisionContent base = _initialContent();
+      final Map<String, Object?> before = base.toJson();
+      final List<core.FieldSuggestion> beforeSuggestions =
+          List<core.FieldSuggestion>.of(base.suggestions);
+      final _FakeRaster raster = _FakeRaster(
+        images: <int, RasterImage>{0: _image()},
+      );
+      final analysis.DocumentAnalysisResult result =
+          await analysis.AnalyzeDocument.run(
+            analysis.DocumentAnalysisRequest(
+              sourceId: _sourceId,
+              analysisRunId: _analysisRunId,
+              pages: <analysis.DocumentAnalysisPage>[
+                analysis.DocumentAnalysisPage.fromGeometry(
+                  pageIndex: 0,
+                  geometry: base.pages.single.geometry,
+                ),
+              ],
+              evidenceClass: 'simulated',
+              rasterPort: raster,
+            ),
+          );
+
+      final core.RevisionContent applied = applyDocumentAnalysis(
+        base: base,
+        result: result,
+      );
+
+      expect(identical(applied, base), isFalse);
+      expect(applied.suggestions, isNotEmpty);
+      expect(base.suggestions, beforeSuggestions);
+      expect(base.suggestions, isEmpty);
+      expect(base.pages.single.analysis, core.AnalysisState.pending);
+      expect(base.toJson(), before);
+    },
+  );
 
   test(
     'applyDocumentAnalysis rejects existing suggestions without mutating the '
