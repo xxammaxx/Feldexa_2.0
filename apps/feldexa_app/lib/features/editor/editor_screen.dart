@@ -39,6 +39,18 @@
 // * If that revision already has suggestions, analysis does not run and no
 //   revision is written. The deterministic `analysis-skipped` state is exposed
 //   for B2/tests; reanalysis is a later task.
+// * A persisted analysis run is equally durable. The gate treats any
+//   `complete` or `running` page, or any `failed` page that is not an
+//   import-unreadable `IMP-006` page, as evidence that the first run already
+//   happened. This keeps a partially unreadable first import analyzable (its
+//   import-marked pages are failed while the readable pages are still
+//   pending) while preventing a completed zero-suggestion run from
+//   re-analyzing and autosaving on every reopen. The resulting
+//   `analysis-skipped` state is deterministic.
+// * Before any analysis, every loaded revision page display size must equal
+//   the imported source page display size, and the page counts must match. A
+//   mismatch is a content-free `analysis-failed` state: no analysis and no
+//   save.
 // * Otherwise the first analysis run covers every page the import did not mark
 //   unreadable. The analysis-run id is `IdPort.newId()` (the port's UUIDv4
 //   method; there is no `newUuid` member). Stage timings come from the use
@@ -158,13 +170,22 @@ core.PageFailure pageFailureForAnalysis(
 /// template-origin, and unknown-field entry is preserved. The function does no
 /// I/O and never mutates [base].
 ///
+/// Precondition: [base] must have no suggestions. Reanalysis is a later task,
+/// so an existing suggestion set is never dropped or replaced by this helper.
+/// A non-empty [base.suggestions] throws [StateError] before any conversion.
+///
 /// Throws [FormatException], [ArgumentError], or [StateError] for a malformed
-/// or inconsistent envelope; the caller must present only a content-free
-/// failure state.
+/// or inconsistent envelope or a violated precondition; the caller must
+/// present only a content-free failure state.
 core.RevisionContent applyDocumentAnalysis({
   required core.RevisionContent base,
   required analysis.DocumentAnalysisResult result,
 }) {
+  if (base.suggestions.isNotEmpty) {
+    throw StateError(
+      'analysis requires a revision without existing suggestions',
+    );
+  }
   final Map<int, recognition.FieldSuggestionSet> byPage =
       <int, recognition.FieldSuggestionSet>{
         for (final recognition.FieldSuggestionSet set in result.pages)
@@ -440,6 +461,48 @@ class EditorScreenState extends State<EditorScreen> {
     }
   }
 
+  /// Whether the loaded revision already records a first analysis run.
+  ///
+  /// `complete` and `running` pages are direct evidence. An import-unreadable
+  /// page is persisted as `failed` with `IMP-006` before analysis starts, so
+  /// that specific failure is not run evidence; every other failure is. This
+  /// keeps a partially unreadable first import analyzable while making a
+  /// completed zero-suggestion run durable across reopen.
+  bool _hasPersistedAnalysisRun(core.RevisionContent content) {
+    for (final core.Page page in content.pages) {
+      switch (page.analysis) {
+        case core.AnalysisState.pending:
+          break;
+        case core.AnalysisState.complete:
+        case core.AnalysisState.running:
+          return true;
+        case core.AnalysisState.failed:
+          final core.PageFailure? failure = page.failure;
+          final bool importUnreadable =
+              page.unreadable || failure?.messageKey == imp006MessageKey;
+          if (!importUnreadable) {
+            return true;
+          }
+      }
+    }
+    return false;
+  }
+
+  /// Whether every loaded page display size matches the imported source.
+  ///
+  /// The page count is checked by the caller. Size equality includes rotation
+  /// and crop-box effects because [core.PageGeometry.displaySize] is already
+  /// derived in display space.
+  bool _geometryMatchesSource(LoadedDocument loaded) {
+    for (int index = 0; index < widget.source.pageCount; index++) {
+      if (loaded.content.pages[index].geometry.displaySize !=
+          widget.source.pages[index].displaySize) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   Future<void> _loadAndAnalyze() async {
     if (_analysisStarted) {
       return;
@@ -457,7 +520,8 @@ class EditorScreenState extends State<EditorScreen> {
     }
     if (loaded.meta.id != widget.source.documentId ||
         loaded.meta.source.id != widget.source.sourceId ||
-        loaded.content.pageCount != widget.source.pageCount) {
+        loaded.content.pageCount != widget.source.pageCount ||
+        !_geometryMatchesSource(loaded)) {
       _markFailed();
       return;
     }
@@ -466,9 +530,11 @@ class EditorScreenState extends State<EditorScreen> {
       _content = loaded.content;
       _stripPages = _buildStripPagesFromContent(loaded.content);
     });
-    if (loaded.content.suggestions.isNotEmpty) {
+    if (loaded.content.suggestions.isNotEmpty ||
+        _hasPersistedAnalysisRun(loaded.content)) {
       // Reanalysis is a later task. Never duplicate or overwrite an existing
-      // suggestion set.
+      // suggestion set, and never re-run a persisted first analysis (including
+      // a completed zero-suggestion run) on reopen.
       setState(() {
         _analysisStateKey = editorAnalysisSkippedKey;
       });

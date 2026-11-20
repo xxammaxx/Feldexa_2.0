@@ -68,16 +68,22 @@ final class ImportRuntime {
 
   /// Creates the editor composition for one editor session.
   ///
-  /// A platform construction failure falls back to the fail-closed runtime:
-  /// the already-imported viewer remains available through [readSourceBytes],
-  /// but no analysis or revision save claims to have run. The caller owns the
-  /// returned runtime and should dispose it when the editor closes.
+  /// Construction is a composition boundary: any thrown `Object` (including
+  /// `Error` subtypes such as `StateError`, `ArgumentError`, or an
+  /// `AssertionError` from adapter construction) is treated as a construction
+  /// failure and replaced by the fail-closed runtime. The already-imported
+  /// viewer remains available through [readSourceBytes], but no analysis or
+  /// revision save claims to have run. This catch is deliberately limited to
+  /// construction; later [EditorRuntime.loadDocument] and
+  /// [EditorRuntime.saveRevision] failures are surfaced by the editor's own
+  /// content-free state. The caller owns the returned runtime and should
+  /// dispose it when the editor closes.
   EditorRuntime createEditorRuntime() {
     final EditorRuntime Function() factory =
         editorRuntimeFactory ?? createUnavailableEditorRuntime;
     try {
       return factory();
-    } on Exception {
+    } catch (_) {
       return createUnavailableEditorRuntime();
     }
   }

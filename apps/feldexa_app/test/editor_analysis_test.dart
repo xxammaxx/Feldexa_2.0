@@ -14,9 +14,16 @@
 //   * symmetric conflicts and both candidates survive persistence;
 //   * an existing suggestion set is neither duplicated nor overwritten and no
 //     revision is written;
+//   * a completed zero-suggestion run is durable across reopen and a partially
+//     unreadable first import still analyzes its readable pages;
+//   * divergent loaded/source page geometry fails before analysis or save;
 //   * a page failure is isolated while the healthy page is saved;
 //   * the viewer and strip are available while analysis is still running;
 //   * a save failure keeps the viewer and the in-memory result;
+//   * `applyDocumentAnalysis` rejects existing suggestions without mutating the
+//     base revision;
+//   * `ImportRuntime` falls back to the unavailable runtime for any
+//     object-level construction failure;
 //   * every recognition failure category maps to the fixed core failure
 //     contract, and cancelled pages stay pending;
 //   * the build-mode evidence label is deterministic and never a hardware
@@ -31,6 +38,7 @@ import 'dart:typed_data';
 import 'package:feldexa_app/features/editor/editor_runtime.dart';
 import 'package:feldexa_app/features/editor/editor_screen.dart';
 import 'package:feldexa_app/features/editor/page_view.dart';
+import 'package:feldexa_app/features/start/import_runtime.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_application/src/recognition/analyze_document.dart'
     as analysis;
@@ -88,6 +96,14 @@ final CapabilityDescriptor _idsDescriptor = CapabilityDescriptor(
   evidence: _noneEvidence,
 );
 
+final CapabilityDescriptor _importDescriptor = CapabilityDescriptor(
+  kind: CapabilityKind.documentImport,
+  adapterId: 'test.import.v1',
+  version: '1',
+  isSimulated: false,
+  evidence: _noneEvidence,
+);
+
 /// A deterministic 400 x 400 grayscale canvas for a 144 x 144 pt page.
 final class _Canvas {
   _Canvas({int background = 255})
@@ -112,6 +128,17 @@ RasterImage _image({int top = 200}) {
   final _Canvas canvas = _Canvas()..fillRect(100, top, 200, top + 2);
   return RasterImage(
     bytes: canvas.build(),
+    width: _rasterWidth,
+    height: _rasterHeight,
+    bytesPerRow: _rasterWidth,
+    format: RasterFormat.gray8,
+    evidence: _noneEvidence,
+  );
+}
+
+RasterImage _blankImage() {
+  return RasterImage(
+    bytes: _Canvas().build(),
     width: _rasterWidth,
     height: _rasterHeight,
     bytesPerRow: _rasterWidth,
@@ -147,17 +174,44 @@ OcrBlock _ocrBlock({
   );
 }
 
-core.PageGeometry _geometry() {
+core.PageGeometry _geometryOf(double widthPt, double heightPt) {
   return core.PageGeometry(
-    mediaBox: core.Rect.fromLTWH(0, 0, _pageWidthPt, _pageHeightPt),
+    mediaBox: core.Rect.fromLTWH(0, 0, widthPt, heightPt),
   );
 }
 
-core.RevisionContent _initialContent({int pageCount = 1}) {
+core.PageGeometry _geometry() {
+  return _geometryOf(_pageWidthPt, _pageHeightPt);
+}
+
+core.RevisionContent _initialContent({
+  int pageCount = 1,
+  core.PageGeometry? geometry,
+}) {
   return core.RevisionContent(
     pages: <core.Page>[
       for (int index = 0; index < pageCount; index++)
-        core.Page(index: index, geometry: _geometry()),
+        core.Page(index: index, geometry: geometry ?? _geometry()),
+    ],
+    fieldOrder: const <String>[],
+  );
+}
+
+core.RevisionContent _partialImportContent() {
+  return core.RevisionContent(
+    pages: <core.Page>[
+      core.Page(index: 0, geometry: _geometry()),
+      core.Page(
+        index: 1,
+        geometry: _geometry(),
+        analysis: core.AnalysisState.failed,
+        failure: core.PageFailure(
+          pageIndex: 1,
+          category: core.PageFailureCategory.unreadable,
+          messageKey: 'IMP-006',
+        ),
+        unreadable: true,
+      ),
     ],
     fieldOrder: const <String>[],
   );
@@ -213,7 +267,10 @@ LoadedDocument _loaded({int pageCount = 1, core.RevisionContent? content}) {
   );
 }
 
-ImportedSource _source({int pageCount = 1}) {
+ImportedSource _source({
+  int pageCount = 1,
+  List<int> unreadablePages = const <int>[],
+}) {
   return ImportedSource(
     documentId: _documentId,
     sourceId: _sourceId,
@@ -222,6 +279,14 @@ ImportedSource _source({int pageCount = 1}) {
     pageCount: pageCount,
     pages: <core.PageGeometry>[
       for (int index = 0; index < pageCount; index++) _geometry(),
+    ],
+    pageFailures: <core.PageFailure>[
+      for (final int pageIndex in unreadablePages)
+        core.PageFailure(
+          pageIndex: pageIndex,
+          category: core.PageFailureCategory.unreadable,
+          messageKey: 'IMP-006',
+        ),
     ],
     evidence: _noneEvidence,
   );
@@ -291,10 +356,13 @@ final class _FakeOcr implements OcrPort {
 }
 
 /// Fake store covering the two editor paths; other members are unused.
+///
+/// A successful save replaces [loaded] with the committed snapshot so a second
+/// editor open in the same test sees exactly what a reopen would see.
 final class _FakeStore implements SecureStorePort {
   _FakeStore({required this.loaded, this.saveError});
 
-  final LoadedDocument loaded;
+  LoadedDocument loaded;
   final Object? saveError;
   int loads = 0;
   final List<SaveRevisionRequest> saves = <SaveRevisionRequest>[];
@@ -314,6 +382,12 @@ final class _FakeStore implements SecureStorePort {
     if (saveError != null) {
       throw saveError!;
     }
+    loaded = LoadedDocument(
+      meta: loaded.meta,
+      content: request.content,
+      sourceBytes: loaded.sourceBytes,
+      evidence: loaded.evidence,
+    );
     return StoredMeta(
       id: request.documentId,
       kind: StoreKind.document,
@@ -327,6 +401,22 @@ final class _FakeStore implements SecureStorePort {
 
   @override
   dynamic noSuchMethod(Invocation invocation) {
+    throw UnsupportedOperationException();
+  }
+}
+
+/// Import port used only to construct an `ImportRuntime` in the factory test.
+final class _ThrowImportPort implements DocumentImportPort {
+  @override
+  CapabilityDescriptor get descriptor => _importDescriptor;
+
+  @override
+  Future<ImportedSource> pickAndImport(ImportRequest request) async {
+    throw UnsupportedOperationException();
+  }
+
+  @override
+  Future<SourceIntegrity> verifySource(String sourceId) async {
     throw UnsupportedOperationException();
   }
 }
@@ -572,6 +662,139 @@ void main() {
     },
   );
 
+  testWidgets('a completed zero-suggestion run is durable across reopen', (
+    tester,
+  ) async {
+    final _FakeStore store = _FakeStore(loaded: _loaded());
+    final _FakeRaster firstRaster = _FakeRaster(
+      images: <int, RasterImage>{0: _blankImage()},
+    );
+    final _FakeIds firstIds = _FakeIds();
+    final _FakeEditorRuntime firstRuntime = _FakeEditorRuntime(
+      raster: firstRaster,
+      ocr: null,
+      store: store,
+      ids: firstIds,
+    );
+
+    await _pumpEditor(tester, runtime: firstRuntime, source: _source());
+    await tester.pumpAndSettle();
+
+    final EditorScreenState firstOpen = _editorState(tester);
+    expect(firstOpen.analysisStateKey, editorAnalysisReadyKey);
+    expect(firstOpen.content!.suggestions, isEmpty);
+    expect(
+      firstOpen.content!.pages.single.analysis,
+      core.AnalysisState.complete,
+    );
+    expect(firstIds.calls, 1);
+    expect(firstRaster.requests, hasLength(1));
+    expect(store.saves, hasLength(1));
+
+    // Tear the first editor down so the second pump constructs a fresh state,
+    // matching a real reopen rather than an in-place widget update.
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+
+    final _FakeRaster secondRaster = _FakeRaster(
+      images: <int, RasterImage>{0: _blankImage()},
+    );
+    final _FakeIds secondIds = _FakeIds();
+    final _FakeEditorRuntime secondRuntime = _FakeEditorRuntime(
+      raster: secondRaster,
+      ocr: null,
+      store: store,
+      ids: secondIds,
+    );
+
+    await _pumpEditor(tester, runtime: secondRuntime, source: _source());
+    await tester.pumpAndSettle();
+
+    final EditorScreenState reopened = _editorState(tester);
+    expect(reopened.analysisStateKey, editorAnalysisSkippedKey);
+    expect(reopened.content!.suggestions, isEmpty);
+    expect(
+      reopened.content!.pages.single.analysis,
+      core.AnalysisState.complete,
+    );
+    expect(secondIds.calls, 0);
+    expect(secondRaster.requests, isEmpty);
+    expect(store.saves, hasLength(1));
+    expect(store.loads, 2);
+  });
+
+  testWidgets(
+    'a partially unreadable first import still analyzes readable pages',
+    (tester) async {
+      final _FakeStore store = _FakeStore(
+        loaded: _loaded(pageCount: 2, content: _partialImportContent()),
+      );
+      final _FakeRaster raster = _FakeRaster(
+        images: <int, RasterImage>{0: _image()},
+      );
+      final _FakeEditorRuntime runtime = _FakeEditorRuntime(
+        raster: raster,
+        ocr: null,
+        store: store,
+      );
+
+      await _pumpEditor(
+        tester,
+        runtime: runtime,
+        source: _source(pageCount: 2, unreadablePages: <int>[1]),
+      );
+      await tester.pumpAndSettle();
+
+      final EditorScreenState state = _editorState(tester);
+      expect(state.analysisStateKey, editorAnalysisReadyKey);
+      expect(
+        raster.requests.map((RasterRequest request) => request.pageIndex),
+        <int>[0],
+      );
+      expect(store.saves, hasLength(1));
+      final core.RevisionContent saved = store.saves.single.content;
+      expect(saved.pages[0].analysis, core.AnalysisState.complete);
+      expect(saved.pages[1].analysis, core.AnalysisState.failed);
+      expect(saved.pages[1].unreadable, isTrue);
+      expect(saved.pages[1].failure!.messageKey, 'IMP-006');
+    },
+  );
+
+  testWidgets('divergent loaded geometry fails before analysis or save', (
+    tester,
+  ) async {
+    final _FakeStore store = _FakeStore(
+      loaded: _loaded(
+        content: _initialContent(geometry: _geometryOf(200, 200)),
+      ),
+    );
+    final _FakeRaster raster = _FakeRaster(
+      images: <int, RasterImage>{0: _blankImage()},
+    );
+    final _FakeIds ids = _FakeIds();
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(
+      raster: raster,
+      ocr: null,
+      store: store,
+      ids: ids,
+    );
+
+    await _pumpEditor(tester, runtime: runtime, source: _source());
+    await tester.pumpAndSettle();
+
+    final EditorScreenState state = _editorState(tester);
+    expect(state.analysisStateKey, editorAnalysisFailedKey);
+    expect(state.content, isNull);
+    expect(raster.requests, isEmpty);
+    expect(ids.calls, 0);
+    expect(store.saves, isEmpty);
+    expect(
+      find.byKey(const ValueKey<String>(editorAnalysisFailedKey)),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey<String>('editor-screen')), findsOneWidget);
+  });
+
   testWidgets('a page failure is isolated while the healthy page is saved', (
     tester,
   ) async {
@@ -688,6 +911,41 @@ void main() {
     expect(find.byKey(const ValueKey<String>('fake-page-0')), findsOneWidget);
   });
 
+  test(
+    'applyDocumentAnalysis rejects existing suggestions without mutating the '
+    'base revision',
+    () async {
+      final core.RevisionContent base = _contentWithSuggestion();
+      final Map<String, Object?> before = base.toJson();
+      final _FakeRaster raster = _FakeRaster(
+        images: <int, RasterImage>{0: _blankImage()},
+      );
+      final analysis.DocumentAnalysisResult result =
+          await analysis.AnalyzeDocument.run(
+            analysis.DocumentAnalysisRequest(
+              sourceId: _sourceId,
+              analysisRunId: _analysisRunId,
+              pages: <analysis.DocumentAnalysisPage>[
+                analysis.DocumentAnalysisPage.fromGeometry(
+                  pageIndex: 0,
+                  geometry: base.pages.single.geometry,
+                ),
+              ],
+              evidenceClass: 'simulated',
+              rasterPort: raster,
+            ),
+          );
+
+      expect(
+        () => applyDocumentAnalysis(base: base, result: result),
+        throwsStateError,
+      );
+      expect(base.suggestions, hasLength(1));
+      expect(base.suggestions.single.id, 's_p0_0001');
+      expect(base.toJson(), before);
+    },
+  );
+
   test('every recognition failure category maps to the core contract', () {
     final core.PageFailure rasterization = pageFailureForAnalysis(
       recognition.PageAnalysisFailure.forCategory(
@@ -764,6 +1022,30 @@ void main() {
       isTrue,
     );
   });
+
+  test(
+    'ImportRuntime returns the unavailable runtime for a throwing factory',
+    () async {
+      final ImportRuntime importRuntime = ImportRuntime(
+        importPort: _ThrowImportPort(),
+        readSourceBytes: (String _) async => null,
+        // StateError is an Error, not an Exception; the factory must still fail
+        // closed at the composition boundary.
+        editorRuntimeFactory: () =>
+            throw StateError('synthetic editor construction failure'),
+      );
+
+      final EditorRuntime editorRuntime = importRuntime.createEditorRuntime();
+      expect(
+        () => editorRuntime.raster,
+        throwsA(isA<UnsupportedOperationException>()),
+      );
+      await expectLater(
+        editorRuntime.loadDocument(_documentId),
+        throwsA(isA<UnsupportedOperationException>()),
+      );
+    },
+  );
 
   test('the evidence label is a deterministic build-mode label', () {
     expect(editorEvidenceClass(debugMode: true), 'emulator');
