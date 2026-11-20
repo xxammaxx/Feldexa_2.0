@@ -457,13 +457,13 @@ void main() {
       },
     );
 
-    test('rejects invalid, uppercase, non-v4, and duplicate field ids', () {
+    test('rejects invalid ids and treats an existing id as wrongState', () {
       final ConfirmedField existing = _userField(id: _uuid(2), order: 0);
       final RevisionContent base = _content(fields: <ConfirmedField>[existing]);
 
       for (final String id in <String>[
         'not-a-uuid',
-        _uuid(2).toUpperCase(),
+        'AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA',
         '00000000-0000-1000-8000-000000000003',
         '00000000-0000-4000-c000-000000000004',
       ]) {
@@ -472,7 +472,7 @@ void main() {
           EditFieldErrorCode.invalidInput,
         );
       }
-      _expectCode(
+      final EditFieldException duplicate = _errorOf(
         () => addField(
           base,
           existing.id,
@@ -482,8 +482,11 @@ void main() {
           'Feld',
           _at(),
         ),
-        EditFieldErrorCode.invalidInput,
       );
+      expect(duplicate.code, EditFieldErrorCode.wrongState);
+      expect(duplicate.message, isNotEmpty);
+      expect(duplicate.message, isNot(contains(existing.id)));
+      expect(duplicate.toString(), isNot(contains(existing.id)));
     });
 
     test('rejects empty, oversized, and control-character labels', () {
@@ -698,16 +701,8 @@ void main() {
       _expectValid(change.content);
 
       final List<FieldSuggestion> restoredSuggestions =
-          markDuplicatesOfConfirmed(
-            suggestions: <FieldSuggestion>[
-              for (final FieldSuggestion suggestion
-                  in change.content.suggestions)
-                suggestion.id == confirmed.id
-                    ? change.previousSuggestion!
-                    : suggestion,
-            ],
-            confirmedFields: <ConfirmedField>[change.previousField!],
-          );
+          change.previousSuggestions!;
+      expect(change.previousSuggestions, base.suggestions);
       final RevisionContent restored = RevisionContent(
         pages: change.content.pages,
         suggestions: restoredSuggestions,
@@ -1294,67 +1289,109 @@ void main() {
     });
 
     test(
-      'checkbox to text stores empty text rather than inventing Ja/Nein',
+      'checkbox to text preserves checked/unchecked as the Ja/Nein projection',
       () {
-        final ConfirmedField field = _field(
-          id: _uuid(76),
-          order: 0,
-          type: FieldType.checkbox,
-        );
-        final RevisionContent base = _singleField(
-          field,
-          value: _checkbox(true),
-        );
+        for (final bool checked in <bool>[true, false]) {
+          final ConfirmedField field = _field(
+            id: _uuid(76),
+            order: 0,
+            type: FieldType.checkbox,
+          );
+          final RevisionContent base = _singleField(
+            field,
+            value: _checkbox(checked),
+          );
 
-        final EditFieldChange change = reclassifyField(
-          base,
-          field.id,
-          FieldType.text,
-          _at(22),
-        );
+          final EditFieldChange change = reclassifyField(
+            base,
+            field.id,
+            FieldType.text,
+            _at(22),
+          );
 
-        final TextValue value = change.content.values[field.id]! as TextValue;
-        expect(value.text, '');
-        expect(value.text, isNot('Ja'));
-        expect(change.content.fields.single.type, FieldType.text);
-        expect(change.content.fields.single.validation.isOk, isTrue);
-        _expectValid(change.content);
+          final IncompatibleValue value =
+              change.content.values[field.id]! as IncompatibleValue;
+          expect(value.preservedText, checked ? 'Ja' : 'Nein');
+          expect(value.reasonCode, 'checkbox_state_projection');
+          expect(change.content.fields.single.type, FieldType.text);
+          expect(
+            change.content.fields.single.validation.warningCode,
+            WarningCode.incompatibleContent,
+          );
+          expect(change.content.values[field.id], isNot(isA<TextValue>()));
+          _expectValid(change.content);
+        }
       },
     );
 
-    test(
-      'checkbox to number/date stores empty flagged incompatible content',
-      () {
-        for (final FieldType target in <FieldType>[
-          FieldType.number,
-          FieldType.date,
-        ]) {
+    test('checkbox to number/date preserves Ja/Nein without numeric or date '
+        'inference', () {
+      for (final FieldType target in <FieldType>[
+        FieldType.number,
+        FieldType.date,
+      ]) {
+        for (final bool checked in <bool>[true, false]) {
           final ConfirmedField field = _field(
             id: _uuid(77),
             order: 0,
             type: FieldType.checkbox,
           );
           final EditFieldChange change = reclassifyField(
-            _singleField(field, value: _checkbox(false)),
+            _singleField(field, value: _checkbox(checked)),
             field.id,
             target,
             _at(23),
           );
           final IncompatibleValue value =
               change.content.values[field.id]! as IncompatibleValue;
-          expect(value.preservedText, '');
-          expect(value.reasonCode, 'checkbox_state_not_textual');
+          expect(value.preservedText, checked ? 'Ja' : 'Nein');
+          expect(value.reasonCode, 'checkbox_state_projection');
           expect(change.content.fields.single.type, target);
           expect(
             change.content.fields.single.validation.warningCode,
             WarningCode.incompatibleContent,
           );
+          expect(change.content.values[field.id], isNot(isA<NumberValue>()));
+          expect(change.content.values[field.id], isNot(isA<DateValue>()));
           _expectValid(change.content);
         }
-      },
-    );
+      }
+    });
 
-    test('signature to text clears the value and signature mark', () {
+    test('checkbox to multiline follows the same Ja/Nein projection', () {
+      for (final bool checked in <bool>[true, false]) {
+        final ConfirmedField field = _field(
+          id: _uuid(80),
+          order: 0,
+          type: FieldType.checkbox,
+        );
+        final RevisionContent base = _singleField(
+          field,
+          value: _checkbox(checked),
+        );
+
+        final EditFieldChange change = reclassifyField(
+          base,
+          field.id,
+          FieldType.multiline,
+          _at(23),
+        );
+
+        final IncompatibleValue value =
+            change.content.values[field.id]! as IncompatibleValue;
+        expect(value.preservedText, checked ? 'Ja' : 'Nein');
+        expect(value.reasonCode, 'checkbox_state_projection');
+        expect(change.content.fields.single.type, FieldType.multiline);
+        expect(
+          change.content.fields.single.validation.warningCode,
+          WarningCode.incompatibleContent,
+        );
+        _expectValid(change.content);
+      }
+    });
+
+    test('signature to text clears the value exactly like core and removes the '
+        'signature mark', () {
       final ConfirmedField field = _field(
         id: _uuid(78),
         order: 0,
@@ -1384,55 +1421,119 @@ void main() {
         _at(24),
       );
 
-      final TextValue value = change.content.values[field.id]! as TextValue;
-      expect(value.text, '');
+      expect(change.content.values.containsKey(field.id), isFalse);
+      expect(change.content.values, isEmpty);
       expect(change.content.signatures, isEmpty);
       expect(change.content.verification[field.id], verification);
       expect(change.previousSignature, mark);
+      expect(change.previousValue, isA<SignatureValue>());
       expect(change.content.fields.single.type, FieldType.text);
       _expectValid(change.content);
     });
 
-    test('signature to number/date clears the mark and keeps empty flagged '
-        'content', () {
-      for (final FieldType target in <FieldType>[
-        FieldType.number,
-        FieldType.date,
-      ]) {
-        final ConfirmedField field = _field(
-          id: _uuid(82),
-          order: 0,
-          type: FieldType.signature,
-        );
-        final String assetId = _uuid(83);
-        final SignatureMark mark = _signatureMark(
-          fieldId: field.id,
-          assetId: assetId,
-          rect: field.rect,
+    test(
+      'signature to number/date clears the value and mark exactly like core',
+      () {
+        for (final FieldType target in <FieldType>[
+          FieldType.number,
+          FieldType.date,
+        ]) {
+          final ConfirmedField field = _field(
+            id: _uuid(82),
+            order: 0,
+            type: FieldType.signature,
+          );
+          final String assetId = _uuid(83);
+          final SignatureMark mark = _signatureMark(
+            fieldId: field.id,
+            assetId: assetId,
+            rect: field.rect,
+          );
+          final FieldVerification verification = _verification(
+            state: FieldVerificationState.corrected,
+            reviewedAt: _at(6),
+          );
+          final RevisionContent base = _content(
+            fields: <ConfirmedField>[field],
+            values: <String, FieldValue>{field.id: _signatureValue(assetId)},
+            signatures: <String, SignatureMark>{field.id: mark},
+            verification: <String, FieldVerification>{field.id: verification},
+          );
+
+          final EditFieldChange change = reclassifyField(
+            base,
+            field.id,
+            target,
+            _at(25),
+          );
+
+          expect(change.content.values.containsKey(field.id), isFalse);
+          expect(change.content.signatures, isEmpty);
+          expect(change.content.verification[field.id], verification);
+          expect(change.content.fields.single.type, target);
+          expect(change.content.fields.single.validation.warningCode, isNull);
+          _expectValid(change.content);
+        }
+      },
+    );
+
+    test('number, date, and multiline to signature preserve prior content with '
+        'the warning and create no signature mark', () {
+      final List<({ConfirmedField field, FieldValue value, String preserved})>
+      fixtures = <({ConfirmedField field, FieldValue value, String preserved})>[
+        (
+          field: _field(id: _uuid(89), order: 0, type: FieldType.number),
+          value: _number('1234.56', rawGerman: '1.234,56'),
+          preserved: '1.234,56',
+        ),
+        (
+          field: _field(id: _uuid(91), order: 0, type: FieldType.date),
+          value: _date('2025-12-31'),
+          preserved: '2025-12-31',
+        ),
+        (
+          field: _field(id: _uuid(92), order: 0, type: FieldType.multiline),
+          value: _multiline('Zeile 1\nT066-GEHEIM-SIGNATUR'),
+          preserved: 'Zeile 1\nT066-GEHEIM-SIGNATUR',
+        ),
+      ];
+
+      for (final ({ConfirmedField field, FieldValue value, String preserved})
+          fixture
+          in fixtures) {
+        final FieldVerification verification = _verification(
+          state: FieldVerificationState.confirmed,
+          reviewedAt: _at(6),
         );
         final RevisionContent base = _content(
-          fields: <ConfirmedField>[field],
-          values: <String, FieldValue>{field.id: _signatureValue(assetId)},
-          signatures: <String, SignatureMark>{field.id: mark},
+          fields: <ConfirmedField>[fixture.field],
+          values: <String, FieldValue>{fixture.field.id: fixture.value},
+          verification: <String, FieldVerification>{
+            fixture.field.id: verification,
+          },
         );
 
         final EditFieldChange change = reclassifyField(
           base,
-          field.id,
-          target,
-          _at(25),
+          fixture.field.id,
+          FieldType.signature,
+          _at(26),
         );
 
         final IncompatibleValue value =
-            change.content.values[field.id]! as IncompatibleValue;
-        expect(value.preservedText, '');
-        expect(value.reasonCode, 'signature_ink_not_textual');
-        expect(change.content.signatures, isEmpty);
-        expect(change.content.fields.single.type, target);
+            change.content.values[fixture.field.id]! as IncompatibleValue;
+        expect(value.preservedText, fixture.preserved);
+        expect(value.reasonCode, 'signature_requires_resolution');
+        expect(change.content.fields.single.type, FieldType.signature);
         expect(
           change.content.fields.single.validation.warningCode,
           WarningCode.incompatibleContent,
         );
+        expect(change.content.signatures, isEmpty);
+        expect(change.content.verification[fixture.field.id], verification);
+        expect(change.previousSignature, isNull);
+        expect(change.toString(), isNot(contains('T066-GEHEIM')));
+        expect(value.toString(), isNot(contains('T066-GEHEIM')));
         _expectValid(change.content);
       }
     });
@@ -1513,6 +1614,7 @@ void main() {
       );
 
       final ConfirmedField updated = change.content.fields.single;
+      expect(change.previousSuggestions, base.suggestions);
       expect(updated.type, FieldType.number);
       expect(updated.provenance, Provenance.machine);
       expect(updated.sourceSuggestionId, confirmed.id);
@@ -1743,6 +1845,151 @@ void main() {
       _expectValid(removed.content);
     });
 
+    test('add, move, and resize share the geometry boundary that rejects NaN, '
+        'infinity, zero, and negative components with stable content-free '
+        'codes', () {
+      final Rect pageBox = _geometry().displayBox;
+
+      for (final double bad in <double>[
+        double.nan,
+        double.infinity,
+        double.negativeInfinity,
+      ]) {
+        for (final ({double left, double top, double width, double height})
+            fixture
+            in <({double left, double top, double width, double height})>[
+              (left: bad, top: 0, width: 10, height: 10),
+              (left: 0, top: bad, width: 10, height: 10),
+              (left: 0, top: 0, width: bad, height: 10),
+              (left: 0, top: 0, width: 10, height: bad),
+            ]) {
+          final EditFieldException error = _errorOf(
+            () => validateFieldRect(
+              left: fixture.left,
+              top: fixture.top,
+              width: fixture.width,
+              height: fixture.height,
+              pageBox: pageBox,
+            ),
+          );
+          expect(error.code, EditFieldErrorCode.invalidInput);
+          expect(error.message, isNotEmpty);
+          expect(error.message, isNot(contains('NaN')));
+          expect(error.message, isNot(contains('Infinity')));
+          expect(error.toString(), contains('invalidInput'));
+        }
+      }
+
+      for (final double bad in <double>[0, -1, -0.0]) {
+        for (final ({double left, double top, double width, double height})
+            fixture
+            in <({double left, double top, double width, double height})>[
+              (left: 0, top: 0, width: bad, height: 10),
+              (left: 0, top: 0, width: 10, height: bad),
+            ]) {
+          final EditFieldException error = _errorOf(
+            () => validateFieldRect(
+              left: fixture.left,
+              top: fixture.top,
+              width: fixture.width,
+              height: fixture.height,
+              pageBox: pageBox,
+            ),
+          );
+          expect(error.code, EditFieldErrorCode.invalidInput);
+          expect(error.message, isNotEmpty);
+          expect(error.toString(), isNot(contains('-0.0')));
+        }
+      }
+
+      // The immutable core Rect rejects an invalid component at construction,
+      // before any command can receive it; the command's shared validator above
+      // is the reachable boundary for raw pointer/drag values.
+      final ConfirmedField field = _userField(id: _uuid(110), order: 0);
+      final RevisionContent base = _content(fields: <ConfirmedField>[field]);
+      expect(
+        () => addField(
+          base,
+          _uuid(111),
+          0,
+          Rect.fromLTWH(double.nan, 0, 10, 10),
+          FieldType.text,
+          'Feld',
+          _at(),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => moveField(
+          base,
+          field.id,
+          Rect.fromLTWH(0, 0, double.infinity, 10),
+          _at(),
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => resizeField(base, field.id, Rect.fromLTWH(0, 0, 0, 10), _at()),
+        throwsArgumentError,
+      );
+    });
+
+    test('machine-field move receipts snapshot the complete previous '
+        'suggestions for exact undo', () {
+      final FieldSuggestion confirmed = _suggestion(
+        ordinal: 1,
+        resolution: SuggestionResolution.confirmed,
+      );
+      final ConfirmedField machine = _machineField(
+        id: _uuid(109),
+        sourceSuggestionId: confirmed.id,
+        order: 0,
+      );
+      final FieldSuggestion duplicate = _suggestion(
+        ordinal: 2,
+        rect: machine.rect,
+        proposedType: machine.type,
+        duplicateOfConfirmed: true,
+      );
+      final RevisionContent base = _content(
+        suggestions: <FieldSuggestion>[confirmed, duplicate],
+        fields: <ConfirmedField>[machine],
+      );
+
+      final EditFieldChange change = moveField(
+        base,
+        machine.id,
+        _rect(left: 300, top: 500),
+        _at(37),
+      );
+
+      expect(change.previousSuggestions, base.suggestions);
+      expect(change.previousSuggestions, isNotNull);
+      final RevisionContent restored = RevisionContent(
+        pages: change.content.pages,
+        suggestions: change.previousSuggestions!,
+        fields: <ConfirmedField>[change.previousField!],
+        fieldOrder: <String>[change.fieldId],
+        values: change.previousValue == null
+            ? const <String, FieldValue>{}
+            : <String, FieldValue>{change.fieldId: change.previousValue!},
+        signatures: change.previousSignature == null
+            ? const <String, SignatureMark>{}
+            : <String, SignatureMark>{
+                change.fieldId: change.previousSignature!,
+              },
+        verification: change.previousVerification == null
+            ? const <String, FieldVerification>{}
+            : <String, FieldVerification>{
+                change.fieldId: change.previousVerification!,
+              },
+        templateOrigin: change.content.templateOrigin,
+        unknownFields: change.content.unknownFields,
+      );
+      expect(restored, base);
+      _expectValid(change.content);
+    });
+
     test('every error message is content-free', () {
       final ConfirmedField field = _field(
         id: _uuid(105),
@@ -1776,6 +2023,17 @@ void main() {
         _errorOf(() => removeField(base, _uuid(107))),
         _errorOf(() => moveField(base, field.id, _rect(left: -1), _at())),
         _errorOf(() => reclassifyField(base, field.id, FieldType.text, _at())),
+        _errorOf(
+          () => addField(
+            base,
+            field.id,
+            0,
+            _rect(),
+            FieldType.text,
+            'T066-GEHEIM-LABEL',
+            _at(),
+          ),
+        ),
       ];
 
       expect(
@@ -1785,6 +2043,7 @@ void main() {
           EditFieldErrorCode.pageOutOfBounds,
           EditFieldErrorCode.fieldNotFound,
           EditFieldErrorCode.noChange,
+          EditFieldErrorCode.wrongState,
         },
       );
       for (final EditFieldException error in errors) {

@@ -35,12 +35,13 @@
 //
 //   * a `number`/`date` field converted to `text` stores the value's canonical
 //     textual form (`1234.56`, `2025-12-31`), not the German display spelling;
-//   * a `checkbox`/`signature` field has no textual content to carry into a
-//     `text`/`number`/`date` field. Converting it to `text` stores an empty
-//     `TextValue`; converting it to `number`/`date` stores an empty
-//     `IncompatibleValue` with the `incompatible_content` warning and a stable
-//     reason code, so no invented "Ja"/"Nein" text or numeric/date guess is
-//     created and the user makes the explicit resolution.
+//   * the core `reclassifyField` conversion is the single source of truth for
+//     checkbox/signature sources: checkbox content is preserved as the
+//     `Ja`/`Nein` projection in an [IncompatibleValue] with the
+//     `incompatible_content` warning, and a signature source is cleared exactly
+//     as core `_clearedSignature` specifies (no invented text or numeric/date
+//     value). This layer only removes the now-cleared signature mark/value and
+//     keeps the values map consistent.
 //
 // A same-type reclassification has nothing to do, so it fails with
 // [EditFieldErrorCode.noChange] and leaves the input unchanged.
@@ -77,7 +78,8 @@ enum EditFieldErrorCode {
   /// No confirmed field with the requested id exists in the revision.
   fieldNotFound,
 
-  /// The field, its value, or its suggestion linkage is not in a valid state.
+  /// The requested id already exists, or the field/value/suggestion linkage is
+  /// not in a valid state.
   wrongState,
 
   /// A command argument violates its value contract.
@@ -123,25 +125,6 @@ final class EditFieldException implements Exception {
   }
 }
 
-/// Stable reason codes for content preserved by this command layer.
-///
-/// The core [ReclassificationReason] tokens cover the data-model §3.5 matrix.
-/// These two additional tokens describe the explicit, content-free case where a
-/// non-textual source has nothing textual to carry into a numeric or date
-/// field. They never contain user content.
-enum EditFieldReason {
-  /// A checkbox state cannot be represented as the requested number/date.
-  checkboxStateNotTextual('checkbox_state_not_textual'),
-
-  /// Signature ink cannot be represented as the requested number/date.
-  signatureInkNotTextual('signature_ink_not_textual');
-
-  const EditFieldReason(this.wireName);
-
-  /// Stable lowercase machine token.
-  final String wireName;
-}
-
 /// An immutable receipt for one successful confirmed-field edit.
 ///
 /// [content] is the complete new revision snapshot; the input content is never
@@ -150,7 +133,10 @@ enum EditFieldReason {
 /// when the command did not change that part of the revision (for example, an
 /// add has no previous field). [previousSuggestion] is the original suggestion
 /// record when a machine field removal changed its resolution from `confirmed`
-/// to `rejected`, and is null otherwise.
+/// to `rejected`. [previousSuggestions] is the complete suggestion list before
+/// a machine-field move, resize, reclassify, or remove that may have recomputed
+/// derived duplicate flags; it is null when the command cannot change
+/// suggestions.
 final class EditFieldChange {
   /// Creates an edit receipt.
   const EditFieldChange({
@@ -162,6 +148,7 @@ final class EditFieldChange {
     this.previousSignature,
     this.previousVerification,
     this.previousSuggestion,
+    this.previousSuggestions,
   });
 
   /// The new, fully validated revision snapshot.
@@ -188,6 +175,10 @@ final class EditFieldChange {
   /// The suggestion before a machine-field removal changed its resolution.
   final FieldSuggestion? previousSuggestion;
 
+  /// The complete suggestion list before a machine-field command that may
+  /// recompute derived duplicate flags; null when suggestions cannot change.
+  final List<FieldSuggestion>? previousSuggestions;
+
   @override
   bool operator ==(Object other) {
     return other is EditFieldChange &&
@@ -198,7 +189,8 @@ final class EditFieldChange {
         other.previousValue == previousValue &&
         other.previousSignature == previousSignature &&
         other.previousVerification == previousVerification &&
-        other.previousSuggestion == previousSuggestion;
+        other.previousSuggestion == previousSuggestion &&
+        _suggestionListsEqual(other.previousSuggestions, previousSuggestions);
   }
 
   @override
@@ -212,6 +204,7 @@ final class EditFieldChange {
       previousSignature,
       previousVerification,
       previousSuggestion,
+      previousSuggestions == null ? null : Object.hashAll(previousSuggestions!),
     );
   }
 
@@ -237,7 +230,8 @@ final class EditFieldChange {
 /// and unknown extension is preserved.
 ///
 /// Throws [EditFieldException] with [EditFieldErrorCode.invalidInput] for an
-/// invalid id, label, timestamp, or a duplicate id, and
+/// invalid id, label, or timestamp, [EditFieldErrorCode.wrongState] when the
+/// revision already contains [fieldId], and
 /// [EditFieldErrorCode.pageOutOfBounds] for a missing page or a rectangle
 /// outside it.
 EditFieldChange addField(
@@ -251,7 +245,7 @@ EditFieldChange addField(
 ) {
   _requireUuidV4(fieldId);
   if (content.fields.any((ConfirmedField field) => field.id == fieldId)) {
-    throw const EditFieldException(EditFieldErrorCode.invalidInput);
+    throw const EditFieldException(EditFieldErrorCode.wrongState);
   }
   final Rect pageBox = _requirePageBox(content, pageIndex);
   _requireRectInside(rect, pageBox);
@@ -392,6 +386,9 @@ EditFieldChange removeField(RevisionContent content, String fieldId) {
     previousSignature: previousSignature,
     previousVerification: previousVerification,
     previousSuggestion: previousSuggestion,
+    previousSuggestions: removedField.provenance == Provenance.machine
+        ? content.suggestions
+        : null,
   );
 }
 
@@ -462,10 +459,13 @@ EditFieldChange resizeField(
 ///     warning; it never invents a checkbox state.
 ///   * `text/number/date/multiline → signature` preserves prior content in an
 ///     [IncompatibleValue] with the warning and creates no signature mark.
-///   * `checkbox/signature → text/number/date` has no textual content to carry:
-///     a text target stores an empty [TextValue], and a number/date target
-///     stores an empty [IncompatibleValue] with a stable reason and the
-///     warning. No "Ja"/"Nein" text or numeric/date value is invented.
+///   * `checkbox → text/multiline/number/date` preserves the checked/unchecked
+///     state as the core `Ja`/`Nein` textual projection in an
+///     [IncompatibleValue] with the `incompatible_content` warning; no
+///     numeric/date value is invented.
+///   * `signature → text/number/date` follows the core `_clearedSignature`
+///     result: the signature value is removed (no empty `TextValue` or
+///     `IncompatibleValue` is invented), and its signature mark is cleaned up.
 ///
 /// `createdAt`, `order`, label, provenance, suggestion linkage, and unknown
 /// field extensions are preserved, while `updatedAt` becomes [now]. A removed
@@ -504,34 +504,25 @@ EditFieldChange reclassifyField(
 
   final ConfirmedField updatedField;
   final FieldValue? updatedValue;
-  final bool nonTextualSource =
-      previousValue is CheckboxValue || previousValue is SignatureValue;
-  if (nonTextualSource && _isTextualTarget(newType)) {
-    final ({ConfirmedField field, FieldValue value}) converted =
-        _convertNonTextual(field, previousValue!, newType, now);
-    updatedField = converted.field;
-    updatedValue = converted.value;
-  } else {
-    final ReclassificationResult result;
-    try {
-      result = core.reclassifyField(
-        field: field,
-        value: previousValue,
-        newType: newType,
-        updatedAt: now,
-        confirmLineBreakJoin: joinMultilineToText,
-      );
-    } on ArgumentError {
-      throw const EditFieldException(EditFieldErrorCode.invalidInput);
-    }
-    updatedField = result.field;
-    updatedValue = _canonicalTextTarget(
-      result: result,
-      source: previousValue,
+  final ReclassificationResult result;
+  try {
+    result = core.reclassifyField(
+      field: field,
+      value: previousValue,
       newType: newType,
-      now: now,
+      updatedAt: now,
+      confirmLineBreakJoin: joinMultilineToText,
     );
+  } on ArgumentError {
+    throw const EditFieldException(EditFieldErrorCode.invalidInput);
   }
+  updatedField = result.field;
+  updatedValue = _canonicalTextTarget(
+    result: result,
+    source: previousValue,
+    newType: newType,
+    now: now,
+  );
   if (updatedField.type != newType) {
     // Defense in depth: the core conversion must produce the requested type.
     throw const EditFieldException(EditFieldErrorCode.wrongState);
@@ -578,6 +569,9 @@ EditFieldChange reclassifyField(
     previousValue: previousValue,
     previousSignature: content.signatures[fieldId],
     previousVerification: content.verification[fieldId],
+    previousSuggestions: field.provenance == Provenance.machine
+        ? content.suggestions
+        : null,
   );
 }
 
@@ -625,52 +619,9 @@ EditFieldChange _translateField(
     previousValue: content.values[fieldId],
     previousSignature: content.signatures[fieldId],
     previousVerification: content.verification[fieldId],
-  );
-}
-
-/// Converts a checkbox/signature value into a text/number/date target without
-/// inventing content.
-({ConfirmedField field, FieldValue value}) _convertNonTextual(
-  ConfirmedField field,
-  FieldValue source,
-  FieldType newType,
-  DateTime now,
-) {
-  if (newType == FieldType.text) {
-    return (
-      field: field.copyWith(
-        type: newType,
-        validation: _clearValidation(field.validation),
-        updatedAt: now,
-      ),
-      value: TextValue(
-        text: '',
-        lastEditedAt: now,
-        overflow: source.overflow,
-        unknownFields: source.unknownFields,
-      ),
-    );
-  }
-  final EditFieldReason reason = source is CheckboxValue
-      ? EditFieldReason.checkboxStateNotTextual
-      : EditFieldReason.signatureInkNotTextual;
-  return (
-    field: field.copyWith(
-      type: newType,
-      validation: FieldValidation.warning(
-        WarningCode.incompatibleContent,
-        'FLD-002',
-        unknownFields: field.validation.unknownFields,
-      ),
-      updatedAt: now,
-    ),
-    value: IncompatibleValue(
-      preservedText: '',
-      reasonCode: reason.wireName,
-      lastEditedAt: now,
-      overflow: source.overflow,
-      unknownFields: source.unknownFields,
-    ),
+    previousSuggestions: field.provenance == Provenance.machine
+        ? content.suggestions
+        : null,
   );
 }
 
@@ -701,28 +652,6 @@ TextValue _canonicalText(String text, FieldValue source, DateTime now) {
     overflow: source.overflow,
     unknownFields: source.unknownFields,
   );
-}
-
-/// Clears an incompatibility state while keeping the derived overflow warning
-/// and any opaque validation extensions.
-FieldValidation _clearValidation(FieldValidation previous) {
-  if (previous.isWarning && previous.warningCode == WarningCode.overflow) {
-    return previous;
-  }
-  final Map<String, Object?> extensions = previous.unknownFields;
-  if (extensions.isEmpty) {
-    return FieldValidation.ok;
-  }
-  return FieldValidation.fromJson(<String, Object?>{
-    ...extensions,
-    'status': 'ok',
-  });
-}
-
-bool _isTextualTarget(FieldType type) {
-  return type == FieldType.text ||
-      type == FieldType.number ||
-      type == FieldType.date;
 }
 
 /// Recomputes [FieldSuggestion.duplicateOfConfirmed] when at least one flag is
@@ -764,21 +693,54 @@ Rect _requirePageBox(RevisionContent content, int pageIndex) {
   return content.pages[pageIndex].geometry.displayBox;
 }
 
-void _requireRectInside(Rect rect, Rect pageBox) {
-  if (!rect.left.isFinite ||
-      !rect.top.isFinite ||
-      !rect.width.isFinite ||
-      !rect.height.isFinite ||
-      rect.width <= 0 ||
-      rect.height <= 0) {
+/// Validates a proposed confirmed-field rectangle at the command boundary.
+///
+/// This is the geometry rule shared by [addField], [moveField], and
+/// [resizeField], exposed so callers can preflight raw pointer-derived values
+/// before constructing a [Rect]. Every component must be finite; [width] and
+/// [height] must be strictly positive; the right and bottom edges must remain
+/// finite; and the rectangle must lie strictly inside [pageBox]. No rounding is
+/// performed (FR-024).
+///
+/// Throws [EditFieldException] with [EditFieldErrorCode.invalidInput] for a
+/// non-finite or non-positive component and [EditFieldErrorCode.pageOutOfBounds]
+/// for a rectangle outside [pageBox]. Both messages are content-free.
+void validateFieldRect({
+  required double left,
+  required double top,
+  required double width,
+  required double height,
+  required Rect pageBox,
+}) {
+  if (!left.isFinite ||
+      !top.isFinite ||
+      !width.isFinite ||
+      !height.isFinite ||
+      width <= 0 ||
+      height <= 0) {
     throw const EditFieldException(EditFieldErrorCode.invalidInput);
   }
-  if (rect.left < pageBox.left ||
-      rect.top < pageBox.top ||
-      rect.right > pageBox.right ||
-      rect.bottom > pageBox.bottom) {
+  final double right = left + width;
+  final double bottom = top + height;
+  if (!right.isFinite || !bottom.isFinite) {
+    throw const EditFieldException(EditFieldErrorCode.invalidInput);
+  }
+  if (left < pageBox.left ||
+      top < pageBox.top ||
+      right > pageBox.right ||
+      bottom > pageBox.bottom) {
     throw const EditFieldException(EditFieldErrorCode.pageOutOfBounds);
   }
+}
+
+void _requireRectInside(Rect rect, Rect pageBox) {
+  validateFieldRect(
+    left: rect.left,
+    top: rect.top,
+    width: rect.width,
+    height: rect.height,
+    pageBox: pageBox,
+  );
 }
 
 String _requireLabel(String label) {
@@ -836,6 +798,24 @@ RevisionContent _buildContent({
 
 const int _maxLabelLength = 120;
 const int _maxValueTextLength = 10000;
+
+bool _suggestionListsEqual(
+  List<FieldSuggestion>? first,
+  List<FieldSuggestion>? second,
+) {
+  if (identical(first, second)) {
+    return true;
+  }
+  if (first == null || second == null || first.length != second.length) {
+    return false;
+  }
+  for (int index = 0; index < first.length; index++) {
+    if (first[index] != second[index]) {
+      return false;
+    }
+  }
+  return true;
+}
 
 final RegExp _lowercaseUuidV4 = RegExp(
   r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
