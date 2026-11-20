@@ -33,13 +33,15 @@ enum ProvenanceBadgeKind {
 extension ProvenanceBadgeKindVisuals on ProvenanceBadgeKind {
   /// The outline, icon, and text color for this provenance.
   ///
-  /// Every color clears the WCAG 3:1 non-text contrast floor against white.
-  /// The badge always pairs the color with [icon] and readable text, so the
-  /// provenance is never conveyed by color alone (FR-094).
+  /// Every color clears the WCAG 4.5:1 normal-text floor against white; the
+  /// outline separately clears the 3:1 non-text floor. The badge always pairs
+  /// the color with [icon] and readable text, so the provenance is never
+  /// conveyed by color alone (FR-094).
   Color get color => switch (this) {
     ProvenanceBadgeKind.suggestion => const Color(0xFF1565C0), // blue 800
     ProvenanceBadgeKind.confirmed => const Color(0xFF2E7D32), // green 800
-    ProvenanceBadgeKind.userCreated => const Color(0xFFE65100), // orange 900
+    // Deep orange 900: 5.60:1 on white, so 11–12 px text also clears 4.5:1.
+    ProvenanceBadgeKind.userCreated => const Color(0xFFBF360C),
     ProvenanceBadgeKind.template => const Color(0xFF7B1FA2), // purple 700
   };
 
@@ -58,14 +60,18 @@ extension ProvenanceBadgeKindVisuals on ProvenanceBadgeKind {
 /// A non-interactive provenance pill for review surfaces.
 ///
 /// The badge renders a solid 1.5 px outline, an icon, and caller-supplied
-/// [text]. The caller passes the localized label (for example from the app
-/// ARB); this package deliberately has no built-in label. Because the badge is
-/// non-interactive, it does not reserve a 48 × 48 dp touch target. The
-/// [compact] variant may be used inline in dense rows or lists.
+/// [text]. This solid pill is the T074 provenance treatment; the
+/// confidence-based dashed outline lives in `field_overlay.dart` and encodes
+/// confidence, not provenance. The caller passes the localized label (for
+/// example from the app ARB); this package deliberately has no built-in label.
+/// Because the badge is non-interactive, it does not reserve a 48 × 48 dp touch
+/// target. The [compact] variant may be used inline in dense rows or lists.
 ///
-/// One semantic node exposes `semanticsLabel ?? text`; the visual icon and
-/// text are excluded from semantics so assistive technology does not announce
-/// the same provenance twice.
+/// One semantic node exposes `semanticsLabel ?? text`; a null or
+/// whitespace-only [semanticsLabel] falls back to [text], so the node never
+/// carries an empty label. The visual icon and text are excluded from
+/// semantics so assistive technology does not announce the same provenance
+/// twice.
 ///
 /// When [key] is omitted, the badge uses the stable default
 /// `ValueKey('provenance-badge-<kind>')`. Callers that render more than one
@@ -74,24 +80,26 @@ extension ProvenanceBadgeKindVisuals on ProvenanceBadgeKind {
 class ProvenanceBadge extends StatelessWidget {
   /// Creates a provenance badge.
   ///
-  /// Throws an [ArgumentError] when [text] is empty or contains only
-  /// whitespace. The error message never echoes the supplied text.
+  /// Leading and trailing whitespace is removed from [text]. Throws an
+  /// [ArgumentError] when [text] is empty or contains only whitespace. The
+  /// error message never echoes the supplied text.
   ProvenanceBadge({
     required this.kind,
     required String text,
-    this.semanticsLabel,
+    String? semanticsLabel,
     this.compact = false,
     Key? key,
   }) : text = _requireNonEmptyText(text),
+       semanticsLabel = _normalizeSemanticsLabel(semanticsLabel),
        super(key: key ?? ValueKey<String>('provenance-badge-${kind.name}'));
 
   /// The provenance rendered by this badge.
   final ProvenanceBadgeKind kind;
 
-  /// The caller-supplied, already-localized visible label.
+  /// The caller-supplied, already-localized visible label, trimmed.
   final String text;
 
-  /// An optional screen-reader label; defaults to [text].
+  /// An optional screen-reader label; null or blank falls back to [text].
   final String? semanticsLabel;
 
   /// Whether to use the smaller inline padding and typography.
@@ -190,10 +198,19 @@ class ProvenanceBadge extends StatelessWidget {
 }
 
 String _requireNonEmptyText(String text) {
-  if (text.trim().isEmpty) {
+  final String trimmed = text.trim();
+  if (trimmed.isEmpty) {
     throw ArgumentError(
       'ProvenanceBadge.text must not be empty or whitespace only.',
     );
   }
-  return text;
+  return trimmed;
+}
+
+String? _normalizeSemanticsLabel(String? semanticsLabel) {
+  final String? trimmed = semanticsLabel?.trim();
+  if (trimmed == null || trimmed.isEmpty) {
+    return null;
+  }
+  return trimmed;
 }

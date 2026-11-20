@@ -6,12 +6,17 @@
 //   * each kind renders its exact color, icon, text, and stable default key;
 //   * an opaque, solid 1.5 px outlined pill is used (never color alone);
 //   * exactly one non-interactive semantic node exposes the caller label and
-//     the visual text is excluded from semantics;
-//   * every outline/text color clears the WCAG 3:1 floor against white;
-//   * empty and whitespace-only labels throw content-free `ArgumentError`s;
-//   * compact padding and typography are smaller, and several badges survive
-//     200 % text scale in a narrow `Wrap`;
-//   * labels are synthetic and caller-supplied, never built into the package.
+//     the visual text is excluded from semantics; a blank semanticsLabel falls
+//     back to the visible text;
+//   * every text/outline color clears the WCAG 4.5:1 normal-text floor against
+//     white;
+//   * empty and whitespace-only labels throw content-free `ArgumentError`s and
+//     surrounding whitespace is trimmed;
+//   * compact padding and typography are smaller, 200 % text scale measurably
+//     enlarges a badge, and full-size plus compact badges lay out in a narrow
+//     `Wrap`;
+//   * labels are synthetic and caller-supplied; the widget contains no label
+//     literal and imports no ARB (verified by inspection of the widget source).
 //
 // No Android, TalkBack, device, browser, or visual evidence is claimed.
 
@@ -43,19 +48,19 @@ void main() {
       expect(ProvenanceBadgeKind.confirmed.color, const Color(0xFF2E7D32));
       expect(ProvenanceBadgeKind.confirmed.icon, Icons.verified);
 
-      expect(ProvenanceBadgeKind.userCreated.color, const Color(0xFFE65100));
+      expect(ProvenanceBadgeKind.userCreated.color, const Color(0xFFBF360C));
       expect(ProvenanceBadgeKind.userCreated.icon, Icons.edit);
 
       expect(ProvenanceBadgeKind.template.color, const Color(0xFF7B1FA2));
       expect(ProvenanceBadgeKind.template.icon, Icons.dashboard_customize);
     });
 
-    test('every outline and text color meets 3:1 contrast against white', () {
+    test('every text and outline color meets 4.5:1 contrast against white', () {
       for (final ProvenanceBadgeKind kind in ProvenanceBadgeKind.values) {
         expect(
           _contrastAgainstWhite(kind.color),
-          greaterThanOrEqualTo(3.0),
-          reason: '${kind.name} must meet the WCAG 3:1 non-text floor',
+          greaterThanOrEqualTo(4.5),
+          reason: '${kind.name} must meet the WCAG 4.5:1 normal-text floor',
         );
       }
     });
@@ -129,9 +134,13 @@ void main() {
       );
     });
 
-    testWidgets('uses only caller-supplied, non-German labels', (
+    testWidgets('renders caller-supplied labels verbatim', (
       WidgetTester tester,
     ) async {
+      // This proves only that the widget displays whatever label the caller
+      // passes. The stronger guarantee — the widget imports no ARB and embeds
+      // no label literal — is established by inspection of
+      // `provenance_badge.dart`, not by this test.
       const String first = 'Synthetic provenance A';
       const String second = 'Synthetic provenance B';
 
@@ -211,6 +220,31 @@ void main() {
       expect(find.bySemanticsLabel(_confirmedLabel), findsNothing);
       handle.dispose();
     });
+
+    testWidgets('blank semanticsLabel falls back to the visible text', (
+      WidgetTester tester,
+    ) async {
+      final SemanticsHandle handle = tester.ensureSemantics();
+
+      await _pumpBadge(
+        tester,
+        ProvenanceBadge(
+          kind: ProvenanceBadgeKind.userCreated,
+          text: _userCreatedLabel,
+          semanticsLabel: '   ',
+        ),
+      );
+
+      final SemanticsNode node = tester.getSemantics(
+        find.byType(ProvenanceBadge),
+      );
+      final SemanticsData data = node.getSemanticsData();
+
+      expect(data.label, _userCreatedLabel);
+      expect(node.childrenCount, 0);
+      expect(find.bySemanticsLabel(_userCreatedLabel), findsOneWidget);
+      handle.dispose();
+    });
   });
 
   group('ProvenanceBadge validation', () {
@@ -244,6 +278,14 @@ void main() {
           reason: 'the error must not echo the supplied text',
         );
       }
+    });
+
+    test('trims leading and trailing whitespace from the visible text', () {
+      final ProvenanceBadge badge = ProvenanceBadge(
+        kind: ProvenanceBadgeKind.userCreated,
+        text: '  Created by user \t\n',
+      );
+      expect(badge.text, 'Created by user');
     });
   });
 
@@ -301,39 +343,93 @@ void main() {
       expect(compactSize.height, lessThan(normalSize.height));
     });
 
-    testWidgets('several badges reflow in a narrow Wrap at 200% text scale', (
+    testWidgets('200% text scale measurably enlarges a full-size badge', (
       WidgetTester tester,
     ) async {
       await _pumpBadge(
         tester,
-        SizedBox(
-          width: 300,
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: <Widget>[
-              for (final ProvenanceBadgeKind kind in ProvenanceBadgeKind.values)
-                ProvenanceBadge(kind: kind, text: _labelFor(kind)),
-            ],
-          ),
+        ProvenanceBadge(
+          kind: ProvenanceBadgeKind.confirmed,
+          text: _confirmedLabel,
+        ),
+      );
+      final Size oneX = tester.getSize(find.byType(ProvenanceBadge));
+
+      await _pumpBadge(
+        tester,
+        ProvenanceBadge(
+          kind: ProvenanceBadgeKind.confirmed,
+          text: _confirmedLabel,
         ),
         textScaler: const TextScaler.linear(2),
-        size: const Size(320, 640),
       );
+      final Size twoX = tester.getSize(find.byType(ProvenanceBadge));
 
-      expect(tester.takeException(), isNull);
-      for (final ProvenanceBadgeKind kind in ProvenanceBadgeKind.values) {
-        final Finder badgeFinder = find.byKey(
-          ValueKey<String>('provenance-badge-${kind.name}'),
-        );
-        expect(badgeFinder, findsOneWidget);
-        expect(find.text(_labelFor(kind)), findsOneWidget);
-
-        final Rect rect = tester.getRect(badgeFinder);
-        expect(rect.left, greaterThanOrEqualTo(0));
-        expect(rect.right, lessThanOrEqualTo(320));
-      }
+      expect(twoX.height, greaterThan(oneX.height));
+      expect(twoX.width, greaterThanOrEqualTo(oneX.width));
     });
+
+    testWidgets(
+      'full-size and compact badges lay out in a narrow Wrap at 200%',
+      (WidgetTester tester) async {
+        // The 300 px `Wrap` passes a bounded width to each child, so horizontal
+        // overflow is impossible by construction. This test therefore asserts
+        // only exception-free layout and that every rendered badge rect stays
+        // inside the 320 px viewport at 200 % text scale; it is not independent
+        // proof against horizontal overflow.
+        await _pumpBadge(
+          tester,
+          SizedBox(
+            width: 300,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: <Widget>[
+                for (final ProvenanceBadgeKind kind
+                    in ProvenanceBadgeKind.values)
+                  ProvenanceBadge(kind: kind, text: _labelFor(kind)),
+                for (final ProvenanceBadgeKind kind
+                    in ProvenanceBadgeKind.values)
+                  ProvenanceBadge(
+                    kind: kind,
+                    text: '${_labelFor(kind)} compact',
+                    compact: true,
+                    key: ValueKey<String>(
+                      'compact-provenance-badge-${kind.name}',
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          textScaler: const TextScaler.linear(2),
+          size: const Size(320, 640),
+        );
+
+        expect(tester.takeException(), isNull);
+        for (final ProvenanceBadgeKind kind in ProvenanceBadgeKind.values) {
+          final Finder fullFinder = find.byKey(
+            ValueKey<String>('provenance-badge-${kind.name}'),
+          );
+          final Finder compactFinder = find.byKey(
+            ValueKey<String>('compact-provenance-badge-${kind.name}'),
+          );
+
+          expect(fullFinder, findsOneWidget);
+          expect(compactFinder, findsOneWidget);
+          expect(find.text(_labelFor(kind)), findsOneWidget);
+          expect(find.text('${_labelFor(kind)} compact'), findsOneWidget);
+
+          for (final Finder badgeFinder in <Finder>[
+            fullFinder,
+            compactFinder,
+          ]) {
+            final Rect rect = tester.getRect(badgeFinder);
+            expect(rect.left, greaterThanOrEqualTo(0));
+            expect(rect.right, lessThanOrEqualTo(320));
+          }
+        }
+      },
+    );
   });
 }
 
