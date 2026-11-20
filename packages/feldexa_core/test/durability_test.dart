@@ -16,6 +16,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 const String _revisionId = '1b4e28ba-2fa1-4d3b-a1f8-6f2a3c4d5e6f';
 const String _otherRevisionId = '2c5f39cb-3ab2-4e4c-b2f9-7a3b4d5e6f70';
+const String _revisionIdVariant8 = '1b4e28ba-2fa1-4d3b-81f8-6f2a3c4d5e6f';
+const String _revisionIdVariant9 = '1b4e28ba-2fa1-4d3b-91f8-6f2a3c4d5e6f';
 const String _savedTimestampText = '2026-11-14T12:05:06.789Z';
 
 final RegExp _wireTokenPattern = RegExp(r'^[a-z][A-Za-z]*$');
@@ -89,13 +91,15 @@ List<_StateCase> _stateCases() {
   ];
 }
 
-String _expectArgumentError(void Function() action, {required String reason}) {
+ArgumentError _expectArgumentError(
+  void Function() action, {
+  required String reason,
+}) {
   try {
     action();
   } on ArgumentError catch (error) {
-    final Object? rawMessage = error.message;
-    expect(rawMessage, isA<String>(), reason: reason);
-    return rawMessage as String;
+    expect(error.message, isA<String>(), reason: reason);
+    return error;
   }
   fail('expected ArgumentError: $reason');
 }
@@ -114,18 +118,41 @@ void _expectDiagnosticText(String text, {required String reason}) {
 
 void _expectContentFreeRejection(
   void Function() action, {
-  required List<String> forbidden,
+  required Iterable<String> rejectedInputs,
   required String reason,
 }) {
-  final String message = _expectArgumentError(action, reason: reason);
-  for (final String text in forbidden) {
-    expect(
-      message.contains(text),
-      isFalse,
-      reason: '$reason must not echo "$text"',
-    );
-  }
+  final ArgumentError error = _expectArgumentError(action, reason: reason);
+  final String diagnostic = error.toString();
+  final String message = error.message as String;
+
+  _expectDiagnosticText(diagnostic, reason: reason);
   _expectDiagnosticText(message, reason: reason);
+
+  for (final String rejectedInput in rejectedInputs) {
+    if (rejectedInput.isEmpty) {
+      // The empty string is a substring of every string, so an echo check is
+      // vacuous. The generic diagnostic checks above still apply.
+      continue;
+    }
+    expect(
+      diagnostic.contains(rejectedInput),
+      isFalse,
+      reason: '$reason must not echo "$rejectedInput" in toString()',
+    );
+    expect(
+      message.contains(rejectedInput),
+      isFalse,
+      reason: '$reason must not echo "$rejectedInput" in message',
+    );
+    final Object? invalidValue = error.invalidValue;
+    if (invalidValue != null) {
+      expect(
+        invalidValue.toString().contains(rejectedInput),
+        isFalse,
+        reason: '$reason must not echo "$rejectedInput" in invalidValue',
+      );
+    }
+  }
 }
 
 void main() {
@@ -313,7 +340,12 @@ void main() {
       ]) {
         _expectContentFreeRejection(
           () => DurabilityStatus.saved(lastDurableAt: rejected),
-          forbidden: <String>['2026', '12:05', '06.789', _savedTimestampText],
+          rejectedInputs: <String>[
+            rejected.toIso8601String(),
+            rejected.toString(),
+            rejected.millisecondsSinceEpoch.toString(),
+            _savedTimestampText,
+          ],
           reason: 'saved must reject a local timestamp without echo',
         );
       }
@@ -322,11 +354,17 @@ void main() {
 
   group('saveFailed', () {
     test('stores shape-valid catalog codes exactly', () {
+      // The production validator is shape-only: it accepts every token
+      // matching ^[A-Z]{2,6}-[0-9]{3}$. These are real German catalog codes,
+      // including 3-letter prefixes; shape validity is not a claim of catalog
+      // membership.
       for (final String code in <String>[
         'SAVE-003',
         'SAVE-008',
         'DATE-001',
-        'IMPORT-001',
+        'IMP-001',
+        'DEL-001',
+        'FLD-001',
       ]) {
         final DurabilityStatus status = DurabilityStatus.saveFailed(code);
         expect(status, isA<SaveFailedDurabilityStatus>());
@@ -335,6 +373,17 @@ void main() {
         expect(failed.errorCode, code);
         expect(failed.errorCode, matches(_catalogCodePattern));
       }
+    });
+
+    test('accepts a shape-valid non-catalog token by design', () {
+      // Deliberately synthetic: the production validator checks shape only,
+      // not membership in the German catalog. This is not a catalog code and
+      // must not be presented as one.
+      const String synthetic = 'ZZ-999';
+      final SaveFailedDurabilityStatus failed =
+          DurabilityStatus.saveFailed(synthetic) as SaveFailedDurabilityStatus;
+      expect(failed.errorCode, synthetic);
+      expect(failed.errorCode, matches(_catalogCodePattern));
     });
 
     test('rejects malformed codes with a content-free ArgumentError', () {
@@ -350,7 +399,7 @@ void main() {
       ]) {
         _expectContentFreeRejection(
           () => DurabilityStatus.saveFailed(code),
-          forbidden: <String>['Speichern fehlgeschlagen', 'save-003'],
+          rejectedInputs: <String>[code],
           reason: 'saveFailed must reject "$code" without echo',
         );
       }
@@ -358,16 +407,24 @@ void main() {
   });
 
   group('recoveryFallback', () {
-    test('stores a lowercase UUIDv4 revision id exactly', () {
-      final DurabilityStatus status = DurabilityStatus.recoveryFallback(
+    test('stores lowercase UUIDv4 ids with all [89ab] variant nibbles', () {
+      for (final String revisionId in <String>[
+        _revisionIdVariant8,
+        _revisionIdVariant9,
         _revisionId,
-      );
+        _otherRevisionId,
+      ]) {
+        final DurabilityStatus status = DurabilityStatus.recoveryFallback(
+          revisionId,
+        );
 
-      expect(status, isA<RecoveryFallbackDurabilityStatus>());
-      final RecoveryFallbackDurabilityStatus fallback =
-          status as RecoveryFallbackDurabilityStatus;
-      expect(fallback.revisionId, _revisionId);
-      expect(fallback.revisionId, matches(_uuidV4Pattern));
+        expect(status, isA<RecoveryFallbackDurabilityStatus>());
+        final RecoveryFallbackDurabilityStatus fallback =
+            status as RecoveryFallbackDurabilityStatus;
+        expect(fallback.revisionId, revisionId);
+        expect(fallback.revisionId, matches(_uuidV4Pattern));
+        expect(revisionId[19], isIn(<String>['8', '9', 'a', 'b']));
+      }
     });
 
     test('rejects malformed ids with a content-free ArgumentError', () {
@@ -383,7 +440,7 @@ void main() {
       ]) {
         _expectContentFreeRejection(
           () => DurabilityStatus.recoveryFallback(revisionId),
-          forbidden: <String>['latest', '1B4E28BA-2FA1-4D3B-A1F8-6F2A3C4D5E6F'],
+          rejectedInputs: <String>[revisionId],
           reason: 'recoveryFallback must reject "$revisionId" without echo',
         );
       }
