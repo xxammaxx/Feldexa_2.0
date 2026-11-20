@@ -345,8 +345,11 @@ SuggestionReviewChange undoRejection(
 /// [expectedField] must be the exact [ConfirmedField] snapshot that
 /// [confirmSuggestion] returned. The suggestion must be confirmed, the field
 /// with [ConfirmedField.id] must still exist, and the current machine field
-/// linked to the suggestion must equal [expectedField] including its label,
-/// type, rect, order, timestamps, validation, and unknown fields. No value,
+/// linked to the suggestion must equal [expectedField] as a deep canonical-JSON
+/// snapshot: `canonicalJsonEncode(field.toJson())`. That comparison covers every
+/// stored field plus `unknownFields` at the top level and nested inside unknown
+/// map or list values, so an extension-only change is detected even though
+/// [ConfirmedField.operator==] deliberately ignores unknown fields. No value,
 /// signature mark, or verification entry may be keyed by that field id.
 ///
 /// On success the field is removed, the remaining fields are renumbered
@@ -389,7 +392,9 @@ SuggestionReviewChange undoConfirmation(
       SuggestionReviewErrorCode.fieldNotFound,
     );
   }
-  if (expected != linked || expectedField != linked) {
+  final String linkedSnapshot = _fieldSnapshot(linked);
+  if (_fieldSnapshot(expected) != linkedSnapshot ||
+      _fieldSnapshot(expectedField) != linkedSnapshot) {
     throw const SuggestionReviewException(
       SuggestionReviewErrorCode.fieldTouched,
     );
@@ -482,6 +487,15 @@ ConfirmedField? _linkedMachineField(
     }
   }
   return null;
+}
+
+/// The exact persisted snapshot of [field], including unknown extensions.
+///
+/// [ConfirmedField.operator==] intentionally ignores `unknownFields`, so the
+/// touched check cannot use it. Canonical JSON includes the modeled keys and
+/// every retained unknown value, recursively.
+String _fieldSnapshot(ConfirmedField field) {
+  return canonicalJsonEncode(field.toJson());
 }
 
 void _requireUuidV4(String fieldId) {

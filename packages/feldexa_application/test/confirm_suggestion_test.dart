@@ -214,6 +214,43 @@ void _expectCode(void Function() action, SuggestionReviewErrorCode code) {
   expect(_errorOf(action).code, code);
 }
 
+({
+  RevisionContent content,
+  FieldSuggestion suggestion,
+  ConfirmedField field,
+  ConfirmedField user,
+})
+_unknownExtensionFixture() {
+  final FieldSuggestion suggestion = _suggestion();
+  final ConfirmedField user = _userField(id: _uuid(30), order: 0);
+  final SuggestionReviewChange confirmation = confirmSuggestion(
+    _content(
+      suggestions: <FieldSuggestion>[suggestion],
+      fields: <ConfirmedField>[user],
+    ),
+    suggestion.id,
+    _uuid(40),
+    'Feld',
+    _at(),
+  );
+  final ConfirmedField field = confirmation.confirmedField!.copyWith(
+    unknownFields: <String, Object?>{
+      'x_t065_ext': <String, Object?>{
+        'flag': true,
+        'nested': <String, Object?>{
+          'list': <Object?>[1, 2, 3],
+        },
+      },
+    },
+  );
+  final RevisionContent content = _edited(
+    confirmation.content,
+    fields: <ConfirmedField>[user, field],
+    fieldOrder: <String>[user.id, field.id],
+  );
+  return (content: content, suggestion: suggestion, field: field, user: user);
+}
+
 void main() {
   group('confirmSuggestion', () {
     test('creates one machine field and copies provenance, page, rect, type, '
@@ -939,6 +976,112 @@ void main() {
         () => undoConfirmation(editedContent, suggestion.id, generated),
         SuggestionReviewErrorCode.fieldTouched,
       );
+    });
+
+    test('a top-level unknownFields-only change is fieldTouched and leaves '
+        'content unchanged', () {
+      final ({
+        RevisionContent content,
+        FieldSuggestion suggestion,
+        ConfirmedField field,
+        ConfirmedField user,
+      })
+      fixture = _unknownExtensionFixture();
+      final Map<String, Object?> changedUnknown = Map<String, Object?>.from(
+        fixture.field.unknownFields,
+      )..['x_t065_added'] = <String, Object?>{'v': 2};
+      final ConfirmedField changed = fixture.field.copyWith(
+        unknownFields: changedUnknown,
+      );
+      final RevisionContent editedContent = _edited(
+        fixture.content,
+        fields: <ConfirmedField>[fixture.user, changed],
+        fieldOrder: <String>[fixture.user.id, changed.id],
+      );
+      final String bytesBefore = _bytes(editedContent);
+
+      // `ConfirmedField ==` ignores unknownFields; the touched check must not.
+      expect(changed, fixture.field);
+
+      _expectCode(
+        () => undoConfirmation(
+          editedContent,
+          fixture.suggestion.id,
+          fixture.field,
+        ),
+        SuggestionReviewErrorCode.fieldTouched,
+      );
+      expect(_bytes(editedContent), bytesBefore);
+      expect(editedContent.fields.length, 2);
+    });
+
+    test('a nested unknownFields-only change is fieldTouched and leaves '
+        'content unchanged', () {
+      final ({
+        RevisionContent content,
+        FieldSuggestion suggestion,
+        ConfirmedField field,
+        ConfirmedField user,
+      })
+      fixture = _unknownExtensionFixture();
+      final ConfirmedField changed = fixture.field.copyWith(
+        unknownFields: <String, Object?>{
+          'x_t065_ext': <String, Object?>{
+            'flag': true,
+            'nested': <String, Object?>{
+              'list': <Object?>[1, 2, 4],
+            },
+          },
+        },
+      );
+      final RevisionContent editedContent = _edited(
+        fixture.content,
+        fields: <ConfirmedField>[fixture.user, changed],
+        fieldOrder: <String>[fixture.user.id, changed.id],
+      );
+      final String bytesBefore = _bytes(editedContent);
+
+      expect(changed, fixture.field);
+
+      _expectCode(
+        () => undoConfirmation(
+          editedContent,
+          fixture.suggestion.id,
+          fixture.field,
+        ),
+        SuggestionReviewErrorCode.fieldTouched,
+      );
+      expect(_bytes(editedContent), bytesBefore);
+      expect(editedContent.fields.length, 2);
+    });
+
+    test('an identical snapshot including unknown fields undoes and '
+        'round-trips', () {
+      final ({
+        RevisionContent content,
+        FieldSuggestion suggestion,
+        ConfirmedField field,
+        ConfirmedField user,
+      })
+      fixture = _unknownExtensionFixture();
+      final String bytesBefore = _bytes(fixture.content);
+
+      final SuggestionReviewChange change = undoConfirmation(
+        fixture.content,
+        fixture.suggestion.id,
+        fixture.field,
+      );
+
+      expect(change.kind, SuggestionReviewChangeKind.confirmationUndone);
+      expect(change.fieldId, fixture.field.id);
+      expect(
+        change.content.suggestions.single.resolution,
+        SuggestionResolution.unresolved,
+      );
+      expect(change.content.fields.single, fixture.user);
+      expect(change.content.fields.single.order, 0);
+      expect(_bytes(fixture.content), bytesBefore);
+      _expectCanonicalRoundTrip(change.content);
     });
 
     test('an attached value is fieldTouched and leaves content unchanged', () {
