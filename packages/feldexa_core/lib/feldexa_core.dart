@@ -8,6 +8,7 @@ library;
 
 export 'src/geometry/page_geometry.dart';
 export 'src/geometry/rect.dart';
+export 'src/geometry/zoom.dart';
 export 'src/model/canonical_json.dart';
 export 'src/model/document.dart';
 export 'src/model/durable_pointer.dart';
