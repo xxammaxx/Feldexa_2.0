@@ -10,6 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  feldexa_core:
+    path: ../feldexa_core
 
 dev_dependencies:
   flutter_test:
