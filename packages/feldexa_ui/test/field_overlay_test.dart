@@ -9,13 +9,19 @@
 //   * visible items are clipped to the page and fully outside items remain in
 //     the result but contribute no paint or semantics;
 //   * provenance, confidence, conflict, and selection resolve to the pinned
-//     style values with inclusive thresholds;
+//     style values with inclusive thresholds; every provenance outline clears
+//     the WCAG 3:1 non-text contrast floor against white;
+//   * ordinary and uncertain suggestions use distinct 6/4 and 2/3 dash
+//     patterns; the textual `unsicher` badge belongs to the review panel/T074;
 //   * invalid page input throws `ArgumentError`;
 //   * `shouldRepaint` uses value equality over all painter inputs;
 //   * semantics expose exactly the visible labelled items, in input order,
 //     with labels verbatim and `TextDirection.ltr`;
+//   * the conflict triangle is anchored to the visible clipped top-right;
 //   * the widget is pointer-inert, exception-free at 200% text scale, and
 //     paints no text.
+
+import 'dart:math' as math;
 
 import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:feldexa_ui/feldexa_ui.dart';
@@ -79,6 +85,7 @@ core.ConfirmedField _confirmedField({
 
 FieldOverlayItem _overlayItem({
   String id = 'item',
+  int pageIndex = 0,
   core.Rect? rect,
   FieldOverlayProvenance provenance = FieldOverlayProvenance.machineSuggestion,
   double? confidence = 0.80,
@@ -88,7 +95,7 @@ FieldOverlayItem _overlayItem({
 }) {
   return FieldOverlayItem(
     id: id,
-    pageIndex: 0,
+    pageIndex: pageIndex,
     rect: rect ?? _storedRect(),
     provenance: provenance,
     confidence: confidence,
@@ -223,14 +230,8 @@ void main() {
         isFalse,
       );
 
-      final FieldOverlayStyle style = fieldOverlayStyle(
-        _overlayItem(),
-        selectionColor: Colors.pink,
-      );
-      expect(
-        style,
-        fieldOverlayStyle(_overlayItem(), selectionColor: Colors.red),
-      );
+      final FieldOverlayStyle style = fieldOverlayStyle(_overlayItem());
+      expect(style, fieldOverlayStyle(_overlayItem()));
     });
   });
 
@@ -263,7 +264,6 @@ void main() {
         items: items,
         pageSize: const Size(600, 800),
         pageRect: const Rect.fromLTWH(30, 40, 300, 400),
-        selectionColor: Colors.pink,
       );
 
       expect(layouts, hasLength(2));
@@ -311,7 +311,6 @@ void main() {
         ],
         pageSize: const Size(200, 100),
         pageRect: const Rect.fromLTWH(25, 35, 100, 300),
-        selectionColor: Colors.pink,
       );
 
       final Rect view = layouts.single.viewRect;
@@ -319,6 +318,27 @@ void main() {
       expect(view.top, closeTo(35, 1e-9));
       expect(view.width, closeTo(5, 1e-9));
       expect(view.height, closeTo(30, 1e-9));
+    });
+
+    test('pageIndex is metadata, not a filter', () {
+      final List<FieldOverlayLayout> layouts = layoutFieldOverlay(
+        items: <FieldOverlayItem>[
+          _overlayItem(id: 'page-0', pageIndex: 0),
+          _overlayItem(
+            id: 'page-7',
+            pageIndex: 7,
+            rect: _storedRect(left: 40, top: 20, width: 10, height: 10),
+          ),
+        ],
+        pageSize: const Size(100, 100),
+        pageRect: const Rect.fromLTWH(0, 0, 100, 100),
+      );
+
+      expect(
+        layouts.map((FieldOverlayLayout layout) => layout.item.id),
+        <String>['page-0', 'page-7'],
+      );
+      expect(layouts[1].viewRect, const Rect.fromLTWH(40, 20, 10, 10));
     });
 
     test('clips partly outside items and keeps fully outside items', () {
@@ -338,7 +358,6 @@ void main() {
         items: items,
         pageSize: const Size(100, 100),
         pageRect: const Rect.fromLTWH(0, 0, 100, 100),
-        selectionColor: Colors.pink,
       );
 
       expect(
@@ -381,6 +400,15 @@ void main() {
         const Rect.fromLTWH(50, 60, 100, 100),
       );
 
+      final List<_RecordedInvocation> clips = canvas.calls
+          .where((_RecordedInvocation call) => call.memberName == #clipRect)
+          .toList();
+      expect(clips, hasLength(1));
+      expect(
+        clips.single.positionalArguments[0],
+        const Rect.fromLTWH(0, 0, 100, 100),
+      );
+
       final List<CustomPainterSemantics> semantics = painter.semanticsBuilder(
         const Size(100, 100),
       );
@@ -394,7 +422,6 @@ void main() {
         items: <FieldOverlayItem>[_overlayItem()],
         pageSize: const Size(100, 100),
         pageRect: const Rect.fromLTWH(50, 50, 0, 0),
-        selectionColor: Colors.pink,
       );
 
       expect(layouts, hasLength(1));
@@ -421,7 +448,6 @@ void main() {
             items: items,
             pageSize: pageSize,
             pageRect: pageRect,
-            selectionColor: Colors.pink,
           ),
           throwsArgumentError,
           reason: '$pageSize must be rejected',
@@ -445,7 +471,6 @@ void main() {
             items: items,
             pageSize: pageSize,
             pageRect: pageRect,
-            selectionColor: Colors.pink,
           ),
           throwsArgumentError,
           reason: '$pageRect must be rejected',
@@ -458,39 +483,34 @@ void main() {
     test('machine confidence thresholds are inclusive', () {
       final FieldOverlayStyle solid = fieldOverlayStyle(
         _overlayItem(confidence: 0.80),
-        selectionColor: Colors.pink,
       );
-      expect(solid.outlineColor, Colors.blue);
+      expect(solid.outlineColor, const Color(0xFF1565C0));
       expect(solid.dashed, isFalse);
       expect(solid.uncertain, isFalse);
       expect(solid.strokeWidth, 1.5);
 
       final FieldOverlayStyle solidAtBoundary = fieldOverlayStyle(
         _overlayItem(confidence: 0.75),
-        selectionColor: Colors.pink,
       );
       expect(solidAtBoundary.dashed, isFalse);
       expect(solidAtBoundary.uncertain, isFalse);
 
       final FieldOverlayStyle dashed = fieldOverlayStyle(
         _overlayItem(confidence: 0.74),
-        selectionColor: Colors.pink,
       );
-      expect(dashed.outlineColor, Colors.blue);
+      expect(dashed.outlineColor, const Color(0xFF1565C0));
       expect(dashed.dashed, isTrue);
       expect(dashed.uncertain, isFalse);
       expect(dashed.strokeWidth, 1.5);
 
       final FieldOverlayStyle certainAtBoundary = fieldOverlayStyle(
         _overlayItem(confidence: 0.50),
-        selectionColor: Colors.pink,
       );
       expect(certainAtBoundary.dashed, isTrue);
       expect(certainAtBoundary.uncertain, isFalse);
 
       final FieldOverlayStyle uncertain = fieldOverlayStyle(
         _overlayItem(confidence: 0.49),
-        selectionColor: Colors.pink,
       );
       expect(uncertain.dashed, isTrue);
       expect(uncertain.uncertain, isTrue);
@@ -498,9 +518,8 @@ void main() {
 
       final FieldOverlayStyle unknown = fieldOverlayStyle(
         _overlayItem(confidence: null),
-        selectionColor: Colors.pink,
       );
-      expect(unknown.outlineColor, Colors.blue);
+      expect(unknown.outlineColor, const Color(0xFF1565C0));
       expect(unknown.dashed, isTrue);
       expect(unknown.uncertain, isTrue);
     });
@@ -508,9 +527,9 @@ void main() {
     test('confirmed, user, and template provenance are solid and certain', () {
       for (final (FieldOverlayProvenance provenance, Color color)
           in <(FieldOverlayProvenance, Color)>[
-            (FieldOverlayProvenance.confirmedMachine, Colors.green),
-            (FieldOverlayProvenance.user, Colors.amber),
-            (FieldOverlayProvenance.template, Colors.purple),
+            (FieldOverlayProvenance.confirmedMachine, Color(0xFF2E7D32)),
+            (FieldOverlayProvenance.user, Color(0xFFE65100)),
+            (FieldOverlayProvenance.template, Color(0xFF7B1FA2)),
           ]) {
         final FieldOverlayStyle style = fieldOverlayStyle(
           _overlayItem(
@@ -518,7 +537,6 @@ void main() {
             confidence: 0.49,
             conflicting: true,
           ),
-          selectionColor: Colors.pink,
         );
 
         expect(style.outlineColor, color, reason: '$provenance');
@@ -530,10 +548,33 @@ void main() {
       }
     });
 
+    test('every provenance outline meets 3:1 contrast against white', () {
+      final List<(FieldOverlayProvenance, Color)> cases =
+          <(FieldOverlayProvenance, Color)>[
+            (FieldOverlayProvenance.machineSuggestion, const Color(0xFF1565C0)),
+            (FieldOverlayProvenance.confirmedMachine, const Color(0xFF2E7D32)),
+            (FieldOverlayProvenance.user, const Color(0xFFE65100)),
+            (FieldOverlayProvenance.template, const Color(0xFF7B1FA2)),
+          ];
+
+      for (final (FieldOverlayProvenance provenance, Color expectedColor)
+          in cases) {
+        final FieldOverlayStyle style = fieldOverlayStyle(
+          _overlayItem(provenance: provenance),
+        );
+
+        expect(style.outlineColor, expectedColor, reason: '$provenance');
+        expect(
+          _contrastAgainstWhite(style.outlineColor),
+          greaterThanOrEqualTo(3.0),
+          reason: '$provenance must meet the WCAG 3:1 non-text floor',
+        );
+      }
+    });
+
     test('conflict and selection flags are carried through', () {
       final FieldOverlayStyle style = fieldOverlayStyle(
         _overlayItem(conflicting: true, selected: true),
-        selectionColor: Colors.pink,
       );
 
       expect(style.conflicting, isTrue);
@@ -592,20 +633,24 @@ void main() {
       );
     });
 
-    test('no-ops an empty or zero-area page without touching the canvas', () {
-      final _RecordingCanvas canvas = _RecordingCanvas();
+    test('no-ops an empty item list or zero-area page', () {
+      final _RecordingCanvas emptyCanvas = _RecordingCanvas();
+      _painter(items: const <FieldOverlayItem>[])
+          .paint(emptyCanvas, const Size(100, 100));
+      expect(emptyCanvas.calls, isEmpty);
 
+      final _RecordingCanvas zeroPageCanvas = _RecordingCanvas();
       _painter(
         pageSize: Size.zero,
         pageRect: const Rect.fromLTWH(0, 0, 100, 100),
-      ).paint(canvas, Size.zero);
-      expect(canvas.calls, isEmpty);
+      ).paint(zeroPageCanvas, Size.zero);
+      expect(zeroPageCanvas.calls, isEmpty);
 
       _painter(
         pageSize: const Size(100, 100),
         pageRect: const Rect.fromLTWH(0, 0, 0, 100),
-      ).paint(canvas, const Size(100, 100));
-      expect(canvas.calls, isEmpty);
+      ).paint(zeroPageCanvas, const Size(100, 100));
+      expect(zeroPageCanvas.calls, isEmpty);
 
       expect(
         _painter(
@@ -645,10 +690,31 @@ void main() {
       );
     });
 
+    test('uncertain items use a shorter dash pattern than ordinary dashes', () {
+      final _RecordingCanvas dashedCanvas = _RecordingCanvas();
+      final _RecordingCanvas uncertainCanvas = _RecordingCanvas();
+
+      _painter(items: <FieldOverlayItem>[_overlayItem(confidence: 0.74)])
+          .paint(dashedCanvas, const Size(100, 100));
+      _painter(items: <FieldOverlayItem>[_overlayItem(confidence: 0.49)])
+          .paint(uncertainCanvas, const Size(100, 100));
+
+      final List<_RecordedInvocation> dashed = dashedCanvas.calls
+          .where((_RecordedInvocation call) => call.memberName == #drawLine)
+          .toList();
+      final List<_RecordedInvocation> uncertain = uncertainCanvas.calls
+          .where((_RecordedInvocation call) => call.memberName == #drawLine)
+          .toList();
+
+      expect(dashed, isNotEmpty);
+      expect(uncertain.length, greaterThan(dashed.length));
+      expect(_lineLength(dashed.first), closeTo(6, 1e-9));
+      expect(_lineLength(uncertain.first), closeTo(2, 1e-9));
+    });
+
     test('draws the selection accent and corner handle', () {
       final FieldOverlayPainter painter = _painter(
         items: <FieldOverlayItem>[_overlayItem(selected: true)],
-        selectionColor: Colors.pink,
       );
       final _RecordingCanvas canvas = _RecordingCanvas();
 
@@ -663,15 +729,23 @@ void main() {
         drawRects[1].positionalArguments[0],
         const Rect.fromLTWH(10, 20, 30, 40),
       );
+      final Paint accent = drawRects[1].positionalArguments[1] as Paint;
+      expect(accent.strokeWidth, 2);
+      expect(accent.color.toARGB32(), 0xFFE91E63);
       expect(
         drawRects[2].positionalArguments[0],
         const Rect.fromLTWH(34, 54, 6, 6),
       );
     });
 
-    test('draws a shape conflict marker for conflicting items', () {
+    test('anchors a red 8 px conflict triangle to the clipped top-right', () {
       final FieldOverlayPainter painter = _painter(
-        items: <FieldOverlayItem>[_overlayItem(conflicting: true)],
+        items: <FieldOverlayItem>[
+          _overlayItem(
+            rect: _storedRect(left: 50, top: 10, width: 100, height: 100),
+            conflicting: true,
+          ),
+        ],
       );
       final _RecordingCanvas canvas = _RecordingCanvas();
 
@@ -681,6 +755,14 @@ void main() {
           .where((_RecordedInvocation call) => call.memberName == #drawPath)
           .toList();
       expect(drawPaths, hasLength(2));
+
+      final Path triangle = drawPaths[0].positionalArguments[0] as Path;
+      final Paint fill = drawPaths[0].positionalArguments[1] as Paint;
+      final Paint stroke = drawPaths[1].positionalArguments[1] as Paint;
+      // Visible rect = (50, 10, 50, 100); its top-right is (100, 10).
+      expect(triangle.getBounds(), const Rect.fromLTWH(92, 10, 8, 8));
+      expect(fill.color.toARGB32(), 0xFFD32F2F);
+      expect(stroke.color.toARGB32(), 0xFFB71C1C);
     });
   });
 
@@ -828,6 +910,25 @@ Future<void> _pumpOverlay(
       ),
     ),
   );
+}
+
+double _lineLength(_RecordedInvocation call) {
+  final Offset start = call.positionalArguments[0] as Offset;
+  final Offset end = call.positionalArguments[1] as Offset;
+  return (end - start).distance;
+}
+
+double _contrastAgainstWhite(Color color) {
+  const Color white = Color(0xFFFFFFFF);
+  final double lighter = math.max(
+    white.computeLuminance(),
+    color.computeLuminance(),
+  );
+  final double darker = math.min(
+    white.computeLuminance(),
+    color.computeLuminance(),
+  );
+  return (lighter + 0.05) / (darker + 0.05);
 }
 
 final class _RecordedInvocation {

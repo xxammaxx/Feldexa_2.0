@@ -41,6 +41,10 @@ enum FieldOverlayProvenance {
 /// [rect] is the stored model rectangle in page-display points (top-left
 /// origin, after page rotation and CropBox correction). Painting never mutates
 /// it; the view rectangle is derived by [layoutFieldOverlay].
+///
+/// [pageIndex] is descriptive metadata, not a filter: every supplied item is
+/// laid out and painted on the supplied page. The caller must pass only the
+/// current page's items.
 @immutable
 final class FieldOverlayItem {
   /// Creates an overlay item.
@@ -59,7 +63,9 @@ final class FieldOverlayItem {
   ///
   /// Copies values only; the suggestion is never written back. The model
   /// always supplies [core.FieldSuggestion.confidence]; a null confidence is
-  /// defensive and is painted as uncertain.
+  /// defensive and is painted as uncertain. When [semanticLabel] is omitted or
+  /// null, the suggestion's [core.FieldSuggestion.labelText] is used verbatim;
+  /// an explicit value overrides it.
   factory FieldOverlayItem.fromSuggestion(
     core.FieldSuggestion suggestion, {
     bool selected = false,
@@ -80,7 +86,9 @@ final class FieldOverlayItem {
   /// Creates an overlay item from a stored confirmed field.
   ///
   /// Copies values only; the field is never written back. Only a machine field
-  /// carries [core.ConfirmedField.suggestionConfidence].
+  /// carries [core.ConfirmedField.suggestionConfidence]. When [semanticLabel]
+  /// is omitted or null, the field's [core.ConfirmedField.label] is used
+  /// verbatim; an explicit value overrides it.
   factory FieldOverlayItem.fromConfirmedField(
     core.ConfirmedField field, {
     bool selected = false,
@@ -105,7 +113,9 @@ final class FieldOverlayItem {
   /// Stable field or suggestion id.
   final String id;
 
-  /// Zero-based page index; callers paint one page at a time.
+  /// Zero-based page index. This is metadata only, not a filter: the painter
+  /// paints every supplied item on the supplied page, so callers must pass one
+  /// page's items.
   final int pageIndex;
 
   /// Stored page-display-space rectangle in points; never mutated.
@@ -156,7 +166,10 @@ final class FieldOverlayItem {
 /// Resolved paint treatment for one overlay item.
 ///
 /// The selection accent is deliberately not stored: the painter receives
-/// [FieldOverlayPainter.selectionColor] and draws the accent itself.
+/// [FieldOverlayPainter.selectionColor] and draws the accent itself. The
+/// textual `unsicher` badge is owned by the review panel/T074 and is not
+/// composed by this presentation layer; [uncertain] only selects the shorter
+/// dash pattern.
 @immutable
 final class FieldOverlayStyle {
   /// Creates a style.
@@ -241,19 +254,18 @@ final class FieldOverlayLayout {
 /// `contracts/editor-interactions.md` §3.
 ///
 /// Boundaries are inclusive: a machine suggestion is solid at confidence
-/// `>= 0.75` and uncertain below `0.50`. [selectionColor] is accepted because
-/// the contract signature carries it; the selection accent is painted by
+/// `>= 0.75` and uncertain below `0.50`. Outlines use 3:1-contrast colors
+/// against white, and [FieldOverlayStyle.uncertain] selects the shorter
+/// uncertainty dash pattern. The selection accent is painted by
 /// [FieldOverlayPainter] and is intentionally not stored in the six-field
-/// style.
-FieldOverlayStyle fieldOverlayStyle(
-  FieldOverlayItem item, {
-  required Color selectionColor,
-}) {
+/// style. The textual `unsicher` badge is owned by the review panel/T074, not
+/// this package.
+FieldOverlayStyle fieldOverlayStyle(FieldOverlayItem item) {
   switch (item.provenance) {
     case FieldOverlayProvenance.machineSuggestion:
       final double? confidence = item.confidence;
       return FieldOverlayStyle(
-        outlineColor: Colors.blue,
+        outlineColor: _machineOutlineColor,
         dashed: confidence == null || confidence < 0.75,
         strokeWidth: 1.5,
         uncertain: confidence == null || confidence < 0.50,
@@ -262,7 +274,7 @@ FieldOverlayStyle fieldOverlayStyle(
       );
     case FieldOverlayProvenance.confirmedMachine:
       return FieldOverlayStyle(
-        outlineColor: Colors.green,
+        outlineColor: _confirmedOutlineColor,
         dashed: false,
         strokeWidth: 1.5,
         uncertain: false,
@@ -271,7 +283,7 @@ FieldOverlayStyle fieldOverlayStyle(
       );
     case FieldOverlayProvenance.user:
       return FieldOverlayStyle(
-        outlineColor: Colors.amber,
+        outlineColor: _userOutlineColor,
         dashed: false,
         strokeWidth: 1.5,
         uncertain: false,
@@ -280,7 +292,7 @@ FieldOverlayStyle fieldOverlayStyle(
       );
     case FieldOverlayProvenance.template:
       return FieldOverlayStyle(
-        outlineColor: Colors.purple,
+        outlineColor: _templateOutlineColor,
         dashed: false,
         strokeWidth: 1.5,
         uncertain: false,
@@ -302,6 +314,8 @@ FieldOverlayStyle fieldOverlayStyle(
 /// Display space is already rotation- and CropBox-corrected, so no page
 /// rotation or crop offset is re-derived here. The returned list preserves
 /// input order and includes fully outside items with an empty [clippedRect].
+/// [FieldOverlayItem.pageIndex] is not a filter: every supplied item is laid
+/// out against [pageRect], so the caller must pass one page's items.
 ///
 /// Throws [ArgumentError] when [pageSize] is non-finite or not strictly
 /// positive, or when any edge of [pageRect] is non-finite. A finite page
@@ -310,18 +324,12 @@ List<FieldOverlayLayout> layoutFieldOverlay({
   required Iterable<FieldOverlayItem> items,
   required Size pageSize,
   required Rect pageRect,
-  required Color selectionColor,
 }) {
   _checkPageSize(pageSize);
   _checkPageRect(pageRect);
   return <FieldOverlayLayout>[
     for (final FieldOverlayItem item in items)
-      _layoutItem(
-        item: item,
-        pageSize: pageSize,
-        pageRect: pageRect,
-        selectionColor: selectionColor,
-      ),
+      _layoutItem(item: item, pageSize: pageSize, pageRect: pageRect),
   ];
 }
 
@@ -330,6 +338,12 @@ List<FieldOverlayLayout> layoutFieldOverlay({
 /// The painter is presentation-only: it never mutates items, geometry, or the
 /// model. Visible base outlines are drawn on the unclipped view rectangle and
 /// cut by the page clip, so a crop edge never introduces a false border.
+/// [FieldOverlayItem.pageIndex] is not a filter: every supplied item is painted
+/// on the supplied page, so the caller must pass one page's items.
+///
+/// Uncertainty uses a shorter 2/3 dash pattern than the ordinary 6/4 dashed
+/// outline. The textual `unsicher` badge is owned by the review panel/T074 and
+/// is not painted here.
 class FieldOverlayPainter extends CustomPainter {
   /// Creates a painter and copies [items] to an unmodifiable list.
   FieldOverlayPainter({
@@ -353,7 +367,10 @@ class FieldOverlayPainter extends CustomPainter {
   final Color selectionColor;
 
   bool get _paintsNothing =>
-      pageSize.width <= 0 || pageSize.height <= 0 || pageRect.isEmpty;
+      items.isEmpty ||
+      pageSize.width <= 0 ||
+      pageSize.height <= 0 ||
+      pageRect.isEmpty;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -367,7 +384,6 @@ class FieldOverlayPainter extends CustomPainter {
         items: items,
         pageSize: pageSize,
         pageRect: pageRect,
-        selectionColor: selectionColor,
       );
       for (final FieldOverlayLayout layout in layouts) {
         if (!layout.isVisible) {
@@ -390,7 +406,6 @@ class FieldOverlayPainter extends CustomPainter {
         items: items,
         pageSize: pageSize,
         pageRect: pageRect,
-        selectionColor: selectionColor,
       );
       return <CustomPainterSemantics>[
         for (final FieldOverlayLayout layout in layouts)
@@ -422,13 +437,19 @@ class FieldOverlayPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = style.strokeWidth;
     if (style.dashed) {
-      _paintDashedRect(canvas, layout.viewRect, outline);
+      _paintDashedRect(
+        canvas,
+        layout.viewRect,
+        outline,
+        dashLength: style.uncertain ? _uncertainDashLength : _dashLength,
+        gapLength: style.uncertain ? _uncertainDashGap : _dashGap,
+      );
     } else {
       canvas.drawRect(layout.viewRect, outline);
     }
 
     if (style.conflicting) {
-      _paintConflictMarker(canvas, layout.viewRect);
+      _paintConflictMarker(canvas, layout.clippedRect);
     }
 
     if (style.selected) {
@@ -445,9 +466,16 @@ class FieldOverlayPainter extends CustomPainter {
     }
   }
 
-  /// Draws a fixed 6 px dash / 4 px gap walk around [rect] in edge order:
-  /// top, right, bottom, left.
-  void _paintDashedRect(Canvas canvas, Rect rect, Paint paint) {
+  /// Draws a deterministic dash walk around [rect] in edge order:
+  /// top, right, bottom, left. Ordinary dashed outlines use 6/4; uncertain
+  /// outlines use the shorter 2/3 pattern.
+  void _paintDashedRect(
+    Canvas canvas,
+    Rect rect,
+    Paint paint, {
+    required double dashLength,
+    required double gapLength,
+  }) {
     final double perimeter = 2 * (rect.width + rect.height);
     if (perimeter <= 0 || !perimeter.isFinite) {
       return;
@@ -455,7 +483,7 @@ class FieldOverlayPainter extends CustomPainter {
     double distance = 0;
     bool drawing = true;
     while (distance < perimeter) {
-      final double step = drawing ? _dashLength : _dashGap;
+      final double step = drawing ? dashLength : gapLength;
       final double end = math.min(perimeter, distance + step);
       if (drawing) {
         canvas.drawLine(
@@ -487,22 +515,24 @@ class FieldOverlayPainter extends CustomPainter {
     return Offset(rect.left, rect.bottom - distance);
   }
 
-  void _paintConflictMarker(Canvas canvas, Rect viewRect) {
+  /// Draws the red conflict triangle at the visible top-right corner so a
+  /// partly outside item keeps a marker inside the page clip.
+  void _paintConflictMarker(Canvas canvas, Rect visibleRect) {
     final Path triangle = Path()
-      ..moveTo(viewRect.right - _conflictSize, viewRect.top)
-      ..lineTo(viewRect.right, viewRect.top)
-      ..lineTo(viewRect.right, viewRect.top + _conflictSize)
+      ..moveTo(visibleRect.right - _conflictSize, visibleRect.top)
+      ..lineTo(visibleRect.right, visibleRect.top)
+      ..lineTo(visibleRect.right, visibleRect.top + _conflictSize)
       ..close();
     canvas.drawPath(
       triangle,
       Paint()
-        ..color = Colors.red
+        ..color = _conflictColor
         ..style = PaintingStyle.fill,
     );
     canvas.drawPath(
       triangle,
       Paint()
-        ..color = Colors.red.shade900
+        ..color = _conflictStrokeColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1,
     );
@@ -535,7 +565,9 @@ class FieldOverlayPainter extends CustomPainter {
 /// The widget ignores pointers (T071 owns touch handling), expands to its
 /// parent, and exposes one semantic node per visible labelled item. It paints
 /// no text and composes no user-facing literal; labels come verbatim from the
-/// model or caller.
+/// model or caller. [FieldOverlayItem.pageIndex] is not a filter: pass only the
+/// current page's items. The textual `unsicher` badge is owned by the review
+/// panel/T074.
 class FieldOverlay extends StatelessWidget {
   /// Creates a field overlay.
   const FieldOverlay({
@@ -572,14 +604,24 @@ class FieldOverlay extends StatelessWidget {
 
 const double _dashLength = 6;
 const double _dashGap = 4;
+const double _uncertainDashLength = 2;
+const double _uncertainDashGap = 3;
 const double _conflictSize = 8;
 const double _handleSize = 6;
+
+// Every outline clears the 3:1 non-text contrast floor against white:
+// blue800, green800, orange900, purple700, and red700.
+const Color _machineOutlineColor = Color(0xFF1565C0);
+const Color _confirmedOutlineColor = Color(0xFF2E7D32);
+const Color _userOutlineColor = Color(0xFFE65100);
+const Color _templateOutlineColor = Color(0xFF7B1FA2);
+const Color _conflictColor = Color(0xFFD32F2F);
+const Color _conflictStrokeColor = Color(0xFFB71C1C);
 
 FieldOverlayLayout _layoutItem({
   required FieldOverlayItem item,
   required Size pageSize,
   required Rect pageRect,
-  required Color selectionColor,
 }) {
   final double viewLeft =
       pageRect.left + item.rect.left / pageSize.width * pageRect.width;
@@ -593,7 +635,7 @@ FieldOverlayLayout _layoutItem({
     item: item,
     viewRect: viewRect,
     clippedRect: viewRect.intersect(pageRect),
-    style: fieldOverlayStyle(item, selectionColor: selectionColor),
+    style: fieldOverlayStyle(item),
   );
 }
 
