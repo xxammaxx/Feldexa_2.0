@@ -125,8 +125,8 @@ No performance claim.
   behavior, and corpus scoring were not run.
 - The report name now follows the generic class rule
   (`YYYY-MM-DD-emulator-<slug>.md`): this file is
-  `2026-11-20-emulator-t061-recognition.md`, and its index row is added to
-  `reports/README.md` during integration. The earlier task-package name
+  `2026-11-20-emulator-t061-recognition.md`, and its index row is present in
+  `reports/README.md`. The earlier task-package name
   `2026-11-20-t061-emulator.md` was renamed for the repository convention.
 
 ## 8. Artifacts
