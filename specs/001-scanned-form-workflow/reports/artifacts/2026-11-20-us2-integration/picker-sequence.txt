@@ -1,0 +1,7 @@
+attempt 1 tab file at 296,983
+screenshot editor-ready
+screenshot ack editor-ready
+screenshot suggestions-visible
+screenshot ack suggestions-visible
+screenshot after-review
+screenshot ack after-review

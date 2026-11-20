@@ -1,0 +1,19 @@
+{
+  "id": "0b9c8ec7-da18-47f1-9a80-46b0d93ca737",
+  "ok": true,
+  "result": {
+    "sessions": [
+      {
+        "worktreeId": "5cfd8bbd-7af0-43a2-b81d-7e8d50eda284::/home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2",
+        "backend": "android",
+        "deviceUdid": "emulator-5554",
+        "wsUrl": "",
+        "streamUrl": "scrcpy://emulator-5554",
+        "streamCodec": "h264"
+      }
+    ]
+  },
+  "_meta": {
+    "runtimeId": "2cf52089-4d4a-439a-a73b-ee6817dda67a"
+  }
+}

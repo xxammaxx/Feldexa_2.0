@@ -1,0 +1,22 @@
+$ git diff --check
+(exit 0)
+
+$ git status --porcelain (implementation commit 5540d8a; report/artifacts excluded from this commit)
+ M apps/feldexa_app/android/gradlew.bat
+?? specs/001-scanned-form-workflow/reports/2026-11-20-us2-integration-emulator.md
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/
+
+$ git diff --name-status c114147..5540d8a
+A	apps/feldexa_app/integration_test/android_us2_journey_test.dart
+M	apps/feldexa_app/lib/features/editor/editor_runtime.dart
+M	apps/feldexa_app/lib/features/editor/editor_runtime_android.dart
+M	apps/feldexa_app/lib/features/editor/editor_runtime_unavailable.dart
+M	apps/feldexa_app/lib/features/editor/editor_screen.dart
+A	apps/feldexa_app/lib/features/editor/suggestion_review_panel.dart
+M	apps/feldexa_app/lib/l10n/app_de.arb
+M	apps/feldexa_app/lib/l10n/app_localizations.dart
+M	apps/feldexa_app/lib/l10n/app_localizations_de.dart
+M	apps/feldexa_app/test/editor_analysis_test.dart
+A	apps/feldexa_app/test/editor_review_panel_test.dart
+M	apps/feldexa_app/test/german_strings_test.dart
+A	tools/android/us2_drive_journey.sh

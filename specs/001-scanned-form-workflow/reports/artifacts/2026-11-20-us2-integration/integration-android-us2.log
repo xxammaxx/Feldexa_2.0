@@ -1,0 +1,157 @@
+Resolving dependencies in `/home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2`...
+Downloading packages...
+  archive 4.6.0 (4.7.1 available)
+  cross_file 0.3.5+5 (0.4.0 available)
+  cupertino_ui 1.1.6 (1.1.7 available)
+  flutter_riverpod 2.6.1 (3.5.0 available)
+  go_router 16.3.0 (18.1.4 available)
+  google_mlkit_commons 1.0.2 (1.0.3 available)
+  google_mlkit_text_recognition 1.0.2 (1.0.3 available)
+  image 4.12.0 (4.13.1 available)
+  jni_flutter 1.0.4+1 (1.1.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  material_ui 1.11.0 (1.11.1 available)
+  pdfium_dart 0.4.1 (0.4.4 available)
+  pdfium_flutter 0.4.1 (0.4.4 available)
+  pdfrx 2.12.0 (3.1.0 available)
+  pdfrx_engine 0.9.1 (0.9.6 available)
+  qr 3.0.3 (4.0.1 available)
+  riverpod 2.6.1 (3.5.0 available)
+  share_plus 12.0.2 (13.3.1 available)
+  share_plus_platform_interface 6.1.0 (7.2.0 available)
+  test_api 0.7.12 (0.7.15 available)
+  url_launcher_android 6.3.33 (6.3.35 available)
+  win32 5.15.0 (6.4.0 available)
+Got dependencies in `/home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2`!
+22 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/integration_test/android_us2_journey_test.dart
+Running Gradle task 'assembleDebug'...                          
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/home/xxammaxx/.gradle/wrapper/dists/gradle-9.3.1-all/9ot9r568e8zfvvd4mn8rbu1j0/gradle-9.3.1/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: Your app uses the following plugins that apply Kotlin Gradle Plugin (KGP): share_plus
+Future versions of Flutter will fail to build if your app uses plugins that apply KGP.
+
+Please check the changelogs of these plugins and upgrade to a version that supports Built-in Kotlin.
+If no such version exists, report the issue to the plugin. If necessary, here is a guide on filing
+an issue against a plugin: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers#report-incompatible-kotlin-gradle-plugin-usage-to-plugin-authors
+
+If you are a plugin author, please migrate your plugin to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
+Running Gradle task 'assembleDebug'...                             75,1s
+✓ Built build/app/outputs/flutter-apk/app-debug.apk
+Installing build/app/outputs/flutter-apk/app-debug.apk...        1.415ms
+00:00 +0: (setUpAll)
+00:00 +0: US2 real picker import, analysis, review, and persistence
+US2_PICKER_READY
+US2_EDITOR_READY
+US2_SCREENSHOT_EDITOR_READY
+US2_SUGGESTIONS_VISIBLE
+US2_SUGGESTION_COUNT:80
+US2_PAGE_COUNTS:28,52
+US2_UNSURE_COUNT:0
+US2_CONFLICT_COUNT:16
+US2_PAGE_FAILURES:0
+US2_SUGGESTION:s_p0_0001:p0:text:114.875,33.875,2.5,4.25:0.59:
+US2_SUGGESTION:s_p0_0002:p0:text:56.875,43.5,481.625,18:0.59:
+US2_SUGGESTION:s_p0_0003:p0:checkbox:436,45,3.875,4.375:0.59:
+US2_SUGGESTION:s_p0_0004:p0:checkbox:116.25,45.375,5.125,5:0.71:
+US2_SUGGESTION:s_p0_0005:p0:checkbox:142.875,47.125,4.375,3.25:0.71:
+US2_SUGGESTION:s_p0_0006:p0:text:88.25,99.375,3.5,5:0.71:
+US2_SUGGESTION:s_p0_0007:p0:checkbox:141.125,101.125,4.375,3.25:0.71:
+US2_SUGGESTION:s_p0_0008:p0:checkbox:82.75,128.125,5.5,5.75:0.71:
+US2_SUGGESTION:s_p0_0009:p0:checkbox:164.5,128.125,2.875,3.625:0.71:
+US2_SUGGESTION:s_p0_0010:p0:text:190.125,147.625,299.875,18:0.59:
+US2_SUGGESTION:s_p0_0011:p0:date:190.125,181.75,299.875,18:0.71:
+US2_SUGGESTION:s_p0_0012:p0:date:190.125,215.625,299.875,18:0.71:
+US2_SUGGESTION:s_p0_0013:p0:date:190.125,249.875,299.875,18:0.71:
+US2_SUGGESTION:s_p0_0014:p0:text:190.125,283.625,299.875,18:0.59:
+US2_SUGGESTION:s_p0_0015:p0:text:190.125,353.875,299.875,18:0.83:
+US2_SUGGESTION:s_p0_0016:p0:text:190.125,387.75,299.875,18:0.59:
+US2_SUGGESTION:s_p0_0017:p0:text:190.125,421.5,299.875,18:0.59:
+US2_SUGGESTION:s_p0_0018:p0:checkbox:58,425.5,5,5.75:0.83:
+US2_SUGGESTION:s_p0_0019:p0:checkbox:125.625,478.125,5.375,5.75:0.71:
+US2_SUGGESTION:s_p0_0020:p0:checkbox:190.5,502.5,9.25,9.375:0.83:
+US2_SUGGESTION:s_p0_0021:p0:checkbox:300.25,502.5,9.75,9.375:0.71:
+US2_SUGGESTION:s_p0_0022:p0:checkbox:410.375,502.5,9.375,9.375:0.83:
+US2_SUGGESTION:s_p0_0023:p0:checkbox:218.875,504.375,4.375,3.25:0.71:
+US2_SUGGESTION:s_p0_0024:p0:checkbox:427.375,504.375,4.25,3.25:0.71:
+US2_SUGGESTION:s_p0_0025:p0:text:190.125,547.875,299.875,18:0.59:
+US2_SUGGESTION:s_p0_0026:p0:checkbox:63,553.375,4.625,3.875:0.83:
+US2_SUGGESTION:s_p0_0027:p0:text:190.125,623.875,299.875,18:0.59:
+US2_SUGGESTION:s_p0_0028:p0:text:56.875,777.625,481.625,18:0.71:
+US2_SUGGESTION:s_p1_0001:p1:text:114.875,33.875,2.5,4.25:0.59:
+US2_SUGGESTION:s_p1_0002:p1:text:56.875,43.5,481.625,18:0.59:
+US2_SUGGESTION:s_p1_0003:p1:checkbox:436,45,3.875,4.375:0.59:
+US2_SUGGESTION:s_p1_0004:p1:checkbox:116.25,45.375,5.125,5:0.71:
+US2_SUGGESTION:s_p1_0005:p1:checkbox:142.875,47.125,4.375,3.25:0.71:
+US2_SUGGESTION:s_p1_0006:p1:checkbox:96.125,99.375,6.125,5:0.71:
+US2_SUGGESTION:s_p1_0007:p1:checkbox:127.5,132.5,3.125,5:0.71:s_p1_0008
+US2_SUGGESTION:s_p1_0008:p1:checkbox:127.5,132.5,6,5:0.71:s_p1_0007
+US2_SUGGESTION:s_p1_0009:p1:multiline:190.5,152.25,348,75.625:0.83:
+US2_SUGGESTION:s_p1_0010:p1:checkbox:70.25,157.375,5,3.875:0.71:
+US2_SUGGESTION:s_p1_0011:p1:checkbox:90.375,157.375,4.625,3.875:0.71:
+US2_SUGGESTION:s_p1_0012:p1:text:56.875,286.25,59.375,25.5:0.59:
+US2_SUGGESTION:s_p1_0013:p1:multiline:56.875,286.25,482,129.5:0.59:s_p1_0030
+US2_SUGGESTION:s_p1_0014:p1:text:117,286.25,301.625,25.5:0.59:
+US2_SUGGESTION:s_p1_0015:p1:number:419.375,286.25,119.5,25.5:0.93:
+US2_SUGGESTION:s_p1_0016:p1:text:56.5,293.75,482.75,18:0.59:
+US2_SUGGESTION:s_p1_0017:p1:checkbox:429.125,295.875,2.5,4.375:0.83:s_p1_0018
+US2_SUGGESTION:s_p1_0018:p1:checkbox:429.125,295.875,5,4.375:0.83:s_p1_0017
+US2_SUGGESTION:s_p1_0019:p1:checkbox:72.375,297.375,2.125,2.875:0.71:
+US2_SUGGESTION:s_p1_0020:p1:checkbox:449.625,297.375,4.375,5:0.83:
+US2_SUGGESTION:s_p1_0021:p1:text:56.875,312.5,59.375,25.125:0.59:
+US2_SUGGESTION:s_p1_0022:p1:text:117,312.5,301.625,25.125:0.59:s_p1_0025
+US2_SUGGESTION:s_p1_0023:p1:number:419.375,312.5,119.5,25.125:0.93:s_p1_0024
+US2_SUGGESTION:s_p1_0024:p1:number:427,314.625,104,18:0.93:s_p1_0023
+US2_SUGGESTION:s_p1_0025:p1:text:56.5,319.625,482.75,18:0.59:s_p1_0022
+US2_SUGGESTION:s_p1_0026:p1:text:56.875,338.375,59.375,25.25:0.59:
+US2_SUGGESTION:s_p1_0027:p1:text:117,338.375,301.625,25.25:0.59:
+US2_SUGGESTION:s_p1_0028:p1:text:419.375,338.375,119.5,25.25:0.59:s_p1_0029
+US2_SUGGESTION:s_p1_0029:p1:text:427,340.875,104,18:0.59:s_p1_0028
+US2_SUGGESTION:s_p1_0030:p1:text:56.5,345.625,482.75,18:0.59:s_p1_0013
+US2_SUGGESTION:s_p1_0031:p1:checkbox:173.875,349.25,4.625,3.25:0.71:
+US2_SUGGESTION:s_p1_0032:p1:text:56.875,364.375,59.375,25.5:0.59:
+US2_SUGGESTION:s_p1_0033:p1:text:117,364.375,301.625,25.5:0.59:
+US2_SUGGESTION:s_p1_0034:p1:text:419.375,364.375,119.5,25.5:0.59:s_p1_0035
+US2_SUGGESTION:s_p1_0035:p1:text:427,366.875,104,18:0.59:s_p1_0034
+US2_SUGGESTION:s_p1_0036:p1:text:56.5,371.875,482.75,18:0.59:
+US2_SUGGESTION:s_p1_0037:p1:text:56.875,390.25,59.375,25.5:0.59:
+US2_SUGGESTION:s_p1_0038:p1:number:117,390.25,301.625,25.5:0.93:
+US2_SUGGESTION:s_p1_0039:p1:text:419.375,390.25,119.5,25.5:0.59:s_p1_0040
+US2_SUGGESTION:s_p1_0040:p1:text:427,392.75,104,18:0.59:s_p1_0039
+US2_SUGGESTION:s_p1_0041:p1:checkbox:190.5,480.25,9.25,9.75:0.83:
+US2_SUGGESTION:s_p1_0042:p1:checkbox:330.5,480.25,9.375,9.75:0.83:
+US2_SUGGESTION:s_p1_0043:p1:checkbox:392.75,482.375,4.75,3.25:0.71:
+US2_SUGGESTION:s_p1_0044:p1:checkbox:70.875,532.5,4.375,5.375:0.83:
+US2_SUGGESTION:s_p1_0045:p1:checkbox:94,532.5,3.5,5:0.83:
+US2_SUGGESTION:s_p1_0046:p1:checkbox:99,534.25,4.375,3.625:0.83:
+US2_SUGGESTION:s_p1_0047:p1:date:190.125,553.625,299.875,18:0.93:
+US2_SUGGESTION:s_p1_0048:p1:checkbox:58,557.625,5,5.75:0.83:
+US2_SUGGESTION:s_p1_0049:p1:text:190.125,587.875,299.875,18:0.59:
+US2_SUGGESTION:s_p1_0050:p1:checkbox:63,593.25,4.625,4:0.83:
+US2_SUGGESTION:s_p1_0051:p1:text:190.125,637.875,299.875,18:0.59:
+US2_SUGGESTION:s_p1_0052:p1:text:56.875,777.625,481.625,18:0.71:
+US2_LABEL_NULL_COUNT:13
+US2_MIN_CONFIDENCE:0.59
+US2_SCREENSHOT_SUGGESTIONS_VISIBLE
+US2_EXPECTED_FIELDS_ASSERTED:9
+US2_FALLBACK_ROW_ASSERTED
+US2_CONFLICT_MARKERS_ASSERTED
+US2_UNSURE_MARKER_UNVERIFIED
+US2_CONFIRM_TARGET:s_p0_0014:p0:text
+US2_REJECT_TARGET:s_p0_0001:p0:text
+US2_PANEL_ROW_METADATA_ASSERTED
+US2_CONFIRMED_SAVED
+US2_FALLBACK_LABEL_CONFIRMED
+US2_REJECTED_SAVED
+US2_REJECTION_UNDONE
+US2_CONFIRMATION_UNDONE
+US2_AFTER_REVIEW
+US2_SCREENSHOT_AFTER_REVIEW
+US2_STORE_VERIFIED
+US2_CLEANUP_DONE
+07:28 +1: (tearDownAll)
+07:31 +1: All tests passed!
