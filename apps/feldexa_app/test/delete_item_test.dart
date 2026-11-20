@@ -12,6 +12,8 @@
 //   * no callback, store, route, snackbar, or deletion side effect occurs; the
 //     observer sees only the dialog route push and pop;
 //   * the stable dialog and action keys exist;
+//   * the destructive confirm action reads the unambiguous German system
+//     delete label while cancel keeps the system cancel label;
 //   * `deletionConfirmationMessage` returns exactly the ARB sentence;
 //   * 200 % text scale reflows at 280 logical pixels without overflow;
 //   * the production source is ASCII, contains no German literal, references
@@ -337,6 +339,50 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+
+  testWidgets(
+    'confirm reads Löschen and cancel stays the system cancel label',
+    (WidgetTester tester) async {
+      final List<bool> results = <bool>[];
+      await tester.pumpWidget(_app(results: results));
+
+      for (final _Case entry in _cases) {
+        await _openDialog(tester, entry.button);
+
+        final BuildContext dialogContext = tester.element(
+          find.byKey(_dialogKey),
+        );
+        final MaterialLocalizations material = MaterialLocalizations.of(
+          dialogContext,
+        );
+        final Text confirm = tester.widget<Text>(
+          find.descendant(
+            of: find.byKey(_confirmKey),
+            matching: find.byType(Text),
+          ),
+        );
+        final Text cancel = tester.widget<Text>(
+          find.descendant(
+            of: find.byKey(_cancelKey),
+            matching: find.byType(Text),
+          ),
+        );
+
+        expect(material.deleteButtonTooltip, 'Löschen');
+        expect(material.cancelButtonLabel, 'Abbrechen');
+        expect(confirm.data, 'Löschen');
+        expect(cancel.data, material.cancelButtonLabel);
+        expect(cancel.data, 'Abbrechen');
+        expect(find.text('Löschen'), findsOneWidget);
+        expect(find.text('OK'), findsNothing);
+
+        await tester.tap(find.byKey(_cancelKey));
+        await tester.pumpAndSettle();
+      }
+      expect(results, <bool>[false, false]);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets(
     'confirm, cancel, and barrier keep the host and move only the dialog route',

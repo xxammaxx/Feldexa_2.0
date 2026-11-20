@@ -66,7 +66,9 @@ Future<bool> showDeleteItemConfirmation(
           TextButton(
             key: const ValueKey<String>('delete-item-confirm'),
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(MaterialLocalizations.of(dialogContext).okButtonLabel),
+            child: Text(
+              MaterialLocalizations.of(dialogContext).deleteButtonTooltip,
+            ),
           ),
         ],
       );
