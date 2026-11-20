@@ -8,12 +8,18 @@
 // against `contracts/recognition-output.md` §1–§6, `contracts/ports.md`
 // §2.2/§2.3, FR-011…FR-020, FR-083, and FR-085:
 //   * a synthetic underline page with an OCR label yields the expected type,
-//     label, confidence, arms, cues, and one validated suggestion;
+//     label, confidence, cues, and one validated suggestion;
 //   * ids and order are deterministic, including shuffled page input;
 //   * conflicts are symmetric and both candidates are retained;
-//   * OCR absence/failure is recoverable and geometry-only;
-//   * raster failures isolate one page and mismatch is `rasterization`;
-//   * detector failures map to `internal` or `unsupported_structure`;
+//   * OCR absence/failure is recoverable, geometry-only, and page-isolated;
+//   * OCR receives a tight width-by-height raster even when the source has row
+//     padding;
+//   * raster failures isolate one page and mismatch is `rasterization`, while
+//     post-render strip/analysis failures are `internal`;
+//   * detector preconditions are `internal`; only an explicit structure signal
+//     preserves `unsupported_structure`;
+//   * same-family cues collapse to one `cueAgreement`, partial drafts are
+//     counted on failure, and rotation propagates into the envelope;
 //   * cancellation excludes only the matching page and never fails it;
 //   * timings are non-negative, envelopes round-trip through T057, no label
 //     text is logged, and caller lists are never mutated.
@@ -27,6 +33,7 @@ import 'dart:typed_data';
 import 'package:feldexa_application/src/recognition/analyze_document.dart';
 import 'package:feldexa_core/feldexa_core.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
+import 'package:feldexa_recognition/src/geometry_detector.dart';
 import 'package:feldexa_recognition/src/page_analysis.dart';
 import 'package:feldexa_recognition/src/raster.dart';
 import 'package:feldexa_recognition/src/suggestion_schema.dart';
@@ -106,6 +113,7 @@ final class _FakeRaster implements PageRasterPort {
 
   final Map<int, _RasterSpec> specs;
   final List<RasterRequest> requests = <RasterRequest>[];
+  final List<RasterImage> renderedImages = <RasterImage>[];
 
   @override
   CapabilityDescriptor get descriptor => _rasterDescriptor;
@@ -124,7 +132,7 @@ final class _FakeRaster implements PageRasterPort {
     if (spec.fail) {
       throw RenderException(pageIndex: request.pageIndex);
     }
-    return RasterImage(
+    final RasterImage image = RasterImage(
       bytes: spec.bytes,
       width: spec.width,
       height: _rasterHeight,
@@ -135,6 +143,8 @@ final class _FakeRaster implements PageRasterPort {
         adapterId: 'test.raster.v1',
       ),
     );
+    renderedImages.add(image);
+    return image;
   }
 
   @override
@@ -193,6 +203,21 @@ _RasterSpec _underlinePage({int top = 200, int left = 100, int right = 200}) {
   final _Canvas canvas = _Canvas()
     ..fillRect(left, top, right, top + 2, value: 0);
   return _RasterSpec(bytes: canvas.build());
+}
+
+_RasterSpec _paddedRaster(_RasterSpec base, {int padding = 4}) {
+  final int stride = _rasterWidth + padding;
+  final Uint8List padded = Uint8List(stride * _rasterHeight);
+  for (int row = 0; row < _rasterHeight; row++) {
+    padded.setRange(
+      row * stride,
+      row * stride + _rasterWidth,
+      base.bytes,
+      row * _rasterWidth,
+    );
+    padded.fillRange(row * stride + _rasterWidth, (row + 1) * stride, 0xAB);
+  }
+  return _RasterSpec(bytes: padded, bytesPerRow: stride);
 }
 
 OcrBlock _ocrBlock({
@@ -310,6 +335,26 @@ void main() {
     expect(page.pageSizePt.height, 595);
   });
 
+  test('page rotation propagates into the envelope', () async {
+    final DocumentAnalysisPage page = DocumentAnalysisPage.fromGeometry(
+      pageIndex: 0,
+      geometry: PageGeometry(
+        mediaBox: Rect.fromLTWH(0, 0, _pageWidthPt, _pageHeightPt),
+        rotation: 90,
+      ),
+    );
+
+    final DocumentAnalysisResult result = await AnalyzeDocument.run(
+      _request(
+        raster: _FakeRaster(<int, _RasterSpec>{0: _underlinePage()}),
+        pages: <DocumentAnalysisPage>[page],
+      ),
+    );
+
+    expect(result.pages.single.rotation, 90);
+    expect(result.pages.single.isComplete, isTrue);
+  });
+
   test('a duplicate page index is rejected before analysis', () {
     expect(
       () => _request(
@@ -368,6 +413,34 @@ void main() {
       'ocr_alignment_right',
       'underline',
     ]);
+  });
+
+  test('two cues of one family count once in cueAgreement', () async {
+    final DocumentAnalysisResult result = await AnalyzeDocument.run(
+      _request(
+        raster: _FakeRaster(<int, _RasterSpec>{0: _underlinePage()}),
+        ocr: _FakeOcr(
+          blocksByPage: <int, List<OcrBlock>>{
+            0: <OcrBlock>[
+              _ocrBlock(
+                text: 'Betrag TT.MM.JJJJ',
+                rect: Rect.fromLTWH(10, 56, 22, 10),
+              ),
+            ],
+          },
+        ),
+      ),
+    );
+
+    final Map<String, Object?> suggestion =
+        result.pages.single.suggestions.single;
+    final Map<String, Object?> evidence = _evidence(suggestion);
+    final List<String> cues = (evidence['cues']! as List<Object?>)
+        .cast<String>();
+    expect(cues, containsAll(<String>['numeric_context', 'date_context']));
+    expect(cues, hasLength(5));
+    expect(evidence['cueAgreement'], 4);
+    expect(suggestion['proposedType'], 'number');
   });
 
   test('suggestion ids and order are deterministic', () async {
@@ -459,6 +532,49 @@ void main() {
     expect(_evidence(set.suggestions.single)['ocrUsed'], isFalse);
   });
 
+  test(
+    'an OCR failure stays on its page while another page yields suggestions',
+    () async {
+      final _FakeOcr ocr = _FakeOcr(
+        failingPages: <int>{0},
+        blocksByPage: <int, List<OcrBlock>>{
+          1: <OcrBlock>[
+            _ocrBlock(text: 'Betrag', rect: Rect.fromLTWH(10, 56, 22, 10)),
+          ],
+        },
+      );
+      final DocumentAnalysisResult result = await AnalyzeDocument.run(
+        _request(
+          raster: _FakeRaster(<int, _RasterSpec>{
+            0: _underlinePage(top: 100),
+            1: _underlinePage(),
+          }),
+          ocr: ocr,
+          pages: <DocumentAnalysisPage>[_page(0), _page(1)],
+        ),
+      );
+
+      expect(result.pages, hasLength(2));
+      final FieldSuggestionSet first = result.pages[0];
+      final FieldSuggestionSet second = result.pages[1];
+      expect(first.isComplete, isTrue);
+      expect(first.isFailed, isFalse);
+      expect(first.failure, isNull);
+      expect(_evidence(first.suggestions.single)['ocrUsed'], isFalse);
+
+      expect(second.isComplete, isTrue);
+      expect(second.failure, isNull);
+      final Map<String, Object?> suggestion = second.suggestions.single;
+      expect(suggestion['labelText'], 'Betrag');
+      expect(suggestion['proposedType'], 'number');
+      expect(_evidence(suggestion)['ocrUsed'], isTrue);
+      expect(ocr.requests.map((OcrRequest request) => request.pageIndex), <int>[
+        0,
+        1,
+      ]);
+    },
+  );
+
   test('a render failure isolates exactly one page', () async {
     final _FakeRaster raster = _FakeRaster(<int, _RasterSpec>{
       0: _underlinePage(),
@@ -510,25 +626,10 @@ void main() {
 
   test('row padding is stripped before analysis', () async {
     final _RasterSpec base = _underlinePage();
-    const int padding = 4;
-    const int stride = _rasterWidth + padding;
-    final Uint8List padded = Uint8List(stride * _rasterHeight);
-    for (int row = 0; row < _rasterHeight; row++) {
-      padded.setRange(
-        row * stride,
-        row * stride + _rasterWidth,
-        base.bytes,
-        row * _rasterWidth,
-      );
-      padded.fillRange(row * stride + _rasterWidth, (row + 1) * stride, 0xAB);
-    }
+    final _RasterSpec padded = _paddedRaster(base);
 
     final DocumentAnalysisResult result = await AnalyzeDocument.run(
-      _request(
-        raster: _FakeRaster(<int, _RasterSpec>{
-          0: _RasterSpec(bytes: padded, bytesPerRow: stride),
-        }),
-      ),
+      _request(raster: _FakeRaster(<int, _RasterSpec>{0: padded})),
     );
 
     final FieldSuggestionSet set = result.pages.single;
@@ -543,6 +644,37 @@ void main() {
     expect(_evidence(suggestion)['ocrUsed'], isFalse);
     expect(suggestion['confidence'], 0.32);
   });
+
+  test(
+    'OCR receives a tight width-by-height raster from a padded source',
+    () async {
+      final _RasterSpec base = _underlinePage();
+      final _FakeRaster raster = _FakeRaster(<int, _RasterSpec>{
+        0: _paddedRaster(base),
+      });
+      final _FakeOcr ocr = _FakeOcr();
+
+      final DocumentAnalysisResult result = await AnalyzeDocument.run(
+        _request(raster: raster, ocr: ocr),
+      );
+
+      expect(result.pages.single.isComplete, isTrue);
+      expect(ocr.requests, hasLength(1));
+      final RasterImage image = ocr.requests.single.image;
+      expect(image.width, _rasterWidth);
+      expect(image.height, _rasterHeight);
+      expect(image.format, RasterFormat.gray8);
+      expect(image.bytesPerRow, _rasterWidth);
+      expect(image.bytes.length, _rasterWidth * _rasterHeight);
+      expect(image.bytes, base.bytes);
+      expect(
+        identical(image.evidence, raster.renderedImages.single.evidence),
+        isTrue,
+      );
+      expect(image.width / (200 / 72), closeTo(_pageWidthPt, 1e-12));
+      expect(image.height / (200 / 72), closeTo(_pageHeightPt, 1e-12));
+    },
+  );
 
   test('a non-gray8 render is a rasterization failure', () async {
     final Uint8List rgba = Uint8List(
@@ -562,25 +694,49 @@ void main() {
     expect(set.failure!.messageKey, 'PAGE-001');
   });
 
-  test('detector failures map to internal and unsupported_structure', () async {
-    final DocumentAnalysisResult internal = await AnalyzeDocument.run(
+  test('a post-render analysis failure maps to internal', () async {
+    // A valid RasterImage already guarantees the strip's preconditions, so the
+    // injectable analysis builder is the deterministic way to exercise the
+    // shared post-render strip/analysis catch.
+    final DocumentAnalysisResult result = await AnalyzeDocument.run(
       _request(raster: _FakeRaster(<int, _RasterSpec>{0: _underlinePage()})),
-      geometryDetection:
-          (
-            RasterAnalysis analysis, {
-            required double pageWidthPt,
-            required double pageHeightPt,
-          }) {
-            throw StateError('synthetic detector failure');
-          },
+      rasterAnalysis: (GrayRaster raster) {
+        throw StateError('synthetic analysis failure');
+      },
     );
-    expect(
-      internal.pages.single.failure!.category,
-      PageAnalysisFailure.internal,
-    );
-    expect(internal.pages.single.failure!.messageKey, 'REC-002');
 
-    final DocumentAnalysisResult unsupported = await AnalyzeDocument.run(
+    final FieldSuggestionSet set = result.pages.single;
+    expect(set.isFailed, isTrue);
+    expect(set.failure!.category, PageAnalysisFailure.internal);
+    expect(set.failure!.messageKey, 'REC-002');
+    expect(set.suggestions, isEmpty);
+  });
+
+  test(
+    'detector preconditions map to internal, not unsupported structure',
+    () async {
+      final DocumentAnalysisResult result = await AnalyzeDocument.run(
+        _request(raster: _FakeRaster(<int, _RasterSpec>{0: _underlinePage()})),
+        geometryDetection:
+            (
+              RasterAnalysis analysis, {
+              required double pageWidthPt,
+              required double pageHeightPt,
+            }) {
+              throw ArgumentError('synthetic detector precondition');
+            },
+      );
+
+      expect(
+        result.pages.single.failure!.category,
+        PageAnalysisFailure.internal,
+      );
+      expect(result.pages.single.failure!.messageKey, 'REC-002');
+    },
+  );
+
+  test('an explicit detector structure signal preserves REC-003', () async {
+    final DocumentAnalysisResult result = await AnalyzeDocument.run(
       _request(raster: _FakeRaster(<int, _RasterSpec>{0: _underlinePage()})),
       geometryDetection:
           (
@@ -588,14 +744,43 @@ void main() {
             required double pageWidthPt,
             required double pageHeightPt,
           }) {
-            throw ArgumentError('synthetic unsupported structure');
+            throw PageAnalysisFailure.forCategory(
+              PageAnalysisFailure.unsupportedStructure,
+            );
           },
     );
+
     expect(
-      unsupported.pages.single.failure!.category,
+      result.pages.single.failure!.category,
       PageAnalysisFailure.unsupportedStructure,
     );
-    expect(unsupported.pages.single.failure!.messageKey, 'REC-003');
+    expect(result.pages.single.failure!.messageKey, 'REC-003');
+  });
+
+  test('a failed page reports discarded partial suggestion drafts', () async {
+    final GeometryCandidate synthetic = GeometryCandidate(
+      rect: DisplayRect(x: 36, y: 54, width: 36, height: 18),
+      cues: const <String>['signature_area'],
+      inkCoverage: 0,
+    );
+    final DocumentAnalysisResult result = await AnalyzeDocument.run(
+      _request(raster: _FakeRaster(<int, _RasterSpec>{0: _underlinePage()})),
+      geometryDetection:
+          (
+            RasterAnalysis analysis, {
+            required double pageWidthPt,
+            required double pageHeightPt,
+          }) {
+            return <GeometryCandidate>[synthetic];
+          },
+    );
+
+    final FieldSuggestionSet set = result.pages.single;
+    expect(set.isFailed, isTrue);
+    expect(set.failure!.category, PageAnalysisFailure.internal);
+    expect(set.failure!.messageKey, 'REC-002');
+    expect(set.failure!.suggestionCount, 1);
+    expect(set.suggestions, isEmpty);
   });
 
   test(

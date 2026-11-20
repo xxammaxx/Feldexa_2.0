@@ -45,10 +45,20 @@
 ///    order and ordinal ids. The `height → width → cues` phrase in the task
 ///    package cannot be the primary sort: assigning ordinals in that order
 ///    would violate the T050 `order` rule whenever the type ordinal differs.
-///  * Failure mapping: render/dimension/format/strip/raster-analysis failures
-///    are `rasterization` (`PAGE-001`); a detector `ArgumentError` is
-///    `unsupported_structure` (`REC-003`); any other detector or assembly
-///    failure is `internal` (`REC-002`); an OCR failure is never a page
+///  * OCR receives a tight-row `RasterImage` rebuilt from the stripped
+///    `GrayRaster`: the original port image may carry `bytesPerRow` padding,
+///    while the OCR adapter contract and the Android channel read
+///    `width × height` grayscale bytes. Width, height, format, and evidence
+///    are preserved so the composed page-size resolver keeps working.
+///  * Failure mapping is stage-correct: a `renderPage` exception or a
+///    dimension/format mismatch is `rasterization` (`PAGE-001`); a failure
+///    while stripping row padding or constructing `RasterAnalysis` after a
+///    successful render is `internal` (`REC-002`); a detector that throws
+///    `PageAnalysisFailure.forCategory(unsupportedStructure)` keeps `REC-003`,
+///    while the T052 `ArgumentError` preconditions and any other detector
+///    exception are `internal`, because they describe an internal
+///    page/geometry invariant, not a diagnosed unreadable structure.
+///    Assembly failures are `internal`. An OCR failure is never a page
 ///    failure and only sets `ocrUsed = false`.
 ///  * Cancellation is checked once per page before any work. A cancelled page
 ///    produces no terminal envelope and is reported separately, never as
@@ -80,6 +90,13 @@ typedef GeometryDetection = List<GeometryCandidate> Function(
   required double pageWidthPt,
   required double pageHeightPt,
 });
+
+/// Builds the 200 DPI analysis tables for one stripped raster.
+///
+/// The default is `RasterAnalysis.new`. This is a fault-injection seam used
+/// only to prove that a post-render analysis failure maps to `internal`; the
+/// production path always uses the T051 analysis.
+typedef RasterAnalysisBuilder = RasterAnalysis Function(GrayRaster raster);
 
 /// Fallback single-line median height when a page has no geometry candidate.
 ///
@@ -300,11 +317,13 @@ abstract final class AnalyzeDocument {
   /// (`recognition-output.md` §4).
   ///
   /// [geometryDetection] defaults to the production [GeometryDetector.detect]
-  /// and exists only to inject a deterministic failure in isolation tests.
+  /// and [rasterAnalysis] defaults to `RasterAnalysis.new`; both exist only to
+  /// inject a deterministic failure in isolation tests.
   static Future<DocumentAnalysisResult> run(
     DocumentAnalysisRequest request, {
     PageCancellation? isCancelled,
     GeometryDetection geometryDetection = GeometryDetector.detect,
+    RasterAnalysisBuilder rasterAnalysis = RasterAnalysis.new,
   }) async {
     final List<DocumentAnalysisPage> ordered =
         List<DocumentAnalysisPage>.of(request.pages)..sort(
@@ -319,7 +338,15 @@ abstract final class AnalyzeDocument {
         cancelled.add(page.pageIndex);
         continue;
       }
-      pages.add(await _analyzePage(request, page, geometryDetection, clock));
+      pages.add(
+        await _analyzePage(
+          request,
+          page,
+          geometryDetection,
+          rasterAnalysis,
+          clock,
+        ),
+      );
     }
     return DocumentAnalysisResult._(
       analysisRunId: request.analysisRunId,
@@ -332,6 +359,7 @@ abstract final class AnalyzeDocument {
     DocumentAnalysisRequest request,
     DocumentAnalysisPage page,
     GeometryDetection geometryDetection,
+    RasterAnalysisBuilder rasterAnalysis,
     Stopwatch clock,
   ) async {
     int rasterMs = 0;
@@ -340,16 +368,25 @@ abstract final class AnalyzeDocument {
     int partialSuggestionCount = 0;
     try {
       final int rasterStart = clock.elapsedMilliseconds;
-      final _RasterStage staged;
+      final RasterImage rendered;
       try {
-        staged = await _renderAndAnalyze(request, page);
+        rendered = await _renderPage(request, page);
       } catch (_) {
+        rasterMs = _elapsed(clock, rasterStart);
         throw PageAnalysisFailure.forCategory(
           PageAnalysisFailure.rasterization,
         );
-      } finally {
-        rasterMs = _elapsed(clock, rasterStart);
       }
+      final _RasterStage staged;
+      try {
+        staged = _analyzeRaster(rendered, rasterAnalysis);
+      } catch (_) {
+        // A successful render followed by a strip/analysis failure is an
+        // internal pipeline fault, not a rasterization or page-structure one.
+        rasterMs = _elapsed(clock, rasterStart);
+        throw PageAnalysisFailure.forCategory(PageAnalysisFailure.internal);
+      }
+      rasterMs = _elapsed(clock, rasterStart);
 
       final int detectStart = clock.elapsedMilliseconds;
       final List<GeometryCandidate> candidates;
@@ -359,12 +396,14 @@ abstract final class AnalyzeDocument {
           pageWidthPt: page.pageSizePt.width,
           pageHeightPt: page.pageSizePt.height,
         );
-      } on ArgumentError {
+      } on PageAnalysisFailure {
+        // Only an explicit detector signal may declare unsupported structure.
         detectMs = _elapsed(clock, detectStart);
-        throw PageAnalysisFailure.forCategory(
-          PageAnalysisFailure.unsupportedStructure,
-        );
+        rethrow;
       } catch (_) {
+        // T052 ArgumentErrors describe page/geometry preconditions (page size
+        // not representable, raster/page mismatch); they are internal here,
+        // never a diagnosed unreadable structure.
         detectMs = _elapsed(clock, detectStart);
         throw PageAnalysisFailure.forCategory(PageAnalysisFailure.internal);
       }
@@ -373,7 +412,7 @@ abstract final class AnalyzeDocument {
       final int ocrStart = clock.elapsedMilliseconds;
       final _OcrStage ocr = await _runOcr(
         port: request.ocrPort,
-        image: staged.image,
+        image: staged.ocrImage,
         page: page,
       );
       ocrMs = _elapsed(clock, ocrStart);
@@ -446,7 +485,9 @@ abstract final class AnalyzeDocument {
     }
   }
 
-  static Future<_RasterStage> _renderAndAnalyze(
+  /// Renders and validates the page raster. Every failure here is a
+  /// rasterization failure (`PAGE-001`).
+  static Future<RasterImage> _renderPage(
     DocumentAnalysisRequest request,
     DocumentAnalysisPage page,
   ) async {
@@ -467,8 +508,33 @@ abstract final class AnalyzeDocument {
         image.height != expected.heightPx) {
       throw PageAnalysisFailure.forCategory(PageAnalysisFailure.rasterization);
     }
-    final GrayRaster gray = _stripRowPadding(image);
-    return _RasterStage(image, RasterAnalysis(gray));
+    return image;
+  }
+
+  /// Strips row padding, builds the analysis tables, and rebuilds the tight
+  /// OCR image. Every failure here is a post-render internal failure
+  /// (`REC-002`), not a rasterization or page-structure failure.
+  static _RasterStage _analyzeRaster(
+    RasterImage source,
+    RasterAnalysisBuilder rasterAnalysis,
+  ) {
+    final GrayRaster gray = _stripRowPadding(source);
+    final RasterAnalysis analysis = rasterAnalysis(gray);
+    // OCR consumes one tight grayscale byte per pixel: the port image may
+    // carry row padding, and the OCR adapter/channel reads `width × height`
+    // bytes. Rebuilding the image preserves width, height, gray8 format, and
+    // the source evidence so the composed page-size resolver still works.
+    return _RasterStage(
+      RasterImage(
+        bytes: Uint8List.fromList(gray.pixels),
+        width: gray.width,
+        height: gray.height,
+        bytesPerRow: gray.width,
+        format: RasterFormat.gray8,
+        evidence: source.evidence,
+      ),
+      analysis,
+    );
   }
 
   static GrayRaster _stripRowPadding(RasterImage image) {
@@ -792,11 +858,11 @@ abstract final class AnalyzeDocument {
   }
 }
 
-/// Rendered pixels plus the padding-free analysis raster.
+/// Tight OCR pixels plus the padding-free analysis raster.
 final class _RasterStage {
-  _RasterStage(this.image, this.analysis);
+  _RasterStage(this.ocrImage, this.analysis);
 
-  final RasterImage image;
+  final RasterImage ocrImage;
   final RasterAnalysis analysis;
 }
 
