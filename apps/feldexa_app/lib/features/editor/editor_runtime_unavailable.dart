@@ -43,6 +43,9 @@ final class _UnavailableEditorRuntime implements EditorRuntime {
   IdPort get ids => _unavailable();
 
   @override
+  ClockPort get clock => _unavailable();
+
+  @override
   Future<LoadedDocument> loadDocument(String documentId) async =>
       _unavailable();
 

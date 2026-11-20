@@ -256,6 +256,132 @@ abstract class AppLocalizations {
   /// **'Vorschläge'**
   String get suggestionsLabel;
 
+  /// Phase B2 review panel empty state: the completed analysis produced no suggestions.
+  ///
+  /// In de, this message translates to:
+  /// **'Für dieses Dokument wurden keine Felder vorgeschlagen.'**
+  String get suggestionEmpty;
+
+  /// Phase B2 review panel empty state: every suggestion has been confirmed or rejected.
+  ///
+  /// In de, this message translates to:
+  /// **'Alle Vorschläge wurden geprüft.'**
+  String get suggestionAllReviewed;
+
+  /// Phase B2 review panel header: number of suggestions still awaiting a decision.
+  ///
+  /// In de, this message translates to:
+  /// **'{count} offen'**
+  String suggestionOpenCount(int count);
+
+  /// Phase B2 review panel header: confirmed machine/user field count after review actions.
+  ///
+  /// In de, this message translates to:
+  /// **'{count, plural, =0{Keine Felder bestätigt} =1{1 Feld bestätigt} other{{count} Felder bestätigt}}'**
+  String suggestionFieldCount(int count);
+
+  /// Phase B2 review panel header: resolved suggestion counts after a confirmation or rejection.
+  ///
+  /// In de, this message translates to:
+  /// **'{confirmed} bestätigt, {rejected} abgelehnt'**
+  String suggestionReviewProgress(int confirmed, int rejected);
+
+  /// Phase B2 review row fallback label when the suggestion has no credible printed label.
+  ///
+  /// In de, this message translates to:
+  /// **'Feld'**
+  String get suggestionRowFallback;
+
+  /// Phase B2 fallback label for a confirmed suggestion without a credible printed label; <n> is the one-based field number.
+  ///
+  /// In de, this message translates to:
+  /// **'Feld {n}'**
+  String suggestionFieldLabel(int n);
+
+  /// Phase B2 review row: one-based page number.
+  ///
+  /// In de, this message translates to:
+  /// **'Seite {page}'**
+  String suggestionPage(int page);
+
+  /// Phase B2 review row: candidate position in page display points, rounded to the canonical 1/8 pt display grid.
+  ///
+  /// In de, this message translates to:
+  /// **'x {x} pt · y {y} pt'**
+  String suggestionPosition(String x, String y);
+
+  /// Phase B2 review row: confidence as an integer percent (never a probability claim).
+  ///
+  /// In de, this message translates to:
+  /// **'Zuverlässigkeit {percent} %'**
+  String suggestionConfidence(int percent);
+
+  /// Phase B2 review row: uncertainty marker for confidence below 0.50 (FR-083).
+  ///
+  /// In de, this message translates to:
+  /// **'unsicher'**
+  String get suggestionUncertain;
+
+  /// Phase B2 review row: conflict marker when conflictsWith is non-empty (FR-025); both candidates stay resolvable.
+  ///
+  /// In de, this message translates to:
+  /// **'Konflikt'**
+  String get suggestionConflict;
+
+  /// Phase B2 German name for FieldType.text.
+  ///
+  /// In de, this message translates to:
+  /// **'Text'**
+  String get suggestionTypeText;
+
+  /// Phase B2 German name for FieldType.number.
+  ///
+  /// In de, this message translates to:
+  /// **'Zahl'**
+  String get suggestionTypeNumber;
+
+  /// Phase B2 German name for FieldType.date.
+  ///
+  /// In de, this message translates to:
+  /// **'Datum'**
+  String get suggestionTypeDate;
+
+  /// Phase B2 German name for FieldType.checkbox.
+  ///
+  /// In de, this message translates to:
+  /// **'Kontrollkästchen'**
+  String get suggestionTypeCheckbox;
+
+  /// Phase B2 German name for FieldType.multiline.
+  ///
+  /// In de, this message translates to:
+  /// **'Mehrzeiliger Text'**
+  String get suggestionTypeMultiline;
+
+  /// Phase B2 German name for FieldType.signature.
+  ///
+  /// In de, this message translates to:
+  /// **'Unterschrift'**
+  String get suggestionTypeSignature;
+
+  /// Phase B2 review action: confirm one suggestion (contracts/editor-interactions.md §3).
+  ///
+  /// In de, this message translates to:
+  /// **'Übernehmen'**
+  String get suggestionConfirmAction;
+
+  /// Phase B2 review action: reject one suggestion; reversible with undo (contracts/editor-interactions.md §3).
+  ///
+  /// In de, this message translates to:
+  /// **'Ablehnen'**
+  String get suggestionRejectAction;
+
+  /// Phase B2 review action: undo the most recent reject or untouched confirm (FR-027).
+  ///
+  /// In de, this message translates to:
+  /// **'Rückgängig'**
+  String get suggestionUndoAction;
+
   /// contracts/error-catalog.de.md §3 SAVE-001: Storage full / quota exceeded.
   ///
   /// In de, this message translates to:

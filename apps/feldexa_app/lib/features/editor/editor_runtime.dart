@@ -56,6 +56,9 @@ abstract interface class EditorRuntime {
   /// UUID/id source.
   IdPort get ids;
 
+  /// UTC wall clock used for review timestamps (Phase B2).
+  ClockPort get clock;
+
   /// Loads the current verified revision for [documentId].
   ///
   /// The returned [LoadedDocument] contains the decrypted source bytes owned by

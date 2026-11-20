@@ -1,0 +1,295 @@
+00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/android_backup_rules_test.dart
+00:00 +0: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/android_backup_rules_test.dart: manifest disables backup and points at the extraction rules
+00:00 +1: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/android_backup_rules_test.dart: every transfer mode excludes every app data domain
+00:00 +2: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/android_backup_rules_test.dart: cross-platform transfer is not declared without an iOS identity
+00:01 +3: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/app_import_composition_test.dart: start surface renders the committed German catalog strings
+00:02 +4: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/app_smoke_test.dart: renders the Feldexa shell in German
+00:02 +5: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/app_import_composition_test.dart: accepted import opens the editor, lists every page, and reads the protected source for the imported documentId
+00:03 +6: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/app_import_composition_test.dart: a rejection shows catalog text without a code or navigation and creates no document
+00:03 +7: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/app_import_composition_test.dart: a cancelled picker returns to the start surface with no text
+00:03 +8: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/app_import_composition_test.dart: a partial source derives the IMP-006 warning and marks the affected page unreadable
+00:03 +9: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+00:04 +10: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+00:04 +11: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+00:04 +12: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+00:05 +13: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+00:05 +14: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/font_metrics_bundle_test.dart: metrics for assets/fonts/NotoSans-Regular.ttf match head/hhea/maxp/hmtx/cmap
+00:05 +15: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: an existing suggestion set is skipped without analysis or a write
+00:05 +16: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: an existing suggestion set is skipped without analysis or a write
+00:05 +17: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/font_metrics_bundle_test.dart: metrics for assets/fonts/NotoSans-Bold.ttf match head/hhea/maxp/hmtx/cmap
+00:05 +18: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/font_metrics_bundle_test.dart: metrics for assets/fonts/NotoSans-Bold.ttf match head/hhea/maxp/hmtx/cmap
+00:05 +19: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: a partially unreadable first import still analyzes readable pages
+00:05 +20: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: a partially unreadable first import still analyzes readable pages
+00:05 +21: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: a partially unreadable first import still analyzes readable pages
+00:05 +22: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: a partially unreadable first import still analyzes readable pages
+00:05 +23: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: a partially unreadable first import still analyzes readable pages
+00:06 +24: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: divergent loaded geometry fails before analysis or save
+00:06 +25: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: a loaded/source page-count mismatch fails before analysis
+00:06 +26: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: same-size different rotation fails before analysis
+00:06 +27: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: quantized geometry within 0.001 pt per edge is accepted
+00:06 +28: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: a page failure is isolated while the healthy page is saved
+00:06 +29: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: the viewer and strip stay available while analysis runs
+00:06 +30: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: a save failure keeps the viewer and the in-memory result
+00:06 +31: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: the viewer receives the single protected load without a second store read
+00:06 +32: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: a hung protected load becomes analysis-failed without a second read
+00:06 +33: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: confirm, reject, and undo save with the advancing revision head
+00:07 +34: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: confirm, reject, and undo save with the advancing revision head
+00:07 +35: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: confirm, reject, and undo save with the advancing revision head
+00:07 +36: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: confirm, reject, and undo save with the advancing revision head
+00:07 +37: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: confirm, reject, and undo save with the advancing revision head
+00:07 +38: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: confirm, reject, and undo save with the advancing revision head
+00:07 +39: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: confirm, reject, and undo save with the advancing revision head
+00:07 +40: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: confirm, reject, and undo save with the advancing revision head
+00:07 +41: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: confirm, reject, and undo save with the advancing revision head
+00:07 +42: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: confirm, reject, and undo save with the advancing revision head
+00:07 +43: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: confirm, reject, and undo save with the advancing revision head
+00:07 +44: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: confirm, reject, and undo save with the advancing revision head
+00:07 +45: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: a review save failure keeps the viewer, panel, and prior revision
+00:07 +46: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: applyDocumentAnalysis leaves the base revision immutable on success
+00:07 +47: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: applyDocumentAnalysis rejects existing suggestions without mutating the base revision
+00:07 +48: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: every recognition failure category maps to the core contract
+00:07 +49: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: cancelled pages stay pending and contribute no suggestions
+00:07 +50: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: ImportRuntime returns the unavailable runtime for a throwing factory
+00:07 +51: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_analysis_test.dart: the evidence label is a deterministic build-mode label
+00:08 +52: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+00:08 +53: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: catalog mapping maps every import and import-reachable storage code exactly
+00:08 +54: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: catalog mapping IMP-000 and PLT-004 are cancellations without a message
+00:08 +55: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: catalog mapping an unknown code falls back to IMP-005, never to a password claim
+00:08 +56: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: catalog mapping an unknown exception maps to IMP-005 semantics
+00:08 +57: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: catalog mapping isUnrecognized is true only for the unknown-cause fallback
+00:08 +58: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness only a positive password diagnosis claims password protection
+00:08 +59: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness unsupported encryption uses the truthful IMP-004 text with a false exactness flag
+00:08 +60: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness a raw IMP-001 code with the unsupported-encryption key renders IMP-004
+00:08 +61: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness a raw IMP-001 code with the canonical password key stays IMP-001
+00:08 +62: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness a noncanonical IMP-001 password key is not a password claim
+00:08 +63: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness regression: unsupported encryption never renders the password sentence
+00:08 +64: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness uncertain and structural failures never say password protected
+00:08 +65: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: tone and privacy rendered text contains no code, path, URI, or document title
+00:08 +66: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: IMP-006 partial import a partial source yields the warning with 1-based page numbers
+00:08 +67: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: IMP-006 partial import a single failed page uses its 1-based number
+00:08 +68: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: IMP-006 partial import a fully readable source has no warning
+00:08 +69: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: FR-009 rejection gate a rejected import never reaches document creation
+00:08 +70: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: FR-009 rejection gate storage, too-large, and unknown failures also create nothing
+00:08 +71: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: FR-009 rejection gate cancellation returns to the previous screen and creates nothing
+00:08 +72: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: FR-009 rejection gate an untyped failure is rejected with IMP-005 and creates nothing
+00:08 +73: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: FR-009 rejection gate an accepted partial import creates the document with a warning
+00:08 +74: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_error_mapper_test.dart: FR-009 rejection gate a fully readable import creates the document without a warning
+00:09 +75: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_semantics_test.dart: exact German catalog messages per failure class presents the pinned message and recovery for every import code
+00:09 +76: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_semantics_test.dart: exact German catalog messages per failure class an unclassified exception presents the IMP-005 German text
+00:09 +77: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_semantics_test.dart: exact German catalog messages per failure class pinned sentences are exactly the committed catalog rows
+00:09 +78: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_semantics_test.dart: exact German catalog messages per failure class the mapper resolves the same text through AppLocalizations
+00:09 +79: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_semantics_test.dart: FR-007 truthful password diagnosis only the positive password diagnosis claims password protection
+00:09 +80: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_semantics_test.dart: FR-007 truthful password diagnosis canonical unsupported encryption presents IMP-004 with a false flag
+00:09 +81: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_semantics_test.dart: FR-094 no internals in user text rendered text and mapper identity contain no internals
+00:09 +82: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_semantics_test.dart: FR-094 no internals in user text partial warning text and identity contain no internals
+00:09 +83: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_semantics_test.dart: FR-094 no internals in user text accepted candidate and source identities omit the display name
+00:09 +84: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_semantics_test.dart: FR-009 error semantics at the flow level every rejected or cancelled failure creates no document
+00:09 +85: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_semantics_test.dart: FR-009 error semantics at the flow level an untyped failure is rejected with IMP-005 and creates nothing
+00:09 +86: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_semantics_test.dart: FR-009 error semantics at the flow level IMP-006 succeeds with a warning and ascending 1-based pages
+00:09 +87: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_semantics_test.dart: FR-009 error semantics at the flow level the flow warning matches T044 page state for the same pages
+00:09 +88: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/import_semantics_test.dart: German-only user surface every asserted sentence is German catalog text, not a fallback
+00:09 +89: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/l10n_scaffold_test.dart: German is the only supported release locale
+00:09 +90: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/l10n_scaffold_test.dart: l10n.yaml points at the German template and committed output
+00:09 +91: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:09 +92: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+00:10 +93: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: readable pages a pending page is readable with its reported display size
+00:10 +94: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: readable pages running analysis is projected as analyzing
+00:10 +95: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: readable pages complete analysis is projected as ready
+00:10 +96: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: readable pages a failed analysis stays readable, renderable, and labeled
+00:10 +97: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: readable pages a fully readable document succeeds without a warning
+00:10 +98: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder the placeholder page is unreadable and exposes no display size
+00:10 +99: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder an unreadable page hides even a real-looking reported size
+00:10 +100: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder an unreadable page may omit its reported size
+00:10 +101: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder an IMP-006 failure marks a page unreadable without the flag
+00:10 +102: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder the unreadable flag alone is sufficient
+00:10 +103: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder a persisted T040 placeholder JSON page is suppressed
+00:10 +104: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder a readable 1x1 page is treated as its reported size
+00:10 +105: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder pages are ordered and affected numbers are ascending and 1-based
+00:10 +106: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation a partially unreadable document succeeds with the warning
+00:10 +107: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation affected pages are listed in ascending order
+00:10 +108: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation a single affected page uses its 1-based number
+00:10 +109: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation warning text is catalog German without codes or paths
+00:10 +110: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation readable pages stay usable in a partial document
+00:10 +111: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation a partial document is not an error state
+00:10 +112: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation derived collections are immutable
+00:10 +113: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: fully unreadable document all pages unreadable yields the explicit error state
+00:10 +114: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: fully unreadable document a single unreadable page is a fully unreadable document
+00:10 +115: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: fully unreadable document the error state exposes no renderable size and no warning
+00:10 +116: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects an empty page collection
+00:10 +117: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects duplicate page indices
+00:10 +118: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects non-contiguous page indices
+00:10 +119: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects a negative page index at construction
+00:10 +120: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: input validation and privacy requires a failure key exactly for a failed analysis
+00:10 +121: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects a malformed failure key without echoing it
+00:10 +122: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: input validation and privacy requires a reported size for a readable page
+00:10 +123: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects a non-finite, zero, or negative display size
+00:10 +124: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: input validation and privacy input and state toString omit geometry and content
+00:10 +125: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: canonical Page compatibility every core analysis state maps to exactly one phase
+00:10 +126: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_state_test.dart: canonical Page compatibility a canonical unreadable page keeps its flag and failure key
+00:10 +127: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStripController rejects an initial page outside the document
+00:10 +128: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStripController selects pages, delegates scrolling, and clamps at boundaries
+00:10 +129: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStripController changes selection before a viewport exists
+00:10 +130: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +131: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +132: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +133: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +134: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +135: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +136: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +137: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +138: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +139: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +140: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +141: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +142: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +143: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +144: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +145: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +146: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +147: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +148: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +149: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +150: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +151: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +152: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +153: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +154: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +155: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +156: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +157: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +158: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +159: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +160: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +161: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:11 +162: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:12 +163: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:12 +164: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:12 +165: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:12 +166: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:12 +167: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:12 +168: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:12 +169: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation collapses below 600 dp and navigates with labelled buttons
+00:12 +170: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation collapses below 600 dp and navigates with labelled buttons
+00:12 +171: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_view_test.dart: PageView widget keeps the mapping when the device pixel ratio changes
+00:12 +172: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation shows unreadable and uncertain markers in compact mode
+00:12 +173: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_view_test.dart: PageView widget builds only pages intersecting the viewport
+00:12 +174: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation stays usable at 200% text scaling in both presentations
+00:12 +175: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation stays usable at 200% text scaling in both presentations
+00:12 +176: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_view_test.dart: PageView widget reopens on a source change and disposes the old renderer
+00:13 +177: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation uses the full strip at exactly 600 dp
+00:13 +178: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation uses the full strip at exactly 600 dp
+00:13 +179: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_view_test.dart: PageView widget reports an unavailable source with a content-free failure
+00:13 +180: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip long documents builds lazily and reveals a distant selection
+00:13 +181: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip long documents builds lazily and reveals a distant selection
+00:13 +182: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/page_strip_test.dart: PageStrip long documents compact mode stays usable at page 100
+00:14 +183: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/platform_registry_test.dart: compile-time selection dart:io selects the Android registry by default
+00:14 +184: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/platform_registry_test.dart: compile-time selection the unsupported target fails closed with PLT-001
+00:14 +185: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation accepts real Android adapters with EvidenceClass.none
+00:14 +186: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects one simulated adapter with SIM-001
+00:14 +187: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects an all-simulated adapter set with SIM-001
+00:14 +188: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects an environment-labelled adapter instead of mislabelling it
+00:14 +189: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects a descriptor in the wrong capability slot
+00:14 +190: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/platform_registry_test.dart: Web registry evidence separation accepts simulated-only adapters and reports development mode
+00:14 +191: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/platform_registry_test.dart: Web registry evidence separation rejects an Android-labelled adapter instead of claiming it as Web
+00:14 +192: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/platform_registry_test.dart: release assertion accepts the real Android registry
+00:14 +193: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/platform_registry_test.dart: release assertion rejects a simulated Web registry with SIM-001
+00:14 +194: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/platform_registry_test.dart: release assertion inspects live descriptors when the registry metadata lies
+00:14 +195: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/platform_registry_test.dart: release assertion rejects a registry that only claims simulated capabilities
+00:14 +196: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/platform_registry_test.dart: Android dependency boundary registry sources never import the simulated adapter package
+00:15 +197: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: order and platform seam export sweep precedes native recovery and contract reads
+00:15 +198: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: order and platform seam the platform selector has no native recovery without a runtime
+00:15 +199: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: key material unavailable aggregate SAVE-002 deletes nothing and is reported
+00:15 +200: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: key material unavailable global SAVE-008 deletes nothing and is reported
+00:15 +201: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: key material unavailable a native SAVE-008 still sweeps plaintext previews and skips reads
+00:15 +202: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback native fallback adoption survives later stamps that report false
+00:15 +203: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback SAVE-004 fallback surfaces the German guidance
+00:15 +204: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback corrupt head without a verified revision is degraded
+00:15 +205: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback a fallback without a verified revision is never success
+00:15 +206: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: storage exhaustion SAVE-001 is surfaced and the last durable state stays intact
+00:15 +207: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: storage exhaustion SAVE-005 schema-too-new surfaces the update guidance
+00:15 +208: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages stale entries are removed, fresh entries and aggregates are kept
+00:15 +209: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages session end removes every export preview regardless of age
+00:15 +210: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages session end reports a listing failure instead of false success
+00:15 +211: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages a deletion failure is surfaced, not swallowed
+00:15 +212: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: determinism and bound the documented bound is pinned and reached deterministically
+00:15 +213: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: determinism and bound identical inputs produce the same outcome
+00:15 +214: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: production io filesystem adapter lists only exports and reports staging as native-owned
+00:15 +215: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: production io filesystem adapter full sweep removes stale previews and keeps fresh ones
+00:15 +216: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: production io filesystem adapter a missing export directory is empty and is not created
+00:15 +217: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a symlinked export root is refused and deletes nothing outside
+00:15 +218: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a symlinked entry inside the root is refused, outside file kept
+00:15 +219: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures the adapter directly refuses a symlink entry deletion
+00:15 +220: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a regular old file inside the real root is still deleted
+00:15 +221: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a rejected backslash name is a redacted cleanup failure
+00:15 +222: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures an uninspectable entry is a redacted cleanup failure
+00:15 +223: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a timed-out sweep performs no read or deletion after the stop
+00:15 +224: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation the bounded runner passes one absolute deadline into the run
+00:15 +225: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a native deadline stop prevents every later destructive pass
+00:15 +226: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation an already cancelled sweep still removes export previews first
+00:15 +227: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a native recovery timeout still removes stale previews first
+00:15 +228: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a failed preview removal is reported, never silent
+00:15 +229: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a throwing native recovery still removes stale previews first
+00:15 +230: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a timed-out production-shaped run still reports degraded
+00:15 +231: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_wiring_test.dart: production composition the platform selector builds the real Android store and io adapter
+00:15 +232: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a hang becomes a bounded timeout, never a crash or success
+00:15 +233: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a thrown sweep becomes a degraded failure, never a crash
+00:15 +234: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a clean result stays complete
+00:15 +235: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a degraded result is not reported as success
+00:15 +236: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface renders the localized SAVE-004 guidance
+00:16 +237: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+00:16 +238: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+00:16 +239: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+00:16 +240: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+00:16 +241: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+00:17 +242: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+00:17 +243: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+00:17 +244: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+00:17 +245: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+00:17 +245: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring the shell stops observing after it is disposed
+00:17 +246: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring the shell stops observing after it is disposed
+00:17 +247: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance catalogue contains the four editor forms and three failure fixtures
+00:17 +248: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring only paused and detached are session-end states
+00:17 +249: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring only paused and detached are session-end states
+00:17 +250: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-002 carries complete synthetic provenance
+00:17 +251: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring session-end failure hook receives only a redacted category
+00:17 +252: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring session-end failure hook receives only a redacted category
+00:17 +253: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-004 carries complete synthetic provenance
+00:17 +254: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-protected carries complete synthetic provenance
+00:17 +255: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-truncated carries complete synthetic provenance
+00:17 +256: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-not-a-pdf carries complete synthetic provenance
+00:17 +257: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures four valid forms cover every field type, rotation, and page-count need
+00:17 +258: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 PDF bytes, page geometry, and fixed metadata are valid
+00:17 +259: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 ground truth is unique, typed, and inside page bounds
+00:17 +260: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 expected OCR is sorted, bounded, and matches assertions
+00:17 +261: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 OCR labels support every ground-truth field
+00:17 +262: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 canonical, Web, and corpus copies are byte-identical
+00:17 +263: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 PDF bytes, page geometry, and fixed metadata are valid
+00:17 +264: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 ground truth is unique, typed, and inside page bounds
+00:17 +265: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 expected OCR is sorted, bounded, and matches assertions
+00:17 +266: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 OCR labels support every ground-truth field
+00:17 +267: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 canonical, Web, and corpus copies are byte-identical
+00:17 +268: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 PDF bytes, page geometry, and fixed metadata are valid
+00:17 +269: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 ground truth is unique, typed, and inside page bounds
+00:17 +270: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 expected OCR is sorted, bounded, and matches assertions
+00:17 +271: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 OCR labels support every ground-truth field
+00:17 +272: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 canonical, Web, and corpus copies are byte-identical
+00:17 +273: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 PDF bytes, page geometry, and fixed metadata are valid
+00:17 +274: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 ground truth is unique, typed, and inside page bounds
+00:17 +275: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 expected OCR is sorted, bounded, and matches assertions
+00:17 +276: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 OCR labels support every ground-truth field
+00:17 +277: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 canonical, Web, and corpus copies are byte-identical
+00:17 +278: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: dev-only delivery policy pubspec declares fonts but never fixture assets
+00:17 +279: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: dev-only delivery policy canonical and Web fixture trees are byte-identical
+00:17 +280: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: dev-only delivery policy the Web delivery mirror is outside Flutter asset directories
+00:17 +281: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: failure fixtures sf-protected is a genuine encrypted PDF for IMP-001
+00:17 +282: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: failure fixtures sf-truncated is a deterministic prefix without EOF for IMP-002
+00:17 +283: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: failure fixtures sf-not-a-pdf is text with a .pdf name for IMP-004
+00:17 +284: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: German content and synthetic marker OCR text exercises German characters and quotation marks
+00:17 +285: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/synthetic_fixtures_test.dart: (tearDownAll)
+00:18 +285: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:19 +286: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_review_panel_test.dart: shows fallback, uncertain, conflict, and progress markers
+00:19 +287: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_review_panel_test.dart: confirm, reject, and undo callbacks receive the exact value
+00:19 +288: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_review_panel_test.dart: busy disables actions while a save is in flight
+00:19 +289: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_review_panel_test.dart: empty states distinguish no suggestions from all reviewed
+00:19 +290: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/apps/feldexa_app/test/editor_review_panel_test.dart: no overflow at 200 % text scale
+00:19 +291: All tests passed!

@@ -1,0 +1,319 @@
+00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart
+00:00 +0: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 confidence formula the base confidence is exactly 0.35
+00:00 +1: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 conflict predicate IoU of exactly 0.5 conflicts
+00:00 +2: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 confidence formula each supporting cue family adds exactly 0.12 up to four
+00:00 +3: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 conflict predicate IoU just below 0.5 does not conflict
+00:00 +4: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 confidence formula the cue-family bonus is capped at 0.48
+00:00 +5: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 conflict predicate IoU is 0 for disjoint rects and 1 for identical rects
+00:00 +6: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 confidence formula a credible keyword match adds exactly 0.10
+00:00 +7: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 conflict predicate 1/8 pt rounding keeps near-threshold float noise stable
+00:00 +8: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 confidence formula geometry inside typical bounds adds exactly 0.05
+00:00 +9: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 conflict predicate rounding ties are taken away from zero
+00:00 +10: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 confidence formula skew strictly greater than 2.0 subtracts exactly 0.25
+00:00 +11: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 conflict predicate the centre rule conflicts at exactly 4 pt
+00:00 +12: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 confidence formula low contrast subtracts exactly 0.20
+00:00 +13: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 conflict predicate the centre rule does not conflict just above 4 pt
+00:00 +14: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 confidence formula missing OCR subtracts exactly 0.15
+00:00 +15: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 conflict predicate centre containment is inclusive at the rect edge
+00:00 +16: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 confidence formula two agreeing OCR lines add exactly 0.10
+00:00 +17: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 conflict predicate centre distance uses rounded geometry for near-threshold noise
+00:00 +18: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 confidence formula all factors combine additively
+00:00 +19: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 symmetric graph and retention conflicts are symmetric and recorded in both directions
+00:00 +20: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 symmetric graph and retention conflicts are symmetric and recorded in both directions
+00:00 +21: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 symmetric graph and retention conflicts are symmetric and recorded in both directions
+00:00 +22: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 symmetric graph and retention conflicts are symmetric and recorded in both directions
+00:00 +23: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 confidence formula uncertainty is the exact two-decimal complement for every value
+00:00 +24: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 symmetric graph and retention each item has a sorted, unique conflict list
+00:00 +25: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 §3.4 presentation thresholds 0.75 and above is a solid outline
+00:00 +26: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 symmetric graph and retention no item is removed, merged, or re-ranked
+00:00 +27: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 §3.4 presentation thresholds 0.50 through 0.74 is a dashed outline
+00:00 +28: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 symmetric graph and retention the input list and the returned graph are immutable
+00:00 +29: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 symmetric graph and retention the input list and the returned graph are immutable
+00:00 +30: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 §3.4 presentation thresholds the model applies the thresholds at 0.76, 0.74, 0.50, and 0.49
+00:00 +31: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 symmetric graph and retention empty and single-item inputs produce a complete empty graph
+00:00 +32: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 §3.4 presentation thresholds low-confidence suggestions keep a stable badge identifier (FR-083)
+00:00 +33: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 deterministic duplicate collapse same type and pass above IoU 0.98 collapses to the lowest id
+00:00 +34: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 §3.4 presentation thresholds out-of-range hundredths are rejected with a content-free error
+00:00 +35: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 §3.4 presentation thresholds out-of-range hundredths are rejected with a content-free error
+00:00 +36: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 §3.4 presentation thresholds out-of-range hundredths are rejected with a content-free error
+00:00 +37: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 deterministic duplicate collapse duplicates never collapse across detector passes
+00:00 +38: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 §3.1 cue-family mapping every fixed §3.1 token maps to its documented family
+00:00 +39: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 §3.1 cue-family mapping every fixed §3.1 token maps to its documented family
+00:00 +40: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 deterministic duplicate collapse collapse does not chain through a non-duplicate pair
+00:00 +41: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 §3.1 cue-family mapping every keyword_* token maps to the keyword family
+00:00 +42: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 deterministic duplicate collapse empty and single-item collapse results are complete
+00:00 +43: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 §3.1 cue-family mapping each distinct unknown token gets its own stable extension family
+00:00 +44: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 validation and determinism an empty id is rejected content-free
+00:00 +45: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 §3.1 cue-family mapping distinctFamilies deduplicates and sorts deterministically
+00:00 +46: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 validation and determinism a negative detector pass is rejected content-free
+00:00 +47: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 §3.1 cue-family mapping the mapped family count feeds the confidence input exactly
+00:00 +48: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 validation and determinism duplicate ids are rejected content-free by both entry points
+00:00 +49: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 validation and determinism duplicate ids are rejected content-free by both entry points
+00:00 +50: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 determinism and invalid input negative cue families are rejected with a content-free error
+00:00 +51: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 validation and determinism non-finite rect values cannot enter the model
+00:00 +52: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 determinism and invalid input non-finite or out-of-range skew is rejected
+00:00 +53: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 validation and determinism conflict detection is independent of input order
+00:00 +54: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 determinism and invalid input skew at the inclusive input bounds is accepted
+00:00 +55: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/conflicts_test.dart: T055 validation and determinism duplicate collapse is independent of input order
+00:00 +56: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 determinism and invalid input error messages never echo the rejected input value
+00:00 +57: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/confidence_test.dart: T054 no side effects does not write, persist, or mutate caller objects
+00:01 +58: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: ruling lines and underlines a horizontal rule yields one exact underline candidate
+00:01 +59: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: ruling lines and underlines a lone vertical rule does not create an underline candidate
+00:01 +60: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: ruling lines and underlines rule edges round once to the nearest 1/8 pt
+00:01 +61: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: ruling lines and underlines a page-border rule does not create an underline candidate
+00:01 +62: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: boxes and small squares a closed rectangle yields its interior as a box candidate
+00:01 +63: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: boxes and small squares a 12 pt square also carries the small_square cue
+00:01 +64: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: boxes and small squares distinct overlapping boxes are all returned
+00:01 +65: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: boxes and small squares a three-sided shape is not a closed box
+00:01 +66: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: table grids a 2 x 2 grid yields four exact cell candidates
+00:01 +67: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: table grids a 3 x 2 grid yields six exact cell candidates
+00:01 +68: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: whitespace a bounded empty region yields one whitespace candidate
+00:01 +69: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: whitespace a blank page yields no whitespace candidate
+00:01 +70: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: whitespace background touching a page margin is not a whitespace candidate
+00:01 +71: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: whitespace an enclosed hole below y = 32767 still yields one candidate
+00:01 +72: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: FieldSuggestionSet section 1 round-trip a complete envelope with suggestions round-trips exactly
+00:01 +73: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: FieldSuggestionSet section 1 round-trip a complete envelope with suggestions round-trips exactly
+00:01 +74: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: FieldSuggestionSet section 1 round-trip a complete envelope with suggestions round-trips exactly
+00:01 +75: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: alignment an external vertical rule can establish alignment_left
+00:01 +76: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: alignment an external vertical rule can establish alignment_left
+00:01 +77: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: alignment an external vertical rule can establish alignment_left
+00:01 +78: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: FieldSuggestionSet section 1 round-trip every evidence class round-trips
+00:01 +79: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: ink gate a box whose interior exceeds 12 % ink is rejected
+00:01 +80: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: ink gate a box whose interior exceeds 12 % ink is rejected
+00:01 +81: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: ink gate a box whose interior exceeds 12 % ink is rejected
+00:01 +82: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: ink gate a box whose interior exceeds 12 % ink is rejected
+00:01 +83: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: FieldSuggestionSet section 1 round-trip canonical JSON is stable across a round-trip
+00:01 +84: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: ink gate a small_square above 12 % ink is retained
+00:01 +85: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: ink gate a small_square above 12 % ink is retained
+00:01 +86: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: ink gate a small_square above 12 % ink is retained
+00:01 +87: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: ink gate a small_square above 12 % ink is retained
+00:01 +88: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior a candidate touching the raster right edge is clamped to the page
+00:01 +89: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior a candidate touching the raster right edge is clamped to the page
+00:01 +90: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior a candidate touching the raster right edge is clamped to the page
+00:01 +91: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: required and forbidden pairings a valid reason is retained when pageUncertain is false
+00:01 +92: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior a page edge that is not a 1/8 pt multiple clamps inward
+00:01 +93: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior a page edge that is not a 1/8 pt multiple clamps inward
+00:01 +94: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior a page edge that is not a 1/8 pt multiple clamps inward
+00:01 +95: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior a page edge that is not a 1/8 pt multiple clamps inward
+00:01 +96: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior a page edge that is not a 1/8 pt multiple clamps inward
+00:01 +97: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: required and forbidden pairings an invalid evidence class is rejected
+00:01 +98: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior an all-white page returns an empty list
+00:01 +99: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior an all-white page returns an empty list
+00:01 +100: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior an all-white page returns an empty list
+00:01 +101: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior an all-white page returns an empty list
+00:01 +102: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior an all-white page returns an empty list
+00:01 +103: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior an all-white page returns an empty list
+00:01 +104: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: required and forbidden pairings a numerically equal double timing is rejected
+00:01 +105: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior an all-ink page returns an empty list
+00:01 +106: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior an all-ink page returns an empty list
+00:01 +107: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior an all-ink page returns an empty list
+00:01 +108: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: SuggestionSchema adoption an unknown suggestion key is reported at a fixed marker
+00:01 +109: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior a raster/page-size mismatch is rejected without content
+00:01 +110: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior a raster/page-size mismatch is rejected without content
+00:01 +111: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: page bounds and failure behavior a raster/page-size mismatch is rejected without content
+00:01 +112: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: SuggestionSchema adoption the documented PAGE-001 reconciliation is exact
+00:01 +113: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types two calls on the same input are deeply equal
+00:01 +114: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types two calls on the same input are deeply equal
+00:01 +115: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types two calls on the same input are deeply equal
+00:01 +116: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types two calls on the same input are deeply equal
+00:01 +117: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types two calls on the same input are deeply equal
+00:01 +118: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types two calls on the same input are deeply equal
+00:01 +119: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types two calls on the same input are deeply equal
+00:01 +120: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types two calls on the same input are deeply equal
+00:01 +121: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types two calls on the same input are deeply equal
+00:01 +122: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types two calls on the same input are deeply equal
+00:01 +123: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types two calls on the same input are deeply equal
+00:01 +124: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: classifyPageAnalysis a raster failure is rasterization PAGE-001
+00:01 +125: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types the same bytes in different list types are equivalent input
+00:01 +126: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types the same bytes in different list types are equivalent input
+00:01 +127: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types the same bytes in different list types are equivalent input
+00:01 +128: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types the same bytes in different list types are equivalent input
+00:01 +129: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types the same bytes in different list types are equivalent input
+00:01 +130: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types the same bytes in different list types are equivalent input
+00:01 +131: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types the same bytes in different list types are equivalent input
+00:01 +132: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types the same bytes in different list types are equivalent input
+00:01 +133: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types the same bytes in different list types are equivalent input
+00:01 +134: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types the same bytes in different list types are equivalent input
+00:01 +135: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types the same bytes in different list types are equivalent input
+00:01 +136: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: PageAnalysisBatch isolation a returned failed envelope preserves its discarded count
+00:01 +137: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/geometry_detector_test.dart: determinism and value types display rect and candidate have value equality
+00:01 +138: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: PageAnalysisBatch isolation a mismatched page index becomes that page internal failure
+00:01 +139: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: PageAnalysisBatch isolation mismatched run, size, rotation, or evidence class is isolated
+00:01 +140: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: PageAnalysisBatch isolation cancelled pages are never analyzed and never failed
+00:01 +141: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: PageAnalysisBatch isolation cancelling every page returns no terminal outcomes
+00:02 +142: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart
+00:02 +142: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: PageAnalysisBatch isolation an empty job set returns an empty result
+00:02 +143: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: PageAnalysisBatch isolation duplicate page indexes are rejected before analysis
+00:02 +144: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: PageAnalysisBatch isolation a negative page index is rejected before analysis
+00:02 +145: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: PageAnalysisBatch isolation invalid job identities are rejected before analysis
+00:02 +146: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: PageAnalysisBatch isolation shuffled job order yields identical deterministic results
+00:02 +147: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: PageAnalysisBatch isolation the result list is unmodifiable
+00:02 +148: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: PageAnalysisBatch isolation the batch performs no file I/O and creates no artifacts
+00:02 +149: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: immutability and determinism caller mutations cannot change a constructed envelope
+00:02 +150: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: immutability and determinism stored suggestion maps and lists are frozen
+00:02 +151: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: immutability and determinism toJson returns a fresh mutable copy every time
+00:02 +152: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: immutability and determinism fromJson does not alias the input maps
+00:02 +153: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: immutability and determinism equal inputs produce equal canonical JSON under shuffled order
+00:02 +154: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: immutability and determinism the canonical projection excludes run, timings, and evidence
+00:02 +155: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: immutability and determinism page and failure fields remain in the canonical projection
+00:02 +156: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: scope boundaries the module imports only the shared suggestion validator
+00:02 +157: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/page_analysis_test.dart: scope boundaries the recognition package declares no core dependency
+00:03 +158: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: analysis constants and scale analysis DPI is the contract 200
+00:03 +159: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: analysis constants and scale raster scale is exactly 200 / 72
+00:03 +160: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: analysis constants and scale default ink threshold is 128
+00:03 +161: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: RasterSize A4 portrait at 200 DPI rounds to 1654 x 2339
+00:03 +162: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: RasterSize A4 landscape swaps the rounded dimensions
+00:03 +163: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: RasterSize rounding is half up at the pixel boundary
+00:03 +164: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: RasterSize a whole number of pixels is exact
+00:03 +165: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: RasterSize the minimum accepted size produces one pixel
+00:03 +166: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: RasterSize a size that would round to zero pixels is rejected
+00:03 +167: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: RasterSize zero, negative, NaN, and infinite dimensions are rejected
+00:03 +168: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: RasterSize invalid height rejects the combined size
+00:03 +169: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: RasterSize the documented extent cap is accepted at the boundary
+00:03 +170: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: RasterSize huge finite page sizes fail closed instead of saturating
+00:03 +171: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: RasterSize value equality and hashCode
+00:03 +172: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: point and pixel mapping pixel centres are at (i + 0.5) / scale
+00:03 +173: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: point and pixel mapping pixel edges are at i / scale
+00:03 +174: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: point and pixel mapping every sampled pixel centre maps back to its own pixel
+00:03 +175: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: point and pixel mapping A4 pixel centres round-trip within 0.01 pt
+00:03 +176: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: point and pixel mapping pointToPixel uses the containing pixel and boundary goes right
+00:03 +177: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: point and pixel mapping negative and non-finite inputs are rejected
+00:03 +178: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: point and pixel mapping huge finite points fail closed at the documented extent
+00:03 +179: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: PixelRect half-open semantics edges, area, and contains are half-open
+00:03 +180: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: PixelRect half-open semantics fromLTRB keeps the same half-open rectangle
+00:03 +181: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: PixelRect half-open semantics adjacent rectangles share an edge without overlapping
+00:03 +182: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: PixelRect half-open semantics invalid rectangles are rejected
+00:03 +183: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: PixelRect half-open semantics the documented field cap is accepted at the boundary
+00:03 +184: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: PixelRect half-open semantics extreme fields are rejected without wrap
+00:03 +185: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: GrayRaster construction and access grayscale bytes are stored row-major with stride equal to width
+00:03 +186: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: GrayRaster construction and access a Uint8List source of the exact length is accepted
+00:03 +187: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: GrayRaster construction and access wrong buffer lengths are rejected
+00:03 +188: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: GrayRaster construction and access non-positive dimensions are rejected
+00:03 +189: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: GrayRaster construction and access dimensions above the documented raster extent are rejected
+00:03 +190: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: GrayRaster construction and access bytes outside 0 .. 255 are rejected
+00:03 +191: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: GrayRaster construction and access the constructor copies the source bytes (no aliasing)
+00:03 +192: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: GrayRaster construction and access the exposed pixel view is unmodifiable
+00:03 +193: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: GrayRaster construction and access pixel access is bounds-checked
+00:03 +194: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: GrayRaster construction and access isInkAt uses a strict below-threshold comparison
+00:03 +195: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: GrayRaster construction and access invalid ink thresholds and coordinates are rejected
+00:03 +196: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: RGBA and BGRA conversion primary colours use the documented Rec. 601 integer formula
+00:03 +197: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: RGBA and BGRA conversion black and white round to 0 and 255
+00:03 +198: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: RGBA and BGRA conversion BGRA conversion swaps red and blue without changing green
+00:03 +199: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: RGBA and BGRA conversion translucent alpha is rejected instead of silently ignored
+00:03 +200: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: RGBA and BGRA conversion wrong colour buffer lengths are rejected
+00:03 +201: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: RGBA and BGRA conversion out-of-range channels in a plain list are rejected
+00:03 +202: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: RGBA and BGRA conversion colour conversion does not alias the source buffer
+00:03 +203: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: IntegralImage known 3 x 3 sums match hand calculation
+00:03 +204: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: IntegralImage rectangle sums equal naive sums for every rectangle
+00:03 +205: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope accepts one envelope per page in a complete run
+00:03 +206: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope accepts one envelope per page in a complete run
+00:03 +207: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope accepts one envelope per page in a complete run
+00:03 +208: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope accepts one envelope per page in a complete run
+00:03 +209: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope accepts one envelope per page in a complete run
+00:03 +210: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope accepts one envelope per page in a complete run
+00:03 +211: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope accepts one envelope per page in a complete run
+00:03 +212: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: InkCoverage the threshold is strict at the default boundary
+00:03 +213: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope rejects unknown envelope keys, including auto-export flags
+00:03 +214: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: InkCoverage exceedsPercent uses exact integer comparison
+00:03 +215: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope requires every §1 key, including nullable failure and reason
+00:03 +216: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope requires every §1 key, including nullable failure and reason
+00:03 +217: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: InkCoverage huge zero, full, and exact-equality boundaries are exact
+00:03 +218: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope violations are content-free path/code pairs
+00:03 +219: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope violations are content-free path/code pairs
+00:03 +220: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope violations are content-free path/code pairs
+00:03 +221: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope violations are content-free path/code pairs
+00:03 +222: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/raster_test.dart: InkCoverage analysis rejects an invalid threshold
+00:03 +223: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope requires schemaVersion 1
+00:03 +224: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope rejects a numerically equal double schemaVersion
+00:03 +225: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope requires a canonical UUID analysisRunId shared by every page
+00:03 +226: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope requires a valid 0-based pageIndex and matching pageSizePt
+00:03 +227: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope accepts only 0/90/180/270 rotation
+00:03 +228: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope pairs status and failure exactly and rejects pending
+00:03 +229: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope keeps pageUncertain and uncertaintyReason consistent
+00:03 +230: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope timings are non-negative integers with known stages only
+00:03 +231: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope evidenceClass is simulated, emulator, or device
+00:03 +232: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope canonical projection excludes analysisRunId, timings, evidenceClass
+00:03 +233: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §1 envelope canonicalJson errors never echo keys or values
+00:03 +234: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion accepts the documented suggestion shape
+00:03 +235: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion requires every §2 key, including nullable labelText
+00:03 +236: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion rejects a numerically equal double pageIndex
+00:03 +237: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion id encodes pageIndex and the post-sort ordinal
+00:03 +238: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion suggestions follow y → x → type ordinal → id order
+00:03 +239: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion rect lies inside page bounds and on the 1/8 pt grid
+00:03 +240: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion proposedType uses the closed field-type vocabulary
+00:03 +241: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion confidence is 0…1 with two decimals
+00:03 +242: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion uncertainty is 1 − confidence with two decimals
+00:03 +243: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion labelText is trimmed, at most 200 chars, or null
+00:03 +244: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion cues use the closed §3.1 vocabulary with uniqueness
+00:03 +245: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion cues are sorted in ascending code-unit order
+00:03 +246: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion cueAgreement, skewDegrees, contrast, and ocrUsed have bounds
+00:03 +247: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion ocrUsed false requires geometry-only evidence
+00:03 +248: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion conflicts are symmetric, real, §6-qualifying, and both remain
+00:03 +249: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion undeclared §6 conflicts are rejected on both sides
+00:03 +250: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion non-qualifying pairs may keep empty conflicts
+00:03 +251: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion declared §6 center-containment conflict with IoU < 0.5 is valid
+00:03 +252: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion resolution vocabulary; persisted output stays unresolved
+00:03 +253: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion §2.1 forbids auto-confirm/export fields and OCR-only evidence
+00:03 +254: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §2 suggestion §2.1 ink-density rule is not schema-expressible
+00:03 +255: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §4 failure accepts every documented failure category
+00:03 +256: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §4 failure failure requires category, messageKey, recoverable, count
+00:03 +257: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §4 failure failure stays code-only and uses the category vocabulary
+00:03 +258: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §4 failure a failed page discards its suggestions but not other pages
+00:03 +259: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: recognition-output §4 failure a failed page may not keep its own suggestions
+00:03 +260: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: content-free diagnostics envelope unknown key uses a fixed marker
+00:03 +261: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: content-free diagnostics suggestion unknown key uses a fixed marker
+00:03 +262: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: content-free diagnostics evidence unknown key uses a fixed marker
+00:03 +263: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: content-free diagnostics failure unknown key uses a fixed marker
+00:03 +264: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: content-free diagnostics rect unknown key uses a fixed marker
+00:03 +265: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: content-free diagnostics timings unknown key uses a fixed marker
+00:03 +266: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/suggestion_schema_test.dart: run-level page isolation requires unique page indexes and one envelope per page
+00:04 +267: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: lexicon v1 classification and cues every token maps to its documented §3.2 class
+00:04 +268: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: lexicon v1 classification and cues case and umlaut variants match while display text is preserved
+00:04 +269: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: lexicon v1 classification and cues literal Straße/Strasse choose their own lexicon spelling
+00:04 +270: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: lexicon v1 classification and cues internal whitespace is preserved in labelText
+00:04 +271: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: lexicon v1 classification and cues longest match avoids nested name, ort, and datum cues
+00:04 +272: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: lexicon v1 classification and cues compound Datum/Unterschrift is one signature lexeme
+00:04 +273: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: lexicon v1 classification and cues word boundaries reject substrings
+00:04 +274: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: lexicon v1 classification and cues numeric-family keywords add numeric_context only
+00:04 +275: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: lexicon v1 classification and cues postleitzahl and telefax are neutral, not forced text
+00:04 +276: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: date-guarded labels Monat, Zeitraum, von, bis remain text and never date
+00:04 +277: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: date-guarded labels a date mask does not override the date guard
+00:04 +278: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: date-guarded labels a date guard also suppresses a second date word
+00:04 +279: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: §3.2 precedence explicit cues override keyword, geometry, and date mask
+00:04 +280: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: §3.2 precedence keyword typing precedes geometry
+00:04 +281: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: §3.2 precedence geometry precedence: multiline, checkbox, single-line
+00:04 +282: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: §3.2 precedence multiline thresholds are inclusive
+00:04 +283: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: §3.2 precedence checkbox aspect and height thresholds are inclusive
+00:04 +284: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: §3.2 precedence geometry precedes the printed date mask
+00:04 +285: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: §3.2 precedence date mask applies after single-line geometry
+00:04 +286: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: §3.2 precedence a candidate satisfying every rule follows §3.2 exactly
+00:04 +287: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: printed date mask TT.MM.JJJJ is accepted case-insensitively
+00:04 +288: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: printed date mask a malformed mask does not become a date
+00:04 +289: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: printed date mask any credible adjacent mask counts; the nearest label is displayed
+00:04 +290: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: printed date mask a non-credible mask is ignored
+00:04 +291: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: label proximity nearest credible label wins and only its evidence is used
+00:04 +292: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: label proximity 24 pt is the inclusive credibility boundary
+00:04 +293: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: label proximity 0.5 is the inclusive confidence boundary
+00:04 +294: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: label proximity empty, whitespace, and missing labels yield null and text
+00:04 +295: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: label proximity distance tie is broken by rect y, then rect x, then text
+00:04 +296: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: label proximity input order does not change the result
+00:04 +297: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: alignment cues a label left of the candidate gets the right cue
+00:04 +298: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: alignment cues a label above the candidate gets the below cue
+00:04 +299: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: alignment cues a label to the right does not get the right cue
+00:04 +300: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: alignment cues a directly below label gets label_below only
+00:04 +301: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: alignment cues an offset below label gets no alignment cue
+00:04 +302: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: alignment cues label_below requires half of the narrower horizontal overlap
+00:04 +303: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: alignment cues ocr_alignment_below requires horizontal overlap
+00:04 +304: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: labelText trimming and truncation leading and trailing whitespace is trimmed
+00:04 +305: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: labelText trimming and truncation exactly 200 code points are preserved
+00:04 +306: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: labelText trimming and truncation more than 200 code points are truncated without a trailing space
+00:04 +307: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: labelText trimming and truncation truncation counts code points, not UTF-16 code units
+00:04 +308: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: labelText trimming and truncation a long whitespace tail is trimmed before truncation
+00:04 +309: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: result contract and determinism proposedType is always a SuggestionSchema proposed type
+00:04 +310: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: result contract and determinism added cues are sorted, unique, and unmodifiable
+00:04 +311: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: result contract and determinism equal inputs produce equal results and hashes
+00:04 +312: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: result contract and determinism type inference alone cannot create a suggestion or drop a cue
+00:04 +313: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: invalid inputs are content-free non-finite or out-of-range label confidence is rejected
+00:04 +314: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: invalid inputs are content-free invalid median and page metrics are rejected
+00:04 +315: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_recognition/test/type_inference_test.dart: invalid inputs are content-free rectangles outside the page are rejected content-free
+00:04 +316: All tests passed!

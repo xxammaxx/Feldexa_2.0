@@ -39,6 +39,7 @@ import 'dart:typed_data';
 import 'package:feldexa_app/features/editor/editor_runtime.dart';
 import 'package:feldexa_app/features/editor/editor_screen.dart';
 import 'package:feldexa_app/features/editor/page_view.dart';
+import 'package:feldexa_app/features/editor/suggestion_review_panel.dart';
 import 'package:feldexa_app/features/start/import_runtime.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_application/src/recognition/analyze_document.dart'
@@ -92,6 +93,14 @@ final CapabilityDescriptor _storeDescriptor = CapabilityDescriptor(
 final CapabilityDescriptor _idsDescriptor = CapabilityDescriptor(
   kind: CapabilityKind.ids,
   adapterId: 'test.ids.v1',
+  version: '1',
+  isSimulated: false,
+  evidence: _noneEvidence,
+);
+
+final CapabilityDescriptor _clockDescriptor = CapabilityDescriptor(
+  kind: CapabilityKind.clock,
+  adapterId: 'test.clock.v1',
   version: '1',
   isSimulated: false,
   evidence: _noneEvidence,
@@ -250,6 +259,45 @@ core.RevisionContent _contentWithSuggestion() {
   );
 }
 
+core.RevisionContent _contentWithTwoSuggestions() {
+  return core.RevisionContent(
+    pages: <core.Page>[
+      core.Page(
+        index: 0,
+        geometry: _geometry(),
+        analysis: core.AnalysisState.complete,
+      ),
+    ],
+    suggestions: <core.FieldSuggestion>[
+      core.FieldSuggestion(
+        id: 's_p0_0001',
+        pageIndex: 0,
+        rect: core.Rect.fromLTWH(36, 54, 36, 18),
+        proposedType: core.FieldType.text,
+        confidence: 0.5,
+        labelText: null,
+        evidence: core.SuggestionEvidence(
+          cues: const <core.SuggestionCue>[core.SuggestionCue.underline],
+          ocrUsed: false,
+        ),
+      ),
+      core.FieldSuggestion(
+        id: 's_p0_0002',
+        pageIndex: 0,
+        rect: core.Rect.fromLTWH(36, 90, 36, 18),
+        proposedType: core.FieldType.number,
+        confidence: 0.4,
+        labelText: 'Betrag',
+        evidence: core.SuggestionEvidence(
+          cues: const <core.SuggestionCue>[core.SuggestionCue.underline],
+          ocrUsed: false,
+        ),
+      ),
+    ],
+    fieldOrder: const <String>[],
+  );
+}
+
 LoadedDocument _loaded({int pageCount = 1, core.RevisionContent? content}) {
   return LoadedDocument(
     meta: core.DocumentMeta(
@@ -367,12 +415,15 @@ final class _FakeOcr implements OcrPort {
 /// A successful save replaces [loaded] with the committed snapshot so a second
 /// editor open in the same test sees exactly what a reopen would see.
 final class _FakeStore implements SecureStorePort {
-  _FakeStore({required this.loaded, this.saveError});
+  _FakeStore({required this.loaded, this.saveError, this.loadGate});
 
   LoadedDocument loaded;
   final Object? saveError;
+  final Completer<void>? loadGate;
   int loads = 0;
+  int _saveCount = 0;
   final List<SaveRevisionRequest> saves = <SaveRevisionRequest>[];
+  final List<String> savedHeads = <String>[];
 
   @override
   CapabilityDescriptor get descriptor => _storeDescriptor;
@@ -380,6 +431,10 @@ final class _FakeStore implements SecureStorePort {
   @override
   Future<LoadedDocument> loadDocument(String documentId) async {
     loads++;
+    final Completer<void>? gate = loadGate;
+    if (gate != null) {
+      await gate.future;
+    }
     return loaded;
   }
 
@@ -389,21 +444,37 @@ final class _FakeStore implements SecureStorePort {
     if (saveError != null) {
       throw saveError!;
     }
-    loaded = LoadedDocument(
-      meta: loaded.meta,
-      content: request.content,
-      sourceBytes: loaded.sourceBytes,
-      evidence: loaded.evidence,
-    );
-    return StoredMeta(
+    _saveCount++;
+    final String head =
+        '9a1b2c3d-4e5f-4a6b-8c7d-'
+        '${_saveCount.toString().padLeft(12, '0')}';
+    savedHeads.add(head);
+    final StoredMeta meta = StoredMeta(
       id: request.documentId,
       kind: StoreKind.document,
       title: 'Testdokument',
       createdAt: DateTime.utc(2026, 11, 20),
       updatedAt: DateTime.utc(2026, 11, 20),
-      latestRevisionId: _revisionId,
+      latestRevisionId: head,
       readable: true,
     );
+    loaded = LoadedDocument(
+      meta: core.DocumentMeta(
+        id: loaded.meta.id,
+        title: loaded.meta.title,
+        createdAt: loaded.meta.createdAt,
+        updatedAt: loaded.meta.updatedAt,
+        source: loaded.meta.source,
+        latestRevisionId: head,
+        lastDurableAt: loaded.meta.lastDurableAt,
+        readable: loaded.meta.readable,
+        unreadableReasonCode: loaded.meta.unreadableReasonCode,
+      ),
+      content: request.content,
+      sourceBytes: loaded.sourceBytes,
+      evidence: loaded.evidence,
+    );
+    return meta;
   }
 
   @override
@@ -444,13 +515,25 @@ final class _FakeIds implements IdPort {
   String newIdempotencyKey() => _revisionId;
 }
 
+final class _FakeClock implements ClockPort {
+  DateTime now = DateTime.utc(2026, 11, 20, 12);
+
+  @override
+  CapabilityDescriptor get descriptor => _clockDescriptor;
+
+  @override
+  DateTime nowUtc() => now;
+}
+
 final class _FakeEditorRuntime implements EditorRuntime {
   _FakeEditorRuntime({
     required this.raster,
     required this.ocr,
     required this.store,
     _FakeIds? ids,
-  }) : ids = ids ?? _FakeIds();
+    _FakeClock? clock,
+  }) : ids = ids ?? _FakeIds(),
+       clock = clock ?? _FakeClock();
 
   @override
   final PageRasterPort raster;
@@ -463,6 +546,9 @@ final class _FakeEditorRuntime implements EditorRuntime {
 
   @override
   final IdPort ids;
+
+  @override
+  final ClockPort clock;
 
   bool disposed = false;
 
@@ -487,9 +573,11 @@ final class _FakeRendererFactory {
 
   final int pageCount;
   int calls = 0;
+  Uint8List? lastBytes;
 
   Future<PageViewRenderer> call(Uint8List bytes) async {
     calls++;
+    lastBytes = bytes;
     return _FakePageRenderer(pageCount);
   }
 }
@@ -521,6 +609,7 @@ Future<void> _pumpEditor(
   required EditorRuntime runtime,
   required ImportedSource source,
   _FakeRendererFactory? rendererFactory,
+  Duration? loadTimeout,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -533,6 +622,7 @@ Future<void> _pumpEditor(
         runtime: runtime,
         rendererFactory:
             (rendererFactory ?? _FakeRendererFactory(source.pageCount)).call,
+        loadTimeout: loadTimeout ?? editorLoadTimeout,
       ),
     ),
   );
@@ -694,6 +784,14 @@ void main() {
       firstOpen.content!.pages.single.analysis,
       core.AnalysisState.complete,
     );
+    expect(
+      find.byKey(const ValueKey<String>('suggestion-empty')),
+      findsOneWidget,
+    );
+    expect(
+      find.text(lookupAppLocalizations(const Locale('de')).suggestionEmpty),
+      findsOneWidget,
+    );
     expect(firstIds.calls, 1);
     expect(firstRaster.requests, hasLength(1));
     expect(store.saves, hasLength(1));
@@ -728,6 +826,14 @@ void main() {
     expect(secondRaster.requests, isEmpty);
     expect(store.saves, hasLength(1));
     expect(store.loads, 2);
+    expect(
+      find.byKey(const ValueKey<String>('suggestion-panel')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey<String>('suggestion-empty')),
+      findsOneWidget,
+    );
   });
 
   testWidgets(
@@ -1012,6 +1118,261 @@ void main() {
     );
     expect(find.byKey(const ValueKey<String>('fake-page-0')), findsOneWidget);
   });
+
+  testWidgets(
+    'the viewer receives the single protected load without a second store read',
+    (WidgetTester tester) async {
+      final _FakeStore store = _FakeStore(loaded: _loaded());
+      final _FakeRaster raster = _FakeRaster(
+        images: <int, RasterImage>{0: _image()},
+      );
+      final _FakeEditorRuntime runtime = _FakeEditorRuntime(
+        raster: raster,
+        ocr: null,
+        store: store,
+      );
+      final _FakeRendererFactory rendererFactory = _FakeRendererFactory(1);
+
+      await _pumpEditor(
+        tester,
+        runtime: runtime,
+        source: _source(),
+        rendererFactory: rendererFactory,
+      );
+      await tester.pumpAndSettle();
+
+      expect(store.loads, 1);
+      expect(rendererFactory.calls, 1);
+      expect(rendererFactory.lastBytes, orderedEquals(_sourceBytes));
+      expect(_editorState(tester).analysisStateKey, editorAnalysisReadyKey);
+    },
+  );
+
+  testWidgets(
+    'a hung protected load becomes analysis-failed without a second read',
+    (WidgetTester tester) async {
+      final Completer<void> gate = Completer<void>();
+      final _FakeStore store = _FakeStore(loaded: _loaded(), loadGate: gate);
+      final _FakeRaster raster = _FakeRaster(
+        images: <int, RasterImage>{0: _image()},
+      );
+      final _FakeEditorRuntime runtime = _FakeEditorRuntime(
+        raster: raster,
+        ocr: null,
+        store: store,
+      );
+      final _FakeRendererFactory rendererFactory = _FakeRendererFactory(1);
+
+      await _pumpEditor(
+        tester,
+        runtime: runtime,
+        source: _source(),
+        rendererFactory: rendererFactory,
+        loadTimeout: const Duration(milliseconds: 100),
+      );
+      await tester.pump();
+      expect(_editorState(tester).analysisStateKey, isNull);
+      expect(store.loads, 1);
+
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pumpAndSettle();
+
+      final EditorScreenState state = _editorState(tester);
+      expect(state.analysisStateKey, editorAnalysisFailedKey);
+      expect(state.content, isNull);
+      expect(store.loads, 1);
+      expect(rendererFactory.calls, 0);
+      expect(raster.requests, isEmpty);
+      expect(
+        find.byKey(const ValueKey<String>('editor-screen')),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'confirm, reject, and undo save with the advancing revision head',
+    (WidgetTester tester) async {
+      final _FakeStore store = _FakeStore(
+        loaded: _loaded(content: _contentWithTwoSuggestions()),
+      );
+      final _FakeClock clock = _FakeClock();
+      final _FakeIds ids = _FakeIds();
+      final _FakeEditorRuntime runtime = _FakeEditorRuntime(
+        raster: _FakeRaster(images: const <int, RasterImage>{}),
+        ocr: null,
+        store: store,
+        ids: ids,
+        clock: clock,
+      );
+
+      await _pumpEditor(tester, runtime: runtime, source: _source());
+      await tester.pumpAndSettle();
+
+      final AppLocalizations de = lookupAppLocalizations(const Locale('de'));
+      final EditorScreenState state = _editorState(tester);
+      expect(state.analysisStateKey, editorAnalysisSkippedKey);
+      expect(store.saves, isEmpty);
+      expect(state.content!.suggestions, hasLength(2));
+      expect(
+        find.byKey(const ValueKey<String>('suggestion-row-s_p0_0001')),
+        findsOneWidget,
+      );
+      expect(find.text(de.suggestionFieldCount(0)), findsOneWidget);
+
+      // Confirm the first suggestion. The deterministic id source returns the
+      // same UUID in this fake, which is valid while no field uses it.
+      await tester.tap(
+        find.byKey(const ValueKey<String>('confirm-suggestion-s_p0_0001')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(store.saves, hasLength(1));
+      expect(store.saves[0].expectedHead, _revisionId);
+      expect(store.saves[0].kind, core.RevisionKind.autosave);
+      expect(state.content!.fields, hasLength(1));
+      final core.ConfirmedField confirmed = state.content!.fields.single;
+      expect(confirmed.id, _analysisRunId);
+      expect(confirmed.provenance, core.Provenance.machine);
+      expect(confirmed.sourceSuggestionId, 's_p0_0001');
+      expect(confirmed.suggestionConfidence, 0.5);
+      expect(confirmed.label, 'Feld 1');
+      expect(confirmed.createdAt, clock.now);
+      expect(
+        state.content!.suggestions
+            .firstWhere(
+              (core.FieldSuggestion suggestion) => suggestion.id == 's_p0_0001',
+            )
+            .resolution,
+        core.SuggestionResolution.confirmed,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('suggestion-row-s_p0_0001')),
+        findsNothing,
+      );
+      expect(find.text(de.suggestionFieldCount(1)), findsOneWidget);
+
+      // Reject the second suggestion; the next save must use the head that
+      // the first save returned, not the original loaded revision.
+      await tester.tap(
+        find.byKey(const ValueKey<String>('reject-suggestion-s_p0_0002')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(store.saves, hasLength(2));
+      expect(store.saves[1].expectedHead, store.savedHeads[0]);
+      expect(
+        state.content!.suggestions
+            .firstWhere(
+              (core.FieldSuggestion suggestion) => suggestion.id == 's_p0_0002',
+            )
+            .resolution,
+        core.SuggestionResolution.rejected,
+      );
+      expect(find.text(de.suggestionReviewProgress(1, 1)), findsOneWidget);
+      final Finder undoFinder = find.byKey(
+        const ValueKey<String>(undoReviewKey),
+      );
+      expect(undoFinder, findsOneWidget);
+      final TextButton undoButton = tester.widget<TextButton>(undoFinder);
+      expect(
+        undoButton.onPressed,
+        isNotNull,
+        reason: 'undo must stay enabled after a confirm + reject pair',
+      );
+      expect(state.canUndoReview, isTrue);
+      expect(state.reviewBusy, isFalse);
+
+      // Undo the rejection: rejected -> unresolved, no field change.
+      await tester.tap(find.byKey(const ValueKey<String>(undoReviewKey)));
+      await tester.pumpAndSettle();
+
+      expect(store.saves, hasLength(3));
+      expect(store.saves[2].expectedHead, store.savedHeads[1]);
+      expect(
+        state.content!.suggestions
+            .firstWhere(
+              (core.FieldSuggestion suggestion) => suggestion.id == 's_p0_0002',
+            )
+            .resolution,
+        core.SuggestionResolution.unresolved,
+      );
+      expect(state.content!.fields, hasLength(1));
+
+      // Undo the untouched confirmation: confirmed -> unresolved and the
+      // generated field is removed; the suggestion set is not duplicated.
+      await tester.tap(find.byKey(const ValueKey<String>(undoReviewKey)));
+      await tester.pumpAndSettle();
+
+      expect(store.saves, hasLength(4));
+      expect(store.saves[3].expectedHead, store.savedHeads[2]);
+      expect(state.content!.fields, isEmpty);
+      expect(state.content!.suggestions, hasLength(2));
+      expect(
+        state.content!.suggestions.every(
+          (core.FieldSuggestion suggestion) =>
+              suggestion.resolution == core.SuggestionResolution.unresolved,
+        ),
+        isTrue,
+      );
+      expect(find.byKey(const ValueKey<String>(undoReviewKey)), findsNothing);
+      expect(find.text(de.suggestionFieldCount(0)), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'a review save failure keeps the viewer, panel, and prior revision',
+    (WidgetTester tester) async {
+      final _FakeStore store = _FakeStore(
+        loaded: _loaded(content: _contentWithTwoSuggestions()),
+        saveError: StateError('synthetic review save failure'),
+      );
+      final _FakeEditorRuntime runtime = _FakeEditorRuntime(
+        raster: _FakeRaster(images: const <int, RasterImage>{}),
+        ocr: null,
+        store: store,
+      );
+
+      await _pumpEditor(tester, runtime: runtime, source: _source());
+      await tester.pumpAndSettle();
+
+      final AppLocalizations de = lookupAppLocalizations(const Locale('de'));
+      final EditorScreenState state = _editorState(tester);
+      expect(
+        find.byKey(const ValueKey<String>('editor-screen')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('suggestion-panel')),
+        findsOneWidget,
+      );
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('confirm-suggestion-s_p0_0001')),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(tester.takeException(), isNull);
+      expect(store.saves, hasLength(1));
+      expect(state.content!.fields, isEmpty);
+      expect(state.reviewBusy, isFalse);
+      expect(find.text(de.save003), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey<String>('editor-screen')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('suggestion-panel')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey<String>('suggestion-row-s_p0_0001')),
+        findsOneWidget,
+      );
+    },
+  );
 
   test(
     'applyDocumentAnalysis leaves the base revision immutable on success',

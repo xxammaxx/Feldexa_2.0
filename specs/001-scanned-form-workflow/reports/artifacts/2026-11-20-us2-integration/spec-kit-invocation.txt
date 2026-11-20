@@ -1,0 +1,66 @@
+Issue #217 Phase B2 — Spec Kit implementation invocation evidence
+================================================================
+
+Date: 2026-11-20 (Europe/Berlin)
+Worktree: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2
+Branch: xxammaxx/us2-int-b2
+Base HEAD at invocation: c1141470ad63c110ebe02277f0f98c70ee2cf26a
+
+Invocation
+----------
+Tool: OpenCode `skill`
+Skill id: speckit-implement
+Scope carried in the invocation preamble: Issue #217 Phase B2 — visible
+suggestion review surface and real Android emulator E2E acceptance, limited to
+the task package's authorized files and gates.
+
+The skill was invoked before any file edit. It returned the registered
+`speckit-implement` skill content (source:
+`.agents/skills/speckit-implement/SKILL.md`; registered command
+`.opencode/commands/speckit.implement.md`). The implementation then followed the
+skill outline and the task package.
+
+Pre-execution checks
+--------------------
+1. `.specify/extensions.yml` exists with `hooks: {}`; no before/after hook was
+   registered or executed.
+2. The first `check-prerequisites.sh` invocation without a feature override
+   exited 1 with:
+   "ERROR: Feature directory not found. Set SPECIFY_FEATURE_DIRECTORY or run the
+   specify command to create .specify/feature.json."
+   and "ERROR: Failed to resolve feature paths". `.specify/feature.json` is
+   absent in this worktree (same as the Phase B1/T149 worktrees).
+3. The explicit invocation
+   `SPECIFY_FEATURE_DIRECTORY=specs/001-scanned-form-workflow bash
+   .specify/scripts/bash/check-prerequisites.sh --json --require-tasks
+   --include-tasks`
+   exited 0 with:
+   {"FEATURE_DIR":"/home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/specs/001-scanned-form-workflow","AVAILABLE_DOCS":["research.md","data-model.md","contracts/","quickstart.md","tasks.md"]}
+4. Checklist gate, observed read-only and not modified:
+   | Checklist | Total | Checked | Unchecked | Status |
+   | precision-testability-assessment.md | 0 | 0 | 0 | no checkbox items |
+   | precision-testability.md | 36 | 0 | 36 | reviewer-owned FAIL |
+   | requirements.md | 16 | 16 | 0 | PASS |
+   The dispatch explicitly scoped Phase B2, forbade checklist edits, and
+   pre-authorized proceeding; no checklist marker was changed and no reviewer
+   approval is claimed.
+5. `tasks.md` was not edited; Phase B2 task markers remain
+   reviewer/coordinator-owned.
+
+Scope and repository constraints
+--------------------------------
+- No merge, push, amend, rebase, PR, issue edit, remote branch, core/recognition/
+  ports/Android Kotlin change, `tasks.md` edit, checklist edit, or orchestration
+  change was performed.
+- The pre-existing unstaged `apps/feldexa_app/android/gradlew.bat` modification
+  (CRLF/LF-only diff) was present before this task and is excluded from every
+  commit.
+- Commit(s) are local to `xxammaxx/us2-int-b2` only.
+
+Approved scope deviation
+------------------------
+The coordinator approved one test-only allowlist update: exactly the 21 B2
+review-panel ARB keys were added to `_nonCodeArbKeys` in
+`apps/feldexa_app/test/german_strings_test.dart` so the German-string
+completeness gate remains truthful. No production catalog text was changed and
+the audit was not weakened.

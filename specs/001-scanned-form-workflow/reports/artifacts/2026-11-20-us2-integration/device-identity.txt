@@ -1,0 +1,14 @@
+serial=emulator-5554
+avd=T025_Pixel7_API35_KVM_20261115
+fingerprint=google/sdk_gphone64_x86_64/emu64xa:15/AE3A.240806.043/12960925:userdebug/dev-keys
+android_release=15
+sdk=35
+abi=x86_64
+boot_completed=1
+qemu=1
+wm_size=Physical size: 1080x2400
+wm_density=Physical density: 420
+mem_total_kb=4014392
+documentsui=package:com.google.android.documentsui
+orca_stream_url=scrcpy://emulator-5554
+orca_stream_codec=h264

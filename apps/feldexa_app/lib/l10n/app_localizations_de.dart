@@ -116,6 +116,91 @@ class AppLocalizationsDe extends AppLocalizations {
   String get suggestionsLabel => 'Vorschläge';
 
   @override
+  String get suggestionEmpty =>
+      'Für dieses Dokument wurden keine Felder vorgeschlagen.';
+
+  @override
+  String get suggestionAllReviewed => 'Alle Vorschläge wurden geprüft.';
+
+  @override
+  String suggestionOpenCount(int count) {
+    return '$count offen';
+  }
+
+  @override
+  String suggestionFieldCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Felder bestätigt',
+      one: '1 Feld bestätigt',
+      zero: 'Keine Felder bestätigt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String suggestionReviewProgress(int confirmed, int rejected) {
+    return '$confirmed bestätigt, $rejected abgelehnt';
+  }
+
+  @override
+  String get suggestionRowFallback => 'Feld';
+
+  @override
+  String suggestionFieldLabel(int n) {
+    return 'Feld $n';
+  }
+
+  @override
+  String suggestionPage(int page) {
+    return 'Seite $page';
+  }
+
+  @override
+  String suggestionPosition(String x, String y) {
+    return 'x $x pt · y $y pt';
+  }
+
+  @override
+  String suggestionConfidence(int percent) {
+    return 'Zuverlässigkeit $percent %';
+  }
+
+  @override
+  String get suggestionUncertain => 'unsicher';
+
+  @override
+  String get suggestionConflict => 'Konflikt';
+
+  @override
+  String get suggestionTypeText => 'Text';
+
+  @override
+  String get suggestionTypeNumber => 'Zahl';
+
+  @override
+  String get suggestionTypeDate => 'Datum';
+
+  @override
+  String get suggestionTypeCheckbox => 'Kontrollkästchen';
+
+  @override
+  String get suggestionTypeMultiline => 'Mehrzeiliger Text';
+
+  @override
+  String get suggestionTypeSignature => 'Unterschrift';
+
+  @override
+  String get suggestionConfirmAction => 'Übernehmen';
+
+  @override
+  String get suggestionRejectAction => 'Ablehnen';
+
+  @override
+  String get suggestionUndoAction => 'Rückgängig';
+
+  @override
   String get save001 =>
       'Der Speicherplatz reicht nicht aus. Der letzte gespeicherte Stand ist erhalten; die neuesten Änderungen sind noch nicht dauerhaft gespeichert.';
 
