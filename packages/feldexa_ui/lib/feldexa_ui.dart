@@ -7,5 +7,6 @@
 library;
 
 export 'src/field_overlay.dart';
+export 'src/field_selection.dart';
 export 'src/provenance_badge.dart';
 export 'src/simulated_banner.dart';
