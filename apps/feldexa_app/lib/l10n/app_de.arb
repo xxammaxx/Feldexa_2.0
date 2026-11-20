@@ -128,6 +128,131 @@
   "@suggestionsLabel": {
     "description": "§2 recognition summary label: suggestions are never described as complete (FR-085)."
   },
+  "suggestionEmpty": "Für dieses Dokument wurden keine Felder vorgeschlagen.",
+  "@suggestionEmpty": {
+    "description": "Phase B2 review panel empty state: the completed analysis produced no suggestions."
+  },
+  "suggestionAllReviewed": "Alle Vorschläge wurden geprüft.",
+  "@suggestionAllReviewed": {
+    "description": "Phase B2 review panel empty state: every suggestion has been confirmed or rejected."
+  },
+  "suggestionOpenCount": "{count} offen",
+  "@suggestionOpenCount": {
+    "description": "Phase B2 review panel header: number of suggestions still awaiting a decision.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestionFieldCount": "{count, plural, =0{Keine Felder bestätigt} =1{1 Feld bestätigt} other{{count} Felder bestätigt}}",
+  "@suggestionFieldCount": {
+    "description": "Phase B2 review panel header: confirmed machine/user field count after review actions.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestionReviewProgress": "{confirmed} bestätigt, {rejected} abgelehnt",
+  "@suggestionReviewProgress": {
+    "description": "Phase B2 review panel header: resolved suggestion counts after a confirmation or rejection.",
+    "placeholders": {
+      "confirmed": {
+        "type": "int"
+      },
+      "rejected": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestionRowFallback": "Feld",
+  "@suggestionRowFallback": {
+    "description": "Phase B2 review row fallback label when the suggestion has no credible printed label."
+  },
+  "suggestionFieldLabel": "Feld {n}",
+  "@suggestionFieldLabel": {
+    "description": "Phase B2 fallback label for a confirmed suggestion without a credible printed label; <n> is the one-based field number.",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestionPage": "Seite {page}",
+  "@suggestionPage": {
+    "description": "Phase B2 review row: one-based page number.",
+    "placeholders": {
+      "page": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestionPosition": "x {x} pt · y {y} pt",
+  "@suggestionPosition": {
+    "description": "Phase B2 review row: candidate position in page display points, rounded to the canonical 1/8 pt display grid.",
+    "placeholders": {
+      "x": {
+        "type": "String"
+      },
+      "y": {
+        "type": "String"
+      }
+    }
+  },
+  "suggestionConfidence": "Zuverlässigkeit {percent} %",
+  "@suggestionConfidence": {
+    "description": "Phase B2 review row: confidence as an integer percent (never a probability claim).",
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "suggestionUncertain": "unsicher",
+  "@suggestionUncertain": {
+    "description": "Phase B2 review row: uncertainty marker for confidence below 0.50 (FR-083)."
+  },
+  "suggestionConflict": "Konflikt",
+  "@suggestionConflict": {
+    "description": "Phase B2 review row: conflict marker when conflictsWith is non-empty (FR-025); both candidates stay resolvable."
+  },
+  "suggestionTypeText": "Text",
+  "@suggestionTypeText": {
+    "description": "Phase B2 German name for FieldType.text."
+  },
+  "suggestionTypeNumber": "Zahl",
+  "@suggestionTypeNumber": {
+    "description": "Phase B2 German name for FieldType.number."
+  },
+  "suggestionTypeDate": "Datum",
+  "@suggestionTypeDate": {
+    "description": "Phase B2 German name for FieldType.date."
+  },
+  "suggestionTypeCheckbox": "Kontrollkästchen",
+  "@suggestionTypeCheckbox": {
+    "description": "Phase B2 German name for FieldType.checkbox."
+  },
+  "suggestionTypeMultiline": "Mehrzeiliger Text",
+  "@suggestionTypeMultiline": {
+    "description": "Phase B2 German name for FieldType.multiline."
+  },
+  "suggestionTypeSignature": "Unterschrift",
+  "@suggestionTypeSignature": {
+    "description": "Phase B2 German name for FieldType.signature."
+  },
+  "suggestionConfirmAction": "Übernehmen",
+  "@suggestionConfirmAction": {
+    "description": "Phase B2 review action: confirm one suggestion (contracts/editor-interactions.md §3)."
+  },
+  "suggestionRejectAction": "Ablehnen",
+  "@suggestionRejectAction": {
+    "description": "Phase B2 review action: reject one suggestion; reversible with undo (contracts/editor-interactions.md §3)."
+  },
+  "suggestionUndoAction": "Rückgängig",
+  "@suggestionUndoAction": {
+    "description": "Phase B2 review action: undo the most recent reject or untouched confirm (FR-027)."
+  },
   "save001": "Der Speicherplatz reicht nicht aus. Der letzte gespeicherte Stand ist erhalten; die neuesten Änderungen sind noch nicht dauerhaft gespeichert.",
   "@save001": {
     "description": "contracts/error-catalog.de.md §3 SAVE-001: Storage full / quota exceeded."

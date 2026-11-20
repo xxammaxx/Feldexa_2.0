@@ -88,6 +88,7 @@ EditorRuntime createAndroidEditorRuntime({
     raster: raster,
     ocr: ocr,
     ids: AndroidIdClient(),
+    clock: const AndroidClockClient(),
     sourceBytes: sourceBytes,
     ownsOperations: ownsOperations,
   );
@@ -100,6 +101,7 @@ final class _AndroidEditorRuntime implements EditorRuntime {
     required AndroidPdfrxRasterClient raster,
     required AndroidOcrClient ocr,
     required AndroidIdClient ids,
+    required AndroidClockClient clock,
     required Map<String, Uint8List> sourceBytes,
     required bool ownsOperations,
   }) : _operations = operations,
@@ -107,6 +109,7 @@ final class _AndroidEditorRuntime implements EditorRuntime {
        _raster = raster,
        _ocr = ocr,
        _ids = ids,
+       _clock = clock,
        _sourceBytes = sourceBytes,
        _ownsOperations = ownsOperations;
 
@@ -115,6 +118,7 @@ final class _AndroidEditorRuntime implements EditorRuntime {
   final AndroidPdfrxRasterClient _raster;
   final AndroidOcrClient _ocr;
   final AndroidIdClient _ids;
+  final AndroidClockClient _clock;
   final Map<String, Uint8List> _sourceBytes;
   final bool _ownsOperations;
   bool _disposed = false;
@@ -130,6 +134,9 @@ final class _AndroidEditorRuntime implements EditorRuntime {
 
   @override
   IdPort get ids => _ids;
+
+  @override
+  ClockPort get clock => _clock;
 
   @override
   Future<LoadedDocument> loadDocument(String documentId) async {

@@ -89,14 +89,18 @@
 //   exposed by [EditorScreenState.content].
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:feldexa_app/features/editor/editor_runtime.dart';
 import 'package:feldexa_app/features/editor/page_state.dart';
 import 'package:feldexa_app/features/editor/page_strip.dart';
 import 'package:feldexa_app/features/editor/page_view.dart';
+import 'package:feldexa_app/features/editor/suggestion_review_panel.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_application/src/recognition/analyze_document.dart'
     as analysis;
+import 'package:feldexa_application/src/review/confirm_suggestion.dart'
+    as review;
 import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:feldexa_recognition/src/page_analysis.dart' as recognition;
@@ -118,6 +122,14 @@ const String editorAnalysisFailedKey = 'analysis-failed';
 /// inclusive 0.001 pt tolerance therefore absorbs storage round-tripping while
 /// still rejecting a genuinely different media box, crop box, or orientation.
 const double pageGeometryTolerancePt = 0.001;
+
+/// Bound on the single editor `loadDocument` call.
+///
+/// A shared platform-channel result path that never answers must become the
+/// deterministic `analysis-failed` state instead of an infinite pending editor.
+/// The normal Android load is far below this bound; the timeout is a diagnostic
+/// fail-closed guard, not a performance claim or a retry policy.
+const Duration editorLoadTimeout = Duration(seconds: 30);
 
 /// Evidence class written into a Phase A envelope for the current build mode.
 ///
@@ -340,6 +352,7 @@ class EditorScreen extends StatefulWidget {
     required this.sourceBytes,
     required this.runtime,
     this.rendererFactory = openPdfrxPageRenderer,
+    this.loadTimeout = editorLoadTimeout,
     super.key,
   });
 
@@ -354,6 +367,9 @@ class EditorScreen extends StatefulWidget {
 
   /// Opens the viewer renderer for the resolved bytes.
   final PageViewRendererFactory rendererFactory;
+
+  /// Bound on the single revision/source load; tests may shorten it.
+  final Duration loadTimeout;
 
   @override
   State<EditorScreen> createState() => EditorScreenState();
@@ -371,12 +387,25 @@ class EditorScreenState extends State<EditorScreen> {
   String? _analysisRunId;
   int? _analysisElapsedMs;
   bool _analysisStarted = false;
+  String? _headRevisionId;
+  final List<_ReviewUndo> _reviewUndoStack = <_ReviewUndo>[];
+  bool _reviewBusy = false;
+  final Completer<Uint8List?> _sourceBytesReady = Completer<Uint8List?>();
 
   /// The loaded or analyzed revision snapshot, or null when loading failed.
   core.RevisionContent? get content => _content;
 
   /// The verified loaded document, or null before/after a failed load.
   LoadedDocument? get loadedDocument => _loadedDocument;
+
+  /// The latest committed revision id used as the next `expectedHead`.
+  String? get headRevisionId => _headRevisionId;
+
+  /// Whether an undoable review action is available.
+  bool get canUndoReview => _reviewUndoStack.isNotEmpty;
+
+  /// Whether a review command is currently being saved.
+  bool get reviewBusy => _reviewBusy;
 
   /// `analysis-ready`, `analysis-skipped`, `analysis-failed`, or null while
   /// the first load/analysis is still running.
@@ -472,6 +501,13 @@ class EditorScreenState extends State<EditorScreen> {
     }
   }
 
+  /// Whether the B2 review panel has a committed/loaded revision to show.
+  bool get _reviewPanelVisible {
+    return _content != null &&
+        (_analysisStateKey == editorAnalysisReadyKey ||
+            _analysisStateKey == editorAnalysisSkippedKey);
+  }
+
   /// Whether the loaded revision already records a first analysis run.
   ///
   /// `complete` and `running` pages are direct evidence. An import-unreadable
@@ -541,11 +577,24 @@ class EditorScreenState extends State<EditorScreen> {
     _analysisStarted = true;
     final LoadedDocument loaded;
     try {
-      loaded = await widget.runtime.loadDocument(widget.source.documentId);
+      loaded = await widget.runtime
+          .loadDocument(widget.source.documentId)
+          .timeout(widget.loadTimeout);
+    } on UnsupportedOperationException {
+      // Non-Android/failed editor compositions have no revision load, but the
+      // T148 US1 viewer still has the protected read-back closure. Preserve
+      // that viewer path without inventing analysis or a persisted revision.
+      await _completeViewerSourceBytesFromFallback();
+      _markFailed();
+      return;
     } catch (_) {
+      _completeSourceBytes(null);
       _markFailed();
       return;
     }
+    // The viewer and the analysis path share this one protected load. No
+    // second `store.loadDocument` is issued for the same document.
+    _completeSourceBytes(loaded.sourceBytes);
     if (!mounted) {
       return;
     }
@@ -559,6 +608,7 @@ class EditorScreenState extends State<EditorScreen> {
     setState(() {
       _loadedDocument = loaded;
       _content = loaded.content;
+      _headRevisionId = loaded.meta.latestRevisionId;
       _stripPages = _buildStripPagesFromContent(loaded.content);
     });
     if (loaded.content.suggestions.isNotEmpty ||
@@ -638,8 +688,9 @@ class EditorScreenState extends State<EditorScreen> {
       );
       _analysisElapsedMs = stopwatch.elapsedMilliseconds;
     });
+    final StoredMeta saved;
     try {
-      await widget.runtime.saveRevision(
+      saved = await widget.runtime.saveRevision(
         SaveRevisionRequest(
           documentId: widget.source.documentId,
           expectedHead: loaded.meta.latestRevisionId,
@@ -657,8 +708,185 @@ class EditorScreenState extends State<EditorScreen> {
       return;
     }
     setState(() {
+      _headRevisionId = saved.latestRevisionId ?? _headRevisionId;
       _analysisStateKey = editorAnalysisReadyKey;
     });
+  }
+
+  Future<void> _confirmSuggestion(core.FieldSuggestion suggestion) async {
+    final core.RevisionContent? content = _content;
+    if (content == null || _reviewBusy) {
+      return;
+    }
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    final review.SuggestionReviewChange change;
+    try {
+      change = review.confirmSuggestion(
+        content,
+        suggestion.id,
+        widget.runtime.ids.newId(),
+        suggestion.labelText ??
+            l10n.suggestionFieldLabel(content.fields.length + 1),
+        widget.runtime.clock.nowUtc().toUtc(),
+      );
+    } catch (_) {
+      _showReviewMessage(l10n.save007);
+      return;
+    }
+    final core.ConfirmedField? confirmedField = change.confirmedField;
+    if (confirmedField == null) {
+      // Defensive: a confirmed receipt always carries the generated field.
+      _showReviewMessage(l10n.save007);
+      return;
+    }
+    await _commitReviewChange(
+      change,
+      undo: _ReviewUndo.confirmation(
+        suggestionId: change.suggestionId,
+        confirmedField: confirmedField,
+      ),
+      popUndo: false,
+    );
+  }
+
+  Future<void> _rejectSuggestion(core.FieldSuggestion suggestion) async {
+    final core.RevisionContent? content = _content;
+    if (content == null || _reviewBusy) {
+      return;
+    }
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    final review.SuggestionReviewChange change;
+    try {
+      change = review.rejectSuggestion(content, suggestion.id);
+    } catch (_) {
+      _showReviewMessage(l10n.save007);
+      return;
+    }
+    await _commitReviewChange(
+      change,
+      undo: _ReviewUndo.rejection(suggestionId: change.suggestionId),
+      popUndo: false,
+    );
+  }
+
+  Future<void> _undoLastReview() async {
+    final core.RevisionContent? content = _content;
+    if (content == null || _reviewBusy || _reviewUndoStack.isEmpty) {
+      return;
+    }
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    final _ReviewUndo undo = _reviewUndoStack.last;
+    final review.SuggestionReviewChange change;
+    try {
+      change = switch (undo.kind) {
+        _ReviewUndoKind.rejection => review.undoRejection(
+          content,
+          undo.suggestionId,
+        ),
+        _ReviewUndoKind.confirmation => review.undoConfirmation(
+          content,
+          undo.suggestionId,
+          undo.confirmedField!,
+        ),
+      };
+    } catch (_) {
+      _showReviewMessage(l10n.save007);
+      return;
+    }
+    await _commitReviewChange(change, undo: null, popUndo: true);
+  }
+
+  /// Persists one review snapshot, then updates the visible revision.
+  ///
+  /// The store is written with the current [headRevisionId] as `expectedHead`.
+  /// The visible content is only replaced after the store confirms the commit,
+  /// so a failed review save leaves the viewer, page strip, prior suggestions,
+  /// and confirmed fields exactly as they were. [undo] is pushed only after a
+  /// successful commit; [popUndo] removes the consumed entry only on success.
+  Future<void> _commitReviewChange(
+    review.SuggestionReviewChange change, {
+    required _ReviewUndo? undo,
+    required bool popUndo,
+  }) async {
+    if (_reviewBusy) {
+      return;
+    }
+    setState(() {
+      _reviewBusy = true;
+    });
+    final StoredMeta saved;
+    try {
+      saved = await widget.runtime.saveRevision(
+        SaveRevisionRequest(
+          documentId: widget.source.documentId,
+          expectedHead: _headRevisionId,
+          content: change.content,
+          kind: core.RevisionKind.autosave,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _reviewBusy = false;
+      });
+      _showReviewMessage(AppLocalizations.of(context).save003);
+      return;
+    }
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _content = change.content;
+      _headRevisionId = saved.latestRevisionId ?? _headRevisionId;
+      if (popUndo && _reviewUndoStack.isNotEmpty) {
+        _reviewUndoStack.removeLast();
+      }
+      if (undo != null) {
+        _reviewUndoStack.add(undo);
+      }
+      _reviewBusy = false;
+    });
+  }
+
+  void _showReviewMessage(String message) {
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _completeSourceBytes(Uint8List? bytes) {
+    if (!_sourceBytesReady.isCompleted) {
+      _sourceBytesReady.complete(bytes);
+    }
+  }
+
+  /// Resolves the viewer's existing US1 read-back closure once when the editor
+  /// runtime is unavailable. This is not a second concurrent revision load:
+  /// the editor load already terminated with `UnsupportedOperationException`.
+  Future<void> _completeViewerSourceBytesFromFallback() async {
+    Uint8List? bytes;
+    try {
+      bytes = await widget
+          .sourceBytes(widget.source.sourceId)
+          .timeout(widget.loadTimeout);
+    } catch (_) {
+      bytes = null;
+    }
+    _completeSourceBytes(bytes);
+  }
+
+  Future<Uint8List?> _viewerSourceBytes(String sourceId) {
+    if (sourceId == widget.source.sourceId) {
+      // The viewer waits for the editor's single protected load; it never
+      // issues its own store read for the same document.
+      return _sourceBytesReady.future;
+    }
+    return widget.sourceBytes(sourceId);
   }
 
   void _markFailed({int? elapsedMs}) {
@@ -675,6 +903,7 @@ class EditorScreenState extends State<EditorScreen> {
 
   @override
   void dispose() {
+    _completeSourceBytes(null);
     _stripController.dispose();
     _viewerController.dispose();
     unawaited(widget.runtime.dispose());
@@ -702,10 +931,29 @@ class EditorScreenState extends State<EditorScreen> {
               SizedBox.shrink(key: ValueKey<String>(_analysisStateKey!)),
             PageStrip(controller: _stripController, pages: _stripPages),
             if (warning != null) _Imp006Warning(warning: warning),
+            if (_reviewPanelVisible)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+                child: SuggestionReviewPanel(
+                  suggestions: _content!.suggestions,
+                  confirmedFieldCount: _content!.fields.length,
+                  onConfirm: (core.FieldSuggestion suggestion) {
+                    unawaited(_confirmSuggestion(suggestion));
+                  },
+                  onReject: (core.FieldSuggestion suggestion) {
+                    unawaited(_rejectSuggestion(suggestion));
+                  },
+                  onUndo: () {
+                    unawaited(_undoLastReview());
+                  },
+                  undoAvailable: _reviewUndoStack.isNotEmpty,
+                  busy: _reviewBusy,
+                ),
+              ),
             Expanded(
               child: PageView(
                 sourceId: widget.source.sourceId,
-                sourceBytes: widget.sourceBytes,
+                sourceBytes: _viewerSourceBytes,
                 controller: _viewerController,
                 rendererFactory: widget.rendererFactory,
               ),
@@ -715,6 +963,24 @@ class EditorScreenState extends State<EditorScreen> {
       ),
     );
   }
+}
+
+enum _ReviewUndoKind { rejection, confirmation }
+
+/// One reversible review action kept on the B2 undo stack.
+final class _ReviewUndo {
+  const _ReviewUndo.rejection({required this.suggestionId})
+    : kind = _ReviewUndoKind.rejection,
+      confirmedField = null;
+
+  const _ReviewUndo.confirmation({
+    required this.suggestionId,
+    required this.confirmedField,
+  }) : kind = _ReviewUndoKind.confirmation;
+
+  final _ReviewUndoKind kind;
+  final String suggestionId;
+  final core.ConfirmedField? confirmedField;
 }
 
 /// Persistent German `IMP-006` warning for a partially readable document.
