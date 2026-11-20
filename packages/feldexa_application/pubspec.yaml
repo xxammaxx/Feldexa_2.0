@@ -9,9 +9,17 @@ environment:
 
 dependencies:
   # Canonical immutable document, suggestion, field, and revision value objects
-  # consumed by the pure review commands (T065).
+  # consumed by the pure review commands (T065) and the Phase A recognition
+  # composition (issue #217).
   feldexa_core:
     path: ../feldexa_core
+  # Existing platform port interfaces and DTOs composed by the Phase A
+  # recognition use case (issue #217); no new port is introduced.
+  feldexa_ports:
+    path: ../feldexa_ports
+  # Existing T050-T057 recognition modules composed by the Phase A pipeline.
+  feldexa_recognition:
+    path: ../feldexa_recognition
 
 dev_dependencies:
   flutter_test:
