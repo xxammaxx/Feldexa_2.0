@@ -1,0 +1,6 @@
+Resolving dependencies in `<repo-root>`...
+Downloading packages...
+  win32 5.15.0 (6.4.0 available)
+Got dependencies in `<repo-root>`!
+1 package has newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.

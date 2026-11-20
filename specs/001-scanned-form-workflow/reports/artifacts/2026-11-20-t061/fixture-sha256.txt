@@ -1,0 +1,11 @@
+Synthetic fixture staged by the host driver in an app-readable device-local
+directory (directory mode 755, file mode 644). Device and host digests agree.
+
+Device staging copy:
+  22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038  sf-001.pdf
+  size=5956 bytes  mode=644
+
+Host committed copy:
+  22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038  apps/feldexa_app/assets/fixtures/sf-001.pdf
+
+Corpus 1.0.0 fixtures (T033/T034) were not assembled and were not used.

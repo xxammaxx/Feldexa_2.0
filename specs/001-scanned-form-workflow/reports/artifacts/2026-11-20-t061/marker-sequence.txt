@@ -1,0 +1,6 @@
+screenshot page0-suggestions after T061_SCREENSHOT_PAGE0_SUGGESTIONS
+screenshot ack page0-suggestions
+screenshot page1-failure after T061_SCREENSHOT_PAGE1_FAILURE
+screenshot ack page1-failure
+screenshot navigation after T061_SCREENSHOT_NAVIGATION
+screenshot ack navigation
