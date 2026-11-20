@@ -1,0 +1,43 @@
+00:00 +0: loading apps/feldexa_app/integration_test/android_recognition_test.dart
+Running Gradle task 'assembleDebug'...
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:<gradle-home>/wrapper/dists/gradle-9.3.1-all/9ot9r568e8zfvvd4mn8rbu1j0/gradle-9.3.1/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: Your app uses the following plugins that apply Kotlin Gradle Plugin (KGP): share_plus
+Future versions of Flutter will fail to build if your app uses plugins that apply KGP.
+
+Please check the changelogs of these plugins and upgrade to a version that supports Built-in Kotlin.
+If no such version exists, report the issue to the plugin. If necessary, here is a guide on filing
+an issue against a plugin: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers#report-incompatible-kotlin-gradle-plugin-usage-to-plugin-authors
+
+If you are a plugin author, please migrate your plugin to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
+Running Gradle task 'assembleDebug'...                             85,0s
+✓ Built build/app/outputs/flutter-apk/app-debug.apk
+Installing build/app/outputs/flutter-apk/app-debug.apk...        1.752ms
+00:00 +0: (setUpAll)
+00:00 +0: T061 damaged page 2 isolates the recognition failure
+T061_FIXTURE_LOADED:BYTES=5956:MATCH=1
+T061_START_READY
+T061_IMPORT_ARMED
+T061_EDITOR_READY:PAGES=2:FAILURES=1
+T061_IMPORT_ACCEPTED:PAGE1=IMP-006:unsupportedStructure:UNREADABLE=1
+T061_PAGE0_GEOMETRY:595.28x841.89
+T061_ANALYSIS_READY
+T061_PAGE0_ANALYSIS:complete
+T061_PAGE0_SUGGESTIONS:28
+T061_PAGE1_ANALYSIS:failed:IMP-006:unsupportedStructure:SUGGESTIONS=0
+T061_PANEL_PAGE0_ASSERTED
+T061_SCREENSHOT_PAGE0_SUGGESTIONS
+T061_PAGE1_VIEW_ASSERTED
+T061_SCREENSHOT_PAGE1_FAILURE
+T061_NAVIGATION_BACK_ASSERTED
+T061_FAILURE_ISOLATION_ASSERTED
+T061_SCREENSHOT_NAVIGATION
+T061_BACK_TO_START
+T061_STORE_VERIFIED:SUGGESTIONS=28:PAGE1=IMP-006
+T061_PRIVACY_MARKERS_ASSERTED
+T061_CLEANUP_DONE
+02:43 +1: (tearDownAll)
+02:45 +1: All tests passed!

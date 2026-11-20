@@ -1,0 +1,5 @@
+head=1ee20f0fcfd32fcdc74771bf85cd91beb99f8f16
+branch=xxammaxx/t061
+base=1ee20f0fcfd32fcdc74771bf85cd91beb99f8f16
+tree_state=only the pre-existing unstaged apps/feldexa_app/android/gradlew.bat (CRLF/LF-only) plus the two new T061 files before commit
+flutter=Flutter 3.47.7, channel stable

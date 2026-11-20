@@ -1,0 +1,48 @@
+Spec Kit implementation command invocation — T061
+=================================================
+Timestamp: 2026-11-20T15:34:00+01:00 (approximate, before the first edit)
+Harness: OpenCode (DeepSeek Harness worker session)
+Vehicle: registered skill tool
+Skill: speckit-implement
+Registered command: .opencode/commands/speckit.implement.md
+Skill source: .agents/skills/speckit-implement/SKILL.md
+Invoked before any edit: yes
+Scope: T061 only — Android recognition integration test with per-page failure
+       isolation; no other task implemented; production code not changed.
+
+Prerequisites (speckit-implement outline step 1):
+  command: SPECIFY_FEATURE_DIRECTORY=specs/001-scanned-form-workflow \
+           bash .specify/scripts/bash/check-prerequisites.sh --json \
+           --require-tasks --include-tasks
+  cwd: repository root
+  exit: 0
+  feature_dir: <repo-root>/specs/001-scanned-form-workflow
+  available_docs: research.md, data-model.md, contracts/, quickstart.md,
+                  tasks.md
+  note: without SPECIFY_FEATURE_DIRECTORY the script exits 1 because
+        .specify/feature.json is absent; the explicit feature directory is the
+        documented repository convention.
+
+Extension hooks (.specify/extensions.yml):
+  before_implement: none registered (hooks: {})
+  after_implement: none registered (hooks: {})
+
+Checklists (read-only; markers were not modified):
+  requirements.md: 16/16 checked
+  precision-testability.md: 0/36 checked (reviewer-owned requirements-quality
+      artifact; not an implementation gate and not modified)
+  precision-testability-assessment.md: no checkbox items
+
+tasks.md:
+  T061 remains unchecked because this builder does not edit tasks.md; the
+  coordinator/integrator owns task markers.
+
+Context read before implementation:
+  specs/001-scanned-form-workflow/tasks.md (T061 and Evidence Discipline)
+  specs/001-scanned-form-workflow/plan.md (structure, platform stack)
+  specs/001-scanned-form-workflow/spec.md (US2 independent test)
+  specs/001-scanned-form-workflow/contracts/recognition-output.md
+  specs/001-scanned-form-workflow/contracts/editor-interactions.md
+  specs/001-scanned-form-workflow/data-model.md
+  specs/001-scanned-form-workflow/reports/README.md (evidence discipline)
+  existing integration tests and B2 composition sources
