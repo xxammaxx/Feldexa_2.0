@@ -123,13 +123,11 @@ No performance claim.
   fixture; no ground-truth recall claim is made.
 - TalkBack, 200% text scale, release signing/packaging, physical-device
   behavior, and corpus scoring were not run.
-- Two generic-validator deviations remain, both fixed by T061's authorized-file
-  scope: the task package pins the report name `2026-11-20-t061-emulator.md`
-  while the generic class rule expects `YYYY-MM-DD-emulator-<slug>.md`, and the
-  reports index row in `reports/README.md` is not added because that file is
-  outside the authorized scope. The generic validator reports only those two
-  findings; its content, artifact, privacy, and status checks pass. The
-  coordinator/integrator must add the index row when accepting this report.
+- The report name now follows the generic class rule
+  (`YYYY-MM-DD-emulator-<slug>.md`): this file is
+  `2026-11-20-emulator-t061-recognition.md`, and its index row is added to
+  `reports/README.md` during integration. The earlier task-package name
+  `2026-11-20-t061-emulator.md` was renamed for the repository convention.
 
 ## 8. Artifacts
 
