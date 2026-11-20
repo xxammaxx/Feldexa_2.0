@@ -32,6 +32,12 @@
 > `bb6bb47f6cf4cc3f7fa3db197de337cda7990a5b7c19ea25589d390e6fff429e`. All
 > other evidence, production behavior, and UNVERIFIED items are unchanged.
 
+> **Correction 3 (documentation/evidence only):** this refresh binds the
+> corrected APK SHA-256, the actual `07:21` journey and `00:19 +291` host-test
+> runtimes, an explicit privacy/offline `UNVERIFIED` entry, and the core
+> (`533`), recognition (`316`) and Android host (`383`) suite logs. Production
+> code and the EMULATOR journey are unchanged.
+
 ## 1. Scope
 
 This is the Phase B2 acceptance run for issue #217. It proves the visible
@@ -79,8 +85,11 @@ The run started from base commit
 `c1141470ad63c110ebe02277f0f98c70ee2cf26a` and delivered implementation commit
 `5540d8a32aedfc6edb8003309429912e893c5397`
 (tree `80b1fbbb702ff86fc6e05f1d27ecdf33386ac310`). The app/test/tool files in
-the emulator run and this implementation commit are identical; only the report
-and its artifacts were added afterwards.
+the emulator run and this implementation commit is identical. The later B2
+corrections changed only two test files (`android_us2_journey_test.dart` and
+`editor_analysis_test.dart`) plus the evidence; production app/package code is
+unchanged. Correction 2 rebuilt the APK, bound by the new SHA-256
+`bb6bb47f6cf4cc3f7fa3db197de337cda7990a5b7c19ea25589d390e6fff429e`.
 
 The run's `flutter test integration_test/android_us2_journey_test.dart -d
 emulator-5554` built and installed the debug APK from this tree. The APK is a
@@ -128,7 +137,7 @@ EMULATOR: Pixel 7 API 35, exclusive Orca allocation
           Orca controller stream scrcpy://emulator-5554, codec h264
           build mode debug
           APK apps/feldexa_app/build/app/outputs/flutter-apk/app-debug.apk
-          APK SHA-256 5ed8ab4e32f51e1dc0f1484773df0bfbc72846ecf5e0784445129b2caded1913
+          APK SHA-256 bb6bb47f6cf4cc3f7fa3db197de337cda7990a5b7c19ea25589d390e6fff429e
 ```
 
 Device identity and the Orca session binding are recorded in
@@ -207,9 +216,12 @@ content is logged in either artifact.
 | 4 | `dart format --output=none --set-exit-if-changed` on all 11 changed Dart files (`apps/feldexa_app`) | `0` | `host-dart-format.log` | `PASS`, `Formatted 11 files (0 changed)` |
 | 5 | `flutter analyze --no-pub` (`packages/feldexa_application`) | `0` | `host-application-analyze.log` | `PASS` |
 | 6 | `flutter test --no-pub` (`packages/feldexa_application`) | `0` | `host-application-test.log` | `PASS`, `135` tests, `0` failures |
+| 6a | `flutter test --no-pub` (`packages/feldexa_core`) | `0` | `host-core-test.log` | `PASS`, `533` tests, `0` failures |
+| 6b | `flutter test --no-pub` (`packages/feldexa_recognition`) | `0` | `host-recognition-test.log` | `PASS`, `316` tests, `0` failures |
+| 6c | `./gradlew :app:testDebugUnitTest` (Temurin 17) | `0` | `host-android-unit-test.log` | `PASS`, `383` tests in 18 suites, `0` failures |
 | 7 | `git diff --check` and repository checks (worktree root) | `0` | `host-git-checks.log` | `PASS` |
 
-The app suite finished with `00:28 +291: All tests passed!`; the stated B1
+The app suite finished with `00:19 +291: All tests passed!`; the stated B1
 baseline was 281. The exact B2 delta is 10 tests: 6 in
 `editor_review_panel_test.dart` and 4 in `editor_analysis_test.dart`. The
 application package remains at its 135-test baseline.
@@ -340,6 +352,13 @@ The following were **not run or not observed** and are not presented as passes:
   detector outputs, not a complete ground-truth match. The run does not claim
   that every expected form field was detected with the ground-truth type; that
   belongs to recognition quality tasks (T059/T060/T061/T063).
+- **Privacy/offline socket observation (issue criterion 5)**: **UNVERIFIED**.
+  No socket/network observation was run for this debug build. The debug/profile
+  manifests intentionally inject `INTERNET` for the Flutter VM service, so a
+  manifest check alone cannot prove the release network posture. The marker and
+  Flutter logcat excerpts contain no OCR text, labels or document content, and
+  no content logging was observed, but the explicit socket observation remains
+  with T138/T061.
 - **Independent review of this candidate**: not performed here; the review
   table in §11 is intentionally blank.
 
@@ -369,13 +388,16 @@ git-ignored local build output bound by `apk-sha256.txt`; it is not committed.
 | `apk-sha256.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/apk-sha256.txt` | 178 | `989b28595e7379758e733cfac1b3994f8dbcd28a1f72ee5aa676639d4b4bc53f` |
 | `device-identity.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/device-identity.txt` | 411 | `b233366b2899c927522902bda676a492352211a9f0ebed6e06b7f6b444941d23` |
 | `fixture-sha256.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/fixture-sha256.txt` | 457 | `50bc57114bfafb4e4faf94e73b2a5b794ff30cf9e0566dc8017b50f250cd9ba6` |
+| `host-android-unit-test.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-android-unit-test.log` | 21356 | `c8f4d4eab028b4426b70c37608b30161136d21a97de3bf2f583bae35e344b37d` |
 | `host-application-analyze.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-application-analyze.log` | 64 | `cf69a9be4cd7c0211440f8a8f4fda7b430bdf6a80b174bd2c8371762493b3005` |
 | `host-application-test.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-application-test.log` | 26466 | `1291ddfc9dffccb97fc81f2290e5e830cd42ab790be4e02a58dfcc7311eaa04a` |
+| `host-core-test.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-core-test.log` | 99410 | `882ea717979600eb9abd421c2cf3593beafe8fcfe1c6e015472559b3901d7020` |
 | `host-dart-format.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-dart-format.log` | 48 | `e79b4f400a42a6b30c7915c7b4fd9ff348fd399d6e3992bf2ecb65b68d3626b8` |
 | `host-flutter-analyze.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-flutter-analyze.log` | 57 | `cc5dc800d9625c5028ba182e160e8de990e27dd700b90eeccebce8dd67c956bc` |
 | `host-flutter-pub-get.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-flutter-pub-get.log` | 333 | `30c4a53996ef24e0570a7e2e73ef530280d7156226af11ec49732f428804603e` |
 | `host-flutter-test.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-flutter-test.log` | 54716 | `fc63424be2d65d65192ca951f9b4f8ff5abd6bc863e9786ce7b0cb686f5bcded` |
 | `host-git-checks.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-git-checks.log` | 3834 | `ec6a21845d1340b90d3ddacf3ed0559e9434fc8bea665310d657b1ad25a1ed9d` |
+| `host-recognition-test.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/host-recognition-test.log` | 62950 | `213b3c6331677c273a56ebb5fa239faf9e9ef37f1aae985213d8648c577cf139` |
 | `integration-android-us2.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/integration-android-us2.log` | 9058 | `78f104168a7afbbfdac04b2ee9672218ff6fac208d8abc8e0a0c881e7839e689` |
 | `logcat-flutter.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/logcat-flutter.log` | 315 | `1ece3bb35f3e203f51c3eade580e3c74f6dd30d636c4a6dec217e2daea888463` |
 | `logcat-us2-markers.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-20-us2-integration/logcat-us2-markers.log` | 1217 | `cb2aab0e4bebced9c7a2d56f754509ab1af63e097c9bc8110ccf2fef42dcf780` |
@@ -390,8 +412,9 @@ git-ignored local build output bound by `apk-sha256.txt`; it is not committed.
 ## 10. Reproducibility
 
 1. Start from base `c1141470ad63c110ebe02277f0f98c70ee2cf26a` and check out
-   implementation commit `5540d8a32aedfc6edb8003309429912e893c5397`
-   (tree `80b1fbbb702ff86fc6e05f1d27ecdf33386ac310`). Confirm the pre-existing
+   commit `a173fa2e2c981e982690aa853ee5216e10892601` (tree
+   `c6d1baffe736c0b8d14960fadcb8bbee2cea1731`; the report/evidence docs commit
+   follows it). Confirm the pre-existing
    `gradlew.bat` modification is not committed.
 2. Attach the exclusively allocated `T025_Pixel7_API35_KVM_20261115` AVD
    through Orca (`orca emulator attach ... --json`), confirm exactly one adb
@@ -402,7 +425,7 @@ git-ignored local build output bound by `apk-sha256.txt`; it is not committed.
    to both device locations, starts the integration test, drives the real
    picker, captures the three handshake screenshots, collects the evidence,
    and removes the pushed fixture/staging/dumps.
-4. Expected test output: exit `0`, `07:31 +1: All tests passed!`, markers
+4. Expected test output: exit `0`, `07:21 +1: All tests passed!`, markers
    through `US2_CLEANUP_DONE`. A rerun must use a fresh
    `US2_EVIDENCE_DIR`/`US2_RUN_DIR` or explicitly set
    `US2_REPLACE_EVIDENCE=1`; the driver refuses to overwrite a non-empty

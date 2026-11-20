@@ -1,0 +1,536 @@
+00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/canonical_json_test.dart
+00:00 +0: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/canonical_json_test.dart: canonical JSON encoding sorts keys recursively, omits whitespace, and keeps Unicode
+00:00 +1: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: SourceFileRef accepts the source bounds and round-trips JSON
+00:00 +2: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: SourceFileRef accepts the source bounds and round-trips JSON
+00:00 +3: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: SourceFileRef accepts the source bounds and round-trips JSON
+00:00 +4: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: SourceFileRef accepts the source bounds and round-trips JSON
+00:00 +5: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/canonical_json_test.dart: canonical JSON encoding escapes quotes, backslashes, and control characters
+00:00 +6: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: SourceFileRef normalizes a blank name to null and copyWith can clear it
+00:00 +7: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/canonical_json_test.dart: canonical JSON encoding rejects non-finite numbers
+00:00 +8: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: SourceFileRef rejects out-of-range size, page count, ids, and names
+00:00 +9: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/canonical_json_test.dart: canonical JSON encoding rejects unsupported types and non-string map keys
+00:00 +10: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: SourceFileRef rejects local import timestamps and malformed JSON
+00:00 +11: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/canonical_json_test.dart: canonical JSON encoding rejects cyclic object graphs instead of overflowing
+00:00 +12: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: PageFailure uses exactly the three core categories
+00:00 +13: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: PageFailure uses exactly the three core categories
+00:00 +14: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/canonical_json_test.dart: canonical UTC timestamps serializes UTC with millisecond precision and truncates micros
+00:00 +15: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/canonical_json_test.dart: canonical UTC timestamps serializes UTC with millisecond precision and truncates micros
+00:00 +16: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: PageFailure copyWith revalidates
+00:00 +17: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/canonical_json_test.dart: canonical UTC timestamps rejects local timestamps
+00:00 +18: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: TemplateOrigin round-trips the immutable version pin
+00:00 +19: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/canonical_json_test.dart: canonical UTC timestamps parses UTC ISO-8601 and rejects local or malformed values
+00:00 +20: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/canonical_json_test.dart: canonical UTC timestamps parses UTC ISO-8601 and rejects local or malformed values
+00:00 +21: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: DurablePointer round-trips a verified pointer and its explicit parent
+00:00 +22: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: DurablePointer requires verifyReadBack to be true in the constructor and JSON
+00:00 +23: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: DurablePointer validates kind, parent, timestamp, and hash
+00:00 +24: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: DurablePointer copyWith can clear the parent and keeps read-back verification
+00:00 +25: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Page and AnalysisState uses the four analysis tokens
+00:00 +26: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Page and AnalysisState requires a matching failure exactly for the failed state
+00:00 +27: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Page and AnalysisState keeps renderCacheKey derived, unpersisted, and out of equality
+00:00 +28: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Page and AnalysisState a retry copy clears the failure and keeps other fields
+00:00 +29: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: DocumentPreferences defaults to no zoom preference and document order
+00:00 +30: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: DocumentPreferences accepts the zoom-ratio bounds and round-trips JSON
+00:00 +31: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: DocumentPreferences rejects invalid zoom values, pages, and review modes
+00:00 +32: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: DocumentPreferences copyWith can clear the zoom preference
+00:00 +33: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: DocumentMeta round-trips the persisted metadata envelope
+00:00 +34: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: DocumentMeta ties readable and unreadableReasonCode together
+00:00 +35: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: DocumentMeta accepts independent revision pointers and rejects local time
+00:00 +36: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: DocumentMeta validates title, ids, and JSON discriminators
+00:00 +37: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Document canonical JSON round-trips the full aggregate and canonicalizes its JSON
+00:00 +38: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Document canonical JSON restores the safe derived status and never persists status
+00:00 +39: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Document canonical JSON derives and enforces the unreadable status
+00:00 +40: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Document canonical JSON rejects a higher schema version without touching the data
+00:00 +41: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Document canonical JSON rejects wrong discriminators and mistyped containers
+00:00 +42: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Document aggregate validation requires one contiguous page per preflight page
+00:00 +43: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Document aggregate validation validates suggestion pages, bounds, ids, and conflicts
+00:00 +44: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Document aggregate validation keeps suggestions in canonical page and ordinal order
+00:00 +45: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Document aggregate validation accepts symmetric conflicts and round-trips both candidates
+00:00 +46: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Document aggregate validation validates field ids, pages, bounds, and fieldOrder
+00:00 +47: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Document aggregate validation orders fields by fieldOrder and validates order values
+00:00 +48: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Document aggregate validation validates values against fields and reclassification flags
+00:00 +49: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Document aggregate validation a blocking field error survives JSON with preserved content
+00:00 +50: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Document aggregate validation validates verification references and currentPage
+00:00 +51: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Document aggregate validation normalizes the title and rejects empty, control, or long titles
+00:00 +52: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Signature invariants round-trips a signature field with its mark and value
+00:00 +53: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Signature invariants requires the mark and value to exist together with one asset
+00:00 +54: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Signature invariants rejects marks on non-signature fields
+00:00 +55: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: Signature invariants rejects duplicate signature asset ids in the document
+00:00 +56: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: privacy toString never echoes titles, labels, values, or filenames
+00:00 +57: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/document_test.dart: privacy validation errors never echo the rejected content
+00:01 +58: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_lifecycle_test.dart: confirm: unresolved -> confirmed creates one machine field and copies provenance, geometry, type, and confidence
+00:01 +59: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_lifecycle_test.dart: confirm: unresolved -> confirmed the confirmed document and revision content round-trip through canonical JSON unchanged
+00:01 +60: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_lifecycle_test.dart: reject and undo: unresolved -> rejected -> unresolved rejecting creates no machine field and reloads with other fields intact
+00:01 +61: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_lifecycle_test.dart: reject and undo: unresolved -> rejected -> unresolved undoing a rejection restores unresolved without touching fields
+00:01 +62: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_lifecycle_test.dart: confirm undo: confirmed -> unresolved removing an untouched generated field and restoring unresolved is valid and round-trips
+00:01 +63: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_lifecycle_test.dart: invariants a duplicateOfConfirmed suggestion can never be confirmed
+00:01 +64: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_lifecycle_test.dart: invariants a confirmed suggestion without exactly one machine field is rejected by both aggregates
+00:01 +65: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_lifecycle_test.dart: invariants a machine field without a confirmed suggestion is rejected by both aggregates
+00:01 +66: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_lifecycle_test.dart: invariants confidence and page mismatches are rejected
+00:01 +67: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_lifecycle_test.dart: invariants sourceSuggestionId and suggestionConfidence are required exactly for Provenance.machine
+00:01 +68: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_lifecycle_test.dart: provenance preservation later type and label edits do not rewrite the suggestion record
+00:01 +69: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_lifecycle_test.dart: determinism and JSON every lifecycle state round-trips through canonical JSON deterministically
+00:01 +70: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_lifecycle_test.dart: determinism and JSON unknown same-schema fields survive the lifecycle round-trip at every level
+00:01 +71: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_lifecycle_test.dart: determinism and JSON lifecycle invariant errors never echo label text
+00:01 +72: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_lifecycle_test.dart: no duplicate state model resolution has exactly the three contract states
+00:01 +73: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_lifecycle_test.dart: no duplicate state model duplicateOfConfirmed is an audit flag on an unresolved suggestion, not a fourth resolution
+00:02 +74: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldType and enum tokens wire tokens are stable and unknown tokens fail closed
+00:02 +75: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldType and enum tokens represents every recognition-output §3.1 wire cue
+00:02 +76: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: SuggestionEvidence requires a non-empty, duplicate-free cue set
+00:02 +77: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: SuggestionEvidence sorts cues and stores them as an immutable set
+00:02 +78: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: SuggestionEvidence keyword cues are lossless, canonical, and validated
+00:02 +79: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: SuggestionEvidence keyword cue keys are the closed recognition-output v1 lexicon
+00:02 +80: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: SuggestionEvidence requires at least one geometric cue (§2.1)
+00:02 +81: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: SuggestionEvidence strict cue parsing rejects legacy aliases; migration canonicalizes
+00:02 +82: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: SuggestionEvidence rejects OCR-dependent cues when ocrUsed is false
+00:02 +83: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: SuggestionEvidence enforces the cueAgreement lower bound and accepts composites
+00:02 +84: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: SuggestionEvidence tracks the signature cue and JSON round-trips
+00:02 +85: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: SuggestionEvidence serializes contrast normal|low and migrates the legacy boolean
+00:02 +86: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion builds deterministic idFor ids
+00:02 +87: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion rejects malformed or page-mismatched ids
+00:02 +88: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion rejects noncanonical page and ordinal aliases
+00:02 +89: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion enforces the confidence interval
+00:02 +90: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion enforces the two-decimal confidence from recognition-output §2
+00:02 +91: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion trims labelText, treats blank as null, and enforces 200 chars
+00:02 +92: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion requires the signature cue for a signature suggestion
+00:02 +93: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion normalizes conflict ids and rejects self or malformed ids
+00:02 +94: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion checks page-bounds tolerance without clamping
+00:02 +95: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion rounds the stored rect to the 1/8 pt grid
+00:02 +96: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion canonicalRect rounds components and half-step ties
+00:02 +97: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion canonicalRect is idempotent and leaves aligned rects unchanged
+00:02 +98: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion canonicalRect rejects zero-size and overflowing results
+00:02 +99: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion constructor and JSON round-trip the canonical rect
+00:02 +100: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion raw rects that round to the same grid point are equal
+00:02 +101: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion copyWith keeps the id and can clear the optional label
+00:02 +102: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion equality, JSON round-trip, and privacy-safe toString
+00:02 +103: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion matches the recognition-output §2 suggestion wire fields
+00:02 +104: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion strict decoding requires contrast while legacy decoding migrates it
+00:02 +105: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion strict suggestion decoding rejects legacy cue aliases
+00:02 +106: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldSuggestion round-trips the recognition-output §2 suggestion fixture
+00:02 +107: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: ConfirmedField builds a user field and round-trips JSON
+00:02 +108: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: ConfirmedField requires machine provenance fields exactly for machine fields
+00:02 +109: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: display box CropBox defaults to the MediaBox
+00:02 +110: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: display box CropBox defaults to the MediaBox
+00:02 +111: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: display box CropBox defaults to the MediaBox
+00:02 +112: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: display box CropBox defaults to the MediaBox
+00:02 +113: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: display box CropBox defaults to the MediaBox
+00:02 +114: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: ConfirmedField rejects Unicode whitespace and C1 controls in template field ids
+00:02 +115: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: display box rotation 0 and 180 keep the crop dimensions
+00:02 +116: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: ConfirmedField rejects invisible Unicode format controls in template field ids
+00:02 +117: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: ConfirmedField rejects invisible Unicode format controls in template field ids
+00:02 +118: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: display box a CropBox inside the MediaBox sets the display size
+00:02 +119: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: ConfirmedField rejects default-ignorable non-Cf code points in template field ids
+00:02 +120: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: display box a CropBox larger than the MediaBox is clipped to the MediaBox
+00:02 +121: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: ConfirmedField accepts only matching values or preserved incompatible content
+00:02 +122: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: ConfirmedField accepts only matching values or preserved incompatible content
+00:02 +123: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: ConfirmedField checks page bounds and clears machine fields with copyWith
+00:02 +124: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: display box a non-overlapping or degenerate CropBox is rejected
+00:02 +125: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: ConfirmedField keeps confirmed-field geometry exact
+00:02 +126: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: display box unsupported rotations are rejected
+00:02 +127: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: ConfirmedField toString never echoes the label
+00:02 +128: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: rotation mapping normative full-page table maps every rotation to the PDF box
+00:02 +129: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: SignatureMark builds a mark and matches only its signature field
+00:02 +130: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: rotation mapping the normative (100, 50, 120, 20) field maps per rotation
+00:02 +131: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: rotation mapping the normative (100, 50, 120, 20) field maps per rotation
+00:02 +132: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: SignatureMark enforces UUIDv4, SHA-256, and UTC
+00:02 +133: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: rotation mapping the normative (100, 50) point maps per rotation
+00:02 +134: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: SignatureMark round-trips JSON and keeps equality
+00:02 +135: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: rotation mapping CropBox offsets are applied on every side
+00:02 +136: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldVerification requires reviewedAt exactly for confirmed and corrected
+00:02 +137: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldVerification requires reviewedAt exactly for confirmed and corrected
+00:02 +138: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: rotation mapping all display corners map onto the four PDF crop corners
+00:02 +139: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: rotation mapping all display corners map onto the four PDF crop corners
+00:02 +140: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldVerification round-trips JSON and equality
+00:02 +141: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: round-trip display → PDF → display for points at all rotations
+00:02 +142: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValidation ok, warning, and error states are distinct
+00:02 +143: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: round-trip display → PDF → display for rectangles at all rotations
+00:02 +144: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValidation rejects invalid message keys and catalog codes
+00:02 +145: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: round-trip round-trips with offset and clipped CropBoxes
+00:02 +146: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValidation round-trips all three states and rejects unknown statuses
+00:02 +147: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: round-trip quarter turns swap the PDF rectangle width and height
+00:02 +148: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValue lengths and control characters text accepts 10,000 characters and rejects 10,001
+00:02 +149: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: validation an in-bounds rectangle is returned unchanged
+00:02 +150: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValue lengths and control characters text removes line breaks and rejects control characters
+00:02 +151: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: validation sub-half-point overshoot is clamped with a warning flag
+00:02 +152: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValue lengths and control characters multiline preserves newlines and applies the same length cap
+00:02 +153: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValue lengths and control characters multiline preserves newlines and applies the same length cap
+00:02 +154: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: validation a rectangle entirely outside within tolerance is translated
+00:02 +155: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValue lengths and control characters preserved incompatible content is kept verbatim
+00:02 +156: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValue lengths and control characters preserved incompatible content is kept verbatim
+00:02 +157: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: validation validation uses the rotated display box
+00:02 +158: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes number accepts normalized decimals only
+00:02 +159: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: validation the documented tolerance is 0.5 pt
+00:02 +160: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes date accepts real calendar dates only
+00:02 +161: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: validation the reported narrow-page left regression stays inside the box
+00:02 +162: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes checkbox defaults to unchecked
+00:02 +163: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes checkbox defaults to unchecked
+00:02 +164: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: validation all four edges stay inside a narrow display dimension
+00:02 +165: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes signature values require a lowercase UUIDv4
+00:02 +166: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: validation narrow width and height clamp on every rotation
+00:02 +167: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes every variant rejects a non-UTC lastEditedAt
+00:02 +168: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: validation corner outliers stay inside a tiny square display box
+00:02 +169: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: validation corner outliers stay inside a tiny square display box
+00:02 +170: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes JSON round-trips every variant with its type discriminator
+00:02 +171: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes JSON round-trips every variant with its type discriminator
+00:02 +172: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes JSON round-trips every variant with its type discriminator
+00:02 +173: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: validation accepted rectangles stay bounded across tiny display widths
+00:02 +174: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: validation accepted rectangles stay bounded across tiny display widths
+00:02 +175: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: FieldValue canonical shapes JSON parsing fails closed for unknown or malformed values
+00:02 +176: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: JSON serializes both boxes and the rotation, not the derived size
+00:02 +177: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: JSON serializes both boxes and the rotation, not the derived size
+00:02 +178: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: privacy validation errors do not echo labels or values
+00:03 +179: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: privacy validation errors do not echo labels or values
+00:03 +180: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: JSON defaults a missing or null CropBox to the MediaBox
+00:03 +181: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: privacy value toString does not reveal content
+00:03 +182: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: JSON clips an out-of-bounds serialized CropBox like the constructor
+00:03 +183: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/field_test.dart: privacy closed keyword diagnostics do not echo rejected input
+00:03 +184: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: JSON rejects malformed or unsupported JSON
+00:03 +185: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: value semantics equality and hashCode use boxes and rotation
+00:03 +186: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_test.dart: value semantics toString names the boxes and rotation
+00:03 +187: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart
+00:04 +187: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Point keeps finite coordinates without rounding
+00:04 +188: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Point accepts zero, negative, subnormal, and extreme finite values
+00:04 +189: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Point rejects NaN, positive infinity, and negative infinity
+00:04 +190: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Point is an immutable value object with stable equality
+00:04 +191: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Point quantizes to three decimals only when serialized
+00:04 +192: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Point JSON round-trip reads the quantized coordinates
+00:04 +193: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Point fromJson rejects missing, non-numeric, and non-finite fields
+00:04 +194: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Size accepts small and large positive dimensions
+00:04 +195: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Size rejects zero, negative zero, negative, NaN, and infinity
+00:04 +196: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Size is an immutable value object with stable equality
+00:04 +197: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Size keeps full precision until serialization
+00:04 +198: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Size preserves positivity for dimensions below the quantization step
+00:04 +199: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Size fromJson rejects non-positive and malformed dimensions
+00:04 +200: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Rect accepts a 6 pt checkbox and other small rectangles
+00:04 +201: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Rect accepts finite negative origins
+00:04 +202: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Rect derives x/y aliases and the right/bottom edges
+00:04 +203: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Rect rejects non-positive width and height
+00:04 +204: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Rect rejects non-finite origins
+00:04 +205: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/geometry_value_objects_test.dart: Rect rejects a finite edge that overflows to infinity
+00:04 +206: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: SourceFileRef invariants (FR-001/FR-004) accepts the documented size and page-count bounds
+00:04 +207: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: SourceFileRef invariants (FR-001/FR-004) accepts the documented size and page-count bounds
+00:04 +208: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: SourceFileRef invariants (FR-001/FR-004) accepts the documented size and page-count bounds
+00:04 +209: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: SourceFileRef invariants (FR-001/FR-004) accepts the documented size and page-count bounds
+00:04 +210: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: SourceFileRef invariants (FR-001/FR-004) accepts the documented size and page-count bounds
+00:04 +211: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: SourceFileRef invariants (FR-001/FR-004) accepts the documented size and page-count bounds
+00:04 +212: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: SourceFileRef invariants (FR-001/FR-004) rejects an id that is not a lowercase UUIDv4
+00:04 +213: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: SourceFileRef invariants (FR-001/FR-004) rejects a sha256 that is not 64 lowercase hex characters
+00:04 +214: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: SourceFileRef invariants (FR-001/FR-004) rejects sizeBytes outside 1 … 83,886,080
+00:04 +215: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: SourceFileRef invariants (FR-001/FR-004) rejects pageCount outside 1 … 100
+00:04 +216: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: SourceFileRef invariants (FR-001/FR-004) requires UTC importedAt
+00:04 +217: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: SourceFileRef invariants (FR-001/FR-004) normalizes originalName as display-only metadata
+00:04 +218: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: SourceFileRef invariants (FR-001/FR-004) never echoes the rejected original name in an error
+00:04 +219: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: SourceFileRef invariants (FR-001/FR-004) copyWith returns a new reference and leaves the original intact
+00:04 +220: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: SourceIntegrityState semantics verified and unreadable use the documented wire tokens
+00:04 +221: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: SourceIntegrityState semantics an unreadable imported source stays a valid, immutable reference
+00:04 +222: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: SourceIntegrityState semantics the imported reference compares equal to the same value
+00:04 +223: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: PageFailure invariants (IMP-006 partial import) accepts the three documented categories
+00:04 +224: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: PageFailure invariants (IMP-006 partial import) rejects a negative page index
+00:04 +225: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: PageFailure invariants (IMP-006 partial import) rejects a message key that is not a catalog code, without echoing it
+00:04 +226: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: PageFailure invariants (IMP-006 partial import) rejects an unknown category wire token on read
+00:04 +227: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: PageFailure invariants (IMP-006 partial import) serializes only index, category, and message key
+00:04 +228: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: PageFailure invariants (IMP-006 partial import) a failure must name the page it belongs to, inside the source
+00:04 +229: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: PageGeometry invariants (import preflight) defaults the crop box to the media box
+00:04 +230: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: PageGeometry invariants (import preflight) intersects the crop box with the media box
+00:04 +231: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: PageGeometry invariants (import preflight) rejects a crop box that does not overlap the media box
+00:04 +232: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: PageGeometry invariants (import preflight) accepts exactly the four normalized rotations
+00:04 +233: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: PageGeometry invariants (import preflight) displaySize follows the rotation
+00:04 +234: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: PageGeometry invariants (import preflight) a non-positive media box is rejected by Rect validation
+00:04 +235: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: PageGeometry invariants (import preflight) round-trips media box, crop box, and rotation canonically
+00:04 +236: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: PageGeometry invariants (import preflight) rejects an invalid persisted rotation or box
+00:04 +237: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: canonical-JSON round trip of the imported source (FR-004) survives a save and reopen byte-identically
+00:04 +238: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: canonical-JSON round trip of the imported source (FR-004) retains unknown same-schema fields across the round trip
+00:04 +239: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/import_contract_test.dart: canonical-JSON round trip of the imported source (FR-004) a returned JSON map cannot mutate the reference
+00:05 +240: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus clean is durable and has the canonical token
+00:05 +241: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus saving is not durable
+00:05 +242: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus unsaved is not durable and keeps the risk semantics
+00:05 +243: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus saved carries a UTC timestamp and is durable
+00:05 +244: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus saved rejects a local timestamp
+00:05 +245: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus saveFailed carries a catalog code and is not durable
+00:05 +246: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus saveFailed rejects a sentence or malformed code
+00:05 +247: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus recoveryFallback carries a revision id and is not durable
+00:05 +248: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus recoveryFallback rejects a non-UUID revision id
+00:05 +249: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus only clean and saved may be presented as durable
+00:05 +250: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: DurabilityStatus states use value equality
+00:05 +251: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionKind wire tokens match the T017 durable-pointer vocabulary
+00:05 +252: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionKind fromWire accepts only the three canonical tokens
+00:05 +253: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction minimal snapshot has the eight canonical payload keys
+00:05 +254: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction pages must be non-empty
+00:05 +255: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction pages must be ordered contiguously from index 0
+00:05 +256: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction suggestions are sorted canonically regardless of input order
+00:05 +257: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction duplicate suggestion ids are rejected
+00:05 +258: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a suggestion must reference an existing page
+00:05 +259: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a suggestion must fit its page display box
+00:05 +260: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction suggestion conflicts must exist and be symmetric
+00:05 +261: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction duplicate confirmed field ids are rejected
+00:05 +262: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a confirmed field must reference an existing page
+00:05 +263: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a confirmed field must fit its page display box
+00:05 +264: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction fieldOrder must be a complete permutation with matching orders
+00:05 +265: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction field.order must equal its position in fieldOrder
+00:05 +266: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a value must reference a confirmed field
+00:05 +267: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction incompatible content and its flag must occur together
+00:05 +268: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a signature must reference a signature field on the same page
+00:05 +269: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction signature asset ids must be unique
+00:05 +270: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a signature mark requires the matching value
+00:05 +271: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a signature value requires the matching mark
+00:05 +272: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction verification must reference a confirmed field
+00:05 +273: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction a rich snapshot round-trips through canonical JSON
+00:05 +274: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: same-type reclassification text to itself is a no-op
+00:05 +275: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: same-type reclassification text to itself is a no-op
+00:05 +276: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: same-type reclassification text to itself is a no-op
+00:05 +277: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: same-type reclassification text to itself is a no-op
+00:05 +278: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: same-type reclassification text to itself is a no-op
+00:05 +279: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction mistyped payload sections are rejected
+00:05 +280: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction mistyped payload sections are rejected
+00:05 +281: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent construction mistyped payload sections are rejected
+00:05 +282: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: same-type reclassification checkbox to itself is a no-op
+00:05 +283: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent unknown fields unknown fields survive at every persisted layer
+00:05 +284: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent unknown fields unknown fields survive at every persisted layer
+00:05 +285: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent unknown fields unknown fields survive at every persisted layer
+00:05 +286: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text and multiline text to multiline preserves content and metadata
+00:05 +287: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent unknown fields unknown fields are retained in canonical byte order
+00:05 +288: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text and multiline multiline without a line break to text is lossless
+00:05 +289: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: RevisionContent unknown fields unknown fields do not participate in equality
+00:05 +290: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text and multiline multiline with a line break needs explicit confirmation
+00:05 +291: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text and multiline multiline with a line break needs explicit confirmation
+00:05 +292: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text and multiline multiline with a line break needs explicit confirmation
+00:05 +293: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: Revision all revision kinds round-trip through JSON
+00:05 +294: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: Revision all revision kinds round-trip through JSON
+00:05 +295: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text and multiline confirmed line-break join resolves the open action
+00:05 +296: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: Revision unknown fields survive at the revision and content roots
+00:05 +297: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text and multiline empty text stays an empty multiline value
+00:05 +298: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: Revision revision identity, parent, timestamp, and hash are validated
+00:05 +299: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to number parses a German grouped decimal
+00:05 +300: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: Revision fromJson rejects missing and mistyped modeled fields
+00:05 +301: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to number parses German comma decimals and negatives
+00:05 +302: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: Revision a revision with a clearable parent copies and validates
+00:05 +303: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to number parses canonical dot decimals
+00:05 +304: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: Revision toDurablePointer maps the verified commit exactly
+00:05 +305: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to number prefers a valid German grouping over a canonical dot decimal
+00:05 +306: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/persistence_test.dart: Revision revision equality and hash include content
+00:05 +307: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to number trims for parsing but preserves the raw display text
+00:05 +308: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to number preserves unparseable text with NUM-001 instead of discarding it
+00:05 +309: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to number preserves German characters and spaces verbatim on failure
+00:05 +310: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to number empty text produces no value instead of a parse error
+00:05 +311: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to number whitespace-only text is preserved rather than treated as empty
+00:05 +312: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to number accepts the 10,000-character preserved-content boundary
+00:05 +313: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to number clears a previous field error on a lossless conversion
+00:05 +314: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to number keeps overflow metadata and the overflow warning
+00:05 +315: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to number incompatible content takes precedence over an overflow warning
+00:05 +316: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to date parses German dates with or without leading zeros
+00:05 +317: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to date accepts the canonical form emitted by date to text
+00:05 +318: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to date accepts a real leap day
+00:05 +319: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to date marks an impossible calendar date as DATE-002 and preserves it
+00:05 +320: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to date marks an impossible month as DATE-002
+00:05 +321: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to date marks a malformed date as DATE-001 and preserves it
+00:05 +322: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to date distinguishes a 29 February of a non-leap year as DATE-002
+00:05 +323: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: text to date empty text produces no value instead of a date error
+00:05 +324: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: number and date to text or multiline number to text preserves the German display input
+00:05 +325: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: number and date to text or multiline date to text preserves the canonical content and clears the error
+00:05 +326: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: number and date to text or multiline number and date to multiline preserve their display text
+00:05 +327: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: number and date to text or multiline converted values keep same-schema extensions
+00:05 +328: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: number and date cross-conversion number to date parses a date-shaped display input
+00:05 +329: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: number and date cross-conversion number to date preserves a non-date projection with DATE-001
+00:05 +330: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: number and date cross-conversion date to number preserves the canonical date with NUM-001
+00:05 +331: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: to checkbox text content is preserved and an unchecked box is proposed
+00:05 +332: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: to checkbox number and date content are preserved verbatim
+00:05 +333: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: to checkbox multiline line breaks are preserved
+00:05 +334: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: to checkbox empty text becomes no value instead of an incompatible warning
+00:05 +335: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: to checkbox resolve accepts the proposed unchecked state
+00:05 +336: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: to signature text content is preserved and blocks export until resolved
+00:05 +337: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: to signature number and date content are preserved
+00:05 +338: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: to signature empty text becomes an unsigned signature without a warning
+00:05 +339: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: to signature a checkbox state is cleared when the target is a signature
+00:05 +340: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: to signature resolve discards the flagged text explicitly
+00:05 +341: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: from checkbox checked and unchecked states project to Ja and Nein
+00:05 +342: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: from checkbox multiline projects the state and proposes multiline text
+00:05 +343: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: from checkbox number and date targets preserve the projection without inference
+00:05 +344: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: from checkbox resolve accepts the projected text explicitly
+00:05 +345: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: from signature signature to text clears the reference and surfaces the asset
+00:05 +346: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: from signature signature to the other non-signature types clears the reference
+00:05 +347: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: from signature resolve is a no-op for an already cleared signature
+00:05 +348: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: preserved content beyond the documented matrix a preserved line break can be confirmed for a non-multiline source
+00:05 +349: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: preserved content beyond the documented matrix control characters that text cannot store stay incompatible
+00:05 +350: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: preserved content beyond the documented matrix control characters that multiline cannot store stay incompatible
+00:05 +351: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: input validation and privacy rejects a value that does not belong to the field type
+00:05 +352: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: input validation and privacy a rejection never echoes content
+00:05 +353: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: input validation and privacy rejects a misplaced line-break confirmation flag
+00:05 +354: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: input validation and privacy rejects a non-UTC updatedAt
+00:05 +355: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: input validation and privacy rejects over-limit display content without echoing it
+00:05 +356: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: input validation and privacy result toString never echoes preserved content
+00:05 +357: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: input validation and privacy result equality and hashCode cover every field
+00:05 +358: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: missing value and recovery a field without a value changes type without content flags
+00:05 +359: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: missing value and recovery preserved content recovers as text
+00:05 +360: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: missing value and recovery resolve is idempotent
+00:05 +361: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: same-schema validation extensions a lossless conversion keeps validation extensions
+00:05 +362: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: same-schema validation extensions clearing an error keeps validation extensions
+00:05 +363: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: same-schema validation extensions a parse-failure error keeps validation extensions
+00:05 +364: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: same-schema validation extensions a checkbox warning keeps validation extensions
+00:05 +365: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: same-schema validation extensions resolve keeps validation extensions
+00:05 +366: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: same-schema validation extensions resolve keeps value extensions for a line-break join
+00:05 +367: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: same-schema validation extensions resolve keeps value extensions for a checkbox projection
+00:05 +368: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: same-schema validation extensions resolve keeps value extensions for a multiline projection
+00:05 +369: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: same-schema validation extensions resolve keeps value extensions for a proposed checkbox
+00:05 +370: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: same-schema validation extensions clearing a signature keeps validation extensions
+00:05 +371: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: same-schema validation extensions the persisted roundtrip keeps validation extensions
+00:06 +372: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: persisted blocking error and warning unparseable number persists a blocking NUM-001 error with content
+00:06 +373: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: persisted blocking error and warning unparseable date persists a blocking DATE-002 error with content
+00:06 +374: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: persisted blocking error and warning NUM-001 survives the document and revision persistence roundtrip
+00:06 +375: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: persisted blocking error and warning DATE-002 survives the document and revision persistence roundtrip
+00:06 +376: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: persisted blocking error and warning the incompatible-content warning survives for checkbox content
+00:06 +377: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: persisted blocking error and warning resolving a parse failure clears the persisted error
+00:06 +378: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix text to text yields a valid state
+00:06 +379: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix text to number yields a valid state
+00:06 +380: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix text to date yields a valid state
+00:06 +381: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix text to checkbox yields a valid state
+00:06 +382: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix text to multiline yields a valid state
+00:06 +383: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix text to signature yields a valid state
+00:06 +384: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix number to text yields a valid state
+00:06 +385: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix number to number yields a valid state
+00:06 +386: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix number to date yields a valid state
+00:06 +387: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix number to checkbox yields a valid state
+00:06 +388: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix number to multiline yields a valid state
+00:06 +389: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix number to signature yields a valid state
+00:06 +390: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix date to text yields a valid state
+00:06 +391: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix date to number yields a valid state
+00:06 +392: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix date to date yields a valid state
+00:06 +393: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix date to checkbox yields a valid state
+00:06 +394: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix date to multiline yields a valid state
+00:06 +395: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix date to signature yields a valid state
+00:06 +396: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix checkbox to text yields a valid state
+00:06 +397: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix checkbox to number yields a valid state
+00:06 +398: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix checkbox to date yields a valid state
+00:06 +399: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix checkbox to checkbox yields a valid state
+00:06 +400: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix checkbox to multiline yields a valid state
+00:06 +401: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix checkbox to signature yields a valid state
+00:06 +402: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix multiline to text yields a valid state
+00:06 +403: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix multiline to number yields a valid state
+00:06 +404: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix multiline to date yields a valid state
+00:06 +405: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix multiline to checkbox yields a valid state
+00:06 +406: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix multiline to multiline yields a valid state
+00:06 +407: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix multiline to signature yields a valid state
+00:06 +408: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix signature to text yields a valid state
+00:06 +409: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix signature to number yields a valid state
+00:06 +410: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix signature to date yields a valid state
+00:06 +411: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix signature to checkbox yields a valid state
+00:06 +412: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix signature to multiline yields a valid state
+00:06 +413: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/reclassification_test.dart: full type matrix signature to signature yields a valid state
+00:06 +414: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: duplicateOfConfirmed persistence flag defaults to false and is omitted from JSON
+00:06 +415: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: duplicateOfConfirmed persistence flag serializes only when true and round-trips
+00:06 +416: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: duplicateOfConfirmed persistence flag legacy JSON without the flag decodes as false
+00:06 +417: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: duplicateOfConfirmed persistence flag rejects non-boolean or explicit null flag values
+00:06 +418: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: duplicateOfConfirmed persistence flag copyWith sets and clears the flag; equality and JSON include it
+00:06 +419: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: duplicateOfConfirmed persistence flag rejects the flag on a confirmed suggestion
+00:06 +420: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: duplicateOfConfirmed persistence flag retains unknown fields alongside the flag
+00:06 +421: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: markDuplicatesOfConfirmed flags an exact canonical 0.8 duplicate and not one grid step below
+00:06 +422: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: markDuplicatesOfConfirmed rounds both rects to the canonical 1/8 pt grid first
+00:06 +423: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: markDuplicatesOfConfirmed ignores a different type and non-machine fields
+00:06 +424: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: markDuplicatesOfConfirmed leaves an already-confirmed suggestion unchanged
+00:06 +425: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: markDuplicatesOfConfirmed is deterministic and order-preserving under shuffled input
+00:06 +426: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: aggregate suggestion/provenance invariants accepts a confirmed suggestion with its machine field
+00:06 +427: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: aggregate suggestion/provenance invariants accepts a valid duplicate marker and round-trips it
+00:06 +428: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: aggregate suggestion/provenance invariants allows a rejected duplicate marker
+00:06 +429: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: aggregate suggestion/provenance invariants rejects a confirmed suggestion without exactly one machine field
+00:06 +430: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: aggregate suggestion/provenance invariants rejects a machine field without a confirmed suggestion
+00:06 +431: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: aggregate suggestion/provenance invariants rejects a machine field whose confidence does not match
+00:06 +432: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: aggregate suggestion/provenance invariants rejects a machine field that references an unresolved or rejected suggestion
+00:06 +433: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: aggregate suggestion/provenance invariants rejects a duplicate flag without a matching machine field
+00:06 +434: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: aggregate suggestion/provenance invariants rejects a cross-page machine-field reference
+00:06 +435: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: aggregate suggestion/provenance invariants invariant errors never echo labels, ids, or content
+00:06 +436: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: revision persistence round-trips a revision with a confirmed suggestion and machine field reloads unchanged
+00:06 +437: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: revision persistence round-trips a revision with rejected and unresolved suggestions without machine fields reloads unchanged
+00:06 +438: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: revision persistence round-trips a document round-trips the duplicate flag, resolution, and provenance
+00:06 +439: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/suggestion_persistence_test.dart: revision persistence round-trips unknown fields survive a document round-trip with the flag
+00:06 +440: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer accepts a valid pointer and serializes the canonical timestamp
+00:06 +441: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer rejects an invalid identity, number, or timestamp
+00:06 +442: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer copyWith revalidates
+00:06 +443: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer fromJson rejects missing or mistyped modeled fields
+00:06 +444: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer preserves unknown same-schema fields across a round-trip
+00:06 +445: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionPointer toString never echoes extension data
+00:06 +446: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionContent serializes exactly the ver/<versionId>.fx1 payload
+00:06 +447: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionContent has no value, signature, suggestion, or origin member
+00:06 +448: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionContent orders fields by fieldOrder and keeps them unpacked
+00:06 +449: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionContent rejects an unsupported schema version
+00:06 +450: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionContent rejects a missing, null, or mistyped schemaVersion
+00:06 +451: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionContent refuses forbidden payloads at the root and in page/field objects
+00:06 +452: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionContent refuses forbidden payloads in deeply modeled objects
+00:06 +453: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionContent rejects an empty or non-contiguous page snapshot
+00:06 +454: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionContent rejects a field that does not belong to the snapshot
+00:06 +455: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionContent rejects a field order that is not a contiguous permutation
+00:06 +456: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionContent round-trips canonical JSON byte-identically
+00:06 +457: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionContent preserves unknown same-schema fields at every level
+00:06 +458: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionContent copyWith revalidates and retains extensions
+00:06 +459: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionContent rejects extension data that is not canonical JSON
+00:07 +460: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionContent deep-freezes extension data against later mutation
+00:07 +461: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersionContent toString reports counts only
+00:07 +462: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersion composes a pointer for the metadata list
+00:07 +463: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersion sorts the snapshot by field order
+00:07 +464: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersion rejects invalid identity, number, hash, pages, and field order
+00:07 +465: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersion round-trips canonical JSON and keeps extensions
+00:07 +466: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersion fromJson wraps invalid modeled values as FormatException
+00:07 +467: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersion refuses forbidden payloads at the root and in snapshots
+00:07 +468: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersion refuses forbidden payloads in deeply modeled snapshots
+00:07 +469: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateVersion toString reports the version number only
+00:07 +470: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: Template builds a layout-only aggregate
+00:07 +471: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: Template trims the title and preserves German characters
+00:07 +472: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: Template rejects an invalid schema version, id, title, or timestamp
+00:07 +473: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: Template rejects a page list that does not match the source
+00:07 +474: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: Template rejects fields that do not belong to the layout
+00:07 +475: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: Template rejects a version list that is not newest first
+00:07 +476: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: Template rejects non-monotonic version timestamps
+00:07 +477: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: Template requires latestVersion to be the newest pointer (FR-105)
+00:07 +478: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: Template rejects a wrong kind, missing, or newer schema in JSON
+00:07 +479: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: Document root and nested round-trip preserves extensions at every persisted object level
+00:07 +480: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: Document root and nested round-trip preserves extensions at every persisted object level
+00:07 +481: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: Document root and nested round-trip preserves extensions at every persisted object level
+00:07 +482: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: Document root and nested round-trip preserves extensions at every persisted object level
+00:07 +483: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: Document root and nested round-trip preserves extensions at every persisted object level
+00:07 +484: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: Document root and nested round-trip preserves extensions at every persisted object level
+00:07 +485: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: Document root and nested round-trip preserves extensions at every persisted object level
+00:07 +486: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: Document root and nested round-trip preserves extensions at every persisted object level
+00:07 +487: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: Template equality and hashCode ignore extension data
+00:07 +488: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: Template equality and hashCode ignore extension data
+00:07 +489: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: Document root and nested round-trip modeled keys win over a colliding extension
+00:07 +490: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: Template rejects extension data that is not canonical JSON
+00:07 +491: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: Document root and nested round-trip drops transient status and derived renderCacheKey
+00:07 +492: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: Template toString and errors never echo the title or labels
+00:07 +493: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips SourceFileRef
+00:07 +494: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateMeta serializes the meta.fx1 envelope without layout content
+00:07 +495: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips Page retains its own extensions and its nested failure
+00:07 +496: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateMeta round-trips canonical JSON byte-identically
+00:07 +497: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips PageGeometry and its Rect boxes
+00:07 +498: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateMeta supports an unreadable envelope with a catalog reason
+00:07 +499: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips Rect
+00:07 +500: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateMeta rejects an inconsistent readable state or code
+00:07 +501: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips PageFailure
+00:07 +502: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips FieldSuggestion, evidence, and rect
+00:07 +503: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips FieldSuggestion, evidence, and rect
+00:07 +504: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateMeta rejects a wrong discriminator or missing modeled field
+00:07 +505: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips ConfirmedField, validation, and rect
+00:07 +506: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateMeta has no mandatory schemaVersion in the v1 envelope
+00:07 +507: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips FieldValue variants retain extensions
+00:07 +508: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateMeta refuses a present null, newer, or mistyped schemaVersion marker
+00:07 +509: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips FieldValidation ok, warning, and error
+00:07 +510: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateMeta refuses forbidden payloads at the root and in pointer objects
+00:07 +511: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateMeta keeps the newest-first version invariant
+00:07 +512: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips SignatureMark and FieldVerification
+00:07 +513: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: TemplateMeta preserves unknown same-schema fields
+00:07 +514: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips TemplateOrigin, DurablePointer, and DocumentPreferences
+00:07 +515: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: StoredTemplate joins a listed version with its verified content
+00:07 +516: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips DocumentMeta and its source
+00:07 +517: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: StoredTemplate rejects a version from another template
+00:07 +518: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips legacy lowContrast is normalized away, not retained
+00:07 +519: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: nested object round-trips legacy lowContrast is normalized away, not retained
+00:07 +520: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: StoredTemplate rejects content that does not match the version snapshots
+00:07 +521: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: defensive deep immutability unknownJsonFields deep-copies input maps and lists
+00:07 +522: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: StoredTemplate exposes a layout-only model without filled content
+00:07 +523: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: defensive deep immutability Document.fromJson copies nested extensions away from the input
+00:07 +524: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: defensive deep immutability Document.fromJson copies nested extensions away from the input
+00:07 +525: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: defensive deep immutability Document.fromJson copies nested extensions away from the input
+00:07 +526: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/template_test.dart: unknown same-schema fields are dropped only across a schema boundary (fail closed)
+00:07 +527: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: defensive deep immutability public constructors copy nested extensions before storing
+00:07 +528: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: defensive deep immutability public constructors copy nested extensions before storing
+00:07 +529: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: defensive deep immutability nested value objects copy extensions before storing
+00:07 +530: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: defensive deep immutability mergeUnknownJsonFields isolates mutable extension input
+00:07 +531: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: defensive deep immutability mutating returned JSON cannot change a later digest
+00:07 +532: /home/xxammaxx/Schreibtisch/Feldexa_2.0/us2-int-b2/packages/feldexa_core/test/unknown_fields_test.dart: defensive deep immutability rejects non-JSON and cyclic extension values
+00:07 +533: All tests passed!
