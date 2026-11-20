@@ -18,4 +18,5 @@ export 'src/model/persistence.dart';
 export 'src/model/reclassification.dart';
 export 'src/model/template.dart';
 export 'src/model/template_origin.dart';
+export 'src/validation/date.dart';
 export 'src/validation/number.dart';

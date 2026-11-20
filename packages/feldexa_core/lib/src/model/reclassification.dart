@@ -88,23 +88,25 @@
 //
 // The number grammar is owned by `lib/src/validation/number.dart` and exposed
 // as [parseGermanNumber]; this module delegates to it instead of keeping a
-// second copy. The date parser remains here because it also distinguishes
-// `DATE-001` from `DATE-002`:
+// second copy. The date grammar is owned by `lib/src/validation/date.dart` and
+// exposed as [parseGermanDate], which returns the canonical date or the
+// `DATE-001`/`DATE-002` code:
 //
 //   * number: the T019 German and canonical forms parsed by
 //     [parseGermanNumber]. A valid German grouping is preferred over a
 //     canonical dot decimal, so the German display `1.234` becomes `1234`
 //     rather than `1.234`.
 //   * date: `d.m.yyyy` with one or two digits for day/month and four for the
-//     year, or the canonical `yyyy-mm-dd` emitted by date → text. A
-//     structurally valid date that is not a real calendar date is
-//     `DATE-002`; anything else is `DATE-001`.
+//     year, or the canonical `yyyy-mm-dd` emitted by date → text, parsed by
+//     [parseGermanDate]. A structurally valid date that is not a real calendar
+//     date is `DATE-002`; anything else is `DATE-001`.
 //
 // The display projections are trimmed for parsing only; `rawGerman` and
 // preserved content keep the exact entered text.
 
 library;
 
+import '../validation/date.dart';
 import '../validation/number.dart';
 import 'field.dart';
 
@@ -673,7 +675,7 @@ ReclassificationResult _toDate({
       updatedAt: updatedAt,
     );
   }
-  final _ParsedDate parsed = _parseDate(text);
+  final DateParseResult parsed = parseGermanDate(text);
   final String? canonical = parsed.canonical;
   if (canonical != null) {
     return _converted(
@@ -1026,52 +1028,4 @@ bool _containsUnsupportedControlCharacters(
     }
   }
   return false;
-}
-
-final RegExp _germanDatePattern = RegExp(r'^(\d{1,2})\.(\d{1,2})\.(\d{4})$');
-final RegExp _canonicalDatePattern = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$');
-
-/// Parses a German `d.m.yyyy` or canonical `yyyy-mm-dd` date.
-///
-/// Returns a canonical `yyyy-mm-dd`, `DATE-001` for a malformed input, or
-/// `DATE-002` for a structurally valid but non-existent calendar date.
-_ParsedDate _parseDate(String raw) {
-  final String text = raw.trim();
-  final RegExpMatch? german = _germanDatePattern.firstMatch(text);
-  final RegExpMatch? canonical = _canonicalDatePattern.firstMatch(text);
-  final int year;
-  final int month;
-  final int day;
-  if (german != null) {
-    day = int.parse(german.group(1)!);
-    month = int.parse(german.group(2)!);
-    year = int.parse(german.group(3)!);
-  } else if (canonical != null) {
-    year = int.parse(canonical.group(1)!);
-    month = int.parse(canonical.group(2)!);
-    day = int.parse(canonical.group(3)!);
-  } else {
-    return const _ParsedDate.failure('DATE-001');
-  }
-  final DateTime date = DateTime.utc(year, month, day);
-  if (date.year != year || date.month != month || date.day != day) {
-    return const _ParsedDate.failure('DATE-002');
-  }
-  return _ParsedDate.success(
-    '${_padDatePart(year, 4)}-${_padDatePart(month, 2)}-'
-    '${_padDatePart(day, 2)}',
-  );
-}
-
-String _padDatePart(int value, int width) {
-  return value.toString().padLeft(width, '0');
-}
-
-final class _ParsedDate {
-  const _ParsedDate.success(String this.canonical) : errorCode = null;
-
-  const _ParsedDate.failure(String this.errorCode) : canonical = null;
-
-  final String? canonical;
-  final String? errorCode;
 }
