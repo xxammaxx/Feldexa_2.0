@@ -71,8 +71,9 @@ The earlier diagnostic run exposed a shared-store result-path hang: the editor
 revision load and the viewer's source-bytes read-back both used the same
 `AndroidStoreClient`/operation result stream. Phase B2 now loads the revision
 and source **once** in `EditorScreen` and completes one in-memory
-`Completer<Uint8List?>`; the viewer awaits that same protected bytes value and
-never issues a second `store.loadDocument` for the same document. A 30-second
+`Completer<Uint8List?>`; on the Android editor path the viewer awaits that same
+protected bytes value and does not issue a second `store.loadDocument` for the
+same document. A 30-second
 `editorLoadTimeout` turns a hung load into the deterministic German
 `analysis-failed` state instead of an infinite pending editor. The fail-closed
 non-Android runtime preserves the existing US1 viewer read-back closure when no
@@ -267,11 +268,11 @@ saves. No duplicate suggestions or lost confirmed fields were observed.
   asserted both sides of a symmetric pair and the German `Konflikt` marker on
   the rows. This is the B2 list marker only; the full conflict sheet T068 and
   overlay T069 remain separate tasks.
-- **Page failure**: `sf-001` has no unreadable/damaged page; the import
-  reported `PAGE_FAILURES:0` and no `REC-002`/`PAGE-001` surface was present.
-  Page-failure isolation is therefore **UNVERIFIED on the emulator** in this
-  run; T061/T062 remain open. The B1 host test still covers the isolated
-  failure path, but it is not an emulator claim.
+- **Page failure**: `sf-001` has no unreadable/damaged page and the import
+  reported `PAGE_FAILURES:0`; no page-failure assertion was executed in this
+  journey. Page-failure isolation is therefore **UNVERIFIED on the emulator**
+  in this run; T061/T062 remain open. The B1 host test still covers the
+  isolated failure path, but it is not an emulator claim.
 
 ## 6. Screenshots
 
