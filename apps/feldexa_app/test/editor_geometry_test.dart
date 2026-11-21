@@ -14,18 +14,30 @@
 //   * no store write happens per frame, and the preview disappears with the
 //     gesture;
 //   * a pointer cancel discards the preview and commits nothing;
-//   * a two-finger gesture pans/zooms the page and never edits geometry, and a
-//     drag that starts outside the selected field still pans the page;
+//   * a two-finger gesture pans/zooms the page and never edits geometry, a drag
+//     that starts outside the selected field still pans the page, and lifting
+//     one finger of a pinch cannot re-arm a geometry claim: the remaining
+//     finger keeps panning and a cancelled claim never commits (B1 correction);
+//   * the geometry preview stays painted until the gesture's commit resolves
+//     (F4 correction);
 //   * the T067 `CommandHistory` entry makes undo restore the exact previous
-//     rectangle.
+//     rectangle;
+//   * a value edit is recorded as its own T067 entry, so undo after
+//     confirm → value edit reverses only the value and never drops the
+//     confirmed field (B2 correction);
+//   * an undo whose newest entry no longer matches the visible content is
+//     refused instead of dropping newer content (B2 correction, guard branch).
 
 @TestOn('vm')
 library;
 
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:feldexa_app/features/editor/editor_runtime.dart';
 import 'package:feldexa_app/features/editor/editor_screen.dart';
+import 'package:feldexa_app/features/editor/field_value_sheet.dart';
+import 'package:feldexa_app/features/fill/text_control.dart';
 import 'package:feldexa_app/features/editor/page_view.dart' as viewer;
 import 'package:feldexa_app/features/editor/suggestion_review_panel.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
@@ -109,16 +121,46 @@ core.ConfirmedField _field() {
   );
 }
 
-core.RevisionContent _content() {
-  return core.RevisionContent(
-    pages: <core.Page>[_page()],
-    suggestions: const <core.FieldSuggestion>[],
-    fields: <core.ConfirmedField>[_field()],
-    fieldOrder: <String>[_fieldId],
+/// The unresolved-suggestion fixture used by the undo-history regression.
+const String _suggestionId = 's_p0_0001';
+
+core.Rect _suggestionRect() => core.Rect.fromLTWH(40, 20, 100, 20);
+
+core.FieldSuggestion _suggestion() {
+  return core.FieldSuggestion(
+    id: _suggestionId,
+    pageIndex: 0,
+    rect: _suggestionRect(),
+    proposedType: core.FieldType.text,
+    confidence: 0.6,
+    labelText: 'Vorschlag',
+    evidence: core.SuggestionEvidence(
+      cues: const <core.SuggestionCue>[core.SuggestionCue.underline],
+      ocrUsed: false,
+    ),
   );
 }
 
-LoadedDocument _loaded() {
+core.RevisionContent _content({
+  bool withField = true,
+  bool withSuggestion = false,
+}) {
+  final List<core.ConfirmedField> fields = withField
+      ? <core.ConfirmedField>[_field()]
+      : const <core.ConfirmedField>[];
+  return core.RevisionContent(
+    pages: <core.Page>[_page()],
+    suggestions: withSuggestion
+        ? <core.FieldSuggestion>[_suggestion()]
+        : const <core.FieldSuggestion>[],
+    fields: fields,
+    fieldOrder: <String>[
+      for (final core.ConfirmedField field in fields) field.id,
+    ],
+  );
+}
+
+LoadedDocument _loaded({core.RevisionContent? content}) {
   return LoadedDocument(
     meta: core.DocumentMeta(
       id: _documentId,
@@ -135,7 +177,7 @@ LoadedDocument _loaded() {
       latestRevisionId: _revisionId,
       lastDurableAt: _createdAt,
     ),
-    content: _content(),
+    content: content ?? _content(),
     sourceBytes: _sourceBytes,
     evidence: _noneEvidence,
   );
@@ -168,9 +210,13 @@ StoredMeta _storedMeta() {
 }
 
 final class _FakeStore implements SecureStorePort {
-  _FakeStore({required this.loaded});
+  _FakeStore({required this.loaded, this.saveGate});
 
   LoadedDocument loaded;
+
+  /// Optional gate that holds the next [saveRevision] open, so a test can
+  /// observe the editor while one commit is still in flight.
+  Completer<void>? saveGate;
   final List<SaveRevisionRequest> saves = <SaveRevisionRequest>[];
   final List<String?> savedHeads = <String?>[];
 
@@ -197,6 +243,11 @@ final class _FakeStore implements SecureStorePort {
   Future<StoredMeta> saveRevision(SaveRevisionRequest request) async {
     saves.add(request);
     savedHeads.add(request.expectedHead);
+    final Completer<void>? gate = saveGate;
+    if (gate != null) {
+      saveGate = null;
+      await gate.future;
+    }
     final core.DocumentMeta meta = loaded.meta.copyWith(
       updatedAt: _savedAt,
       latestRevisionId: _savedRevisionId,
@@ -275,6 +326,10 @@ final class _FakeEditorRuntime implements EditorRuntime {
 
   final _FakeStore fakeStore;
 
+  /// The single clock instance of this runtime, so a test can advance it and
+  /// make consecutive commands strictly monotonic (or deliberately not).
+  final _FakeClock fakeClock = _FakeClock();
+
   @override
   PageRasterPort get raster => _UnavailableRaster();
 
@@ -288,7 +343,7 @@ final class _FakeEditorRuntime implements EditorRuntime {
   IdPort get ids => _FakeIds();
 
   @override
-  ClockPort get clock => _FakeClock();
+  ClockPort get clock => fakeClock;
 
   @override
   Future<LoadedDocument> loadDocument(String documentId) {
@@ -438,6 +493,11 @@ void main() {
 
     expect(store.saves, hasLength(1));
     expect(state.geometryGestureActive, isFalse);
+    expect(
+      find.byKey(const ValueKey<String>('field-geometry-preview')),
+      findsNothing,
+      reason: 'the preview is transient and must not outlive the gesture',
+    );
     final core.Rect expected = core.Rect.fromLTWH(
       _fieldLeft + 60 / scale + 24,
       _fieldTop + 18,
@@ -588,6 +648,317 @@ void main() {
       reason: 'a two-finger gesture must keep zooming the page',
     );
   });
+
+  testWidgets(
+    'lifting one finger of a pinch does not re-arm the geometry claim',
+    (WidgetTester tester) async {
+      final _FakeStore store = _FakeStore(loaded: _loaded());
+      final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+      await _pumpEditor(tester, runtime: runtime);
+      final EditorScreenState state = _state(tester);
+      await _selectField(tester, state);
+      // Zoom in first: at fit-width the page fits the viewport and the pan is
+      // clamped, so a page pan would not be observable.
+      state.viewController.setView(
+        scale: state.viewController.scale * 1.5,
+        pan: Offset.zero,
+        clampToViewport: true,
+      );
+      await tester.pumpAndSettle();
+      final double initialScale = state.viewController.scale;
+      const Offset centre = Offset(
+        _fieldLeft + _fieldWidth / 2,
+        _fieldTop + _fieldHeight / 2,
+      );
+      final Finder preview = find.byKey(
+        const ValueKey<String>('field-geometry-preview'),
+      );
+
+      // One-finger geometry drag, then a second finger cancels the claim.
+      final TestGesture first = await _startDrag(tester, state, centre);
+      expect(state.geometryGestureActive, isTrue);
+      final TestGesture second = await tester.startGesture(
+        _screenPoint(tester, state, centre + const Offset(0, 60)),
+      );
+      await tester.pump();
+      expect(
+        state.geometryGestureActive,
+        isFalse,
+        reason: 'a second pointer cancels the geometry claim',
+      );
+      expect(preview, findsNothing);
+
+      // Two-finger pan/zoom must continue normally after the cancellation.
+      await first.moveBy(const Offset(-30, -30));
+      await second.moveBy(const Offset(30, 30));
+      await tester.pump();
+      expect(
+        state.viewController.scale,
+        greaterThan(initialScale),
+        reason: 'the page still zooms with two pointers',
+      );
+
+      // Lift the second finger and keep moving the remaining one: the claim
+      // must stay suppressed for the whole pointer sequence, not just until
+      // the next one-pointer onScaleStart, and the page must keep panning.
+      await second.up();
+      await tester.pump();
+      final Offset panAfterPinch = state.viewController.pan;
+      // The first move after the pointer-set change only re-baselines the pan:
+      // the recognizer restarts and dispatches onScaleStart and onScaleUpdate for
+      // the same focal point. The second move pans the page.
+      await first.moveBy(const Offset(-20, -20));
+      await tester.pump();
+      await first.moveBy(const Offset(-40, -40));
+      await tester.pump();
+
+      expect(
+        state.geometryGestureActive,
+        isFalse,
+        reason: 'a cancelled pinch must not re-arm geometry after one lift',
+      );
+      expect(preview, findsNothing);
+      expect(
+        state.viewController.pan,
+        isNot(panAfterPinch),
+        reason: 'the remaining finger still pans the page',
+      );
+
+      await first.up();
+      await tester.pumpAndSettle();
+
+      expect(store.saves, isEmpty);
+      expect(_storedRect(state), _fieldRect());
+
+      // A brand-new single-pointer gesture may claim again.
+      final TestGesture fresh = await _startDrag(tester, state, centre);
+      expect(state.geometryGestureActive, isTrue);
+      await fresh.cancel();
+      await tester.pumpAndSettle();
+      expect(store.saves, isEmpty);
+    },
+  );
+
+  testWidgets('the geometry preview stays visible until the commit resolves', (
+    WidgetTester tester,
+  ) async {
+    final Completer<void> gate = Completer<void>();
+    final _FakeStore store = _FakeStore(loaded: _loaded(), saveGate: gate);
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+    await _pumpEditor(tester, runtime: runtime);
+    final EditorScreenState state = _state(tester);
+    await _selectField(tester, state);
+    final Finder preview = find.byKey(
+      const ValueKey<String>('field-geometry-preview'),
+    );
+
+    final TestGesture gesture = await _startDrag(
+      tester,
+      state,
+      const Offset(_fieldLeft + _fieldWidth / 2, _fieldTop + _fieldHeight / 2),
+    );
+    await gesture.up();
+    await tester.pump();
+
+    // The gesture is over (one save in flight) but the stored content has not
+    // changed yet: the preview must stay painted so the field does not snap
+    // back to its previous rectangle.
+    expect(state.geometryGestureActive, isFalse);
+    expect(store.saves, hasLength(1));
+    expect(_storedRect(state), _fieldRect());
+    expect(preview, findsOneWidget);
+    final core.Rect committed = store.saves.single.content.fields.single.rect;
+    expect(
+      committed,
+      isNot(_fieldRect()),
+      reason: 'the pending commit carries the dragged rectangle',
+    );
+
+    gate.complete();
+    await tester.pumpAndSettle();
+
+    expect(store.saves, hasLength(1));
+    expect(preview, findsNothing);
+    expect(
+      _storedRect(state),
+      core.Rect.fromLTWH(
+        committed.left,
+        committed.top,
+        committed.width,
+        committed.height,
+      ),
+    );
+  });
+
+  testWidgets(
+    'undo refuses a stale snapshot instead of dropping newer content',
+    (WidgetTester tester) async {
+      final _FakeStore store = _FakeStore(
+        loaded: _loaded(
+          content: _content(withField: false, withSuggestion: true),
+        ),
+      );
+      final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+      await _pumpEditor(tester, runtime: runtime);
+      final EditorScreenState state = _state(tester);
+      final AppLocalizations de = lookupAppLocalizations(const Locale('de'));
+
+      // 1) Confirm the suggestion: one durable revision and one undo step.
+      await tester.tap(
+        find.byKey(
+          const ValueKey<String>('$confirmSuggestionKeyPrefix$_suggestionId'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(store.saves, hasLength(1));
+      final String confirmedId = state.content!.fields.single.id;
+
+      // 2) A value edit whose history record is rejected (the clock moved
+      //    backwards, so the command is older than the newest entry) still
+      //    persists durably. That is exactly the unrecorded mutation class the
+      //    undo guard must survive.
+      runtime.fakeClock.now = _savedAt.subtract(const Duration(seconds: 1));
+      final core.Rect suggestion = _suggestionRect();
+      await tester.tapAt(
+        _screenPoint(
+          tester,
+          state,
+          Offset(
+            suggestion.left + suggestion.width / 2,
+            suggestion.top + suggestion.height / 2,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+      await tester.enterText(find.byKey(fieldTextControlInputKey), 'Hallo');
+      await tester.tap(find.byKey(fieldValueSaveKey));
+      await tester.pumpAndSettle();
+      expect(store.saves, hasLength(2));
+      expect(
+        (state.content!.values[confirmedId]! as core.TextValue).text,
+        'Hallo',
+      );
+
+      // 3) Undo: the newest entry no longer describes the visible content, so
+      //    the reversal is refused instead of writing a revision that drops
+      //    the field or the value.
+      await tester.tap(find.byKey(const ValueKey<String>(undoReviewKey)));
+      await tester.pumpAndSettle();
+
+      expect(
+        store.saves,
+        hasLength(2),
+        reason: 'a refused undo writes no revision',
+      );
+      expect(find.text(de.save006), findsOneWidget);
+      expect(
+        state.content!.fields.map((core.ConfirmedField field) => field.id),
+        <String>[confirmedId],
+        reason: 'the confirmed field must survive the refused undo',
+      );
+      expect(
+        (state.content!.values[confirmedId]! as core.TextValue).text,
+        'Hallo',
+        reason: 'the newer value must survive the refused undo',
+      );
+      expect(
+        state.canUndoReview,
+        isTrue,
+        reason: 'the refused entry is re-armed, not lost',
+      );
+    },
+  );
+
+  testWidgets(
+    'undo after a value edit keeps the field and reverses only the value',
+    (WidgetTester tester) async {
+      final _FakeStore store = _FakeStore(
+        loaded: _loaded(
+          content: _content(withField: false, withSuggestion: true),
+        ),
+      );
+      final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+      await _pumpEditor(tester, runtime: runtime);
+      final EditorScreenState state = _state(tester);
+
+      // 1) Confirm the suggestion: one durable revision and one undo step.
+      await tester.tap(
+        find.byKey(
+          const ValueKey<String>('$confirmSuggestionKeyPrefix$_suggestionId'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(store.saves, hasLength(1));
+      expect(state.content!.fields, hasLength(1));
+      final String confirmedId = state.content!.fields.single.id;
+      expect(state.canUndoReview, isTrue);
+
+      // 2) Edit the value through the sheet: a second durable revision. The
+      //    clock advances so the value edit is its own strictly newer T067
+      //    entry instead of relying on equal timestamps.
+      runtime.fakeClock.now = _savedAt.add(const Duration(seconds: 1));
+      final core.Rect suggestion = _suggestionRect();
+      await tester.tapAt(
+        _screenPoint(
+          tester,
+          state,
+          Offset(
+            suggestion.left + suggestion.width / 2,
+            suggestion.top + suggestion.height / 2,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+      await tester.enterText(find.byKey(fieldTextControlInputKey), 'Hallo');
+      await tester.tap(find.byKey(fieldValueSaveKey));
+      await tester.pumpAndSettle();
+      expect(store.saves, hasLength(2));
+      final core.FieldValue? typed = state.content!.values[confirmedId];
+      expect(typed, isA<core.TextValue>());
+      expect((typed! as core.TextValue).text, 'Hallo');
+
+      // 3) Undo: only the newest entry (the value edit) is reversed. The
+      //    confirmed field must survive and no revision may drop it.
+      await tester.tap(find.byKey(const ValueKey<String>(undoReviewKey)));
+      await tester.pumpAndSettle();
+
+      expect(store.saves, hasLength(3));
+      expect(
+        state.content!.fields.map((core.ConfirmedField field) => field.id),
+        <String>[confirmedId],
+        reason: 'undo must not drop the confirmed field',
+      );
+      expect(
+        store.saves.last.content.fields.map(
+          (core.ConfirmedField field) => field.id,
+        ),
+        <String>[confirmedId],
+        reason: 'the written revision must keep the confirmed field',
+      );
+      expect(
+        state.content!.values.containsKey(confirmedId),
+        isFalse,
+        reason: 'undo reverses the value edit back to the pre-edit state',
+      );
+      expect(
+        state.content!.suggestions.single.resolution,
+        core.SuggestionResolution.confirmed,
+        reason: 'the older confirmation is untouched',
+      );
+      expect(state.canUndoReview, isTrue);
+
+      // 4) The older confirmation entry is still undoable and removes the
+      //    field only now, exactly once.
+      await tester.tap(find.byKey(const ValueKey<String>(undoReviewKey)));
+      await tester.pumpAndSettle();
+      expect(store.saves, hasLength(4));
+      expect(store.saves.last.content.fields, isEmpty);
+      expect(state.content!.fields, isEmpty);
+      expect(state.canUndoReview, isFalse);
+    },
+  );
 
   testWidgets('a drag outside the selected field still pans the page', (
     WidgetTester tester,

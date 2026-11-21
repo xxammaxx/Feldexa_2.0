@@ -1336,6 +1336,19 @@ class _PageViewState extends State<PageView> {
   bool _gestureActive = false;
   bool _overlayDragActive = false;
   bool _overlayDragCancelled = false;
+
+  /// Gesture-lifetime eligibility for overlay claims.
+  ///
+  /// Set as soon as a second pointer joins the sequence and cleared only by a
+  /// fresh touch-down that begins with no pointer down. The scale recognizer
+  /// ends and restarts itself on every pointer-set change, so without this flag
+  /// lifting one finger of a pinch would re-arm an overlay claim on the next
+  /// single-pointer `onScaleStart` and turn the rest of the pinch into a
+  /// geometry edit. Eligibility is therefore never re-derived from a
+  /// reconfigured `onScaleStart`: one extra pointer disqualifies the whole
+  /// sequence until every pointer is up.
+  bool _overlayClaimSuppressed = false;
+
   final Map<int, Offset> _pointerDownPositions = <int, Offset>{};
 
   @override
@@ -1470,6 +1483,7 @@ class _PageViewState extends State<PageView> {
     _overlayDragActive = false;
     final PageViewOverlayDragStart? claim = widget.overlayDragStart;
     if (claim == null ||
+        _overlayClaimSuppressed ||
         details.pointerCount != 1 ||
         _pointerDownPositions.length != 1) {
       return;
@@ -1491,16 +1505,29 @@ class _PageViewState extends State<PageView> {
   }
 
   void _handlePointerDown(PointerDownEvent event) {
+    if (_pointerDownPositions.isEmpty) {
+      // A fresh touch-down with no pointer down starts a new sequence, so the
+      // next claim is eligible again. This is the only place eligibility is
+      // restored; a reconfigured onScaleStart never re-arms it.
+      _overlayClaimSuppressed = false;
+    }
     _pointerDownPositions[event.pointer] = event.localPosition;
-    if (_overlayDragActive && _pointerDownPositions.length > 1) {
-      // A second pointer always belongs to the page. Cancel the claim here,
-      // before the scale recognizer restarts for the new pointer set, so a
-      // pinch that starts on a field never commits geometry.
+    if (_pointerDownPositions.length > 1) {
+      // More than one pointer in this sequence belongs to the page. Suppress
+      // overlay claims for the rest of the sequence (not just until the next
+      // start) and cancel an active claim before the scale recognizer restarts
+      // for the new pointer set, so a pinch that starts on a field can never
+      // commit geometry and can never re-arm mid-pinch.
+      _overlayClaimSuppressed = true;
       _releaseOverlayDrag(cancelled: true);
     }
   }
 
   void _handlePointerGone(PointerEvent event) {
+    // Only the down positions are tracked; the recording for a claimed drag's
+    // origin must stay the touch-down point. Eligibility is restored by the
+    // next fresh touch-down in [_handlePointerDown], which also makes a missed
+    // up/cancel event fail closed rather than re-arm geometry mid-sequence.
     _pointerDownPositions.remove(event.pointer);
   }
 

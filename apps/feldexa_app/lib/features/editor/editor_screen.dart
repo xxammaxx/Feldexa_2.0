@@ -435,6 +435,15 @@ class EditorScreenState extends State<EditorScreen> {
   final history.CommandHistory _editHistory = history.CommandHistory();
   FieldGeometrySession? _geometrySession;
   int? _geometryPageIndex;
+
+  /// Preview kept on screen while the gesture's commit is still in flight.
+  ///
+  /// The visible content only changes after the store verifies the save, so
+  /// dropping the preview at gesture end would make the field snap back to its
+  /// stored rectangle until the save resolves. The preview is therefore painted
+  /// from this snapshot until [_commitGeometry] settles, successfully or not.
+  Rect? _geometryCommittedPreview;
+  int? _geometryCommittedPageIndex;
   bool _reviewBusy = false;
   final Completer<Uint8List?> _sourceBytesReady = Completer<Uint8List?>();
   late final FieldSelectionController _selectionController;
@@ -919,30 +928,68 @@ class EditorScreenState extends State<EditorScreen> {
     );
   }
 
-  /// Reverses the newest confirmed-field command through the T067 history.
+  /// Reverses the newest committed edit through the T067 history.
   ///
   /// The newest [history.CommandHistory] entry is popped and its exact `before`
   /// snapshot is written through the same verified save path as a forward
   /// command. Restoring the stored snapshot, rather than re-deriving the old
-  /// rectangle from a pointer delta, is what makes undo drift-free: a move or
-  /// resize returns bit for bit, and a confirmation or rejection is reversed
-  /// with its suggestion resolution intact even when the field was moved after
-  /// it was confirmed (the T065 `fieldTouched` guard cannot apply here).
+  /// state, is what makes undo drift-free: a move or resize returns bit for bit,
+  /// a value edit returns to the previous value, and a confirmation or rejection
+  /// is reversed with its suggestion resolution intact even when the field was
+  /// moved after it was confirmed (the T065 `fieldTouched` guard cannot apply
+  /// here).
+  ///
+  /// This is only sound because every committed mutation of this screen records
+  /// its own entry: confirm/reject, move/resize, and value edits. The newest
+  /// `before` snapshot therefore never predates a change that has no entry of
+  /// its own, so undo can never drop a field or a value that the user created
+  /// after the command being reversed.
   ///
   /// A failed save re-arms the entry and claims nothing, so the visible
   /// revision stays the one the store still holds.
+  ///
+  /// The history is only authoritative for changes it recorded. If the current
+  /// content is not exactly the `after` snapshot of the newest entry, something
+  /// changed the revision without its own undo step (a rejected history record,
+  /// or a content mutation such as the analysis apply that is not a user
+  /// command). Reversing `before` would then drop that newer content, so the
+  /// undo is refused instead: the document is left untouched, the entry is put
+  /// back on the undo stack, and the existing conflict message is shown. Undo
+  /// therefore never writes a revision that loses newer content.
   Future<void> _undoLastEdit() async {
-    if (_content == null || _reviewBusy) {
+    final core.RevisionContent? current = _content;
+    if (current == null || _reviewBusy) {
       return;
     }
     final history.HistoryEntry? entry = _editHistory.undo();
     if (entry == null) {
       return;
     }
+    if (!_isSameRevisionContent(current, entry.after)) {
+      // The revision moved on without an entry of its own. Applying the stale
+      // `before` snapshot would silently drop that newer content.
+      _editHistory.redo();
+      _showReviewMessage(AppLocalizations.of(context).save006);
+      return;
+    }
     final bool committed = await _commitSnapshot(entry.before);
     if (!committed) {
       _editHistory.redo();
     }
+  }
+
+  /// Whether two revision snapshots describe exactly the same document state.
+  ///
+  /// Compared through the canonical JSON form, so the guard is exact rather
+  /// than dependent on object identity: two independently constructed but
+  /// equal snapshots are the same state.
+  bool _isSameRevisionContent(
+    core.RevisionContent left,
+    core.RevisionContent right,
+  ) {
+    return identical(left, right) ||
+        core.canonicalJsonEncode(left.toJson()) ==
+            core.canonicalJsonEncode(right.toJson());
   }
 
   /// Persists one edited geometry revision at gesture end (T071B).
@@ -1042,11 +1089,19 @@ class EditorScreenState extends State<EditorScreen> {
     setState(() {
       _geometrySession = session;
       _geometryPageIndex = pageIndex;
+      // A new gesture replaces any preview still waiting for an older commit.
+      _geometryCommittedPreview = null;
+      _geometryCommittedPageIndex = null;
     });
     return true;
   }
 
   /// Recomputes the transient preview for the active gesture; no store write.
+  ///
+  /// This rebuilds the whole screen once per pointer move because the preview
+  /// is drawn inside the page overlay. Narrowing it to an `AnimatedBuilder` and
+  /// a repaint-only preview layer is a follow-up (F3); it is a frame-cost
+  /// concern only and changes no behaviour.
   void _updateGeometryDrag(Offset viewportDelta) {
     final FieldGeometrySession? session = _geometrySession;
     if (session == null) {
@@ -1058,24 +1113,47 @@ class EditorScreenState extends State<EditorScreen> {
   }
 
   /// Ends the active gesture: exactly one commit, or none when nothing changed.
+  ///
+  /// The preview stays painted until the asynchronous commit settles, so the
+  /// field does not visibly snap back to its stored rectangle while the save is
+  /// in flight. A failed save clears it, which honestly shows the stored state.
   void _endGeometryDrag({required bool cancelled}) {
     final FieldGeometrySession? session = _geometrySession;
     if (session == null) {
       return;
     }
-    setState(() {
-      _geometrySession = null;
-      _geometryPageIndex = null;
-    });
+    final int? pageIndex = _geometryPageIndex;
     if (cancelled) {
+      setState(() {
+        _geometrySession = null;
+        _geometryPageIndex = null;
+        _geometryCommittedPreview = null;
+        _geometryCommittedPageIndex = null;
+      });
       session.cancel();
       return;
     }
     final FieldGeometryChange? change = session.commit();
+    setState(() {
+      _geometrySession = null;
+      _geometryPageIndex = null;
+      _geometryCommittedPreview = change == null ? null : session.previewRect;
+      _geometryCommittedPageIndex = change == null ? null : pageIndex;
+    });
     if (change == null) {
       return;
     }
-    unawaited(_commitGeometry(change));
+    unawaited(
+      _commitGeometry(change).whenComplete(() {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _geometryCommittedPreview = null;
+          _geometryCommittedPageIndex = null;
+        });
+      }),
+    );
   }
 
   /// Discards an active preview without committing (pointer cancel).
@@ -1195,6 +1273,12 @@ class EditorScreenState extends State<EditorScreen> {
   /// Visible content changes only after the store verifies the commit, so a
   /// failed save leaves the sheet draft and the prior document state intact and
   /// surfaces a content-free `saveFailed(code)` state instead of a saved claim.
+  ///
+  /// The durable change is also recorded as one T067 `setValue` undo step with
+  /// its exact before/after snapshots. Every committed mutation of this screen
+  /// therefore owns a history entry, which is what keeps undo from reversing an
+  /// older entry over newer content (for example dropping a confirmed field
+  /// after its value was edited).
   Future<FieldValueCommitResult> _saveFieldValue(
     core.ConfirmedField field,
     core.FieldValue value,
@@ -1255,6 +1339,12 @@ class EditorScreenState extends State<EditorScreen> {
     });
     _selectionController.reconcile(
       change.content.fields.map((core.ConfirmedField field) => field.id),
+    );
+    _recordHistory(
+      kind: history.EditCommandKind.setValue,
+      fieldId: field.id,
+      before: content,
+      after: change.content,
     );
     return const FieldValueCommitResult.saved();
   }
@@ -1410,9 +1500,11 @@ class EditorScreenState extends State<EditorScreen> {
     final Size pageSize = mapping.pageSize.contentSize;
     final Rect pageRect = Offset.zero & viewportRect.size;
     final FieldGeometrySession? session = _geometrySession;
-    final Rect? previewRect = session != null && _geometryPageIndex == pageIndex
-        ? session.previewRect
-        : null;
+    final Rect? previewRect = session != null
+        ? (_geometryPageIndex == pageIndex ? session.previewRect : null)
+        : (_geometryCommittedPageIndex == pageIndex
+              ? _geometryCommittedPreview
+              : null);
     return Listener(
       // A cancelled pointer discards the preview: no command, no store write.
       onPointerCancel: (PointerCancelEvent event) => _cancelGeometryGesture(),
@@ -1432,15 +1524,17 @@ class EditorScreenState extends State<EditorScreen> {
             onSelected: _handleOverlaySelection,
             child: const SizedBox.expand(),
           ),
-          // Transient only: the preview exists while a gesture is active and
-          // is pointer-inert, so the 6 px handles stay paint.
-          FieldGeometryPreview(
-            key: const ValueKey<String>('field-geometry-preview'),
-            previewRect: previewRect,
-            pageSize: pageSize,
-            pageRect: pageRect,
-            accentColor: Theme.of(context).colorScheme.primary,
-          ),
+          // Transient only: the preview is mounted while a gesture is active
+          // (and until its commit settles) and is pointer-inert, so the 6 px
+          // handles stay paint.
+          if (previewRect != null)
+            FieldGeometryPreview(
+              key: const ValueKey<String>('field-geometry-preview'),
+              previewRect: previewRect,
+              pageSize: pageSize,
+              pageRect: pageRect,
+              accentColor: Theme.of(context).colorScheme.primary,
+            ),
         ],
       ),
     );
