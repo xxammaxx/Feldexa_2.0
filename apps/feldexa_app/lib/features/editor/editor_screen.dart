@@ -108,7 +108,7 @@ import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:feldexa_recognition/src/page_analysis.dart' as recognition;
 import 'package:feldexa_ui/feldexa_ui.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter/material.dart' hide PageView;
 
 /// Stable key for a completed first analysis run whose revision was saved.
@@ -134,6 +134,32 @@ const double pageGeometryTolerancePt = 0.001;
 /// The normal Android load is far below this bound; the timeout is a diagnostic
 /// fail-closed guard, not a performance claim or a retry policy.
 const Duration editorLoadTimeout = Duration(seconds: 30);
+
+/// Bound on the single editor `AnalyzeDocument.run` call.
+///
+/// The use case already isolates per-page failures. This overall bound exists
+/// only because a platform port can stop answering after the protected load
+/// succeeded; it turns that unsatisfiable wait into the visible, content-free
+/// `analysis-failed` state. It is a diagnostic fail-closed guard, not a
+/// performance or retry policy.
+///
+/// The bound covers asynchronous port waits only. It cannot preempt
+/// synchronous CPU-bound work on the UI isolate, such as a recognition
+/// detector that blocks while scanning page geometry; recognition performance
+/// is outside T071A scope.
+const Duration editorAnalysisTimeout = Duration(minutes: 5);
+
+/// Content-free integration diagnostic marker for the T071A editor path.
+///
+/// Only marker names, page indexes, counts, byte presence, booleans, and
+/// stable failure categories/keys are printed. No source id, path, URI, title,
+/// label, OCR text, entered value, or other document content can pass through
+/// this helper.
+void _analysisDiagnostic(String message) {
+  if (kDebugMode) {
+    debugPrint('T071A_DIAG_$message');
+  }
+}
 
 /// Evidence class written into a Phase A envelope for the current build mode.
 ///
@@ -357,6 +383,7 @@ class EditorScreen extends StatefulWidget {
     required this.runtime,
     this.rendererFactory = openPdfrxPageRenderer,
     this.loadTimeout = editorLoadTimeout,
+    this.analysisTimeout = editorAnalysisTimeout,
     super.key,
   });
 
@@ -374,6 +401,9 @@ class EditorScreen extends StatefulWidget {
 
   /// Bound on the single revision/source load; tests may shorten it.
   final Duration loadTimeout;
+
+  /// Bound on the single analysis run; tests may shorten it.
+  final Duration analysisTimeout;
 
   @override
   State<EditorScreen> createState() => EditorScreenState();
@@ -597,6 +627,7 @@ class EditorScreenState extends State<EditorScreen> {
       return;
     }
     _analysisStarted = true;
+    _analysisDiagnostic('LOAD_START');
     final LoadedDocument loaded;
     try {
       loaded = await widget.runtime
@@ -606,25 +637,43 @@ class EditorScreenState extends State<EditorScreen> {
       // Non-Android/failed editor compositions have no revision load, but the
       // T148 US1 viewer still has the protected read-back closure. Preserve
       // that viewer path without inventing analysis or a persisted revision.
+      _analysisDiagnostic('LOAD_UNSUPPORTED');
       await _completeViewerSourceBytesFromFallback();
-      _markFailed();
+      _markFailed(reason: 'load-unsupported');
       return;
-    } catch (_) {
+    } on TimeoutException {
+      _analysisDiagnostic('LOAD_FAIL:TYPE=timeout');
       _completeSourceBytes(null);
-      _markFailed();
+      _markFailed(reason: 'load-timeout');
+      return;
+    } catch (error) {
+      _analysisDiagnostic('LOAD_FAIL:TYPE=${error.runtimeType}');
+      _completeSourceBytes(null);
+      _markFailed(reason: 'load-error');
       return;
     }
+    _analysisDiagnostic(
+      'LOAD_OK:PAGES=${loaded.content.pageCount}:BYTES=${loaded.sourceBytes.isEmpty ? 0 : 1}:SUGGESTIONS=${loaded.content.suggestions.length}',
+    );
     // The viewer and the analysis path share this one protected load. No
     // second `store.loadDocument` is issued for the same document.
     _completeSourceBytes(loaded.sourceBytes);
     if (!mounted) {
+      _analysisDiagnostic('LOAD_ABANDONED:UNMOUNTED=1');
       return;
     }
-    if (loaded.meta.id != widget.source.documentId ||
-        loaded.meta.source.id != widget.source.sourceId ||
-        loaded.content.pageCount != widget.source.pageCount ||
-        !_geometryMatchesSource(loaded)) {
-      _markFailed();
+    final bool identityMatches =
+        loaded.meta.id == widget.source.documentId &&
+        loaded.meta.source.id == widget.source.sourceId;
+    final bool pageCountMatches =
+        loaded.content.pageCount == widget.source.pageCount;
+    final bool geometryMatches =
+        pageCountMatches && _geometryMatchesSource(loaded);
+    if (!identityMatches || !pageCountMatches || !geometryMatches) {
+      _analysisDiagnostic(
+        'LOAD_REJECT:IDENTITY=${identityMatches ? 1 : 0}:PAGES=${pageCountMatches ? 1 : 0}:GEOMETRY=${geometryMatches ? 1 : 0}',
+      );
+      _markFailed(reason: 'load-reject');
       return;
     }
     setState(() {
@@ -641,6 +690,9 @@ class EditorScreenState extends State<EditorScreen> {
             );
       _stripPages = _buildStripPagesFromContent(loaded.content);
     });
+    _analysisDiagnostic(
+      'CONTENT_SET:PAGES=${loaded.content.pageCount}:SUGGESTIONS=${loaded.content.suggestions.length}:STRIP=${_stripPages.length}',
+    );
     if (loaded.content.suggestions.isNotEmpty ||
         _hasPersistedAnalysisRun(loaded.content)) {
       // Reanalysis is a later task. Never duplicate or overwrite an existing
@@ -649,6 +701,7 @@ class EditorScreenState extends State<EditorScreen> {
       setState(() {
         _analysisStateKey = editorAnalysisSkippedKey;
       });
+      _analysisDiagnostic('ANALYSIS_STATE:skipped:PERSISTED=1');
       return;
     }
     final Set<int> unreadable = <int>{
@@ -673,10 +726,14 @@ class EditorScreenState extends State<EditorScreen> {
       setState(() {
         _analysisStateKey = editorAnalysisSkippedKey;
       });
+      _analysisDiagnostic('ANALYSIS_STATE:skipped:NO_PAGES=1');
       return;
     }
     final String analysisRunId = widget.runtime.ids.newId();
     _analysisRunId = analysisRunId;
+    _analysisDiagnostic(
+      'ANALYSIS_START:PAGES=${pages.length}:UNREADABLE=${unreadable.length}:SOURCE_BYTES=${loaded.sourceBytes.isEmpty ? 0 : 1}:OCR=${widget.runtime.ocr == null ? 0 : 1}',
+    );
     final Stopwatch stopwatch = Stopwatch()..start();
     final analysis.DocumentAnalysisResult result;
     try {
@@ -689,21 +746,52 @@ class EditorScreenState extends State<EditorScreen> {
           rasterPort: widget.runtime.raster,
           ocrPort: widget.runtime.ocr,
         ),
-      );
-    } catch (_) {
+      ).timeout(widget.analysisTimeout);
+    } on TimeoutException {
       stopwatch.stop();
-      _markFailed(elapsedMs: stopwatch.elapsedMilliseconds);
+      _analysisDiagnostic('ANALYSIS_FAIL:CODE=timeout');
+      _markFailed(
+        elapsedMs: stopwatch.elapsedMilliseconds,
+        reason: 'analysis-timeout',
+      );
+      return;
+    } catch (error) {
+      stopwatch.stop();
+      _analysisDiagnostic('ANALYSIS_FAIL:TYPE=${error.runtimeType}');
+      _markFailed(
+        elapsedMs: stopwatch.elapsedMilliseconds,
+        reason: 'analysis-error',
+      );
       return;
     }
     stopwatch.stop();
     if (!mounted) {
       return;
     }
+    _analysisDiagnostic(
+      'ANALYSIS_RESULT:PAGES=${result.pages.length}:CANCELLED=${result.cancelledPageIndexes.length}',
+    );
+    for (final recognition.FieldSuggestionSet set in result.pages) {
+      if (set.isComplete) {
+        _analysisDiagnostic(
+          'ANALYSIS_PAGE:P=${set.pageIndex}:STATUS=complete:SUGGESTIONS=${set.suggestions.length}:UNCERTAIN=${set.pageUncertain ? 1 : 0}',
+        );
+      } else {
+        final recognition.PageAnalysisFailure? failure = set.failure;
+        _analysisDiagnostic(
+          'ANALYSIS_PAGE:P=${set.pageIndex}:STATUS=failed:CATEGORY=${failure?.category ?? 'none'}:KEY=${failure?.messageKey ?? 'none'}',
+        );
+      }
+    }
     final core.RevisionContent analyzed;
     try {
       analyzed = applyDocumentAnalysis(base: loaded.content, result: result);
-    } catch (_) {
-      _markFailed(elapsedMs: stopwatch.elapsedMilliseconds);
+    } catch (error) {
+      _analysisDiagnostic('ANALYSIS_APPLY_FAIL:TYPE=${error.runtimeType}');
+      _markFailed(
+        elapsedMs: stopwatch.elapsedMilliseconds,
+        reason: 'analysis-apply',
+      );
       return;
     }
     final Set<int> uncertain = <int>{
@@ -720,8 +808,12 @@ class EditorScreenState extends State<EditorScreen> {
       _analysisElapsedMs = stopwatch.elapsedMilliseconds;
       _durabilityStatus = core.DurabilityStatus.saving;
     });
+    _analysisDiagnostic(
+      'ANALYSIS_APPLIED:PAGES=${analyzed.pageCount}:SUGGESTIONS=${analyzed.suggestions.length}:UNCERTAIN=${uncertain.length}',
+    );
     final StoredMeta saved;
     final DateTime savedAt = widget.runtime.clock.nowUtc().toUtc();
+    _analysisDiagnostic('ANALYSIS_SAVE_START');
     try {
       saved = await widget.runtime.saveRevision(
         SaveRevisionRequest(
@@ -731,15 +823,16 @@ class EditorScreenState extends State<EditorScreen> {
           kind: core.RevisionKind.autosave,
         ),
       );
-    } catch (_) {
+    } catch (error) {
       // The viewer and the in-memory analysis result remain available; the
       // durable document is unchanged because the store rejected the save.
+      _analysisDiagnostic('ANALYSIS_SAVE_FAIL:CODE=${_saveFailureCode(error)}');
       if (mounted) {
         setState(() {
           _durabilityStatus = core.DurabilityStatus.saveFailed('SAVE-003');
         });
       }
-      _markFailed();
+      _markFailed(reason: 'save-error');
       return;
     }
     if (!mounted) {
@@ -752,6 +845,8 @@ class EditorScreenState extends State<EditorScreen> {
       _durabilityStatus = core.DurabilityStatus.saved(lastDurableAt: durableAt);
       _analysisStateKey = editorAnalysisReadyKey;
     });
+    _analysisDiagnostic('ANALYSIS_SAVE_OK');
+    _analysisDiagnostic('ANALYSIS_STATE:ready');
   }
 
   Future<void> _confirmSuggestion(core.FieldSuggestion suggestion) async {
@@ -1204,10 +1299,11 @@ class EditorScreenState extends State<EditorScreen> {
     return widget.sourceBytes(sourceId);
   }
 
-  void _markFailed({int? elapsedMs}) {
+  void _markFailed({int? elapsedMs, String reason = 'unknown'}) {
     if (!mounted) {
       return;
     }
+    _analysisDiagnostic('ANALYSIS_STATE:failed:REASON=$reason');
     setState(() {
       _analysisStateKey = editorAnalysisFailedKey;
       if (elapsedMs != null) {

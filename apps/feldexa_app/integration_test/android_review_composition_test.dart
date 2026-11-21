@@ -6,10 +6,11 @@
 //   tools/android/t071a_drive_composition.sh
 //
 // The test uses the production `main()` composition. The debug-only
-// `de.feldexa/test.import` hook arms the committed synthetic `sf-001.pdf`
-// fixture; the production import action then performs the real encrypted
-// staging, preflight, and verified commit. No fake adapter, renderer,
-// detector, OCR result, store, or route is injected.
+// `de.feldexa/test.import` hook arms a deterministic T061 damaged-page-2
+// variant of the committed synthetic `sf-001.pdf` fixture; the production
+// import action then performs the real encrypted staging, preflight, and
+// verified commit. No fake adapter, renderer, detector, OCR result, store, or
+// route is injected.
 //
 // Journey:
 //   1. start list loads the existing store state;
@@ -49,6 +50,8 @@ const String _fixtureRoot = '/data/local/tmp/t071a-fixtures';
 const String _fixtureId = 'sf-001';
 const String _fixtureSha256 =
     '22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038';
+const String _damagedFixtureSha256 =
+    '57c1ade1ab2c00375ac61703db3d4ce5d27b996ea067647aba585866dc6ec221';
 const int _fixtureSizeBytes = 5956;
 const String _displayName = 't071a-composition.pdf';
 
@@ -95,6 +98,49 @@ Future<void> _pumpUntil(
   fail('$reason (bounded wait ${timeout.inSeconds}s expired)');
 }
 
+/// Waits for a terminal first-analysis state and fails fast on `analysis-failed`.
+///
+/// The editor already turns a load/analysis/save failure into the stable
+/// `analysis-failed` key. This helper records content-free page diagnostics and
+/// stops immediately instead of letting the journey sit in a long pending
+/// wait. The test bound leaves one minute of slack after the editor's own
+/// bounded analysis guard so that guard reports first.
+Future<void> _waitForAnalysisTerminal(
+  WidgetTester tester,
+  EditorScreenState state,
+) async {
+  final DateTime deadline = DateTime.now().add(
+    editorAnalysisTimeout + const Duration(minutes: 1),
+  );
+  while (DateTime.now().isBefore(deadline)) {
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await tester.pump();
+    final String? key = state.analysisStateKey;
+    if (key == editorAnalysisReadyKey || key == editorAnalysisSkippedKey) {
+      return;
+    }
+    if (key == editorAnalysisFailedKey) {
+      final core.RevisionContent? content = state.content;
+      _marker(
+        'ANALYSIS_FAILED:CONTENT=${content == null ? 0 : 1}:PAGES=${content?.pageCount ?? 0}',
+      );
+      if (content != null) {
+        for (final core.Page page in content.pages) {
+          _marker(
+            'ANALYSIS_PAGE:P=${page.index}:STATE=${page.analysis.name}:KEY=${page.failure?.messageKey ?? 'none'}',
+          );
+        }
+      }
+      fail(
+        'the first analysis reached analysis-failed; see the T071A_DIAG '
+        'markers in the integration log and logcat',
+      );
+    }
+  }
+  _marker('ANALYSIS_TIMEOUT:KEY=${state.analysisStateKey ?? 'pending'}');
+  fail('the first analysis did not reach a terminal state before the bound');
+}
+
 /// Waits for the host driver to capture the named screenshot.
 Future<void> _waitForDriver(String name) async {
   _marker(_screenshots[name]!);
@@ -122,7 +168,7 @@ Future<void> _clearHook() async {
   await _testHooks.invokeMethod<void>('clear');
 }
 
-File _loadFixture() {
+Uint8List _loadFixture() {
   final File file = File(
     '$_fixtureRoot${Platform.pathSeparator}$_fixtureId.pdf',
   );
@@ -135,7 +181,73 @@ File _loadFixture() {
   final Uint8List bytes = file.readAsBytesSync();
   expect(bytes.length, _fixtureSizeBytes);
   expect(crypto.sha256.convert(bytes).toString(), _fixtureSha256);
-  return file;
+  return bytes;
+}
+
+/// Copies the T061 deterministic partial-damage helper
+/// (`android_recognition_test.dart` `_damageSecondPageMediaBox`).
+///
+/// Replaces the second `/MediaBox [0 0 595.28 841.89]` occurrence in sf-001
+/// with spaces of exactly the same length. All xref offsets stay valid, page 0
+/// keeps its usable geometry, and page 1 has no inheritable MediaBox, so it
+/// imports as `IMP-006`/`unsupportedStructure` `unreadable`. T061 proved the
+/// resulting 5956-byte document reaches analysis-ready with page 1 usable.
+Uint8List _damageSecondPageMediaBox(Uint8List source) {
+  const List<int> needle = <int>[
+    0x2f,
+    0x4d,
+    0x65,
+    0x64,
+    0x69,
+    0x61,
+    0x42,
+    0x6f,
+    0x78,
+    0x20,
+    0x5b,
+    0x30,
+    0x20,
+    0x30,
+    0x20,
+    0x35,
+    0x39,
+    0x35,
+    0x2e,
+    0x32,
+    0x38,
+    0x20,
+    0x38,
+    0x34,
+    0x31,
+    0x2e,
+    0x38,
+    0x39,
+    0x5d,
+  ];
+  int first = -1;
+  for (int index = 0; index <= source.length - needle.length; index++) {
+    bool matches = true;
+    for (int offset = 0; offset < needle.length; offset++) {
+      if (source[index + offset] != needle[offset]) {
+        matches = false;
+        break;
+      }
+    }
+    if (matches) {
+      if (first < 0) {
+        first = index;
+      } else {
+        final Uint8List damaged = Uint8List.fromList(source);
+        for (int offset = 0; offset < needle.length; offset++) {
+          damaged[index + offset] = 0x20;
+        }
+        return damaged;
+      }
+    }
+  }
+  fail(
+    'sf-001 did not contain two MediaBox arrays for the partial-damage case',
+  );
 }
 
 /// Converts a stored display-space field rect to a screen point.
@@ -166,16 +278,25 @@ void main() {
 
   setUpAll(() {
     expect(fixtureDirectory.existsSync(), isTrue);
-    final File fixture = _loadFixture();
+    final Uint8List fixtureBytes = _loadFixture();
+    _marker('FIXTURE_READY:BYTES=$_fixtureSizeBytes:MATCH=1');
+
+    // T071A correction 2: import the deterministic T061 damaged page-2 source.
+    // The undamaged fixture stalls a real run in the synchronous geometry
+    // detector on page 2 before analysis can finish.
+    final Uint8List damaged = _damageSecondPageMediaBox(fixtureBytes);
+    expect(damaged.length, _fixtureSizeBytes);
+    expect(damaged, isNot(orderedEquals(fixtureBytes)));
+    expect(crypto.sha256.convert(damaged).toString(), _damagedFixtureSha256);
     scratchSource = File(
       '${Directory.systemTemp.path}${Platform.pathSeparator}t071a-'
       '${DateTime.now().microsecondsSinceEpoch}.pdf',
     );
-    fixture.copySync(scratchSource!.path);
+    scratchSource!.writeAsBytesSync(damaged, flush: true);
     final Uint8List copied = scratchSource!.readAsBytesSync();
     expect(copied.length, _fixtureSizeBytes);
-    expect(crypto.sha256.convert(copied).toString(), _fixtureSha256);
-    _marker('FIXTURE_READY:BYTES=$_fixtureSizeBytes');
+    expect(crypto.sha256.convert(copied).toString(), _damagedFixtureSha256);
+    _marker('DAMAGED_FIXTURE_READY:BYTES=$_fixtureSizeBytes:MATCH=1');
   });
 
   tearDownAll(() async {
@@ -240,20 +361,14 @@ void main() {
     final EditorScreenState state = tester.state<EditorScreenState>(
       find.byType(EditorScreen),
     );
-    await _pumpUntil(
-      tester,
-      () =>
-          state.content != null &&
-          (state.analysisStateKey == editorAnalysisReadyKey ||
-              state.analysisStateKey == editorAnalysisSkippedKey),
-      timeout: const Duration(seconds: 900),
-      reason: 'the first analysis did not reach a terminal state',
-    );
+    await _waitForAnalysisTerminal(tester, state);
     expect(
       find.byKey(ValueKey<String>(state.analysisStateKey!)),
       findsOneWidget,
     );
-    _marker('ANALYSIS_READY');
+    _marker(
+      'ANALYSIS_READY:STATE=${state.analysisStateKey}:PAGES=${state.content!.pageCount}:SUGGESTIONS=${state.content!.suggestions.length}:CONFIRMED=${state.content!.fields.length}',
+    );
 
     core.FieldSuggestion? suggestion;
     for (final core.FieldSuggestion candidate in state.content!.suggestions) {

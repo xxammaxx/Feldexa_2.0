@@ -5,9 +5,10 @@
 - **Date**: 2026-11-21 (local)
 - **Host evidence class**: `NONE` (host-VM analyze, format, widget/unit tests)
 - **Emulator evidence class**: `EMULATOR` — **`NOT_RUN`**
-- **Overall result**: `PARTIAL` — host composition delivered and green; the
-  required real emulator journey did not execute because no Orca emulator
-  session is attached to this worktree.
+- **Overall result**: `PARTIAL` — host composition and the correction-2 guard
+  are green; the real emulator journey after correction 2 is pending the
+  coordinator's exclusive `emulator-5554` run, and no `EMULATOR` PASS is
+  claimed in this commit.
 
 ## 0. Machine-first handoff
 
@@ -16,24 +17,45 @@
   "task": "T071A",
   "issue": 244,
   "base_commit": "127f978f44911ef7a8c53b7c696bf5218915ae6c",
+  "correction_base_commit": "e83ac25e7c177a455812204b7f12279f40bade71",
   "branch": "xxammaxx/t071a",
-  "candidate_commit": "the commit that adds this report; see external dispatch handoff",
-  "candidate_tree": "see external dispatch handoff",
+  "candidate_commit": "the correction-2 commit that updates this report; recorded in the external dispatch handoff",
+  "candidate_tree": "recorded in the external dispatch handoff",
   "host_evidence_class": "NONE",
   "emulator_evidence_class": "EMULATOR_NOT_RUN",
   "overall_result": "PARTIAL",
+  "correction": 2,
   "host_counts": {
-    "app_baseline": 409,
-    "app_candidate": 419,
-    "app_new": 10,
-    "application_baseline": 164,
+    "app_baseline": 419,
+    "app_candidate": 420,
+    "app_new": 1,
+    "focused_editor_analysis": 22,
+    "application_baseline": 174,
     "application_candidate": 174,
-    "application_new": 10
+    "application_new": 0
   },
+  "fixture": {
+    "original_bytes": 5956,
+    "original_sha256": "22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038",
+    "damaged_bytes": 5956,
+    "damaged_sha256": "57c1ade1ab2c00375ac61703db3d4ce5d27b996ea067647aba585866dc6ec221",
+    "damaged_source": "T061 second /MediaBox replaced by 29 spaces"
+  },
+  "emulator_steps_pending": [
+    "exclusive Orca emulator-5554 allocation preflight",
+    "APK build/install and app-data clear",
+    "staging of the committed sf-001.pdf and in-test derivation of the T061 damaged source",
+    "analysis-ready on the damaged fixture (page 1 usable, page 2 unreadable/IMP-006)",
+    "suggestion confirmation, field selection, value sheet, verified save, saved read-back",
+    "leave, start-list reload, reopen, reopened read-back",
+    "five-screenshot handshake and marker-filtered logcat",
+    "APK SHA-256, device identity, cleanup"
+  ],
   "emulator_evidence_paths": [],
   "not_run": [
-    "EMULATOR real journey and screenshots",
-    "logcat markers and runtime logcat",
+    "EMULATOR real journey after correction 2 (coordinator run pending)",
+    "five screenshots and screenshot acknowledgement handshake",
+    "runtime logcat markers and privacy log check",
     "APK build and APK SHA-256",
     "on-device fixture SHA-256 and app-data reset",
     "signature asset editing",
@@ -50,7 +72,10 @@
 
 - Base: `127f978f44911ef7a8c53b7c696bf5218915ae6c` (`main`, T071A
   authorization docs).
-- Worktree: `/home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition`.
+- Correction-1 base: `e83ac25e7c177a455812204b7f12279f40bade71`; correction 1
+  (`8a51b8e`, `e83ac25`) fixed only the driver's app-package selection and
+  worktree-bound Orca session resolution.
+- Worktree: `<repo-root>` (`t071a-composition`).
 - Branch: `xxammaxx/t071a`.
 - The report is committed on the candidate branch. Its own commit SHA/tree
   cannot be embedded in its bytes; the dispatch handoff carries those values
@@ -59,8 +84,114 @@
   change was not touched, staged, or committed.
 - No push, PR, merge, `main` edit, Gradle file, core, ports, recognition,
   recognition-output, ARB, or generated-localization change was made.
+- Correction 2 changes only the authorized editor/viewer diagnostics, the
+  bounded first-analysis guard, the integration test, the driver wording, and
+  the guard test. No recognition change is made.
 
-## 2. Changed files
+## 2. Correction 2 — synchronous analysis stall and damaged fixture
+
+Correction 1 made the real emulator journey proceed past the driver preflight.
+That run exposed the actual composition stall described below. Correction 2
+does not re-run the emulator; the coordinator runs it after this commit.
+
+### 2.1 Proven root cause
+
+On `e83ac25` the real journey reached `T071A_EDITOR_READY`, the viewer rendered,
+and analysis reached page-1 raster/OCR. It then blocked synchronously on the
+undamaged `sf-001` page 2 inside `GeometryDetector._detectBoxes`
+(`packages/feldexa_recognition/lib/src/geometry_detector.dart`): a CPU-bound
+quadruple rule loop (`horizontals` × `horizontals` × `verticals` × `verticals`)
+with corner/ink checks. Because that work is synchronous on the UI isolate,
+`Future.timeout` and the widget-test pump loop cannot preempt it; the app stays
+in „Analyse ausstehend“ and the journey never reaches `T071A_ANALYSIS_READY`.
+Recognition performance and any recognition change are outside T071A scope.
+
+### 2.2 Bounded guard and its limitation
+
+- `EditorScreen` wraps the single `AnalyzeDocument.run` call in
+  `editorAnalysisTimeout` (5 minutes) and maps an unanswered future to the
+  existing `analysis-failed` state with the stable reason
+  `analysis-timeout`. `_markFailed` accepts a content-free `reason` that is
+  only printed as a diagnostic marker.
+- The guard is a fail-closed diagnostic, not a retry, performance, or
+  architecture policy. It covers asynchronous port waits only. It **cannot**
+  preempt the synchronous CPU-bound detector in §2.1; that limitation is
+  documented in the code comment next to `editorAnalysisTimeout`.
+- Idempotent `pdfrxFlutterInitialize()` calls were added on the Android editor
+  load path and in the production viewer factory. This is defensive engine
+  startup, **not** the proven root cause of the stall, and it is not claimed
+  as a fix for the synchronous detector.
+
+### 2.3 T061 damaged-page-2 fixture
+
+- The committed `sf-001.pdf` is still loaded from the app-readable device
+  staging directory and verified as 5956 bytes with SHA-256
+  `22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038`.
+- The integration test derives the deterministic T061 damaged variant by
+  replacing the second `/MediaBox [0 0 595.28 841.89]` occurrence (29 bytes)
+  with 29 spaces, using the helper copied from
+  `android_recognition_test.dart` `_damageSecondPageMediaBox`.
+- Derived identity: 5956 bytes, different from the original, SHA-256
+  `57c1ade1ab2c00375ac61703db3d4ce5d27b996ea067647aba585866dc6ec221`,
+  marker `T071A_DAMAGED_FIXTURE_READY:BYTES=5956:MATCH=1`. The same values are
+  recorded in `artifacts/2026-11-21-t071a-composition/correction-2-fixture-damage.txt`.
+- Rationale: T061 proved this source imports with page 1 usable and page 2 as
+  `IMP-006`/`unsupportedStructure` `unreadable`, and T061 reached
+  `analysis-ready` with it. Page 2 is therefore excluded from analysis and the
+  synchronous detector never sees it. Page-1 suggestions remain the journey
+  target; no page-2 suggestion is asserted.
+- The damaged bytes are written to the existing scratch source and armed. The
+  original bytes are not used for the journey. No damaged PDF is committed,
+  pushed, or added to the APK.
+- The host test `a partially unreadable first import still analyzes readable
+  pages` already proves the existing page filtering and identity/geometry
+  acceptance for a document with an unreadable page. Proving the same for the
+  real damaged import on Android is part of the coordinator's pending run.
+
+### 2.4 Diagnostics
+
+Content-free `T071A_DIAG_*` markers (debug builds only) now cover:
+
+- editor runtime load: `RUNTIME_LOAD_START`, `RUNTIME_PDFRX_READY`,
+  `RUNTIME_LOAD_FAIL`, `RUNTIME_LOAD_OK`;
+- editor load/content/analysis: `LOAD_*`, `CONTENT_SET`, `ANALYSIS_START`,
+  `ANALYSIS_RESULT`, `ANALYSIS_PAGE` (complete or failed with category/key),
+  `ANALYSIS_APPLY_FAIL`, `ANALYSIS_APPLIED`, `ANALYSIS_SAVE_*`,
+  `ANALYSIS_STATE`, and typed `LOAD_FAIL`/`ANALYSIS_FAIL` reasons;
+- raster/OCR adapter decorators: `RASTER_START/OK/FAIL` and
+  `OCR_START/OK/FAIL` with page index, dimensions, block count, or error type;
+- viewer/source: `VIEW_INIT_*`, `VIEW_DOCUMENT_OPEN_OK`, `VIEW_OPEN_*`,
+  `VIEW_BYTES`, `VIEW_FAIL`, `VIEW_PAGE_FAIL`, `VIEW_PAGE_COUNT_MISMATCH`, and
+  `PAGE_RENDER_START/OK/FAIL/CANCELLED`.
+
+Markers contain only names, page indexes, counts, byte presence, booleans,
+dimensions, stable categories/keys, and error type names. No id, path, URI,
+title, label, OCR text, entered value, or hash of document content is printed.
+The integration test waiter fails immediately with `T071A_ANALYSIS_FAILED`
+plus per-page `T071A_ANALYSIS_PAGE:P=<n>:STATE=<state>:KEY=<key>` markers; its
+bound is the 5-minute editor guard plus one minute of slack.
+
+### 2.5 Correction-2 changed files
+
+1. `apps/feldexa_app/lib/features/editor/editor_runtime_android.dart` —
+   idempotent pdfrx initialization and debug-only raster/OCR/load diagnostics.
+2. `apps/feldexa_app/lib/features/editor/editor_screen.dart` — 5-minute
+   analysis guard, stable failure reasons, and content-free diagnostics.
+3. `apps/feldexa_app/lib/features/editor/page_view.dart` — idempotent pdfrx
+   initialization and content-free viewer/render diagnostics; no geometry or
+   gesture change.
+4. `apps/feldexa_app/integration_test/android_review_composition_test.dart` —
+   terminal analysis waiter, damaged-fixture derivation, and diagnostics.
+5. `tools/android/t071a_drive_composition.sh` — fixture/diagnostic wording and
+   expected damaged SHA; allocation, screenshot, and cleanup logic unchanged.
+6. `apps/feldexa_app/test/editor_analysis_test.dart` — the bounded-analysis
+   guard test.
+7. This report, its correction-2 artifacts, `reports/README.md`, and the T071A
+   line in `tasks.md`.
+
+## 3. Changed files
+
+Original-delivery files; correction-2 changes are listed in §2.5.
 
 Production/composition:
 
@@ -108,9 +239,9 @@ package config and carries a documented
 `// ignore_for_file: depend_on_referenced_packages` on the editor import. A
 later dependency-declaration task should add the app path dependency.
 
-## 3. Delivered behavior
+## 4. Delivered behavior
 
-### 3.1 Overlay and selection
+### 4.1 Overlay and selection
 
 - Every visible page receives `overlayBuilder(pageIndex, viewportRect, mapping)`
   inside its page box. The builder composes `FieldOverlay` and
@@ -124,7 +255,7 @@ later dependency-declaration task should add the app path dependency.
   suggestion selects/highlights it and never invents a value; a tap on empty
   page space clears the selection.
 
-### 3.2 `setFieldValue`
+### 4.2 `setFieldValue`
 
 - Requires an existing field and the exact matching concrete value:
   text, multiline, number, date, checkbox, signature. `IncompatibleValue` is
@@ -135,7 +266,7 @@ later dependency-declaration task should add the app path dependency.
 - Returns `SetValueChange` with the previous snapshot/value. Failures are
   content-free `ArgumentError`s.
 
-### 3.3 Value sheet and save
+### 4.3 Value sheet and save
 
 - T079 text/multiline; T080 `parseGermanNumber`; T081 `parseGermanDate` with
   the catalog `NUM-001`/`DATE-001`/`DATE-002` sentences; T082 checkbox; T084
@@ -153,7 +284,7 @@ later dependency-declaration task should add the app path dependency.
   existing `PrivacyKeyDisclosure` in an app-bar action dialog.
 - Signature editing is visibly `NOT_RUN`; no signature asset is fabricated.
 
-### 3.4 Start list and reopen
+### 4.4 Start list and reopen
 
 - When `ImportRuntime.store` is non-null, the start surface always renders T095
   `StoredItemsView` for `StoreKind.document` and `StoreKind.template`.
@@ -166,59 +297,74 @@ later dependency-declaration task should add the app path dependency.
   has no template editor route in T071A.
 - Without a store, the previous import-only start surface is unchanged.
 
-## 4. Host gates (evidence `NONE`)
+## 5. Host gates (evidence `NONE`)
+
+Correction-2 gates run from the correction base `e83ac25`:
 
 | Gate | Command | Result |
 | --- | --- | --- |
 | App analyze | `cd apps/feldexa_app && flutter analyze --no-pub` | exit 0, no issues |
 | Application analyze | `cd packages/feldexa_application && dart analyze` | exit 0, no issues |
-| Format | `dart format --output=none --set-exit-if-changed <changed Dart files>` | exit 0, 0 changed |
-| Diff check | `git diff --check` (and `base..HEAD` after commit) | clean |
-| Focused app composition | `flutter test --no-pub test/editor_composition_test.dart` | 8/8 passed |
-| Focused value command | `flutter test --no-pub test/set_value_test.dart` | 10/10 passed |
-| Full app suite | `flutter test --no-pub` in `apps/feldexa_app` | **419/419** passed (409 baseline + 10) |
-| Full application suite | `flutter test --no-pub` in `packages/feldexa_application` | **174/174** passed (164 baseline + 10) |
+| Format | `cd apps/feldexa_app && dart format --output=none --set-exit-if-changed lib/features/editor/editor_runtime_android.dart lib/features/editor/editor_screen.dart lib/features/editor/page_view.dart integration_test/android_review_composition_test.dart test/editor_analysis_test.dart` | exit 0, 0 changed |
+| Driver syntax | `bash -n tools/android/t071a_drive_composition.sh` (repo root) | exit 0 |
+| Diff check | `git diff --check` before commit (and `git diff --check e83ac25..HEAD` after commit) | clean |
+| Focused analysis guard | `cd apps/feldexa_app && flutter test --no-pub test/editor_analysis_test.dart` | **22/22** passed (21 baseline + 1 guard) |
+| Full app suite | `cd apps/feldexa_app && flutter test --no-pub` | **420/420** passed (419 baseline + 1 guard) |
+| Full application suite | `cd packages/feldexa_application && flutter test --no-pub` | **174/174** passed |
 
+The exact terminal lines and exit codes are recorded in
+`artifacts/2026-11-21-t071a-composition/correction-2-host-gates.txt`.
+
+The original composition coverage remains in the 420-test app suite:
 `editor_composition_test.dart` covers the overlay hook page/rect/mapping, a
 confirmed-field tap opening the sheet, a suggestion tap without a sheet, the
 T080/T081 number/date parser rejection and successful German input, the verified
 save updating content/head/status, a failed save keeping the sheet and old
 content with `SAVE-003`, the start-list load/reopen/reload path, unreadable
-refusal, and 200 % text scale without a RenderFlex overflow.
+refusal, and 200 % text scale without a RenderFlex overflow. `set_value_test.dart`
+covers all six types, mismatch rejection, missing field, non-UTC rejection,
+unchanged sibling values, preserved suggestions/fields/order/signatures/
+verification/template origin/unknown fields, previous value/content, and
+untruncated text.
 
-`set_value_test.dart` covers all six types, mismatch rejection, missing field,
-non-UTC rejection, unchanged sibling values, preserved suggestions/fields/
-order/signatures/verification/template origin/unknown fields, previous value/
-content, and untruncated text.
+The new guard test gates a raster render, uses a 100 ms `analysisTimeout`, and
+asserts that the editor reaches `editorAnalysisFailedKey`, keeps the loaded
+content pending, saves no revision, shows the failed key, and raises no
+exception.
 
-## 5. Emulator acceptance — `NOT_RUN`
+## 6. Emulator acceptance — `NOT_RUN`
 
-The real journey in `integration_test/android_review_composition_test.dart` and
-`tools/android/t071a_drive_composition.sh` was **not executed**.
+Correction 2 does **not** execute the emulator, adb, screenshots, installs, or
+the driver. The real journey after this commit is the coordinator's run of
+`tools/android/t071a_drive_composition.sh` against `emulator-5554`.
 
-Reason: the Pixel 7 API 35 AVD `T025_Pixel7_API35_KVM_20261115` is booted on
-`emulator-5554`, but `orca emulator list --json` reports no session attached to
-this worktree. The coordinator instructed this worker not to rebind or reuse
-another worktree's allocation. The driver stops at the preflight with exit 2
-before clearing app data, installing, staging, or running anything.
-
-Evidence: `artifacts/2026-11-21-t071a-composition/NOT-RUN.md`,
+The correction-1 preflight blocker (no worktree-bound Orca session) was fixed by
+`8a51b8e`/`e83ac25`; the earlier `NOT-RUN.md`,
 `device-identity-preflight.txt`, `orca-emulator-devices.json`, and
-`orca-emulator-sessions.json`.
+`orca-emulator-sessions.json` remain as historical preflight evidence only. The
+subsequent real run of `e83ac25` reached `T071A_EDITOR_READY`, rendered the
+viewer, and then stalled in the synchronous page-2 geometry detector described
+in §2.1; that observation is dispatch input to this correction, not a run
+performed by this worker.
 
-Consequently there are **no** T071A screenshots, logcat markers, APK SHA-256,
-on-device fixture hash, runtime AVD/serial run record, saved-status visual
-confirmation, or reopened-document visual confirmation. None of the host checks
-above is presented as emulator evidence.
+Consequently this commit contains **no** T071A screenshots, logcat markers,
+APK SHA-256, on-device fixture hash, runtime AVD/serial run record, saved-status
+visual confirmation, or reopened-document visual confirmation. None of the host
+checks above is presented as emulator evidence. **No emulator PASS is claimed
+in this commit.**
 
-## 6. `NOT_RUN` register
+## 7. `NOT_RUN` register
 
-- `EMULATOR` import/analysis/suggestion-confirmation/selection/value-sheet/
-  save/leave/reopen journey.
+- `EMULATOR` journey after correction 2 (coordinator run pending):
+  import/analysis/suggestion-confirmation/selection/value-sheet/save/leave/
+  reopen.
 - Five required screenshots and the screenshot acknowledgement handshake.
-- APK build (attempted once and interrupted; no artifact or hash is claimed).
+- APK build/install (no artifact or hash is claimed in this commit).
 - Runtime logcat markers and privacy log check.
 - On-device fixture SHA-256 and runtime device identity for a run.
+- On-device derivation of the damaged fixture and proof that page 2 is
+  `IMP-006`/`unreadable` during this journey.
+- Analysis-ready after the damaged-fixture swap (host-side preparation only).
 - Signature asset editing through T083 (shown as `NOT_RUN` in the sheet).
 - Overflow layout measurement (T084 only shows an already-marked overflow).
 - Opening a stored template from the list (no template editor route).
@@ -227,34 +373,43 @@ above is presented as emulator evidence.
 - `DEVICE` acceptance and any performance claim.
 - Text-scale visual rendering beyond the host RenderFlex check.
 
-## 7. Reproducibility
+## 8. Reproducibility
 
-1. Check out the candidate branch on the worktree.
+1. Check out the correction-2 candidate branch on the worktree.
 2. `flutter pub get --offline` at the repository root.
-3. Run the four host gates in §4.
-4. Request/attach an exclusive Orca Pixel 7 API 35 session to this worktree.
-5. Run `tools/android/t071a_drive_composition.sh`.
-6. Verify the five screenshots, `marker-sequence.txt`, `run-status.txt`,
-   `apk-sha256.txt`, `fixture-sha256.txt`, `device-identity.txt`, and the
+3. Verify the committed fixture: 5956 bytes, SHA-256
+   `22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038`;
+   the in-test damage helper then yields the 5956-byte T061 source with SHA-256
+   `57c1ade1ab2c00375ac61703db3d4ce5d27b996ea067647aba585866dc6ec221`.
+4. Run the host gates in §5.
+5. Request/attach an exclusive Orca Pixel 7 API 35 session to this worktree.
+6. Run `tools/android/t071a_drive_composition.sh`.
+7. Verify the five screenshots, `marker-sequence.txt`, `run-status.txt`,
+   `apk-sha256.txt`, `fixture-sha256.txt` (including the
+   `expected_damaged_sha256=` line), `device-identity.txt`, and the
    marker-filtered logcat in the evidence directory.
-7. Cleanup: the driver removes staging and clears test app data; it never
+8. Cleanup: the driver removes staging and clears test app data; it never
    modifies another worktree's allocation.
 
-## 8. Artifacts
+## 9. Artifacts
 
 Directory `artifacts/2026-11-21-t071a-composition/`:
 
-- `NOT-RUN.md`
+- `NOT-RUN.md` (historical correction-1 preflight blocker)
 - `README.md`
-- `device-identity-preflight.txt`
-- `orca-emulator-devices.json`
-- `orca-emulator-sessions.json`
+- `device-identity-preflight.txt` (historical)
+- `orca-emulator-devices.json` (historical)
+- `orca-emulator-sessions.json` (historical)
 - `git-identity-base.txt`
-- `host-gates.txt`
+- `host-gates.txt` (original delivery)
+- `correction-2-host-gates.txt` — 1466 bytes, SHA-256
+  `54b04c586313a233c0a5a04ceb378d2fbcde402f68aa82917d410e067c2077bb`
+- `correction-2-fixture-damage.txt` — 790 bytes, SHA-256
+  `f9c236f1965a50d88cf810ccd59307d26c73ea94f6925ae6ec5155200cf6ac9f`
 
 No APK, screenshot, logcat, or document content is stored.
 
-## 9. Review
+## 10. Review
 
 - Reviewer:
 - Date:

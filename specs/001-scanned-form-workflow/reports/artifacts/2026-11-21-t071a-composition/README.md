@@ -12,10 +12,13 @@ This directory is the evidence bundle for the T071A report
 | `orca-emulator-devices.json` | Orca device inventory at preflight |
 | `orca-emulator-sessions.json` | Orca worktree session list; empty |
 | `git-identity-base.txt` | Base/HEAD/tree during evidence collection |
-| `host-gates.txt` | Analyze and full host-suite results copied from the gate runs |
+| `host-gates.txt` | Original-delivery analyze and full host-suite results |
+| `correction-2-host-gates.txt` | Correction-2 analyze, format, focused guard, and full suite results with exit codes |
+| `correction-2-fixture-damage.txt` | Content-free T061 damaged-page-2 derivation: source/damaged bytes and SHA-256 |
 
 ## Not included
 
-No screenshots, logcat, APK hash, or on-device fixture hash exists because the
-exclusive emulator journey was not executed. Those checks are `NOT_RUN` and are
-never reconstructed from host tests.
+No screenshots, logcat, APK hash, or on-device fixture hash exists yet for the
+correction-2 journey because the coordinator's exclusive emulator run is
+pending. Those checks are `NOT_RUN` and are never reconstructed from host
+tests.

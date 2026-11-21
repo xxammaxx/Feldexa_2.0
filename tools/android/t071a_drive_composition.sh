@@ -6,7 +6,10 @@
 # the start list -> verify persistence. This script:
 #   1. requires the exclusively allocated Orca Pixel 7 API 35 emulator session
 #      attached to this worktree (`orca emulator list` is worktree-scoped);
-#   2. pushes the committed synthetic `sf-001.pdf` fixture and verifies SHA-256;
+#   2. stages the committed synthetic `sf-001.pdf` fixture and verifies its
+#      SHA-256; the integration test then derives the T061 damaged-page-2
+#      source deterministically (5956 bytes, SHA-256 57c1ade1...) before
+#      import, so page 1 stays usable and page 2 imports as unreadable;
 #   3. clears the test app data so the journey starts with an empty store;
 #   4. starts `flutter test integration_test/android_review_composition_test.dart`
 #      in the background and captures the five screenshot phases;
@@ -41,6 +44,8 @@ STAGING="/data/local/tmp/t071a-fixtures"
 PACKAGE="de.feldexa.app"
 FIXTURE="sf-001.pdf"
 FIXTURE_SHA256="22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038"
+# Derived in-test from the staged fixture, never pushed or committed.
+DAMAGED_FIXTURE_SHA256="57c1ade1ab2c00375ac61703db3d4ce5d27b996ea067647aba585866dc6ec221"
 FIXTURE_SIZE_BYTES=5956
 
 TEST_PID=""
@@ -288,6 +293,8 @@ DEVICE_FIXTURE_SIZE="$(adb_shell stat -c %s "$STAGING/$FIXTURE")"
 {
   log "staging $STAGING/$FIXTURE sha256=$DEVICE_FIXTURE_SHA size=$DEVICE_FIXTURE_SIZE"
   log "host $APP/assets/fixtures/$FIXTURE sha256=$HOST_FIXTURE_SHA"
+  log "expected_damaged_sha256=$DAMAGED_FIXTURE_SHA256"
+  log "damaged_derivation=T061 second MediaBox replaced by 29 spaces; same $FIXTURE_SIZE_BYTES bytes; derived in-test before import"
 } >"$RUN_DIR/fixture-sha256.txt"
 
 # --- 3. Privacy source check -------------------------------------------------
