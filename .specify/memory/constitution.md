@@ -1,6 +1,50 @@
 <!--
 Sync Impact Report
 ==================
+Version change: 1.0.1 → 1.0.2 (PATCH)
+
+Rationale for 1.0.2: The owner installed maintainer skill v5.2.9 and directed
+the maintainer on 2026-11-21 to reconcile this constitution with it. Principle X
+still named OpenCode-only development workers and Codex-only reviewers, while
+the owner-approved worker and reviewer runtime policy now names Pi Coding Agent
+with DeepSeek Flash as the builder primary (OpenCode + DeepSeek Flash fallback)
+and Codex as the review primary with the previously owner-approved DeepSeek
+reviewer fallback for a genuinely unavailable Codex role. Both are runtime
+substitutions inside the already ratified safeguards. Review independence,
+exact-commit binding, author/reviewer separation, worktree isolation, two
+independent reviews, no self-approval, and the Maintainer's integration
+authority are unchanged and not weakened.
+
+Modified principles: X. Autonomous Multi-Agent Governance
+- Role table: Development Workers generalized from OpenCode-only sessions to at
+  most two separate qualified worker sessions, Pi + DeepSeek Flash primary and
+  OpenCode + DeepSeek Flash fallback; existing OpenCode assignments finish on
+  their original route.
+- Role table: Independent Reviewers clarified as two independent read-only
+  sessions, Codex CLI primary, with the owner-approved DeepSeek reviewer
+  fallback replacing only a genuinely unavailable Codex role.
+- Added binding rules: a worker or reviewer fallback preserves the role, task,
+  worktree, candidate, permissions and evidence gates and MUST NOT bypass any
+  review, merge or acceptance gate; only the Spec Kit coordinator starts or
+  resumes workers, and the Maintainer starts the two reviewers and remains the
+  sole integration and release authority.
+
+Added sections: none
+Removed sections: none
+Follow-up TODOs: none.
+
+Provenance: owner directive of 2026-11-21 (maintainer restart and Pi worker
+admission) and installed maintainer skill v5.2.9. Prepared through the
+installed `speckit-constitution` command artifact; the constitution template
+was resolved with `.specify/scripts/bash/resolve-template.sh
+constitution-template --json`; `.specify/extensions.yml` registers no hooks.
+
+Previous 1.0.1 report retained below as history.
+-->
+
+<!--
+Sync Impact Report
+==================
 Version change: 1.0.0 → 1.0.1 (PATCH)
 
 Rationale for 1.0.1: Principle X described a fixed harness for the Maintainer and
@@ -333,8 +377,8 @@ The project uses one accountable Maintainer and specialized agents.
 | --- | --- | --- |
 | Maintainer | The agent, harness, and model the project owner selects for the maintainer session | Overall coordination, prioritization, delegation, integration, recovery, and verified product delivery |
 | Spec Kit coordinator | One native subagent of the maintainer harness; non-coding | Preparing and checking scoped assignments, starting and directing the development workers, verifying their progress and evidence, and reporting accepted handoffs to the Maintainer |
-| Development Workers | Exactly two separate OpenCode sessions at most, each in its own isolated worktree, started only by the Spec Kit coordinator, using the owner-configured DeepSeek Flash model | Implementing assigned tasks by actually invoking the installed Spec Kit implementation command within the task scope |
-| Independent Reviewers | Two independent, read-only Codex CLI sessions per completed worker task: Reviewer A for code quality and Reviewer B for requirements fulfillment | Independent review of the exact candidate revision; they report to the Maintainer only |
+| Development Workers | At most two separate qualified development worker sessions, each in its own isolated worktree, started only by the Spec Kit coordinator. New assignments use Pi Coding Agent with the owner-configured DeepSeek Flash model; the owner-approved fallback is OpenCode with the same model. Existing OpenCode assignments finish on their original route. | Implementing assigned tasks by actually invoking the installed Spec Kit implementation command within the task scope |
+| Independent Reviewers | Two independent, read-only review sessions per completed worker task: Reviewer A for code quality and Reviewer B for requirements fulfillment. Codex CLI is primary; the owner-approved DeepSeek reviewer fallback replaces only a genuinely unavailable Codex role. | Independent review of the exact candidate revision; they report to the Maintainer only |
 
 Binding rules:
 
@@ -345,6 +389,11 @@ Binding rules:
   Reviews of different roles MUST NOT share a session, context, or another reviewer's verdict.
 - Workers MUST operate in isolated worktrees. A worktree MUST have at most one active
   assignment at a time.
+- Only the Spec Kit coordinator starts or resumes development workers. The Maintainer starts
+  the two independent reviewers and remains the sole integration and release authority.
+- A worker or reviewer fallback MAY replace only an unavailable runtime. It MUST preserve the
+  same role, task, worktree, candidate, permissions, and evidence gates, and it MUST NOT
+  bypass a review, merge, acceptance, privacy, or Android-verification gate.
 - Each worktree MUST remain available until verified integration or explicit abandonment.
   Abandonment MUST be recorded with its reason.
 - Existing completed work MUST be inspected before duplicate implementation begins:
@@ -483,4 +532,4 @@ the specification and task artifacts, and the per-worktree agent briefs. Those d
 remain consistent with this constitution; where they conflict, this constitution governs and
 the dependent document MUST be corrected.
 
-**Version**: 1.0.1 | **Ratified**: 2026-11-12 | **Last Amended**: 2026-11-17
+**Version**: 1.0.2 | **Ratified**: 2026-11-12 | **Last Amended**: 2026-11-21
