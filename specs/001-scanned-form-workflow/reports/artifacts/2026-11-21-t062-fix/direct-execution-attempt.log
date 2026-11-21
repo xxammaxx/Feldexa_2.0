@@ -1,0 +1,16 @@
+# T062 correction — attempt 1: direct Chrome execution of the integration_test path
+# Evidence class: SIMULATED (browser) only
+# Result: FAILED at compile time; no assertion executed
+# Fixture server: dart run tools/corpus/synthetic/serve_web_fixtures.dart --root apps/feldexa_app/web --port 8765 (loopback only; catalog and sf-001 both HTTP 200)
+# Environment: PATH=<flutter-sdk>/bin:$PATH; CHROME_EXECUTABLE=<chrome> (Google Chrome for Testing 156.0.8078.4)
+# cwd: apps/feldexa_app
+# command: flutter test --no-pub --platform chrome integration_test/web_recognition_test.dart
+
+org-dartlang-app:///main.dart:3:8: Error: Error when reading 'org-dartlang-app:///integration_test/web_recognition_test.dart': File not found
+import 'org-dartlang-app:///../integration_test/web_recognition_test.dart' as test_0 show main;
+       ^
+org-dartlang-app:///main.dart:11:24: Error: Undefined name 'main'.
+    entryPoint: test_0.main,
+                       ^^^^
+Failed to compile
+EXIT=1

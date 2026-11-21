@@ -1,0 +1,42 @@
+# T062 correction — host gate results (2026-11-21)
+# Evidence class: none (host checks only; no product evidence)
+# Worktree: t062-recognition; branch: xxammaxx/t062; base commit: d2d98f3
+# Environment: Flutter 3.47.7 / Dart 3.13.5, PATH=<flutter-sdk>/bin:$PATH
+# Sanitization: absolute host and SDK paths replaced with <repo-root> or
+#   <flutter-sdk>; result lines unchanged.
+
+## 1. Formatting (dart format, page width 80) — cwd <repo-root>
+# command: dart format --output=none --set-exit-if-changed .
+Formatted 265 files (0 changed) in 5.81 seconds.
+# exit code: 0
+
+## 2. Static analysis — cwd <repo-root>
+# command: flutter analyze --no-pub
+Analyzing t062-recognition...
+No issues found! (ran in 349.1s)
+# exit code: 0
+
+## 3. Full app test suite (VM platform; the browser-only T062 file carries
+##    @TestOn('browser') and is not part of the VM run) — cwd apps/feldexa_app
+# command: flutter test --no-pub
+01:40 +458: All tests passed!
+# exit code: 0
+
+## 4. SIMULATED browser suite (Chrome for Testing 156.0.8078.4)
+# command (cwd apps/feldexa_app, fixture mirror on 127.0.0.1:8765):
+#   flutter test --no-pub --platform chrome test/web_recognition_browser_entry_test.dart
+03:29 +4: All tests passed!
+# exit code: 0
+# full output: artifacts/2026-11-21-t062-fix/browser-test.log
+
+## 5. Whitespace / conflict check — cwd <repo-root>
+# command: git diff --check
+# exit code: 0 (no output)
+
+## 6. Entry mode proofs — cwd <repo-root>
+# worktree: -rw-r--r-- (regular file, no symlink)
+# staged:   100644 blob (after staging the correction commit)
+# pre-fix HEAD was: 120000 blob (symlink) — removed by this commit
+
+# Not run / not claimed: no Android, EMULATOR, DEVICE, release, performance,
+# or full-corpus evidence is produced or affected by this correction.

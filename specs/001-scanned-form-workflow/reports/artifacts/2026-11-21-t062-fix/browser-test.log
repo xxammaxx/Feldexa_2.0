@@ -1,0 +1,27 @@
+# T062 SIMULATED browser recognition suite — corrected single-file entry (4/4 PASSED)
+# Evidence class: SIMULATED (browser) only: not Android runtime, EMULATOR, or DEVICE evidence, and not proof of the Android PDFium/ML Kit path (FR-086/FR-087/FR-088)
+# Base commit: d2d98f3; branch: xxammaxx/t062
+# Entry: apps/feldexa_app/test/web_recognition_browser_entry_test.dart (one real file, mode 100644, no symlink, no wrapper, no duplicate)
+# Fixture server: dart run tools/corpus/synthetic/serve_web_fixtures.dart --root apps/feldexa_app/web --port 8765 (loopback only, no-cache, no product backend)
+# Environment: PATH=<flutter-sdk>/bin:$PATH; CHROME_EXECUTABLE=<chrome> (Google Chrome for Testing 156.0.8078.4); Flutter 3.47.7
+# cwd: apps/feldexa_app
+# command: flutter test --no-pub --platform chrome test/web_recognition_browser_entry_test.dart
+# Sanitization: absolute host, SDK, and Chrome paths replaced with <repo-root>, <flutter-sdk>, <chrome>, or <home>; trailing whitespace removed; result lines unchanged.
+
+Waiting for another flutter command to release the startup lock...
+00:00 +0: loading <repo-root>/apps/feldexa_app/test/web_recognition_browser_entry_test.dart
+00:00 +0: serves the committed SIMULATED fixture catalogue in Chrome
+[T062-SIMULATED] catalogue version=fixtures-1.0.0 fixtures=7 importable=4 sf-003 pages=5 sf-003 rotations=[0, 0, 90, 180, 270]
+00:05 +1: analyses every sf-003 page with SIMULATED evidence and stable envelopes
+[T062-SIMULATED] sf-003 page=0 status=complete suggestions=0 types=[] suggestionPages=[] confidences=[] evidence=simulated rotation=0
+[T062-SIMULATED] sf-003 page=1 status=complete suggestions=0 types=[] suggestionPages=[] confidences=[] evidence=simulated rotation=0
+[T062-SIMULATED] sf-003 page=2 status=complete suggestions=0 types=[] suggestionPages=[] confidences=[] evidence=simulated rotation=90
+[T062-SIMULATED] sf-003 page=3 status=complete suggestions=0 types=[] suggestionPages=[] confidences=[] evidence=simulated rotation=180
+[T062-SIMULATED] sf-003 page=4 status=complete suggestions=0 types=[] suggestionPages=[] confidences=[] evidence=simulated rotation=270
+[T062-SIMULATED] sf-003 ocr pageIndexes=[0, 1, 2, 3, 4, 0, 1, 2, 3, 4] blocks=[10, 10, 10, 10, 10, 10, 10, 10, 10, 10] rasterSizesPx=[1654x2339, 2339x1654, 2339x1654, 1654x2339, 1654x1165] hint={de} format={gray8} rasterEvidence={SIMULATED}
+02:27 +2: isolates one PAGE-001 page while the other page completes
+[T062-SIMULATED] sf-004 isolation: page0=complete suggestions=0 page1=failed failure=PAGE-001/rasterization page1Suggestions=0 ocrPages=[0] ocrBlocks=[24]
+02:59 +3: keeps a page completed when OCR is unavailable (ocrUsed=false)
+[T062-SIMULATED] sf-003 ocr-unavailable: page=complete suggestions=0 failure=none ocrCalls=[0] ocrBlocks=[] note=ocrUsed-not-materialized-without-suggestions
+03:29 +4: All tests passed!
+EXIT=0
