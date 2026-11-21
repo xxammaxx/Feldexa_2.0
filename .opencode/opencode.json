@@ -1,0 +1,11 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "servers": {
+      "spec-kit": {
+        "type": "local",
+        "command": ["specify", "mcp"]
+      }
+    }
+  }
+}

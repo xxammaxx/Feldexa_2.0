@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "spec-kit": {
+      "command": "specify",
+      "args": ["mcp"]
+    }
+  }
+}

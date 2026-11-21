@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "spec-kit": {
+      "type": "stdio",
+      "command": "specify",
+      "args": ["mcp"]
+    }
+  }
+}

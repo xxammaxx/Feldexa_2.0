@@ -1,0 +1,6 @@
+# Project-scoped MCP server for the official Spec Kit CLI (read-only inventory).
+# Loaded by Codex only for trusted projects; start via `codex exec --trust` if untrusted.
+[mcp_servers.spec_kit]
+command = "specify"
+args = ["mcp"]
+startup_timeout_sec = 20
