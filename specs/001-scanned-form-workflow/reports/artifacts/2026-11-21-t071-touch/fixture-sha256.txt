@@ -1,0 +1,4 @@
+staging /data/local/tmp/t071-fixtures/sf-001.pdf sha256=22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038 size=5956
+host /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071-android-touch/apps/feldexa_app/assets/fixtures/sf-001.pdf sha256=22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038
+expected_damaged_sha256=57c1ade1ab2c00375ac61703db3d4ce5d27b996ea067647aba585866dc6ec221
+damaged_derivation=T061 second MediaBox replaced by 29 spaces; same 5956 bytes; derived in-test before import

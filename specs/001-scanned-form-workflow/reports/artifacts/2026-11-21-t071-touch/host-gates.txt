@@ -1,0 +1,46 @@
+### 1 focused geometry/composition widget tests (feldexa_app)
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:04 +22: All tests passed!
+exit=0
+### 2 feldexa_ui field_geometry unit tests
+00:00 +29: hitTestFieldGeometry hit testing never changes the stored rectangle
+00:00 +30: FieldGeometryPreview paints a pointer-inert preview and nothing without a rect
+00:00 +31: All tests passed!
+exit=0
+### 3 format check on the changed Dart file
+Formatted 1 file (0 changed) in 0.14 seconds.
+exit=0
+### 4 git diff --check
+exit=0
+### 5 git status --porcelain
+ M apps/feldexa_app/android/gradlew.bat
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/apk-sha256.txt
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/commands.txt
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/device-identity.txt
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/fixture-sha256.txt
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/git-identity.txt
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/host-flutter-pub-get.log
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/integration-android-t071.log
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/logcat-flutter.log
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/logcat-t071-markers.log
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/marker-contract.txt
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/marker-sequence.txt
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/markers-integration.txt
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/orca-emulator-devices.json
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/orca-emulator-sessions.json
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/privacy-log-check.txt
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/privacy-source-check.txt
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/run-status.txt
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/screenshot-hashes.txt
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/screenshots/
+### 6 full feldexa_app test suite
+01:13 +467: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071-android-touch/apps/feldexa_app/test/text_control_test.dart: fires only injected callbacks for edits and submission
+01:13 +468: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071-android-touch/apps/feldexa_app/test/text_control_test.dart: production source imports no ARB, editor, or persistence module
+01:13 +469: All tests passed!
+exit=0
+### 7 flutter analyze --no-pub
+Analyzing feldexa_app...                                        
+No issues found! (ran in 114.9s)
+exit=0

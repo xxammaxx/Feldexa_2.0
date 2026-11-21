@@ -1,0 +1,7 @@
+head=398f4e4b5c87b9951f9061c7b8f00d93167f52a0
+tree=8db4a556e03bc839bcb8464e53a46e5768568a5a
+branch=xxammaxx/t071
+subject=test(T071): capture each phase at its evidence-bearing view
+status_porcelain:
+ M apps/feldexa_app/android/gradlew.bat
+flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git

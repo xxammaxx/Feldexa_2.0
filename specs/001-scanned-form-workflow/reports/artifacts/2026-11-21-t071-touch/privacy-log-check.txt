@@ -1,0 +1,1 @@
+PASS: no document content or fixture path in the integration log

@@ -1,0 +1,19 @@
+exit=0 cmd=adb devices
+exit=0 cmd=orca emulator devices --json
+exit=0 cmd=orca emulator list --worktree path:/home/xxammaxx/Schreibtisch/Feldexa_2.0/t071-android-touch --json
+exit=1 cmd=adb -s emulator-5554 shell pm clear de.feldexa.app
+exit=0 cmd=adb -s emulator-5554 push /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071-android-touch/apps/feldexa_app/assets/fixtures/sf-001.pdf /data/local/tmp/t071-fixtures/sf-001.pdf
+exit=0 cmd=cd apps/feldexa_app && flutter pub get --offline
+exit=0 cmd=adb -s emulator-5554 exec-out screencap -p > screenshots/resize-corners.png
+exit=0 cmd=adb -s emulator-5554 exec-out screencap -p > screenshots/resize-edges.png
+exit=0 cmd=adb -s emulator-5554 exec-out screencap -p > screenshots/move-0.5x.png
+exit=0 cmd=adb -s emulator-5554 exec-out screencap -p > screenshots/move-1x.png
+exit=0 cmd=adb -s emulator-5554 exec-out screencap -p > screenshots/move-3x.png
+exit=0 cmd=adb -s emulator-5554 exec-out screencap -p > screenshots/move-8x.png
+exit=0 cmd=adb -s emulator-5554 exec-out screencap -p > screenshots/move-clamped.png
+exit=0 cmd=adb -s emulator-5554 exec-out screencap -p > screenshots/undo.png
+exit=0 cmd=adb -s emulator-5554 exec-out screencap -p > screenshots/cancel.png
+exit=0 cmd=adb -s emulator-5554 exec-out screencap -p > screenshots/two-finger-pinch.png
+exit=0 cmd=adb -s emulator-5554 exec-out screencap -p > screenshots/two-finger-pan.png
+exit=0 cmd=adb -s emulator-5554 exec-out screencap -p > screenshots/min-size.png
+exit=0 cmd=flutter test --no-pub integration_test/android_review_test.dart -d emulator-5554
