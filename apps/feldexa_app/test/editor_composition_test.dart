@@ -31,6 +31,7 @@ import 'package:feldexa_app/features/editor/editor_screen.dart';
 import 'package:feldexa_app/features/editor/field_order.dart';
 import 'package:feldexa_app/features/editor/field_value_sheet.dart';
 import 'package:feldexa_app/features/editor/page_view.dart' as viewer;
+import 'package:feldexa_app/features/fill/checkbox_control.dart';
 import 'package:feldexa_app/features/fill/text_control.dart';
 import 'package:feldexa_app/features/start/import_runtime.dart';
 import 'package:feldexa_app/features/start/start_screen.dart';
@@ -123,12 +124,12 @@ core.ConfirmedField _field([core.FieldType type = core.FieldType.text]) {
 }
 
 /// A second confirmed field below [_fieldRect] for the T073 order tests.
-core.ConfirmedField _secondField() {
+core.ConfirmedField _secondField([core.FieldType type = core.FieldType.text]) {
   return core.ConfirmedField(
     id: _secondFieldId,
     pageIndex: 0,
     rect: core.Rect.fromLTWH(40, 140, 100, 30),
-    type: core.FieldType.text,
+    type: type,
     provenance: core.Provenance.user,
     label: 'Vorname',
     order: 1,
@@ -158,17 +159,18 @@ core.RevisionContent _content({
   bool secondFieldFirst = false,
   bool withSuggestion = false,
   core.FieldType fieldType = core.FieldType.text,
+  core.FieldType secondFieldType = core.FieldType.text,
   core.FieldValue? value,
 }) {
   final List<core.ConfirmedField> fields =
       secondFieldFirst && withField && withSecondField
       ? <core.ConfirmedField>[
-          _secondField().copyWith(order: 0),
+          _secondField(secondFieldType).copyWith(order: 0),
           _field(fieldType).copyWith(order: 1),
         ]
       : <core.ConfirmedField>[
           if (withField) _field(fieldType),
-          if (withField && withSecondField) _secondField(),
+          if (withField && withSecondField) _secondField(secondFieldType),
         ];
   return core.RevisionContent(
     pages: <core.Page>[_page()],
@@ -1020,7 +1022,10 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Vorname'), findsWidgets);
-    expect(store.saves, hasLength(1));
+    // The field was untouched, so the reorder hand-off adds no setValue
+    // revision and no undo step.
+    expect(store.saves, isEmpty);
+    expect(state.canUndoReview, isFalse);
     expect(tester.takeException(), isNull);
   });
 
@@ -1128,6 +1133,99 @@ void main() {
       isNull,
       reason: 'the order already is the page order',
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'next from an untouched empty number adds no revision and focuses the next',
+    (tester) async {
+      final _FakeStore store = _FakeStore(
+        loaded: _loaded(
+          content: _content(
+            withSecondField: true,
+            fieldType: core.FieldType.number,
+          ),
+        ),
+      );
+      final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+      await _pumpEditor(tester, runtime: runtime);
+      final EditorScreenState state = _state(tester);
+
+      await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+      await tester.pumpAndSettle();
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+
+      await tester.tap(find.byKey(fieldValueNextKey));
+      await tester.pumpAndSettle();
+
+      // An untouched empty number is not validated (no NUM-001) and writes no
+      // setValue revision or undo step.
+      expect(store.saves, isEmpty);
+      expect(state.canUndoReview, isFalse);
+      expect(find.byKey(fieldValueErrorKey), findsNothing);
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+      expect(state.selection.selectedId, _secondFieldId);
+      final TextField input = tester.widget<TextField>(
+        find.byKey(fieldTextControlInputKey),
+      );
+      expect(input.focusNode!.hasFocus, isTrue);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('a checkbox target receives focus after next', (tester) async {
+    final _FakeStore store = _FakeStore(
+      loaded: _loaded(
+        content: _content(
+          withSecondField: true,
+          secondFieldType: core.FieldType.checkbox,
+        ),
+      ),
+    );
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+    await _pumpEditor(tester, runtime: runtime);
+    final EditorScreenState state = _state(tester);
+
+    await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(fieldValueNextKey));
+    await tester.pumpAndSettle();
+
+    expect(state.selection.selectedId, _secondFieldId);
+    expect(find.byKey(fieldCheckboxControlKey), findsOneWidget);
+    final Focus focus = tester.widget<Focus>(
+      find.byKey(fieldValueNonTextFocusKey),
+    );
+    expect(focus.focusNode!.hasFocus, isTrue);
+    expect(store.saves, isEmpty);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a signature target receives focus after next', (tester) async {
+    final _FakeStore store = _FakeStore(
+      loaded: _loaded(
+        content: _content(
+          withSecondField: true,
+          secondFieldType: core.FieldType.signature,
+        ),
+      ),
+    );
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+    await _pumpEditor(tester, runtime: runtime);
+    final EditorScreenState state = _state(tester);
+
+    await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(fieldValueNextKey));
+    await tester.pumpAndSettle();
+
+    expect(state.selection.selectedId, _secondFieldId);
+    expect(find.byKey(fieldValueSignatureNotRunKey), findsOneWidget);
+    final Focus focus = tester.widget<Focus>(
+      find.byKey(fieldValueNonTextFocusKey),
+    );
+    expect(focus.focusNode!.hasFocus, isTrue);
+    expect(store.saves, isEmpty);
     expect(tester.takeException(), isNull);
   });
 }

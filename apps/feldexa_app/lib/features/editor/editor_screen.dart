@@ -1441,7 +1441,7 @@ class EditorScreenState extends State<EditorScreen> {
                           ? nextId
                           : previousId;
                       if (targetId == null) {
-                        return;
+                        return false;
                       }
                       // Read the revision after the commit so the target field
                       // and its snapshot are the latest durable ones.
@@ -1450,12 +1450,16 @@ class EditorScreenState extends State<EditorScreen> {
                           ? null
                           : _fieldById(latest, targetId);
                       if (target == null) {
-                        return;
+                        // The target vanished. Report that no swap happened so
+                        // the sheet re-enables its actions instead of staying
+                        // busy and closing.
+                        return false;
                       }
                       _selectFieldInOrder(target.id);
                       setSheetState(() {
                         currentField = target;
                       });
+                      return true;
                     },
                   );
                 },

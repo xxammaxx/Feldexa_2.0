@@ -41,14 +41,33 @@
 //
 // T073 adds two contract surfaces to the same sheet:
 //   * the per-field action „In Reihenfolge verschieben“
-//     (`contracts/editor-interactions.md` §3, FR-026): it commits the open
+//     (`contracts/editor-interactions.md` §3, FR-026): it commits a *changed*
 //     draft through the same validated path and then asks the caller to open
 //     the field-order review;
 //   * previous/next field actions (`contracts/editor-interactions.md` §5,
-//     US4 scenario 4): the draft is committed first, then the caller swaps the
-//     field inside this still-open sheet so the next/previous control takes
-//     focus. Both are disabled at the order boundaries, and a failed commit
-//     keeps the current field and shows the existing error instead of moving.
+//     US4 scenario 4): a *changed* draft is committed first, then the caller
+//     swaps the field inside this still-open sheet so the next/previous
+//     control takes focus. Both are disabled at the order boundaries, and a
+//     failed commit keeps the current field and shows the existing error.
+//
+// Pristine drafts (T073 correction 2)
+// -----------------------------------
+// The sheet remembers the exact draft it opened with. An untouched draft is
+// never validated, converted, or persisted by navigation or the reorder
+// action: an empty number/date field therefore does not produce `NUM-001` /
+// `DATE-001`, an unchanged text or checkbox does not add a `setValue`
+// revision or undo step, and a preserved `IncompatibleValue` stays preserved
+// until the user actually edits it. Only a changed draft takes the commit
+// path; a changed-but-invalid draft still blocks with the catalog error, and a
+// changed valid draft commits exactly once. The explicit save button keeps its
+// existing validation behavior.
+//
+// Focus
+// -----
+// The text-based controls request focus themselves (`autofocus`). A checkbox or
+// signature target has no text field, so the sheet wraps that control in a
+// focusable container that autofocuses, which is what makes a next/previous
+// swap land the focus on the control instead of only repainting it.
 //
 // Signature editing is not faked. No production signature-asset write flow is
 // composed by T071A, so the sheet visibly marks signature editing `NOT_RUN`
@@ -100,6 +119,11 @@ const ValueKey<String> fieldValuePreviousKey = ValueKey<String>(
 
 /// Stable key for the next-field traversal action.
 const ValueKey<String> fieldValueNextKey = ValueKey<String>('field-value-next');
+
+/// Stable key for the focus target of a non-text control (checkbox/signature).
+const ValueKey<String> fieldValueNonTextFocusKey = ValueKey<String>(
+  'field-value-non-text-focus',
+);
 
 /// The direction of one focus move in the current field order
 /// (`contracts/editor-interactions.md` §5).
@@ -173,9 +197,11 @@ class FieldValueSheet extends StatefulWidget {
 
   /// Moves focus to the previous/next field in the current order.
   ///
-  /// The caller keeps this sheet open and swaps the field; when null, the
-  /// traversal actions are not rendered.
-  final ValueChanged<FieldValueNavigation>? onNavigate;
+  /// The caller keeps this sheet open and swaps the field. It returns whether
+  /// the target was applied so the sheet can re-enable its actions when the
+  /// target vanished after the commit. When null, the traversal actions are not
+  /// rendered.
+  final bool Function(FieldValueNavigation)? onNavigate;
 
   /// Whether a previous field exists in the current order.
   final bool canGoPrevious;
@@ -201,12 +227,56 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
   /// draft the user cancelled), so the transition sets this flag first.
   bool _closing = false;
 
+  /// The draft text the sheet opened with; navigation compares against it.
+  late final String _initialTextDraft;
+
+  /// The checkbox state the sheet opened with.
+  late final bool _initialChecked;
+
+  /// Focus target for a control that has no text field of its own.
+  final FocusNode _nonTextFocusNode = FocusNode(
+    debugLabel: 'field-value-non-text',
+  );
+
   @override
   void initState() {
     super.initState();
-    _text = _initialText();
+    _initialTextDraft = _initialText();
+    _text = _initialTextDraft;
     final core.FieldValue? value = widget.currentValue;
-    _checked = value is core.CheckboxValue ? value.checked : false;
+    _initialChecked = value is core.CheckboxValue ? value.checked : false;
+    _checked = _initialChecked;
+  }
+
+  @override
+  void dispose() {
+    _nonTextFocusNode.dispose();
+    super.dispose();
+  }
+
+  /// Whether the user changed the draft since the sheet opened.
+  ///
+  /// A pristine draft is not validated or stored by navigation or the reorder
+  /// action. For a checkbox the pristine state is the initial checked state;
+  /// every other type compares the draft text with the initial text, which
+  /// includes a preserved incompatible text. A signature field has no editable
+  /// draft and is therefore always pristine.
+  bool get _isPristine {
+    if (widget.field.type == core.FieldType.checkbox) {
+      return _checked == _initialChecked;
+    }
+    return _text == _initialTextDraft;
+  }
+
+  /// Whether the control requests focus itself (the text-based controls).
+  bool get _controlSelfFocuses {
+    return switch (widget.field.type) {
+      core.FieldType.text ||
+      core.FieldType.multiline ||
+      core.FieldType.number ||
+      core.FieldType.date => true,
+      core.FieldType.checkbox || core.FieldType.signature => false,
+    };
   }
 
   String _initialText() {
@@ -385,43 +455,72 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
     Navigator.of(context).pop();
   }
 
-  /// Commits the draft and then moves to the next/previous field.
+  /// Persists a changed draft and reports whether the action may proceed.
+  ///
+  /// A pristine draft returns true without validating or writing anything: an
+  /// untouched empty number/date must not produce `NUM-001`/`DATE-001`, an
+  /// unchanged text/checkbox must not add a revision, and preserved
+  /// incompatible content must not be converted by pure navigation. A changed
+  /// draft takes the one validated commit path; a failed or invalid commit
+  /// returns false so the current field and draft stay on screen.
+  Future<bool> _commitChangedDraft() async {
+    if (_isPristine) {
+      if (_error != null && mounted) {
+        setState(() {
+          _error = null;
+        });
+      }
+      return true;
+    }
+    final FieldValueCommitResult? result = await _commitDraft();
+    return result != null && result.isSaved && mounted;
+  }
+
+  /// Commits a changed draft and then moves to the next/previous field.
   ///
   /// The caller keeps this sheet open and swaps in the target field, so the
   /// next control requests focus without a new route. A failed commit keeps the
-  /// current field and the entered text.
+  /// current field and the entered text. If the caller cannot apply the target
+  /// (for example it vanished after a concurrent change), the sheet re-enables
+  /// its actions instead of staying busy and closing.
   Future<void> _navigate(FieldValueNavigation direction) async {
     if (_busy || _closing) {
       return;
     }
-    final ValueChanged<FieldValueNavigation>? onNavigate = widget.onNavigate;
+    final bool Function(FieldValueNavigation)? onNavigate = widget.onNavigate;
     if (onNavigate == null) {
       return;
     }
-    if (widget.field.type != core.FieldType.signature) {
-      final FieldValueCommitResult? result = await _commitDraft();
-      if (result == null || !result.isSaved || !mounted) {
-        return;
-      }
+    if (!await _commitChangedDraft()) {
+      return;
+    }
+    if (!mounted) {
+      return;
     }
     _closing = true;
-    onNavigate(direction);
+    final bool navigated = onNavigate(direction);
+    if (!navigated && mounted) {
+      setState(() {
+        _closing = false;
+        _busy = false;
+      });
+    }
   }
 
-  /// Commits the draft and hands the field-order review to the caller.
+  /// Commits a changed draft and hands the field-order review to the caller.
   ///
   /// The sheet closes with [FieldValueSheetOutcome.reorder]; the caller opens
-  /// the review only after the commit is verified, so a failed save keeps the
-  /// field and the draft.
+  /// the review only after a changed draft is verified. An untouched draft
+  /// opens the review without a revision.
   Future<void> _reorder() async {
     if (_busy || _closing) {
       return;
     }
-    if (widget.field.type != core.FieldType.signature) {
-      final FieldValueCommitResult? result = await _commitDraft();
-      if (result == null || !result.isSaved || !mounted) {
-        return;
-      }
+    if (!await _commitChangedDraft()) {
+      return;
+    }
+    if (!mounted) {
+      return;
     }
     _closing = true;
     Navigator.of(context).pop(FieldValueSheetOutcome.reorder);
@@ -461,7 +560,10 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
                 const SizedBox(height: 4),
                 Text(_typeLabel(l10n, widget.field.type)),
                 const SizedBox(height: 12),
-                AbsorbPointer(absorbing: _busy, child: _buildControl(l10n)),
+                AbsorbPointer(
+                  absorbing: _busy,
+                  child: _buildFocusableControl(l10n),
+                ),
                 if (!signature) ...<Widget>[
                   const SizedBox(height: 12),
                   FieldOverflowWarning(visible: overflow),
@@ -540,6 +642,24 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
           ),
         ),
       ),
+    );
+  }
+
+  /// Builds the control and gives a non-text target a focusable container.
+  ///
+  /// Text-based controls focus their own field. A checkbox or signature target
+  /// has no text field, so this wrapper supplies an autofocusing [Focus] node
+  /// that a next/previous swap can land on.
+  Widget _buildFocusableControl(AppLocalizations l10n) {
+    final Widget control = _buildControl(l10n);
+    if (_controlSelfFocuses) {
+      return control;
+    }
+    return Focus(
+      key: fieldValueNonTextFocusKey,
+      focusNode: _nonTextFocusNode,
+      autofocus: true,
+      child: control,
     );
   }
 
