@@ -202,7 +202,7 @@ AVD_NAME="$(adb_shell getprop ro.boot.qemu.avd_name)"
 if ! "$ORCA" emulator devices --json >"$RUN_DIR/orca-emulator-devices.json" 2>/dev/null; then
   not_run "orca emulator devices --json failed; no allocation evidence"
 fi
-if ! "$ORCA" emulator list --json >"$RUN_DIR/orca-emulator-sessions.json" 2>/dev/null; then
+if ! "$ORCA" emulator list --worktree "path:$ROOT" --json >"$RUN_DIR/orca-emulator-sessions.json" 2>/dev/null; then
   not_run "orca emulator list --json failed; no worktree session evidence"
 fi
 python3 - "$RUN_DIR/orca-emulator-devices.json" "$RUN_DIR/orca-emulator-sessions.json" "$SERIAL" "$EXPECTED_AVD" "$EXPECTED_API" <<'PY' ||
