@@ -483,7 +483,7 @@ Correction-4 code, test, integration, and driver files on `f342cc4`:
 9. `tools/android/t071a_drive_composition.sh` — evidence and handshake
    corrections.
 
-This evidence commit changes only documentation and the artifact bundle:
+This evidence commit changes the documentation and artifact bundle below plus one test-only F9 regression (item 9 above, `apps/feldexa_app/test/editor_composition_test.dart`, +22 lines); production app, packages, and tools remain identical to `f342cc4`:
 
 10. `specs/001-scanned-form-workflow/reports/2026-11-21-emulator-t071a-composition.md`
     (this report).
