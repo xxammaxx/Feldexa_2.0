@@ -143,6 +143,8 @@ const Set<String> _nonCodeArbKeys = <String>{
   'fieldOrderMoveDown',
   'fieldOrderPreviousField',
   'fieldOrderNextField',
+  'fieldOrderMoveAction',
+  'fieldOrderApplyPageOrder',
   'fieldCompletionComplete',
   'fieldCompletionOptionalEmpty',
   'fieldCompletionBlockingError',

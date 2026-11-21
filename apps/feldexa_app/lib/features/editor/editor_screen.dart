@@ -1370,26 +1370,104 @@ class EditorScreenState extends State<EditorScreen> {
     };
   }
 
+  /// Returns the confirmed field with [id] in [content], or null.
+  core.ConfirmedField? _fieldById(core.RevisionContent content, String id) {
+    for (final core.ConfirmedField field in content.fields) {
+      if (field.id == id) {
+        return field;
+      }
+    }
+    return null;
+  }
+
   /// Opens the type-appropriate sheet for one tapped confirmed field.
+  ///
+  /// The sheet stays open across a next/previous field move (contract §5,
+  /// US4-4): the traversal action commits the open draft first, then this
+  /// wrapper swaps in the target field, which is taken from the latest
+  /// `_content` and requests focus through its own `autofocus`. Values are
+  /// therefore never lost and the move follows the current field order.
+  ///
+  /// The per-field „In Reihenfolge verschieben“ action closes the sheet with
+  /// [FieldValueSheetOutcome.reorder] after the same verified commit, and the
+  /// order review is opened only then. If the revision no longer contains the
+  /// shown field (for example a concurrent analysis apply replaced it), the
+  /// sheet closes instead of editing a stale snapshot.
   Future<void> _openFieldValueSheet(core.ConfirmedField field) async {
     final core.RevisionContent? content = _content;
     if (_valueSheetOpen || content == null) {
       return;
     }
     _valueSheetOpen = true;
+    core.ConfirmedField currentField = field;
     try {
-      await showModalBottomSheet<bool>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        builder: (BuildContext context) {
-          return FieldValueSheet(
-            field: field,
-            currentValue: _content?.values[field.id],
-            onCommit: (core.FieldValue value) => _saveFieldValue(field, value),
+      final FieldValueSheetOutcome? outcome =
+          await showModalBottomSheet<FieldValueSheetOutcome>(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            builder: (BuildContext sheetContext) {
+              return StatefulBuilder(
+                builder: (BuildContext context, StateSetter setSheetState) {
+                  final core.RevisionContent? live = _content;
+                  final core.ConfirmedField? shown = live == null
+                      ? null
+                      : _fieldById(live, currentField.id);
+                  if (live == null || shown == null) {
+                    // The visible revision is the only source of truth; a
+                    // field that disappeared is never edited from a stale
+                    // snapshot.
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (sheetContext.mounted) {
+                        unawaited(Navigator.of(sheetContext).maybePop());
+                      }
+                    });
+                    return const SizedBox.shrink();
+                  }
+                  currentField = shown;
+                  final String? previousId = previousFieldId(live, shown.id);
+                  final String? nextId = nextFieldId(live, shown.id);
+                  return FieldValueSheet(
+                    key: ValueKey<String>('field-value-sheet-${shown.id}'),
+                    field: shown,
+                    currentValue: live.values[shown.id],
+                    canGoPrevious: previousId != null,
+                    canGoNext: nextId != null,
+                    onCommit: (core.FieldValue value) =>
+                        _saveFieldValue(shown, value),
+                    onNavigate: (FieldValueNavigation direction) {
+                      final String? targetId =
+                          direction == FieldValueNavigation.next
+                          ? nextId
+                          : previousId;
+                      if (targetId == null) {
+                        return;
+                      }
+                      // Read the revision after the commit so the target field
+                      // and its snapshot are the latest durable ones.
+                      final core.RevisionContent? latest = _content;
+                      final core.ConfirmedField? target = latest == null
+                          ? null
+                          : _fieldById(latest, targetId);
+                      if (target == null) {
+                        return;
+                      }
+                      _selectFieldInOrder(target.id);
+                      setSheetState(() {
+                        currentField = target;
+                      });
+                    },
+                  );
+                },
+              );
+            },
           );
-        },
-      );
+      if (!mounted) {
+        return;
+      }
+      if (outcome == FieldValueSheetOutcome.reorder) {
+        await _showFieldOrderSheet();
+      }
     } finally {
       _valueSheetOpen = false;
     }
@@ -1552,6 +1630,13 @@ class EditorScreenState extends State<EditorScreen> {
   /// only after the store confirms the commit, so a failed save leaves the
   /// order, values, and geometry untouched. The reorder step is undoable
   /// through the existing T067 history entry.
+  ///
+  /// `In Seitenreihenfolge sortieren` applies the whole deterministic
+  /// page/reading order (`defaultDocumentFieldOrder`) as one reorder, which is
+  /// FR-026's page-order half; it is disabled when the order already matches.
+  /// Every move reads the latest `_content` at operation time rather than the
+  /// snapshot captured when the sheet opened, so a concurrent analysis apply
+  /// cannot be overwritten by a stale `before` state.
   Future<void> _showFieldOrderSheet() async {
     core.RevisionContent? current = _content;
     if (current == null) {
@@ -1583,7 +1668,10 @@ class EditorScreenState extends State<EditorScreen> {
               if (sheetBusy) {
                 return;
               }
-              final core.RevisionContent? content = current;
+              // The live revision, not the snapshot taken when the sheet
+              // opened: a concurrent analysis apply must never be replaced by
+              // a stale `before` state.
+              final core.RevisionContent? content = _content;
               if (content == null) {
                 return;
               }
@@ -1591,12 +1679,18 @@ class EditorScreenState extends State<EditorScreen> {
                   ? moveFieldUp(content, fieldId)
                   : moveFieldDown(content, fieldId);
               if (change == null || !change.changed) {
+                // The field is already at the boundary or the live revision no
+                // longer matches the rendered one; re-render from `_content`
+                // instead of leaving a stale list on screen.
+                setSheetState(() {
+                  current = _content;
+                });
                 return;
               }
               setSheetState(() {
                 sheetBusy = true;
               });
-              final bool saved = await _commitSnapshot(
+              await _commitSnapshot(
                 change.content,
                 kind: history.EditCommandKind.reorder,
                 fieldId: fieldId,
@@ -1606,9 +1700,39 @@ class EditorScreenState extends State<EditorScreen> {
               }
               setSheetState(() {
                 sheetBusy = false;
-                if (saved) {
+                current = _content;
+              });
+            }
+
+            Future<void> applyPageOrder() async {
+              if (sheetBusy) {
+                return;
+              }
+              final core.RevisionContent? content = _content;
+              if (content == null) {
+                return;
+              }
+              final FieldOrderChange? change = moveFieldsToPageOrder(content);
+              if (change == null) {
+                setSheetState(() {
                   current = _content;
-                }
+                });
+                return;
+              }
+              setSheetState(() {
+                sheetBusy = true;
+              });
+              await _commitSnapshot(
+                change.content,
+                kind: history.EditCommandKind.reorder,
+                fieldId: change.fieldId,
+              );
+              if (!sheetContext.mounted) {
+                return;
+              }
+              setSheetState(() {
+                sheetBusy = false;
+                current = _content;
               });
             }
 
@@ -1645,7 +1769,20 @@ class EditorScreenState extends State<EditorScreen> {
                         l10n.fieldOrderHint,
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
-                      const SizedBox(height: 4),
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: TextButton(
+                          key: const ValueKey<String>(
+                            'field-order-apply-page-order',
+                          ),
+                          onPressed: sheetBusy || isInPageOrder(shown)
+                              ? null
+                              : () {
+                                  unawaited(applyPageOrder());
+                                },
+                          child: Text(l10n.fieldOrderApplyPageOrder),
+                        ),
+                      ),
                       Flexible(
                         child: FieldOrderReviewList(
                           content: shown,

@@ -37,6 +37,8 @@ const String _f6 = '66666666-6666-4666-8666-666666666666';
 const String _signatureAsset = 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa';
 const String _suggestionA = 's_p0_0001';
 const String _suggestionB = 's_p0_0002';
+const String _templateId = 'bbbbbbbb-1111-4111-8111-bbbbbbbbbbbb';
+const String _templateVersionId = 'cccccccc-1111-4111-8111-cccccccccccc';
 const String _historyId = '99999999-9999-4999-8999-999999999999';
 const String _historyId2 = '99999999-9999-4999-8999-999999999998';
 final String _sha256 = List<String>.filled(64, 'a').join();
@@ -84,7 +86,11 @@ core.FieldSuggestion _suggestion({
 /// The stored order is deliberately not the page order: field `f2` sits above
 /// `f1` on page 0, so [defaultDocumentFieldOrder] must produce
 /// `f2, f1, f5, f3, f4, f6`.
-core.RevisionContent _content({List<String>? fieldOrder}) {
+core.RevisionContent _content({
+  List<String>? fieldOrder,
+  core.SuggestionResolution conflictPartner =
+      core.SuggestionResolution.unresolved,
+}) {
   final List<core.ConfirmedField> fields = <core.ConfirmedField>[
     core.ConfirmedField(
       id: _f1,
@@ -100,6 +106,9 @@ core.RevisionContent _content({List<String>? fieldOrder}) {
         core.WarningCode.overflow,
         'FLD-001',
       ),
+      unknownFields: const <String, Object?>{
+        'x-field-extension': <String, Object?>{'kept': true},
+      },
     ),
     core.ConfirmedField(
       id: _f2,
@@ -185,7 +194,7 @@ core.RevisionContent _content({List<String>? fieldOrder}) {
         rect: core.Rect.fromLTWH(50, 60, 100, 20),
         confidence: 0.70,
         conflictsWith: <String>[_suggestionA],
-        resolution: core.SuggestionResolution.unresolved,
+        resolution: conflictPartner,
       ),
     ],
     fields: <core.ConfirmedField>[
@@ -229,6 +238,11 @@ core.RevisionContent _content({List<String>? fieldOrder}) {
         reviewedAt: _editedAt,
       ),
     },
+    templateOrigin: core.TemplateOrigin(
+      templateId: _templateId,
+      templateVersionId: _templateVersionId,
+      templateVersionNumber: 2,
+    ),
     unknownFields: const <String, Object?>{
       'x-test-extension': <String, Object?>{'kept': true},
     },
@@ -391,6 +405,41 @@ void main() {
       expect(entries[0].conflicting, isFalse);
     });
 
+    test('a live conflict clears once the opposing candidate is resolved', () {
+      expect(fieldOrderEntries(_content())[1].conflicting, isTrue);
+      expect(
+        fieldOrderEntries(
+          _content(conflictPartner: core.SuggestionResolution.rejected),
+        )[1].conflicting,
+        isFalse,
+      );
+    });
+
+    test('a stale conflict reference stays open until it is decided', () {
+      final core.FieldSuggestion alone = _suggestion(
+        id: _suggestionA,
+        rect: core.Rect.fromLTWH(40, 60, 100, 20),
+        confidence: 0.82,
+        conflictsWith: <String>[_suggestionB],
+        resolution: core.SuggestionResolution.confirmed,
+      );
+      expect(
+        hasOpenSuggestionConflict(alone, <core.FieldSuggestion>[alone]),
+        isTrue,
+      );
+      final core.FieldSuggestion unrelated = _suggestion(
+        id: _suggestionB,
+        rect: core.Rect.fromLTWH(50, 60, 100, 20),
+        confidence: 0.70,
+        conflictsWith: const <String>[],
+        resolution: core.SuggestionResolution.unresolved,
+      );
+      expect(
+        hasOpenSuggestionConflict(unrelated, <core.FieldSuggestion>[unrelated]),
+        isFalse,
+      );
+    });
+
     test('maps every T085 completion state', () {
       final List<FieldOrderEntry> entries = fieldOrderEntries(_content());
       expect(
@@ -463,6 +512,7 @@ void main() {
       expect(next.values, content.values);
       expect(next.signatures, content.signatures);
       expect(next.verification, content.verification);
+      expect(next.templateOrigin, isNotNull);
       expect(next.templateOrigin, content.templateOrigin);
       expect(next.unknownFields, content.unknownFields);
       final Map<String, core.ConfirmedField> before =
@@ -478,7 +528,11 @@ void main() {
         expect(field.label, original.label);
         expect(field.validation, original.validation);
         expect(field.updatedAt, original.updatedAt);
+        expect(field.unknownFields, original.unknownFields);
       }
+      expect(before[_f1]!.unknownFields, const <String, Object?>{
+        'x-field-extension': <String, Object?>{'kept': true},
+      });
     });
 
     test('a no-op move returns the same snapshot and changed is false', () {
@@ -502,6 +556,39 @@ void main() {
 
       final FieldOrderChange down = moveFieldDown(content, _f2)!;
       expect(_ids(down.content).take(3).toList(), <String>[_f1, _f3, _f2]);
+    });
+
+    test('page order is reachable as one complete reorder', () {
+      final core.RevisionContent content = _content();
+      expect(isInPageOrder(content), isFalse);
+
+      final FieldOrderChange change = moveFieldsToPageOrder(content)!;
+      expect(change.fieldId, _f1);
+      expect(change.previousIndex, 0);
+      expect(change.newIndex, 1);
+      expect(_ids(change.content), defaultDocumentFieldOrder(content));
+      expect(_ids(change.content), <String>[_f2, _f1, _f5, _f3, _f4, _f6]);
+      expect(change.content.fieldOrder, _ids(change.content));
+      expect(_orders(change.content), <int>[0, 1, 2, 3, 4, 5]);
+      expect(isInPageOrder(change.content), isTrue);
+      expect(change.content.values, content.values);
+      expect(change.content.templateOrigin, content.templateOrigin);
+
+      expect(moveFieldsToPageOrder(change.content), isNull);
+      expect(moveFieldsToPageOrder(_emptyContent()), isNull);
+      expect(isInPageOrder(_emptyContent()), isTrue);
+    });
+
+    test('a reorder applies to the live snapshot, not a stale capture', () {
+      final core.RevisionContent stale = _content();
+      final core.RevisionContent live = _content(
+        fieldOrder: <String>[_f6, _f5, _f4, _f3, _f2, _f1],
+      );
+
+      final FieldOrderChange change = moveFieldUp(live, _f1)!;
+      expect(_ids(change.content), <String>[_f6, _f5, _f4, _f3, _f1, _f2]);
+      expect(_ids(change.content), isNot(_ids(stale)));
+      expect(change.content.values, live.values);
     });
 
     test('rejects an unknown field and an out-of-range index', () {
@@ -635,6 +722,16 @@ void main() {
       expect(_orders(restored), <int>[0, 1, 2, 3, 4, 5]);
       expect(restored.values, moved.values);
       expect(restored.signatures, moved.signatures);
+      expect(restored.templateOrigin, isNotNull);
+      expect(restored.templateOrigin, moved.templateOrigin);
+      expect(
+        restored.fields
+            .firstWhere((core.ConfirmedField field) => field.id == _f1)
+            .unknownFields,
+        moved.fields
+            .firstWhere((core.ConfirmedField field) => field.id == _f1)
+            .unknownFields,
+      );
       expect(
         core.canonicalJsonEncode(restored.toJson()),
         core.canonicalJsonEncode(moved.toJson()),

@@ -472,6 +472,18 @@ abstract class AppLocalizations {
   /// **'Vorheriges Feld'**
   String get fieldOrderPreviousField;
 
+  /// T073 per-field action in the value sheet: commit the draft and open the field-order review (contracts/editor-interactions.md §3, FR-026).
+  ///
+  /// In de, this message translates to:
+  /// **'In Reihenfolge verschieben'**
+  String get fieldOrderMoveAction;
+
+  /// T073 field-order review action: reorder every confirmed field into the deterministic page and reading order (FR-026 page order).
+  ///
+  /// In de, this message translates to:
+  /// **'In Seitenreihenfolge sortieren'**
+  String get fieldOrderApplyPageOrder;
+
   /// T073 field-order review traversal: select the next field in the current order (contracts/editor-interactions.md §5).
   ///
   /// In de, this message translates to:

@@ -51,6 +51,10 @@ Future<void> _pumpSheet(
   core.FieldValue? currentValue,
   List<core.FieldValue>? commits,
   FieldValueCommitResult Function(core.FieldValue value)? result,
+  List<FieldValueSheetOutcome?>? outcomes,
+  ValueChanged<FieldValueNavigation>? onNavigate,
+  bool canGoPrevious = false,
+  bool canGoNext = false,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -65,7 +69,7 @@ Future<void> _pumpSheet(
                 key: _openSheetKey,
                 onPressed: () {
                   unawaited(
-                    showModalBottomSheet<bool>(
+                    showModalBottomSheet<FieldValueSheetOutcome>(
                       context: context,
                       isScrollControlled: true,
                       useSafeArea: true,
@@ -73,6 +77,9 @@ Future<void> _pumpSheet(
                         return FieldValueSheet(
                           field: _field(type),
                           currentValue: currentValue,
+                          onNavigate: onNavigate,
+                          canGoPrevious: canGoPrevious,
+                          canGoNext: canGoNext,
                           onCommit: (core.FieldValue value) async {
                             commits?.add(value);
                             return result?.call(value) ??
@@ -80,7 +87,9 @@ Future<void> _pumpSheet(
                           },
                         );
                       },
-                    ),
+                    ).then((FieldValueSheetOutcome? value) {
+                      outcomes?.add(value);
+                    }),
                   );
                 },
                 child: const Text('Öffnen'),
@@ -241,5 +250,115 @@ void main() {
 
     expect(commits, isEmpty);
     expect(find.byKey(fieldValueSheetKey), findsNothing);
+  });
+
+  testWidgets('the per-field reorder action commits and hands off', (
+    tester,
+  ) async {
+    final List<core.FieldValue> commits = <core.FieldValue>[];
+    final List<FieldValueSheetOutcome?> outcomes = <FieldValueSheetOutcome?>[];
+    await _pumpSheet(
+      tester,
+      type: core.FieldType.text,
+      commits: commits,
+      outcomes: outcomes,
+    );
+
+    await tester.enterText(find.byKey(fieldTextControlInputKey), 'Neu');
+    await tester.tap(find.byKey(fieldValueReorderKey));
+    await tester.pumpAndSettle();
+
+    expect(commits, hasLength(1));
+    expect(outcomes, <FieldValueSheetOutcome?>[FieldValueSheetOutcome.reorder]);
+    expect(find.byKey(fieldValueSheetKey), findsNothing);
+  });
+
+  testWidgets('the reorder action keeps the sheet open on a failed commit', (
+    tester,
+  ) async {
+    final List<FieldValueSheetOutcome?> outcomes = <FieldValueSheetOutcome?>[];
+    await _pumpSheet(
+      tester,
+      type: core.FieldType.text,
+      outcomes: outcomes,
+      result: (core.FieldValue value) =>
+          FieldValueCommitResult.failed(_de.save003),
+    );
+
+    await tester.enterText(find.byKey(fieldTextControlInputKey), 'Neu');
+    await tester.tap(find.byKey(fieldValueReorderKey));
+    await tester.pumpAndSettle();
+
+    expect(outcomes, isEmpty);
+    expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+    expect(find.text(_de.save003), findsOneWidget);
+  });
+
+  testWidgets('previous/next are disabled at the order boundaries', (
+    tester,
+  ) async {
+    final List<FieldValueNavigation> navigations = <FieldValueNavigation>[];
+    await _pumpSheet(
+      tester,
+      type: core.FieldType.text,
+      onNavigate: navigations.add,
+    );
+
+    final TextButton previous = tester.widget<TextButton>(
+      find.byKey(fieldValuePreviousKey),
+    );
+    final TextButton next = tester.widget<TextButton>(
+      find.byKey(fieldValueNextKey),
+    );
+    expect(previous.onPressed, isNull);
+    expect(next.onPressed, isNull);
+    expect(navigations, isEmpty);
+  });
+
+  testWidgets('next commits once, moves focus, and keeps the sheet open', (
+    tester,
+  ) async {
+    final List<core.FieldValue> commits = <core.FieldValue>[];
+    final List<FieldValueNavigation> navigations = <FieldValueNavigation>[];
+    await _pumpSheet(
+      tester,
+      type: core.FieldType.text,
+      commits: commits,
+      onNavigate: navigations.add,
+      canGoNext: true,
+    );
+
+    await tester.enterText(find.byKey(fieldTextControlInputKey), 'Erika');
+    await tester.tap(find.byKey(fieldValueNextKey));
+    // The host callback keeps this sheet open and busy (the real editor swaps
+    // the field), so settle the commit without waiting for the spinner.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(commits, hasLength(1));
+    expect(navigations, <FieldValueNavigation>[FieldValueNavigation.next]);
+    expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+  });
+
+  testWidgets('a failed next commit does not move to the next field', (
+    tester,
+  ) async {
+    final List<FieldValueNavigation> navigations = <FieldValueNavigation>[];
+    await _pumpSheet(
+      tester,
+      type: core.FieldType.text,
+      onNavigate: navigations.add,
+      canGoNext: true,
+      result: (core.FieldValue value) =>
+          FieldValueCommitResult.failed(_de.save003),
+    );
+
+    await tester.enterText(find.byKey(fieldTextControlInputKey), 'Erika');
+    await tester.tap(find.byKey(fieldValueNextKey));
+    await tester.pumpAndSettle();
+
+    expect(navigations, isEmpty);
+    expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+    expect(find.text(_de.save003), findsOneWidget);
   });
 }

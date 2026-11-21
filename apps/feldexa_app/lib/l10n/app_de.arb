@@ -321,6 +321,14 @@
   "@fieldOrderPreviousField": {
     "description": "T073 field-order review traversal: select the previous field in the current order (contracts/editor-interactions.md §5)."
   },
+  "fieldOrderMoveAction": "In Reihenfolge verschieben",
+  "@fieldOrderMoveAction": {
+    "description": "T073 per-field action in the value sheet: commit the draft and open the field-order review (contracts/editor-interactions.md §3, FR-026)."
+  },
+  "fieldOrderApplyPageOrder": "In Seitenreihenfolge sortieren",
+  "@fieldOrderApplyPageOrder": {
+    "description": "T073 field-order review action: reorder every confirmed field into the deterministic page and reading order (FR-026 page order)."
+  },
   "fieldOrderNextField": "Nächstes Feld",
   "@fieldOrderNextField": {
     "description": "T073 field-order review traversal: select the next field in the current order (contracts/editor-interactions.md §5)."

@@ -253,6 +253,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get fieldOrderPreviousField => 'Vorheriges Feld';
 
   @override
+  String get fieldOrderMoveAction => 'In Reihenfolge verschieben';
+
+  @override
+  String get fieldOrderApplyPageOrder => 'In Seitenreihenfolge sortieren';
+
+  @override
   String get fieldOrderNextField => 'Nächstes Feld';
 
   @override

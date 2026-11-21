@@ -39,6 +39,17 @@
 // the box is bounded by the remaining view height so the title, control, save,
 // and close actions stay reachable.
 //
+// T073 adds two contract surfaces to the same sheet:
+//   * the per-field action „In Reihenfolge verschieben“
+//     (`contracts/editor-interactions.md` §3, FR-026): it commits the open
+//     draft through the same validated path and then asks the caller to open
+//     the field-order review;
+//   * previous/next field actions (`contracts/editor-interactions.md` §5,
+//     US4 scenario 4): the draft is committed first, then the caller swaps the
+//     field inside this still-open sheet so the next/previous control takes
+//     focus. Both are disabled at the order boundaries, and a failed commit
+//     keeps the current field and shows the existing error instead of moving.
+//
 // Signature editing is not faked. No production signature-asset write flow is
 // composed by T071A, so the sheet visibly marks signature editing `NOT_RUN`
 // and offers no save action. Overflow measurement is also not implemented in
@@ -76,6 +87,35 @@ const ValueKey<String> fieldValueErrorKey = ValueKey<String>(
 const ValueKey<String> fieldValueSignatureNotRunKey = ValueKey<String>(
   'field-value-signature-not-run',
 );
+
+/// Stable key for the per-field „In Reihenfolge verschieben“ action.
+const ValueKey<String> fieldValueReorderKey = ValueKey<String>(
+  'field-value-reorder',
+);
+
+/// Stable key for the previous-field traversal action.
+const ValueKey<String> fieldValuePreviousKey = ValueKey<String>(
+  'field-value-previous',
+);
+
+/// Stable key for the next-field traversal action.
+const ValueKey<String> fieldValueNextKey = ValueKey<String>('field-value-next');
+
+/// The direction of one focus move in the current field order
+/// (`contracts/editor-interactions.md` §5).
+enum FieldValueNavigation {
+  /// Move to the field before this one in the current order.
+  previous,
+
+  /// Move to the field after this one in the current order.
+  next,
+}
+
+/// What the sheet asks the caller to do after it closes.
+enum FieldValueSheetOutcome {
+  /// Open the FR-026 field-order review for the same document.
+  reorder,
+}
 
 /// The outcome of one caller-owned value commit.
 final class FieldValueCommitResult {
@@ -115,6 +155,9 @@ class FieldValueSheet extends StatefulWidget {
     required this.field,
     required this.currentValue,
     required this.onCommit,
+    this.onNavigate,
+    this.canGoPrevious = false,
+    this.canGoNext = false,
     super.key,
   });
 
@@ -128,6 +171,18 @@ class FieldValueSheet extends StatefulWidget {
   /// applies `setFieldValue`, and persists the revision.
   final Future<FieldValueCommitResult> Function(core.FieldValue value) onCommit;
 
+  /// Moves focus to the previous/next field in the current order.
+  ///
+  /// The caller keeps this sheet open and swaps the field; when null, the
+  /// traversal actions are not rendered.
+  final ValueChanged<FieldValueNavigation>? onNavigate;
+
+  /// Whether a previous field exists in the current order.
+  final bool canGoPrevious;
+
+  /// Whether a next field exists in the current order.
+  final bool canGoNext;
+
   @override
   State<FieldValueSheet> createState() => _FieldValueSheetState();
 }
@@ -138,11 +193,12 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
   String? _error;
   bool _busy = false;
 
-  /// Set while the explicit close button is popping the sheet.
+  /// Set while the sheet is leaving the current field.
   ///
-  /// Closing moves focus away from the text control, which would otherwise
-  /// report the final text through `onCommitted` and save a change the user
-  /// explicitly cancelled.
+  /// Explicit close, the reorder hand-off, and a next/previous swap all move
+  /// focus away from the text control. That focus loss would otherwise report
+  /// the same draft through `onCommitted` and save it a second time (or save a
+  /// draft the user cancelled), so the transition sets this flag first.
   bool _closing = false;
 
   @override
@@ -269,12 +325,17 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
   /// Cancels the sheet without saving a focus-loss commit.
   void _close() {
     _closing = true;
-    Navigator.of(context).maybePop(false);
+    Navigator.of(context).maybePop();
   }
 
-  Future<void> _save() async {
+  /// Commits the current draft through the one validated save path.
+  ///
+  /// Returns null when the sheet is busy or leaving, the field type has no
+  /// storable value, or the widget unmounted during the save. Otherwise returns
+  /// the caller's result; a failed result is already shown through [_error].
+  Future<FieldValueCommitResult?> _commitDraft() async {
     if (_busy || _closing || widget.field.type == core.FieldType.signature) {
-      return;
+      return null;
     }
     setState(() {
       _error = null;
@@ -284,7 +345,7 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
       if (mounted) {
         setState(() {});
       }
-      return;
+      return null;
     }
     setState(() {
       _busy = true;
@@ -294,23 +355,76 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
       result = await widget.onCommit(value);
     } catch (_) {
       if (!mounted) {
-        return;
+        return null;
       }
       result = FieldValueCommitResult.failed(
         AppLocalizations.of(context).save003,
       );
     }
     if (!mounted) {
+      return null;
+    }
+    if (!result.isSaved) {
+      // A failed save stays editable on the same field and shows the message.
+      setState(() {
+        _busy = false;
+        _error = result.message;
+      });
+    }
+    // On success the sheet stays busy until it pops, swaps fields, or hands
+    // off to the order review. That keeps a focus-loss commit and the action
+    // that moved focus from saving the same draft twice.
+    return result;
+  }
+
+  Future<void> _save() async {
+    final FieldValueCommitResult? result = await _commitDraft();
+    if (result == null || !result.isSaved || !mounted) {
       return;
     }
-    if (result.isSaved) {
-      Navigator.of(context).pop(true);
+    Navigator.of(context).pop();
+  }
+
+  /// Commits the draft and then moves to the next/previous field.
+  ///
+  /// The caller keeps this sheet open and swaps in the target field, so the
+  /// next control requests focus without a new route. A failed commit keeps the
+  /// current field and the entered text.
+  Future<void> _navigate(FieldValueNavigation direction) async {
+    if (_busy || _closing) {
       return;
     }
-    setState(() {
-      _busy = false;
-      _error = result.message;
-    });
+    final ValueChanged<FieldValueNavigation>? onNavigate = widget.onNavigate;
+    if (onNavigate == null) {
+      return;
+    }
+    if (widget.field.type != core.FieldType.signature) {
+      final FieldValueCommitResult? result = await _commitDraft();
+      if (result == null || !result.isSaved || !mounted) {
+        return;
+      }
+    }
+    _closing = true;
+    onNavigate(direction);
+  }
+
+  /// Commits the draft and hands the field-order review to the caller.
+  ///
+  /// The sheet closes with [FieldValueSheetOutcome.reorder]; the caller opens
+  /// the review only after the commit is verified, so a failed save keeps the
+  /// field and the draft.
+  Future<void> _reorder() async {
+    if (_busy || _closing) {
+      return;
+    }
+    if (widget.field.type != core.FieldType.signature) {
+      final FieldValueCommitResult? result = await _commitDraft();
+      if (result == null || !result.isSaved || !mounted) {
+        return;
+      }
+    }
+    _closing = true;
+    Navigator.of(context).pop(FieldValueSheetOutcome.reorder);
   }
 
   @override
@@ -374,6 +488,47 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
                         : Text(l10n.saveNow),
                   ),
                 ],
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  key: fieldValueReorderKey,
+                  onPressed: _busy
+                      ? null
+                      : () {
+                          unawaited(_reorder());
+                        },
+                  child: Text(l10n.fieldOrderMoveAction),
+                ),
+                if (widget.onNavigate != null)
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: TextButton(
+                          key: fieldValuePreviousKey,
+                          onPressed: !_busy && !_closing && widget.canGoPrevious
+                              ? () {
+                                  unawaited(
+                                    _navigate(FieldValueNavigation.previous),
+                                  );
+                                }
+                              : null,
+                          child: Text(l10n.fieldOrderPreviousField),
+                        ),
+                      ),
+                      Expanded(
+                        child: TextButton(
+                          key: fieldValueNextKey,
+                          onPressed: !_busy && !_closing && widget.canGoNext
+                              ? () {
+                                  unawaited(
+                                    _navigate(FieldValueNavigation.next),
+                                  );
+                                }
+                              : null,
+                          child: Text(l10n.fieldOrderNextField),
+                        ),
+                      ),
+                    ],
+                  ),
                 const SizedBox(height: 8),
                 TextButton(
                   key: fieldValueCloseKey,

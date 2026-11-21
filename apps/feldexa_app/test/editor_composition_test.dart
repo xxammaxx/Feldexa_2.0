@@ -155,14 +155,21 @@ core.FieldSuggestion _suggestion() {
 core.RevisionContent _content({
   bool withField = true,
   bool withSecondField = false,
+  bool secondFieldFirst = false,
   bool withSuggestion = false,
   core.FieldType fieldType = core.FieldType.text,
   core.FieldValue? value,
 }) {
-  final List<core.ConfirmedField> fields = <core.ConfirmedField>[
-    if (withField) _field(fieldType),
-    if (withField && withSecondField) _secondField(),
-  ];
+  final List<core.ConfirmedField> fields =
+      secondFieldFirst && withField && withSecondField
+      ? <core.ConfirmedField>[
+          _secondField().copyWith(order: 0),
+          _field(fieldType).copyWith(order: 1),
+        ]
+      : <core.ConfirmedField>[
+          if (withField) _field(fieldType),
+          if (withField && withSecondField) _secondField(),
+        ];
   return core.RevisionContent(
     pages: <core.Page>[_page()],
     suggestions: withSuggestion
@@ -986,6 +993,141 @@ void main() {
     expect(state.durabilityStatus, isA<core.SaveFailedDurabilityStatus>());
     await tester.tap(find.byKey(const ValueKey<String>('field-order-close')));
     await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the per-field reorder action opens the field-order review', (
+    tester,
+  ) async {
+    final _FakeStore store = _FakeStore(
+      loaded: _loaded(content: _content(withSecondField: true)),
+    );
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+    await _pumpEditor(tester, runtime: runtime);
+    final EditorScreenState state = _state(tester);
+
+    await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+    await tester.pumpAndSettle();
+    expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+    expect(find.byKey(fieldValueReorderKey), findsOneWidget);
+
+    await tester.tap(find.byKey(fieldValueReorderKey));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(fieldValueSheetKey), findsNothing);
+    expect(
+      find.byKey(const ValueKey<String>(fieldOrderListKey)),
+      findsOneWidget,
+    );
+    expect(find.text('Vorname'), findsWidgets);
+    expect(store.saves, hasLength(1));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'next/previous move focus in field order while the value sheet stays open',
+    (tester) async {
+      final _FakeStore store = _FakeStore(
+        loaded: _loaded(content: _content(withSecondField: true)),
+      );
+      final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+      await _pumpEditor(tester, runtime: runtime);
+      final EditorScreenState state = _state(tester);
+
+      await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+      await tester.pumpAndSettle();
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+      expect(state.selection.selectedId, _fieldId);
+      expect(
+        tester.widget<TextButton>(find.byKey(fieldValuePreviousKey)).onPressed,
+        isNull,
+        reason: 'the first field has no previous field',
+      );
+      expect(
+        tester.widget<TextButton>(find.byKey(fieldValueNextKey)).onPressed,
+        isNotNull,
+      );
+
+      await tester.enterText(find.byKey(fieldTextControlInputKey), 'Erika');
+      await tester.tap(find.byKey(fieldValueNextKey));
+      await tester.pumpAndSettle();
+
+      // The same sheet stays open, the next control has focus, and the draft
+      // was committed before the move.
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+      expect(state.selection.selectedId, _secondFieldId);
+      expect(find.text('Vorname'), findsWidgets);
+      expect(store.saves, hasLength(1));
+      expect(
+        (store.saves.single.content.values[_fieldId]! as core.TextValue).text,
+        'Erika',
+      );
+      final TextField input = tester.widget<TextField>(
+        find.byKey(fieldTextControlInputKey),
+      );
+      expect(input.controller!.text, isEmpty);
+      expect(input.focusNode!.hasFocus, isTrue);
+      expect(
+        tester.widget<TextButton>(find.byKey(fieldValueNextKey)).onPressed,
+        isNull,
+        reason: 'the last field has no next field',
+      );
+      expect(
+        tester.widget<TextButton>(find.byKey(fieldValuePreviousKey)).onPressed,
+        isNotNull,
+      );
+
+      // Moving back keeps the committed value and follows the same order.
+      await tester.tap(find.byKey(fieldValuePreviousKey));
+      await tester.pumpAndSettle();
+      expect(state.selection.selectedId, _fieldId);
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+      expect(find.text('Erika'), findsWidgets);
+      expect(
+        tester.widget<TextButton>(find.byKey(fieldValuePreviousKey)).onPressed,
+        isNull,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('the page-order action sorts the order in one revision', (
+    tester,
+  ) async {
+    final _FakeStore store = _FakeStore(
+      loaded: _loaded(
+        content: _content(withSecondField: true, secondFieldFirst: true),
+      ),
+    );
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+    await _pumpEditor(tester, runtime: runtime);
+    final EditorScreenState state = _state(tester);
+    expect(state.content!.fieldOrder, <String>[_secondFieldId, _fieldId]);
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('editor-field-order-action')),
+    );
+    await tester.pumpAndSettle();
+    final Finder applyPageOrder = find.byKey(
+      const ValueKey<String>('field-order-apply-page-order'),
+    );
+    expect(tester.widget<TextButton>(applyPageOrder).onPressed, isNotNull);
+
+    await tester.tap(applyPageOrder);
+    await tester.pumpAndSettle();
+
+    expect(store.saves, hasLength(1));
+    expect(store.saves.single.content.fieldOrder, <String>[
+      _fieldId,
+      _secondFieldId,
+    ]);
+    expect(state.content!.fieldOrder, <String>[_fieldId, _secondFieldId]);
+    expect(state.canUndoReview, isTrue);
+    expect(
+      tester.widget<TextButton>(applyPageOrder).onPressed,
+      isNull,
+      reason: 'the order already is the page order',
+    );
     expect(tester.takeException(), isNull);
   });
 }

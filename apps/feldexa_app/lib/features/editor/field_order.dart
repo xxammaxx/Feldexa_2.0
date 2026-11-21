@@ -40,14 +40,24 @@
 //    confidence, conflict, and completion.
 // 4. Reordering. `moveFieldToIndex`, `moveFieldUp`, and `moveFieldDown` return
 //    a complete, revalidated `RevisionContent` whose `fieldOrder` and each
-//    field's `order` agree. Every other part of the snapshot — pages,
-//    suggestions, values, signatures, verification, template origin, and
-//    unknown extensions — is preserved, so a reorder can never lose a value or
-//    geometry. The operation is clock-free and changes no timestamp, so undo
-//    restores the exact previous snapshot.
+//    field's `order` agree. `moveFieldsToPageOrder` applies the whole
+//    deterministic page/reading order as one reorder so FR-026's page order is
+//    reachable from the review surface. Every other part of the snapshot —
+//    pages, suggestions, values, signatures, verification, template origin,
+//    and unknown extensions — is preserved, so a reorder can never lose a
+//    value or geometry. The operation is clock-free and changes no timestamp,
+//    so undo restores the exact previous snapshot.
 // 5. Navigation. `nextFieldId` and `previousFieldId` walk the current order and
 //    return null at the respective boundary; they never wrap, so a control can
-//    reflect the boundary honestly.
+//    reflect the boundary honestly. The value sheet turns that into focus
+//    movement: a navigation action commits the draft, then hands the direction
+//    to the editor, which swaps the field inside the same open sheet and lets
+//    the new control request focus.
+// 6. The conflict-open rule for confirmed fields. `hasOpenSuggestionConflict`
+//    backs the review row's `conflicting` flag, which becomes false once the
+//    opposing candidate is resolved. The T068 panel keeps its documented badge
+//    entry point for resolved candidates; the field-order row reflects whether
+//    a decision is still open.
 //
 // What this file does not own
 // ---------------------------
@@ -231,7 +241,13 @@ final class FieldOrderEntry {
   /// Machine suggestion confidence, or null for a non-machine field.
   final double? confidence;
 
-  /// Whether the source suggestion still carries conflict references.
+  /// Whether the source suggestion is still in an open conflict.
+  ///
+  /// True exactly when [hasOpenSuggestionConflict] reports an open conflict for
+  /// the field's source suggestion: a referenced candidate is still unresolved,
+  /// or the reference is stale. It becomes false once every referenced
+  /// candidate is resolved, so a decided conflict no longer shows a badge even
+  /// though the T068 conflict sheet can still display the decided candidates.
   final bool conflicting;
 
   /// The T085 completion state for this field.
@@ -239,6 +255,48 @@ final class FieldOrderEntry {
 
   /// The one-based position shown as the list index.
   int get number => position + 1;
+}
+
+/// Whether [suggestion] is still in an open conflict among [suggestions].
+///
+/// A conflict is open while at least one referenced candidate exists and is
+/// unresolved. Once every referenced candidate is resolved (confirmed or
+/// rejected), the conflict is decided and this returns false; that is what the
+/// field-order row reports for a confirmed field's source suggestion. A stale
+/// reference to a candidate that is not in the revision stays open: it still
+/// needs an explicit decision and the T068 conflict sheet documents that case.
+/// A suggestion without references is never conflicting.
+///
+/// The T068 review panel keeps its own per-row badge rule
+/// (`conflictsWith.isNotEmpty`) because its rows are the unresolved queue and
+/// the badge is the entry point that shows the resolved candidates' state; the
+/// two surfaces therefore agree on the visible badge while a row is unresolved
+/// and the field-order row clears it once the conflict is decided.
+bool hasOpenSuggestionConflict(
+  core.FieldSuggestion suggestion,
+  Iterable<core.FieldSuggestion> suggestions,
+) {
+  if (suggestion.conflictsWith.isEmpty) {
+    return false;
+  }
+  final Map<String, core.FieldSuggestion> byId = <String, core.FieldSuggestion>{
+    for (final core.FieldSuggestion candidate in suggestions)
+      candidate.id: candidate,
+  };
+  bool sawPresentCandidate = false;
+  for (final String conflictId in suggestion.conflictsWith) {
+    final core.FieldSuggestion? candidate = byId[conflictId];
+    if (candidate == null) {
+      continue;
+    }
+    sawPresentCandidate = true;
+    if (candidate.resolution == core.SuggestionResolution.unresolved) {
+      return true;
+    }
+  }
+  // A stale reference (no referenced candidate in the revision) remains a
+  // visible conflict rather than disappearing without a decision.
+  return !sawPresentCandidate;
 }
 
 /// Builds the field-order review rows for [content] in the current order.
@@ -277,7 +335,9 @@ FieldOrderEntry _entryFor(
     type: field.type,
     provenance: field.provenance,
     confidence: field.suggestionConfidence,
-    conflicting: suggestion != null && suggestion.conflictsWith.isNotEmpty,
+    conflicting:
+        suggestion != null &&
+        hasOpenSuggestionConflict(suggestion, suggestions.values),
     completion: fieldCompletionState(
       validation: field.validation,
       value: content.values[field.id],
@@ -400,26 +460,41 @@ FieldOrderChange moveFieldToIndex(
   ];
   ids.removeAt(previousIndex);
   ids.insert(newIndex, fieldId);
+  return FieldOrderChange(
+    content: _contentWithFieldOrder(content, byId: byId, fieldOrder: ids),
+    fieldId: fieldId,
+    previousIndex: previousIndex,
+    newIndex: newIndex,
+  );
+}
+
+/// Returns [content] with [fieldOrder] and each field's `order` rewritten.
+///
+/// Every other part of the snapshot is passed through, including template
+/// origin and unknown extensions, and the `RevisionContent` constructor
+/// revalidates the result (unique ids, contiguous `order`, per-field page
+/// bounds, provenance, values, and signatures). No timestamp is read or
+/// written. [fieldOrder] must be a permutation of the supplied field ids; the
+/// callers in this file always build one from [orderedFields].
+core.RevisionContent _contentWithFieldOrder(
+  core.RevisionContent content, {
+  required Map<String, core.ConfirmedField> byId,
+  required List<String> fieldOrder,
+}) {
   final List<core.ConfirmedField> reordered = <core.ConfirmedField>[
-    for (int position = 0; position < ids.length; position++)
-      byId[ids[position]]!.copyWith(order: position),
+    for (int position = 0; position < fieldOrder.length; position++)
+      byId[fieldOrder[position]]!.copyWith(order: position),
   ];
-  final core.RevisionContent next = core.RevisionContent(
+  return core.RevisionContent(
     pages: content.pages,
     suggestions: content.suggestions,
     fields: reordered,
-    fieldOrder: ids,
+    fieldOrder: fieldOrder,
     values: content.values,
     signatures: content.signatures,
     verification: content.verification,
     templateOrigin: content.templateOrigin,
     unknownFields: content.unknownFields,
-  );
-  return FieldOrderChange(
-    content: next,
-    fieldId: fieldId,
-    previousIndex: previousIndex,
-    newIndex: newIndex,
   );
 }
 
@@ -446,6 +521,70 @@ FieldOrderChange? moveFieldDown(core.RevisionContent content, String fieldId) {
     return null;
   }
   return moveFieldToIndex(content, fieldId, index + 1);
+}
+
+/// Whether [content] already holds the deterministic page/reading order.
+///
+/// This is the `ReviewOrderMode.pageOrder` projection of
+/// [defaultDocumentFieldOrder]. An empty document is trivially in page order.
+bool isInPageOrder(core.RevisionContent content) {
+  final List<core.ConfirmedField> ordered = orderedFields(content);
+  if (ordered.isEmpty) {
+    return true;
+  }
+  final List<String> currentIds = <String>[
+    for (final core.ConfirmedField field in ordered) field.id,
+  ];
+  final List<String> pageIds = defaultDocumentFieldOrder(content);
+  for (int index = 0; index < currentIds.length; index++) {
+    if (currentIds[index] != pageIds[index]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/// Rewrites the whole order to the deterministic page/reading order.
+///
+/// FR-026 names both page and document order. The current user-visible order is
+/// the document order; this operation applies the `pageOrder` projection as one
+/// complete reorder, so the page order is reachable from the review surface
+/// without an explicit stored preference (`DocumentPreferences` is not part of
+/// `RevisionContent`). Every other snapshot part — values, geometry,
+/// signatures, verification, template origin, and unknown extensions — is
+/// preserved and revalidated.
+///
+/// Returns null when the document has no confirmed fields or already holds the
+/// page order, so the caller never persists a no-op. Otherwise `fieldId` is the
+/// first field whose absolute position changed, and `previousIndex`/`newIndex`
+/// describe that field.
+FieldOrderChange? moveFieldsToPageOrder(core.RevisionContent content) {
+  final List<core.ConfirmedField> ordered = orderedFields(content);
+  if (ordered.isEmpty) {
+    return null;
+  }
+  final List<String> currentIds = <String>[
+    for (final core.ConfirmedField field in ordered) field.id,
+  ];
+  final List<String> pageIds = defaultDocumentFieldOrder(content);
+  int firstDifference = 0;
+  while (firstDifference < currentIds.length &&
+      currentIds[firstDifference] == pageIds[firstDifference]) {
+    firstDifference++;
+  }
+  if (firstDifference >= currentIds.length) {
+    return null;
+  }
+  final String movedId = currentIds[firstDifference];
+  final Map<String, core.ConfirmedField> byId = <String, core.ConfirmedField>{
+    for (final core.ConfirmedField field in ordered) field.id: field,
+  };
+  return FieldOrderChange(
+    content: _contentWithFieldOrder(content, byId: byId, fieldOrder: pageIds),
+    fieldId: movedId,
+    previousIndex: firstDifference,
+    newIndex: pageIds.indexOf(movedId),
+  );
 }
 
 /// The id of the field after [currentFieldId] in the current order.
