@@ -1,0 +1,54 @@
+# T071 command binding — `command:speckit.implement`
+
+Resolved in THIS worktree (`/home/xxammaxx/Schreibtisch/Feldexa_2.0/t071-android-touch`,
+branch `xxammaxx/t071`) before the first edit of this task.
+
+## Route
+
+The resolution chain required by the task is MCP -> JSON CLI -> existing project
+artifact. All three steps were executed, in this order:
+
+1. **MCP (primary).** The project MCP server `spec-kit` (`.mcp.json`:
+   `specify mcp`, stdio) was queried with JSON-RPC
+   `tools/call {"name":"specify_artifact_info","arguments":{"identifier":"command:speckit.implement"}}`
+   after `initialize`. It answered `isError: false` with
+   `{"id":"command:speckit.implement","name":"speckit.implement","kind":"command",
+   "strategy":"replace","active":true,"hidden":false}`.
+   The harness did not expose the MCP tools to this worker directly
+   (`mcp__spec_kit` was declared but not materialised), so the same stdio server
+   was driven directly. That is the MCP route, not a substitute for it.
+2. **JSON CLI (secondary confirmation).**
+   `specify artifact info command:speckit.implement --json` (and
+   `specify artifact list --json`) returned the identical artifact record.
+3. **Existing project artifact (binding target).**
+   `.opencode/commands/speckit.implement.md` in this worktree.
+
+## Path and SHA-256
+
+```
+path   = .opencode/commands/speckit.implement.md
+sha256 = e036ce63702db93e656e1c91ee6c02a8dc3d4a4f8624f8ba4adc69027fe68983
+```
+
+The measured digest equals the digest the task fixes, so the resolved artifact is
+the expected one and the binding is not stale.
+
+## One-line execution receipt
+
+```
+MCP specify_artifact_info(command:speckit.implement) -> active command "speckit.implement" ->
+JSON CLI specify artifact info --json -> identical record ->
+.opencode/commands/speckit.implement.md sha256 e036ce63702db93e656e1c91ee6c02a8dc3d4a4f8624f8ba4adc69027fe68983 (match) -> BOUND before first edit.
+```
+
+## Timing
+
+| Step | Time (UTC) |
+| --- | --- |
+| MCP `tools/call` receipt | 2026-11-21T18:11Z (before the first file write) |
+| JSON CLI confirmation | 2026-11-21T18:12Z |
+| `sha256sum` of the project artifact | 2026-11-21T18:12Z |
+| First edit of this task (`integration_test/android_review_test.dart`) | 2026-11-21T18:20Z |
+
+No production, core, ports, recognition, ARB, Gradle, or `pubspec.yaml` file is
+touched by this binding step.

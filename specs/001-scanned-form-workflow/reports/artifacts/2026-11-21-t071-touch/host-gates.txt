@@ -1,0 +1,54 @@
+### 1 cd apps/feldexa_app && flutter analyze --no-pub
+Analyzing feldexa_app...
+No issues found! (ran in 83.3s)
+exit=0
+### 2 cd apps/feldexa_app && dart format --output=none --set-exit-if-changed integration_test/android_review_test.dart
+Formatted 1 file (0 changed) in 0.14 seconds.
+exit=0
+### 3 focus: flutter test --no-pub test/editor_geometry_test.dart test/editor_composition_test.dart
+00:05 +22: All tests passed!
+exit=0
+### 4 focus: packages/feldexa_ui flutter test test/field_geometry_test.dart
+00:00 +31: All tests passed!
+exit=0
+### 5 cd apps/feldexa_app && flutter test --no-pub
+00:50 +469: All tests passed!
+exit=0
+### 6 git diff --check
+specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/device-identity.txt:9: trailing whitespace.
++wm_size=Physical size: 1080x2400
+specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/device-identity.txt:10: trailing whitespace.
++wm_density=Physical density: 420
+specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/integration-android-t071.log:2: trailing whitespace.
++Running Gradle task 'assembleDebug'...
+exit=2
+### 7 git status --porcelain
+ M apps/feldexa_app/android/gradlew.bat
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/apk-sha256.txt
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/commands.txt
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/device-identity.txt
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/git-identity.txt
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/integration-android-t071.log
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/logcat-flutter.log
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/logcat-t071-markers.log
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/marker-contract.txt
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/marker-sequence.txt
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/markers-integration.txt
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/orca-emulator-devices.json
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/orca-emulator-sessions.json
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/privacy-log-check.txt
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/screenshot-hashes.txt
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/screenshots/cancel.png
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/screenshots/min-size.png
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/screenshots/move-0.5x.png
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/screenshots/move-1x.png
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/screenshots/move-3x.png
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/screenshots/move-8x.png
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/screenshots/move-clamped.png
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/screenshots/resize-corners.png
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/screenshots/resize-edges.png
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/screenshots/two-finger-pan.png
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/screenshots/two-finger-pinch.png
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/screenshots/undo.png
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/cleanup-verification.txt
+?? specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/handshake-preflight.txt

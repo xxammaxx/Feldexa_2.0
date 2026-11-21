@@ -1,0 +1,26 @@
+started: cd apps/feldexa_app && flutter test --no-pub integration_test/android_review_test.dart -d emulator-5554 (pid 3483154)
+screenshot resize-corners after T071_SCREENSHOT_RESIZE_CORNERS
+screenshot ack resize-corners
+screenshot resize-edges after T071_SCREENSHOT_RESIZE_EDGES
+screenshot ack resize-edges
+screenshot move-0.5x after T071_SCREENSHOT_MOVE_0_5X
+screenshot ack move-0.5x
+screenshot move-1x after T071_SCREENSHOT_MOVE_1X
+screenshot ack move-1x
+screenshot move-3x after T071_SCREENSHOT_MOVE_3X
+screenshot ack move-3x
+screenshot move-8x after T071_SCREENSHOT_MOVE_8X
+screenshot ack move-8x
+screenshot move-clamped after T071_SCREENSHOT_MOVE_CLAMPED
+screenshot ack move-clamped
+screenshot undo after T071_SCREENSHOT_UNDO
+screenshot ack undo
+screenshot cancel after T071_SCREENSHOT_CANCEL
+screenshot ack cancel
+screenshot two-finger-pinch after T071_SCREENSHOT_TWO_FINGER_PINCH
+screenshot ack two-finger-pinch
+screenshot two-finger-pan after T071_SCREENSHOT_TWO_FINGER_PAN
+screenshot ack two-finger-pan
+screenshot min-size after T071_SCREENSHOT_MIN_SIZE
+screenshot ack min-size
+PASS (flutter test exit 0; cleanup marker observed; marker contract complete; privacy checks PASS)

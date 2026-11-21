@@ -1,0 +1,7 @@
+head=44eb3e466d3d1f8f7ca600e5afa0404363fbdb27
+tree=2747c4eafd0b6abda528e72a2217aeb9d22b7e11
+branch=xxammaxx/t071
+subject=test(T071): derive the hold window from the fastest verified commit
+status_porcelain:
+ M apps/feldexa_app/android/gradlew.bat
+flutter=Flutter 3.47.7 • channel stable • <URL_REDACTED>
