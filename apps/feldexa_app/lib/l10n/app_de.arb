@@ -285,6 +285,66 @@
   "@reviewConflictBadgeHint": {
     "description": "T068 review-panel conflict badge tooltip and semantic hint: opens the per-candidate resolution sheet (contracts/editor-interactions.md §3)."
   },
+  "fieldOrderTitle": "Feldreihenfolge",
+  "@fieldOrderTitle": {
+    "description": "T073 field-order review list title and editor action tooltip (FR-026; contracts/editor-interactions.md §3)."
+  },
+  "fieldOrderHint": "Tippen Sie ein Feld an, um es auszuwählen. Mit den Pfeilen ändern Sie die Reihenfolge.",
+  "@fieldOrderHint": {
+    "description": "T073 field-order review list hint: a row tap selects the field, the arrow actions move it (FR-026)."
+  },
+  "fieldOrderEmpty": "Noch keine bestätigten Felder in der Reihenfolge.",
+  "@fieldOrderEmpty": {
+    "description": "T073 field-order review list empty state for a document without confirmed fields."
+  },
+  "fieldOrderPosition": "{index} von {count}",
+  "@fieldOrderPosition": {
+    "description": "T073 field-order review row: one-based position index and total field count.",
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fieldOrderMoveUp": "Nach oben",
+  "@fieldOrderMoveUp": {
+    "description": "T073 field-order review row action: move the field one position towards the start (FR-026)."
+  },
+  "fieldOrderMoveDown": "Nach unten",
+  "@fieldOrderMoveDown": {
+    "description": "T073 field-order review row action: move the field one position towards the end (FR-026)."
+  },
+  "fieldOrderPreviousField": "Vorheriges Feld",
+  "@fieldOrderPreviousField": {
+    "description": "T073 field-order review traversal: select the previous field in the current order (contracts/editor-interactions.md §5)."
+  },
+  "fieldOrderNextField": "Nächstes Feld",
+  "@fieldOrderNextField": {
+    "description": "T073 field-order review traversal: select the next field in the current order (contracts/editor-interactions.md §5)."
+  },
+  "fieldCompletionComplete": "Vollständig",
+  "@fieldCompletionComplete": {
+    "description": "T073 field-order review row: T085 completion state complete (FR-041)."
+  },
+  "fieldCompletionOptionalEmpty": "Leer (optional)",
+  "@fieldCompletionOptionalEmpty": {
+    "description": "T073 field-order review row: T085 completion state optionalEmpty, a valid optional state that counts as complete."
+  },
+  "fieldCompletionBlockingError": "Fehler",
+  "@fieldCompletionBlockingError": {
+    "description": "T073 field-order review row: T085 completion state blockingError (FR-041)."
+  },
+  "fieldCompletionWarning": "Hinweis",
+  "@fieldCompletionWarning": {
+    "description": "T073 field-order review row: T085 completion state warning, kept and not blocking."
+  },
+  "fieldCompletionIncompatible": "Inhalt passt nicht",
+  "@fieldCompletionIncompatible": {
+    "description": "T073 field-order review row: T085 completion state incompatible with preserved content that needs a user decision."
+  },
   "save001": "Der Speicherplatz reicht nicht aus. Der letzte gespeicherte Stand ist erhalten; die neuesten Änderungen sind noch nicht dauerhaft gespeichert.",
   "@save001": {
     "description": "contracts/error-catalog.de.md §3 SAVE-001: Storage full / quota exceeded."

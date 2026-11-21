@@ -228,6 +228,49 @@ class AppLocalizationsDe extends AppLocalizations {
       'Konflikt zwischen Vorschlägen. Tippen, um beide Vorschläge einzeln zu entscheiden.';
 
   @override
+  String get fieldOrderTitle => 'Feldreihenfolge';
+
+  @override
+  String get fieldOrderHint =>
+      'Tippen Sie ein Feld an, um es auszuwählen. Mit den Pfeilen ändern Sie die Reihenfolge.';
+
+  @override
+  String get fieldOrderEmpty =>
+      'Noch keine bestätigten Felder in der Reihenfolge.';
+
+  @override
+  String fieldOrderPosition(int index, int count) {
+    return '$index von $count';
+  }
+
+  @override
+  String get fieldOrderMoveUp => 'Nach oben';
+
+  @override
+  String get fieldOrderMoveDown => 'Nach unten';
+
+  @override
+  String get fieldOrderPreviousField => 'Vorheriges Feld';
+
+  @override
+  String get fieldOrderNextField => 'Nächstes Feld';
+
+  @override
+  String get fieldCompletionComplete => 'Vollständig';
+
+  @override
+  String get fieldCompletionOptionalEmpty => 'Leer (optional)';
+
+  @override
+  String get fieldCompletionBlockingError => 'Fehler';
+
+  @override
+  String get fieldCompletionWarning => 'Hinweis';
+
+  @override
+  String get fieldCompletionIncompatible => 'Inhalt passt nicht';
+
+  @override
   String get save001 =>
       'Der Speicherplatz reicht nicht aus. Der letzte gespeicherte Stand ist erhalten; die neuesten Änderungen sind noch nicht dauerhaft gespeichert.';
 

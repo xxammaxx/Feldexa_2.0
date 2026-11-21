@@ -430,6 +430,84 @@ abstract class AppLocalizations {
   /// **'Konflikt zwischen Vorschlägen. Tippen, um beide Vorschläge einzeln zu entscheiden.'**
   String get reviewConflictBadgeHint;
 
+  /// T073 field-order review list title and editor action tooltip (FR-026; contracts/editor-interactions.md §3).
+  ///
+  /// In de, this message translates to:
+  /// **'Feldreihenfolge'**
+  String get fieldOrderTitle;
+
+  /// T073 field-order review list hint: a row tap selects the field, the arrow actions move it (FR-026).
+  ///
+  /// In de, this message translates to:
+  /// **'Tippen Sie ein Feld an, um es auszuwählen. Mit den Pfeilen ändern Sie die Reihenfolge.'**
+  String get fieldOrderHint;
+
+  /// T073 field-order review list empty state for a document without confirmed fields.
+  ///
+  /// In de, this message translates to:
+  /// **'Noch keine bestätigten Felder in der Reihenfolge.'**
+  String get fieldOrderEmpty;
+
+  /// T073 field-order review row: one-based position index and total field count.
+  ///
+  /// In de, this message translates to:
+  /// **'{index} von {count}'**
+  String fieldOrderPosition(int index, int count);
+
+  /// T073 field-order review row action: move the field one position towards the start (FR-026).
+  ///
+  /// In de, this message translates to:
+  /// **'Nach oben'**
+  String get fieldOrderMoveUp;
+
+  /// T073 field-order review row action: move the field one position towards the end (FR-026).
+  ///
+  /// In de, this message translates to:
+  /// **'Nach unten'**
+  String get fieldOrderMoveDown;
+
+  /// T073 field-order review traversal: select the previous field in the current order (contracts/editor-interactions.md §5).
+  ///
+  /// In de, this message translates to:
+  /// **'Vorheriges Feld'**
+  String get fieldOrderPreviousField;
+
+  /// T073 field-order review traversal: select the next field in the current order (contracts/editor-interactions.md §5).
+  ///
+  /// In de, this message translates to:
+  /// **'Nächstes Feld'**
+  String get fieldOrderNextField;
+
+  /// T073 field-order review row: T085 completion state complete (FR-041).
+  ///
+  /// In de, this message translates to:
+  /// **'Vollständig'**
+  String get fieldCompletionComplete;
+
+  /// T073 field-order review row: T085 completion state optionalEmpty, a valid optional state that counts as complete.
+  ///
+  /// In de, this message translates to:
+  /// **'Leer (optional)'**
+  String get fieldCompletionOptionalEmpty;
+
+  /// T073 field-order review row: T085 completion state blockingError (FR-041).
+  ///
+  /// In de, this message translates to:
+  /// **'Fehler'**
+  String get fieldCompletionBlockingError;
+
+  /// T073 field-order review row: T085 completion state warning, kept and not blocking.
+  ///
+  /// In de, this message translates to:
+  /// **'Hinweis'**
+  String get fieldCompletionWarning;
+
+  /// T073 field-order review row: T085 completion state incompatible with preserved content that needs a user decision.
+  ///
+  /// In de, this message translates to:
+  /// **'Inhalt passt nicht'**
+  String get fieldCompletionIncompatible;
+
   /// contracts/error-catalog.de.md §3 SAVE-001: Storage full / quota exceeded.
   ///
   /// In de, this message translates to:

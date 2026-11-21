@@ -93,6 +93,7 @@ import 'dart:typed_data';
 
 import 'package:feldexa_app/features/editor/durability_status.dart';
 import 'package:feldexa_app/features/editor/editor_runtime.dart';
+import 'package:feldexa_app/features/editor/field_order.dart';
 import 'package:feldexa_app/features/editor/field_value_sheet.dart';
 import 'package:feldexa_app/features/editor/page_state.dart';
 import 'package:feldexa_app/features/editor/page_strip.dart';
@@ -1540,6 +1541,188 @@ class EditorScreenState extends State<EditorScreen> {
     );
   }
 
+  /// Opens the FR-026 field-order review list.
+  ///
+  /// The list shows the confirmed fields in their current user-visible order
+  /// (`data-model.md` §3.12) with page, position, label, type, provenance,
+  /// confidence, conflict, and completion. A row tap selects that field and
+  /// scrolls its page into view; the footer walks the same order with
+  /// previous/next. Moving a field up or down saves exactly one
+  /// [history.EditCommandKind.reorder] revision and refreshes the visible list
+  /// only after the store confirms the commit, so a failed save leaves the
+  /// order, values, and geometry untouched. The reorder step is undoable
+  /// through the existing T067 history entry.
+  Future<void> _showFieldOrderSheet() async {
+    core.RevisionContent? current = _content;
+    if (current == null) {
+      return;
+    }
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (BuildContext sheetContext) {
+        bool sheetBusy = false;
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setSheetState) {
+            final AppLocalizations l10n = AppLocalizations.of(context);
+            final core.RevisionContent? shown = current;
+            if (shown == null) {
+              return const SizedBox.shrink();
+            }
+            final String? previousId = previousFieldId(
+              shown,
+              _selectionController.selectedId,
+            );
+            final String? nextId = nextFieldId(
+              shown,
+              _selectionController.selectedId,
+            );
+
+            Future<void> moveField(String fieldId, int delta) async {
+              if (sheetBusy) {
+                return;
+              }
+              final core.RevisionContent? content = current;
+              if (content == null) {
+                return;
+              }
+              final FieldOrderChange? change = delta < 0
+                  ? moveFieldUp(content, fieldId)
+                  : moveFieldDown(content, fieldId);
+              if (change == null || !change.changed) {
+                return;
+              }
+              setSheetState(() {
+                sheetBusy = true;
+              });
+              final bool saved = await _commitSnapshot(
+                change.content,
+                kind: history.EditCommandKind.reorder,
+                fieldId: fieldId,
+              );
+              if (!sheetContext.mounted) {
+                return;
+              }
+              setSheetState(() {
+                sheetBusy = false;
+                if (saved) {
+                  current = _content;
+                }
+              });
+            }
+
+            return SafeArea(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.sizeOf(context).height * 0.7,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: Text(
+                              l10n.fieldOrderTitle,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                          IconButton(
+                            key: const ValueKey<String>('field-order-close'),
+                            tooltip: MaterialLocalizations.of(context)
+                                .closeButtonTooltip,
+                            onPressed: () =>
+                                Navigator.of(sheetContext).maybePop(),
+                            icon: const Icon(Icons.close),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        l10n.fieldOrderHint,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      const SizedBox(height: 4),
+                      Flexible(
+                        child: FieldOrderReviewList(
+                          content: shown,
+                          busy: sheetBusy,
+                          onMoveUp: (String fieldId) {
+                            unawaited(moveField(fieldId, -1));
+                          },
+                          onMoveDown: (String fieldId) {
+                            unawaited(moveField(fieldId, 1));
+                          },
+                          onSelect: (String fieldId) {
+                            _selectFieldInOrder(fieldId);
+                            unawaited(Navigator.of(sheetContext).maybePop());
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: TextButton(
+                              key: const ValueKey<String>(
+                                'field-order-previous',
+                              ),
+                              onPressed: previousId == null || sheetBusy
+                                  ? null
+                                  : () {
+                                      _selectFieldInOrder(previousId);
+                                      setSheetState(() {});
+                                    },
+                              child: Text(l10n.fieldOrderPreviousField),
+                            ),
+                          ),
+                          Expanded(
+                            child: TextButton(
+                              key: const ValueKey<String>('field-order-next'),
+                              onPressed: nextId == null || sheetBusy
+                                  ? null
+                                  : () {
+                                      _selectFieldInOrder(nextId);
+                                      setSheetState(() {});
+                                    },
+                              child: Text(l10n.fieldOrderNextField),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// Selects one field of the current order and brings its page into view.
+  ///
+  /// This is a view-state change only: no value, geometry, or order is written;
+  /// the committed values stay exactly as they are (FR-033).
+  void _selectFieldInOrder(String fieldId) {
+    final core.RevisionContent? content = _content;
+    if (content == null) {
+      return;
+    }
+    for (final core.ConfirmedField field in content.fields) {
+      if (field.id != fieldId) {
+        continue;
+      }
+      _viewerController.scrollToPage(field.pageIndex);
+      _selectionController.select(field.id);
+      return;
+    }
+  }
+
   Future<void> _showPrivacyDisclosure() async {
     final AppLocalizations l10n = AppLocalizations.of(context);
     await showDialog<void>(
@@ -1648,6 +1831,16 @@ class EditorScreenState extends State<EditorScreen> {
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: <Widget>[
+          IconButton(
+            key: const ValueKey<String>('editor-field-order-action'),
+            tooltip: l10n.fieldOrderTitle,
+            onPressed: _content == null
+                ? null
+                : () {
+                    unawaited(_showFieldOrderSheet());
+                  },
+            icon: const Icon(Icons.reorder),
+          ),
           IconButton(
             key: const ValueKey<String>('editor-privacy-action'),
             tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
