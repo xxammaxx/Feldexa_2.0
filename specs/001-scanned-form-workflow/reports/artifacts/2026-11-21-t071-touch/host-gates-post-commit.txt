@@ -1,0 +1,74 @@
+T071 post-commit host-gate record — git diff --check
+====================================================
+
+Scope: this file records the host gate that the run-time log
+(`host-gates.txt`) recorded as a failure, re-run on the COMMITTED tree. It
+does not rewrite or replace the historical gate output; `host-gates.txt` stays
+byte-identical to what the driver's gate run produced.
+
+1. Why `host-gates.txt` gate 6 shows exit=2
+------------------------------------------
+`host-gates.txt` §6 ("git diff --check") was executed while the driver's
+freshly generated evidence bundle was still UNTRACKED/MODIFIED in the worktree,
+i.e. before the evidence commit. `git diff --check` inspects the unstaged
+differences, so it reported the trailing spaces that the device itself prints on
+the `wm size`/`wm density` lines and on one Gradle progress line:
+
+    device-identity.txt:9/10: trailing whitespace (+wm_size / +wm_density)
+    integration-android-t071.log:2: trailing whitespace (+Running Gradle task ...)
+    exit=2
+
+Those files are stripped of trailing whitespace before they are committed, and
+the historical log was intentionally NOT rewritten afterwards.
+
+2. Post-commit re-run at the evidence commit
+-------------------------------------------
+observed_at_utc = 2026-11-21T22:27:42Z
+head            = de39679f17b3efa2fc6bc294a650f00db24bb3ff
+tree            = e910aa43d7d39aaf303eb49f182b592bf738bbf1
+branch          = xxammaxx/t071
+subject         = docs(T071): correction-1 evidence and report for Review A findings 1-8
+
+commands and exit codes, run from the repository root on that committed HEAD:
+
+    git diff --check                     -> exit 0   (working tree: only the
+                                                      pre-existing
+                                                      ` M apps/feldexa_app/android/gradlew.bat`
+                                                      line-ending change is
+                                                      present and it carries no
+                                                      whitespace error)
+    git diff --check d53fb57..de39679    -> exit 0   (the whole branch range
+                                                      against the base commit)
+
+`git status --porcelain` at that moment: exactly one line,
+` M apps/feldexa_app/android/gradlew.bat` — the pre-existing, never-staged
+line-ending change.
+
+3. Lightweight artifact checks at the same HEAD
+-----------------------------------------------
+Recomputed from the committed bundle (no heavy test, no emulator run):
+
+    REQUIRED_MARKER_REGEXES in tools/android/t071_drive_touch.sh  = 27 shapes
+    COUNT_MARKER_REGEXES in tools/android/t071_drive_touch.sh     = 3 counts
+    marker-contract.txt PRESENT lines                             = 30
+    marker-contract.txt MISSING lines                             = 0
+    markers-integration.txt T071_COMMIT: lines                    = 14
+    markers-integration.txt T071_SCREENSHOT_ lines                = 12
+    markers-integration.txt T071_HANDSHAKE_OK lines               = 12
+    markers-integration.txt T071_SHOT lines                       = 12 (observed,
+        NOT part of the driver's exact contract; see note 4)
+    screenshot-hashes.txt rows / distinct SHA-256                 = 12 / 12
+
+Note 4 (marker contract exactness): the driver's contract is exactly
+27 anchored shapes plus 3 occurrence counts = 30 exact checks. `T071_SHOT` is
+not among them: it is emitted and counted here as an observed artifact (12
+markers for 12 captures), while the exact contract covers the 12
+`T071_SCREENSHOT_<PHASE>` markers, the 12 `T071_HANDSHAKE_OK:<PHASE>` markers
+and the 14 `T071_COMMIT` lines. The report states this split explicitly.
+
+4. Post-documentation re-run
+----------------------------
+A file cannot contain the hash of the commit that adds it. After the
+correction-2 documentation commit, the same two commands were re-run on that
+new HEAD and both returned exit 0; that result and the exact HEAD/tree are
+reported in the task handoff (worker_done) that accompanies this note.

@@ -1,10 +1,13 @@
-# T071 Android touch move/resize review test — Pixel 7 API 35 emulator PASS (correction 1)
+# T071 Android touch move/resize review test — Pixel 7 API 35 emulator PASS
+
+*Correction 1 evidence; correction 2 is documentation/evidence only.*
 
 - **Task / issue**: T071 / <https://github.com/xxammaxx/Feldexa_2.0/issues/71>
 - **Feature**: `specs/001-scanned-form-workflow` US3/US4
 - **Date**: 2026-11-21 (local)
 - **Host evidence class**: `NONE` (host-VM analyze, format, widget/unit tests)
-- **Emulator evidence class**: `EMULATOR` — **`PASS`** (correction 1)
+- **Emulator evidence class**: `EMULATOR` — **`PASS`** (correction 1; correction 2
+  changes no test, driver, production or device state and adds no runtime claim)
 - **Overall result**: `PASS` — the correction-1 candidate `44eb3e4` is host-green
   and the real twelve-phase Android touch journey passed on the Orca-attached
   Pixel 7 API 35 emulator.
@@ -22,10 +25,14 @@
   "issue": 71,
   "branch": "xxammaxx/t071",
   "base_commit": "d53fb57",
-  "correction": 1,
+  "correction": 2,
+  "evidence_correction": 1,
   "review_a_result": "FAIL on 398f4e4 (findings 1-8); closed in this correction",
   "candidate_commit": "44eb3e466d3d1f8f7ca600e5afa0404363fbdb27",
   "candidate_tree": "2747c4eafd0b6abda528e72a2217aeb9d22b7e11",
+  "evidence_head": "de39679f17b3efa2fc6bc294a650f00db24bb3ff",
+  "evidence_head_tree": "e910aa43d7d39aaf303eb49f182b592bf738bbf1",
+  "documentation_head": "the correction-2 documentation/evidence commit on top of evidence_head; its own SHA/tree are reported in the task handoff",
   "evidence_commit": "external dispatch handoff; the documentation commit's own SHA/tree cannot be embedded in its own bytes",
   "host_evidence_class": "NONE",
   "emulator_evidence_class": "EMULATOR",
@@ -36,7 +43,8 @@
     "focused_geometry_and_composition_widget_tests": "22/22 passed",
     "feldexa_ui_field_geometry_unit_tests": "31/31 passed",
     "app_suite": "469/469 passed",
-    "git_diff_check": "exit 0, clean"
+    "git_diff_check": "exit 0, clean",
+    "git_diff_check_note": "gate 6 of host-gates.txt logged exit=2 because it inspected the pre-commit dirty evidence bundle; the post-commit record host-gates-post-commit.txt shows exit=0 at HEAD de39679 (tree e910aa43) for both the working tree and the d53fb57..de39679 range, and the same two commands returned exit 0 again at the correction-2 documentation head (see the task handoff). The historical gate output is not rewritten."
   },
   "emulator": {
     "driver": "tools/android/t071_drive_touch.sh",
@@ -86,7 +94,8 @@
     "screenshot_hashes_distinct": true,
     "privacy_checks": "PASS (8 scans: integration log, logcat-flutter.log, commands.txt, git-identity.txt; every committed log URL-redacted)",
     "cleanup_verified": true,
-    "command_receipts": "commands.txt (selected host/emulator commands with exit codes; see §4.3)"
+    "command_receipts": "commands.txt (selected host/emulator commands with exit codes; see §4.3)",
+    "marker_contract_scope": "27 exact anchored shapes + 3 occurrence counts = 30 exact checks (14 COMMIT / 12 SCREENSHOT / 12 HANDSHAKE_OK); T071_SHOT x12 is an observed artifact count, not a contract check"
   },
   "not_run": [
     "DEVICE acceptance and any performance claim",
@@ -112,6 +121,21 @@
      evidence copies; privacy scan over `git-identity.txt`.
   5. `44eb3e4` — hold window derived from the fastest verified commit,
      **the commit that ran**.
+  6. `de39679` — the correction-1 evidence commit (report, bundle, reports
+     index, task row); this is the branch head the correction-1 handoff named.
+- **Correction 2 (this revision) is documentation/evidence only** on top of
+  `de39679`: it corrects the marker-contract claim to the real **27 exact
+  shapes + 3 occurrence counts (30 exact checks)** and states that `T071_SHOT`
+  is an observed artifact count rather than a contract check, adds the
+  post-commit `git diff --check` gate record (`host-gates-post-commit.txt`)
+  next to the historical `exit=2` gate output without rewriting it, states the
+  two expected `pm clear` `exit=1` lines explicitly, and names the evidence
+  candidate `44eb3e4` (tree `2747c4ea`, the commit that ran) together with the
+  final head `de39679` (tree `e910aa43`) in the reports index and the task row.
+  No test, driver, production, core, ports, recognition, ARB, Gradle or
+  `pubspec.yaml` file is touched and no emulator run is repeated, so the
+  `EMULATOR` evidence stays bound to `44eb3e4` and this revision adds no new
+  runtime claim.
 - Changed paths vs the base: `apps/feldexa_app/integration_test/android_review_test.dart`,
   `tools/android/t071_drive_touch.sh`, the evidence bundle under
   `specs/001-scanned-form-workflow/reports/artifacts/2026-11-21-t071-touch/`,
@@ -143,7 +167,7 @@ driven directly, is `artifacts/2026-11-21-t071-touch/command-binding.txt`.
 | 1 | MEDIUM | Exactly one store revision per gesture is asserted only through the `NEW_HEAD=1`/`MID_WRITE=0` markers | A counting facade (`_CountingEditorRuntime`) wraps the **real** editor runtime of the **production** `createImportRuntime()` composition: every call is forwarded unchanged and only `saveRevision` is counted. Each committed gesture asserts 0 real store calls during a hold window that exceeds the fastest measured commit latency, exactly 1 real call for the gesture, and on **every** held frame: gesture active, preview painted, `reviewBusy` false, head/content unchanged. A pure negative control rejects 2 saves, a held save and 0 saves; a real double-commit injection issues a second genuine store call whose outcome the real store decides (`SECOND_SAVE=REJECTED` this run) and the assertion must fail on it | 14 `T071_COMMIT` markers with `SAVES_HELD=0:SAVES_DELTA=1:REVIEW_BUSY_HELD=0:PREVIEW_HELD=1`, `T071_NEGATIVE_CONTROL:REVISION_ASSERTION=…`, `T071_NEGATIVE_CONTROL:DOUBLE_COMMIT=…:SECOND_SAVE=REJECTED` |
 | 2 | MEDIUM | A stale acknowledgement that cannot be removed was swallowed | `_clearStaleAck` returns a content-free failure marker; `_waitForDriver` emits `T071_HANDSHAKE_FAIL:` and aborts, withholding the screenshot marker. The driver removes acks with a checked exit code, verifies that none remain, writes `handshake-preflight.txt`, and fails before the test on a non-zero removal or a surviving ack. Negative control forces a delete failure through an injected override and asserts the abort marker and that no screenshot marker is emitted | `privacy`-adjacent `handshake-preflight.txt` (`exit=0`, `remaining_ack_files=0`, `verified=1`), `T071_NEGATIVE_CONTROL:STALE_ACK=1:DELETE_FAILURE_FAILS_CLOSED=1`, test-side marker assertion on `HANDSHAKE_FAIL:STALE_ACK_DELETE_FAILED:PHASE=probe` |
 | 3 | LOW | The resize gesture silently relied on the 411 dp viewport | The nominal margin is asserted (`20 pt * 3 * fit = 41.47 px > 36 px` pan slop), the used zoom is raised to at least `40 px / 20 pt` when the viewport is narrower, and both are recorded and driven by exact marker shapes | `T071_RESIZE_ZOOM:…:NOMINAL_EDGE_PTR_PX=41.47:USED_EDGE_PTR_PX=41.47:PAN_SLOP_PX=36:REQUIRED_PX=40:OK=1` |
-| 4 | LOW | Doubled `T071_T071_SCREENSHOT_*` prefix; substring-only marker contract | Screenshot markers carry exactly one `T071_` prefix (`T071_SCREENSHOT_<PHASE>`); the driver matches **exact anchored shapes** for 28 required markers plus three occurrence counts and rejects any `^T071_T071_` line | `marker-contract.txt` (`missing=0`), 12 `T071_SCREENSHOT_*`, 12 `T071_HANDSHAKE_OK`, 14 `T071_COMMIT` |
+| 4 | LOW | Doubled `T071_T071_SCREENSHOT_*` prefix; substring-only marker contract | Screenshot markers carry exactly one `T071_` prefix (`T071_SCREENSHOT_<PHASE>`); the driver matches **exact anchored shapes** for 27 required markers plus three occurrence counts (= 30 exact checks) and rejects any `^T071_T071_` line; `T071_SHOT` is not part of the exact contract and is counted separately as an observed artifact (12 markers for 12 captures) | `marker-contract.txt` (30 `PRESENT`, `missing=0`), 12 `T071_SCREENSHOT_*`, 12 `T071_HANDSHAKE_OK`, 14 `T071_COMMIT`, 12 observed `T071_SHOT` |
 | 5 | LOW | `CLEANUP_DONE` was emitted before the real cleanup | The test emits `CLEANUP:HOOK_CLEARED=…:SCRATCH_GONE=…` and `CLEANUP_DONE` **only** in `tearDownAll` after both steps are verified (an incomplete cleanup emits `CLEANUP_INCOMPLETE` and fails). The driver now cleans up explicitly before evidence collection and verifies the device state | `cleanup-verification.txt` (`staging GONE`, `stale_ack_files=0`, `app_processes=0`, `verified=1`) |
 | 6 | LOW | Header claimed no production behavior is bypassed while selection was set directly on the T077 controller | The field is selected through the **real tap path**: a real tap opens the value sheet and it is closed again, then the composed controller must report the field as selected. The header now names the two deliberate test seams (counting facade, double-commit control) instead of a blanket claim | `T071_SELECTION_TAP:PHASE=OPEN:SHEET=1`, `T071_SELECTION_TAP:PHASE=CLOSED:SELECTED=1:FIELD=…:SHEET_OPENED=1` |
 | 7 | LOW/privacy | The Dart VM service token was committed in `logcat-flutter.log`; the privacy scan covered only the integration log | Every committed log is URL-redacted (`<URL_REDACTED>`) before it is written or copied, which removes the per-run token; the scan now covers the integration log, `logcat-flutter.log`, `commands.txt` and `git-identity.txt` and fails the run on any hit | `logcat-flutter.log` line 3 = `… on <URL_REDACTED>`, `privacy-log-check.txt` (8 PASS lines), `privacy-*` gate in the driver |
@@ -234,9 +258,13 @@ real T077 tap path (tap → value sheet → close).
 | `min-size` | — | `910:384:32:32` | `PT=4.0:ANCHOR_FIXED=1` |
 
 The authoritative sequence is `markers-integration.txt` (107 lines);
-`marker-contract.txt` lists the 28 exact required shapes plus the three
+`marker-contract.txt` lists the **27** exact required shapes plus the **three**
 occurrence counts (14 single-revision commits, 12 screenshots, 12 handshake
-acks) and reports `missing=0`.
+acks) — 30 exact checks in total — and reports `missing=0`. `T071_SHOT` is not
+part of the driver's exact contract: the 12 shot markers are counted as an
+observed artifact (one per capture) while the contract covers the 12
+`T071_SCREENSHOT_<PHASE>` markers, so a drifted shot shape would not be caught
+by the contract; that limitation is stated here instead of being implied.
 
 ## 3. Host gates (evidence class `NONE`)
 
@@ -251,7 +279,8 @@ the shared compute permit; the exact terminal lines are in
 | 3 | `cd apps/feldexa_app && flutter test --no-pub test/editor_geometry_test.dart test/editor_composition_test.dart` | 0 | **22/22** passed |
 | 4 | `cd packages/feldexa_ui && flutter test --no-pub test/field_geometry_test.dart` | 0 | **31/31** passed |
 | 5 | `cd apps/feldexa_app && flutter test --no-pub` | 0 | **469/469** passed |
-| 6 | `git diff --check` (repo root) | 0 | clean |
+| 6 | `git diff --check` (repo root) — **as recorded in `host-gates.txt` during the gate run** | 2 | **historical, not the gate verdict**: the run inspected the still-uncommitted evidence bundle (`device-identity.txt` `wm_size`/`wm_density` and one Gradle progress line carry trailing spaces). Those copies are stripped before they are committed, and the historical log is not rewritten |
+| 6b | `git diff --check` and `git diff --check d53fb57..de39679` at the committed evidence HEAD `de39679` (tree `e910aa43`), `2026-11-21T22:27:42Z` | 0 / 0 | clean; recorded in `host-gates-post-commit.txt`. The same two commands returned exit 0 again at the correction-2 documentation head and are reported in the task handoff |
 
 The new integration-test helpers (stale-ack fail-closed, revision-count
 assertion) are additionally exercised as negative controls **on the device** in
@@ -295,10 +324,14 @@ records the emulator-allocation preflight, the fixture push, the `pub get` gate,
 the checked stale-ack removal, the twelve `adb exec-out screencap` calls, the
 `flutter test` invocation, the three device-cleanup commands and the cleanup
 verification. It does not record every internal `adb shell` read (identity
-probes, renders, logcat pulls). Recorded exit codes: all `0` except
-`adb shell pm clear de.feldexa.app` = `1`, which is expected because the test
-package is uninstalled when a `flutter test` run ends (the fresh install starts
-with no app data).
+probes, renders, logcat pulls). Recorded exit codes: all `0` except **two**
+`adb -s emulator-5554 shell pm clear de.feldexa.app` lines — line 4 (pre-run,
+before the test starts) and line 23 (cleanup, after it ends) — both `exit=1`.
+Both are expected and benign: `flutter test` uninstalls the test package when a
+run ends, so `/data/data/de.feldexa.app` does not exist at either moment and
+`pm clear` reports `Failed`. The test's own install therefore starts from a
+fresh app with no stored data, which is exactly the state the journey needs; no
+stale store state is carried into a run.
 
 `handshake-preflight.txt` (`exit=0`, `remaining_ack_files=0`, `verified=1`) and
 `cleanup-verification.txt` (`staging GONE`, `stale_ack_files=0`,
@@ -316,7 +349,11 @@ Because the page viewport is 411 × 206 dp while the field grows to
 341.6 × 228 pt, a capture centred on the field interior shows no selection
 outline above 3×. Each of the **twelve** phases emits a `T071_SHOT` marker
 recording the capture scale, the focus kind, the fit flag and the asserted
-rectangle, and the capture centres on the phase's evidence-bearing point:
+rectangle, and the capture centres on the phase's evidence-bearing point. The
+`T071_SHOT` shape is **not** part of the driver's exact contract (§2.3): the 12
+shot markers are counted as an observed artifact, and the contract-checked
+screenshot evidence is the 12 `T071_SCREENSHOT_<PHASE>` markers plus the 12
+distinct screenshot hashes:
 
 | Phase | Capture | What the image shows |
 | --- | --- | --- |
@@ -400,6 +437,7 @@ markers and log content are identical.
 | `git-identity.txt` | 308 | `dd2a0c357f03e506294c8e4db6abe439ddc3e89dcdccb7d1d7bfb4d30620cbba` |
 | `host-flutter-pub-get.log` | 349 | `3c23abfe9ee53ae785ef9119e4040c124b3fcb72a71e53fbbfc77d5414315680` |
 | `host-gates.txt` | 3960 | `2742ab828262969ded8c1e26ce3263ed8de45ef91504bb751dac67f86ae658b6` |
+| `host-gates-post-commit.txt` | 4071 | `dc425f4355d8db36db548a8144c969c1baa0f5470f4f4412288276a3c27c80f9` |
 | `integration-android-t071.log` | 15021 | `b61641318516170d2d92b187e4afe6e2ad43ccbe7a09cf3248b600d929137f02` |
 | `logcat-flutter.log` | 293 | `3e5e6b1baf337727075a4f3c53bae82d2ad5e3a3f86d57e80da45d6ed18e4584` |
 | `logcat-t071-markers.log` | 773 | `6457d9305123286fa5acb05b4ba593afe7cadeced2c04b07248ea77b53b659d6` |
