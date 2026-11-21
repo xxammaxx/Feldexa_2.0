@@ -36,6 +36,7 @@ ImportRuntime createImportRuntime() {
       final LoadedDocument loaded = await store.loadDocument(documentId);
       return loaded.sourceBytes;
     },
+    store: store,
     editorRuntimeFactory: () => createAndroidEditorRuntime(
       operations: operations,
       store: store,

@@ -1173,6 +1173,7 @@ class PageView extends StatefulWidget {
     required this.sourceBytes,
     required this.controller,
     this.rendererFactory = openPdfrxPageRenderer,
+    this.overlayBuilder,
     this.loadingBuilder,
     this.errorBuilder,
     this.onLoadError,
@@ -1196,6 +1197,23 @@ class PageView extends StatefulWidget {
 
   /// Opens the renderer once per source. Defaults to pdfrx/PDFium.
   final PageViewRendererFactory rendererFactory;
+
+  /// Optional per-page overlay hook (T071A).
+  ///
+  /// The hook is called for every visible page and its result is stacked above
+  /// that page's rendered content inside the page's own box. The box spans the
+  /// page, so the overlay layout origin is the page's top-left; [viewportRect]
+  /// is the same page rectangle expressed in viewport coordinates and may be
+  /// used only as a size/reference. [mapping] carries the immutable page size
+  /// and the current view transform. The hook must not change the page
+  /// renderer, pan/zoom state, or document geometry; it exists for the T069
+  /// overlay and T077 selection surface.
+  final Widget Function(
+    int pageIndex,
+    Rect viewportRect,
+    PageViewMapping mapping,
+  )?
+  overlayBuilder;
 
   /// Optional content-free loading placeholder.
   final WidgetBuilder? loadingBuilder;
@@ -1441,6 +1459,24 @@ class _PageViewState extends State<PageView> {
       final Rect viewportRect = widget.controller
           .mappingFor(index)
           .pageRectInViewport;
+      final Widget renderedPage = renderer.buildPage(
+        context,
+        index,
+        onFailure: _reportRenderFailure,
+      );
+      final Widget pageContent = widget.overlayBuilder == null
+          ? renderedPage
+          : Stack(
+              fit: StackFit.expand,
+              children: <Widget>[
+                renderedPage,
+                widget.overlayBuilder!(
+                  index,
+                  viewportRect,
+                  widget.controller.mappingFor(index),
+                ),
+              ],
+            );
       pages.add(
         Positioned(
           key: ValueKey<int>(index),
@@ -1448,11 +1484,7 @@ class _PageViewState extends State<PageView> {
           top: viewportRect.top,
           width: viewportRect.width,
           height: viewportRect.height,
-          child: renderer.buildPage(
-            context,
-            index,
-            onFailure: _reportRenderFailure,
-          ),
+          child: pageContent,
         ),
       );
     }
