@@ -1,0 +1,15 @@
+# Orca repo-defined setup hooks (run by Orca when creating a worktree in this repository).
+# Scope: grant Pi project-local trust ONLY for worktrees whose origin is this repository.
+# It adds the worktree's own absolute path to ~/.pi/agent/trust.json and changes nothing else.
+scripts:
+  setup: |
+    set -e
+    remote="$(git config --get remote.origin.url 2>/dev/null || true)"
+    case "$remote" in
+      *xxammaxx/Feldexa_2.0*)
+        python3 -c 'import json,os,sys;p=os.path.expanduser("~/.pi/agent/trust.json");d=json.load(open(p)) if os.path.exists(p) else {};d[sys.argv[1]]=True;os.makedirs(os.path.dirname(p),exist_ok=True);json.dump(d,open(p,"w"),indent=2);print("pi-trust:",sys.argv[1])' "$PWD"
+        ;;
+      *)
+        echo "skip: origin is not Feldexa_2.0 ($remote)"
+        ;;
+    esac
