@@ -20,15 +20,32 @@
 // verified durability state.
 //
 // Invalid number/date input remains in the control with the committed German
-// catalog sentence and is never handed to the caller. A failed save leaves the
-// sheet open and editable and displays the caller-supplied content-free
-// message; no `saved` claim is made here.
+// catalog sentence and is never handed to the caller. Text and multiline input
+// are checked against the same model limits as the value constructors (at most
+// 10,000 runes; no control characters, with `\n` allowed only in multiline)
+// before a value is built, so a rejected edit shows the catalog `SAVE-007`
+// sentence in the open sheet, stores nothing, and never throws. Long input is
+// never truncated.
+//
+// Commit triggers: the explicit save button, focus loss, single-line Enter, and
+// the multiline done action (T079 `onCommitted`) all run the same validated
+// `_save()` path. The explicit close button is the one exception: it sets
+// `_closing` before popping so the focus loss caused by closing cannot turn
+// into a save. A failed save leaves the sheet open and editable and displays
+// the caller-supplied content-free message; no `saved` claim is made here.
+//
+// The sheet root is keyboard-safe: the real view insets lift the visible sheet
+// box above the software keyboard on the 411 x 914 logical phone surface, and
+// the box is bounded by the remaining view height so the title, control, save,
+// and close actions stay reachable.
 //
 // Signature editing is not faked. No production signature-asset write flow is
 // composed by T071A, so the sheet visibly marks signature editing `NOT_RUN`
 // and offers no save action. Overflow measurement is also not implemented in
 // T071A: T084 is rendered only when the caller already marked the stored value
 // `overflow`, and the journey report records layout measurement as `NOT_RUN`.
+
+import 'dart:async';
 
 import 'package:feldexa_app/features/fill/checkbox_control.dart';
 import 'package:feldexa_app/features/fill/overflow_warning.dart';
@@ -121,6 +138,13 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
   String? _error;
   bool _busy = false;
 
+  /// Set while the explicit close button is popping the sheet.
+  ///
+  /// Closing moves focus away from the text control, which would otherwise
+  /// report the final text through `onCommitted` and save a change the user
+  /// explicitly cancelled.
+  bool _closing = false;
+
   @override
   void initState() {
     super.initState();
@@ -155,12 +179,20 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
     final AppLocalizations l10n = AppLocalizations.of(context);
     switch (widget.field.type) {
       case core.FieldType.text:
+        if (!_isTextWithinModelLimits(_text, multiline: false)) {
+          _error = l10n.save007;
+          return null;
+        }
         return core.TextValue(
           text: _text,
           lastEditedAt: _draftEditedAt,
           overflow: widget.currentValue?.overflow ?? false,
         );
       case core.FieldType.multiline:
+        if (!_isTextWithinModelLimits(_text, multiline: true)) {
+          _error = l10n.save007;
+          return null;
+        }
         return core.MultilineValue(
           text: _text,
           lastEditedAt: _draftEditedAt,
@@ -201,8 +233,47 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
     }
   }
 
+  /// Whether [text] satisfies the value model's text limits.
+  ///
+  /// At most 10,000 runes. A control character (`< 0x20`, or `0x7F..0x9F`) is
+  /// rejected; `\n` is the only control character allowed, and only for a
+  /// multiline value. This mirrors the core constructor without constructing a
+  /// throwing value, so the sheet can show the catalog sentence instead.
+  bool _isTextWithinModelLimits(String text, {required bool multiline}) {
+    int runes = 0;
+    for (final int rune in text.runes) {
+      runes++;
+      if (rune == 0x0A) {
+        if (!multiline) {
+          return false;
+        }
+        continue;
+      }
+      if (rune < 0x20 || (rune >= 0x7F && rune <= 0x9F)) {
+        return false;
+      }
+    }
+    return runes <= 10000;
+  }
+
+  /// Commits the current text through the same validated save path.
+  ///
+  /// T079 reports focus loss, single-line Enter, and the multiline done action
+  /// here. The text is assigned first so the value is current even if the
+  /// control's rebuild order changes.
+  void _commit(String value) {
+    _text = value;
+    unawaited(_save());
+  }
+
+  /// Cancels the sheet without saving a focus-loss commit.
+  void _close() {
+    _closing = true;
+    Navigator.of(context).maybePop(false);
+  }
+
   Future<void> _save() async {
-    if (_busy || widget.field.type == core.FieldType.signature) {
+    if (_busy || _closing || widget.field.type == core.FieldType.signature) {
       return;
     }
     setState(() {
@@ -247,59 +318,70 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
     final AppLocalizations l10n = AppLocalizations.of(context);
     final bool signature = widget.field.type == core.FieldType.signature;
     final bool overflow = widget.currentValue?.overflow ?? false;
-    return Padding(
-      key: fieldValueSheetKey,
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Text(
-                widget.field.label,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 4),
-              Text(_typeLabel(l10n, widget.field.type)),
-              const SizedBox(height: 12),
-              AbsorbPointer(absorbing: _busy, child: _buildControl(l10n)),
-              if (!signature) ...<Widget>[
+    final MediaQueryData media = MediaQuery.of(context);
+    final double insets = media.viewInsets.bottom;
+    final double availableHeight =
+        media.size.height - insets - media.padding.top;
+    final double maxHeight = availableHeight < 1 ? 1 : availableHeight;
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 100),
+      curve: Curves.easeOut,
+      padding: EdgeInsets.only(bottom: insets),
+      child: ConstrainedBox(
+        // The key marks the visible, keyboard-safe sheet box rather than the
+        // animated keyboard spacer, so the global rect stays above the IME.
+        key: fieldValueSheetKey,
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Text(
+                  widget.field.label,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 4),
+                Text(_typeLabel(l10n, widget.field.type)),
                 const SizedBox(height: 12),
-                FieldOverflowWarning(visible: overflow),
-                if (_error != null) ...<Widget>[
-                  const SizedBox(height: 8),
-                  Text(
-                    _error!,
-                    key: fieldValueErrorKey,
-                    style: Theme.of(context).textTheme.bodyMedium
-                        ?.copyWith(color: Theme.of(context).colorScheme.error),
+                AbsorbPointer(absorbing: _busy, child: _buildControl(l10n)),
+                if (!signature) ...<Widget>[
+                  const SizedBox(height: 12),
+                  FieldOverflowWarning(visible: overflow),
+                  if (_error != null) ...<Widget>[
+                    const SizedBox(height: 8),
+                    Text(
+                      _error!,
+                      key: fieldValueErrorKey,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    key: fieldValueSaveKey,
+                    onPressed: _busy ? null : _save,
+                    child: _busy
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(l10n.saveNow),
                   ),
                 ],
-                const SizedBox(height: 16),
-                FilledButton(
-                  key: fieldValueSaveKey,
-                  onPressed: _busy ? null : _save,
-                  child: _busy
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(l10n.saveNow),
+                const SizedBox(height: 8),
+                TextButton(
+                  key: fieldValueCloseKey,
+                  onPressed: _busy ? null : _close,
+                  child: Text(l10n.reviewConflictCloseAction),
                 ),
               ],
-              const SizedBox(height: 8),
-              TextButton(
-                key: fieldValueCloseKey,
-                onPressed: _busy
-                    ? null
-                    : () => Navigator.of(context).maybePop(false),
-                child: Text(l10n.reviewConflictCloseAction),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -314,7 +396,7 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
           value: _text,
           autofocus: true,
           onChanged: (String value) => _text = value,
-          onCommitted: (String value) => _text = value,
+          onCommitted: _commit,
         );
       case core.FieldType.multiline:
         return FieldTextControl(
@@ -322,8 +404,9 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
           value: _text,
           multiline: true,
           autofocus: true,
+          doneLabel: l10n.pageAnalysisComplete,
           onChanged: (String value) => _text = value,
-          onCommitted: (String value) => _text = value,
+          onCommitted: _commit,
         );
       case core.FieldType.number:
       case core.FieldType.date:
@@ -332,7 +415,7 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
           value: _text,
           autofocus: true,
           onChanged: (String value) => _text = value,
-          onCommitted: (String value) => _text = value,
+          onCommitted: _commit,
         );
       case core.FieldType.checkbox:
         return FieldCheckboxControl(

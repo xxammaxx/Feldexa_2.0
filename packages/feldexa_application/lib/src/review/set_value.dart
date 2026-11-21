@@ -17,10 +17,22 @@
 // the UTC edit instant explicitly. Every failure is an `ArgumentError` with a
 // fixed, content-free message: no id, label, or field value is echoed.
 //
-// Only `values[fieldId]` changes. Pages, suggestions, confirmed fields,
-// field order, signature marks, verification records, template origin, and
-// unknown same-schema JSON fields are copied to a fresh, validated
-// `RevisionContent` unchanged.
+// Only `values[fieldId]` changes, plus the one validation flag that points at
+// preserved incompatible content: when the replaced value was an
+// `IncompatibleValue` and the caller supplies the matching concrete value, the
+// `incompatible_content` warning or blocking parse error on that field is
+// resolved to `ok` (keeping the previous validation's unknown JSON fields).
+// Pages, suggestions, the other confirmed fields, field order, signature
+// marks, verification records, template origin, and unknown same-schema JSON
+// fields are copied to a fresh, validated `RevisionContent` unchanged.
+//
+// Replacing an incompatible value with a different type (or passing an
+// explicit `IncompatibleValue` for a typed field) remains the existing
+// content-free `ArgumentError`, and the input content is not mutated.
+//
+// Signature asset replacement is outside T071A scope: signature editing stays
+// visibly `NOT_RUN`; a `SignatureValue` replacement only updates the stored
+// value, never the signature asset or mark.
 
 import 'package:feldexa_core/feldexa_core.dart';
 
@@ -70,6 +82,19 @@ final class SetValueChange {
 /// command replaces only `values[fieldId]`; every other revision member is
 /// copied unchanged. The text is never truncated.
 ///
+/// When the replaced value was an [IncompatibleValue] and [value] is the
+/// matching concrete value for the field type, the field's
+/// [WarningCode.incompatibleContent] warning or blocking parse
+/// [FieldValidation.error] is replaced by [FieldValidation.ok], carrying that
+/// validation's unknown JSON fields. This is the normal correction path for
+/// preserved content; without it the new revision would be rejected by the
+/// schema. An incompatible replacement, including an explicit
+/// [IncompatibleValue] for a typed field, keeps the existing rejection and
+/// never mutates the input.
+///
+/// Signature asset replacement is out of T071A scope; signature editing stays
+/// `NOT_RUN` and only the stored value would change.
+///
 /// Throws [ArgumentError] for a missing field, a type mismatch, a non-UTC
 /// instant, or any invalid value. The message never contains document content.
 SetValueChange setFieldValue(
@@ -100,10 +125,38 @@ SetValueChange setFieldValue(
       entry.key: entry.value,
     fieldId: stored,
   };
+  // `RevisionContent` requires an `IncompatibleValue` to remain flagged by the
+  // `incompatible_content` warning or by a blocking parse error. Once a
+  // compatible concrete value replaces the preserved content, that flag would
+  // make the new snapshot invalid, so clear only this field's validation. The
+  // schema also rejects an incompatible-content warning on a concrete value,
+  // so both the warning form and the blocked number/date parse form resolve to
+  // `ok`. Unknown validation extensions are retained.
+  List<ConfirmedField> fields = content.fields;
+  final FieldValue? previousValue = content.values[fieldId];
+  if (previousValue is IncompatibleValue) {
+    final FieldValidation previousValidation = field.validation;
+    final bool flagsIncompatible =
+        previousValidation.isError ||
+        (previousValidation.isWarning &&
+            previousValidation.warningCode == WarningCode.incompatibleContent);
+    if (flagsIncompatible) {
+      final FieldValidation resolved = FieldValidation.fromJson(
+        <String, Object?>{...previousValidation.unknownFields, 'status': 'ok'},
+      );
+      fields = <ConfirmedField>[
+        for (final ConfirmedField candidate in content.fields)
+          if (candidate.id == fieldId)
+            candidate.copyWith(validation: resolved)
+          else
+            candidate,
+      ];
+    }
+  }
   final RevisionContent updated = RevisionContent(
     pages: content.pages,
     suggestions: content.suggestions,
-    fields: content.fields,
+    fields: fields,
     fieldOrder: content.fieldOrder,
     values: values,
     signatures: content.signatures,
@@ -116,6 +169,6 @@ SetValueChange setFieldValue(
     previousContent: content,
     fieldId: fieldId,
     value: stored,
-    previousValue: content.values[fieldId],
+    previousValue: previousValue,
   );
 }

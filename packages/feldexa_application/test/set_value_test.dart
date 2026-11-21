@@ -12,6 +12,10 @@
 //   * only `values[fieldId]` changes while pages, suggestions, fields, order,
 //     signatures, verification, template origin, and unknown JSON fields are
 //     preserved;
+//   * a compatible concrete replacement of preserved incompatible content
+//     clears the `incompatible_content` warning or blocking parse error while
+//     every other revision member stays preserved, and an incompatible
+//     replacement still throws content-free without mutating the input;
 //   * the receipt carries the previous value and the exact previous snapshot;
 //   * text is never truncated by the command.
 
@@ -132,6 +136,38 @@ RevisionContent _baseContent() {
   );
 }
 
+/// Builds the base snapshot with one preserved [IncompatibleValue] and the
+/// validation flag the revision schema requires for it.
+RevisionContent _contentWithIncompatible({
+  required String fieldId,
+  required FieldValidation validation,
+}) {
+  final RevisionContent base = _baseContent();
+  final IncompatibleValue incompatible = IncompatibleValue(
+    preservedText: 'Alt',
+    reasonCode: 'reclassified',
+    lastEditedAt: _initialTime,
+  );
+  final List<ConfirmedField> fields = <ConfirmedField>[
+    for (final ConfirmedField candidate in base.fields)
+      if (candidate.id == fieldId)
+        candidate.copyWith(validation: validation)
+      else
+        candidate,
+  ];
+  return RevisionContent(
+    pages: base.pages,
+    suggestions: base.suggestions,
+    fields: fields,
+    fieldOrder: base.fieldOrder,
+    values: <String, FieldValue>{...base.values, fieldId: incompatible},
+    signatures: base.signatures,
+    verification: base.verification,
+    templateOrigin: base.templateOrigin,
+    unknownFields: base.unknownFields,
+  );
+}
+
 FieldValue _valueFor(FieldType type, {String text = 'Neu'}) {
   return switch (type) {
     FieldType.text => TextValue(text: text, lastEditedAt: _initialTime),
@@ -240,6 +276,135 @@ void main() {
       ),
       throwsArgumentError,
     );
+  });
+
+  test(
+    'a compatible text replacement clears the incompatible-content warning',
+    () {
+      final RevisionContent base = _contentWithIncompatible(
+        fieldId: _fieldText,
+        validation: FieldValidation.warning(
+          WarningCode.incompatibleContent,
+          'FLD-002',
+          unknownFields: <String, Object?>{'laterValidation': true},
+        ),
+      );
+      expect(base.values[_fieldText], isA<IncompatibleValue>());
+
+      final SetValueChange change = setFieldValue(
+        base,
+        _fieldText,
+        value: TextValue(text: 'Neu', lastEditedAt: _initialTime),
+        lastEditedAt: _editTime,
+      );
+      final RevisionContent updated = change.content;
+      final ConfirmedField field = updated.fields.firstWhere(
+        (ConfirmedField candidate) => candidate.id == _fieldText,
+      );
+      expect(field.validation.isOk, isTrue);
+      expect(field.validation.toJson()['status'], 'ok');
+      expect(field.validation.unknownFields, <String, Object?>{
+        'laterValidation': true,
+      });
+      final FieldValue stored = updated.values[_fieldText]!;
+      expect(stored, isA<TextValue>());
+      expect((stored as TextValue).text, 'Neu');
+      expect(stored.lastEditedAt, _editTime);
+
+      expect(change.previousContent, same(base));
+      expect(change.previousValue, isA<IncompatibleValue>());
+      expect(updated.pages, base.pages);
+      expect(updated.suggestions, base.suggestions);
+      expect(updated.fieldOrder, base.fieldOrder);
+      expect(updated.signatures, base.signatures);
+      expect(updated.verification, base.verification);
+      expect(updated.templateOrigin, base.templateOrigin);
+      expect(updated.unknownFields, base.unknownFields);
+      for (final ConfirmedField candidate in base.fields) {
+        if (candidate.id == _fieldText) {
+          continue;
+        }
+        expect(updated.fields, contains(candidate));
+      }
+      for (final MapEntry<String, FieldValue> entry in base.values.entries) {
+        if (entry.key == _fieldText) {
+          continue;
+        }
+        expect(updated.values[entry.key], same(entry.value));
+      }
+    },
+  );
+
+  test('a compatible number replacement clears a blocking parse error', () {
+    final RevisionContent base = _contentWithIncompatible(
+      fieldId: _fieldNumber,
+      validation: FieldValidation.error('NUM-001'),
+    );
+    expect(base.values[_fieldNumber], isA<IncompatibleValue>());
+
+    final SetValueChange change = setFieldValue(
+      base,
+      _fieldNumber,
+      value: NumberValue(
+        canonical: '1234.56',
+        rawGerman: '1.234,56',
+        lastEditedAt: _initialTime,
+      ),
+      lastEditedAt: _editTime,
+    );
+    final ConfirmedField field = change.content.fields.firstWhere(
+      (ConfirmedField candidate) => candidate.id == _fieldNumber,
+    );
+    expect(field.validation.isOk, isTrue);
+    final FieldValue stored = change.content.values[_fieldNumber]!;
+    expect(stored, isA<NumberValue>());
+    expect((stored as NumberValue).canonical, '1234.56');
+    expect(stored.lastEditedAt, _editTime);
+  });
+
+  test('an incompatible replacement keeps the warning and mutates nothing', () {
+    final RevisionContent base = _contentWithIncompatible(
+      fieldId: _fieldText,
+      validation: FieldValidation.warning(
+        WarningCode.incompatibleContent,
+        'FLD-002',
+      ),
+    );
+    expect(
+      () => setFieldValue(
+        base,
+        _fieldText,
+        value: NumberValue(
+          canonical: '1',
+          rawGerman: '1',
+          lastEditedAt: _initialTime,
+        ),
+        lastEditedAt: _editTime,
+      ),
+      throwsArgumentError,
+    );
+    expect(
+      () => setFieldValue(
+        base,
+        _fieldNumber,
+        value: IncompatibleValue(
+          preservedText: 'x',
+          reasonCode: 'test',
+          lastEditedAt: _initialTime,
+        ),
+        lastEditedAt: _editTime,
+      ),
+      throwsArgumentError,
+    );
+
+    final FieldValue preserved = base.values[_fieldText]!;
+    expect(preserved, isA<IncompatibleValue>());
+    expect((preserved as IncompatibleValue).preservedText, 'Alt');
+    final ConfirmedField field = base.fields.firstWhere(
+      (ConfirmedField candidate) => candidate.id == _fieldText,
+    );
+    expect(field.validation.isWarning, isTrue);
+    expect(field.validation.warningCode, WarningCode.incompatibleContent);
   });
 
   test('rejects a missing field without echoing the id', () {

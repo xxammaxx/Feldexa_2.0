@@ -22,10 +22,19 @@
 //   6. leave the editor, let the T095 start list reload, reopen the same stored
 //      document, and verify the saved value and confirmed field state.
 //
-// Screenshots are captured by the host driver at the five marked phases. The
-// test waits for an acknowledgement file after each marker so the screenshot
-// belongs to that state. Markers carry phase names and content-free counts only;
-// no label, OCR text, title, path, URI, or entered value is printed.
+// Screenshots are captured by the host driver at the five marked phases. Each
+// `_waitForDriver` deletes any stale acknowledgement file, then emits the
+// marker and waits for the fresh acknowledgement, so the screenshot belongs to
+// the asserted state and never races ahead of the driver. Markers carry phase
+// names and content-free counts only; no label, OCR text, title, path, URI, or
+// entered value is printed.
+//
+// Phase content is asserted before the marker is emitted:
+//   * `overlay-selection`: selected confirmed field, no value sheet;
+//   * `value-sheet`: sheet with the entered German value above the IME;
+//   * `saved-status`: sheet reopened prefilled with the store-read-back value;
+//   * `document-list`: start list after leaving the editor;
+//   * `reopened-value`: reopened document's sheet prefilled with that value.
 
 import 'dart:io';
 
@@ -142,9 +151,22 @@ Future<void> _waitForAnalysisTerminal(
 }
 
 /// Waits for the host driver to capture the named screenshot.
+///
+/// A previous aborted run can leave `ack-*` files in the staging directory;
+/// waiting for a stale file would let the test race ahead of the driver and
+/// the screenshot would show a later state. Delete the ack before emitting the
+/// marker, then wait for the fresh one.
 Future<void> _waitForDriver(String name) async {
-  _marker(_screenshots[name]!);
   final File ack = File('$_fixtureRoot${Platform.pathSeparator}ack-$name');
+  try {
+    if (ack.existsSync()) {
+      ack.deleteSync();
+    }
+  } on FileSystemException {
+    // A read-only race cannot delete a stale file; the bounded wait below still
+    // fails instead of silently accepting an old acknowledgement.
+  }
+  _marker(_screenshots[name]!);
   final DateTime deadline = DateTime.now().add(const Duration(seconds: 120));
   while (!ack.existsSync()) {
     if (DateTime.now().isAfter(deadline)) {
@@ -152,6 +174,51 @@ Future<void> _waitForDriver(String name) async {
     }
     await Future<void>.delayed(const Duration(milliseconds: 200));
   }
+}
+
+/// Waits until the value sheet exists and the software keyboard is visible.
+///
+/// The marker may only be emitted after this state is settled. A keyboard
+/// inset of at least 100 logical pixels distinguishes the real IME from the
+/// route animation.
+Future<void> _waitForValueSheetAndIme(WidgetTester tester) async {
+  await _pumpUntil(
+    tester,
+    () =>
+        find.byKey(fieldValueSheetKey).evaluate().isNotEmpty &&
+        tester.view.viewInsets.bottom / tester.view.devicePixelRatio >= 100,
+    timeout: const Duration(seconds: 120),
+    reason: 'the value sheet and the software keyboard did not appear',
+  );
+  await tester.pumpAndSettle();
+}
+
+/// Asserts the visible sheet, its value, and its actions are above the IME.
+void _expectSheetVisibleAboveIme(WidgetTester tester, String value) {
+  final double dpr = tester.view.devicePixelRatio;
+  final double screenHeight = tester.view.physicalSize.height / dpr;
+  final double keyboardTop = screenHeight - tester.view.viewInsets.bottom / dpr;
+  final Rect sheetRect = tester.getRect(find.byKey(fieldValueSheetKey));
+  expect(sheetRect.top, greaterThanOrEqualTo(0));
+  expect(sheetRect.bottom, lessThanOrEqualTo(screenHeight));
+  expect(find.text(value), findsOneWidget);
+  final Rect inputRect = tester.getRect(find.byKey(fieldTextControlInputKey));
+  final Rect saveRect = tester.getRect(find.byKey(fieldValueSaveKey));
+  expect(inputRect.bottom, lessThanOrEqualTo(keyboardTop));
+  expect(saveRect.bottom, lessThanOrEqualTo(keyboardTop));
+  expect(find.byKey(fieldValueErrorKey), findsNothing);
+}
+
+/// Closes the value sheet and waits for it to leave the route.
+Future<void> _closeValueSheet(WidgetTester tester) async {
+  await tester.tap(find.byKey(fieldValueCloseKey));
+  await _pumpUntil(
+    tester,
+    () => find.byKey(fieldValueSheetKey).evaluate().isEmpty,
+    timeout: const Duration(seconds: 120),
+    reason: 'the value sheet did not close',
+  );
+  await tester.pumpAndSettle();
 }
 
 Future<void> _armFile(File source) async {
@@ -420,27 +487,19 @@ void main() {
       reason: 'tapping the confirmed field did not open the value sheet',
     );
     expect(state.selection.selectedId, field.id);
-    await tester.tap(find.byKey(fieldValueCloseKey));
-    await _pumpUntil(
-      tester,
-      () => find.byKey(fieldValueSheetKey).evaluate().isEmpty,
-      timeout: const Duration(seconds: 120),
-      reason: 'the value sheet did not close',
-    );
+    await _closeValueSheet(tester);
     expect(state.selection.selectedId, field.id);
     await _waitForDriver('overlay-selection');
 
+    // The value-sheet screenshot is only emitted after the sheet is settled
+    // above the real IME and the entered German value is visibly present.
     await tester.tapAt(_screenPoint(tester, state, field));
-    await _pumpUntil(
-      tester,
-      () => find.byKey(fieldValueSheetKey).evaluate().isNotEmpty,
-      timeout: const Duration(seconds: 120),
-      reason: 'the reopened value sheet did not appear',
-    );
+    await _waitForValueSheetAndIme(tester);
+    await tester.enterText(find.byKey(fieldTextControlInputKey), _enteredValue);
+    await tester.pumpAndSettle();
+    _expectSheetVisibleAboveIme(tester, _enteredValue);
     await _waitForDriver('value-sheet');
 
-    await tester.enterText(find.byKey(fieldTextControlInputKey), _enteredValue);
-    await tester.pump();
     await tester.tap(find.byKey(fieldValueSaveKey));
     await _pumpUntil(
       tester,
@@ -473,7 +532,17 @@ void main() {
       isTrue,
     );
     _marker('SAVED_READBACK:OK');
+
+    // Saved status is evidenced honestly as "the saved value shown by
+    // reopening the sheet immediately after the verified save": the sheet is
+    // prefilled with the store-read-back value and sits above the IME, with
+    // the T091 saved label in the app bar behind it. Close it again before
+    // leaving the editor.
+    await tester.tapAt(_screenPoint(tester, state, field));
+    await _waitForValueSheetAndIme(tester);
+    _expectSheetVisibleAboveIme(tester, _enteredValue);
     await _waitForDriver('saved-status');
+    await _closeValueSheet(tester);
 
     Navigator.of(tester.element(find.byType(EditorScreen))).pop();
     await _pumpUntil(
@@ -537,7 +606,14 @@ void main() {
       reason: 'the reopened editor must show the verified durable state',
     );
     _marker('REOPENED_READBACK:OK');
+
+    // Reopen the value sheet on the reopened document so the screenshot shows
+    // the persisted German value prefilled above the IME, not a bare editor.
+    await tester.tapAt(_screenPoint(tester, reopened, field));
+    await _waitForValueSheetAndIme(tester);
+    _expectSheetVisibleAboveIme(tester, _enteredValue);
     await _waitForDriver('reopened-value');
+    await _closeValueSheet(tester);
     _marker('CLEANUP_DONE');
   });
 }

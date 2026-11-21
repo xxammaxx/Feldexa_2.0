@@ -523,6 +523,34 @@ void main() {
     },
   );
 
+  testWidgets('the value sheet lays out above the software keyboard', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(420, 900);
+    tester.view.devicePixelRatio = 1;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetViewInsets);
+
+    final _FakeStore store = _FakeStore(loaded: _loaded());
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+    await _pumpEditor(tester, runtime: runtime);
+
+    final EditorScreenState state = _state(tester);
+    await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+    const double keyboardTop = 600;
+    final Rect sheetRect = tester.getRect(find.byKey(fieldValueSheetKey));
+    expect(sheetRect.top, greaterThanOrEqualTo(0));
+    expect(sheetRect.bottom, lessThanOrEqualTo(keyboardTop));
+    final Rect saveRect = tester.getRect(find.byKey(fieldValueSaveKey));
+    expect(saveRect.bottom, lessThanOrEqualTo(keyboardTop));
+    expect(find.byKey(fieldTextControlInputKey), findsOneWidget);
+  });
+
   testWidgets('tapping a suggestion highlights it without a value sheet', (
     tester,
   ) async {
@@ -783,9 +811,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text(_de.statusUnreadable), findsWidgets);
-    await tester.tap(
-      find.byKey(const ValueKey<String>('stored-item-$_unreadableDocumentId')),
+    final Finder unreadableRow = find.byKey(
+      const ValueKey<String>('stored-item-$_unreadableDocumentId'),
     );
+    expect(unreadableRow, findsOneWidget);
+    expect(tester.widget<InkWell>(unreadableRow).onTap, isNull);
+    await tester.tap(unreadableRow);
     await tester.pumpAndSettle();
 
     expect(find.byType(EditorScreen), findsNothing);

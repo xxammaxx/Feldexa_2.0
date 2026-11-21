@@ -12,10 +12,20 @@
 #      import, so page 1 stays usable and page 2 imports as unreadable;
 #   3. clears the test app data so the journey starts with an empty store;
 #   4. starts `flutter test integration_test/android_review_composition_test.dart`
-#      in the background and captures the five screenshot phases;
-#   5. records device identity, fixture/APK hashes, git identity, marker-filtered
-#      logcat, test log, and a source-level privacy check;
+#      in the background and captures the five screenshot phases; stale ack
+#      files are removed first, and the five screenshot hashes must be distinct;
+#   5. records device identity, fixture/APK hashes, git identity (HEAD/tree/
+#      branch/subject/status), marker-filtered logcat, the marker sequence
+#      extracted from the integration log, and a source-level privacy check;
 #   6. removes pushed fixtures/acks and clears the test app data again.
+#
+# T071A markers are printed by the integration-test process through the test
+# harness, not by the app process, so `logcat-flutter.log` contains only engine
+# `flutter` tag lines. The authoritative marker sequence is extracted from the
+# integration log into `markers-integration.txt`.
+#
+# The tree must be committed before the run: only the pre-existing
+# ` M apps/feldexa_app/android/gradlew.bat` line-ending change may be present.
 #
 # Evidence class is EMULATOR only when step 1 passes. Without a worktree-bound
 # Orca allocation the script exits 2 with `EMULATOR NOT_RUN`; it never rebinds
@@ -152,7 +162,9 @@ collect_evidence() {
   local file
   for file in \
     integration-android-t071a.log \
+    markers-integration.txt \
     marker-sequence.txt \
+    screenshot-hashes.txt \
     run-status.txt \
     device-identity.txt \
     fixture-sha256.txt \
@@ -250,6 +262,25 @@ if not any(serial in json.dumps(session) for session in sessions):
 PY
   not_run "emulator-5554 is booted but no exclusively allocated Orca session is attached to this worktree; do not reuse another worktree's allocation"
 
+[[ -s "$RUN_DIR/orca-emulator-devices.json" ]] ||
+  not_run "Orca device inventory is empty"
+[[ -s "$RUN_DIR/orca-emulator-sessions.json" ]] ||
+  not_run "Orca worktree session inventory is empty"
+
+# --- 1b. Commit-before-run gate ---------------------------------------------
+# Evidence is bound to a committed HEAD. The only tolerated dirty line is the
+# pre-existing gradlew.bat line-ending change, which must never be staged.
+ALLOWED_DIRTY_LINE=" M apps/feldexa_app/android/gradlew.bat"
+DIRTY_STATUS="$(git -C "$ROOT" status --porcelain)"
+if [[ -n "$DIRTY_STATUS" ]]; then
+  while IFS= read -r dirty_line; do
+    if [[ "$dirty_line" != "$ALLOWED_DIRTY_LINE" ]]; then
+      fail "working tree is dirty; commit-before-run required (unexpected status line: $dirty_line)"
+    fi
+  done <<<"$DIRTY_STATUS"
+fi
+log "T071A DRIVER: commit-before-run gate passed (only the pre-existing gradlew.bat change may be present)"
+
 prepare_evidence_dir
 log "T071A DRIVER: evidence directory $EVIDENCE_DIR"
 
@@ -333,6 +364,9 @@ fi
 # --- 6. Start the integration test ------------------------------------------
 adb_shell logcat -c >/dev/null
 mkdir -p "$RUN_DIR/screenshots" >/dev/null
+# A previous aborted run can leave acknowledgements behind. Remove them before
+# the test starts so no `_waitForDriver` can return on a stale ack.
+adb_shell rm -f "$STAGING"/ack-* >/dev/null
 
 (
   cd "$APP" || exit 1
@@ -407,22 +441,41 @@ TEST_EXIT=$?
 {
   for apk in "$APP"/build/app/outputs/flutter-apk/*.apk; do
     [[ -f "$apk" ]] || continue
-    sha256sum "$apk"
+    log "path=$apk"
+    log "sha256=$(sha256sum "$apk" | awk '{print $1}')"
+    log "bytes=$(stat -c %s "$apk")"
   done
 } >"$RUN_DIR/apk-sha256.txt"
 
 {
   log "head=$(git -C "$ROOT" rev-parse HEAD)"
+  log "tree=$(git -C "$ROOT" rev-parse HEAD^{tree})"
   log "branch=$(git -C "$ROOT" branch --show-current)"
+  log "subject=$(git -C "$ROOT" log -1 --pretty=%s)"
   log "status_porcelain:"
   git -C "$ROOT" status --porcelain
   log "flutter=$("${FLUTTER_ENV[@]}" "$FLUTTER" --version 2>/dev/null | head -1)"
 } >"$RUN_DIR/git-identity.txt"
 
+{
+  for name in overlay-selection value-sheet saved-status document-list reopened-value; do
+    shot="$RUN_DIR/screenshots/$name.png"
+    if [[ ! -s "$shot" ]]; then
+      log "$name MISSING"
+      continue
+    fi
+    log "$name bytes=$(stat -c %s "$shot") sha256=$(sha256sum "$shot" | awk '{print $1}')"
+  done
+} >"$RUN_DIR/screenshot-hashes.txt"
+UNIQUE_SCREENSHOTS="$(awk -F'sha256=' '/sha256=/ {print $2}' "$RUN_DIR/screenshot-hashes.txt" | sort -u | wc -l)"
+[[ "$UNIQUE_SCREENSHOTS" -eq 5 ]] ||
+  fail "the five screenshot hashes are not distinct ($UNIQUE_SCREENSHOTS unique); see screenshot-hashes.txt"
+
 adb_shell logcat -d -v threadtime >"$RUN_DIR/logcat-full.txt" 2>/dev/null
 "$ADB" -s "$SERIAL" logcat -d -v threadtime -s flutter >"$RUN_DIR/logcat-flutter.log" 2>/dev/null
 grep -E "T071A_|ActivityTaskManager.*(de\\.feldexa|START)" \
   "$RUN_DIR/logcat-full.txt" >"$RUN_DIR/logcat-t071a-markers.log" 2>/dev/null
+grep -E "T071A_" "$LOG" >"$RUN_DIR/markers-integration.txt" 2>/dev/null || true
 rm -f "$RUN_DIR/logcat-full.txt"
 
 if grep -nE 'Müller|Söhne|Meldebescheinigung|Musterstadt|sf-001\.pdf|/data/local/tmp/t071a-fixtures' \

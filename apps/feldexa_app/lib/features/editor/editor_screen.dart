@@ -1227,15 +1227,16 @@ class EditorScreenState extends State<EditorScreen> {
       content,
       pageIndex,
     );
-    if (items.isEmpty) {
-      return const SizedBox.shrink();
-    }
     final Size pageSize = mapping.pageSize.contentSize;
     final Rect pageRect = Offset.zero & viewportRect.size;
     return Stack(
       fit: StackFit.expand,
       children: <Widget>[
-        FieldOverlay(items: items, pageSize: pageSize, pageRect: pageRect),
+        // An empty page still needs the selection surface: a tap on empty page
+        // space must clear an existing selection (contract §2), so only the
+        // painted overlay is omitted when there are no items.
+        if (items.isNotEmpty)
+          FieldOverlay(items: items, pageSize: pageSize, pageRect: pageRect),
         FieldSelectionSurface(
           controller: _selectionController,
           items: items,
