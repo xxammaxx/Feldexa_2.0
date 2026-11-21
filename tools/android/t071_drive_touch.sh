@@ -249,6 +249,22 @@ collect_evidence() {
         fail "cannot write evidence file $file"
     fi
   done
+  local text_file
+  for text_file in \
+    integration-android-t071.log \
+    logcat-flutter.log \
+    logcat-t071-markers.log \
+    markers-integration.txt \
+    marker-sequence.txt \
+    marker-contract.txt \
+    commands.txt \
+    git-identity.txt; do
+    if [[ -f "$EVIDENCE_DIR/$text_file" ]]; then
+      redact_urls <"$EVIDENCE_DIR/$text_file" >"$EVIDENCE_DIR/$text_file.redacted" &&
+        mv "$EVIDENCE_DIR/$text_file.redacted" "$EVIDENCE_DIR/$text_file" ||
+        fail "cannot redact $text_file"
+    fi
+  done
   if [[ -d "$RUN_DIR/screenshots" ]]; then
     mkdir -p "$EVIDENCE_DIR/screenshots" ||
       fail "cannot create evidence screenshots directory"
@@ -439,8 +455,24 @@ grep -q 'Got dependencies' "$RUN_DIR/host-flutter-pub-get.log" ||
 adb_shell logcat -c >/dev/null
 mkdir -p "$RUN_DIR/screenshots" >/dev/null
 # A previous aborted run can leave acknowledgements behind. Remove them before
-# the test starts so no `_waitForDriver` can return on a stale ack.
+# the test starts so no `_waitForDriver` can return on a stale ack. The removal
+# is checked and its empty result is verified, so a failed cleanup cannot turn
+# into a silently accepted stale handshake.
 adb_shell rm -f "$STAGING"/ack-* >/dev/null
+ACK_RM_EXIT=$?
+record_cmd "$ACK_RM_EXIT" "adb -s $SERIAL shell rm -f $STAGING/ack-* (stale acknowledgements)"
+STALE_ACKS="$(adb_shell "ls $STAGING 2>/dev/null | grep -c '^ack-'" || true)"
+{
+  log "command=adb -s $SERIAL shell rm -f $STAGING/ack-*"
+  log "exit=$ACK_RM_EXIT"
+  log "remaining_ack_files=${STALE_ACKS:-0} expected=0"
+  log "verified=$([[ "$ACK_RM_EXIT" -eq 0 && "${STALE_ACKS:-0}" == "0" ]] && echo 1 || echo 0)"
+} >"$RUN_DIR/handshake-preflight.txt"
+[[ "$ACK_RM_EXIT" -eq 0 ]] ||
+  fail "could not remove stale screenshot acknowledgements (exit $ACK_RM_EXIT); a stale ack would make a screenshot phase ambiguous"
+[[ "${STALE_ACKS:-0}" == "0" ]] ||
+  fail "${STALE_ACKS} stale acknowledgement files survived removal in $STAGING"
+log "T071 DRIVER: stale-ack preflight passed (none present)"
 
 (
   cd "$APP" || exit 1
@@ -626,6 +658,8 @@ privacy_scan "logcat-flutter/secret" "$RUN_DIR/logcat-flutter.log" "$SECRET_PATT
 privacy_scan "logcat-flutter/content" "$RUN_DIR/logcat-flutter.log" "$CONTENT_PATTERNS"
 privacy_scan "commands/secret" "$RUN_DIR/commands.txt" "$SECRET_PATTERNS"
 privacy_scan "commands/content" "$RUN_DIR/commands.txt" "$CONTENT_PATTERNS"
+redact_urls <"$RUN_DIR/git-identity.txt" >"$RUN_DIR/git-identity.redacted.txt"
+privacy_scan "git-identity/secret" "$RUN_DIR/git-identity.redacted.txt" "$SECRET_PATTERNS"
 printf 'NOTE commands.txt names the committed synthetic fixture (apps/feldexa_app/assets/fixtures/sf-001.pdf and the device staging copy); that is synthetic delivery evidence, not user content.\n' \
   >>"$RUN_DIR/privacy-log-check.txt"
 [[ "$PRIVACY_PASS" -eq 1 ]] ||
