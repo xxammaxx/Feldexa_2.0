@@ -21,13 +21,13 @@
 // FR-094, SC-017):
 //   * a body drag moves the selected confirmed field by the gesture-start
 //     pointer delta divided by the current view scale exactly once, clamped to
-//     the page, at 0.5×, 1×, 3×, and 8× fit-width — and one further 8× drag is
-//     dragged far enough to hit the page clamp and stays the same size;
+//     the page, at 0.5x, 1x, 3x, and 8x fit-width — and one further 8x drag is
+//     dragged far enough to hit the page clamp and keeps its size exactly;
 //   * all four corner handles and all four edge handles resize the field, the
 //     diagonally opposite corner / opposite edge stays bit-for-bit fixed, the
-//     aspect ratio stays free, and a handle is reachable from a touch point
-//     outside the stored rectangle (the 24 dp hit region);
-//   * the minimum committed size of 4 × 4 pt is enforced against the fixed
+//     aspect ratio stays free, and an edge handle is reachable from a touch
+//     point outside the stored rectangle (the 24 dp hit region);
+//   * the minimum committed size of 4 x 4 pt is enforced against the fixed
 //     anchor;
 //   * every gesture produces exactly one verified store commit, never one per
 //     frame: the head revision and the visible content are asserted unchanged
@@ -38,13 +38,20 @@
 //   * two-finger pan and pinch never edit geometry, while the page still pans
 //     and zooms.
 //
-// Markers are content-free: phase name, zero-based page index, the opaque
-// generated field id, the view scale in milli-units, the field rectangle in
-// 1/8 pt integer units, a frame/commit count, and the target scale. No label,
-// OCR text, title, path, URI, or entered value is printed. Screenshots are
-// captured by the host driver at the marked phases; each `_waitForDriver`
-// deletes any stale acknowledgement file first, so a capture can never show a
-// state from an earlier phase.
+// The resize phases run at a documented gesture zoom (`3 x fit-width`) so that
+// a 20 pt edge movement is a pointer delta well above Flutter's pan slop; the
+// page-display delta, not the zoom, is what the assertions fix. Every phase
+// keeps its expected rectangle inside the page display box, asserted as an
+// explicit precondition, so a phase that would silently hit the page clamp
+// fails loudly instead.
+//
+// Markers are content-free: phase name, handle, zero-based page index, the
+// opaque generated field id, the view scale in milli-units, rectangles in
+// 1/8 pt integer units, and frame/commit counts. No label, OCR text, title,
+// path, URI, or entered value is printed. Screenshots are captured by the host
+// driver at the marked phases; each `_waitForDriver` deletes any stale
+// acknowledgement file first, so a capture can never show a state from an
+// earlier phase.
 
 import 'dart:io';
 import 'dart:math' as math;
@@ -89,13 +96,28 @@ const MethodChannel _testHooks = MethodChannel('de.feldexa/test.import');
 /// Zero-based page the touch journey edits.
 const int _pageIndex = 0;
 
-/// Minimum committed field size and minimum handle hit region from
-/// `contracts/editor-interactions.md` §4, restated here as the acceptance
-/// values the gestures below prove behaviorally. The production constants live
-/// in `feldexa_ui`'s `field_geometry.dart`; this test observes them through the
-/// composed surface instead of importing that private library.
+/// Acceptance values from `contracts/editor-interactions.md` §4, restated here
+/// as the values the gestures below prove behaviorally. The production
+/// constants live in `feldexa_ui`'s `field_geometry.dart`; this test observes
+/// them through the composed surface instead of importing that private library.
 const double _contractMinSizePt = 4;
 const double _contractHandleHitDp = 24;
+
+/// Gesture zoom for the resize phases, as a multiple of fit-width.
+///
+/// A 20 pt edge movement is then a pointer delta of at least 40 logical pixels,
+/// which is above Flutter's 36 px pan slop, while the page-display delta the
+/// test asserts stays 20 pt. The zoom itself is not part of any expectation.
+const double _resizeGestureZoom = 3;
+
+/// Display-point size of one corner/edge movement in the resize phases.
+const double _resizeStepPt = 20;
+
+/// Display-point centre-right shrink that gives the body drags page room.
+const double _narrowStepPt = 200;
+
+/// Display-point bottom growth that gives the field a real body at 0.5x.
+const double _growStepPt = 150;
 
 /// Host-driver screenshot phases. The value is the marker the test emits; the
 /// driver answers with an `ack-<name>` file, and only then does the test
@@ -139,6 +161,10 @@ String _coreRectEighths(core.Rect rect) {
 /// A view scale as an integer in milli-units, content-free.
 int _scaleMilli(double scale) => (scale * 1000).round();
 
+Rect _flutterRect(core.Rect rect) {
+  return Rect.fromLTWH(rect.left, rect.top, rect.width, rect.height);
+}
+
 Future<void> _pumpUntil(
   WidgetTester tester,
   bool Function() condition, {
@@ -158,9 +184,9 @@ Future<void> _pumpUntil(
 
 /// Waits for a terminal first-analysis state and fails fast on `analysis-failed`.
 ///
-/// Mirrors the T071A driver-side waiter: the editor turns a load/analysis/save
-/// failure into the stable `analysis-failed` key, and the content-free page
-/// diagnostics are recorded before the journey stops.
+/// Mirrors the T071A waiter: the editor turns a load/analysis/save failure into
+/// the stable `analysis-failed` key, and the content-free page diagnostics are
+/// recorded before the journey stops.
 Future<void> _waitForAnalysisTerminal(
   WidgetTester tester,
   EditorScreenState state,
@@ -261,8 +287,7 @@ Uint8List _loadFixture() {
 /// with spaces of exactly the same length. All xref offsets stay valid, page 0
 /// keeps its usable geometry, and page 1 has no inheritable MediaBox, so it
 /// imports as `IMP-006`/`unsupportedStructure` `unreadable`. Page 0 remains the
-/// real analysis page this touch journey edits; the undamaged page 2 would
-/// otherwise block the real run in the synchronous geometry detector.
+/// real analysis page this touch journey edits.
 Uint8List _damageSecondPageMediaBox(Uint8List source) {
   const List<int> needle = <int>[
     0x2f,
@@ -328,10 +353,8 @@ core.Rect _storedRect(EditorScreenState state) {
       .rect;
 }
 
-Rect _storedViewRect(EditorScreenState state) {
-  final core.Rect rect = _storedRect(state);
-  return Rect.fromLTWH(rect.left, rect.top, rect.width, rect.height);
-}
+Rect _storedViewRect(EditorScreenState state) =>
+    _flutterRect(_storedRect(state));
 
 /// The page display box of page [pageIndex], used only for test preconditions.
 Rect _pageDisplayBox(EditorScreenState state) {
@@ -366,25 +389,23 @@ Offset _screenPoint(
   return _viewPointToScreen(tester, mapping.displayToView(displayPoint));
 }
 
-/// Sets the view scale and centers [rect] in the viewport.
+/// Sets the view scale and centers [displayPoint] of page [_pageIndex].
 ///
 /// This is the documented caller entry point of the T042/T078 view transform
 /// (`PageViewController.setView`), not a geometry shortcut: it changes only the
-/// transient scale/pan and never touches the document. The emitted evidence
-/// names the resulting scale so the screenshots and the gesture arithmetic
-/// belong to the same transform.
-Future<void> _setScaleOnRect(
+/// transient scale/pan and never touches the document.
+Future<void> _setScaleOnPoint(
   WidgetTester tester,
   EditorScreenState state,
-  Rect displayRect,
+  Offset displayPoint,
   double scale,
 ) async {
   final Size? viewport = state.viewController.viewportSize;
   expect(viewport, isNotNull, reason: 'the page viewport must be laid out');
   final PageViewMapping mapping = state.viewController.mappingFor(_pageIndex);
   final Offset center = Offset(
-    mapping.pageRect.left + displayRect.center.dx,
-    mapping.pageRect.top + displayRect.center.dy,
+    mapping.pageRect.left + displayPoint.dx,
+    mapping.pageRect.top + displayPoint.dy,
   );
   state.viewController.setView(
     scale: scale,
@@ -398,10 +419,20 @@ Future<void> _setScaleOnRect(
   expect(state.viewController.scale, scale);
 }
 
+/// Sets the view scale and centers [displayRect] in the viewport.
+Future<void> _setScaleOnRect(
+  WidgetTester tester,
+  EditorScreenState state,
+  Rect displayRect,
+  double scale,
+) {
+  return _setScaleOnPoint(tester, state, displayRect.center, scale);
+}
+
 /// A test precondition: [rect] must lie inside the page display box.
 ///
-/// This guards the fixed gesture deltas below against a changed fixture. It is
-/// a precondition, not an expectation: if it fails the journey stops instead of
+/// This guards the fixed gesture deltas against a changed fixture. It is a
+/// precondition, not an expectation: if it fails the journey stops instead of
 /// silently accepting a clamp the phase does not claim.
 void _expectInsidePage(Rect rect, Rect pageBox, String phase) {
   expect(
@@ -495,8 +526,6 @@ Future<void> _waitForSingleCommit(
     reason: '$phase: the transient preview must not outlive the commit',
   );
   expect(state.reviewBusy, isFalse);
-  expect(_storedRect(state).width, greaterThan(0));
-  expect(_storedRect(state).height, greaterThan(0));
 }
 
 /// The pointer move that crosses Flutter's pan slop for the scale recognizer.
@@ -555,8 +584,8 @@ Future<core.Rect> _dragToCommit(
     state.geometryGestureActive,
     isTrue,
     reason:
-        '$phase: the drag on the selected field must be claimed by the '
-        'touch geometry layer',
+        '$phase: the drag on the selected field must be claimed by the touch '
+        'geometry layer',
   );
   expect(
     find.byKey(_geometryPreviewKey),
@@ -580,6 +609,11 @@ Future<core.Rect> _dragToCommit(
     contentBefore: contentBefore,
     phase: phase,
   );
+  expect(
+    _storedRect(state),
+    previous,
+    reason: '$phase: no preview frame may persist geometry',
+  );
 
   await gesture.up();
   await tester.pump();
@@ -599,13 +633,128 @@ Future<core.Rect> _dragToCommit(
 
 /// Selects the confirmed field without opening the value sheet.
 ///
-/// T077's `FieldSelectionController` is the transient selection source of
-/// truth the composed overlay reads; tapping the field would additionally open
-/// the value sheet, which is not part of the touch-geometry journey.
+/// T077's `FieldSelectionController` is the transient selection source of truth
+/// the composed overlay reads; tapping the field would additionally open the
+/// value sheet, which is not part of the touch-geometry journey.
 Future<void> _selectField(WidgetTester tester, EditorScreenState state) async {
   state.selection.select(_targetFieldId);
   await tester.pumpAndSettle();
   expect(state.selection.selectedId, _targetFieldId);
+}
+
+/// One corner or edge resize gesture with its explicit expected rectangle.
+///
+/// [handleDisplay] is the touched page-display point (possibly outside the
+/// stored rectangle for the hit-region proof); [delta] is the exact page-display
+/// movement of the dragged edges; [expected] states which edges move. Every edge
+/// the gesture does not drag must stay bit-for-bit fixed, which is the
+/// "opposite anchor" rule of `contracts/editor-interactions.md` §4.
+Future<void> _resizeStep(
+  WidgetTester tester,
+  EditorScreenState state, {
+  required String phase,
+  required String handle,
+  required Offset handleDisplay,
+  required Offset delta,
+  required Rect expected,
+  required Rect pageBox,
+  required bool movesLeft,
+  required bool movesTop,
+  required bool movesRight,
+  required bool movesBottom,
+}) async {
+  _expectInsidePage(expected, pageBox, phase);
+  final double scale = state.viewController.mappingFor(_pageIndex).scale;
+  final List<String> moved = <String>[
+    if (movesLeft) 'left',
+    if (movesTop) 'top',
+    if (movesRight) 'right',
+    if (movesBottom) 'bottom',
+  ];
+  _marker(
+    'PHASE:$phase:HANDLE=$handle:SCALE_MILLI=${_scaleMilli(scale)}:'
+    'BEFORE_RECT_8TH=${_rectEighths(_storedViewRect(state))}:'
+    'DELTA_8TH=${_eighths(delta.dx)}:${_eighths(delta.dy)}:'
+    'EXPECTED_RECT_8TH=${_rectEighths(expected)}:'
+    'MOVED=${moved.join('+')}',
+  );
+  final core.Rect before = await _dragToCommit(
+    tester,
+    state,
+    phase: phase,
+    startLocal: state.viewController
+        .mappingFor(_pageIndex)
+        .displayToView(handleDisplay),
+    totalPx: Offset(delta.dx * scale, delta.dy * scale),
+  );
+  final core.Rect actual = _storedRect(state);
+  final Rect beforeRect = _flutterRect(before);
+  if (!movesLeft) {
+    expect(
+      actual.left,
+      beforeRect.left,
+      reason: '$phase: the left edge is not dragged and stays fixed',
+    );
+  }
+  if (!movesTop) {
+    expect(
+      actual.top,
+      beforeRect.top,
+      reason: '$phase: the top edge is not dragged and stays fixed',
+    );
+  }
+  if (!movesRight) {
+    expect(
+      actual.right,
+      beforeRect.right,
+      reason: '$phase: the right edge is the fixed opposite anchor',
+    );
+  }
+  if (!movesBottom) {
+    expect(
+      actual.bottom,
+      beforeRect.bottom,
+      reason: '$phase: the bottom edge is the fixed opposite anchor',
+    );
+  }
+  if (movesLeft) {
+    expect(
+      actual.left,
+      isNot(beforeRect.left),
+      reason: '$phase: the dragged left edge must move',
+    );
+  }
+  if (movesTop) {
+    expect(
+      actual.top,
+      isNot(beforeRect.top),
+      reason: '$phase: the dragged top edge must move',
+    );
+  }
+  if (movesRight) {
+    expect(
+      actual.right,
+      isNot(beforeRect.right),
+      reason: '$phase: the dragged right edge must move',
+    );
+  }
+  if (movesBottom) {
+    expect(
+      actual.bottom,
+      isNot(beforeRect.bottom),
+      reason: '$phase: the dragged bottom edge must move',
+    );
+  }
+  _expectRectClose(
+    actual,
+    expected,
+    reason: '$phase: only the dragged edges move, by delta / scale once',
+  );
+  _marker(
+    'RESIZE:$phase:HANDLE=$handle:'
+    'AFTER_RECT_8TH=${_coreRectEighths(actual)}:'
+    'MOVED=${moved.join('+')}:FIXED=${<String>[if (!movesLeft) 'left', if (!movesTop) 'top', if (!movesRight) 'right', if (!movesBottom) 'bottom'].join('+')}:COMMIT=1',
+  );
 }
 
 void main() {
@@ -650,8 +799,9 @@ void main() {
     }
   });
 
-  testWidgets('move and resize the selected confirmed field on the touch '
-      'surface', (WidgetTester tester) async {
+  testWidgets('move and resize the selected confirmed field on the touch surface', (
+    WidgetTester tester,
+  ) async {
     await app.main();
     await _pumpUntil(
       tester,
@@ -710,8 +860,8 @@ void main() {
     );
 
     // Confirm the largest unresolved text suggestion on the edited page. The
-    // largest one gives the touch journey a field with a real body, exactly as
-    // a user would confirm the most obvious input line first.
+    // largest one gives the touch journey a field with a real body, exactly
+    // as a user would confirm the most obvious input line first.
     core.FieldSuggestion? suggestion;
     double bestArea = -1;
     for (final core.FieldSuggestion candidate in state.content!.suggestions) {
@@ -782,318 +932,227 @@ void main() {
       'VIEWPORT_H=${state.viewController.viewportSize!.height.round()}',
     );
 
-    // ---------------------------------------------------------------------
+    // -------------------------------------------------------------------
     // A. All four corner handles (screenshot: resize-corners).
     //
-    // Each corner drag moves 60 pt on the horizontal axis and 10 pt on the
-    // vertical axis, so the field grows wide while its height stays positive:
-    // the stored rectangle starts 18 pt tall. The diagonal anchor is asserted
-    // bit-for-bit, and the free aspect ratio is proved by the width and height
-    // changing by different amounts.
-    // ---------------------------------------------------------------------
-    await _setScaleOnRect(tester, state, _storedViewRect(state), fitScale);
-    _marker(
-      'PHASE:resize-corners:SCALE_MILLI=${_scaleMilli(fitScale)}:'
-      'HANDLES=topLeft,topRight,bottomLeft,bottomRight',
-    );
+    // Every corner moves its two edges 20 pt outward at a 3 x fit-width
+    // gesture zoom, so the pointer delta is ~42 px and the page-display
+    // delta stays 20 pt. The diagonally opposite corner is asserted
+    // bit-for-bit, and the free aspect ratio is proved by the width and
+    // height changing by the same 20 pt here and by different amounts in the
+    // edge phase.
+    // -------------------------------------------------------------------
+    final double resizeScale = fitScale * _resizeGestureZoom;
+    const double step = _resizeStepPt;
 
-    // topLeft: left and top move, right and bottom are the fixed anchor.
+    // topLeft: left and top move; right and bottom are the fixed anchor.
     {
-      final core.Rect before = _storedRect(state);
-      final Rect r = Rect.fromLTWH(
-        before.left,
-        before.top,
-        before.width,
-        before.height,
+      await _setScaleOnPoint(
+        tester,
+        state,
+        _storedViewRect(state).topLeft,
+        resizeScale,
       );
-      final double scale = state.viewController.mappingFor(_pageIndex).scale;
-      const Offset delta = Offset(-60, -10);
+      final Rect r = _storedViewRect(state);
       final Rect expected = Rect.fromLTRB(
-        r.left + delta.dx,
-        r.top + delta.dy,
+        r.left - step,
+        r.top - step,
         r.right,
         r.bottom,
       );
-      _expectInsidePage(expected, pageBox, 'resize-corners-topLeft');
-      await _dragToCommit(
+      await _resizeStep(
         tester,
         state,
         phase: 'resize-corners-topLeft',
-        startLocal: state.viewController
-            .mappingFor(_pageIndex)
-            .displayToView(r.topLeft),
-        totalPx: delta * scale,
-      );
-      final core.Rect actual = _storedRect(state);
-      expect(actual.right, r.right, reason: 'the right edge is the anchor');
-      expect(actual.bottom, r.bottom, reason: 'the bottom edge is the anchor');
-      _expectRectClose(
-        actual,
-        expected,
-        reason: 'topLeft corner resize keeps the bottom-right anchor',
+        handle: 'topLeft',
+        handleDisplay: r.topLeft,
+        delta: Offset(-step, -step),
+        expected: expected,
+        pageBox: pageBox,
+        movesLeft: true,
+        movesTop: true,
+        movesRight: false,
+        movesBottom: false,
       );
       expect(
-        actual.width - before.width,
-        isNot(closeTo(actual.height - before.height, 1e-6)),
+        expected.width / expected.height,
+        isNot(closeTo(r.width / r.height, 1e-9)),
         reason: 'a corner drag keeps the aspect ratio free',
       );
     }
 
-    // topRight: right and top move, left and bottom are the fixed anchor.
+    // topRight: right and top move; left and bottom are the fixed anchor.
     {
-      final core.Rect before = _storedRect(state);
-      final Rect r = Rect.fromLTWH(
-        before.left,
-        before.top,
-        before.width,
-        before.height,
+      await _setScaleOnPoint(
+        tester,
+        state,
+        _storedViewRect(state).topRight,
+        resizeScale,
       );
-      final double scale = state.viewController.mappingFor(_pageIndex).scale;
-      const Offset delta = Offset(60, -10);
-      final Rect expected = Rect.fromLTRB(
-        r.left,
-        r.top + delta.dy,
-        r.right + delta.dx,
-        r.bottom,
-      );
-      _expectInsidePage(expected, pageBox, 'resize-corners-topRight');
-      await _dragToCommit(
+      final Rect r = _storedViewRect(state);
+      await _resizeStep(
         tester,
         state,
         phase: 'resize-corners-topRight',
-        startLocal: state.viewController
-            .mappingFor(_pageIndex)
-            .displayToView(r.topRight),
-        totalPx: delta * scale,
-      );
-      final core.Rect actual = _storedRect(state);
-      expect(actual.left, r.left, reason: 'the left edge is the anchor');
-      expect(actual.bottom, r.bottom, reason: 'the bottom edge is the anchor');
-      _expectRectClose(
-        actual,
-        expected,
-        reason: 'topRight corner resize keeps the bottom-left anchor',
+        handle: 'topRight',
+        handleDisplay: r.topRight,
+        delta: Offset(step, -step),
+        expected: Rect.fromLTRB(r.left, r.top - step, r.right + step, r.bottom),
+        pageBox: pageBox,
+        movesLeft: false,
+        movesTop: true,
+        movesRight: true,
+        movesBottom: false,
       );
     }
 
-    // bottomLeft: left and bottom move, right and top are the fixed anchor.
+    // bottomLeft: left and bottom move; right and top are the fixed anchor.
     {
-      final core.Rect before = _storedRect(state);
-      final Rect r = Rect.fromLTWH(
-        before.left,
-        before.top,
-        before.width,
-        before.height,
+      await _setScaleOnPoint(
+        tester,
+        state,
+        _storedViewRect(state).bottomLeft,
+        resizeScale,
       );
-      final double scale = state.viewController.mappingFor(_pageIndex).scale;
-      const Offset delta = Offset(-60, 10);
-      final Rect expected = Rect.fromLTRB(
-        r.left + delta.dx,
-        r.top,
-        r.right,
-        r.bottom + delta.dy,
-      );
-      _expectInsidePage(expected, pageBox, 'resize-corners-bottomLeft');
-      await _dragToCommit(
+      final Rect r = _storedViewRect(state);
+      await _resizeStep(
         tester,
         state,
         phase: 'resize-corners-bottomLeft',
-        startLocal: state.viewController
-            .mappingFor(_pageIndex)
-            .displayToView(r.bottomLeft),
-        totalPx: delta * scale,
-      );
-      final core.Rect actual = _storedRect(state);
-      expect(actual.right, r.right, reason: 'the right edge is the anchor');
-      expect(actual.top, r.top, reason: 'the top edge is the anchor');
-      _expectRectClose(
-        actual,
-        expected,
-        reason: 'bottomLeft corner resize keeps the top-right anchor',
+        handle: 'bottomLeft',
+        handleDisplay: r.bottomLeft,
+        delta: Offset(-step, step),
+        expected: Rect.fromLTRB(r.left - step, r.top, r.right, r.bottom + step),
+        pageBox: pageBox,
+        movesLeft: true,
+        movesTop: false,
+        movesRight: false,
+        movesBottom: true,
       );
     }
 
-    // bottomRight: right and bottom move, left and top are the fixed anchor.
+    // bottomRight: right and bottom move; left and top are the fixed anchor.
     {
-      final core.Rect before = _storedRect(state);
-      final Rect r = Rect.fromLTWH(
-        before.left,
-        before.top,
-        before.width,
-        before.height,
+      await _setScaleOnPoint(
+        tester,
+        state,
+        _storedViewRect(state).bottomRight,
+        resizeScale,
       );
-      final double scale = state.viewController.mappingFor(_pageIndex).scale;
-      const Offset delta = Offset(40, 60);
-      final Rect expected = Rect.fromLTRB(
-        r.left,
-        r.top,
-        r.right + delta.dx,
-        r.bottom + delta.dy,
-      );
-      _expectInsidePage(expected, pageBox, 'resize-corners-bottomRight');
-      await _dragToCommit(
+      final Rect r = _storedViewRect(state);
+      await _resizeStep(
         tester,
         state,
         phase: 'resize-corners-bottomRight',
-        startLocal: state.viewController
-            .mappingFor(_pageIndex)
-            .displayToView(r.bottomRight),
-        totalPx: delta * scale,
-      );
-      final core.Rect actual = _storedRect(state);
-      expect(actual.left, r.left, reason: 'the left edge is the anchor');
-      expect(actual.top, r.top, reason: 'the top edge is the anchor');
-      _expectRectClose(
-        actual,
-        expected,
-        reason: 'bottomRight corner resize keeps the top-left anchor',
+        handle: 'bottomRight',
+        handleDisplay: r.bottomRight,
+        delta: Offset(step, step),
+        expected: Rect.fromLTRB(r.left, r.top, r.right + step, r.bottom + step),
+        pageBox: pageBox,
+        movesLeft: false,
+        movesTop: false,
+        movesRight: true,
+        movesBottom: true,
       );
     }
 
     await _setScaleOnRect(tester, state, _storedViewRect(state), fitScale);
     _marker(
-      'RESIZE_CORNERS_DONE:RECT_8TH=${_coreRectEighths(_storedRect(state))}',
+      'RESIZE_CORNERS_DONE:HANDLES=topLeft,topRight,bottomLeft,bottomRight:'
+      'RECT_8TH=${_coreRectEighths(_storedRect(state))}',
     );
     await _waitForDriver('resize-corners');
 
-    // ---------------------------------------------------------------------
+    // -------------------------------------------------------------------
     // B. All four edge handles (screenshot: resize-edges).
     //
-    // The centerLeft drag deliberately starts 10 *display points* outside the
-    // stored rectangle: the view scale keeps that inside the 24 dp handle hit
-    // region, so a successful claim proves the hit region extends beyond the
-    // stored geometry. Only the dragged edge may move.
-    // ---------------------------------------------------------------------
-    await _setScaleOnRect(
-      tester,
-      state,
-      _storedViewRect(state),
-      fitScale * 1.25,
-    );
-    _marker(
-      'PHASE:resize-edges:SCALE_MILLI=${_scaleMilli(state.viewController.scale)}:'
-      'HANDLES=topCenter,bottomCenter,centerLeft,centerRight:'
-      'OUTSIDE_DP=10',
-    );
-
-    // topCenter: only the top edge moves.
+    // The centerLeft drag deliberately starts 4 *display points* outside the
+    // stored rectangle: at the 3 x gesture zoom that is ~8.3 dp outside, still
+    // inside the 24 dp handle hit region, so a successful claim proves the
+    // region extends beyond the stored geometry. Only the dragged edge moves.
+    // The bottom edge also grows the field so the body drags below have a real
+    // body at 0.5x, and the right edge narrows it so the moves have page room.
+    // -------------------------------------------------------------------
+    // topCenter: only the top edge moves (inward, keeping the page margin).
     {
-      final core.Rect before = _storedRect(state);
-      final Rect r = Rect.fromLTWH(
-        before.left,
-        before.top,
-        before.width,
-        before.height,
+      await _setScaleOnPoint(
+        tester,
+        state,
+        Offset(_storedViewRect(state).center.dx, _storedViewRect(state).top),
+        resizeScale,
       );
-      final double scale = state.viewController.mappingFor(_pageIndex).scale;
-      const Offset delta = Offset(0, -60);
-      final Rect expected = Rect.fromLTRB(
-        r.left,
-        r.top + delta.dy,
-        r.right,
-        r.bottom,
-      );
-      _expectInsidePage(expected, pageBox, 'resize-edges-topCenter');
-      await _dragToCommit(
+      final Rect r = _storedViewRect(state);
+      await _resizeStep(
         tester,
         state,
         phase: 'resize-edges-topCenter',
-        startLocal: state.viewController
-            .mappingFor(_pageIndex)
-            .displayToView(Offset(r.center.dx, r.top)),
-        totalPx: delta * scale,
-      );
-      final core.Rect actual = _storedRect(state);
-      expect(actual.left, r.left);
-      expect(actual.right, r.right);
-      expect(actual.bottom, r.bottom);
-      _expectRectClose(
-        actual,
-        expected,
-        reason: 'topCenter edge resize keeps the bottom edge fixed',
+        handle: 'topCenter',
+        handleDisplay: Offset(r.center.dx, r.top),
+        delta: Offset(0, step),
+        expected: Rect.fromLTRB(r.left, r.top + step, r.right, r.bottom),
+        pageBox: pageBox,
+        movesLeft: false,
+        movesTop: true,
+        movesRight: false,
+        movesBottom: false,
       );
     }
 
-    // bottomCenter: only the bottom edge moves.
+    // bottomCenter: only the bottom edge moves, and it grows.
     {
-      final core.Rect before = _storedRect(state);
-      final Rect r = Rect.fromLTWH(
-        before.left,
-        before.top,
-        before.width,
-        before.height,
+      await _setScaleOnPoint(
+        tester,
+        state,
+        Offset(_storedViewRect(state).center.dx, _storedViewRect(state).bottom),
+        resizeScale,
       );
-      final double scale = state.viewController.mappingFor(_pageIndex).scale;
-      const Offset delta = Offset(0, 60);
-      final Rect expected = Rect.fromLTRB(
-        r.left,
-        r.top,
-        r.right,
-        r.bottom + delta.dy,
-      );
-      _expectInsidePage(expected, pageBox, 'resize-edges-bottomCenter');
-      await _dragToCommit(
+      final Rect r = _storedViewRect(state);
+      await _resizeStep(
         tester,
         state,
         phase: 'resize-edges-bottomCenter',
-        startLocal: state.viewController
-            .mappingFor(_pageIndex)
-            .displayToView(Offset(r.center.dx, r.bottom)),
-        totalPx: delta * scale,
-      );
-      final core.Rect actual = _storedRect(state);
-      expect(actual.left, r.left);
-      expect(actual.right, r.right);
-      expect(actual.top, r.top);
-      _expectRectClose(
-        actual,
-        expected,
-        reason: 'bottomCenter edge resize keeps the top edge fixed',
+        handle: 'bottomCenter',
+        handleDisplay: Offset(r.center.dx, r.bottom),
+        delta: const Offset(0, _growStepPt),
+        expected: Rect.fromLTRB(r.left, r.top, r.right, r.bottom + _growStepPt),
+        pageBox: pageBox,
+        movesLeft: false,
+        movesTop: false,
+        movesRight: false,
+        movesBottom: true,
       );
     }
 
     // centerLeft: only the left edge moves, and the touch point is outside the
     // stored rectangle but inside the 24 dp handle hit region.
     {
-      final core.Rect before = _storedRect(state);
-      final Rect r = Rect.fromLTWH(
-        before.left,
-        before.top,
-        before.width,
-        before.height,
+      const double outsidePt = 4;
+      await _setScaleOnPoint(
+        tester,
+        state,
+        Offset(_storedViewRect(state).left, _storedViewRect(state).center.dy),
+        resizeScale,
       );
+      final Rect r = _storedViewRect(state);
       final double scale = state.viewController.mappingFor(_pageIndex).scale;
-      const Offset delta = Offset(-60, 0);
-      const double outsidePt = 10;
       expect(
         outsidePt * scale,
         lessThan(_contractHandleHitDp / 2),
         reason: 'the outside touch point must stay inside the 24 dp region',
       );
-      final Rect expected = Rect.fromLTRB(
-        r.left + delta.dx,
-        r.top,
-        r.right,
-        r.bottom,
-      );
-      _expectInsidePage(expected, pageBox, 'resize-edges-centerLeft');
-      await _dragToCommit(
+      await _resizeStep(
         tester,
         state,
         phase: 'resize-edges-centerLeft-outside-hit',
-        startLocal: state.viewController
-            .mappingFor(_pageIndex)
-            .displayToView(Offset(r.left - outsidePt, r.center.dy)),
-        totalPx: delta * scale,
-      );
-      final core.Rect actual = _storedRect(state);
-      expect(actual.top, r.top);
-      expect(actual.bottom, r.bottom);
-      expect(actual.right, r.right);
-      _expectRectClose(
-        actual,
-        expected,
-        reason: 'centerLeft edge resize keeps the right edge fixed',
+        handle: 'centerLeft',
+        handleDisplay: Offset(r.left - outsidePt, r.center.dy),
+        delta: Offset(step, 0),
+        expected: Rect.fromLTRB(r.left + step, r.top, r.right, r.bottom),
+        pageBox: pageBox,
+        movesLeft: true,
+        movesTop: false,
+        movesRight: false,
+        movesBottom: false,
       );
       _marker(
         'HIT_REGION:EDGE=centerLeft:OUTSIDE_PT=$outsidePt:'
@@ -1102,42 +1161,34 @@ void main() {
       );
     }
 
-    // centerRight: only the right edge moves (the field narrows so the body
-    // drag below has page room on both sides).
+    // centerRight: only the right edge moves; it narrows the field so the
+    // body drags have page room on both sides.
     {
-      final core.Rect before = _storedRect(state);
-      final Rect r = Rect.fromLTWH(
-        before.left,
-        before.top,
-        before.width,
-        before.height,
+      await _setScaleOnPoint(
+        tester,
+        state,
+        Offset(_storedViewRect(state).right, _storedViewRect(state).center.dy),
+        resizeScale,
       );
-      final double scale = state.viewController.mappingFor(_pageIndex).scale;
-      const Offset delta = Offset(-200, 0);
-      final Rect expected = Rect.fromLTRB(
-        r.left,
-        r.top,
-        r.right + delta.dx,
-        r.bottom,
-      );
-      _expectInsidePage(expected, pageBox, 'resize-edges-centerRight');
-      await _dragToCommit(
+      final Rect r = _storedViewRect(state);
+      await _resizeStep(
         tester,
         state,
         phase: 'resize-edges-centerRight',
-        startLocal: state.viewController
-            .mappingFor(_pageIndex)
-            .displayToView(Offset(r.right, r.center.dy)),
-        totalPx: delta * scale,
-      );
-      final core.Rect actual = _storedRect(state);
-      expect(actual.left, r.left);
-      expect(actual.top, r.top);
-      expect(actual.bottom, r.bottom);
-      _expectRectClose(
-        actual,
-        expected,
-        reason: 'centerRight edge resize keeps the left edge fixed',
+        handle: 'centerRight',
+        handleDisplay: Offset(r.right, r.center.dy),
+        delta: const Offset(-_narrowStepPt, 0),
+        expected: Rect.fromLTRB(
+          r.left,
+          r.top,
+          r.right - _narrowStepPt,
+          r.bottom,
+        ),
+        pageBox: pageBox,
+        movesLeft: false,
+        movesTop: false,
+        movesRight: true,
+        movesBottom: false,
       );
     }
 
@@ -1148,19 +1199,20 @@ void main() {
       fitScale * 1.25,
     );
     _marker(
-      'RESIZE_EDGES_DONE:RECT_8TH=${_coreRectEighths(_storedRect(state))}',
+      'RESIZE_EDGES_DONE:HANDLES=topCenter,bottomCenter,centerLeft,centerRight:'
+      'RECT_8TH=${_coreRectEighths(_storedRect(state))}',
     );
     await _waitForDriver('resize-edges');
 
-    // ---------------------------------------------------------------------
-    // C. Body drag at 0.5×, 1×, 3×, and 8× fit width, plus one clamped drag.
+    // -------------------------------------------------------------------
+    // C. Body drag at 0.5x, 1x, 3x, and 8x fit width, plus one clamped drag.
     //
     // Each phase sets an exact view scale, then drags the field body with a
     // single pointer delta whose page-display value is `pointerDelta / scale`.
-    // The stored size is unchanged and the expected rectangle is computed from
-    // that one division, so a double division (or a per-frame accumulation)
-    // cannot pass.
-    // ---------------------------------------------------------------------
+    // The stored size is unchanged and the expected rectangle is computed
+    // from that one division, so a double division (or a per-frame
+    // accumulation) cannot pass.
+    // -------------------------------------------------------------------
     Future<void> bodyDragPhase({
       required String phase,
       required String screenshot,
@@ -1173,12 +1225,7 @@ void main() {
       final double scale = state.viewController.mappingFor(_pageIndex).scale;
       expect(scale, targetScale);
       final core.Rect before = _storedRect(state);
-      final Rect r = Rect.fromLTWH(
-        before.left,
-        before.top,
-        before.width,
-        before.height,
-      );
+      final Rect r = _flutterRect(before);
       final Offset displayDelta = Offset(
         totalPx.dx / scale,
         totalPx.dy / scale,
@@ -1187,7 +1234,8 @@ void main() {
       _expectInsidePage(expected, pageBox, phase);
       _marker(
         'PHASE:$phase:SCALE_MILLI=${_scaleMilli(scale)}:'
-        'DELTA_8TH=${_eighths(displayDelta.dx)}:${_eighths(displayDelta.dy)}:'
+        'DELTA_8TH=${_eighths(displayDelta.dx)}:'
+        '${_eighths(displayDelta.dy)}:'
         'BEFORE_RECT_8TH=${_rectEighths(r)}',
       );
       await _dragToCommit(
@@ -1211,7 +1259,11 @@ void main() {
         before.width,
         reason: '$phase: a body drag must not resize the field',
       );
-      expect(actual.height, before.height, reason: '$phase: size preserved');
+      expect(
+        actual.height,
+        before.height,
+        reason: '$phase: a body drag must not resize the field',
+      );
       expect(
         actual.left,
         isNot(before.left),
@@ -1231,7 +1283,7 @@ void main() {
       await _waitForDriver(screenshot);
     }
 
-    // 0.5×: the pointer delta is dominated by the pan slop at this zoom, which
+    // 0.5x: the pointer delta is dominated by the pan slop at this zoom, which
     // is exactly what "divided by the current scale once" means.
     await bodyDragPhase(
       phase: 'move-0.5x',
@@ -1262,8 +1314,8 @@ void main() {
       screenshotScaleFactor: 8,
     );
 
-    // One more 8× drag far past the page edge: the rectangle keeps its size and
-    // stops exactly at the page box, which is the §4 clamp.
+    // One more 8x drag far past the page edge: the rectangle keeps its size
+    // and stops exactly at the page box, which is the §4 clamp.
     late core.Rect preClampRect;
     {
       await _setScaleOnRect(
@@ -1294,12 +1346,7 @@ void main() {
         phase: 'move-clamped',
         startLocal: state.viewController
             .mappingFor(_pageIndex)
-            .displayToView(
-              Offset(
-                before.left + before.width / 2,
-                before.top + before.height / 2,
-              ),
-            ),
+            .displayToView(_flutterRect(before).center),
         totalPx: totalPx,
       );
       final core.Rect actual = _storedRect(state);
@@ -1323,7 +1370,11 @@ void main() {
         closeTo(pageBox.right - before.width, 1e-9),
         reason: 'the clamped move keeps the page-relative offset',
       );
-      expect(actual.top, before.top, reason: 'no vertical movement requested');
+      expect(
+        actual.top,
+        closeTo(before.top, 1e-9),
+        reason: 'no vertical movement was requested',
+      );
       _marker(
         'MOVE:move-clamped:PAGE=$_pageIndex:FIELD=$_targetFieldId:'
         'SCALE_MILLI=${_scaleMilli(scale)}:'
@@ -1338,18 +1389,17 @@ void main() {
       await _waitForDriver('move-clamped');
     }
 
-    // ---------------------------------------------------------------------
+    // -------------------------------------------------------------------
     // D. Undo restores the exact previous rectangle (screenshot: undo).
     //
-    // The newest history entry is the clamped move, so undo must write back its
-    // exact stored `before` snapshot rather than re-deriving a rectangle.
-    // ---------------------------------------------------------------------
+    // The newest history entry is the clamped move, so undo must write back
+    // its exact stored `before` snapshot rather than re-deriving a rectangle.
+    // -------------------------------------------------------------------
     {
       final core.Rect current = _storedRect(state);
-      final core.Rect restoredExpected = preClampRect;
       expect(
         current,
-        isNot(restoredExpected),
+        isNot(preClampRect),
         reason: 'the clamped move must still be the newest committed change',
       );
       final String? headBefore = state.headRevisionId;
@@ -1375,7 +1425,7 @@ void main() {
       final core.Rect actual = _storedRect(state);
       expect(
         actual,
-        restoredExpected,
+        preClampRect,
         reason: 'undo must restore the exact previous rectangle bit for bit',
       );
       expect(
@@ -1396,9 +1446,9 @@ void main() {
       await _waitForDriver('undo');
     }
 
-    // ---------------------------------------------------------------------
+    // -------------------------------------------------------------------
     // E. A pointer cancel discards the preview and commits nothing.
-    // ---------------------------------------------------------------------
+    // -------------------------------------------------------------------
     {
       await _setScaleOnRect(
         tester,
@@ -1412,12 +1462,7 @@ void main() {
       final String contentBefore = core.canonicalJsonEncode(
         state.content!.toJson(),
       );
-      final Rect r = Rect.fromLTWH(
-        before.left,
-        before.top,
-        before.width,
-        before.height,
-      );
+      final Rect r = _flutterRect(before);
       _marker(
         'PHASE:pointer-cancel:SCALE_MILLI=${_scaleMilli(scale)}:'
         'RECT_8TH=${_rectEighths(r)}',
@@ -1464,9 +1509,9 @@ void main() {
       await _waitForDriver('cancel');
     }
 
-    // ---------------------------------------------------------------------
+    // -------------------------------------------------------------------
     // F. Two-finger gestures never edit geometry, but still pan and zoom.
-    // ---------------------------------------------------------------------
+    // -------------------------------------------------------------------
     {
       await _setScaleOnRect(
         tester,
@@ -1479,22 +1524,17 @@ void main() {
       final String contentBefore = core.canonicalJsonEncode(
         state.content!.toJson(),
       );
-      final Rect r = Rect.fromLTWH(
-        before.left,
-        before.top,
-        before.width,
-        before.height,
-      );
       final Offset centerLocal = state.viewController
           .mappingFor(_pageIndex)
-          .displayToView(r.center);
+          .displayToView(_flutterRect(before).center);
       _marker(
-        'PHASE:two-finger-pinch:SCALE_MILLI=${_scaleMilli(state.viewController.scale)}:'
-        'RECT_8TH=${_rectEighths(r)}',
+        'PHASE:two-finger-pinch:'
+        'SCALE_MILLI=${_scaleMilli(state.viewController.scale)}:'
+        'RECT_8TH=${_coreRectEighths(before)}',
       );
 
-      // The first pointer claims a geometry drag on the field body; the second
-      // pointer must cancel the claim before anything is committed.
+      // The first pointer claims a geometry drag on the field body; the
+      // second pointer must cancel the claim before anything is committed.
       final TestGesture first = await tester.startGesture(
         _viewPointToScreen(tester, centerLocal),
       );
@@ -1506,7 +1546,7 @@ void main() {
         reason: 'the first pointer claims a geometry drag on the body',
       );
       final TestGesture second = await tester.startGesture(
-        _viewPointToScreen(tester, centerLocal + const Offset(0, 70)),
+        _viewPointToScreen(tester, centerLocal + const Offset(0, 60)),
       );
       await tester.pump();
       expect(
@@ -1545,15 +1585,16 @@ void main() {
       );
       expect(_storedRect(state), before);
       _marker(
-        'TWO_FINGER:pinch:COMMITS=0:SCALE_MILLI=${_scaleMilli(state.viewController.scale)}:'
+        'TWO_FINGER:pinch:COMMITS=0:'
+        'SCALE_MILLI=${_scaleMilli(state.viewController.scale)}:'
         'RECT_8TH=${_coreRectEighths(_storedRect(state))}',
       );
       await _waitForDriver('two-finger-pinch');
     }
 
     {
-      // The field stays centered at 2× so the first pointer lands on its body;
-      // the pan below then still has room on both axes inside the pan clamp.
+      // The field stays centered at 2x so the first pointer lands on its
+      // body; the pan below still has room on both axes inside the clamp.
       await _setScaleOnRect(
         tester,
         state,
@@ -1565,19 +1606,14 @@ void main() {
       final String contentBefore = core.canonicalJsonEncode(
         state.content!.toJson(),
       );
-      final Rect r = Rect.fromLTWH(
-        before.left,
-        before.top,
-        before.width,
-        before.height,
-      );
       final Offset panBefore = state.viewController.pan;
       final Offset centerLocal = state.viewController
           .mappingFor(_pageIndex)
-          .displayToView(r.center);
+          .displayToView(_flutterRect(before).center);
       _marker(
-        'PHASE:two-finger-pan:SCALE_MILLI=${_scaleMilli(state.viewController.scale)}:'
-        'RECT_8TH=${_rectEighths(r)}',
+        'PHASE:two-finger-pan:'
+        'SCALE_MILLI=${_scaleMilli(state.viewController.scale)}:'
+        'RECT_8TH=${_coreRectEighths(before)}',
       );
       final TestGesture first = await tester.startGesture(
         _viewPointToScreen(tester, centerLocal),
@@ -1586,7 +1622,7 @@ void main() {
       await tester.pump();
       expect(state.geometryGestureActive, isTrue);
       final TestGesture second = await tester.startGesture(
-        _viewPointToScreen(tester, centerLocal + const Offset(0, 70)),
+        _viewPointToScreen(tester, centerLocal + const Offset(0, 60)),
       );
       await tester.pump();
       expect(
@@ -1627,25 +1663,19 @@ void main() {
       await _waitForDriver('two-finger-pan');
     }
 
-    // ---------------------------------------------------------------------
-    // G. The 4 × 4 pt minimum committed size is enforced against the anchor.
-    // ---------------------------------------------------------------------
+    // -------------------------------------------------------------------
+    // G. The 4 x 4 pt minimum committed size is enforced against the anchor.
+    // -------------------------------------------------------------------
     {
-      await _setScaleOnRect(
+      await _setScaleOnPoint(
         tester,
         state,
-        _storedViewRect(state),
+        _storedViewRect(state).bottomRight,
         fitScale * 1.5,
       );
       final double scale = state.viewController.mappingFor(_pageIndex).scale;
       final core.Rect before = _storedRect(state);
-      final Rect r = Rect.fromLTWH(
-        before.left,
-        before.top,
-        before.width,
-        before.height,
-      );
-      const Offset totalPx = Offset(-2000, -2000);
+      final Rect r = _flutterRect(before);
       _marker(
         'PHASE:min-size:SCALE_MILLI=${_scaleMilli(scale)}:'
         'BEFORE_RECT_8TH=${_rectEighths(r)}:MIN_PT=$_contractMinSizePt',
@@ -1657,7 +1687,7 @@ void main() {
         startLocal: state.viewController
             .mappingFor(_pageIndex)
             .displayToView(r.bottomRight),
-        totalPx: totalPx,
+        totalPx: const Offset(-2000, -2000),
       );
       final core.Rect actual = _storedRect(state);
       expect(
@@ -1684,20 +1714,20 @@ void main() {
         'MIN_SIZE:PT=$_contractMinSizePt:'
         'RECT_8TH=${_coreRectEighths(actual)}:ANCHOR_FIXED=1',
       );
-      // The 4 × 4 pt field is shown at the 8× upper zoom bound so the clamped
+      // The 4 x 4 pt field is shown at the 8x upper zoom bound so the clamped
       // minimum is actually visible in the screenshot.
-      await _setScaleOnRect(
+      await _setScaleOnPoint(
         tester,
         state,
-        _storedViewRect(state),
+        _flutterRect(actual).center,
         state.viewController.maxScale,
       );
       await _waitForDriver('min-size');
     }
 
-    // ---------------------------------------------------------------------
+    // -------------------------------------------------------------------
     // H. Durable read-back of the final geometry.
-    // ---------------------------------------------------------------------
+    // -------------------------------------------------------------------
     final LoadedDocument readBack = await editor.runtime.store.loadDocument(
       documentId,
     );
@@ -1712,8 +1742,7 @@ void main() {
     expect(readBack.meta.latestRevisionId, state.headRevisionId);
     _marker(
       'READBACK:OK:PAGE=$_pageIndex:FIELD=$_targetFieldId:'
-      'RECT_8TH=${_coreRectEighths(storedField.rect)}:'
-      'HEAD_MATCH=1',
+      'RECT_8TH=${_coreRectEighths(storedField.rect)}:HEAD_MATCH=1',
     );
     _marker('CLEANUP_DONE');
   });
