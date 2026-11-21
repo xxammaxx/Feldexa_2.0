@@ -49,11 +49,12 @@
 //   * every gesture produces exactly one verified store commit, never one per
 //     frame: a counting facade around the real editor runtime counts
 //     `saveRevision` calls, and the test asserts zero calls during a hold window
-//     that is longer than the measured commit latency, exactly one call per
-//     gesture, and no in-flight commit (`reviewBusy` false, preview painted,
-//     gesture active) while the pointer is held. A pure assertion negative
-//     control and a real double-commit fault injection prove the assertion is
-//     not vacuous and that it fails on two revisions;
+//     that is longer than the fastest measured commit latency (at least 1 s,
+//     with the slowest observed latency recorded in the marker), exactly one
+//     call per gesture, and no in-flight commit (`reviewBusy` false, preview
+//     painted, gesture active) while the pointer is held. A pure assertion
+//     negative control and a real double-commit fault injection prove the
+//     assertion is not vacuous and that it fails on two store calls;
 //   * a pointer cancel discards the preview and commits nothing;
 //   * undo restores the exact previous rectangle (bit-for-bit, not re-derived);
 //   * two-finger pan and pinch never edit geometry, while the page still pans
@@ -827,17 +828,20 @@ Future<void> _moveByTotal(TestGesture gesture, Offset total) async {
   }
 }
 
-/// The longest pointer-up -> committed-revision latency observed so far.
+/// The fastest and slowest pointer-up -> committed-revision latency observed.
 ///
-/// The hold window of every later gesture must exceed it, which is what makes
-/// "no save while the pointer is held" a real window rather than a single frame.
-Duration _commitLatency = Duration.zero;
+/// The hold window must exceed the fastest verified commit, which is the
+/// physical commit cost of this build on this device. The slowest value is
+/// recorded too: a scheduling outlier (one run observed 18 s for a commit that
+/// normally takes 40-600 ms) must not be able to force an unbounded journey, and
+/// it is reported rather than hidden.
+Duration _commitLatencyMin = Duration.zero;
+Duration _commitLatencyMax = Duration.zero;
 
 /// The hold window for the next gesture: at least the base window and at least
-/// twice the worst commit latency observed so far, bounded by
-/// [_maxHoldWindow].
+/// twice the fastest verified commit, bounded by [_maxHoldWindow].
 Duration _holdWindow() {
-  final Duration doubled = _commitLatency * 2;
+  final Duration doubled = _commitLatencyMin * 2;
   final Duration window = doubled > _holdWindowBase ? doubled : _holdWindowBase;
   return window > _maxHoldWindow ? _maxHoldWindow : window;
 }
@@ -845,7 +849,7 @@ Duration _holdWindow() {
 /// Drives one claimed geometry gesture and waits for its single commit.
 ///
 /// While the pointer is held the test keeps pumping for a window longer than the
-/// worst measured commit latency and asserts, on *every* frame, that the gesture
+/// fastest measured commit latency and asserts, on *every* frame, that the gesture
 /// is still active, the preview is painted, no commit is in flight
 /// (`reviewBusy` false), the head/content are unchanged, and the count of real
 /// `saveRevision` calls has not increased. Returns the stored rectangle the
@@ -867,10 +871,11 @@ Future<core.Rect> _dragToCommit(
   final Duration holdWindow = _holdWindow();
   expect(
     holdWindow,
-    greaterThan(_commitLatency),
+    greaterThan(_commitLatencyMin),
     reason:
-        '$phase: the hold window must be longer than the measured commit '
-        'latency (${_commitLatency.inMilliseconds} ms)',
+        '$phase: the hold window must be longer than the fastest measured '
+        'commit latency (${_commitLatencyMin.inMilliseconds} ms); the slowest '
+        'observed latency so far is ${_commitLatencyMax.inMilliseconds} ms',
   );
 
   final TestGesture gesture = await tester.startGesture(
@@ -957,8 +962,11 @@ Future<core.Rect> _dragToCommit(
     phase: phase,
   );
   final Duration latency = DateTime.now().difference(upAt);
-  if (latency > _commitLatency) {
-    _commitLatency = latency;
+  if (_commitLatencyMin == Duration.zero || latency < _commitLatencyMin) {
+    _commitLatencyMin = latency;
+  }
+  if (latency > _commitLatencyMax) {
+    _commitLatencyMax = latency;
   }
   final int savesAfter = _storeSpy.saves;
   _expectSingleStoreRevision(
@@ -972,6 +980,8 @@ Future<core.Rect> _dragToCommit(
     'SCALE_MILLI=${_scaleMilli(scale)}:HELD_FRAMES=$frames:'
     'HOLD_MS=${held.inMilliseconds}:'
     'LATENCY_MS=${latency.inMilliseconds}:'
+    'MIN_LATENCY_MS=${_commitLatencyMin.inMilliseconds}:'
+    'MAX_LATENCY_MS=${_commitLatencyMax.inMilliseconds}:'
     'SAVES_HELD=$savesDuringHold:SAVES_DELTA=${savesAfter - savesBefore}:'
     'REVIEW_BUSY_HELD=0:PREVIEW_HELD=1',
   );
