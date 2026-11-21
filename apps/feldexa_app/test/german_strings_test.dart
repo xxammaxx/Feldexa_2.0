@@ -131,6 +131,25 @@ const Set<String> _nonCodeArbKeys = <String>{
   'reviewConflictStateRejected',
   'reviewConflictSingleCandidateNote',
   'reviewConflictBadgeHint',
+  // T073 field-order review list keys: title, hint, empty state, position
+  // index, move-up/move-down actions, previous/next traversal, and the five
+  // T085 completion-state labels. The list shows provenance with the existing
+  // a11y status/template keys, so no provenance key is added here.
+  'fieldOrderTitle',
+  'fieldOrderHint',
+  'fieldOrderEmpty',
+  'fieldOrderPosition',
+  'fieldOrderMoveUp',
+  'fieldOrderMoveDown',
+  'fieldOrderPreviousField',
+  'fieldOrderNextField',
+  'fieldOrderMoveAction',
+  'fieldOrderApplyPageOrder',
+  'fieldCompletionComplete',
+  'fieldCompletionOptionalEmpty',
+  'fieldCompletionBlockingError',
+  'fieldCompletionWarning',
+  'fieldCompletionIncompatible',
   'templateEditorHint',
   'templateLabel',
   'templateNewVersionSaved',

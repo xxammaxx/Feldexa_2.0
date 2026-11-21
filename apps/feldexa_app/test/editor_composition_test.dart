@@ -28,8 +28,10 @@ import 'dart:typed_data';
 import 'package:feldexa_app/features/editor/durability_status.dart';
 import 'package:feldexa_app/features/editor/editor_runtime.dart';
 import 'package:feldexa_app/features/editor/editor_screen.dart';
+import 'package:feldexa_app/features/editor/field_order.dart';
 import 'package:feldexa_app/features/editor/field_value_sheet.dart';
 import 'package:feldexa_app/features/editor/page_view.dart' as viewer;
+import 'package:feldexa_app/features/fill/checkbox_control.dart';
 import 'package:feldexa_app/features/fill/text_control.dart';
 import 'package:feldexa_app/features/start/import_runtime.dart';
 import 'package:feldexa_app/features/start/start_screen.dart';
@@ -45,6 +47,7 @@ const String _sourceId = '7b2d4c1e-5f3a-4b8c-8a9d-2e6f0c1b3d42';
 const String _revisionId = '9a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d';
 const String _savedRevisionId = '9a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3e';
 const String _fieldId = '11111111-1111-4111-8111-111111111111';
+const String _secondFieldId = '22222222-2222-4222-8222-222222222222';
 const String _unreadableDocumentId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 final String _sha256 = List<String>.filled(64, 'a').join();
 final Uint8List _sourceBytes = Uint8List.fromList(<int>[1, 2, 3, 4]);
@@ -120,6 +123,21 @@ core.ConfirmedField _field([core.FieldType type = core.FieldType.text]) {
   );
 }
 
+/// A second confirmed field below [_fieldRect] for the T073 order tests.
+core.ConfirmedField _secondField([core.FieldType type = core.FieldType.text]) {
+  return core.ConfirmedField(
+    id: _secondFieldId,
+    pageIndex: 0,
+    rect: core.Rect.fromLTWH(40, 140, 100, 30),
+    type: type,
+    provenance: core.Provenance.user,
+    label: 'Vorname',
+    order: 1,
+    createdAt: _createdAt,
+    updatedAt: _createdAt,
+  );
+}
+
 core.FieldSuggestion _suggestion() {
   return core.FieldSuggestion(
     id: 's_p0_0001',
@@ -137,13 +155,23 @@ core.FieldSuggestion _suggestion() {
 
 core.RevisionContent _content({
   bool withField = true,
+  bool withSecondField = false,
+  bool secondFieldFirst = false,
   bool withSuggestion = false,
   core.FieldType fieldType = core.FieldType.text,
+  core.FieldType secondFieldType = core.FieldType.text,
   core.FieldValue? value,
 }) {
-  final List<core.ConfirmedField> fields = withField
-      ? <core.ConfirmedField>[_field(fieldType)]
-      : const <core.ConfirmedField>[];
+  final List<core.ConfirmedField> fields =
+      secondFieldFirst && withField && withSecondField
+      ? <core.ConfirmedField>[
+          _secondField(secondFieldType).copyWith(order: 0),
+          _field(fieldType).copyWith(order: 1),
+        ]
+      : <core.ConfirmedField>[
+          if (withField) _field(fieldType),
+          if (withField && withSecondField) _secondField(secondFieldType),
+        ];
   return core.RevisionContent(
     pages: <core.Page>[_page()],
     suggestions: withSuggestion
@@ -864,4 +892,340 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets(
+    'field order sheet reorders in document order and saves one undo step',
+    (tester) async {
+      final core.TextValue value = core.TextValue(
+        text: 'Ada',
+        lastEditedAt: _createdAt,
+      );
+      final _FakeStore store = _FakeStore(
+        loaded: _loaded(content: _content(withSecondField: true, value: value)),
+      );
+      final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+      await _pumpEditor(tester, runtime: runtime);
+      final EditorScreenState state = _state(tester);
+      expect(state.content!.fieldOrder, <String>[_fieldId, _secondFieldId]);
+
+      await tester.tap(
+        find.byKey(const ValueKey<String>('editor-field-order-action')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey<String>(fieldOrderListKey)), findsOne);
+      expect(
+        find.text(lookupAppLocalizations(const Locale('de')).fieldOrderTitle),
+        findsOneWidget,
+      );
+
+      // The second field is last, so only move-up is enabled for it.
+      await tester.tap(
+        find.byKey(
+          ValueKey<String>('$fieldOrderMoveUpKeyPrefix$_secondFieldId'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(store.saves, hasLength(1));
+      final core.RevisionContent saved = store.saves.single.content;
+      expect(saved.fieldOrder, <String>[_secondFieldId, _fieldId]);
+      expect(
+        saved.fields.map((core.ConfirmedField field) => field.order).toList(),
+        <int>[0, 1],
+      );
+      expect(saved.values[_fieldId], value);
+      expect(
+        saved.fields
+            .firstWhere((core.ConfirmedField field) => field.id == _fieldId)
+            .rect,
+        _fieldRect(),
+      );
+      expect(state.content!.fieldOrder, <String>[_secondFieldId, _fieldId]);
+      expect(state.canUndoReview, isTrue);
+
+      // Previous/next walk the persisted order and never write a revision.
+      await tester.tap(find.byKey(const ValueKey<String>('field-order-next')));
+      await tester.pumpAndSettle();
+      expect(store.saves, hasLength(1));
+
+      await tester.tap(find.byKey(const ValueKey<String>('field-order-close')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey<String>(fieldOrderListKey)),
+        findsNothing,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('a failed reorder save keeps the previous order untouched', (
+    tester,
+  ) async {
+    final _FakeStore store = _FakeStore(
+      loaded: _loaded(content: _content(withSecondField: true)),
+      saveError: StorageWriteException(),
+    );
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+    await _pumpEditor(tester, runtime: runtime);
+    final EditorScreenState state = _state(tester);
+    final core.RevisionContent before = state.content!;
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('editor-field-order-action')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(ValueKey<String>('$fieldOrderMoveUpKeyPrefix$_secondFieldId')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(store.saves, hasLength(1));
+    expect(state.content, same(before));
+    expect(state.canUndoReview, isFalse);
+    expect(find.byKey(const ValueKey<String>(fieldOrderListKey)), findsOne);
+    expect(
+      tester
+          .widget<IconButton>(
+            find.byKey(ValueKey<String>('$fieldOrderMoveUpKeyPrefix$_fieldId')),
+          )
+          .onPressed,
+      isNull,
+      reason: 'the first row still holds position 0 after the failed save',
+    );
+    expect(state.durabilityStatus, isA<core.SaveFailedDurabilityStatus>());
+    await tester.tap(find.byKey(const ValueKey<String>('field-order-close')));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the per-field reorder action opens the field-order review', (
+    tester,
+  ) async {
+    final _FakeStore store = _FakeStore(
+      loaded: _loaded(content: _content(withSecondField: true)),
+    );
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+    await _pumpEditor(tester, runtime: runtime);
+    final EditorScreenState state = _state(tester);
+
+    await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+    await tester.pumpAndSettle();
+    expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+    expect(find.byKey(fieldValueReorderKey), findsOneWidget);
+
+    await tester.tap(find.byKey(fieldValueReorderKey));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(fieldValueSheetKey), findsNothing);
+    expect(
+      find.byKey(const ValueKey<String>(fieldOrderListKey)),
+      findsOneWidget,
+    );
+    expect(find.text('Vorname'), findsWidgets);
+    // The field was untouched, so the reorder hand-off adds no setValue
+    // revision and no undo step.
+    expect(store.saves, isEmpty);
+    expect(state.canUndoReview, isFalse);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'next/previous move focus in field order while the value sheet stays open',
+    (tester) async {
+      final _FakeStore store = _FakeStore(
+        loaded: _loaded(content: _content(withSecondField: true)),
+      );
+      final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+      await _pumpEditor(tester, runtime: runtime);
+      final EditorScreenState state = _state(tester);
+
+      await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+      await tester.pumpAndSettle();
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+      expect(state.selection.selectedId, _fieldId);
+      expect(
+        tester.widget<TextButton>(find.byKey(fieldValuePreviousKey)).onPressed,
+        isNull,
+        reason: 'the first field has no previous field',
+      );
+      expect(
+        tester.widget<TextButton>(find.byKey(fieldValueNextKey)).onPressed,
+        isNotNull,
+      );
+
+      await tester.enterText(find.byKey(fieldTextControlInputKey), 'Erika');
+      await tester.tap(find.byKey(fieldValueNextKey));
+      await tester.pumpAndSettle();
+
+      // The same sheet stays open, the next control has focus, and the draft
+      // was committed before the move.
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+      expect(state.selection.selectedId, _secondFieldId);
+      expect(find.text('Vorname'), findsWidgets);
+      expect(store.saves, hasLength(1));
+      expect(
+        (store.saves.single.content.values[_fieldId]! as core.TextValue).text,
+        'Erika',
+      );
+      final TextField input = tester.widget<TextField>(
+        find.byKey(fieldTextControlInputKey),
+      );
+      expect(input.controller!.text, isEmpty);
+      expect(input.focusNode!.hasFocus, isTrue);
+      expect(
+        tester.widget<TextButton>(find.byKey(fieldValueNextKey)).onPressed,
+        isNull,
+        reason: 'the last field has no next field',
+      );
+      expect(
+        tester.widget<TextButton>(find.byKey(fieldValuePreviousKey)).onPressed,
+        isNotNull,
+      );
+
+      // Moving back keeps the committed value and follows the same order.
+      await tester.tap(find.byKey(fieldValuePreviousKey));
+      await tester.pumpAndSettle();
+      expect(state.selection.selectedId, _fieldId);
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+      expect(find.text('Erika'), findsWidgets);
+      expect(
+        tester.widget<TextButton>(find.byKey(fieldValuePreviousKey)).onPressed,
+        isNull,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('the page-order action sorts the order in one revision', (
+    tester,
+  ) async {
+    final _FakeStore store = _FakeStore(
+      loaded: _loaded(
+        content: _content(withSecondField: true, secondFieldFirst: true),
+      ),
+    );
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+    await _pumpEditor(tester, runtime: runtime);
+    final EditorScreenState state = _state(tester);
+    expect(state.content!.fieldOrder, <String>[_secondFieldId, _fieldId]);
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('editor-field-order-action')),
+    );
+    await tester.pumpAndSettle();
+    final Finder applyPageOrder = find.byKey(
+      const ValueKey<String>('field-order-apply-page-order'),
+    );
+    expect(tester.widget<TextButton>(applyPageOrder).onPressed, isNotNull);
+
+    await tester.tap(applyPageOrder);
+    await tester.pumpAndSettle();
+
+    expect(store.saves, hasLength(1));
+    expect(store.saves.single.content.fieldOrder, <String>[
+      _fieldId,
+      _secondFieldId,
+    ]);
+    expect(state.content!.fieldOrder, <String>[_fieldId, _secondFieldId]);
+    expect(state.canUndoReview, isTrue);
+    expect(
+      tester.widget<TextButton>(applyPageOrder).onPressed,
+      isNull,
+      reason: 'the order already is the page order',
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'next from an untouched empty number adds no revision and focuses the next',
+    (tester) async {
+      final _FakeStore store = _FakeStore(
+        loaded: _loaded(
+          content: _content(
+            withSecondField: true,
+            fieldType: core.FieldType.number,
+          ),
+        ),
+      );
+      final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+      await _pumpEditor(tester, runtime: runtime);
+      final EditorScreenState state = _state(tester);
+
+      await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+      await tester.pumpAndSettle();
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+
+      await tester.tap(find.byKey(fieldValueNextKey));
+      await tester.pumpAndSettle();
+
+      // An untouched empty number is not validated (no NUM-001) and writes no
+      // setValue revision or undo step.
+      expect(store.saves, isEmpty);
+      expect(state.canUndoReview, isFalse);
+      expect(find.byKey(fieldValueErrorKey), findsNothing);
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+      expect(state.selection.selectedId, _secondFieldId);
+      final TextField input = tester.widget<TextField>(
+        find.byKey(fieldTextControlInputKey),
+      );
+      expect(input.focusNode!.hasFocus, isTrue);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('a checkbox target receives focus after next', (tester) async {
+    final _FakeStore store = _FakeStore(
+      loaded: _loaded(
+        content: _content(
+          withSecondField: true,
+          secondFieldType: core.FieldType.checkbox,
+        ),
+      ),
+    );
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+    await _pumpEditor(tester, runtime: runtime);
+    final EditorScreenState state = _state(tester);
+
+    await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(fieldValueNextKey));
+    await tester.pumpAndSettle();
+
+    expect(state.selection.selectedId, _secondFieldId);
+    expect(find.byKey(fieldCheckboxControlKey), findsOneWidget);
+    final Focus focus = tester.widget<Focus>(
+      find.byKey(fieldValueNonTextFocusKey),
+    );
+    expect(focus.focusNode!.hasFocus, isTrue);
+    expect(store.saves, isEmpty);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a signature target receives focus after next', (tester) async {
+    final _FakeStore store = _FakeStore(
+      loaded: _loaded(
+        content: _content(
+          withSecondField: true,
+          secondFieldType: core.FieldType.signature,
+        ),
+      ),
+    );
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+    await _pumpEditor(tester, runtime: runtime);
+    final EditorScreenState state = _state(tester);
+
+    await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(fieldValueNextKey));
+    await tester.pumpAndSettle();
+
+    expect(state.selection.selectedId, _secondFieldId);
+    expect(find.byKey(fieldValueSignatureNotRunKey), findsOneWidget);
+    final Focus focus = tester.widget<Focus>(
+      find.byKey(fieldValueNonTextFocusKey),
+    );
+    expect(focus.focusNode!.hasFocus, isTrue);
+    expect(store.saves, isEmpty);
+    expect(tester.takeException(), isNull);
+  });
 }
