@@ -38,7 +38,7 @@ SEQUENCE="$RUN_DIR/marker-sequence.txt"
 BACKUP_DIR=""
 
 STAGING="/data/local/tmp/t071a-fixtures"
-PACKAGE="de.feldexa"
+PACKAGE="de.feldexa.app"
 FIXTURE="sf-001.pdf"
 FIXTURE_SHA256="22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038"
 FIXTURE_SIZE_BYTES=5956
