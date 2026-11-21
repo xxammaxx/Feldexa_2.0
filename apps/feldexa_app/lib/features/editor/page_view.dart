@@ -333,6 +333,24 @@ typedef PageViewRendererFactory = Future<PageViewRenderer> Function(
   Uint8List bytes,
 );
 
+/// Claims a one-finger drag that started on overlay content (T071B).
+///
+/// Receives the page index under the pointer, that page's current [mapping],
+/// and the pointer position in viewport logical pixels. Returning true claims
+/// the gesture, which then pans and zooms nothing until it ends or a second
+/// pointer cancels the claim.
+typedef PageViewOverlayDragStart = bool Function(
+  int pageIndex,
+  PageViewMapping mapping,
+  Offset viewportPoint,
+);
+
+/// Reports the cumulative single-pointer drag delta of a claimed gesture.
+typedef PageViewOverlayDragUpdate = void Function(Offset viewportDelta);
+
+/// Closes a claimed overlay drag; `cancelled` means a second pointer won.
+typedef PageViewOverlayDragEnd = void Function({required bool cancelled});
+
 /// Opens the production pdfrx/PDFium renderer for [bytes].
 ///
 /// The returned renderer owns one [PdfDocument] for its entire lifetime; page
@@ -1208,6 +1226,9 @@ class PageView extends StatefulWidget {
     required this.controller,
     this.rendererFactory = openPdfrxPageRenderer,
     this.overlayBuilder,
+    this.overlayDragStart,
+    this.overlayDragUpdate,
+    this.overlayDragEnd,
     this.loadingBuilder,
     this.errorBuilder,
     this.onLoadError,
@@ -1249,6 +1270,35 @@ class PageView extends StatefulWidget {
   )?
   overlayBuilder;
 
+  /// Optional seam that lets overlay content claim a one-finger drag (T071B).
+  ///
+  /// Called once per scale gesture, only when the gesture starts with exactly
+  /// one pointer inside a page, with that page's index, its current [mapping],
+  /// and the pointer position in viewport logical pixels. Returning true claims
+  /// the drag: the viewport then neither pans nor zooms, and every subsequent
+  /// single-pointer update is reported through [overlayDragUpdate]. Returning
+  /// false leaves pan/zoom untouched.
+  ///
+  /// A second pointer always wins: the claim is dropped through
+  /// [overlayDragEnd] with `cancelled: true`, the accumulated single-pointer
+  /// movement is not applied to the view transform, and two-finger pan/zoom
+  /// continues from the position at that moment. A claimed drag therefore
+  /// never edits overlay geometry with two fingers on the surface.
+  final PageViewOverlayDragStart? overlayDragStart;
+
+  /// Reports the cumulative single-pointer drag delta of a claimed gesture.
+  ///
+  /// The delta is in viewport logical pixels measured from the position that
+  /// opened the claim. It is only called while exactly one pointer is down.
+  final PageViewOverlayDragUpdate? overlayDragUpdate;
+
+  /// Closes a claimed overlay drag exactly once.
+  ///
+  /// [cancelled] is true when a second pointer took the gesture over, and
+  /// false when the pointer was lifted normally. A caller must discard its
+  /// preview and must not commit any change when `cancelled` is true.
+  final PageViewOverlayDragEnd? overlayDragEnd;
+
   /// Optional content-free loading placeholder.
   final WidgetBuilder? loadingBuilder;
 
@@ -1281,7 +1331,25 @@ class _PageViewState extends State<PageView> {
   double _gestureStartScale = 1;
   Offset _gestureStartPan = Offset.zero;
   Offset _gestureStartFocal = Offset.zero;
+  double _gestureScaleAtBaseline = 1;
+  Offset _gestureFocalAtBaseline = Offset.zero;
   bool _gestureActive = false;
+  bool _overlayDragActive = false;
+  bool _overlayDragCancelled = false;
+
+  /// Gesture-lifetime eligibility for overlay claims.
+  ///
+  /// Set as soon as a second pointer joins the sequence and cleared only by a
+  /// fresh touch-down that begins with no pointer down. The scale recognizer
+  /// ends and restarts itself on every pointer-set change, so without this flag
+  /// lifting one finger of a pinch would re-arm an overlay claim on the next
+  /// single-pointer `onScaleStart` and turn the rest of the pinch into a
+  /// geometry edit. Eligibility is therefore never re-derived from a
+  /// reconfigured `onScaleStart`: one extra pointer disqualifies the whole
+  /// sequence until every pointer is up.
+  bool _overlayClaimSuppressed = false;
+
+  final Map<int, Offset> _pointerDownPositions = <int, Offset>{};
 
   @override
   void initState() {
@@ -1409,20 +1477,92 @@ class _PageViewState extends State<PageView> {
     _gestureStartScale = widget.controller.scale;
     _gestureStartPan = widget.controller.pan;
     _gestureStartFocal = details.localFocalPoint;
+    _gestureScaleAtBaseline = 1;
+    _gestureFocalAtBaseline = details.localFocalPoint;
+    _overlayDragCancelled = false;
+    _overlayDragActive = false;
+    final PageViewOverlayDragStart? claim = widget.overlayDragStart;
+    if (claim == null ||
+        _overlayClaimSuppressed ||
+        details.pointerCount != 1 ||
+        _pointerDownPositions.length != 1) {
+      return;
+    }
+    // Hit-test the pointer-down position, not the post-slop focal point: a
+    // handle region is 24 dp wide while the pan slop is wider, so testing the
+    // moved point would make an edge handle unreachable.
+    final Offset down = _pointerDownPositions.values.first;
+    final _PageHit? hit = _pageAt(down);
+    if (hit == null) {
+      return;
+    }
+    _overlayDragActive = claim(hit.pageIndex, hit.mapping, down);
+    if (_overlayDragActive) {
+      // Measure the claimed drag from the touch-down point so the closed-loop
+      // preview follows the pointer instead of lagging by the pan slop.
+      _gestureStartFocal = down;
+    }
+  }
+
+  void _handlePointerDown(PointerDownEvent event) {
+    if (_pointerDownPositions.isEmpty) {
+      // A fresh touch-down with no pointer down starts a new sequence, so the
+      // next claim is eligible again. This is the only place eligibility is
+      // restored; a reconfigured onScaleStart never re-arms it.
+      _overlayClaimSuppressed = false;
+    }
+    _pointerDownPositions[event.pointer] = event.localPosition;
+    if (_pointerDownPositions.length > 1) {
+      // More than one pointer in this sequence belongs to the page. Suppress
+      // overlay claims for the rest of the sequence (not just until the next
+      // start) and cancel an active claim before the scale recognizer restarts
+      // for the new pointer set, so a pinch that starts on a field can never
+      // commit geometry and can never re-arm mid-pinch.
+      _overlayClaimSuppressed = true;
+      _releaseOverlayDrag(cancelled: true);
+    }
+  }
+
+  void _handlePointerGone(PointerEvent event) {
+    // Only the down positions are tracked; the recording for a claimed drag's
+    // origin must stay the touch-down point. Eligibility is restored by the
+    // next fresh touch-down in [_handlePointerDown], which also makes a missed
+    // up/cancel event fail closed rather than re-arm geometry mid-sequence.
+    _pointerDownPositions.remove(event.pointer);
   }
 
   void _handleScaleUpdate(ScaleUpdateDetails details) {
     if (!_gestureActive) {
       return;
     }
+    if (_overlayDragActive && !_overlayDragCancelled) {
+      if (details.pointerCount == 1) {
+        widget.overlayDragUpdate?.call(
+          details.localFocalPoint - _gestureStartFocal,
+        );
+        return;
+      }
+      // A second pointer always belongs to the page: drop the overlay claim,
+      // keep the preview discarded, and re-baseline pan/zoom here so the view
+      // neither jumps nor absorbs the single-pointer movement.
+      _releaseOverlayDrag(cancelled: true);
+      _gestureStartScale = widget.controller.scale;
+      _gestureStartPan = widget.controller.pan;
+      _gestureStartFocal = details.localFocalPoint;
+      _gestureScaleAtBaseline = details.scale == 0 ? 1 : details.scale;
+      _gestureFocalAtBaseline = details.localFocalPoint;
+    }
+    final double baseline = _gestureScaleAtBaseline == 0
+        ? 1
+        : _gestureScaleAtBaseline;
     final double nextScale = _clampDouble(
-      _gestureStartScale * details.scale,
+      _gestureStartScale * (details.scale / baseline),
       widget.controller.minScale,
       widget.controller.maxScale,
     );
     final Offset contentAtFocal = Offset(
-      (_gestureStartFocal.dx - _gestureStartPan.dx) / _gestureStartScale,
-      (_gestureStartFocal.dy - _gestureStartPan.dy) / _gestureStartScale,
+      (_gestureFocalAtBaseline.dx - _gestureStartPan.dx) / _gestureStartScale,
+      (_gestureFocalAtBaseline.dy - _gestureStartPan.dy) / _gestureStartScale,
     );
     widget.controller.setView(
       scale: nextScale,
@@ -1436,6 +1576,33 @@ class _PageViewState extends State<PageView> {
 
   void _handleScaleEnd(ScaleEndDetails details) {
     _gestureActive = false;
+    if (_overlayDragActive) {
+      // The recognizer ends and restarts itself when the pointer set changes,
+      // so more than one pointer here means the page took the gesture over.
+      _releaseOverlayDrag(cancelled: details.pointerCount > 1);
+    }
+  }
+
+  /// Closes an active overlay claim exactly once, in or out of the gesture.
+  void _releaseOverlayDrag({required bool cancelled}) {
+    if (!_overlayDragActive) {
+      return;
+    }
+    _overlayDragActive = false;
+    _overlayDragCancelled = cancelled;
+    widget.overlayDragEnd?.call(cancelled: cancelled);
+  }
+
+  /// The page containing [viewportPoint], with the mapping used for its box.
+  _PageHit? _pageAt(Offset viewportPoint) {
+    final PageViewLayout layout = widget.controller.layout;
+    for (int index = 0; index < layout.pageCount; index++) {
+      final PageViewMapping mapping = widget.controller.mappingFor(index);
+      if (mapping.pageRectInViewport.contains(viewportPoint)) {
+        return _PageHit(pageIndex: index, mapping: mapping);
+      }
+    }
+    return null;
   }
 
   void _reportViewport(Size viewport) {
@@ -1464,26 +1631,33 @@ class _PageViewState extends State<PageView> {
         return ColoredBox(
           color: widget.backgroundColor,
           child: ClipRect(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onScaleStart: _handleScaleStart,
-              onScaleUpdate: _handleScaleUpdate,
-              onScaleEnd: _handleScaleEnd,
-              child: AnimatedBuilder(
-                animation: widget.controller,
-                builder: (BuildContext context, Widget? child) {
-                  final PageViewLoadException? error = _error;
-                  if (error != null) {
-                    return widget.errorBuilder?.call(context) ??
-                        const SizedBox.expand();
-                  }
-                  final PageViewRenderer? renderer = _renderer;
-                  if (renderer == null) {
-                    return widget.loadingBuilder?.call(context) ??
-                        const SizedBox.expand();
-                  }
-                  return _buildPages(context, renderer);
-                },
+            child: Listener(
+              // Records touch-down positions so a claimed overlay drag is
+              // hit-tested where the pointer landed, not after the pan slop.
+              onPointerDown: _handlePointerDown,
+              onPointerUp: _handlePointerGone,
+              onPointerCancel: _handlePointerGone,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onScaleStart: _handleScaleStart,
+                onScaleUpdate: _handleScaleUpdate,
+                onScaleEnd: _handleScaleEnd,
+                child: AnimatedBuilder(
+                  animation: widget.controller,
+                  builder: (BuildContext context, Widget? child) {
+                    final PageViewLoadException? error = _error;
+                    if (error != null) {
+                      return widget.errorBuilder?.call(context) ??
+                          const SizedBox.expand();
+                    }
+                    final PageViewRenderer? renderer = _renderer;
+                    if (renderer == null) {
+                      return widget.loadingBuilder?.call(context) ??
+                          const SizedBox.expand();
+                    }
+                    return _buildPages(context, renderer);
+                  },
+                ),
               ),
             ),
           ),
@@ -1537,6 +1711,14 @@ class _PageViewState extends State<PageView> {
     }
     return Stack(clipBehavior: Clip.hardEdge, children: pages);
   }
+}
+
+/// One page resolved under a pointer, with the mapping used for its box.
+final class _PageHit {
+  const _PageHit({required this.pageIndex, required this.mapping});
+
+  final int pageIndex;
+  final PageViewMapping mapping;
 }
 
 Offset _checkedOffset(Offset value, String message) {

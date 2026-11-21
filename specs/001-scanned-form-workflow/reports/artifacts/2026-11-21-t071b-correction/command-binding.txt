@@ -1,0 +1,14 @@
+T071B correction round (reviews A+B) command binding
+resolved_at=2026-11-21
+route=JSON CLI (`specify artifact info command:speckit.implement --json` resolved the active command stack; no MCP resource)
+artifact_path=/home/xxammaxx/Schreibtisch/Feldexa_2.0/t071b-geometry/.opencode/commands/speckit.implement.md
+artifact_sha256=e036ce63702db93e656e1c91ee6c02a8dc3d4a4f8624f8ba4adc69027fe68983
+artifact_bytes=12562
+worktree=/home/xxammaxx/Schreibtisch/Feldexa_2.0/t071b-geometry
+branch=xxammaxx/t071b
+head_before_edit=28e0067a2963e86df78556274b3b0b74a1b06f5e
+tree_before_edit=ca0f072a0f3ef73ecbde11b1b6a015aea41c0128
+hooks=.specify/extensions.yml declares no before_implement or after_implement hooks (hooks: {})
+checklists=read-only: requirements.md 16/16 checked; precision-testability.md 36 unchecked (reviewer-owned); precision-testability-assessment.md prose; no checklist modified
+prerequisites=.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks resolved FEATURE_DIR and AVAILABLE_DOCS
+receipt=Executed the speckit.implement procedure in this session for the T071B correction round (reviews A+B) before the first source edit; the corpus gate is the focused editor/ui/app test suites plus analyze/format/diff-check reported with the correction commit.

@@ -1365,6 +1365,88 @@ void main() {
     },
   );
 
+  testWidgets('undo after an analysis apply keeps the analysis suggestions', (
+    WidgetTester tester,
+  ) async {
+    final _FakeStore store = _FakeStore(loaded: _loaded());
+    final _FakeRaster raster = _FakeRaster(
+      images: <int, RasterImage>{0: _image()},
+    );
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(
+      raster: raster,
+      ocr: null,
+      store: store,
+    );
+
+    await _pumpEditor(tester, runtime: runtime, source: _source());
+    await tester.pumpAndSettle();
+
+    final EditorScreenState state = _editorState(tester);
+    expect(state.analysisStateKey, editorAnalysisReadyKey);
+    expect(store.saves, hasLength(1));
+    expect(state.content!.suggestions, isNotEmpty);
+    final List<String> suggestionIds = <String>[
+      for (final core.FieldSuggestion suggestion in state.content!.suggestions)
+        suggestion.id,
+    ];
+
+    // The analysis apply persists a revision without being a user command.
+    // It must not become an undo step: otherwise a single undo could write
+    // the unanalyzed revision back and drop the whole suggestion set.
+    expect(
+      state.canUndoReview,
+      isFalse,
+      reason: 'the analysis apply is not a user undo step',
+    );
+    expect(find.byKey(const ValueKey<String>(undoReviewKey)), findsNothing);
+
+    // Confirm one analyzed suggestion, then undo it. Only the confirmation is
+    // reversed; the analysis result itself survives intact.
+    await tester.tap(
+      find.byKey(
+        ValueKey<String>('$confirmSuggestionKeyPrefix${suggestionIds.first}'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(store.saves, hasLength(2));
+    expect(state.content!.fields, hasLength(1));
+    expect(state.canUndoReview, isTrue);
+
+    await tester.tap(find.byKey(const ValueKey<String>(undoReviewKey)));
+    await tester.pumpAndSettle();
+
+    expect(store.saves, hasLength(3));
+    expect(state.content!.fields, isEmpty);
+    expect(
+      state.content!.suggestions.map(
+        (core.FieldSuggestion suggestion) => suggestion.id,
+      ),
+      suggestionIds,
+      reason: 'undo must never drop the analysis suggestions',
+    );
+    expect(
+      state.content!.suggestions.every(
+        (core.FieldSuggestion suggestion) =>
+            suggestion.resolution == core.SuggestionResolution.unresolved,
+      ),
+      isTrue,
+      reason: 'only the confirmation is reversed',
+    );
+    expect(
+      state.content!.pages.single.analysis,
+      core.AnalysisState.complete,
+      reason: 'the analyzed page state is preserved',
+    );
+    expect(
+      store.saves.last.content.suggestions.map(
+        (core.FieldSuggestion suggestion) => suggestion.id,
+      ),
+      suggestionIds,
+      reason: 'the written revision keeps every analysis suggestion',
+    );
+    expect(state.canUndoReview, isFalse);
+  });
+
   testWidgets(
     'a review save failure keeps the viewer, panel, and prior revision',
     (WidgetTester tester) async {
