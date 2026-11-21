@@ -1,0 +1,39 @@
+T071A correction 3 — host gates (evidence class NONE)
+date=2026-11-21
+branch=xxammaxx/t071a
+start_head=771abede9c847693c9f520cbe8c4312984b1165b
+start_status=only pre-existing unstaged apps/feldexa_app/android/gradlew.bat (untouched)
+toolchain_flutter=3.47.7 stable (framework revision abaf9c5237)
+toolchain_dart=3.13.5 stable
+
+1) apps/feldexa_app: flutter analyze --no-pub
+exit=0
+result=No issues found!
+
+2) packages/feldexa_application: dart analyze
+exit=0
+result=No issues found!
+
+3) apps/feldexa_app: dart format --output=none --set-exit-if-changed lib/features/editor/editor_screen.dart integration_test/android_review_composition_test.dart
+exit=0
+result=Formatted 2 files (0 changed)
+
+4) apps/feldexa_app: flutter test --no-pub test/editor_composition_test.dart
+exit=0
+result=10/10 passed
+
+5) apps/feldexa_app: flutter test --no-pub
+exit=0
+result=420/420 passed
+
+6) packages/feldexa_application: flutter test --no-pub
+exit=0
+result=174/174 passed
+
+7) repo root: git diff --check
+exit=0
+result=clean
+
+8) repo root: T071A_REPLACE_EVIDENCE=1 tools/android/t071a_drive_composition.sh
+result=PASS (flutter test exit 0; T071A_CLEANUP_DONE; privacy checks PASS)
+run_status: result=PASS / flutter_test_exit=0

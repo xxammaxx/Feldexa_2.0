@@ -479,6 +479,7 @@ void main() {
     await _pumpUntil(
       tester,
       () =>
+          find.byType(EditorScreen).evaluate().isEmpty &&
           find.byKey(_startScreenKey).evaluate().isNotEmpty &&
           find.byType(StoredItemsView).evaluate().isNotEmpty &&
           find
@@ -486,8 +487,11 @@ void main() {
               .evaluate()
               .isNotEmpty,
       timeout: const Duration(seconds: 180),
-      reason: 'the start list did not reload the stored document after return',
+      reason:
+          'the popped editor route did not disappear and the start list did '
+          'not reload the stored document after return',
     );
+    await tester.pumpAndSettle();
     expect(find.byType(EditorScreen), findsNothing);
     _marker('START_LIST_RELOADED');
     await _waitForDriver('document-list');

@@ -127,6 +127,14 @@ const String editorAnalysisFailedKey = 'analysis-failed';
 /// still rejecting a genuinely different media box, crop box, or orientation.
 const double pageGeometryTolerancePt = 0.001;
 
+/// Minimum usable height reserved for the editor page viewport.
+///
+/// The warning and review panel above the viewer may shrink and scroll when
+/// the IME or a 200 % text scale reduces the body height, but the page must
+/// keep at least this many logical pixels. Only on bodies smaller than this
+/// value does the header collapse completely and the viewer take what remains.
+const double _minPageViewportHeight = 160;
+
 /// Bound on the single editor `loadDocument` call.
 ///
 /// A shared platform-channel result path that never answers must become the
@@ -1377,34 +1385,80 @@ class EditorScreenState extends State<EditorScreen> {
             if (_analysisStateKey != null)
               SizedBox.shrink(key: ValueKey<String>(_analysisStateKey!)),
             PageStrip(controller: _stripController, pages: _stripPages),
-            if (warning != null) _Imp006Warning(warning: warning),
-            if (_reviewPanelVisible)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-                child: SuggestionReviewPanel(
-                  suggestions: _content!.suggestions,
-                  confirmedFieldCount: _content!.fields.length,
-                  onConfirm: (core.FieldSuggestion suggestion) {
-                    unawaited(_confirmSuggestion(suggestion));
-                  },
-                  onReject: (core.FieldSuggestion suggestion) {
-                    unawaited(_rejectSuggestion(suggestion));
-                  },
-                  onUndo: () {
-                    unawaited(_undoLastReview());
-                  },
-                  undoAvailable: _reviewUndoStack.isNotEmpty,
-                  busy: _reviewBusy,
-                ),
-              ),
+            // The page strip stays fixed under the app bar. The warning and
+            // review panel are header content: with an open IME (or at 200 %
+            // text scale) they scroll inside a height bound so this column
+            // never overflows and the page viewport keeps its minimum.
             Expanded(
-              child: PageView(
-                key: const ValueKey<String>('editor-page-view'),
-                sourceId: widget.source.sourceId,
-                sourceBytes: _viewerSourceBytes,
-                controller: _viewerController,
-                rendererFactory: widget.rendererFactory,
-                overlayBuilder: _buildPageOverlay,
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  final double maxHeaderHeight =
+                      (constraints.maxHeight - _minPageViewportHeight).clamp(
+                        0.0,
+                        double.infinity,
+                      );
+                  return Column(
+                    children: <Widget>[
+                      if (warning != null || _reviewPanelVisible)
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxHeight: maxHeaderHeight,
+                          ),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                if (warning != null)
+                                  _Imp006Warning(warning: warning),
+                                if (_reviewPanelVisible)
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      8,
+                                      4,
+                                      8,
+                                      4,
+                                    ),
+                                    child: SuggestionReviewPanel(
+                                      suggestions: _content!.suggestions,
+                                      confirmedFieldCount:
+                                          _content!.fields.length,
+                                      onConfirm:
+                                          (core.FieldSuggestion suggestion) {
+                                            unawaited(
+                                              _confirmSuggestion(suggestion),
+                                            );
+                                          },
+                                      onReject:
+                                          (core.FieldSuggestion suggestion) {
+                                            unawaited(
+                                              _rejectSuggestion(suggestion),
+                                            );
+                                          },
+                                      onUndo: () {
+                                        unawaited(_undoLastReview());
+                                      },
+                                      undoAvailable:
+                                          _reviewUndoStack.isNotEmpty,
+                                      busy: _reviewBusy,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      Expanded(
+                        child: PageView(
+                          key: const ValueKey<String>('editor-page-view'),
+                          sourceId: widget.source.sourceId,
+                          sourceBytes: _viewerSourceBytes,
+                          controller: _viewerController,
+                          rendererFactory: widget.rendererFactory,
+                          overlayBuilder: _buildPageOverlay,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ],

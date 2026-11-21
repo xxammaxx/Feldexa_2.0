@@ -1,0 +1,7 @@
+head=771abede9c847693c9f520cbe8c4312984b1165b
+branch=xxammaxx/t071a
+status_porcelain:
+ M apps/feldexa_app/android/gradlew.bat
+ M apps/feldexa_app/integration_test/android_review_composition_test.dart
+ M apps/feldexa_app/lib/features/editor/editor_screen.dart
+flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
