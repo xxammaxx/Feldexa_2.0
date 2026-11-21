@@ -382,7 +382,7 @@ fi
   exec "${FLUTTER_ENV[@]}" "$FLUTTER" pub get --offline
 ) >"$RUN_DIR/host-flutter-pub-get.log" 2>&1
 record_cmd "$?" "cd apps/feldexa_app && flutter pub get --offline"
-[[ "$(tail -1 "$RUN_DIR/host-flutter-pub-get.log")" == *"Got dependencies"* ]] ||
+grep -q 'Got dependencies' "$RUN_DIR/host-flutter-pub-get.log" ||
   fail "flutter pub get --offline failed; see host-flutter-pub-get.log"
 
 # --- 6. Start the integration test ------------------------------------------
