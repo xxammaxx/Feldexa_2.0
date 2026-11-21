@@ -6,7 +6,10 @@
 // and OCR adapters. It is browser SIMULATED evidence only: not Android
 // runtime evidence, not an Android acceptance result, not EMULATOR or DEVICE
 // evidence, and not proof of the Android PDFium/ML Kit path
-// (FR-086/FR-087/FR-088).
+// (FR-086/FR-087/FR-088). A complete envelope with zero suggestions is the
+// measured behaviour of the placeholder SIMULATED raster only; it is not a
+// completeness claim, not a recognition-quality claim, and not Android
+// evidence.
 //
 // WHY THIS FILE LIVES UNDER `test/` (measured, not preferred)
 // ----------------------------------------------------------
