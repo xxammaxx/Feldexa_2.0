@@ -1,10 +1,12 @@
-# Orca repo-defined setup hook (hardened).
+# Orca repo-defined setup hook (hardened v3).
 # Grants Pi project-local trust ONLY for worktrees that provably belong to this
 # repository: exact normalized origin identity + git worktree membership in the
 # registered main repository + Orca `worktree current` repo registration.
-# Additive/idempotent, revokes stale entries for reused paths, concurrency-safe
-# (lock + atomic replace + read-verify retry), never overwrites a corrupt or
-# symlinked trust file. Foreign repositories are skipped or revoked (fail-closed).
+# Additionally trusts the Orca worktree base directory (Pi honors parent trust),
+# which removes the async setup-hook vs. worker-start race for every future
+# worktree created beneath it. Additive/idempotent, revokes stale entries for
+# reused paths, concurrency-safe (lock + atomic replace + read-verify retry),
+# never overwrites a corrupt or symlinked trust file. Fail-closed otherwise.
 scripts:
   setup: |
     #!/usr/bin/env bash
@@ -18,6 +20,10 @@ scripts:
     EXPECTED_HOST="github.com"
     EXPECTED_OWNER="xxammaxx"
     EXPECTED_REPO="Feldexa_2.0"
+    # Orca worktree base directory: all worktrees of this repository are created here
+    # (sibling of the registered main clone). Trusting this single directory removes the
+    # async setup-hook vs. worker-start race for every future worktree beneath it.
+    WORKTREE_BASE="/home/xxammaxx/Schreibtisch/Feldexa_2.0"
 
     WDIR="$(pwd -P)"
 
@@ -35,10 +41,11 @@ scripts:
     fi
 
     python3 - "$WDIR" "$ORCA_CLI" \
-      "$EXPECTED_REPO_ID" "$EXPECTED_HOST" "$EXPECTED_OWNER" "$EXPECTED_REPO" <<'PY'
+      "$EXPECTED_REPO_ID" "$EXPECTED_HOST" "$EXPECTED_OWNER" "$EXPECTED_REPO" \
+      "$WORKTREE_BASE" <<'PY'
     import json, os, re, subprocess, sys, tempfile, time, fcntl
 
-    wdir, orca_cli, exp_repo_id, exp_host, exp_owner, exp_repo = sys.argv[1:7]
+    wdir, orca_cli, exp_repo_id, exp_host, exp_owner, exp_repo, worktree_base = sys.argv[1:8]
     TRUST = os.path.expanduser("~/.pi/agent/trust.json")
 
     def run(cmd, cwd=None):
@@ -179,7 +186,14 @@ scripts:
             else:
                 data = {}
             before = dict(data)
-            data[wdir] = True
+            grant = {wdir: True}
+            norm_base = worktree_base.rstrip("/")
+            if os.path.dirname(wdir) == norm_base and wdir.startswith(norm_base + "/"):
+                # Ancestor trust: Pi honors parent-directory entries, so trusting the
+                # worktree base directory removes the hook-vs-worker-start race for
+                # every future worktree created beneath it by Orca for this repo.
+                grant[norm_base] = True
+            data.update(grant)
             fd, tmp = tempfile.mkstemp(prefix=".trust.", dir=os.path.dirname(TRUST) or ".")
             with os.fdopen(fd, "w") as f:
                 json.dump(data, f, indent=2)
@@ -196,9 +210,10 @@ scripts:
                     after = json.loads(f.read().decode("utf-8"))
             except ValueError:
                 after = {}
-            if isinstance(after, dict) and after.get(wdir) is True:
+            if isinstance(after, dict) and all(after.get(k) is True for k in grant):
                 action = "kept" if before.get(wdir) is True else "granted"
-                print("pi-trust: %s %s" % (action, wdir))
+                extra = " (+worktree-base)" if norm_base in grant and norm_base != wdir else ""
+                print("pi-trust: %s %s%s" % (action, wdir, extra))
                 sys.exit(0)
             # lost update -> loop and merge again
         finally:
