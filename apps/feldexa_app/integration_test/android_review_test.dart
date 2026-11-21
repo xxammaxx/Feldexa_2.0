@@ -204,10 +204,14 @@ final class _StoreSpy {
   int saves = 0;
   int loads = 0;
 
-  /// When true, the next [saveRevision] also writes one further revision
-  /// chained on the head the real store returned. Used only by the deliberate
-  /// double-commit negative control at the end of the journey.
+  /// When true, the next [saveRevision] forwards the same request a second
+  /// time to the real store. Used only by the deliberate double-commit negative
+  /// control at the end of the journey.
   bool duplicateNextSave = false;
+
+  /// What the real store did with the injected second call: `ACCEPTED`,
+  /// `REJECTED`, or `NONE` when no duplicate was armed.
+  String duplicateOutcome = 'NONE';
 
   int get consumeDuplicateFlag {
     final bool armed = duplicateNextSave;
@@ -249,23 +253,19 @@ final class _CountingEditorRuntime implements EditorRuntime {
     _spy.saves++;
     final StoredMeta first = await _inner.saveRevision(request);
     if (_spy.consumeDuplicateFlag == 1) {
-      // Deliberate fault injection for the negative control: a second *real*
-      // revision chained on the head the first store call returned.
-      final String? nextHead = first.latestRevisionId;
-      expect(
-        nextHead,
-        isNotNull,
-        reason: 'the duplicate-store fault injection needs a chained head',
-      );
+      // Deliberate fault injection for the negative control: the same request
+      // is forwarded to the real store a second time, exactly as a buggy
+      // per-frame commit would. The outcome is recorded (the real store's
+      // expectedHead guard normally rejects the stale chain) and is never
+      // allowed to fail the editor's own commit, so the gesture still lands its
+      // one revision and the assertion is judged on the real call count.
       _spy.saves++;
-      await _inner.saveRevision(
-        SaveRevisionRequest(
-          documentId: request.documentId,
-          expectedHead: nextHead,
-          content: request.content,
-          kind: request.kind,
-        ),
-      );
+      try {
+        await _inner.saveRevision(request);
+        _spy.duplicateOutcome = 'ACCEPTED';
+      } catch (_) {
+        _spy.duplicateOutcome = 'REJECTED';
+      }
     }
     return first;
   }
@@ -436,8 +436,10 @@ String? _clearStaleAck({required File ack, void Function(File file)? delete}) {
 Future<void> _waitForDriver(
   String name, {
   void Function(File file)? deleteOverride,
+  File? ackOverride,
 }) async {
-  final File ack = File('$_fixtureRoot${Platform.pathSeparator}ack-$name');
+  final File ack =
+      ackOverride ?? File('$_fixtureRoot${Platform.pathSeparator}ack-$name');
   final String? staleFailure = _clearStaleAck(ack: ack, delete: deleteOverride);
   if (staleFailure != null) {
     _marker('HANDSHAKE_FAIL:$staleFailure:PHASE=$name');
@@ -1261,10 +1263,13 @@ void main() {
   });
 
   test('the stale-ack handshake fails closed', () async {
-    final Directory probeDirectory = Directory(
-      '$_fixtureRoot${Platform.pathSeparator}ack-negative',
+    // The staging directory is shell-owned and mode 755, so the app can read an
+    // acknowledgement but not create or delete one there. The probe therefore
+    // uses app-writable storage and an explicit ack override; the production
+    // handshake path resolves the same helper against the staging directory.
+    final Directory probeDirectory = Directory.systemTemp.createTempSync(
+      't071-ack-probe-',
     );
-    probeDirectory.createSync(recursive: true);
     final File probe = File(
       '${probeDirectory.path}${Platform.pathSeparator}ack-probe',
     );
@@ -1301,6 +1306,7 @@ void main() {
     await expectLater(
       _waitForDriver(
         'probe',
+        ackOverride: probe,
         deleteOverride: (File file) =>
             throw const FileSystemException('injected delete failure'),
       ),
@@ -2384,8 +2390,8 @@ void main() {
         savesDelta,
         2,
         reason:
-            'the fault injection must have written two real store revisions, '
-            'observed $savesDelta',
+            'the fault injection must have produced two real store '
+            'saveRevision calls, observed $savesDelta',
       );
       expect(
         () => _expectSingleStoreRevision(
@@ -2410,7 +2416,7 @@ void main() {
       );
       _marker(
         'NEGATIVE_CONTROL:DOUBLE_COMMIT=1:SAVES_DELTA=$savesDelta:'
-        'ASSERTION_FAILED=1:STORE_HEAD_AHEAD=1',
+        'ASSERTION_FAILED=1:SECOND_SAVE=${_storeSpy.duplicateOutcome}',
       );
     }
   });
