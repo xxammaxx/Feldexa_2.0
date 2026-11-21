@@ -2346,12 +2346,13 @@ void main() {
     // -------------------------------------------------------------------
     // I. Negative control: a real double commit must fail the assertion.
     //
-    // The counting facade is armed to write one further *real* revision chained
-    // on the head the genuine save returned, so this gesture produces two real
-    // store revisions. The exactly-one-revision assertion must then throw. It is
-    // the last action before teardown: the store head is deliberately one
-    // revision ahead of the editor's view from here on, and the driver's
-    // app-data cleanup removes the whole store afterwards.
+    // The counting facade is armed to forward the same save request to the real
+    // store a second time, so this gesture produces two real store
+    // `saveRevision` calls (the real store's expectedHead guard decides whether
+    // the duplicate call is accepted; the outcome is recorded). The
+    // exactly-one-revision assertion must then throw. It is the last action
+    // before teardown, and the driver's app-data cleanup removes the store
+    // afterwards.
     // -------------------------------------------------------------------
     {
       await _setScaleOnRect(tester, state, _storedViewRect(state), fitScale);
@@ -2364,7 +2365,11 @@ void main() {
       final TestGesture gesture = await tester.startGesture(
         _screenPoint(tester, state, r.center),
       );
-      await _moveByTotal(gesture, const Offset(44, 0));
+      // The field is at its 4 x 4 pt minimum here, so the drag must grow it:
+      // every point of a minimum-size field resolves to the topLeft handle, and
+      // a rightward drag would shrink it straight into the minimum clamp and
+      // commit nothing at all.
+      await _moveByTotal(gesture, const Offset(-44, 0));
       await tester.pump();
       expect(
         state.geometryGestureActive,
@@ -2382,8 +2387,10 @@ void main() {
       await _pumpUntil(
         tester,
         () => !state.reviewBusy && state.headRevisionId != headBefore,
-        timeout: const Duration(seconds: 120),
-        reason: 'the negative-control gesture did not commit',
+        timeout: const Duration(seconds: 60),
+        reason:
+            'the negative-control gesture must land its own one revision '
+            'before the injected duplicate is judged',
       );
       final int savesDelta = _storeSpy.saves - savesBefore;
       expect(
