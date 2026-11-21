@@ -6,16 +6,32 @@
 //
 //   tools/android/t071_drive_touch.sh
 //
-// The test uses the production `main()` composition end to end: the debug-only
-// `de.feldexa/test.import` hook arms the deterministic T061 damaged-page-2
-// variant of the committed synthetic `sf-001.pdf` fixture, the production
-// import action performs the real encrypted staging, preflight, and verified
-// commit, the real analysis run produces suggestions, and one suggestion is
-// confirmed through the production T066 command path. The selected confirmed
-// field is then edited through the real composed T071B touch geometry layer on
-// the emulator's touch surface. No fake adapter, renderer, detector, OCR
-// result, store, route, or geometry implementation is injected, and no
-// production behavior is bypassed or faked.
+// The test starts the real `FeldexaApp` (the same root widget `main()` builds)
+// with the production `createImportRuntime()` Android composition: the
+// debug-only `de.feldexa/test.import` hook arms the deterministic T061
+// damaged-page-2 variant of the committed synthetic `sf-001.pdf` fixture, the
+// production import action performs the real encrypted staging, preflight, and
+// verified commit, the real analysis run produces suggestions, and one
+// suggestion is confirmed through the production T066 command path. The
+// confirmed field is selected through the real T077 tap path (tap -> value
+// sheet -> close), and is then edited through the real composed T071B touch
+// geometry layer with real pointer events on the emulator's touch surface.
+//
+// Two deliberate, documented test seams exist and neither replaces behavior:
+//   * the app is started with `FeldexaApp(importRuntimeFactory: ...)` instead of
+//     `main()` so the *same* production composition can be wrapped in a
+//     counting facade around the real editor runtime (see `_StoreSpy`); the
+//     facade forwards every call unchanged to the real raster, OCR, id, clock,
+//     store, load, save, and dispose implementations and only counts
+//     `saveRevision` invocations. The startup sweep of `main()` is not part of
+//     this touch journey and is not exercised.
+//   * the last gesture deliberately arms a double-commit fault injection as a
+//     negative control for the exactly-one-revision assertion (see
+//     `NEGATIVE_CONTROL:DOUBLE_COMMIT`); it is the final action before teardown
+//     and leaves the stored head one revision ahead, which the driver's app-data
+//     cleanup removes.
+// No fake adapter, renderer, detector, OCR result, store, route, or geometry
+// implementation replaces a production one.
 //
 // What is proven here (`contracts/editor-interactions.md` §4, FR-023/FR-024,
 // FR-094, SC-017):
@@ -25,44 +41,60 @@
 //     dragged far enough to hit the page clamp and keeps its size exactly;
 //   * all four corner handles and all four edge handles resize the field, the
 //     diagonally opposite corner / opposite edge stays bit-for-bit fixed, the
-//     aspect ratio stays free, and an edge handle is reachable from a touch
-//     point outside the stored rectangle (the 24 dp hit region);
+//     aspect ratio stays free, and one edge handle is claimed from a touch point
+//     measured 8.29 dp *outside* the stored rectangle; 24 dp is the contract
+//     constant the production hit test uses, not a measurement of this run;
 //   * the minimum committed size of 4 x 4 pt is enforced against the fixed
 //     anchor;
 //   * every gesture produces exactly one verified store commit, never one per
-//     frame: the head revision and the visible content are asserted unchanged
-//     on every pumped frame while the pointer is down, and exactly one new
-//     revision lands after the pointer lifts;
+//     frame: a counting facade around the real editor runtime counts
+//     `saveRevision` calls, and the test asserts zero calls during a hold window
+//     that is longer than the measured commit latency, exactly one call per
+//     gesture, and no in-flight commit (`reviewBusy` false, preview painted,
+//     gesture active) while the pointer is held. A pure assertion negative
+//     control and a real double-commit fault injection prove the assertion is
+//     not vacuous and that it fails on two revisions;
 //   * a pointer cancel discards the preview and commits nothing;
 //   * undo restores the exact previous rectangle (bit-for-bit, not re-derived);
 //   * two-finger pan and pinch never edit geometry, while the page still pans
 //     and zooms.
 //
 // The resize phases run at a documented gesture zoom (`3 x fit-width`) so that
-// a 20 pt edge movement is a pointer delta well above Flutter's pan slop; the
-// page-display delta, not the zoom, is what the assertions fix. Every phase
-// keeps its expected rectangle inside the page display box, asserted as an
-// explicit precondition, so a phase that would silently hit the page clamp
-// fails loudly instead.
+// a 20 pt edge movement is a pointer delta above Flutter's 36 px pan slop. The
+// zoom is never assumed from the viewport: the test asserts
+// `20 pt * 3 * fitWidth > 36 px` as an explicit precondition, raises the zoom to
+// at least `40 px / 20 pt` if the viewport is narrower than the nominal 3x, and
+// records the nominal and used margins in `T071_RESIZE_ZOOM`. The page-display
+// delta, not the zoom, is what the assertions fix. Every phase keeps its
+// expected rectangle inside the page display box, asserted as an explicit
+// precondition, so a phase that would silently hit the page clamp fails loudly
+// instead.
 //
 // Markers are content-free: phase name, handle, zero-based page index, the
 // opaque generated field id, the view scale in milli-units, rectangles in
-// 1/8 pt integer units, and frame/commit counts. No label, OCR text, title,
-// path, URI, or entered value is printed. Screenshots are captured by the host
-// driver at the marked phases; each `_waitForDriver` deletes any stale
-// acknowledgement file first, so a capture can never show a state from an
-// earlier phase.
+// 1/8 pt integer units, frame/save/commit counts, and measured latencies. No
+// label, OCR text, title, path, URI, or entered value is printed. Screenshots
+// are captured by the host driver at the marked phases; each `_waitForDriver`
+// first removes any stale acknowledgement file and *fails closed* with an
+// explicit `T071_HANDSHAKE_FAIL:` marker when that file exists and cannot be
+// removed, so a capture can never show a state from an earlier phase. The
+// screenshot markers have exactly one `T071_` prefix
+// (`T071_SCREENSHOT_<PHASE>`), and the driver matches them as exact shapes
+// rather than substrings.
 
 import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:feldexa_app/features/editor/durability_status.dart';
+import 'package:feldexa_app/features/editor/editor_runtime.dart';
 import 'package:feldexa_app/features/editor/editor_screen.dart';
+import 'package:feldexa_app/features/editor/field_value_sheet.dart';
 import 'package:feldexa_app/features/editor/page_view.dart';
 import 'package:feldexa_app/features/editor/suggestion_review_panel.dart';
+import 'package:feldexa_app/features/start/import_runtime.dart';
 import 'package:feldexa_app/features/start/stored_items.dart';
-import 'package:feldexa_app/main.dart' as app;
+import 'package:feldexa_app/main.dart' show FeldexaApp;
 import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:flutter/material.dart' hide PageView;
@@ -119,28 +151,164 @@ const double _narrowStepPt = 200;
 /// Display-point bottom growth that gives the field a real body at 0.5x.
 const double _growStepPt = 150;
 
-/// Host-driver screenshot phases. The value is the marker the test emits; the
-/// driver answers with an `ack-<name>` file, and only then does the test
-/// continue.
-const Map<String, String> _screenshots = <String, String>{
-  'resize-corners': 'T071_SCREENSHOT_RESIZE_CORNERS',
-  'resize-edges': 'T071_SCREENSHOT_RESIZE_EDGES',
-  'move-0.5x': 'T071_SCREENSHOT_MOVE_0_5X',
-  'move-1x': 'T071_SCREENSHOT_MOVE_1X',
-  'move-3x': 'T071_SCREENSHOT_MOVE_3X',
-  'move-8x': 'T071_SCREENSHOT_MOVE_8X',
-  'move-clamped': 'T071_SCREENSHOT_MOVE_CLAMPED',
-  'undo': 'T071_SCREENSHOT_UNDO',
-  'cancel': 'T071_SCREENSHOT_CANCEL',
-  'two-finger-pinch': 'T071_SCREENSHOT_TWO_FINGER_PINCH',
-  'two-finger-pan': 'T071_SCREENSHOT_TWO_FINGER_PAN',
-  'min-size': 'T071_SCREENSHOT_MIN_SIZE',
+/// Host-driver screenshot phases.
+///
+/// The value is the phase suffix; `_waitForDriver` emits
+/// `T071_SCREENSHOT_<suffix>` through `_marker`, which adds the single `T071_`
+/// prefix, and the driver answers with an `ack-<name>` file. Keeping only the
+/// suffix here is what prevents the historical doubled
+/// `T071_T071_SCREENSHOT_...` marker.
+const Map<String, String> _screenshotPhases = <String, String>{
+  'resize-corners': 'RESIZE_CORNERS',
+  'resize-edges': 'RESIZE_EDGES',
+  'move-0.5x': 'MOVE_0_5X',
+  'move-1x': 'MOVE_1X',
+  'move-3x': 'MOVE_3X',
+  'move-8x': 'MOVE_8X',
+  'move-clamped': 'MOVE_CLAMPED',
+  'undo': 'UNDO',
+  'cancel': 'CANCEL',
+  'two-finger-pinch': 'TWO_FINGER_PINCH',
+  'two-finger-pan': 'TWO_FINGER_PAN',
+  'min-size': 'MIN_SIZE',
 };
+
+/// Flutter's pan slop for the scale recognizer (`kPanSlop`, twice the touch
+/// slop), in logical pixels.
+const double _panSlopPx = 36;
+
+/// Required pointer margin above the pan slop for a one-axis resize movement.
+const double _requiredEdgePointerPx = 40;
+
+/// Base hold window: the pointer stays down at least this long before it lifts.
+const Duration _holdWindowBase = Duration(milliseconds: 1000);
+
+/// Upper bound for the derived hold window so the journey stays bounded.
+const Duration _maxHoldWindow = Duration(milliseconds: 3000);
 
 /// The opaque generated id of the confirmed field under test.
 String _targetFieldId = '';
 
+/// The counting store spy of this test process.
+///
+/// Created once and handed to the counting editor-runtime facade, which the
+/// production import composition builds for the editor route.
+final _StoreSpy _storeSpy = _StoreSpy();
+
+/// Counts the real editor runtime's store operations.
+///
+/// This is observation only: every counted call is forwarded unchanged to the
+/// real implementation, so the counted revisions are the revisions the
+/// encrypted store actually wrote.
+final class _StoreSpy {
+  int saves = 0;
+  int loads = 0;
+
+  /// When true, the next [saveRevision] also writes one further revision
+  /// chained on the head the real store returned. Used only by the deliberate
+  /// double-commit negative control at the end of the journey.
+  bool duplicateNextSave = false;
+
+  int get consumeDuplicateFlag {
+    final bool armed = duplicateNextSave;
+    duplicateNextSave = false;
+    return armed ? 1 : 0;
+  }
+}
+
+/// `EditorRuntime` facade that counts store calls and forwards everything.
+final class _CountingEditorRuntime implements EditorRuntime {
+  _CountingEditorRuntime(this._inner, this._spy);
+
+  final EditorRuntime _inner;
+  final _StoreSpy _spy;
+
+  @override
+  PageRasterPort get raster => _inner.raster;
+
+  @override
+  OcrPort? get ocr => _inner.ocr;
+
+  @override
+  SecureStorePort get store => _inner.store;
+
+  @override
+  IdPort get ids => _inner.ids;
+
+  @override
+  ClockPort get clock => _inner.clock;
+
+  @override
+  Future<LoadedDocument> loadDocument(String documentId) {
+    _spy.loads++;
+    return _inner.loadDocument(documentId);
+  }
+
+  @override
+  Future<StoredMeta> saveRevision(SaveRevisionRequest request) async {
+    _spy.saves++;
+    final StoredMeta first = await _inner.saveRevision(request);
+    if (_spy.consumeDuplicateFlag == 1) {
+      // Deliberate fault injection for the negative control: a second *real*
+      // revision chained on the head the first store call returned.
+      final String? nextHead = first.latestRevisionId;
+      expect(
+        nextHead,
+        isNotNull,
+        reason: 'the duplicate-store fault injection needs a chained head',
+      );
+      _spy.saves++;
+      await _inner.saveRevision(
+        SaveRevisionRequest(
+          documentId: request.documentId,
+          expectedHead: nextHead,
+          content: request.content,
+          kind: request.kind,
+        ),
+      );
+    }
+    return first;
+  }
+
+  @override
+  Future<void> dispose() => _inner.dispose();
+}
+
+/// The production import composition with a counting editor-runtime facade.
+///
+/// The real `createImportRuntime()` composition supplies the import port, the
+/// source-bytes resolver, the encrypted store, and the real editor-runtime
+/// factory; only the factory result is wrapped.
+ImportRuntime _countingImportRuntime() {
+  final ImportRuntime base = createImportRuntime();
+  final EditorRuntime Function()? factory = base.editorRuntimeFactory;
+  return ImportRuntime(
+    importPort: base.importPort,
+    readSourceBytes: base.readSourceBytes,
+    store: base.store,
+    editorRuntimeFactory: factory == null
+        ? null
+        : () => _CountingEditorRuntime(factory(), _storeSpy),
+  );
+}
+
+/// Starts the real app root with the counting production composition.
+///
+/// `main()` builds `FeldexaApp` with the default factory; this call builds the
+/// same widget so the runtime facade can be composed. The startup sweep is not
+/// part of the touch journey.
+void _startApp() {
+  runApp(FeldexaApp(importRuntimeFactory: _countingImportRuntime));
+}
+
+/// Every marker emitted in this process, without the `T071_` prefix.
+///
+/// The negative controls assert that their explicit failure markers were
+/// actually emitted, which a log line alone cannot prove to the test.
+final List<String> _emittedMarkers = <String>[];
+
 void _marker(String phase) {
+  _emittedMarkers.add(phase);
   debugPrint('T071_$phase');
 }
 
@@ -225,29 +393,72 @@ Future<void> _waitForAnalysisTerminal(
   fail('the first analysis did not reach a terminal state before the bound');
 }
 
+/// Removes one stale acknowledgement file, or reports why it could not.
+///
+/// Returns `null` when the file is absent or was removed and verified absent,
+/// and a content-free failure marker otherwise. The caller must fail closed on
+/// a marker: a stale acknowledgement that survives deletion would let the test
+/// emit its screenshot marker while an old `ack-<name>` file is still present,
+/// so the driver could capture a later state under an earlier phase name.
+///
+/// [delete] is injectable so the negative control below can force a
+/// [FileSystemException] without touching the device permissions.
+String? _clearStaleAck({required File ack, void Function(File file)? delete}) {
+  final void Function(File file) remove =
+      delete ?? (File file) => file.deleteSync();
+  try {
+    if (!ack.existsSync()) {
+      return null;
+    }
+  } on FileSystemException {
+    return 'STALE_ACK_EXISTS_FAILED';
+  }
+  try {
+    remove(ack);
+  } on FileSystemException {
+    return 'STALE_ACK_DELETE_FAILED';
+  }
+  try {
+    if (ack.existsSync()) {
+      return 'STALE_ACK_SURVIVED_DELETE';
+    }
+  } on FileSystemException {
+    return 'STALE_ACK_VERIFY_FAILED';
+  }
+  return null;
+}
+
 /// Waits for the host driver to capture the named screenshot.
 ///
 /// A previous aborted run can leave `ack-*` files behind; waiting for a stale
-/// file would let the test race ahead of the driver. The stale file is deleted
-/// before the marker is emitted.
-Future<void> _waitForDriver(String name) async {
+/// file would let the test race ahead of the driver. A stale file that cannot be
+/// removed is a hard failure with an explicit marker, never a silent fallback.
+Future<void> _waitForDriver(
+  String name, {
+  void Function(File file)? deleteOverride,
+}) async {
   final File ack = File('$_fixtureRoot${Platform.pathSeparator}ack-$name');
-  try {
-    if (ack.existsSync()) {
-      ack.deleteSync();
-    }
-  } on FileSystemException {
-    // A read-only race cannot delete a stale file; the bounded wait below still
-    // fails instead of silently accepting an old acknowledgement.
+  final String? staleFailure = _clearStaleAck(ack: ack, delete: deleteOverride);
+  if (staleFailure != null) {
+    _marker('HANDSHAKE_FAIL:$staleFailure:PHASE=$name');
+    fail(
+      'the $name handshake cannot be trusted: $staleFailure. A stale '
+      'acknowledgement would let this phase race ahead of the driver, so the '
+      'screenshot marker is withheld',
+    );
   }
-  _marker(_screenshots[name]!);
+  final String? suffix = _screenshotPhases[name];
+  expect(suffix, isNotNull, reason: 'unknown screenshot phase $name');
+  _marker('SCREENSHOT_$suffix');
   final DateTime deadline = DateTime.now().add(const Duration(seconds: 120));
   while (!ack.existsSync()) {
     if (DateTime.now().isAfter(deadline)) {
+      _marker('HANDSHAKE_FAIL:ACK_TIMEOUT:PHASE=$name');
       fail('host driver did not acknowledge screenshot phase $name');
     }
     await Future<void>.delayed(const Duration(milliseconds: 200));
   }
+  _marker('HANDSHAKE_OK:PHASE=$name');
 }
 
 Future<void> _armFile(File source) async {
@@ -559,6 +770,34 @@ Future<void> _waitForSingleCommit(
   expect(state.reviewBusy, isFalse);
 }
 
+/// Asserts exactly one store revision per gesture and none while it is held.
+///
+/// `savesBefore` / `savesAfter` are `_StoreSpy.saves` around the gesture and
+/// `savesDuringHold` is the delta observed at the end of the hold window. The
+/// editor commits at gesture end only, so a per-frame save (or a second commit)
+/// shows up as a non-zero hold delta or as a delta other than one.
+void _expectSingleStoreRevision({
+  required int savesBefore,
+  required int savesAfter,
+  required int savesDuringHold,
+  required String phase,
+}) {
+  expect(
+    savesDuringHold,
+    0,
+    reason:
+        '$phase: no store saveRevision call may happen while the pointer is '
+        'held (observed $savesDuringHold)',
+  );
+  expect(
+    savesAfter - savesBefore,
+    1,
+    reason:
+        '$phase: exactly one store saveRevision call per gesture, observed '
+        '${savesAfter - savesBefore}',
+  );
+}
+
 /// The pointer move that crosses Flutter's pan slop for the scale recognizer.
 ///
 /// `kPanSlop` is twice the touch slop (36 logical pixels). A first move of 40
@@ -586,24 +825,50 @@ Future<void> _moveByTotal(TestGesture gesture, Offset total) async {
   }
 }
 
+/// The longest pointer-up -> committed-revision latency observed so far.
+///
+/// The hold window of every later gesture must exceed it, which is what makes
+/// "no save while the pointer is held" a real window rather than a single frame.
+Duration _commitLatency = Duration.zero;
+
+/// The hold window for the next gesture: at least the base window and at least
+/// twice the worst commit latency observed so far, bounded by
+/// [_maxHoldWindow].
+Duration _holdWindow() {
+  final Duration doubled = _commitLatency * 2;
+  final Duration window = doubled > _holdWindowBase ? doubled : _holdWindowBase;
+  return window > _maxHoldWindow ? _maxHoldWindow : window;
+}
+
 /// Drives one claimed geometry gesture and waits for its single commit.
 ///
-/// Asserts the contract's "never per frame" rule on every frame while the
-/// pointer is down. Returns the stored rectangle the gesture started from; the
-/// caller asserts the committed geometry.
+/// While the pointer is held the test keeps pumping for a window longer than the
+/// worst measured commit latency and asserts, on *every* frame, that the gesture
+/// is still active, the preview is painted, no commit is in flight
+/// (`reviewBusy` false), the head/content are unchanged, and the count of real
+/// `saveRevision` calls has not increased. Returns the stored rectangle the
+/// gesture started from; the caller asserts the committed geometry.
 Future<core.Rect> _dragToCommit(
   WidgetTester tester,
   EditorScreenState state, {
   required String phase,
   required Offset startLocal,
   required Offset totalPx,
-  int heldFrames = 2,
 }) async {
   final core.Rect previous = _storedRect(state);
   final double scale = state.viewController.mappingFor(_pageIndex).scale;
   final String? headBefore = state.headRevisionId;
   final String contentBefore = core.canonicalJsonEncode(
     state.content!.toJson(),
+  );
+  final int savesBefore = _storeSpy.saves;
+  final Duration holdWindow = _holdWindow();
+  expect(
+    holdWindow,
+    greaterThan(_commitLatency),
+    reason:
+        '$phase: the hold window must be longer than the measured commit '
+        'latency (${_commitLatency.inMilliseconds} ms)',
   );
 
   final TestGesture gesture = await tester.startGesture(
@@ -630,15 +895,49 @@ Future<core.Rect> _dragToCommit(
   );
 
   int frames = 1;
-  for (int index = 0; index < heldFrames; index++) {
+  final DateTime holdStart = DateTime.now();
+  while (DateTime.now().difference(holdStart) < holdWindow) {
+    await Future<void>.delayed(const Duration(milliseconds: 150));
     await tester.pump();
     frames++;
+    // Explicit in-flight assertions on every held frame: the gesture must still
+    // own the pointer, the preview must still be painted, and no commit may be
+    // in flight before the pointer lifts.
+    expect(
+      state.geometryGestureActive,
+      isTrue,
+      reason: '$phase: the gesture claim must survive the hold window',
+    );
+    expect(
+      find.byKey(_geometryPreviewKey),
+      findsWidgets,
+      reason: '$phase: the preview must stay painted during the hold window',
+    );
+    expect(
+      state.reviewBusy,
+      isFalse,
+      reason: '$phase: no commit may be in flight while the pointer is held',
+    );
+    _expectNoMidGestureWrite(
+      state,
+      headBefore: headBefore,
+      contentBefore: contentBefore,
+      phase: phase,
+    );
   }
-  _expectNoMidGestureWrite(
-    state,
-    headBefore: headBefore,
-    contentBefore: contentBefore,
-    phase: phase,
+  final Duration held = DateTime.now().difference(holdStart);
+  expect(
+    held,
+    greaterThanOrEqualTo(holdWindow),
+    reason: '$phase: the hold window must actually elapse',
+  );
+  final int savesDuringHold = _storeSpy.saves - savesBefore;
+  expect(
+    savesDuringHold,
+    0,
+    reason:
+        '$phase: the held frames must not write a store revision '
+        '(observed $savesDuringHold real saveRevision calls)',
   );
   expect(
     _storedRect(state),
@@ -646,6 +945,7 @@ Future<core.Rect> _dragToCommit(
     reason: '$phase: no preview frame may persist geometry',
   );
 
+  final DateTime upAt = DateTime.now();
   await gesture.up();
   await tester.pump();
   await _waitForSingleCommit(
@@ -654,23 +954,72 @@ Future<core.Rect> _dragToCommit(
     headBefore: headBefore,
     phase: phase,
   );
+  final Duration latency = DateTime.now().difference(upAt);
+  if (latency > _commitLatency) {
+    _commitLatency = latency;
+  }
+  final int savesAfter = _storeSpy.saves;
+  _expectSingleStoreRevision(
+    savesBefore: savesBefore,
+    savesAfter: savesAfter,
+    savesDuringHold: savesDuringHold,
+    phase: phase,
+  );
   _marker(
     'COMMIT:$phase:PAGE=$_pageIndex:FIELD=$_targetFieldId:'
     'SCALE_MILLI=${_scaleMilli(scale)}:HELD_FRAMES=$frames:'
-    'MID_WRITE=0:NEW_HEAD=1',
+    'HOLD_MS=${held.inMilliseconds}:'
+    'LATENCY_MS=${latency.inMilliseconds}:'
+    'SAVES_HELD=$savesDuringHold:SAVES_DELTA=${savesAfter - savesBefore}:'
+    'REVIEW_BUSY_HELD=0:PREVIEW_HELD=1',
   );
   return previous;
 }
 
-/// Selects the confirmed field without opening the value sheet.
+/// Selects the confirmed field through the real T077 tap path.
 ///
-/// T077's `FieldSelectionController` is the transient selection source of truth
-/// the composed overlay reads; tapping the field would additionally open the
-/// value sheet, which is not part of the touch-geometry journey.
-Future<void> _selectField(WidgetTester tester, EditorScreenState state) async {
-  state.selection.select(_targetFieldId);
+/// A tap on the confirmed field opens the value sheet (the production
+/// `_handleOverlaySelection` path); the sheet is then closed and the selection is
+/// asserted from the composed controller. This is the same tap -> sheet -> close
+/// path T071A proves, so no selection is set directly on the controller.
+Future<void> _selectFieldThroughTap(
+  WidgetTester tester,
+  EditorScreenState state,
+) async {
+  final Rect rect = _storedViewRect(state);
+  await tester.tapAt(_screenPoint(tester, state, rect.center));
+  await _pumpUntil(
+    tester,
+    () => find.byKey(fieldValueSheetKey).evaluate().isNotEmpty,
+    timeout: const Duration(seconds: 120),
+    reason: 'tapping the confirmed field did not open the value sheet',
+  );
+  _marker('SELECTION_TAP:PHASE=OPEN:SHEET=1');
+  await tester.tap(find.byKey(fieldValueCloseKey));
+  await _pumpUntil(
+    tester,
+    () => find.byKey(fieldValueSheetKey).evaluate().isEmpty,
+    timeout: const Duration(seconds: 120),
+    reason: 'the value sheet did not close after the selection tap',
+  );
+  await _pumpUntil(
+    tester,
+    () => tester.view.viewInsets.bottom == 0,
+    timeout: const Duration(seconds: 120),
+    reason:
+        'the software keyboard did not dismiss after the selection tap, so '
+        'the page viewport would not be settled for the touch journey',
+  );
   await tester.pumpAndSettle();
-  expect(state.selection.selectedId, _targetFieldId);
+  expect(
+    state.selection.selectedId,
+    _targetFieldId,
+    reason: 'the real tap path must select the confirmed field',
+  );
+  _marker(
+    'SELECTION_TAP:PHASE=CLOSED:SELECTED=1:FIELD=$_targetFieldId:'
+    'SHEET_OPENED=1',
+  );
 }
 
 /// One corner or edge resize gesture with its explicit expected rectangle.
@@ -817,23 +1166,161 @@ void main() {
   });
 
   tearDownAll(() async {
+    // The test-side cleanup runs first and reports what it actually did; the
+    // CLEANUP_DONE marker is emitted only after both steps are verified, so it
+    // can never stand for a cleanup that did not happen. The driver verifies the
+    // device-side cleanup separately (`cleanup-verification.txt`).
+    bool hookCleared = !hookArmed;
     if (hookArmed) {
       try {
         await _clearHook();
+        hookCleared = true;
       } catch (_) {
-        // The engine may already be detached; the driver also clears app data.
+        // The engine may already be detached; the driver clears app data too,
+        // but this test must not claim a cleanup it could not perform.
+        hookCleared = false;
       }
     }
+    bool scratchGone = true;
     final File? scratch = scratchSource;
-    if (scratch != null && scratch.existsSync()) {
-      scratch.deleteSync();
+    if (scratch != null) {
+      try {
+        if (scratch.existsSync()) {
+          scratch.deleteSync();
+        }
+        scratchGone = !scratch.existsSync();
+      } on FileSystemException {
+        scratchGone = false;
+      }
     }
+    _marker(
+      'CLEANUP:HOOK_CLEARED=${hookCleared ? 1 : 0}:'
+      'SCRATCH_GONE=${scratchGone ? 1 : 0}',
+    );
+    if (hookCleared && scratchGone) {
+      _marker('CLEANUP_DONE');
+    } else {
+      _marker('CLEANUP_INCOMPLETE');
+    }
+    expect(hookCleared, isTrue, reason: 'the import hook must be cleared');
+    expect(scratchGone, isTrue, reason: 'the scratch source must be deleted');
   });
 
-  testWidgets('move and resize the selected confirmed field on the touch surface', (
+  // ---------------------------------------------------------------------
+  // Negative controls. These run on the device as ordinary tests in the same
+  // `flutter test` invocation and prove the two handshake/commit assertions are
+  // not vacuous before the journey relies on them.
+  // ---------------------------------------------------------------------
+
+  test('the exactly-one-revision assertion rejects a double commit and a '
+      'held save', () {
+    expect(
+      () => _expectSingleStoreRevision(
+        savesBefore: 4,
+        savesAfter: 5,
+        savesDuringHold: 0,
+        phase: 'control-pass',
+      ),
+      returnsNormally,
+      reason: 'one save in the gesture and none held must pass',
+    );
+    expect(
+      () => _expectSingleStoreRevision(
+        savesBefore: 4,
+        savesAfter: 6,
+        savesDuringHold: 0,
+        phase: 'control-double-commit',
+      ),
+      throwsA(isA<TestFailure>()),
+      reason: 'two saves for one gesture must fail the assertion',
+    );
+    expect(
+      () => _expectSingleStoreRevision(
+        savesBefore: 4,
+        savesAfter: 5,
+        savesDuringHold: 1,
+        phase: 'control-held-save',
+      ),
+      throwsA(isA<TestFailure>()),
+      reason: 'a save while the pointer is held must fail the assertion',
+    );
+    expect(
+      () => _expectSingleStoreRevision(
+        savesBefore: 4,
+        savesAfter: 4,
+        savesDuringHold: 0,
+        phase: 'control-no-commit',
+      ),
+      throwsA(isA<TestFailure>()),
+      reason: 'zero saves for a committed gesture must fail the assertion',
+    );
+    _marker(
+      'NEGATIVE_CONTROL:REVISION_ASSERTION=1:DOUBLE_REJECTED=1:'
+      'HELD_REJECTED=1:ZERO_REJECTED=1',
+    );
+  });
+
+  test('the stale-ack handshake fails closed', () async {
+    final Directory probeDirectory = Directory(
+      '$_fixtureRoot${Platform.pathSeparator}ack-negative',
+    );
+    probeDirectory.createSync(recursive: true);
+    final File probe = File(
+      '${probeDirectory.path}${Platform.pathSeparator}ack-probe',
+    );
+    addTearDown(() {
+      if (probe.existsSync()) {
+        probe.deleteSync();
+      }
+      if (probeDirectory.existsSync()) {
+        probeDirectory.deleteSync(recursive: true);
+      }
+    });
+
+    // Absent acknowledgement: nothing to clear.
+    expect(_clearStaleAck(ack: probe), isNull);
+    // Stale acknowledgement: removed and verified absent.
+    probe.writeAsStringSync('stale');
+    expect(_clearStaleAck(ack: probe), isNull);
+    expect(probe.existsSync(), isFalse);
+    // Injected delete failure: reported, not swallowed.
+    probe.writeAsStringSync('stale');
+    expect(
+      _clearStaleAck(
+        ack: probe,
+        delete: (File file) =>
+            throw const FileSystemException('injected delete failure'),
+      ),
+      'STALE_ACK_DELETE_FAILED',
+    );
+    expect(probe.existsSync(), isTrue);
+
+    // The handshake itself must fail closed and withhold the screenshot marker
+    // when the stale file cannot be removed.
+    final String marker = 'HANDSHAKE_FAIL:STALE_ACK_DELETE_FAILED:PHASE=probe';
+    await expectLater(
+      _waitForDriver(
+        'probe',
+        deleteOverride: (File file) =>
+            throw const FileSystemException('injected delete failure'),
+      ),
+      throwsA(isA<TestFailure>()),
+      reason: 'a stale acknowledgement that cannot be removed must abort',
+    );
+    expect(_emittedMarkers, contains(marker));
+    expect(
+      _emittedMarkers.where((String entry) => entry.startsWith('SCREENSHOT_')),
+      isNot(contains('SCREENSHOT_null')),
+      reason: 'no screenshot marker may be emitted for a failed handshake',
+    );
+    probe.deleteSync();
+    _marker('NEGATIVE_CONTROL:STALE_ACK=1:DELETE_FAILURE_FAILS_CLOSED=1');
+  });
+
+  testWidgets('move and resize the confirmed field on the touch surface', (
     WidgetTester tester,
   ) async {
-    await app.main();
+    _startApp();
     await _pumpUntil(
       tester,
       () => find.byKey(_startScreenKey).evaluate().isNotEmpty,
@@ -943,7 +1430,7 @@ void main() {
       'RECT_8TH=${_coreRectEighths(field.rect)}',
     );
 
-    await _selectField(tester, state);
+    await _selectFieldThroughTap(tester, state);
     await _pumpUntil(
       tester,
       () =>
@@ -966,15 +1453,50 @@ void main() {
     // -------------------------------------------------------------------
     // A. All four corner handles (screenshot: resize-corners).
     //
-    // Every corner moves its two edges 20 pt outward at a 3 x fit-width
-    // gesture zoom, so the pointer delta is ~42 px and the page-display
-    // delta stays 20 pt. The diagonally opposite corner is asserted
-    // bit-for-bit, and the free aspect ratio is proved by the width and
-    // height changing by the same 20 pt here and by different amounts in the
-    // edge phase.
+    // Every corner moves its two edges 20 pt outward at the 3 x fit-width
+    // gesture zoom, so the pointer delta is above Flutter's 36 px pan slop and
+    // the page-display delta stays 20 pt. The zoom is not assumed from the
+    // viewport: the nominal 3x margin is asserted as a precondition, the used
+    // zoom is raised to at least `40 px / 20 pt` when the viewport is narrower
+    // than nominal, and both margins are recorded in `T071_RESIZE_ZOOM`. The
+    // diagonally opposite corner is asserted bit-for-bit, and the free aspect
+    // ratio is proved by the width and height changing by the same 20 pt here
+    // and by different amounts in the edge phase.
     // -------------------------------------------------------------------
-    final double resizeScale = fitScale * _resizeGestureZoom;
     const double step = _resizeStepPt;
+    final double nominalResizeScale = fitScale * _resizeGestureZoom;
+    final double nominalEdgePointerPx = step * nominalResizeScale;
+    expect(
+      nominalEdgePointerPx,
+      greaterThan(_panSlopPx),
+      reason:
+          'precondition: the nominal ${_resizeGestureZoom}x fit-width gesture '
+          'zoom must put a $step pt edge move above the ${_panSlopPx}px pan '
+          'slop on this viewport (observed '
+          '${nominalEdgePointerPx.toStringAsFixed(2)}px)',
+    );
+    final double minResizeScale = _requiredEdgePointerPx / step;
+    final double resizeScale = nominalResizeScale > minResizeScale
+        ? nominalResizeScale
+        : minResizeScale;
+    final double usedEdgePointerPx = step * resizeScale;
+    expect(
+      usedEdgePointerPx,
+      greaterThanOrEqualTo(_requiredEdgePointerPx),
+      reason:
+          'precondition: the used resize zoom must keep a $step pt edge move at '
+          'least ${_requiredEdgePointerPx}px, above the ${_panSlopPx}px pan '
+          'slop',
+    );
+    _marker(
+      'RESIZE_ZOOM:FIT_MILLI=${_scaleMilli(fitScale)}:'
+      'NOMINAL_ZOOM_MILLI=${_scaleMilli(nominalResizeScale)}:'
+      'NOMINAL_EDGE_PTR_PX=${nominalEdgePointerPx.toStringAsFixed(2)}:'
+      'USED_ZOOM_MILLI=${_scaleMilli(resizeScale)}:'
+      'USED_EDGE_PTR_PX=${usedEdgePointerPx.toStringAsFixed(2)}:'
+      'PAN_SLOP_PX=${_panSlopPx.round()}:'
+      'REQUIRED_PX=${_requiredEdgePointerPx.round()}:OK=1',
+    );
 
     // topLeft: left and top move; right and bottom are the fixed anchor.
     {
@@ -1490,6 +2012,7 @@ void main() {
       final String contentBefore = core.canonicalJsonEncode(
         state.content!.toJson(),
       );
+      final int savesBefore = _storeSpy.saves;
       final Rect r = _flutterRect(before);
       _marker(
         'PHASE:pointer-cancel:SCALE_MILLI=${_scaleMilli(scale)}:'
@@ -1530,9 +2053,18 @@ void main() {
         before,
         reason: 'a pointer cancel must discard the preview geometry',
       );
+      expect(
+        _storeSpy.saves,
+        savesBefore,
+        reason:
+            'a pointer cancel must not call the real store saveRevision even '
+            'once',
+      );
+      expect(state.reviewBusy, isFalse);
       _marker(
         'CANCEL:PAGE=$_pageIndex:FIELD=$_targetFieldId:'
-        'RECT_8TH=${_coreRectEighths(_storedRect(state))}:COMMITS=0',
+        'RECT_8TH=${_coreRectEighths(_storedRect(state))}:COMMITS=0:'
+        'SAVES=${_storeSpy.saves - savesBefore}',
       );
       await _setShotView(
         tester,
@@ -1558,6 +2090,7 @@ void main() {
       final String contentBefore = core.canonicalJsonEncode(
         state.content!.toJson(),
       );
+      final int savesBefore = _storeSpy.saves;
       final Offset centerLocal = state.viewController
           .mappingFor(_pageIndex)
           .displayToView(_flutterRect(before).center);
@@ -1618,8 +2151,14 @@ void main() {
         reason: 'two-finger pinch must never commit geometry',
       );
       expect(_storedRect(state), before);
+      expect(
+        _storeSpy.saves,
+        savesBefore,
+        reason: 'a two-finger pinch must not call the real store saveRevision',
+      );
       _marker(
         'TWO_FINGER:pinch:COMMITS=0:'
+        'SAVES=${_storeSpy.saves - savesBefore}:'
         'SCALE_MILLI=${_scaleMilli(state.viewController.scale)}:'
         'RECT_8TH=${_coreRectEighths(_storedRect(state))}',
       );
@@ -1646,6 +2185,7 @@ void main() {
       final String contentBefore = core.canonicalJsonEncode(
         state.content!.toJson(),
       );
+      final int savesBefore = _storeSpy.saves;
       final Offset panBefore = state.viewController.pan;
       final Offset centerLocal = state.viewController
           .mappingFor(_pageIndex)
@@ -1696,8 +2236,14 @@ void main() {
         reason: 'two-finger pan must never commit geometry',
       );
       expect(_storedRect(state), before);
+      expect(
+        _storeSpy.saves,
+        savesBefore,
+        reason: 'a two-finger pan must not call the real store saveRevision',
+      );
       _marker(
-        'TWO_FINGER:pan:COMMITS=0:PAN_CHANGED=1:'
+        'TWO_FINGER:pan:COMMITS=0:'
+        'SAVES=${_storeSpy.saves - savesBefore}:PAN_CHANGED=1:'
         'RECT_8TH=${_coreRectEighths(_storedRect(state))}',
       );
       await _setShotView(
@@ -1762,10 +2308,10 @@ void main() {
       );
       // The 4 x 4 pt field is shown at the 8x upper zoom bound so the clamped
       // minimum is actually visible in the screenshot.
-      await _setScaleOnPoint(
+      await _setShotView(
         tester,
         state,
-        _flutterRect(actual).center,
+        _flutterRect(actual),
         state.viewController.maxScale,
       );
       await _waitForDriver('min-size');
@@ -1790,6 +2336,82 @@ void main() {
       'READBACK:OK:PAGE=$_pageIndex:FIELD=$_targetFieldId:'
       'RECT_8TH=${_coreRectEighths(storedField.rect)}:HEAD_MATCH=1',
     );
-    _marker('CLEANUP_DONE');
+
+    // -------------------------------------------------------------------
+    // I. Negative control: a real double commit must fail the assertion.
+    //
+    // The counting facade is armed to write one further *real* revision chained
+    // on the head the genuine save returned, so this gesture produces two real
+    // store revisions. The exactly-one-revision assertion must then throw. It is
+    // the last action before teardown: the store head is deliberately one
+    // revision ahead of the editor's view from here on, and the driver's
+    // app-data cleanup removes the whole store afterwards.
+    // -------------------------------------------------------------------
+    {
+      await _setScaleOnRect(tester, state, _storedViewRect(state), fitScale);
+      final int savesBefore = _storeSpy.saves;
+      final String? headBefore = state.headRevisionId;
+      final Rect r = _storedViewRect(state);
+      final int savesAtArm = _storeSpy.saves;
+      _storeSpy.duplicateNextSave = true;
+      expect(_storeSpy.duplicateNextSave, isTrue);
+      final TestGesture gesture = await tester.startGesture(
+        _screenPoint(tester, state, r.center),
+      );
+      await _moveByTotal(gesture, const Offset(44, 0));
+      await tester.pump();
+      expect(
+        state.geometryGestureActive,
+        isTrue,
+        reason:
+            'the negative-control drag must be claimed by the geometry layer',
+      );
+      expect(
+        _storeSpy.saves,
+        savesAtArm,
+        reason: 'the armed facade must not save while the pointer is held',
+      );
+      await gesture.up();
+      await tester.pump();
+      await _pumpUntil(
+        tester,
+        () => !state.reviewBusy && state.headRevisionId != headBefore,
+        timeout: const Duration(seconds: 120),
+        reason: 'the negative-control gesture did not commit',
+      );
+      final int savesDelta = _storeSpy.saves - savesBefore;
+      expect(
+        savesDelta,
+        2,
+        reason:
+            'the fault injection must have written two real store revisions, '
+            'observed $savesDelta',
+      );
+      expect(
+        () => _expectSingleStoreRevision(
+          savesBefore: savesBefore,
+          savesAfter: _storeSpy.saves,
+          savesDuringHold: 0,
+          phase: 'negative-control-double-commit',
+        ),
+        throwsA(isA<TestFailure>()),
+        reason:
+            'the exactly-one-revision assertion must fail on two real store '
+            'revisions',
+      );
+      expect(
+        _emittedMarkers.where(
+          (String entry) => entry.startsWith('COMMIT:negative-control'),
+        ),
+        isEmpty,
+        reason:
+            'the journey must not emit a passing commit marker for the '
+            'double-commit control',
+      );
+      _marker(
+        'NEGATIVE_CONTROL:DOUBLE_COMMIT=1:SAVES_DELTA=$savesDelta:'
+        'ASSERTION_FAILED=1:STORE_HEAD_AHEAD=1',
+      );
+    }
   });
 }

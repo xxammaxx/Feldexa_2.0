@@ -12,16 +12,25 @@
 #      SHA-256; the integration test then derives the T061 damaged-page-2 source
 #      deterministically (5956 bytes, SHA-256 57c1ade1...) before import, so page
 #      1 stays usable and page 2 imports as unreadable;
-#   3. clears the test app data so the journey starts with an empty store;
+#   3. clears the test app data so the journey starts with an empty store, and
+#      removes any stale screenshot acknowledgement with a checked exit code and
+#      a verified empty result;
 #   4. starts `flutter test integration_test/android_review_test.dart` in the
 #      background and captures the twelve screenshot phases; stale ack files are
 #      removed first, every screenshot marker must be observed, and all twelve
 #      screenshot hashes must be distinct;
 #   5. records device identity, fixture/APK hashes, git identity (HEAD/tree/
 #      branch/subject/status), marker-filtered logcat, the marker sequence
-#      extracted from the integration log, the exact host/emulator commands with
-#      their exit codes, and source-level plus log-level privacy checks;
-#   6. removes pushed fixtures/acks and clears the test app data again.
+#      extracted from the integration log, the selected host/emulator commands
+#      with their exit codes (see `commands.txt` for the recorded subset), and
+#      privacy scans of the integration log, `logcat-flutter.log`, and
+#      `commands.txt`; every committed log is URL-redacted before it is written,
+#      which removes the per-run Dart VM service token;
+#   6. verifies the marker contract as exact anchored shapes (including exactly
+#      14 single-revision `T071_COMMIT` lines and 12 single-prefix
+#      `T071_SCREENSHOT_*` markers), then removes the pushed fixtures and
+#      acknowledgements, clears the test app data, and *verifies* that cleanup
+#      (`cleanup-verification.txt`) before the evidence is collected.
 #
 # T071 markers are printed by the integration-test process through the test
 # harness, not by the app process, so `logcat-flutter.log` contains only engine
@@ -99,6 +108,13 @@ fail() {
   exit 1
 }
 
+# Replaces any URL with a placeholder. The debug test app prints a Dart VM
+# service URL whose path segment is a per-run authentication token, so every
+# committed log is redacted before it is written or copied.
+redact_urls() {
+  sed -E 's#(https?|wss?)://[^[:space:]]+#<URL_REDACTED>#g'
+}
+
 not_run() {
   log "T071 EMULATOR NOT_RUN: $*"
   exit 2
@@ -122,18 +138,19 @@ fi
 : >"$SEQUENCE"
 : >"$COMMANDS"
 
-cleanup() {
-  if [[ "$CLEANED" -eq 1 ]]; then
-    return
-  fi
-  CLEANED=1
+# Removes the pushed fixtures, force-stops the test app, clears its data, and
+# restores the device settings this driver changed. Every command is recorded
+# with its exit code; `verify_cleanup` proves the result.
+device_cleanup() {
   set +e
   if [[ -n "$TEST_PID" ]] && kill -0 "$TEST_PID" 2>/dev/null; then
     kill "$TEST_PID" 2>/dev/null
     wait "$TEST_PID" 2>/dev/null
   fi
   adb_shell rm -rf "$STAGING" >/dev/null
+  record_cmd "$?" "adb -s $SERIAL shell rm -rf $STAGING (cleanup)"
   adb_shell am force-stop "$PACKAGE" >/dev/null
+  record_cmd "$?" "adb -s $SERIAL shell am force-stop $PACKAGE (cleanup)"
   adb_shell pm clear "$PACKAGE" >/dev/null 2>&1
   record_cmd "$?" "adb -s $SERIAL shell pm clear $PACKAGE (cleanup)"
   rm -f "$RUN_DIR/logcat-full.txt"
@@ -146,6 +163,37 @@ cleanup() {
   if [[ -n "${ORIGINAL_STAY_ON:-}" && "$ORIGINAL_STAY_ON" != "null" ]]; then
     adb_shell settings put global stay_on_while_plugged_in "$ORIGINAL_STAY_ON" >/dev/null
   fi
+}
+
+# Proves the cleanup really happened and writes `cleanup-verification.txt`.
+#
+# A driver-side cleanup claim is only evidence when the device state is checked:
+# the staging directory must be gone, no acknowledgement file may remain, and the
+# test app must be stopped.
+verify_cleanup() {
+  local staging_state acks app_state exit_code=0
+  staging_state="$(adb_shell "[ -e $STAGING ] && echo PRESENT || echo GONE")"
+  acks="$(adb_shell "ls $STAGING 2>/dev/null | grep -c '^ack-'" || true)"
+  app_state="$(adb_shell "ps -A | grep -c '$PACKAGE'" || true)"
+  [[ "$staging_state" == "GONE" ]] || exit_code=1
+  [[ "${acks:-0}" == "0" ]] || exit_code=1
+  {
+    log "staging_dir=$STAGING state=$staging_state expected=GONE"
+    log "stale_ack_files=${acks:-0} expected=0"
+    log "app_processes=${app_state:-0} expected=0"
+    log "verified=$([[ "$exit_code" -eq 0 ]] && echo 1 || echo 0)"
+  } >"$RUN_DIR/cleanup-verification.txt"
+  record_cmd "$exit_code" "adb -s $SERIAL cleanup verification (staging gone, no acks, app stopped)"
+  [[ "$exit_code" -eq 0 ]] ||
+    fail "device cleanup verification failed; see cleanup-verification.txt"
+}
+
+cleanup() {
+  if [[ "$CLEANED" -eq 1 ]]; then
+    return
+  fi
+  CLEANED=1
+  device_cleanup
 }
 trap cleanup EXIT INT TERM
 
@@ -193,6 +241,8 @@ collect_evidence() {
     logcat-t071-markers.log \
     privacy-source-check.txt \
     privacy-log-check.txt \
+    cleanup-verification.txt \
+    handshake-preflight.txt \
     host-flutter-pub-get.log; do
     if [[ -f "$RUN_DIR/$file" ]]; then
       cp "$RUN_DIR/$file" "$EVIDENCE_DIR/$file" ||
@@ -485,6 +535,11 @@ wait "$TEST_PID"
 TEST_EXIT=$?
 record_cmd "$TEST_EXIT" "flutter test --no-pub $TEST_FILE -d $SERIAL"
 
+# The integration log is evidence, so per-run service URLs are redacted before
+# any marker, privacy, or hash check reads it.
+redact_urls <"$LOG" >"$RUN_DIR/integration-android-t071.redacted.log"
+mv "$RUN_DIR/integration-android-t071.redacted.log" "$LOG"
+
 # --- 7. Evidence collection -------------------------------------------------
 {
   for apk in "$APP"/build/app/outputs/flutter-apk/*.apk; do
@@ -524,58 +579,130 @@ CAPTURED_SCREENSHOTS="$(grep -c 'sha256=' "$RUN_DIR/screenshot-hashes.txt")"
   fail "the $SCREENSHOT_COUNT screenshot hashes are not distinct ($UNIQUE_SCREENSHOTS unique); see screenshot-hashes.txt"
 
 adb_shell logcat -d -v threadtime >"$RUN_DIR/logcat-full.txt" 2>/dev/null
-"$ADB" -s "$SERIAL" logcat -d -v threadtime -s flutter >"$RUN_DIR/logcat-flutter.log" 2>/dev/null
+"$ADB" -s "$SERIAL" logcat -d -v threadtime -s flutter 2>/dev/null |
+  redact_urls >"$RUN_DIR/logcat-flutter.log"
 grep -E "T071_|ActivityTaskManager.*(de\\.feldexa|START)" \
-  "$RUN_DIR/logcat-full.txt" >"$RUN_DIR/logcat-t071-markers.log" 2>/dev/null
-grep -E "T071_" "$LOG" >"$RUN_DIR/markers-integration.txt" 2>/dev/null || true
+  "$RUN_DIR/logcat-full.txt" 2>/dev/null |
+  redact_urls >"$RUN_DIR/logcat-t071-markers.log"
+grep -E "T071_" "$LOG" 2>/dev/null | redact_urls >"$RUN_DIR/markers-integration.txt" || true
 rm -f "$RUN_DIR/logcat-full.txt"
 
-if grep -nE 'Müller|Söhne|Meldebescheinigung|Musterstadt|sf-001\.pdf|/data/local/tmp/t071-fixtures' \
-  "$LOG" >"$RUN_DIR/privacy-log-check.txt" 2>&1; then
-  printf 'FAIL: document content or fixture path found in the integration log\n' \
-    >>"$RUN_DIR/privacy-log-check.txt"
-  PRIVACY_PASS=0
-else
-  printf 'PASS: no document content or fixture path in the integration log\n' \
-    >>"$RUN_DIR/privacy-log-check.txt"
-fi
+# --- 7b. Privacy scan -------------------------------------------------------
+# Every committed text artifact that can carry a leak is scanned. Document
+# content and the fixture staging path are forbidden in the logs; the commands
+# file names the committed synthetic fixture by design (it is the delivery
+# evidence for a synthetic asset, not user content), so it is scanned for
+# URLs/VM-service tokens and document content only.
+: >"$RUN_DIR/privacy-log-check.txt"
+privacy_scan() {
+  local label="$1" file="$2" patterns="$3" hits
+  if [[ ! -f "$file" ]]; then
+    printf 'FAIL %s: missing file %s\n' "$label" "$file" |
+      tee -a "$RUN_DIR/privacy-log-check.txt"
+    PRIVACY_PASS=0
+    return
+  fi
+  hits="$(grep -nE "$patterns" "$file" || true)"
+  if [[ -n "$hits" ]]; then
+    {
+      printf 'FAIL %s: forbidden pattern found\n' "$label"
+      printf '%s\n' "$hits"
+    } >>"$RUN_DIR/privacy-log-check.txt"
+    PRIVACY_PASS=0
+  else
+    printf 'PASS %s: no forbidden pattern\n' "$label" |
+      tee -a "$RUN_DIR/privacy-log-check.txt"
+  fi
+}
+# A committed log must not contain any URL, a loopback service address, or an
+# auth-token assignment; the 'VM service is listening on' sentence itself is
+# harmless once its URL is gone.
+SECRET_PATTERNS='https?://|wss?://|AUTH_TOKEN|127\.0\.0\.1'
+CONTENT_PATTERNS='Müller|Söhne|Meldebescheinigung|Musterstadt'
+privacy_scan "integration-log/secret" "$LOG" "$SECRET_PATTERNS"
+privacy_scan "integration-log/content" "$LOG" "$CONTENT_PATTERNS"
+privacy_scan "integration-log/fixture-path" "$LOG" 'sf-001\.pdf|/data/local/tmp/t071-fixtures'
+privacy_scan "logcat-flutter/secret" "$RUN_DIR/logcat-flutter.log" "$SECRET_PATTERNS"
+privacy_scan "logcat-flutter/content" "$RUN_DIR/logcat-flutter.log" "$CONTENT_PATTERNS"
+privacy_scan "commands/secret" "$RUN_DIR/commands.txt" "$SECRET_PATTERNS"
+privacy_scan "commands/content" "$RUN_DIR/commands.txt" "$CONTENT_PATTERNS"
+printf 'NOTE commands.txt names the committed synthetic fixture (apps/feldexa_app/assets/fixtures/sf-001.pdf and the device staging copy); that is synthetic delivery evidence, not user content.\n' \
+  >>"$RUN_DIR/privacy-log-check.txt"
+[[ "$PRIVACY_PASS" -eq 1 ]] ||
+  fail "privacy scan found a forbidden pattern; see privacy-log-check.txt"
 
 # --- 8. Phase-marker contract ------------------------------------------------
-REQUIRED_MARKERS=(
-  "T071_FIXTURE_READY:BYTES=5956:MATCH=1"
-  "T071_DAMAGED_FIXTURE_READY:BYTES=5956:MATCH=1"
-  "T071_FIELD_CONFIRMED:PAGE=0"
-  "T071_RESIZE_CORNERS_DONE:"
-  "T071_HIT_REGION:EDGE=centerLeft:"
-  "T071_RESIZE_EDGES_DONE:"
-  "T071_MOVE:move-0.5x:"
-  "T071_MOVE:move-1x:"
-  "T071_MOVE:move-3x:"
-  "T071_MOVE:move-8x:"
-  "T071_MOVE:move-clamped:"
-  "T071_UNDO:RESTORED_EXACT=1:"
-  "T071_CANCEL:PAGE=0"
-  "T071_TWO_FINGER:pinch:COMMITS=0"
-  "T071_TWO_FINGER:pan:COMMITS=0"
-  "T071_MIN_SIZE:PT=4"
-  "T071_READBACK:OK:"
-  "T071_CLEANUP_DONE"
+# Exact anchored shapes, not substrings: a substring check cannot catch a
+# drifted marker, and the doubled `T071_T071_SCREENSHOT_...` prefix this
+# correction removed would have passed one.
+if grep -Eq '^T071_T071_' "$LOG"; then
+  printf 'FAIL doubled T071_ marker prefix found\n' >"$RUN_DIR/marker-contract.txt"
+  fail "doubled T071_ marker prefix found in the integration log"
+fi
+
+ID='[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+RECT='[0-9]+:[0-9]+:[0-9]+:[0-9]+'
+REQUIRED_MARKER_REGEXES=(
+  "^T071_FIXTURE_READY:BYTES=5956:MATCH=1$"
+  "^T071_DAMAGED_FIXTURE_READY:BYTES=5956:MATCH=1$"
+  "^T071_FIELD_CONFIRMED:PAGE=0:FIELD=${ID}:RECT_8TH=${RECT}$"
+  "^T071_SELECTION_TAP:PHASE=OPEN:SHEET=1$"
+  "^T071_SELECTION_TAP:PHASE=CLOSED:SELECTED=1:FIELD=${ID}:SHEET_OPENED=1$"
+  "^T071_RESIZE_ZOOM:FIT_MILLI=[0-9]+:NOMINAL_ZOOM_MILLI=[0-9]+:NOMINAL_EDGE_PTR_PX=[0-9.]+:USED_ZOOM_MILLI=[0-9]+:USED_EDGE_PTR_PX=[0-9.]+:PAN_SLOP_PX=36:REQUIRED_PX=40:OK=1$"
+  "^T071_HIT_REGION:EDGE=centerLeft:OUTSIDE_PT=4\.0:OUTSIDE_DP=[0-9.]+:MIN_BAND_DP=24\.0:CLAIMED=1$"
+  "^T071_RESIZE_CORNERS_DONE:HANDLES=topLeft,topRight,bottomLeft,bottomRight:RECT_8TH=${RECT}$"
+  "^T071_RESIZE_EDGES_DONE:HANDLES=topCenter,bottomCenter,centerLeft,centerRight:RECT_8TH=${RECT}$"
+  "^T071_RESIZE:resize-corners-topLeft:HANDLE=topLeft:AFTER_RECT_8TH=${RECT}:MOVED=left[+]top:FIXED=right[+]bottom:COMMIT=1$"
+  "^T071_RESIZE:resize-edges-centerLeft-outside-hit:HANDLE=centerLeft:AFTER_RECT_8TH=${RECT}:MOVED=left:FIXED=top[+]right[+]bottom:COMMIT=1$"
+  "^T071_MOVE:move-0\.5x:PAGE=0:FIELD=${ID}:SCALE_MILLI=346:RECT_8TH=${RECT}:CLAMPED=0$"
+  "^T071_MOVE:move-1x:PAGE=0:FIELD=${ID}:SCALE_MILLI=691:RECT_8TH=${RECT}:CLAMPED=0$"
+  "^T071_MOVE:move-3x:PAGE=0:FIELD=${ID}:SCALE_MILLI=2073:RECT_8TH=${RECT}:CLAMPED=0$"
+  "^T071_MOVE:move-8x:PAGE=0:FIELD=${ID}:SCALE_MILLI=5529:RECT_8TH=${RECT}:CLAMPED=0$"
+  "^T071_MOVE:move-clamped:PAGE=0:FIELD=${ID}:SCALE_MILLI=5529:RECT_8TH=${RECT}:CLAMPED=1$"
+  "^T071_UNDO:RESTORED_EXACT=1:RECT_8TH=${RECT}:FIELD=${ID}$"
+  "^T071_CANCEL:PAGE=0:FIELD=${ID}:RECT_8TH=${RECT}:COMMITS=0:SAVES=0$"
+  "^T071_TWO_FINGER:pinch:COMMITS=0:SAVES=0:SCALE_MILLI=[0-9]+:RECT_8TH=${RECT}$"
+  "^T071_TWO_FINGER:pan:COMMITS=0:SAVES=0:PAN_CHANGED=1:RECT_8TH=${RECT}$"
+  "^T071_MIN_SIZE:PT=4\.0:RECT_8TH=${RECT}:ANCHOR_FIXED=1$"
+  "^T071_READBACK:OK:PAGE=0:FIELD=${ID}:RECT_8TH=${RECT}:HEAD_MATCH=1$"
+  "^T071_NEGATIVE_CONTROL:REVISION_ASSERTION=1:DOUBLE_REJECTED=1:HELD_REJECTED=1:ZERO_REJECTED=1$"
+  "^T071_NEGATIVE_CONTROL:STALE_ACK=1:DELETE_FAILURE_FAILS_CLOSED=1$"
+  "^T071_NEGATIVE_CONTROL:DOUBLE_COMMIT=1:SAVES_DELTA=2:ASSERTION_FAILED=1:STORE_HEAD_AHEAD=1$"
+  "^T071_CLEANUP:HOOK_CLEARED=1:SCRATCH_GONE=1$"
+  "^T071_CLEANUP_DONE$"
 )
-MISSING_MARKERS=0
+# (regex, expected occurrence count) pairs. 14 committed gestures = 8 resize
+# steps + 4 body drags + the clamped drag + the minimum-size drag, each with
+# zero held saves and exactly one real store revision.
+COUNT_MARKER_REGEXES=(
+  "^T071_COMMIT:[A-Za-z0-9._-]+:PAGE=0:FIELD=${ID}:SCALE_MILLI=[0-9]+:HELD_FRAMES=[0-9]+:HOLD_MS=[0-9]+:LATENCY_MS=[0-9]+:SAVES_HELD=0:SAVES_DELTA=1:REVIEW_BUSY_HELD=0:PREVIEW_HELD=1$|14"
+  "^T071_SCREENSHOT_[A-Z0-9_]+$|12"
+  "^T071_HANDSHAKE_OK:PHASE=[A-Za-z0-9._-]+$|12"
+)
 {
-  printf 'required-marker check (integration log)\n'
-  for required in "${REQUIRED_MARKERS[@]}"; do
-    if grep -F "$required" "$LOG" >/dev/null 2>&1; then
+  printf 'exact-marker check (integration log)\n'
+  for required in "${REQUIRED_MARKER_REGEXES[@]}"; do
+    if grep -Eq "$required" "$LOG"; then
       printf 'PRESENT %s\n' "$required"
     else
       printf 'MISSING %s\n' "$required"
+    fi
+  done
+  for entry in "${COUNT_MARKER_REGEXES[@]}"; do
+    regex="${entry%|*}"
+    want="${entry##*|}"
+    got="$(grep -Ec "$regex" "$LOG" || true)"
+    if [[ "$got" == "$want" ]]; then
+      printf 'PRESENT x%s %s\n' "$want" "$regex"
+    else
+      printf 'MISSING x%s (observed %s) %s\n' "$want" "$got" "$regex"
     fi
   done
 } >"$RUN_DIR/marker-contract.txt"
 MISSING_MARKERS="$(grep -c '^MISSING ' "$RUN_DIR/marker-contract.txt")"
 printf 'missing=%s\n' "$MISSING_MARKERS" >>"$RUN_DIR/marker-contract.txt"
 [[ "$MISSING_MARKERS" -eq 0 ]] ||
-  fail "$MISSING_MARKERS required phase markers are missing; see marker-contract.txt"
+  fail "$MISSING_MARKERS required phase markers are missing or drifted; see marker-contract.txt"
 
 OVERALL_EXIT="$TEST_EXIT"
 if [[ "$TEST_EXIT" -eq 0 ]] &&
@@ -594,6 +721,12 @@ fi
 printf 'result=%s\nflutter_test_exit=%s\n' \
   "$([[ "$OVERALL_EXIT" -eq 0 ]] && echo PASS || echo FAIL)" \
   "$TEST_EXIT" >"$RUN_DIR/run-status.txt"
+
+# The device-side cleanup runs here, explicitly, so its result can be verified
+# and captured as evidence instead of being claimed from an exit trap alone.
+device_cleanup
+CLEANED=1
+verify_cleanup
 
 collect_evidence
 cp "$RUN_DIR/marker-contract.txt" "$EVIDENCE_DIR/marker-contract.txt" 2>/dev/null || true
