@@ -115,9 +115,14 @@ final class SimulatedPageRasterAdapter implements PageRasterPort {
   }
 
   /// Computes pixel dimensions without exceeding [maxDimensionPx].
+  ///
+  /// The initial dimensions round half up (`round()`), exactly like the
+  /// production analysis raster (`RasterSize.fromDisplaySize`), so a simulated
+  /// raster has the same size the EMULATOR/DEVICE path would produce. Only the
+  /// `maxDimensionPx` reduction keeps its floor so it never exceeds the cap.
   static _PixelSize _pixelSize(Size display, double scale, int maxDimensionPx) {
-    int width = math.max(1, (display.width * scale).floor());
-    int height = math.max(1, (display.height * scale).floor());
+    int width = math.max(1, (display.width * scale).round());
+    int height = math.max(1, (display.height * scale).round());
     final int largest = math.max(width, height);
     if (largest > maxDimensionPx) {
       final double factor = maxDimensionPx / largest;

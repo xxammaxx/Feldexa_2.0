@@ -48,6 +48,20 @@ library;
 
 import 'package:feldexa_recognition/src/suggestion_schema.dart';
 
+/// Largest page index the envelope accepts without the `pageCount` fallback:
+/// `2^53 - 1 = 9007199254740991` (`0x1FFFFFFFFFFFFF`), the largest integer a
+/// JavaScript/Web runtime represents exactly.
+///
+/// `pageIndex + 1` is computed exactly for every index at or below this
+/// sentinel, so the derived envelope `pageCount` stays a safe Web integer. The
+/// previous bound (`0x7FFFFFFFFFFFFFFF`) has no exact JavaScript
+/// representation: `dart2js` rejects that literal outright and `pageIndex + 1`
+/// would be inexact in the browser. The cap semantics are unchanged - a
+/// negative index or this sentinel reports `pageCount` 1, so the shared
+/// validator returns `envelope.pageIndex` (`range`) instead of the envelope
+/// deriving an unrepresentable count.
+const int maxEnvelopePageIndex = 9007199254740991;
+
 /// Converts a page index into a cancellation decision.
 ///
 /// A cancelled page produces no terminal envelope. The caller keeps it
@@ -894,8 +908,7 @@ List<SuggestionSchemaViolation> _envelopeFindings(
 ) {
   final Object? rawPageIndex = wire['pageIndex'];
   final int pageIndex = rawPageIndex is int ? rawPageIndex : 0;
-  const int maxInt = 0x7FFFFFFFFFFFFFFF;
-  final int pageCount = pageIndex < 0 || pageIndex == maxInt
+  final int pageCount = pageIndex < 0 || pageIndex == maxEnvelopePageIndex
       ? 1
       : pageIndex + 1;
   return SuggestionSchema.validateEnvelope(
