@@ -429,6 +429,37 @@ Future<void> _setScaleOnRect(
   return _setScaleOnPoint(tester, state, displayRect.center, scale);
 }
 
+/// Sets the view for a phase screenshot so the asserted rectangle is visible.
+///
+/// At the higher gesture zooms the selected field is larger than the page
+/// viewport (341.6 x 228 pt at 3x or 8x is far wider than 411 x 206 dp), so a
+/// capture centred on the field interior would show no selection outline.
+/// [focus] therefore names the evidence-bearing point of the phase — the
+/// dragged corner, the clamped page edge, or the whole rectangle when it fits —
+/// and the emitted marker records both the capture scale and what the capture
+/// is centred on.
+Future<void> _setShotView(
+  WidgetTester tester,
+  EditorScreenState state,
+  Rect rect,
+  double scale, {
+  Offset? focus,
+}) async {
+  final Size? viewport = state.viewController.viewportSize;
+  expect(viewport, isNotNull);
+  final bool fits =
+      rect.width * scale <= viewport!.width * 0.9 &&
+      rect.height * scale <= viewport.height * 0.9;
+  final Offset point = focus ?? (fits ? rect.center : rect.topLeft);
+  await _setScaleOnPoint(tester, state, point, scale);
+  _marker(
+    'SHOT:SCALE_MILLI=${_scaleMilli(scale)}:'
+    'FOCUS=${focus != null ? 'edge' : (fits ? 'rect' : 'corner')}:'
+    'FITS=${{true: 1, false: 0}[fits]}:'
+    'RECT_8TH=${_rectEighths(rect)}',
+  );
+}
+
 /// A test precondition: [rect] must lie inside the page display box.
 ///
 /// This guards the fixed gesture deltas against a changed fixture. It is a
@@ -1056,7 +1087,7 @@ void main() {
       );
     }
 
-    await _setScaleOnRect(tester, state, _storedViewRect(state), fitScale);
+    await _setShotView(tester, state, _storedViewRect(state), fitScale);
     _marker(
       'RESIZE_CORNERS_DONE:HANDLES=topLeft,topRight,bottomLeft,bottomRight:'
       'RECT_8TH=${_coreRectEighths(_storedRect(state))}',
@@ -1192,12 +1223,7 @@ void main() {
       );
     }
 
-    await _setScaleOnRect(
-      tester,
-      state,
-      _storedViewRect(state),
-      fitScale * 1.25,
-    );
+    await _setShotView(tester, state, _storedViewRect(state), fitScale * 1.25);
     _marker(
       'RESIZE_EDGES_DONE:HANDLES=topCenter,bottomCenter,centerLeft,centerRight:'
       'RECT_8TH=${_coreRectEighths(_storedRect(state))}',
@@ -1278,7 +1304,7 @@ void main() {
         'SCALE_MILLI=${_scaleMilli(scale)}:'
         'RECT_8TH=${_coreRectEighths(actual)}:CLAMPED=0',
       );
-      await _setScaleOnRect(
+      await _setShotView(
         tester,
         state,
         _storedViewRect(state),
@@ -1384,11 +1410,14 @@ void main() {
         'SCALE_MILLI=${_scaleMilli(scale)}:'
         'RECT_8TH=${_coreRectEighths(actual)}:CLAMPED=1',
       );
-      await _setScaleOnRect(
+      // The clamp evidence is the field's right edge sitting exactly on the
+      // page's right edge, so the capture is centred there.
+      await _setShotView(
         tester,
         state,
         _storedViewRect(state),
         fitScale * 4.5,
+        focus: _storedViewRect(state).topRight,
       );
       await _waitForDriver('move-clamped');
     }
@@ -1441,12 +1470,7 @@ void main() {
         'UNDO:RESTORED_EXACT=1:RECT_8TH=${_coreRectEighths(actual)}:'
         'FIELD=$_targetFieldId',
       );
-      await _setScaleOnRect(
-        tester,
-        state,
-        _storedViewRect(state),
-        fitScale * 2.5,
-      );
+      await _setShotView(tester, state, _storedViewRect(state), fitScale * 2.5);
       await _waitForDriver('undo');
     }
 
@@ -1509,6 +1533,12 @@ void main() {
       _marker(
         'CANCEL:PAGE=$_pageIndex:FIELD=$_targetFieldId:'
         'RECT_8TH=${_coreRectEighths(_storedRect(state))}:COMMITS=0',
+      );
+      await _setShotView(
+        tester,
+        state,
+        _storedViewRect(state),
+        fitScale * 1.75,
       );
       await _waitForDriver('cancel');
     }
@@ -1593,6 +1623,12 @@ void main() {
         'SCALE_MILLI=${_scaleMilli(state.viewController.scale)}:'
         'RECT_8TH=${_coreRectEighths(_storedRect(state))}',
       );
+      await _setShotView(
+        tester,
+        state,
+        _storedViewRect(state),
+        state.viewController.scale,
+      );
       await _waitForDriver('two-finger-pinch');
     }
 
@@ -1663,6 +1699,12 @@ void main() {
       _marker(
         'TWO_FINGER:pan:COMMITS=0:PAN_CHANGED=1:'
         'RECT_8TH=${_coreRectEighths(_storedRect(state))}',
+      );
+      await _setShotView(
+        tester,
+        state,
+        _storedViewRect(state),
+        state.viewController.scale,
       );
       await _waitForDriver('two-finger-pan');
     }
