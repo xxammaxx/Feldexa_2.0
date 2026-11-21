@@ -1,15 +1,211 @@
-# Orca repo-defined setup hooks (run by Orca when creating a worktree in this repository).
-# Scope: grant Pi project-local trust ONLY for worktrees whose origin is this repository.
-# It adds the worktree's own absolute path to ~/.pi/agent/trust.json and changes nothing else.
+# Orca repo-defined setup hook (hardened).
+# Grants Pi project-local trust ONLY for worktrees that provably belong to this
+# repository: exact normalized origin identity + git worktree membership in the
+# registered main repository + Orca `worktree current` repo registration.
+# Additive/idempotent, revokes stale entries for reused paths, concurrency-safe
+# (lock + atomic replace + read-verify retry), never overwrites a corrupt or
+# symlinked trust file. Foreign repositories are skipped or revoked (fail-closed).
 scripts:
   setup: |
-    set -e
-    remote="$(git config --get remote.origin.url 2>/dev/null || true)"
-    case "$remote" in
-      *xxammaxx/Feldexa_2.0*)
-        python3 -c 'import json,os,sys;p=os.path.expanduser("~/.pi/agent/trust.json");d=json.load(open(p)) if os.path.exists(p) else {};d[sys.argv[1]]=True;os.makedirs(os.path.dirname(p),exist_ok=True);json.dump(d,open(p,"w"),indent=2);print("pi-trust:",sys.argv[1])' "$PWD"
-        ;;
-      *)
-        echo "skip: origin is not Feldexa_2.0 ($remote)"
-        ;;
-    esac
+    #!/usr/bin/env bash
+    # Orca setup hook (hardened): grant Pi project-local trust ONLY for worktrees that
+    # provably belong to THIS repository (exact remote identity + git worktree membership
+    # + Orca repo registration). Additive, idempotent, concurrency-safe, fail-closed.
+    set -euo pipefail
+
+    # --- Repository identity constants (project-scoped; adjust per repository) ---
+    EXPECTED_REPO_ID="5cfd8bbd-7af0-43a2-b81d-7e8d50eda284"
+    EXPECTED_HOST="github.com"
+    EXPECTED_OWNER="xxammaxx"
+    EXPECTED_REPO="Feldexa_2.0"
+
+    WDIR="$(pwd -P)"
+
+    # --- Resolve Orca CLI (avoid bare `orca`: may be the GNOME screen reader) ---
+    ORCA_CLI="${ORCA_CLI_COMMAND:-}"
+    if [ -z "$ORCA_CLI" ] && [ -x "$HOME/.config/orca/linux-orca-cli-shim/orca" ]; then
+      ORCA_CLI="$HOME/.config/orca/linux-orca-cli-shim/orca"
+    fi
+    if [ -z "$ORCA_CLI" ] && command -v orca-ide >/dev/null 2>&1; then
+      ORCA_CLI="$(command -v orca-ide)"
+    fi
+    if [ -z "$ORCA_CLI" ]; then
+      echo "pi-trust: skip: no Orca CLI available (fail-closed)"
+      exit 0
+    fi
+
+    python3 - "$WDIR" "$ORCA_CLI" \
+      "$EXPECTED_REPO_ID" "$EXPECTED_HOST" "$EXPECTED_OWNER" "$EXPECTED_REPO" <<'PY'
+    import json, os, re, subprocess, sys, tempfile, time, fcntl
+
+    wdir, orca_cli, exp_repo_id, exp_host, exp_owner, exp_repo = sys.argv[1:7]
+    TRUST = os.path.expanduser("~/.pi/agent/trust.json")
+
+    def run(cmd, cwd=None):
+        return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+
+    def die(msg):
+        # Fail closed: if a stale trust entry exists for this path (e.g. a reused
+        # worktree path from a foreign repository), revoke it before skipping.
+        try:
+            if os.path.exists(TRUST) and not os.path.islink(TRUST):
+                with open(TRUST, "rb") as f:
+                    data = json.loads(f.read().decode("utf-8"))
+                if isinstance(data, dict) and data.pop(wdir, None) is not None:
+                    fd, tmp = tempfile.mkstemp(prefix=".trust.", dir=os.path.dirname(TRUST) or ".")
+                    with os.fdopen(fd, "w") as f:
+                        json.dump(data, f, indent=2)
+                        f.write("\n")
+                    os.chmod(tmp, 0o600)
+                    os.replace(tmp, TRUST)
+                    print("pi-trust: revoked %s" % wdir)
+        except (ValueError, OSError):
+            pass
+        print("pi-trust: skip: " + msg)
+        sys.exit(0)
+
+    def fail_hard(msg):
+        print("pi-trust: ERROR: " + msg)
+        sys.exit(3)
+
+    def normalize_remote(url):
+        u = url.strip()
+        u = re.sub(r"^git\+https?://", "https://", u)
+        m = re.match(r"^(?:ssh://)?git@([^/:]+)[:/](.+)$", u)
+        if m:
+            host, path = m.group(1), m.group(2)
+        else:
+            m = re.match(r"^(?:https?|ssh)://([^/:@]+)(?::\d+)?/(.+)$", u)
+            if not m:
+                return None
+            host, path = m.group(1), m.group(2)
+        host = host.lower()
+        path = path.rstrip("/")
+        if path.lower().endswith(".git"):
+            path = path[:-4]
+        return (host, path)
+
+    def orca_repo_id():
+        r = run([orca_cli, "worktree", "current", "--json"], cwd=wdir)
+        if r.returncode != 0:
+            return None
+        try:
+            d = json.loads(r.stdout)
+        except ValueError:
+            return None
+        res = d.get("result", d) if isinstance(d, dict) else {}
+        for key in ("worktreeId", "id"):
+            v = res.get(key)
+            if isinstance(v, str) and "::" in v:
+                return v.split("::", 1)[0]
+        wt = res.get("worktree") or {}
+        if isinstance(wt, dict):
+            v = wt.get("worktreeId") or wt.get("id")
+            if isinstance(v, str) and "::" in v:
+                return v.split("::", 1)[0]
+        return None
+
+    # --- 1) Must be a real git worktree linked to the registered main repository ---
+    p = run(["git", "rev-parse", "--is-inside-work-tree"], cwd=wdir)
+    if p.returncode != 0 or p.stdout.strip() != "true":
+        die("not inside a git work tree")
+    gd = run(["git", "rev-parse", "--git-dir"], cwd=wdir)
+    cd = run(["git", "rev-parse", "--git-common-dir"], cwd=wdir)
+    if gd.returncode != 0 or cd.returncode != 0:
+        die("git dir resolution failed")
+    git_dir = os.path.realpath(os.path.join(wdir, gd.stdout.strip()))
+    common = os.path.realpath(os.path.join(wdir, cd.stdout.strip()))
+    if git_dir == common:
+        die("primary worktree, not a linked worktree")
+    # Derive the registered main repository's git dir from the worktree list itself
+    # (first entry of `git worktree list --porcelain` is the main worktree).
+    pl = run(["git", "worktree", "list", "--porcelain"], cwd=wdir)
+    main_common = None
+    if pl.returncode == 0:
+        for line in pl.stdout.splitlines():
+            if line.startswith("worktree "):
+                main_common = os.path.realpath(os.path.join(line[len("worktree "):].strip(), ".git"))
+                break
+    if main_common is None or common != main_common:
+        die("worktree is not linked to the registered main repository (%s vs %s)" % (common, main_common))
+
+    # --- 2) Exact remote identity (no substring matching) ---
+    rem = run(["git", "config", "--get", "remote.origin.url"], cwd=wdir)
+    if rem.returncode != 0 or not rem.stdout.strip():
+        die("no origin remote")
+    ident = normalize_remote(rem.stdout)
+    if ident is None:
+        die("unparseable origin url")
+    if ident != (exp_host.lower(), exp_owner + "/" + exp_repo):
+        die("origin identity mismatch (%s)" % (ident,))
+
+    # --- 3) Orca repository registration ---
+    rid = orca_repo_id()
+    if rid is None:
+        die("Orca worktree current did not resolve (fail-closed)")
+    if rid != exp_repo_id:
+        die("Orca repo mismatch (%s != %s)" % (rid, exp_repo_id))
+
+    # --- 4) Path hygiene ---
+    if os.path.islink(TRUST):
+        fail_hard("trust.json is a symlink; refusing to touch it")
+    if not os.path.isdir(wdir):
+        die("worktree path vanished")
+
+    for attempt in range(6):
+        lock_fd = None
+        try:
+            lock_path = TRUST + ".lock"
+            lock_fd = os.open(lock_path, os.O_RDWR | os.O_CREAT, 0o600)
+            fcntl.flock(lock_fd, fcntl.LOCK_EX)
+            raw = None
+            if os.path.exists(TRUST):
+                with open(TRUST, "rb") as f:
+                    raw = f.read()
+            if raw is not None and raw.strip():
+                try:
+                    data = json.loads(raw.decode("utf-8"))
+                    if not isinstance(data, dict):
+                        raise ValueError("top level is not an object")
+                except (ValueError, UnicodeDecodeError):
+                    stamp = time.strftime("%Y%m%dT%H%M%S")
+                    backup = TRUST + ".corrupt." + stamp
+                    try:
+                        os.rename(TRUST, backup)
+                    except OSError:
+                        backup = None
+                    print("pi-trust: ERROR: trust.json is corrupt; preserved as %s; not overwriting" % (backup,))
+                    sys.exit(3)
+            else:
+                data = {}
+            before = dict(data)
+            data[wdir] = True
+            fd, tmp = tempfile.mkstemp(prefix=".trust.", dir=os.path.dirname(TRUST) or ".")
+            with os.fdopen(fd, "w") as f:
+                json.dump(data, f, indent=2)
+                f.write("\n")
+                f.flush()
+                os.fsync(f.fileno())
+            os.chmod(tmp, 0o600)
+            os.replace(tmp, TRUST)
+            # Read-back verification: a concurrent writer (e.g. Pi itself, another hook)
+            # may have overwritten between our read and write; retry by merging again.
+            time.sleep(0.05)
+            try:
+                with open(TRUST, "rb") as f:
+                    after = json.loads(f.read().decode("utf-8"))
+            except ValueError:
+                after = {}
+            if isinstance(after, dict) and after.get(wdir) is True:
+                action = "kept" if before.get(wdir) is True else "granted"
+                print("pi-trust: %s %s" % (action, wdir))
+                sys.exit(0)
+            # lost update -> loop and merge again
+        finally:
+            if lock_fd is not None:
+                try:
+                    fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                finally:
+                    os.close(lock_fd)
+    fail_hard("concurrent trust updates did not converge after retries")
+    PY
