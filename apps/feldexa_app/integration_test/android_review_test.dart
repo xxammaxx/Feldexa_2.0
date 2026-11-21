@@ -1254,14 +1254,18 @@ void main() {
         reason:
             '$phase: a body drag moves by pointerDelta / scale exactly once',
       );
+      // The size is preserved by the move rule. The tolerance is far below the
+      // 1/8 pt evidence grid and below the persisted 0.001 pt quantization: a
+      // shift re-derives an edge as `(right + dx) - (left + dx)`, which may
+      // differ from `right - left` in the last bits of the double.
       expect(
         actual.width,
-        before.width,
+        closeTo(before.width, 1e-9),
         reason: '$phase: a body drag must not resize the field',
       );
       expect(
         actual.height,
-        before.height,
+        closeTo(before.height, 1e-9),
         reason: '$phase: a body drag must not resize the field',
       );
       expect(
