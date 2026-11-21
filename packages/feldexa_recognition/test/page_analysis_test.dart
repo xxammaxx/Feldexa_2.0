@@ -1354,4 +1354,49 @@ void main() {
       expect(pubspec, isNot(contains('feldexa_application')));
     });
   });
+
+  group('browser-safe page index bound', () {
+    // `2^53 - 1` is the largest integer a JavaScript number represents
+    // exactly; at `2^53` a double can no longer add one. These tests pin the
+    // browser-safe sentinel and the documented `pageCount` fallback that
+    // `_envelopeFindings` already applied to the previous 64-bit bound; they
+    // do not add or widen any recognition rule.
+    const double twoTo53 = 9007199254740992.0;
+
+    test('the sentinel is the JavaScript maximum safe integer', () {
+      expect(maxEnvelopePageIndex, 9007199254740991);
+      expect(maxEnvelopePageIndex, (1 << 53) - 1);
+      expect(maxEnvelopePageIndex.toDouble() + 1, twoTo53);
+      // Above the sentinel double arithmetic is no longer exact, which is why
+      // the bound stops at 2^53 - 1.
+      expect(twoTo53 + 1, twoTo53);
+    });
+
+    test('the sentinel page index falls back to pageCount 1 on parse', () {
+      final Object error = _errorOf(
+        () => FieldSuggestionSet.fromJson(
+          _wireJson(pageIndex: maxEnvelopePageIndex),
+        ),
+      );
+      expect(error, isA<FormatException>());
+      expect(error.toString(), contains('envelope.pageIndex'));
+      _expectContentFree(error, <String>[_secretLabel, _secretPath]);
+    });
+
+    test('the sentinel page index falls back to pageCount 1 on build', () {
+      final Object error = _errorOf(
+        () => _set(pageIndex: maxEnvelopePageIndex),
+      );
+      expect(error, isA<ArgumentError>());
+      expect(error.toString(), contains('envelope.pageIndex'));
+    });
+
+    test('one index below the sentinel derives an exact pageCount', () {
+      final FieldSuggestionSet parsed = FieldSuggestionSet.fromJson(
+        _wireJson(pageIndex: maxEnvelopePageIndex - 1),
+      );
+      expect(parsed.pageIndex, maxEnvelopePageIndex - 1);
+      expect(parsed.isComplete, isTrue);
+    });
+  });
 }

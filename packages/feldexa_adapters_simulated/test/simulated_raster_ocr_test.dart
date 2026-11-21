@@ -86,8 +86,10 @@ void main() {
       ),
     );
     final display = imported.pages[0].displaySize;
-    final expectedWidth = (display.width * (200 / 72)).floor();
-    final expectedHeight = (display.height * (200 / 72)).floor();
+    // T062P: the SIMULATED adapter rounds half up like the production
+    // analysis raster (`RasterSize.fromDisplaySize`), not down.
+    final expectedWidth = (display.width * (200 / 72)).round();
+    final expectedHeight = (display.height * (200 / 72)).round();
     expect(image.width, expectedWidth);
     expect(image.height, expectedHeight);
     expect(image.bytesPerRow, image.width);
