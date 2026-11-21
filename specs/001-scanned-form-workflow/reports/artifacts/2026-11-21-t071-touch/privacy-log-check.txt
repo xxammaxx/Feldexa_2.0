@@ -1,1 +1,9 @@
-PASS: no document content or fixture path in the integration log
+PASS integration-log/secret: no forbidden pattern
+PASS integration-log/content: no forbidden pattern
+PASS integration-log/fixture-path: no forbidden pattern
+PASS logcat-flutter/secret: no forbidden pattern
+PASS logcat-flutter/content: no forbidden pattern
+PASS commands/secret: no forbidden pattern
+PASS commands/content: no forbidden pattern
+PASS git-identity/secret: no forbidden pattern
+NOTE commands.txt names the committed synthetic fixture (apps/feldexa_app/assets/fixtures/sf-001.pdf and the device staging copy); that is synthetic delivery evidence, not user content.

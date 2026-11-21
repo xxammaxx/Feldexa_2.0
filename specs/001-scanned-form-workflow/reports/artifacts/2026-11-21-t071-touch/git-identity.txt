@@ -1,7 +1,7 @@
-head=398f4e4b5c87b9951f9061c7b8f00d93167f52a0
-tree=8db4a556e03bc839bcb8464e53a46e5768568a5a
+head=44eb3e466d3d1f8f7ca600e5afa0404363fbdb27
+tree=2747c4eafd0b6abda528e72a2217aeb9d22b7e11
 branch=xxammaxx/t071
-subject=test(T071): capture each phase at its evidence-bearing view
+subject=test(T071): derive the hold window from the fastest verified commit
 status_porcelain:
  M apps/feldexa_app/android/gradlew.bat
-flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
+flutter=Flutter 3.47.7 • channel stable • <URL_REDACTED>

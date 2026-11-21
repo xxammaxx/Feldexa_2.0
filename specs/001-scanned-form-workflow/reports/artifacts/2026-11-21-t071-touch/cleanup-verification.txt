@@ -1,0 +1,4 @@
+staging_dir=/data/local/tmp/t071-fixtures state=GONE expected=GONE
+stale_ack_files=0 expected=0
+app_processes=0 expected=0
+verified=1

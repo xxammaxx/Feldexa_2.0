@@ -1,0 +1,4 @@
+command=adb -s emulator-5554 shell rm -f /data/local/tmp/t071-fixtures/ack-*
+exit=0
+remaining_ack_files=0 expected=0
+verified=1

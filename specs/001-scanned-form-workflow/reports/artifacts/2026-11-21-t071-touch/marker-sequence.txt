@@ -1,4 +1,4 @@
-started: cd apps/feldexa_app && flutter test --no-pub integration_test/android_review_test.dart -d emulator-5554 (pid 3423460)
+started: cd apps/feldexa_app && flutter test --no-pub integration_test/android_review_test.dart -d emulator-5554 (pid 3483154)
 screenshot resize-corners after T071_SCREENSHOT_RESIZE_CORNERS
 screenshot ack resize-corners
 screenshot resize-edges after T071_SCREENSHOT_RESIZE_EDGES
