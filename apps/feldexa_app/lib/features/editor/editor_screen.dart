@@ -101,8 +101,10 @@ import 'package:feldexa_app/features/editor/suggestion_review_panel.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_application/src/recognition/analyze_document.dart'
     as analysis;
+import 'package:feldexa_application/src/review/command_history.dart' as history;
 import 'package:feldexa_application/src/review/confirm_suggestion.dart'
     as review;
+import 'package:feldexa_application/src/review/edit_field.dart' as edit;
 import 'package:feldexa_application/src/review/set_value.dart' as set_value;
 import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:feldexa_ports/feldexa_ports.dart';
@@ -430,7 +432,9 @@ class EditorScreenState extends State<EditorScreen> {
   int? _analysisElapsedMs;
   bool _analysisStarted = false;
   String? _headRevisionId;
-  final List<_ReviewUndo> _reviewUndoStack = <_ReviewUndo>[];
+  final history.CommandHistory _editHistory = history.CommandHistory();
+  FieldGeometrySession? _geometrySession;
+  int? _geometryPageIndex;
   bool _reviewBusy = false;
   final Completer<Uint8List?> _sourceBytesReady = Completer<Uint8List?>();
   late final FieldSelectionController _selectionController;
@@ -448,8 +452,15 @@ class EditorScreenState extends State<EditorScreen> {
   /// The latest committed revision id used as the next `expectedHead`.
   String? get headRevisionId => _headRevisionId;
 
-  /// Whether an undoable review action is available.
-  bool get canUndoReview => _reviewUndoStack.isNotEmpty;
+  /// Whether the T067 history holds an undoable edit.
+  ///
+  /// Covers confirmed-field commands (confirm/reject, T071A) and geometry
+  /// commands (move/resize, T071B), so the single undo affordance always
+  /// reverses the newest committed edit.
+  bool get canUndoReview => _editHistory.canUndo;
+
+  /// Whether a move/resize preview is currently being dragged.
+  bool get geometryGestureActive => _geometrySession != null;
 
   /// Whether a review command is currently being saved.
   bool get reviewBusy => _reviewBusy;
@@ -883,13 +894,9 @@ class EditorScreenState extends State<EditorScreen> {
       _showReviewMessage(l10n.save007);
       return;
     }
-    await _commitReviewChange(
-      change,
-      undo: _ReviewUndo.confirmation(
-        suggestionId: change.suggestionId,
-        confirmedField: confirmedField,
-      ),
-      popUndo: false,
+    await _commitSnapshot(
+      change.content,
+      kind: history.EditCommandKind.confirmSuggestion,
     );
   }
 
@@ -906,55 +913,202 @@ class EditorScreenState extends State<EditorScreen> {
       _showReviewMessage(l10n.save007);
       return;
     }
-    await _commitReviewChange(
-      change,
-      undo: _ReviewUndo.rejection(suggestionId: change.suggestionId),
-      popUndo: false,
+    await _commitSnapshot(
+      change.content,
+      kind: history.EditCommandKind.rejectSuggestion,
     );
   }
 
-  Future<void> _undoLastReview() async {
+  /// Reverses the newest confirmed-field command through the T067 history.
+  ///
+  /// The newest [history.CommandHistory] entry is popped and its exact `before`
+  /// snapshot is written through the same verified save path as a forward
+  /// command. Restoring the stored snapshot, rather than re-deriving the old
+  /// rectangle from a pointer delta, is what makes undo drift-free: a move or
+  /// resize returns bit for bit, and a confirmation or rejection is reversed
+  /// with its suggestion resolution intact even when the field was moved after
+  /// it was confirmed (the T065 `fieldTouched` guard cannot apply here).
+  ///
+  /// A failed save re-arms the entry and claims nothing, so the visible
+  /// revision stays the one the store still holds.
+  Future<void> _undoLastEdit() async {
+    if (_content == null || _reviewBusy) {
+      return;
+    }
+    final history.HistoryEntry? entry = _editHistory.undo();
+    if (entry == null) {
+      return;
+    }
+    final bool committed = await _commitSnapshot(entry.before);
+    if (!committed) {
+      _editHistory.redo();
+    }
+  }
+
+  /// Persists one edited geometry revision at gesture end (T071B).
+  ///
+  /// The T066 command is applied to the current revision and its receipt is
+  /// committed through [_commitSnapshot], so exactly one store write happens
+  /// per gesture. A rectangle the command rejects (non-finite, non-positive, or
+  /// outside the page) is discarded with the existing content-free save
+  /// message; the stored geometry is never replaced by a guess.
+  Future<void> _commitGeometry(FieldGeometryChange change) async {
     final core.RevisionContent? content = _content;
-    if (content == null || _reviewBusy || _reviewUndoStack.isEmpty) {
+    if (content == null) {
       return;
     }
     final AppLocalizations l10n = AppLocalizations.of(context);
-    final _ReviewUndo undo = _reviewUndoStack.last;
-    final review.SuggestionReviewChange change;
+    final core.Rect rect = core.Rect.fromLTWH(
+      change.rect.left,
+      change.rect.top,
+      change.rect.width,
+      change.rect.height,
+    );
+    final edit.EditFieldChange receipt;
     try {
-      change = switch (undo.kind) {
-        _ReviewUndoKind.rejection => review.undoRejection(
-          content,
-          undo.suggestionId,
-        ),
-        _ReviewUndoKind.confirmation => review.undoConfirmation(
-          content,
-          undo.suggestionId,
-          undo.confirmedField!,
-        ),
-      };
+      final DateTime editedAt = widget.runtime.clock.nowUtc().toUtc();
+      receipt = change.kind == FieldGeometryEditKind.move
+          ? edit.moveField(content, change.fieldId, rect, editedAt)
+          : edit.resizeField(content, change.fieldId, rect, editedAt);
     } catch (_) {
       _showReviewMessage(l10n.save007);
       return;
     }
-    await _commitReviewChange(change, undo: null, popUndo: true);
+    await _commitSnapshot(
+      receipt.content,
+      kind: change.kind == FieldGeometryEditKind.move
+          ? history.EditCommandKind.move
+          : history.EditCommandKind.resize,
+      fieldId: change.fieldId,
+    );
   }
 
-  /// Persists one review snapshot, then updates the visible revision.
+  /// Claims a one-finger drag that starts on the selected field (T071B).
+  ///
+  /// Returns false unless a confirmed field on [pageIndex] is selected and
+  /// [viewportPoint] falls on its body or on one of its eight handle hit
+  /// regions. The gesture start is mapped once through [PageViewMapping] and
+  /// the current scale is captured; the session then divides only the
+  /// cumulative delta by that scale.
+  bool _beginGeometryDrag(
+    int pageIndex,
+    PageViewMapping mapping,
+    Offset viewportPoint,
+  ) {
+    final core.RevisionContent? content = _content;
+    final String? selectedId = _selectionController.selectedId;
+    if (content == null || selectedId == null || _reviewBusy) {
+      return false;
+    }
+    core.ConfirmedField? field;
+    for (final core.ConfirmedField candidate in content.fields) {
+      if (candidate.id == selectedId && candidate.pageIndex == pageIndex) {
+        field = candidate;
+        break;
+      }
+    }
+    if (field == null || pageIndex >= content.pages.length) {
+      return false;
+    }
+    final Rect viewRect = layoutFieldOverlay(
+      items: <FieldOverlayItem>[FieldOverlayItem.fromConfirmedField(field)],
+      pageSize: mapping.pageSize.contentSize,
+      pageRect: mapping.pageRectInViewport,
+    ).single.viewRect;
+    final FieldGeometryHandle? handle = hitTestFieldGeometry(
+      viewRect: viewRect,
+      viewPoint: viewportPoint,
+    );
+    if (handle == null) {
+      return false;
+    }
+    final FieldGeometrySession session = FieldGeometrySession.start(
+      fieldId: field.id,
+      handle: handle,
+      startRect: Rect.fromLTWH(
+        field.rect.left,
+        field.rect.top,
+        field.rect.width,
+        field.rect.height,
+      ),
+      pageBox: Rect.fromLTWH(
+        content.pages[pageIndex].geometry.displayBox.left,
+        content.pages[pageIndex].geometry.displayBox.top,
+        content.pages[pageIndex].geometry.displayBox.width,
+        content.pages[pageIndex].geometry.displayBox.height,
+      ),
+      scale: mapping.scale,
+    );
+    setState(() {
+      _geometrySession = session;
+      _geometryPageIndex = pageIndex;
+    });
+    return true;
+  }
+
+  /// Recomputes the transient preview for the active gesture; no store write.
+  void _updateGeometryDrag(Offset viewportDelta) {
+    final FieldGeometrySession? session = _geometrySession;
+    if (session == null) {
+      return;
+    }
+    setState(() {
+      session.update(viewportDelta);
+    });
+  }
+
+  /// Ends the active gesture: exactly one commit, or none when nothing changed.
+  void _endGeometryDrag({required bool cancelled}) {
+    final FieldGeometrySession? session = _geometrySession;
+    if (session == null) {
+      return;
+    }
+    setState(() {
+      _geometrySession = null;
+      _geometryPageIndex = null;
+    });
+    if (cancelled) {
+      session.cancel();
+      return;
+    }
+    final FieldGeometryChange? change = session.commit();
+    if (change == null) {
+      return;
+    }
+    unawaited(_commitGeometry(change));
+  }
+
+  /// Discards an active preview without committing (pointer cancel).
+  void _cancelGeometryGesture() {
+    final FieldGeometrySession? session = _geometrySession;
+    if (session == null) {
+      return;
+    }
+    setState(() {
+      _geometrySession = null;
+      _geometryPageIndex = null;
+    });
+    session.cancel();
+  }
+
+  /// Persists one edited revision, then updates the visible revision.
   ///
   /// The store is written with the current [headRevisionId] as `expectedHead`.
   /// The visible content is only replaced after the store confirms the commit,
-  /// so a failed review save leaves the viewer, page strip, prior suggestions,
-  /// and confirmed fields exactly as they were. [undo] is pushed only after a
-  /// successful commit; [popUndo] removes the consumed entry only on success.
-  Future<void> _commitReviewChange(
-    review.SuggestionReviewChange change, {
-    required _ReviewUndo? undo,
-    required bool popUndo,
+  /// so a failed save leaves the viewer, page strip, selection, prior
+  /// suggestions, and confirmed fields exactly as they were. With [kind] (and
+  /// [fieldId] for field-scoped kinds) the committed snapshots are also
+  /// recorded as one T067 undo step; an undo itself passes no [kind], so a
+  /// reversal is not recorded as a new command.
+  Future<bool> _commitSnapshot(
+    core.RevisionContent next, {
+    history.EditCommandKind? kind,
+    String? fieldId,
   }) async {
     if (_reviewBusy) {
-      return;
+      return false;
     }
+    final core.RevisionContent? before = _content;
     setState(() {
       _reviewBusy = true;
       _durabilityStatus = core.DurabilityStatus.saving;
@@ -965,13 +1119,13 @@ class EditorScreenState extends State<EditorScreen> {
         SaveRevisionRequest(
           documentId: widget.source.documentId,
           expectedHead: _headRevisionId,
-          content: change.content,
+          content: next,
           kind: core.RevisionKind.autosave,
         ),
       );
     } catch (error) {
       if (!mounted) {
-        return;
+        return false;
       }
       setState(() {
         _reviewBusy = false;
@@ -980,33 +1134,59 @@ class EditorScreenState extends State<EditorScreen> {
         );
       });
       _showReviewMessage(AppLocalizations.of(context).save003);
-      return;
+      return false;
     }
     if (!mounted) {
-      return;
+      return false;
     }
     final DateTime durableAt =
         saved.lastDurableAt ?? widget.runtime.clock.nowUtc().toUtc();
     setState(() {
-      _content = change.content;
+      _content = next;
       _headRevisionId = saved.latestRevisionId ?? _headRevisionId;
       _lastDurableAt = durableAt;
       _durabilityStatus = core.DurabilityStatus.saved(lastDurableAt: durableAt);
       _stripPages = _buildStripPagesFromContent(
-        change.content,
+        next,
         uncertainPages: _uncertainPages,
       );
-      if (popUndo && _reviewUndoStack.isNotEmpty) {
-        _reviewUndoStack.removeLast();
-      }
-      if (undo != null) {
-        _reviewUndoStack.add(undo);
-      }
       _reviewBusy = false;
     });
     _selectionController.reconcile(
-      change.content.fields.map((core.ConfirmedField field) => field.id),
+      next.fields.map((core.ConfirmedField field) => field.id),
     );
+    _recordHistory(kind: kind, fieldId: fieldId, before: before, after: next);
+    return true;
+  }
+
+  /// Records one committed command as an undo step.
+  ///
+  /// The revision is already durable when this runs, so a rejected history
+  /// entry (for example a clock that did not advance) loses only the transient
+  /// undo step and never turns a committed edit into a failure.
+  void _recordHistory({
+    required history.EditCommandKind? kind,
+    required String? fieldId,
+    required core.RevisionContent? before,
+    required core.RevisionContent after,
+  }) {
+    if (kind == null || before == null) {
+      return;
+    }
+    try {
+      _editHistory.record(
+        command: history.EditCommand(
+          id: widget.runtime.ids.newId(),
+          kind: kind,
+          fieldId: fieldId,
+          at: widget.runtime.clock.nowUtc().toUtc(),
+        ),
+        before: before,
+        after: after,
+      );
+    } on history.CommandHistoryException {
+      // Undo is unavailable for this step; the committed revision stands.
+    }
   }
 
   /// Persists one corrected field value through the same verified save path.
@@ -1229,23 +1409,40 @@ class EditorScreenState extends State<EditorScreen> {
     );
     final Size pageSize = mapping.pageSize.contentSize;
     final Rect pageRect = Offset.zero & viewportRect.size;
-    return Stack(
-      fit: StackFit.expand,
-      children: <Widget>[
-        // An empty page still needs the selection surface: a tap on empty page
-        // space must clear an existing selection (contract §2), so only the
-        // painted overlay is omitted when there are no items.
-        if (items.isNotEmpty)
-          FieldOverlay(items: items, pageSize: pageSize, pageRect: pageRect),
-        FieldSelectionSurface(
-          controller: _selectionController,
-          items: items,
-          pageSize: pageSize,
-          pageRect: pageRect,
-          onSelected: _handleOverlaySelection,
-          child: const SizedBox.expand(),
-        ),
-      ],
+    final FieldGeometrySession? session = _geometrySession;
+    final Rect? previewRect = session != null && _geometryPageIndex == pageIndex
+        ? session.previewRect
+        : null;
+    return Listener(
+      // A cancelled pointer discards the preview: no command, no store write.
+      onPointerCancel: (PointerCancelEvent event) => _cancelGeometryGesture(),
+      child: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          // An empty page still needs the selection surface: a tap on empty
+          // page space must clear an existing selection (contract §2), so only
+          // the painted overlay is omitted when there are no items.
+          if (items.isNotEmpty)
+            FieldOverlay(items: items, pageSize: pageSize, pageRect: pageRect),
+          FieldSelectionSurface(
+            controller: _selectionController,
+            items: items,
+            pageSize: pageSize,
+            pageRect: pageRect,
+            onSelected: _handleOverlaySelection,
+            child: const SizedBox.expand(),
+          ),
+          // Transient only: the preview exists while a gesture is active and
+          // is pointer-inert, so the 6 px handles stay paint.
+          FieldGeometryPreview(
+            key: const ValueKey<String>('field-geometry-preview'),
+            previewRect: previewRect,
+            pageSize: pageSize,
+            pageRect: pageRect,
+            accentColor: Theme.of(context).colorScheme.primary,
+          ),
+        ],
+      ),
     );
   }
 
@@ -1436,10 +1633,9 @@ class EditorScreenState extends State<EditorScreen> {
                                             );
                                           },
                                       onUndo: () {
-                                        unawaited(_undoLastReview());
+                                        unawaited(_undoLastEdit());
                                       },
-                                      undoAvailable:
-                                          _reviewUndoStack.isNotEmpty,
+                                      undoAvailable: _editHistory.canUndo,
                                       busy: _reviewBusy,
                                     ),
                                   ),
@@ -1455,6 +1651,12 @@ class EditorScreenState extends State<EditorScreen> {
                           controller: _viewerController,
                           rendererFactory: widget.rendererFactory,
                           overlayBuilder: _buildPageOverlay,
+                          // T071B: a one-finger drag on the selected field is
+                          // geometry, not a page pan; two pointers always stay
+                          // with the page view.
+                          overlayDragStart: _beginGeometryDrag,
+                          overlayDragUpdate: _updateGeometryDrag,
+                          overlayDragEnd: _endGeometryDrag,
                         ),
                       ),
                     ],
@@ -1467,24 +1669,6 @@ class EditorScreenState extends State<EditorScreen> {
       ),
     );
   }
-}
-
-enum _ReviewUndoKind { rejection, confirmation }
-
-/// One reversible review action kept on the B2 undo stack.
-final class _ReviewUndo {
-  const _ReviewUndo.rejection({required this.suggestionId})
-    : kind = _ReviewUndoKind.rejection,
-      confirmedField = null;
-
-  const _ReviewUndo.confirmation({
-    required this.suggestionId,
-    required this.confirmedField,
-  }) : kind = _ReviewUndoKind.confirmation;
-
-  final _ReviewUndoKind kind;
-  final String suggestionId;
-  final core.ConfirmedField? confirmedField;
 }
 
 /// Persistent German `IMP-006` warning for a partially readable document.

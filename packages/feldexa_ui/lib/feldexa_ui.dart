@@ -6,6 +6,7 @@
 /// constitution Principle II).
 library;
 
+export 'src/field_geometry.dart';
 export 'src/field_overlay.dart';
 export 'src/field_selection.dart';
 export 'src/provenance_badge.dart';
