@@ -1,8 +1,9 @@
 // T076 type-control contract tests (FR-031/FR-032).
 //
 // Evidence class: NONE. These are host-VM widget tests around the existing
-// `FieldValueSheet` composition and the existing T079/T082/T083 controls. They
-// open no store, PDF, platform channel, emulator, or device and make no
+// `FieldValueSheet` composition and the existing T079/T082 controls. The T083
+// signature path is visibly NOT_RUN and is not exercised here. They open no
+// store, PDF, platform channel, emulator, or device and make no
 // Android, IME, screen-reader, or visual claim.
 //
 // Normative sources: `spec.md` FR-031/FR-032 (a selected field is edited with a
@@ -127,7 +128,7 @@ void main() {
       final List<core.FieldValue> commits = <core.FieldValue>[];
       await _pumpSheet(tester, type: core.FieldType.text, commits: commits);
 
-      // 205 runes of German text: umlauts, sharp s, and a long sentence.
+      // 251 runes of German text: umlauts, sharp s, and a long sentence.
       const String german =
           'Grüße aus München — Straße, Ärztin, Ölgemälde, Überweisung, '
           'Prüfungsordnung, Fußgängerzone, Größe, Müllabfuhr, Zählerstand, '
