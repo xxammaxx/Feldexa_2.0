@@ -1,7 +1,7 @@
-head=771abede9c847693c9f520cbe8c4312984b1165b
+head=f342cc42583565f148ffbc1f11ab0b6b2ff2575f
+tree=cc996d8768ad558422663b9c950e10c3e8f0f97f
 branch=xxammaxx/t071a
+subject=fix(T071A): correct incompatible values, IME sheet, commit triggers, and evidence binding
 status_porcelain:
  M apps/feldexa_app/android/gradlew.bat
- M apps/feldexa_app/integration_test/android_review_composition_test.dart
- M apps/feldexa_app/lib/features/editor/editor_screen.dart
 flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git

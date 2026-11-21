@@ -13,9 +13,9 @@ If no such version exists, report the issue to the plugin. If necessary, here is
 an issue against a plugin: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers#report-incompatible-kotlin-gradle-plugin-usage-to-plugin-authors
 
 If you are a plugin author, please migrate your plugin to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
-Running Gradle task 'assembleDebug'...                             90,7s
+Running Gradle task 'assembleDebug'...                            196,6s
 ✓ Built build/app/outputs/flutter-apk/app-debug.apk
-Installing build/app/outputs/flutter-apk/app-debug.apk...        1.462ms
+Installing build/app/outputs/flutter-apk/app-debug.apk...        2.274ms
 00:00 +0: (setUpAll)
 T071A_FIXTURE_READY:BYTES=5956:MATCH=1
 T071A_DAMAGED_FIXTURE_READY:BYTES=5956:MATCH=1
@@ -37,9 +37,9 @@ T071A_DIAG_VIEW_INIT_START
 T071A_DIAG_VIEW_INIT_OK
 T071A_DIAG_VIEW_DOCUMENT_OPEN_OK:PAGES=2
 T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+T071A_DIAG_PAGE_RENDER_START:P=0:W=1080:H=1527
 T071A_DIAG_RASTER_OK:P=0:W=1654:H=2339
 T071A_DIAG_OCR_START:P=0
-T071A_DIAG_PAGE_RENDER_START:P=0:W=1080:H=1527
 T071A_DIAG_PAGE_RENDER_OK:P=0:W=1080:H=1527
 T071A_DIAG_OCR_OK:P=0:BLOCKS=25
 T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
@@ -72,8 +72,8 @@ T071A_DIAG_VIEW_DOCUMENT_OPEN_OK:PAGES=2
 T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
 T071A_DIAG_PAGE_RENDER_START:P=0:W=1080:H=1527
 T071A_REOPENED_READBACK:OK
-T071A_T071A_SCREENSHOT_REOPENED_VALUE
 T071A_DIAG_PAGE_RENDER_OK:P=0:W=1080:H=1527
+T071A_T071A_SCREENSHOT_REOPENED_VALUE
 T071A_CLEANUP_DONE
-02:42 +1: (tearDownAll)
-02:44 +1: All tests passed!
+03:22 +1: (tearDownAll)
+03:26 +1: All tests passed!

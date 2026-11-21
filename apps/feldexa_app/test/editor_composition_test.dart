@@ -576,6 +576,28 @@ void main() {
     expect(state.selection.selectedId, isNull);
   });
 
+  testWidgets('an empty page still clears a stale selection', (tester) async {
+    final _FakeStore store = _FakeStore(
+      loaded: _loaded(
+        content: _content(withField: false, withSuggestion: false),
+      ),
+    );
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+    await _pumpEditor(tester, runtime: runtime);
+
+    final EditorScreenState state = _state(tester);
+    // A transient selection can outlive a page's items; the selection surface
+    // must still be composed and clear it.
+    state.selection.select('stale-selection');
+    expect(state.selection.selectedId, 'stale-selection');
+
+    await tester.tapAt(
+      _screenPoint(tester, state, core.Rect.fromLTWH(270, 10, 4, 4)),
+    );
+    await tester.pumpAndSettle();
+    expect(state.selection.selectedId, isNull);
+  });
+
   testWidgets('invalid number input stays open and valid German is stored', (
     tester,
   ) async {

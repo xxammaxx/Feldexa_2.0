@@ -1,0 +1,13 @@
+T071A correction 4 command binding
+resolved_at=2026-11-21
+route=JSON CLI (MCP catalog had no speckit.implement resource; specify artifact info command:speckit.implement --json resolved the active command stack)
+artifact_path=/home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/.opencode/commands/speckit.implement.md
+artifact_sha256=e036ce63702db93e656e1c91ee6c02a8dc3d4a4f8624f8ba4adc69027fe68983
+artifact_bytes=12562
+worktree=/home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition
+branch=xxammaxx/t071a
+head_before_docs=f342cc42583565f148ffbc1f11ab0b6b2ff2575f
+tree_before_docs=cc996d8768ad558422663b9c950e10c3e8f0f97f
+hooks=.specify/extensions.yml declares no before_implement or after_implement hooks (hooks: {})
+checklists=read-only: requirements.md 16/16 checked; precision-testability.md 36 unchecked (reviewer-owned); precision-testability-assessment.md prose; no checklist modified
+receipt=Executed the speckit.implement procedure in this session for T071A correction 4 before the first documentation edit; documentation/evidence only, no implementation code written.

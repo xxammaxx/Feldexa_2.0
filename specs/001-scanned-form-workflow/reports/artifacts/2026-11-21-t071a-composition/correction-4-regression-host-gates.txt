@@ -1,0 +1,30 @@
+T071A correction 4 regression host gates (post-review, pre-commit Y)
+date=2026-11-21
+worktree=/home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition
+branch=xxammaxx/t071a
+code_candidate=f342cc42583565f148ffbc1f11ab0b6b2ff2575f
+code_candidate_tree=cc996d8768ad558422663b9c950e10c3e8f0f97f
+added_test=apps/feldexa_app/test/editor_composition_test.dart: "an empty page still clears a stale selection" (+22 lines)
+pre_fix_behavior=when a page had no overlay items, _buildPageOverlay returned SizedBox.shrink; no FieldSelectionSurface existed, so a stale selection could not be cleared by an empty-page tap. The new test selects "stale-selection" on a page with no fields or suggestions, taps empty page space, and expects null; it fails on the pre-fix code for that reason.
+application_suite=177/177 (unchanged; no packages/feldexa_application file changed in this regression)
+
+$ (cd /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app && /home/xxammaxx/flutter/bin/flutter test --no-pub test/editor_composition_test.dart)
+00:04 +12: All tests passed!
+exit=0  [editor_composition only]
+
+$ (cd /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app && /home/xxammaxx/flutter/bin/flutter test --no-pub test/editor_composition_test.dart test/field_value_sheet_test.dart)
+00:04 +21: All tests passed!
+exit=0  [focused combined: editor_composition 12 + field_value_sheet 9]
+
+$ (cd /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app && /home/xxammaxx/flutter/bin/flutter test --no-pub)
+00:41 +431: All tests passed!
+exit=0  [full app suite]
+
+$ (cd /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app && /home/xxammaxx/flutter/bin/dart format --output=none --set-exit-if-changed test/editor_composition_test.dart)
+Formatted 1 file (0 changed) in 0.65 seconds.
+exit=0  [format check]
+
+$ git diff --check
+exit=0  [git diff check]
+
+OVERALL_EXIT=0
