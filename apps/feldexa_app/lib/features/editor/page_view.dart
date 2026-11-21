@@ -63,8 +63,20 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:feldexa_ports/feldexa_ports.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter/widgets.dart' hide PageView;
 import 'package:pdfrx/pdfrx.dart';
+
+/// Content-free integration diagnostic marker for the T071A viewer path.
+///
+/// Only the marker name, page index, page counts, byte presence, and a stable
+/// failure enum are printed. No source id, path, URI, title, or document
+/// content can pass through this helper.
+void _viewerDiagnostic(String message) {
+  if (kDebugMode) {
+    debugPrint('T071A_DIAG_$message');
+  }
+}
 
 /// Resolves the protected original PDF bytes for one opaque [sourceId].
 ///
@@ -329,10 +341,18 @@ typedef PageViewRendererFactory = Future<PageViewRenderer> Function(
 /// neutral `sourceName` keeps diagnostic output content-free. pdfrx keeps the
 /// document's bytes and page images in process memory until [dispose].
 Future<PageViewRenderer> openPdfrxPageRenderer(Uint8List bytes) async {
+  // T071A correction: initialize pdfrx/PDFium before the first document is
+  // opened so engine startup is not a first-use surprise. The call is
+  // defensive and idempotent; it is not the proven root cause of the observed
+  // stall and also covers callers outside the Android editor composition.
+  _viewerDiagnostic('VIEW_INIT_START');
+  await pdfrxFlutterInitialize();
+  _viewerDiagnostic('VIEW_INIT_OK');
   final PdfDocument document = await PdfDocument.openData(
     bytes,
     sourceName: 'feldexa-viewer-${_nextViewerSourceNumber++}',
   );
+  _viewerDiagnostic('VIEW_DOCUMENT_OPEN_OK:PAGES=${document.pages.length}');
   return _PdfrxPageRenderer(document);
 }
 
@@ -422,6 +442,9 @@ class _PdfrxPageState extends State<_PdfrxPage> {
   Future<void> _render(PageViewRasterPlan plan) async {
     if (widget.pageIndex < 0 ||
         widget.pageIndex >= widget.document.pages.length) {
+      _viewerDiagnostic(
+        'PAGE_RENDER_FAIL:P=${widget.pageIndex}:CODE=pageIndex',
+      );
       widget.onFailure(
         const PageViewLoadException(PageViewLoadFailure.renderFailed),
       );
@@ -433,6 +456,9 @@ class _PdfrxPageState extends State<_PdfrxPage> {
         .pages[widget.pageIndex]
         .createCancellationToken();
     _token = token;
+    _viewerDiagnostic(
+      'PAGE_RENDER_START:P=${widget.pageIndex}:W=${plan.widthPx}:H=${plan.heightPx}',
+    );
     try {
       final ui.Image? image = await widget.document.pages[widget.pageIndex]
           .renderForDisplay(
@@ -443,20 +469,28 @@ class _PdfrxPageState extends State<_PdfrxPage> {
           );
       if (!mounted || token.isCanceled) {
         image?.dispose();
+        _viewerDiagnostic('PAGE_RENDER_CANCELLED:P=${widget.pageIndex}');
         return;
       }
       if (image == null) {
+        _viewerDiagnostic('PAGE_RENDER_FAIL:P=${widget.pageIndex}:CODE=null');
         widget.onFailure(
           const PageViewLoadException(PageViewLoadFailure.renderFailed),
         );
         return;
       }
+      _viewerDiagnostic(
+        'PAGE_RENDER_OK:P=${widget.pageIndex}:W=${image.width}:H=${image.height}',
+      );
       setState(() {
         _image?.dispose();
         _image = image;
       });
     } catch (_) {
       if (mounted && !token.isCanceled) {
+        _viewerDiagnostic(
+          'PAGE_RENDER_FAIL:P=${widget.pageIndex}:CODE=exception',
+        );
         widget.onFailure(
           const PageViewLoadException(PageViewLoadFailure.renderFailed),
         );
@@ -1173,6 +1207,7 @@ class PageView extends StatefulWidget {
     required this.sourceBytes,
     required this.controller,
     this.rendererFactory = openPdfrxPageRenderer,
+    this.overlayBuilder,
     this.loadingBuilder,
     this.errorBuilder,
     this.onLoadError,
@@ -1196,6 +1231,23 @@ class PageView extends StatefulWidget {
 
   /// Opens the renderer once per source. Defaults to pdfrx/PDFium.
   final PageViewRendererFactory rendererFactory;
+
+  /// Optional per-page overlay hook (T071A).
+  ///
+  /// The hook is called for every visible page and its result is stacked above
+  /// that page's rendered content inside the page's own box. The box spans the
+  /// page, so the overlay layout origin is the page's top-left; [viewportRect]
+  /// is the same page rectangle expressed in viewport coordinates and may be
+  /// used only as a size/reference. [mapping] carries the immutable page size
+  /// and the current view transform. The hook must not change the page
+  /// renderer, pan/zoom state, or document geometry; it exists for the T069
+  /// overlay and T077 selection surface.
+  final Widget Function(
+    int pageIndex,
+    Rect viewportRect,
+    PageViewMapping mapping,
+  )?
+  overlayBuilder;
 
   /// Optional content-free loading placeholder.
   final WidgetBuilder? loadingBuilder;
@@ -1266,6 +1318,7 @@ class _PageViewState extends State<PageView> {
 
   Future<void> _open() async {
     final int generation = ++_generation;
+    _viewerDiagnostic('VIEW_OPEN_START');
     final PageViewRenderer? previous = _renderer;
     if (_renderer != null || _error != null) {
       setState(() {
@@ -1284,6 +1337,9 @@ class _PageViewState extends State<PageView> {
       if (!mounted || generation != _generation) {
         return;
       }
+      _viewerDiagnostic(
+        'VIEW_BYTES:PRESENT=${bytes == null || bytes.isEmpty ? 0 : 1}',
+      );
       if (bytes == null || bytes.isEmpty) {
         throw const PageViewLoadException(
           PageViewLoadFailure.sourceUnavailable,
@@ -1295,11 +1351,17 @@ class _PageViewState extends State<PageView> {
         return;
       }
       if (renderer.pageCount != widget.controller.pageCount) {
+        _viewerDiagnostic(
+          'VIEW_PAGE_COUNT_MISMATCH:RENDERED=${renderer.pageCount}:EXPECTED=${widget.controller.pageCount}',
+        );
         await renderer.dispose();
         throw const PageViewLoadException(
           PageViewLoadFailure.pageCountMismatch,
         );
       }
+      _viewerDiagnostic(
+        'VIEW_OPEN_OK:PAGES=${renderer.pageCount}:EXPECTED=${widget.controller.pageCount}',
+      );
       setState(() {
         _renderer = renderer;
         _error = null;
@@ -1308,6 +1370,7 @@ class _PageViewState extends State<PageView> {
       if (!mounted || generation != _generation) {
         return;
       }
+      _viewerDiagnostic('VIEW_FAIL:CODE=${error.failure.name}');
       setState(() {
         _renderer = null;
         _error = error;
@@ -1317,6 +1380,7 @@ class _PageViewState extends State<PageView> {
       if (!mounted || generation != _generation) {
         return;
       }
+      _viewerDiagnostic('VIEW_FAIL:CODE=unreadableSource');
       const PageViewLoadException error = PageViewLoadException(
         PageViewLoadFailure.unreadableSource,
       );
@@ -1330,6 +1394,7 @@ class _PageViewState extends State<PageView> {
 
   void _reportRenderFailure(PageViewLoadException error) {
     if (!mounted || _error != null) return;
+    _viewerDiagnostic('VIEW_PAGE_FAIL:CODE=${error.failure.name}');
     final PageViewRenderer? renderer = _renderer;
     setState(() {
       _renderer = null;
@@ -1441,6 +1506,24 @@ class _PageViewState extends State<PageView> {
       final Rect viewportRect = widget.controller
           .mappingFor(index)
           .pageRectInViewport;
+      final Widget renderedPage = renderer.buildPage(
+        context,
+        index,
+        onFailure: _reportRenderFailure,
+      );
+      final Widget pageContent = widget.overlayBuilder == null
+          ? renderedPage
+          : Stack(
+              fit: StackFit.expand,
+              children: <Widget>[
+                renderedPage,
+                widget.overlayBuilder!(
+                  index,
+                  viewportRect,
+                  widget.controller.mappingFor(index),
+                ),
+              ],
+            );
       pages.add(
         Positioned(
           key: ValueKey<int>(index),
@@ -1448,11 +1531,7 @@ class _PageViewState extends State<PageView> {
           top: viewportRect.top,
           width: viewportRect.width,
           height: viewportRect.height,
-          child: renderer.buildPage(
-            context,
-            index,
-            onFailure: _reportRenderFailure,
-          ),
+          child: pageContent,
         ),
       );
     }

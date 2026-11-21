@@ -1,0 +1,83 @@
+{
+  "id": "7d54a587-9a5b-496f-874a-b3560f02bdc6",
+  "ok": true,
+  "result": [
+    {
+      "backend": "android",
+      "id": "emulator-5554",
+      "name": "T025_Pixel7_API35_KVM_20261115",
+      "state": "booted",
+      "detail": "emulator",
+      "isAvailable": true,
+      "osVersion": "15",
+      "apiLevel": "35",
+      "lastUsedAt": "2026-11-16T15:01:26.583Z"
+    },
+    {
+      "backend": "android",
+      "id": "Feldexa_API31",
+      "name": "Feldexa_API31",
+      "state": "shutdown",
+      "detail": "avd",
+      "isAvailable": true,
+      "apiLevel": "31"
+    },
+    {
+      "backend": "android",
+      "id": "Feldexa_API36",
+      "name": "Feldexa_API36",
+      "state": "shutdown",
+      "detail": "avd",
+      "isAvailable": true,
+      "apiLevel": "36"
+    },
+    {
+      "backend": "android",
+      "id": "Feldexa_ATD31",
+      "name": "Feldexa_ATD31",
+      "state": "shutdown",
+      "detail": "avd",
+      "isAvailable": true,
+      "apiLevel": "31"
+    },
+    {
+      "backend": "android",
+      "id": "Feldexa_E2E_ATD31",
+      "name": "Feldexa_E2E_ATD31",
+      "state": "shutdown",
+      "detail": "avd",
+      "isAvailable": true,
+      "apiLevel": "31"
+    },
+    {
+      "backend": "android",
+      "id": "Feldexa_Phone31",
+      "name": "Feldexa_Phone31",
+      "state": "shutdown",
+      "detail": "avd",
+      "isAvailable": true,
+      "apiLevel": "31"
+    },
+    {
+      "backend": "android",
+      "id": "SpecKitWerkbank_QA",
+      "name": "SpecKitWerkbank_QA",
+      "state": "shutdown",
+      "detail": "avd",
+      "isAvailable": true,
+      "apiLevel": "31"
+    },
+    {
+      "backend": "android",
+      "id": "SpecKitWerkbank_QA_ATD",
+      "name": "SpecKitWerkbank_QA_ATD",
+      "state": "shutdown",
+      "detail": "avd",
+      "isAvailable": true,
+      "apiLevel": "31"
+    }
+  ],
+  "_meta": {
+    "runtimeId": "2cf52089-4d4a-439a-a73b-ee6817dda67a"
+  }
+}

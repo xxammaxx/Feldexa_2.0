@@ -1,0 +1,11 @@
+screenshot overlay-selection after T071A_SCREENSHOT_OVERLAY_SELECTION
+screenshot ack overlay-selection
+screenshot value-sheet after T071A_SCREENSHOT_VALUE_SHEET
+screenshot ack value-sheet
+screenshot saved-status after T071A_SCREENSHOT_SAVED_STATUS
+screenshot ack saved-status
+screenshot document-list after T071A_SCREENSHOT_DOCUMENT_LIST
+screenshot ack document-list
+screenshot reopened-value after T071A_SCREENSHOT_REOPENED_VALUE
+screenshot ack reopened-value
+PASS (flutter test exit 0; cleanup marker observed; privacy checks PASS)

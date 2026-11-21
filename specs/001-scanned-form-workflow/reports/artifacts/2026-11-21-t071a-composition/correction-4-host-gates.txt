@@ -1,0 +1,1047 @@
+
+$ (cd /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app && /home/xxammaxx/flutter/bin/flutter analyze --no-pub)
+Analyzing feldexa_app...
+No issues found! (ran in 5.0s)
+exit=0  [app analyze]
+
+$ (cd /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application && /home/xxammaxx/flutter/bin/dart analyze)
+Analyzing feldexa_application...
+No issues found!
+exit=0  [application analyze]
+
+$ (cd /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition && /home/xxammaxx/flutter/bin/dart format --output=none --set-exit-if-changed packages/feldexa_application/lib/src/review/set_value.dart packages/feldexa_application/test/set_value_test.dart apps/feldexa_app/lib/features/editor/field_value_sheet.dart apps/feldexa_app/lib/features/editor/editor_screen.dart apps/feldexa_app/lib/features/start/stored_items.dart apps/feldexa_app/test/editor_composition_test.dart apps/feldexa_app/test/field_value_sheet_test.dart apps/feldexa_app/integration_test/android_review_composition_test.dart)
+Formatted 8 files (0 changed) in 0.12 seconds.
+exit=0  [format]
+
+$ (cd /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app && /home/xxammaxx/flutter/bin/flutter test --no-pub test/editor_composition_test.dart test/field_value_sheet_test.dart)
+00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart
+00:00 +0: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: text over 10,000 runes is refused in the open sheet
+00:00 +0: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: PageView overlay builder receives page, viewport rect, mapping
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+00:00 +1: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: text over 10,000 runes is refused in the open sheet
+00:00 +1: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:01 +2: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+00:01 +3: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+00:01 +4: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: multiline over 10,000 runes is refused in the open sheet
+00:01 +4: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: the value sheet lays out above the software keyboard
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:01 +5: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: the value sheet lays out above the software keyboard
+00:02 +6: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: single-line done commits once and closes the sheet
+00:02 +6: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: tapping a suggestion highlights it without a value sheet
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=1
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=1:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:02 +7: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: tapping a suggestion highlights it without a value sheet
+00:02 +8: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: focus loss commits once and closes the sheet
+00:02 +8: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: invalid number input stays open and valid German is stored
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:02 +9: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: invalid number input stays open and valid German is stored
+00:02 +10: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: invalid number input stays open and valid German is stored
+00:02 +11: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: the explicit save commits once and closes the sheet
+00:02 +11: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: impossible date keeps the sheet open and a real date saves
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:02 +12: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: impossible date keeps the sheet open and a real date saves
+00:03 +13: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: impossible date keeps the sheet open and a real date saves
+00:03 +14: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: explicit close cancels without a focus-loss save
+00:03 +14: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: a verified save updates content, head, and durability status
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:03 +15: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: a verified save updates content, head, and durability status
+00:03 +16: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: a failed save keeps the sheet open and claims no saved state
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:03 +17: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: a readable stored document opens and the list reloads on return
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:03 +18: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: an unreadable stored document is not opened
+00:03 +19: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: 200 percent text scale composes editor and sheet without overflow
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:04 +20: All tests passed!
+exit=0  [focused editor_composition + field_value_sheet]
+
+$ (cd /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app && /home/xxammaxx/flutter/bin/flutter test --no-pub)
+00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/android_backup_rules_test.dart
+00:00 +0: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/android_backup_rules_test.dart: manifest disables backup and points at the extraction rules
+00:00 +1: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/android_backup_rules_test.dart: every transfer mode excludes every app data domain
+00:00 +2: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/android_backup_rules_test.dart: cross-platform transfer is not declared without an iOS identity
+00:04 +3: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/app_import_composition_test.dart: start surface renders the committed German catalog strings
+00:05 +4: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/app_smoke_test.dart: renders the Feldexa shell in German
+00:05 +5: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/app_import_composition_test.dart: accepted import opens the editor, lists every page, and reads the protected source for the imported documentId
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_UNSUPPORTED
+T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-unsupported
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=3:EXPECTED=3
+00:06 +6: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/app_import_composition_test.dart: a rejection shows catalog text without a code or navigation and creates no document
+00:06 +7: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/app_import_composition_test.dart: a cancelled picker returns to the start surface with no text
+00:06 +8: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/app_import_composition_test.dart: a partial source derives the IMP-006 warning and marks the affected page unreadable
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_UNSUPPORTED
+T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-unsupported
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+00:06 +9: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/checkbox_control_test.dart: renders unchecked and checked states with the caller label
+00:07 +10: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/delete_item_test.dart: exact ARB content document kind shows only the exact DEL-002 message
+00:07 +11: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/delete_item_test.dart: exact ARB content document kind shows only the exact DEL-002 message
+00:07 +12: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/delete_item_test.dart: exact ARB content document kind shows only the exact DEL-002 message
+00:07 +13: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/delete_item_test.dart: exact ARB content document kind shows only the exact DEL-002 message
+00:07 +14: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/delete_item_test.dart: exact ARB content document kind shows only the exact DEL-002 message
+00:07 +15: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/delete_item_test.dart: exact ARB content document kind shows only the exact DEL-002 message
+00:07 +16: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/delete_item_test.dart: exact ARB content document kind shows only the exact DEL-002 message
+00:07 +17: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/delete_item_test.dart: exact ARB content document kind shows only the exact DEL-002 message
+00:08 +18: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/delete_item_test.dart: exact ARB content template kind shows only the exact DEL-003 message
+00:08 +19: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/delete_item_test.dart: result semantics confirm returns true exactly once
+00:09 +20: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/delete_item_test.dart: result semantics cancel returns false exactly once
+00:09 +21: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/delete_item_test.dart: result semantics barrier dismissal returns false exactly once
+00:09 +22: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/delete_item_test.dart: confirm reads Löschen and cancel stays the system cancel label
+00:09 +23: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/delete_item_test.dart: confirm, cancel, and barrier keep the host and move only the dialog route
+00:09 +24: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/durability_status_test.dart: every durability state renders its exact ARB label and pinned icon
+00:09 +25: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/durability_status_test.dart: every durability state renders its exact ARB label and pinned icon
+00:09 +26: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/durability_status_test.dart: every durability state renders its exact ARB label and pinned icon
+00:09 +27: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/durability_status_test.dart: every durability state renders its exact ARB label and pinned icon
+00:09 +28: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/durability_status_test.dart: every durability state renders its exact ARB label and pinned icon
+00:10 +29: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/durability_status_test.dart: saved and saveFailed render local 24-hour time from explicit or saved UTC
+00:10 +30: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/durability_status_test.dart: time label is local, 24-hour, zero-padded, and never reads a clock
+00:10 +31: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/durability_status_test.dart: null time renders the exact --:-- fallback for saved and saveFailed
+00:10 +32: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/durability_status_test.dart: only clean and saved may show a durable check
+00:10 +33: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/durability_status_test.dart: one status semantic node carries the exact visible text
+00:10 +34: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:11 +35: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:11 +36: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:11 +37: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:11 +38: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:11 +39: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:11 +40: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:11 +41: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:11 +42: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:11 +43: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:11 +44: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:11 +45: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:11 +46: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:11 +47: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:11 +48: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:11 +49: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:11 +50: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:12 +51: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:12 +52: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:12 +53: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:12 +54: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:12 +55: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:12 +56: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:12 +57: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_completion_test.dart: warning precedence a warning overrides a null value
+00:12 +58: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: shows fallback, uncertain, conflict, and progress markers
+00:12 +59: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: shows fallback, uncertain, conflict, and progress markers
+00:12 +60: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: shows fallback, uncertain, conflict, and progress markers
+00:12 +61: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: shows fallback, uncertain, conflict, and progress markers
+00:12 +62: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: shows fallback, uncertain, conflict, and progress markers
+00:12 +63: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: shows fallback, uncertain, conflict, and progress markers
+00:12 +64: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: shows fallback, uncertain, conflict, and progress markers
+00:12 +65: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: shows fallback, uncertain, conflict, and progress markers
+00:12 +66: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: shows fallback, uncertain, conflict, and progress markers
+00:12 +67: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: confirm, reject, and undo callbacks receive the exact value
+00:12 +68: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: busy disables actions while a save is in flight
+00:12 +69: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: empty states distinguish no suggestions from all reviewed
+00:12 +70: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_review_panel_test.dart: no overflow at 200 % text scale
+00:12 +71: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/font_bundle_test.dart: asset bundle contains assets/fonts/NotoSans-Regular.ttf
+00:12 +72: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/font_bundle_test.dart: asset bundle contains assets/fonts/NotoSans-Bold.ttf
+00:13 +73: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/font_bundle_test.dart: asset bundle contains the SIL OFL 1.1 text
+00:13 +74: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/font_metrics_bundle_test.dart: (setUpAll)
+00:13 +74: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/font_metrics_bundle_test.dart: metrics.json is a schema-v1 document for both weights
+00:13 +75: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/font_metrics_bundle_test.dart: metrics for assets/fonts/NotoSans-Regular.ttf match head/hhea/maxp/hmtx/cmap
+00:13 +76: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/font_metrics_bundle_test.dart: assets/fonts/NotoSans-Regular.ttf covers the FR-067 German codepoints
+00:13 +77: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/font_metrics_bundle_test.dart: metrics for assets/fonts/NotoSans-Bold.ttf match head/hhea/maxp/hmtx/cmap
+00:14 +78: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/font_metrics_bundle_test.dart: assets/fonts/NotoSans-Bold.ttf covers the FR-067 German codepoints
+00:14 +79: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/font_metrics_bundle_test.dart: advance keys are emitted in ascending numeric order
+00:14 +80: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/font_metrics_bundle_test.dart: sample strings measure to the pinned point widths
+00:14 +81: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/font_metrics_bundle_test.dart: missing glyphs stay absent and zero-width marks stay available
+00:14 +82: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/font_metrics_bundle_test.dart: (tearDownAll)
+00:14 +82: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/german_strings_test.dart: (setUpAll)
+00:14 +82: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/german_strings_test.dart: ARB and corrected catalog agree on every coded message
+00:14 +83: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/german_strings_test.dart: catalog and ARB key mapping is complete in both directions
+00:14 +84: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/german_strings_test.dart: corrected IMP-007 and FLD-001 texts are preserved verbatim
+00:14 +85: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/german_strings_test.dart: PRIV-001 discloses aggregate isolation and the global reset exception
+00:14 +86: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/german_strings_test.dart: placeholder metadata is complete, typed, and German
+00:14 +87: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/german_strings_test.dart: generated localization code exposes every ARB key
+00:14 +88: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/german_strings_test.dart: start area, status, action, and deletion labels match the catalog
+00:14 +89: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/german_strings_test.dart: page analysis-state vocabulary matches §8, the ARB, and generated code
+00:14 +90: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/german_strings_test.dart: durability, privacy, export, and SIMULATED labels match the catalog
+00:14 +91: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/german_strings_test.dart: accessibility semantics use the catalog templates and German states
+00:14 +92: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/german_strings_test.dart: no untranslated English UI words remain; SIMULATED is allowlisted
+00:14 +93: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/german_strings_test.dart: (tearDownAll)
+00:15 +93: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+00:15 +94: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: catalog mapping maps every import and import-reachable storage code exactly
+00:15 +95: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: catalog mapping IMP-000 and PLT-004 are cancellations without a message
+00:15 +96: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: catalog mapping an unknown code falls back to IMP-005, never to a password claim
+00:15 +97: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: catalog mapping an unknown exception maps to IMP-005 semantics
+00:15 +98: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: catalog mapping isUnrecognized is true only for the unknown-cause fallback
+00:15 +99: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness only a positive password diagnosis claims password protection
+00:15 +100: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness unsupported encryption uses the truthful IMP-004 text with a false exactness flag
+00:15 +101: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness a raw IMP-001 code with the unsupported-encryption key renders IMP-004
+00:15 +102: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness a raw IMP-001 code with the canonical password key stays IMP-001
+00:15 +103: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness a noncanonical IMP-001 password key is not a password claim
+00:15 +104: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness regression: unsupported encryption never renders the password sentence
+00:15 +105: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness uncertain and structural failures never say password protected
+00:15 +106: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: tone and privacy rendered text contains no code, path, URI, or document title
+00:15 +107: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: IMP-006 partial import a partial source yields the warning with 1-based page numbers
+00:15 +108: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: IMP-006 partial import a single failed page uses its 1-based number
+00:15 +109: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: IMP-006 partial import a fully readable source has no warning
+00:15 +110: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: FR-009 rejection gate a rejected import never reaches document creation
+00:15 +111: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: FR-009 rejection gate storage, too-large, and unknown failures also create nothing
+00:15 +112: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: FR-009 rejection gate cancellation returns to the previous screen and creates nothing
+00:15 +113: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: FR-009 rejection gate an untyped failure is rejected with IMP-005 and creates nothing
+00:15 +114: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: FR-009 rejection gate an accepted partial import creates the document with a warning
+00:15 +115: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_error_mapper_test.dart: FR-009 rejection gate a fully readable import creates the document without a warning
+00:16 +116: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_semantics_test.dart: exact German catalog messages per failure class presents the pinned message and recovery for every import code
+00:16 +117: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_semantics_test.dart: exact German catalog messages per failure class an unclassified exception presents the IMP-005 German text
+00:16 +118: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_semantics_test.dart: exact German catalog messages per failure class pinned sentences are exactly the committed catalog rows
+00:16 +119: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_semantics_test.dart: exact German catalog messages per failure class the mapper resolves the same text through AppLocalizations
+00:16 +120: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_semantics_test.dart: FR-007 truthful password diagnosis only the positive password diagnosis claims password protection
+00:16 +121: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_semantics_test.dart: FR-007 truthful password diagnosis canonical unsupported encryption presents IMP-004 with a false flag
+00:16 +122: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_semantics_test.dart: FR-094 no internals in user text rendered text and mapper identity contain no internals
+00:16 +123: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_semantics_test.dart: FR-094 no internals in user text partial warning text and identity contain no internals
+00:16 +124: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_semantics_test.dart: FR-094 no internals in user text accepted candidate and source identities omit the display name
+00:16 +125: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_semantics_test.dart: FR-009 error semantics at the flow level every rejected or cancelled failure creates no document
+00:16 +126: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_semantics_test.dart: FR-009 error semantics at the flow level an untyped failure is rejected with IMP-005 and creates nothing
+00:16 +127: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_semantics_test.dart: FR-009 error semantics at the flow level IMP-006 succeeds with a warning and ascending 1-based pages
+00:16 +128: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_semantics_test.dart: FR-009 error semantics at the flow level the flow warning matches T044 page state for the same pages
+00:16 +129: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/import_semantics_test.dart: German-only user surface every asserted sentence is German catalog text, not a fallback
+00:16 +130: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/l10n_scaffold_test.dart: German is the only supported release locale
+00:16 +131: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/l10n_scaffold_test.dart: l10n.yaml points at the German template and committed output
+00:16 +132: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+00:16 +133: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+00:17 +134: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +135: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +136: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +137: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +138: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +139: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +140: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +141: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +142: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +143: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +144: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +145: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +146: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +147: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +148: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +149: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +150: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +151: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +152: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +153: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +154: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +155: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +156: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +157: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +158: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +159: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +160: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +161: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +162: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +163: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +164: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +165: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +166: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +167: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:17 +168: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+00:18 +169: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: visible true renders the exact FLD-001 texts and one live region
+00:19 +170: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: FLD-001 and EXP-001 rows agree with the ARB and stop export
+00:19 +171: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: no dismiss control and a rebuild with visible false clears it
+00:19 +172: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStripController rejects an initial page outside the document
+00:19 +173: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: 200 percent scale reflows in a narrow width without overflow
+00:19 +174: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: 200 percent scale reflows in a narrow width without overflow
+00:19 +175: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/overflow_warning_test.dart: 200 percent scale reflows in a narrow width without overflow
+00:20 +176: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:20 +177: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+00:21 +178: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+00:21 +179: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+00:21 +180: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+00:21 +181: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+00:21 +182: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+00:21 +183: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+00:21 +184: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+00:21 +185: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+00:21 +186: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+00:21 +187: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+00:21 +188: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+00:21 +189: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+00:21 +190: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+00:21 +191: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+00:21 +192: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+00:21 +193: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+00:21 +194: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageViewController rejects invalid viewport and transform values
+00:21 +195: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+00:21 +196: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+00:21 +197: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+00:21 +198: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+00:21 +199: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+00:21 +200: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+00:21 +201: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+00:21 +202: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+00:21 +203: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+00:21 +204: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+00:21 +205: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+00:21 +206: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+00:21 +207: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+00:21 +208: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+00:21 +209: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+00:21 +210: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+00:21 +211: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+00:21 +212: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:21 +213: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:21 +214: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:21 +215: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:21 +216: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:21 +217: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+00:22 +218: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+T071A_DIAG_VIEW_OPEN_START
+00:22 +219: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=3:EXPECTED=3
+00:22 +220: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip long documents builds lazily and reveals a distant selection
+00:22 +220: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageView widget reuses the opened document across rebuilds
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:22 +221: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageView widget reuses the opened document across rebuilds
+00:22 +222: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_strip_test.dart: PageStrip long documents compact mode stays usable at page 100
+00:22 +222: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageView widget keeps the mapping when the device pixel ratio changes
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:22 +223: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageView widget keeps the mapping when the device pixel ratio changes
+00:22 +224: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageView widget builds only pages intersecting the viewport
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=3:EXPECTED=3
+00:22 +225: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageView widget disposes the renderer when the viewer is removed
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:22 +226: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageView widget reopens on a source change and disposes the old renderer
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:22 +227: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageView widget refuses a page-count mismatch without painting pages
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_PAGE_COUNT_MISMATCH:RENDERED=1:EXPECTED=2
+T071A_DIAG_VIEW_FAIL:CODE=pageCountMismatch
+00:22 +228: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageView widget reports an unavailable source with a content-free failure
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=0
+T071A_DIAG_VIEW_FAIL:CODE=sourceUnavailable
+00:22 +229: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/page_view_test.dart: PageView widget sanitizes a renderer exception
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_FAIL:CODE=unreadableSource
+00:23 +230: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/platform_registry_test.dart: compile-time selection dart:io selects the Android registry by default
+00:23 +231: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/platform_registry_test.dart: compile-time selection the unsupported target fails closed with PLT-001
+00:23 +232: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation accepts real Android adapters with EvidenceClass.none
+00:23 +233: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects one simulated adapter with SIM-001
+00:23 +234: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects an all-simulated adapter set with SIM-001
+00:23 +235: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects an environment-labelled adapter instead of mislabelling it
+00:23 +236: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects a descriptor in the wrong capability slot
+00:23 +237: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/platform_registry_test.dart: Web registry evidence separation accepts simulated-only adapters and reports development mode
+00:23 +238: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/platform_registry_test.dart: Web registry evidence separation rejects an Android-labelled adapter instead of claiming it as Web
+00:23 +239: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/platform_registry_test.dart: release assertion accepts the real Android registry
+00:23 +240: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/platform_registry_test.dart: release assertion rejects a simulated Web registry with SIM-001
+00:23 +241: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/platform_registry_test.dart: release assertion inspects live descriptors when the registry metadata lies
+00:23 +242: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/platform_registry_test.dart: release assertion rejects a registry that only claims simulated capabilities
+00:23 +243: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/platform_registry_test.dart: Android dependency boundary registry sources never import the simulated adapter package
+00:23 +244: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/review_conflict_sheet_test.dart: only symmetric conflicting candidates render conflict badges
+00:24 +245: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/signature_sheet_test.dart: draws two strokes and applies their captured geometry
+00:25 +246: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/signature_sheet_test.dart: draws two strokes and applies their captured geometry
+00:25 +247: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/signature_sheet_test.dart: draws two strokes and applies their captured geometry
+00:25 +248: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/review_conflict_sheet_test.dart: reopening from the second candidate rejects only that one
+00:25 +249: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/signature_sheet_test.dart: undo removes only the last stroke and clear removes all ink
+00:25 +250: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/review_conflict_sheet_test.dart: resolved candidates show state without resolution actions
+00:25 +251: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/signature_sheet_test.dart: a tap produces exactly one one-point stroke at the tap
+00:25 +252: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/review_conflict_sheet_test.dart: busy disables the badge and the sheet resolution actions
+00:26 +253: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/review_conflict_sheet_test.dart: busy disables the badge and the sheet resolution actions
+00:26 +254: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/signature_sheet_test.dart: cancel never applies and apply reports exactly once
+00:26 +255: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/review_conflict_sheet_test.dart: a stale conflict reference shows the candidate and a note
+00:26 +256: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/signature_sheet_test.dart: draft and stroke collections are unmodifiable snapshots
+00:26 +257: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/signature_sheet_test.dart: draft and stroke collections are unmodifiable snapshots
+00:26 +258: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/signature_sheet_test.dart: a fresh instance starts empty with no static ink
+00:26 +259: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/signature_sheet_test.dart: labels come from the caller and 200 percent scale reflows
+00:27 +260: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/signature_sheet_test.dart: production source imports only the Flutter presentation framework
+00:30 +261: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: order and platform seam export sweep precedes native recovery and contract reads
+00:31 +262: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: order and platform seam the platform selector has no native recovery without a runtime
+00:31 +263: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: key material unavailable aggregate SAVE-002 deletes nothing and is reported
+00:31 +264: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: key material unavailable global SAVE-008 deletes nothing and is reported
+00:31 +265: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: key material unavailable a native SAVE-008 still sweeps plaintext previews and skips reads
+00:31 +266: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback native fallback adoption survives later stamps that report false
+00:31 +267: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback SAVE-004 fallback surfaces the German guidance
+00:31 +268: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback corrupt head without a verified revision is degraded
+00:31 +269: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback a fallback without a verified revision is never success
+00:31 +270: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: storage exhaustion SAVE-001 is surfaced and the last durable state stays intact
+00:31 +271: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: storage exhaustion SAVE-005 schema-too-new surfaces the update guidance
+00:31 +272: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages stale entries are removed, fresh entries and aggregates are kept
+00:31 +273: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages session end removes every export preview regardless of age
+00:31 +274: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages session end reports a listing failure instead of false success
+00:31 +275: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages a deletion failure is surfaced, not swallowed
+00:31 +276: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: determinism and bound the documented bound is pinned and reached deterministically
+00:31 +277: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: determinism and bound identical inputs produce the same outcome
+00:31 +278: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: production io filesystem adapter lists only exports and reports staging as native-owned
+00:31 +279: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: production io filesystem adapter full sweep removes stale previews and keeps fresh ones
+00:31 +280: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: production io filesystem adapter a missing export directory is empty and is not created
+00:31 +281: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a symlinked export root is refused and deletes nothing outside
+00:31 +282: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a symlinked entry inside the root is refused, outside file kept
+00:31 +283: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures the adapter directly refuses a symlink entry deletion
+00:31 +284: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a regular old file inside the real root is still deleted
+00:31 +285: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a rejected backslash name is a redacted cleanup failure
+00:31 +286: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures an uninspectable entry is a redacted cleanup failure
+00:31 +287: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a timed-out sweep performs no read or deletion after the stop
+00:31 +288: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation the bounded runner passes one absolute deadline into the run
+00:31 +289: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a native deadline stop prevents every later destructive pass
+00:31 +290: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation an already cancelled sweep still removes export previews first
+00:31 +291: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a native recovery timeout still removes stale previews first
+00:31 +292: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a failed preview removal is reported, never silent
+00:31 +293: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a throwing native recovery still removes stale previews first
+00:31 +294: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a timed-out production-shaped run still reports degraded
+00:31 +295: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_wiring_test.dart: production composition the platform selector builds the real Android store and io adapter
+00:31 +296: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a hang becomes a bounded timeout, never a crash or success
+00:31 +297: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a thrown sweep becomes a degraded failure, never a crash
+00:31 +298: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a clean result stays complete
+00:31 +299: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a degraded result is not reported as success
+00:31 +300: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface renders the localized SAVE-004 guidance
+00:32 +301: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface renders the localized SAVE-004 guidance
+00:32 +302: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface renders the localized SAVE-004 guidance
+00:32 +303: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface renders the localized SAVE-004 guidance
+00:32 +304: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface renders the localized SAVE-004 guidance
+00:32 +305: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface renders the localized SAVE-004 guidance
+00:32 +306: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface renders the localized SAVE-004 guidance
+00:32 +307: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface renders the localized SAVE-004 guidance
+00:32 +308: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface renders the localized SAVE-004 guidance
+00:33 +309: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: renders exact group headings and keeps entries in their group
+00:33 +310: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: renders exact group headings and keeps entries in their group
+00:33 +311: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: renders exact group headings and keeps entries in their group
+00:33 +312: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: renders exact group headings and keeps entries in their group
+00:33 +313: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: renders exact group headings and keeps entries in their group
+00:33 +314: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: renders exact group headings and keeps entries in their group
+00:33 +315: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring the shell sweeps export previews at session end
+00:33 +316: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: sorts each group newest first with an ascending-id tie and copies lists
+00:33 +317: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: sorts each group newest first with an ascending-id tie and copies lists
+00:33 +318: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring a transient inactive state does not sweep
+00:33 +319: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: shows the full title, local dd.MM.yyyy date, and no ellipsis
+00:33 +320: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring the shell stops observing after it is disposed
+00:33 +321: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: renders all four exact status labels with pinned icons
+00:33 +322: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: renders all four exact status labels with pinned icons
+00:33 +323: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: renders all four exact status labels with pinned icons
+00:33 +324: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: shows both empty messages when both groups are empty
+00:33 +325: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: documents empty shows only the documents empty message
+00:33 +326: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: templates empty shows only the templates empty message
+00:33 +327: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: open callbacks receive the exact id exactly once
+00:33 +328: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: optional delete forwards once without invoking open callbacks
+00:34 +329: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: no delete control exists without a delete callback
+00:34 +330: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: stable keys identify both sections and every entry
+00:34 +331: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: 200 percent text scale reflows at 280 logical pixels without overflow
+00:34 +332: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/stored_items_test.dart: 50 document entries render and the last is reachable
+00:34 +333: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+00:34 +334: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+00:35 +334: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance catalog is a SIMULATED, deterministic fixture catalogue
+00:35 +335: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance catalogue contains the four editor forms and three failure fixtures
+00:35 +336: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-001 carries complete synthetic provenance
+00:35 +337: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-002 carries complete synthetic provenance
+00:35 +338: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-003 carries complete synthetic provenance
+00:35 +339: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-004 carries complete synthetic provenance
+00:35 +340: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-protected carries complete synthetic provenance
+00:35 +341: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-truncated carries complete synthetic provenance
+00:35 +342: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-not-a-pdf carries complete synthetic provenance
+00:35 +343: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures four valid forms cover every field type, rotation, and page-count need
+00:35 +344: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 PDF bytes, page geometry, and fixed metadata are valid
+00:35 +345: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 ground truth is unique, typed, and inside page bounds
+00:35 +346: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 expected OCR is sorted, bounded, and matches assertions
+00:35 +347: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 OCR labels support every ground-truth field
+00:35 +348: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 canonical, Web, and corpus copies are byte-identical
+00:35 +349: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 PDF bytes, page geometry, and fixed metadata are valid
+00:35 +350: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 ground truth is unique, typed, and inside page bounds
+00:35 +351: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 expected OCR is sorted, bounded, and matches assertions
+00:35 +352: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 OCR labels support every ground-truth field
+00:35 +353: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 canonical, Web, and corpus copies are byte-identical
+00:35 +354: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 PDF bytes, page geometry, and fixed metadata are valid
+00:35 +355: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 ground truth is unique, typed, and inside page bounds
+00:35 +356: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 expected OCR is sorted, bounded, and matches assertions
+00:35 +357: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 OCR labels support every ground-truth field
+00:35 +358: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 canonical, Web, and corpus copies are byte-identical
+00:35 +359: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+00:35 +360: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+00:35 +361: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+00:35 +362: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+00:35 +363: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+00:35 +364: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+00:35 +365: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+00:35 +366: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+00:35 +367: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+00:35 +368: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+00:35 +369: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+00:35 +370: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+00:35 +371: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+00:36 +372: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/text_control_test.dart: round-trips German umlauts through onChanged
+00:36 +373: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: PageView overlay builder receives page, viewport rect, mapping
+00:36 +374: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: PageView overlay builder receives page, viewport rect, mapping
+00:36 +375: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: PageView overlay builder receives page, viewport rect, mapping
+00:37 +376: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: PageView overlay builder receives page, viewport rect, mapping
+00:37 +377: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: PageView overlay builder receives page, viewport rect, mapping
+T071A_DIAG_VIEW_OPEN_START
+00:37 +378: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: PageView overlay builder receives page, viewport rect, mapping
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+00:37 +379: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: PageView overlay builder receives page, viewport rect, mapping
+00:37 +380: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/text_control_test.dart: external value synchronizes only while unfocused
+00:37 +381: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+00:37 +382: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+T071A_DIAG_LOAD_START
+00:37 +383: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+00:37 +384: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+00:37 +385: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+00:37 +386: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+T071A_DIAG_VIEW_OPEN_START
+00:37 +387: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:38 +388: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+00:38 +389: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+00:38 +390: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: the value sheet lays out above the software keyboard
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:39 +391: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: tapping a suggestion highlights it without a value sheet
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=1
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=1:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:39 +392: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+00:39 +392: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: invalid number input stays open and valid German is stored
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:39 +393: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+00:39 +393: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: impossible date keeps the sheet open and a real date saves
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:40 +393: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+T071A_DIAG_LOAD_START
+00:40 +394: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+00:40 +394: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: a verified save updates content, head, and durability status
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:40 +395: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+00:40 +395: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: a failed save keeps the sheet open and claims no saved state
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:40 +395: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+00:40 +396: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+00:40 +396: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: a readable stored document opens and the list reloads on return
+T071A_DIAG_LOAD_START
+00:40 +396: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:40 +396: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: a readable stored document opens and the list reloads on return
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:40 +396: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=2:UNCERTAIN=0
+T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=2:UNCERTAIN=0
+T071A_DIAG_ANALYSIS_SAVE_START
+T071A_DIAG_ANALYSIS_SAVE_OK
+T071A_DIAG_ANALYSIS_STATE:ready
+00:41 +396: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: a readable stored document opens and the list reloads on return
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:41 +397: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+00:41 +398: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+00:41 +398: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: 200 percent text scale composes editor and sheet without overflow
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:41 +399: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: 200 percent text scale composes editor and sheet without overflow
+00:41 +399: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: an existing suggestion set is skipped without analysis or a write
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=1
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=1:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:41 +400: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: an existing suggestion set is skipped without analysis or a write
+00:41 +401: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: a completed zero-suggestion run is durable across reopen
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=0:UNCERTAIN=0
+T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=0:UNCERTAIN=0
+T071A_DIAG_ANALYSIS_SAVE_START
+T071A_DIAG_ANALYSIS_SAVE_OK
+T071A_DIAG_ANALYSIS_STATE:ready
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:41 +402: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: a partially unreadable first import still analyzes readable pages
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=2:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=2:SUGGESTIONS=0:STRIP=2
+T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=1:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+T071A_DIAG_ANALYSIS_APPLIED:PAGES=2:SUGGESTIONS=1:UNCERTAIN=0
+T071A_DIAG_ANALYSIS_SAVE_START
+T071A_DIAG_ANALYSIS_SAVE_OK
+T071A_DIAG_ANALYSIS_STATE:ready
+00:41 +403: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: divergent loaded geometry fails before analysis or save
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_LOAD_REJECT:IDENTITY=1:PAGES=1:GEOMETRY=0
+T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-reject
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:41 +404: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: a loaded/source page-count mismatch fails before analysis
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_LOAD_REJECT:IDENTITY=1:PAGES=0:GEOMETRY=0
+T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-reject
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+00:42 +405: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: same-size different rotation fails before analysis
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_LOAD_REJECT:IDENTITY=1:PAGES=1:GEOMETRY=0
+T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-reject
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:42 +406: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: quantized geometry within 0.001 pt per edge is accepted
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=1:UNCERTAIN=0
+T071A_DIAG_ANALYSIS_SAVE_START
+T071A_DIAG_ANALYSIS_SAVE_OK
+T071A_DIAG_ANALYSIS_STATE:ready
+00:42 +407: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: a page failure is isolated while the healthy page is saved
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=2:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=2:SUGGESTIONS=0:STRIP=2
+T071A_DIAG_ANALYSIS_START:PAGES=2:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+T071A_DIAG_ANALYSIS_RESULT:PAGES=2:CANCELLED=0
+T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+T071A_DIAG_ANALYSIS_PAGE:P=1:STATUS=failed:CATEGORY=rasterization:KEY=PAGE-001
+T071A_DIAG_ANALYSIS_APPLIED:PAGES=2:SUGGESTIONS=1:UNCERTAIN=0
+T071A_DIAG_ANALYSIS_SAVE_START
+T071A_DIAG_ANALYSIS_SAVE_OK
+T071A_DIAG_ANALYSIS_STATE:ready
+00:42 +408: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: the viewer and strip stay available while analysis runs
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=1:UNCERTAIN=0
+T071A_DIAG_ANALYSIS_SAVE_START
+T071A_DIAG_ANALYSIS_SAVE_OK
+T071A_DIAG_ANALYSIS_STATE:ready
+00:42 +409: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: a save failure keeps the viewer and the in-memory result
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=1:UNCERTAIN=0
+T071A_DIAG_ANALYSIS_SAVE_START
+T071A_DIAG_ANALYSIS_SAVE_FAIL:CODE=SAVE-003
+T071A_DIAG_ANALYSIS_STATE:failed:REASON=save-error
+00:42 +410: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: the viewer receives the single protected load without a second store read
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=1:UNCERTAIN=0
+T071A_DIAG_ANALYSIS_SAVE_START
+T071A_DIAG_ANALYSIS_SAVE_OK
+T071A_DIAG_ANALYSIS_STATE:ready
+00:42 +411: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: a hung protected load becomes analysis-failed without a second read
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_FAIL:TYPE=timeout
+T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-timeout
+T071A_DIAG_VIEW_BYTES:PRESENT=0
+T071A_DIAG_VIEW_FAIL:CODE=sourceUnavailable
+00:42 +412: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: a hung analysis becomes analysis-failed without losing loaded content
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+T071A_DIAG_ANALYSIS_FAIL:CODE=timeout
+T071A_DIAG_ANALYSIS_STATE:failed:REASON=analysis-timeout
+00:42 +413: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: confirm, reject, and undo save with the advancing revision head
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=2
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=2:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:43 +414: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: text over 10,000 runes is refused in the open sheet
+00:43 +414: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_analysis_test.dart: a review save failure keeps the viewer, panel, and prior revision
+T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=2
+T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=2:STRIP=1
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:43 +415: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: text over 10,000 runes is refused in the open sheet
+00:43 +416: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: text over 10,000 runes is refused in the open sheet
+00:43 +417: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: text over 10,000 runes is refused in the open sheet
+00:43 +418: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: text over 10,000 runes is refused in the open sheet
+00:43 +419: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: text over 10,000 runes is refused in the open sheet
+00:43 +420: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: text over 10,000 runes is refused in the open sheet
+00:43 +421: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: text over 10,000 runes is refused in the open sheet
+00:44 +422: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: a text control character is refused in the open sheet
+00:45 +423: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: multiline over 10,000 runes is refused in the open sheet
+00:45 +424: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: single-line done commits once and closes the sheet
+00:45 +425: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: focus loss commits once and closes the sheet
+00:45 +426: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: the multiline done action commits once and closes
+00:46 +427: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: the explicit save commits once and closes the sheet
+00:46 +428: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: a failed save keeps the sheet open and editable
+00:46 +429: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/field_value_sheet_test.dart: explicit close cancels without a focus-loss save
+00:46 +430: All tests passed!
+exit=0  [full app suite]
+
+$ (cd /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application && /home/xxammaxx/flutter/bin/flutter test --no-pub)
+00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/analyze_document_test.dart
+00:00 +0: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
+00:00 +1: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/analyze_document_test.dart: page descriptors derive display size and rotation from geometry
+00:00 +2: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/analyze_document_test.dart: page rotation propagates into the envelope
+00:00 +3: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:00 +4: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:00 +5: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:00 +6: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:00 +7: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:00 +8: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:00 +9: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:00 +10: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:00 +11: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:00 +12: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:00 +13: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:00 +14: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:00 +15: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:00 +16: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:00 +17: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:00 +18: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:00 +19: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:00 +20: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/analyze_document_test.dart: an explicit detector structure signal preserves REC-003
+00:00 +21: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: debounces a mark and saves exactly once at two seconds
+00:00 +22: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: debounces a mark and saves exactly once at two seconds
+00:00 +23: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/analyze_document_test.dart: cancellation excludes only the matching page and keeps it pending
+00:00 +24: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: uses the production 2 s default when debounce is omitted
+00:00 +25: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/analyze_document_test.dart: envelopes round-trip through the T057 validator
+00:00 +26: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/analyze_document_test.dart: envelopes round-trip through the T057 validator
+00:00 +27: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: flush saves immediately, cancels the timer, and reports saving
+00:00 +28: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/analyze_document_test.dart: analysis never logs label text
+00:00 +29: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: explicit flush saves with no pending change; plain flush is a no-op
+00:00 +30: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/analyze_document_test.dart: request and caller page lists are never mutated
+00:00 +31: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/analyze_document_test.dart: request and caller page lists are never mutated
+00:00 +32: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: inactive then paused with one pending change saves once
+00:00 +33: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/analyze_document_test.dart: shuffled page input returns sorted, stable results
+00:00 +34: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/analyze_document_test.dart: shuffled page input returns sorted, stable results
+00:00 +35: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/analyze_document_test.dart: shuffled page input returns sorted, stable results
+00:00 +36: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/analyze_document_test.dart: shuffled page input returns sorted, stable results
+00:00 +37: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: a failed clean explicit save keeps no pending change
+00:00 +38: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: uses initialHead then the latest id and reads content at save time
+00:00 +39: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: markDirty during an in-flight save keeps the saving status
+00:00 +40: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: dispose cancels the timer and lifecycle and blocks later saves
+00:00 +41: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/autosave_test.dart: dispose completes an outstanding flush false and starts no follow-up
+00:03 +42: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: EditCommandKind exposes the exact §3.14 wire names in order
+00:03 +43: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion creates one machine field and copies provenance, page, rect, type, confidence, label, order, and timestamps
+00:03 +44: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion creates one machine field and copies provenance, page, rect, type, confidence, label, order, and timestamps
+00:03 +45: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion creates one machine field and copies provenance, page, rect, type, confidence, label, order, and timestamps
+00:03 +46: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion creates one machine field and copies provenance, page, rect, type, confidence, label, order, and timestamps
+00:03 +47: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion creates one machine field and copies provenance, page, rect, type, confidence, label, order, and timestamps
+00:03 +48: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion creates one machine field and copies provenance, page, rect, type, confidence, label, order, and timestamps
+00:03 +49: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion creates one machine field and copies provenance, page, rect, type, confidence, label, order, and timestamps
+00:03 +50: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: EditCommand rejects a non-UTC timestamp content-free
+00:03 +51: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: EditCommand rejects a non-UTC timestamp content-free
+00:03 +52: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion a missing suggestion is suggestionNotFound
+00:03 +53: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: CommandHistory bounds pins the §3.14 constants
+00:03 +54: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion a rejected or already confirmed suggestion is wrongState
+00:03 +55: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: CommandHistory bounds an empty history cannot undo or redo
+00:03 +56: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion an unresolved suggestion with an existing machine field is unrepresentable in the core aggregate
+00:03 +57: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: CommandHistory bounds the 101st command drops the oldest entry
+00:03 +58: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: CommandHistory bounds the 101st command drops the oldest entry
+00:03 +59: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: CommandHistory bounds the 101st command drops the oldest entry
+00:03 +60: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: CommandHistory bounds the 101st command drops the oldest entry
+00:03 +61: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: CommandHistory bounds the 101st command drops the oldest entry
+00:03 +62: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: CommandHistory bounds the 101st command drops the oldest entry
+00:03 +63: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: rejectSuggestion rejects without changing any confirmed field or other content
+00:03 +64: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: rejectSuggestion rejects without changing any confirmed field or other content
+00:03 +65: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: rejectSuggestion rejects without changing any confirmed field or other content
+00:03 +66: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: CommandHistory ordering undo and redo interleave without losing order
+00:03 +67: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: rejectSuggestion rejecting a flagged duplicate is allowed and creates no field
+00:03 +68: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: rejectSuggestion rejecting a flagged duplicate is allowed and creates no field
+00:03 +69: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing coalesces at the inclusive 500 ms boundary
+00:03 +70: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: rejectSuggestion wrong states and missing suggestions fail closed
+00:03 +71: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing coalesces equal timestamps at the lower bound
+00:03 +72: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoRejection restores unresolved without touching fields or other content
+00:03 +73: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoRejection restores unresolved without touching fields or other content
+00:03 +74: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoRejection restores unresolved without touching fields or other content
+00:03 +75: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing does not coalesce different fields or different kinds
+00:03 +76: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoRejection wrong states and missing suggestions fail closed
+00:03 +77: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing non-coalescable kinds never merge
+00:03 +78: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation removes the untouched generated field and renumbers the remaining fields contiguously in fieldOrder sequence
+00:03 +79: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation removes the untouched generated field and renumbers the remaining fields contiguously in fieldOrder sequence
+00:03 +80: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation removes the untouched generated field and renumbers the remaining fields contiguously in fieldOrder sequence
+00:03 +81: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: CommandHistory validation and immutability accepts an equal timestamp on a non-coalescable kind
+00:03 +82: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation removing the last field keeps the remaining order unchanged
+00:03 +83: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: CommandHistory validation and immutability stored snapshots are never mutated
+00:03 +84: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: CommandHistory validation and immutability stored snapshots are never mutated
+00:03 +85: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/command_history_test.dart: CommandHistory validation and immutability stored snapshots are never mutated
+00:03 +86: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a changed label is fieldTouched and leaves content unchanged
+00:03 +87: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a changed label is fieldTouched and leaves content unchanged
+00:03 +88: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a changed type is fieldTouched
+00:03 +89: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a changed rect is fieldTouched
+00:03 +90: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a changed order is fieldTouched
+00:03 +91: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a changed timestamp is fieldTouched
+00:03 +92: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a top-level unknownFields-only change is fieldTouched and leaves content unchanged
+00:03 +93: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a nested unknownFields-only change is fieldTouched and leaves content unchanged
+00:03 +94: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation an identical snapshot including unknown fields undoes and round-trips
+00:03 +95: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation an attached value is fieldTouched and leaves content unchanged
+00:03 +96: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation an attached verification entry is fieldTouched
+00:03 +97: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation an attached signature value and mark are fieldTouched
+00:03 +98: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation missing suggestions and wrong states fail closed
+00:03 +99: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation clears a duplicate flag that loses its supporting machine field
+00:03 +100: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: cross-cutting guarantees every successful command leaves its input unchanged
+00:03 +101: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: cross-cutting guarantees commands are deterministic for identical inputs
+00:03 +102: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: cross-cutting guarantees every success returns content accepted by the core aggregate
+00:03 +103: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: cross-cutting guarantees every error message is content-free
+00:03 +104: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/confirm_suggestion_test.dart: cross-cutting guarantees the command library has no I/O, clock, or id-randomness path
+00:04 +105: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: addField appends a user field with exact geometry, order, timestamps, and no suggestion linkage
+00:04 +106: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: addField accepts an exact edge-touching rect on another page without rounding
+00:04 +107: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: addField rejects invalid ids and treats an existing id as wrongState
+00:04 +108: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: addField rejects empty, oversized, and control-character labels
+00:04 +109: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: addField rejects a non-UTC timestamp
+00:04 +110: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: addField rejects a missing page and every out-of-page rect
+00:04 +111: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: removeField removes a user field, its value and verification, and renumbers the remaining fields contiguously
+00:04 +112: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: removeField removes a signature field with its value, mark, and verification
+00:04 +113: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: removeField rejects a removed machine field suggestion and clears the now unsupported duplicate flag
+00:04 +114: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: removeField removing the last field empties fields and keyed data
+00:04 +115: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: removeField a missing field fails closed without changing the input
+00:04 +116: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: moveField and resizeField move stores the exact rect, updates updatedAt, and preserves all other field content
+00:04 +117: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: moveField and resizeField resize has the same preservation rules and the resized kind
+00:04 +118: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: moveField and resizeField out-of-page rects and a missing field fail closed
+00:04 +119: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: moveField and resizeField a non-UTC timestamp is invalidInput for both commands
+00:04 +120: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: moveField and resizeField moving a machine field recomputes a stale duplicate flag
+00:04 +121: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField text to multiline preserves text, metadata, and unknown fields
+00:04 +122: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField multiline to text without line breaks stores plain text
+00:04 +123: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField multiline to text joins line breaks only with the explicit flag
+00:04 +124: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/save_document_test.dart: saves once with the exact request and returns verified metadata
+00:04 +125: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/save_document_test.dart: saves once with the exact request and returns verified metadata
+00:04 +126: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/save_document_test.dart: saves once with the exact request and returns verified metadata
+00:04 +127: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/save_document_test.dart: saves once with the exact request and returns verified metadata
+00:04 +128: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/save_document_test.dart: saves once with the exact request and returns verified metadata
+00:04 +129: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/save_document_test.dart: saves once with the exact request and returns verified metadata
+00:04 +130: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField number to text stores the canonical textual form and clears the incompatibility error
+00:04 +131: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField number to text stores the canonical textual form and clears the incompatibility error
+00:04 +132: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/save_document_test.dart: passes through StorageFullException as SAVE-001
+00:04 +133: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/save_document_test.dart: passes through StorageFullException as SAVE-001
+00:04 +134: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField text, number, date, and multiline to checkbox preserve prior textual content with the incompatible warning
+00:04 +135: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField text, number, date, and multiline to checkbox preserve prior textual content with the incompatible warning
+00:04 +136: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/save_document_test.dart: passes through StorageWriteException as SAVE-003
+00:04 +137: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField text to signature preserves content with the warning and creates no signature mark
+00:04 +138: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/save_document_test.dart: rejects success metadata without a latest revision
+00:04 +139: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField checkbox to text preserves checked/unchecked as the Ja/Nein projection
+00:04 +140: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField checkbox to text preserves checked/unchecked as the Ja/Nein projection
+00:04 +141: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/save_document_test.dart: rejects unreadable success metadata
+00:04 +142: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField checkbox to number/date preserves Ja/Nein without numeric or date inference
+00:04 +143: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField checkbox to number/date preserves Ja/Nein without numeric or date inference
+00:04 +144: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField checkbox to number/date preserves Ja/Nein without numeric or date inference
+00:04 +145: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/save_document_test.dart: rejects an invalid document id before any save call
+00:04 +146: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/save_document_test.dart: rejects an invalid document id before any save call
+00:04 +147: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField signature to text clears the value exactly like core and removes the signature mark
+00:04 +148: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField signature to text clears the value exactly like core and removes the signature mark
+00:04 +149: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField signature to number/date clears the value and mark exactly like core
+00:04 +150: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/save_document_test.dart: no failure path reports optimistic success
+00:04 +151: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField number, date, and multiline to signature preserve prior content with the warning and create no signature mark
+00:04 +152: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField same-type reclassification fails with noChange and leaves the input unchanged
+00:04 +153: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField a misplaced join flag, missing field, and non-UTC timestamp fail closed
+00:04 +154: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField a machine field keeps its suggestion linkage, and a type change clears a stale duplicate flag
+00:04 +155: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: reclassifyField reclassifying preserved content back to text clears the error and keeps the original text
+00:04 +156: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees every command leaves its input unchanged
+00:04 +157: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees commands are deterministic for identical inputs
+00:04 +158: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees move and reclassify receipts restore the previous revision exactly
+00:04 +159: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees every representative success is accepted by the core aggregate and round-trips canonically
+00:04 +160: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees add, move, and resize share the geometry boundary that rejects NaN, infinity, zero, and negative components with stable content-free codes
+00:04 +161: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees machine-field move receipts snapshot the complete previous suggestions for exact undo
+00:04 +162: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees every error message is content-free
+00:04 +163: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees the command library has no I/O, clock, or id-randomness path
+00:05 +164: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/set_value_test.dart: text stores its matching value and preserves the rest
+00:05 +165: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/set_value_test.dart: number stores its matching value and preserves the rest
+00:05 +166: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/set_value_test.dart: date stores its matching value and preserves the rest
+00:05 +167: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/set_value_test.dart: checkbox stores its matching value and preserves the rest
+00:05 +168: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/set_value_test.dart: multiline stores its matching value and preserves the rest
+00:05 +169: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/set_value_test.dart: signature stores its matching value and preserves the rest
+00:05 +170: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/set_value_test.dart: rejects a value whose concrete type does not match the field
+00:05 +171: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/set_value_test.dart: a compatible text replacement clears the incompatible-content warning
+00:05 +172: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/set_value_test.dart: a compatible number replacement clears a blocking parse error
+00:05 +173: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/set_value_test.dart: an incompatible replacement keeps the warning and mutates nothing
+00:05 +174: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/set_value_test.dart: rejects a missing field without echoing the id
+00:05 +175: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/set_value_test.dart: rejects a non-UTC edit instant
+00:05 +176: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/set_value_test.dart: keeps a long text untruncated
+00:05 +177: All tests passed!
+exit=0  [full application suite]
+
+$ git diff --check
+exit=0  [git diff check]
+
+OVERALL_EXIT=0

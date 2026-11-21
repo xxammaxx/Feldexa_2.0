@@ -1,0 +1,42 @@
+T071A correction 2 — host gates (evidence class NONE)
+date=2026-11-21
+branch=xxammaxx/t071a
+correction_base=e83ac25e7c177a455812204b7f12279f40bade71
+start_head=e83ac25e7c177a455812204b7f12279f40bade71
+start_status=only pre-existing unstaged apps/feldexa_app/android/gradlew.bat (untouched)
+toolchain_flutter=3.47.7 stable (framework revision abaf9c5237)
+toolchain_dart=3.13.5 stable
+
+1) apps/feldexa_app: flutter analyze --no-pub
+exit=0
+result=No issues found!
+
+2) packages/feldexa_application: dart analyze
+exit=0
+result=No issues found!
+
+3) apps/feldexa_app: dart format --output=none --set-exit-if-changed lib/features/editor/editor_runtime_android.dart lib/features/editor/editor_screen.dart lib/features/editor/page_view.dart integration_test/android_review_composition_test.dart test/editor_analysis_test.dart
+exit=0
+result=Formatted 5 files (0 changed)
+
+4) apps/feldexa_app: flutter test --no-pub test/editor_analysis_test.dart
+exit=0
+result=+22: All tests passed! (21 pre-existing + 1 new bounded-analysis guard)
+
+5) apps/feldexa_app: flutter test --no-pub
+exit=0
+result=+420: All tests passed! (419 baseline + 1 new guard)
+
+6) packages/feldexa_application: flutter test --no-pub
+exit=0
+result=+174: All tests passed!
+
+7) repo root: bash -n tools/android/t071a_drive_composition.sh
+exit=0
+result=syntax OK
+
+8) repo root: git diff --check (pre-commit)
+exit=0
+result=clean
+
+No emulator, adb, screenshot, install, or device command was run for this evidence.

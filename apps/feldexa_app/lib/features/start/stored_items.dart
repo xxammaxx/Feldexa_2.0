@@ -225,7 +225,12 @@ class _StoredSection extends StatelessWidget {
   }
 }
 
-/// One tappable entry with title, last-edited date, status, and optional delete.
+/// One entry with title, last-edited date, status, and optional delete.
+///
+/// A readable entry is tappable. An [StoredItemStatus.unreadable] entry keeps
+/// its visible status and optional delete action but has no tap handler, so it
+/// produces no ripple, never calls the open callback, and cannot reach a store
+/// load. The start screen keeps its own defensive refusal as well.
 class _StoredItemEntry extends StatelessWidget {
   const _StoredItemEntry({
     required this.item,
@@ -241,6 +246,7 @@ class _StoredItemEntry extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context);
     final ValueChanged<String>? delete = onDelete;
+    final bool unreadable = item.status == StoredItemStatus.unreadable;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -249,7 +255,7 @@ class _StoredItemEntry extends StatelessWidget {
           Expanded(
             child: InkWell(
               key: ValueKey<String>('stored-item-${item.id}'),
-              onTap: () => onOpen(item.id),
+              onTap: unreadable ? null : () => onOpen(item.id),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Column(

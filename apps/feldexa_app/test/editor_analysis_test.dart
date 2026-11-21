@@ -610,6 +610,7 @@ Future<void> _pumpEditor(
   required ImportedSource source,
   _FakeRendererFactory? rendererFactory,
   Duration? loadTimeout,
+  Duration? analysisTimeout,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -623,6 +624,7 @@ Future<void> _pumpEditor(
         rendererFactory:
             (rendererFactory ?? _FakeRendererFactory(source.pageCount)).call,
         loadTimeout: loadTimeout ?? editorLoadTimeout,
+        analysisTimeout: analysisTimeout ?? editorAnalysisTimeout,
       ),
     ),
   );
@@ -1188,6 +1190,48 @@ void main() {
         findsOneWidget,
       );
       expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'a hung analysis becomes analysis-failed without losing loaded content',
+    (WidgetTester tester) async {
+      final Completer<void> gate = Completer<void>();
+      final _FakeStore store = _FakeStore(loaded: _loaded());
+      final _FakeRaster raster = _FakeRaster(
+        images: <int, RasterImage>{0: _image()},
+        gate: gate,
+      );
+      final _FakeEditorRuntime runtime = _FakeEditorRuntime(
+        raster: raster,
+        ocr: null,
+        store: store,
+      );
+
+      await _pumpEditor(
+        tester,
+        runtime: runtime,
+        source: _source(),
+        analysisTimeout: const Duration(milliseconds: 100),
+      );
+      await tester.pump();
+      expect(_editorState(tester).analysisStateKey, isNull);
+      expect(raster.requests, hasLength(1));
+
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pumpAndSettle();
+
+      final EditorScreenState state = _editorState(tester);
+      expect(state.analysisStateKey, editorAnalysisFailedKey);
+      expect(state.content, isNotNull);
+      expect(state.content!.pages.single.analysis, core.AnalysisState.pending);
+      expect(store.saves, isEmpty);
+      expect(
+        find.byKey(const ValueKey<String>(editorAnalysisFailedKey)),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+      gate.complete();
     },
   );
 

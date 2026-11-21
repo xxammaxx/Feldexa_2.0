@@ -49,6 +49,7 @@ final class ImportRuntime {
   const ImportRuntime({
     required this.importPort,
     required this.readSourceBytes,
+    this.store,
     this.editorRuntimeFactory,
   });
 
@@ -60,6 +61,14 @@ final class ImportRuntime {
   /// Returns `null` when the protected source is unavailable. Implementations
   /// must not open a filesystem path and must not log the id or the bytes.
   final Future<Uint8List?> Function(String documentId) readSourceBytes;
+
+  /// Optional existing encrypted store for the start-list/reopen surface.
+  ///
+  /// This is the same [SecureStorePort] already composed for the editor
+  /// runtime; T071A adds no second store or port. A null value keeps the
+  /// current import-only start surface (host compositions and non-Android
+  /// targets).
+  final SecureStorePort? store;
 
   /// Optional factory for the platform editor composition.
   ///

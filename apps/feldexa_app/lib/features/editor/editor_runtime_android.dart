@@ -34,9 +34,23 @@
 import 'dart:typed_data';
 
 import 'package:feldexa_adapters_android/feldexa_adapters_android.dart';
+import 'package:feldexa_core/feldexa_core.dart' show PageGeometry;
 import 'package:feldexa_ports/feldexa_ports.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
+import 'package:pdfrx/pdfrx.dart';
 
 import 'editor_runtime.dart';
+
+/// Content-free integration diagnostic marker for the T071A editor runtime.
+///
+/// Only the marker name, page index, raster dimensions, and a stable error type
+/// name are printed. No source id, path, URI, dictionary key, or document
+/// content can pass through this helper.
+void _runtimeDiagnostic(String message) {
+  if (kDebugMode) {
+    debugPrint('T071A_DIAG_$message');
+  }
+}
 
 /// Builds a standalone Android editor runtime.
 ///
@@ -85,8 +99,8 @@ EditorRuntime createAndroidEditorRuntime({
   return _AndroidEditorRuntime(
     operations: operations,
     store: store,
-    raster: raster,
-    ocr: ocr,
+    raster: kDebugMode ? _DiagnosticRasterPort(raster) : raster,
+    ocr: kDebugMode ? _DiagnosticOcrPort(ocr) : ocr,
     ids: AndroidIdClient(),
     clock: const AndroidClockClient(),
     sourceBytes: sourceBytes,
@@ -94,12 +108,79 @@ EditorRuntime createAndroidEditorRuntime({
   );
 }
 
+/// Debug-only raster decorator that reports content-free analysis stage calls.
+final class _DiagnosticRasterPort implements PageRasterPort {
+  const _DiagnosticRasterPort(this._inner);
+
+  final PageRasterPort _inner;
+
+  @override
+  CapabilityDescriptor get descriptor => _inner.descriptor;
+
+  @override
+  Future<PageGeometry> pageDimensions(String sourceId, int pageIndex) {
+    return _inner.pageDimensions(sourceId, pageIndex);
+  }
+
+  @override
+  Future<RasterImage> renderPage(RasterRequest request) async {
+    _runtimeDiagnostic(
+      'RASTER_START:P=${request.pageIndex}:SCALE=${request.scale}:FORMAT=${request.format.name}',
+    );
+    try {
+      final RasterImage image = await _inner.renderPage(request);
+      _runtimeDiagnostic(
+        'RASTER_OK:P=${request.pageIndex}:W=${image.width}:H=${image.height}',
+      );
+      return image;
+    } catch (error) {
+      _runtimeDiagnostic(
+        'RASTER_FAIL:P=${request.pageIndex}:TYPE=${error.runtimeType}',
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> evict(String sourceId) => _inner.evict(sourceId);
+}
+
+/// Debug-only OCR decorator that reports content-free analysis stage calls.
+final class _DiagnosticOcrPort implements OcrPort {
+  const _DiagnosticOcrPort(this._inner);
+
+  final OcrPort _inner;
+
+  @override
+  CapabilityDescriptor get descriptor => _inner.descriptor;
+
+  @override
+  Future<List<OcrBlock>> recognize(OcrRequest request) async {
+    _runtimeDiagnostic('OCR_START:P=${request.pageIndex}');
+    try {
+      final List<OcrBlock> blocks = await _inner.recognize(request);
+      _runtimeDiagnostic(
+        'OCR_OK:P=${request.pageIndex}:BLOCKS=${blocks.length}',
+      );
+      return blocks;
+    } catch (error) {
+      _runtimeDiagnostic(
+        'OCR_FAIL:P=${request.pageIndex}:TYPE=${error.runtimeType}',
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> dispose() => _inner.dispose();
+}
+
 final class _AndroidEditorRuntime implements EditorRuntime {
   _AndroidEditorRuntime({
     required AndroidOperationClient operations,
     required AndroidStoreClient store,
-    required AndroidPdfrxRasterClient raster,
-    required AndroidOcrClient ocr,
+    required PageRasterPort raster,
+    required OcrPort ocr,
     required AndroidIdClient ids,
     required AndroidClockClient clock,
     required Map<String, Uint8List> sourceBytes,
@@ -115,8 +196,8 @@ final class _AndroidEditorRuntime implements EditorRuntime {
 
   final AndroidOperationClient _operations;
   final AndroidStoreClient _store;
-  final AndroidPdfrxRasterClient _raster;
-  final AndroidOcrClient _ocr;
+  final PageRasterPort _raster;
+  final OcrPort _ocr;
   final AndroidIdClient _ids;
   final AndroidClockClient _clock;
   final Map<String, Uint8List> _sourceBytes;
@@ -141,12 +222,28 @@ final class _AndroidEditorRuntime implements EditorRuntime {
   @override
   Future<LoadedDocument> loadDocument(String documentId) async {
     _ensureOpen();
+    // T071A correction: initialize pdfrx/PDFium once before the first
+    // protected load completes. The viewer and the raster analysis both open
+    // the loaded bytes, so this keeps engine startup on the existing load
+    // path. It is defensive and idempotent, not the proven root cause of the
+    // observed stall; that is a synchronous recognition detector.
+    _runtimeDiagnostic('RUNTIME_LOAD_START');
+    try {
+      await pdfrxFlutterInitialize();
+    } catch (error) {
+      _runtimeDiagnostic('RUNTIME_LOAD_FAIL:TYPE=${error.runtimeType}');
+      rethrow;
+    }
+    _runtimeDiagnostic('RUNTIME_PDFRX_READY');
     final LoadedDocument loaded = await _store.loadDocument(documentId);
     // The raster port receives the immutable source id; the store receives the
     // document id. Remember only the loaded source's decrypted bytes in memory
     // so the already-open document can be rendered and analyzed. No path is
     // accepted or returned.
     _sourceBytes[loaded.meta.source.id] = loaded.sourceBytes;
+    _runtimeDiagnostic(
+      'RUNTIME_LOAD_OK:PAGES=${loaded.content.pageCount}:BYTES=${loaded.sourceBytes.isEmpty ? 0 : 1}:SUGGESTIONS=${loaded.content.suggestions.length}',
+    );
     return loaded;
   }
 

@@ -1,0 +1,21 @@
+command=cd apps/feldexa_app && flutter analyze --no-pub
+exit=0
+Analyzing feldexa_app...
+No issues found! (ran in 5.8s)
+
+command=cd packages/feldexa_application && dart analyze
+exit=0
+Analyzing feldexa_application...
+No issues found!
+
+command=cd apps/feldexa_app && flutter test --no-pub
+exit=0
+00:29 +415: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: an unreadable stored document is not opened
+00:29 +416: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/apps/feldexa_app/test/editor_composition_test.dart: 200 percent text scale composes editor and sheet without overflow
+00:31 +419: All tests passed!
+
+command=cd packages/feldexa_application && flutter test --no-pub
+exit=0
+00:03 +172: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/set_value_test.dart: rejects a non-UTC edit instant
+00:03 +173: /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071a-composition/packages/feldexa_application/test/set_value_test.dart: keeps a long text untruncated
+00:03 +174: All tests passed!

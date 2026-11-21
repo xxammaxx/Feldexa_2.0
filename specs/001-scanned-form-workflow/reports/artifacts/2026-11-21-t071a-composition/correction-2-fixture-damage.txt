@@ -1,0 +1,16 @@
+T071A correction 2 — deterministic damaged fixture (content-free)
+date=2026-11-21
+source_fixture=apps/feldexa_app/assets/fixtures/sf-001.pdf
+original_bytes=5956
+original_sha256=22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038
+needle=/MediaBox [0 0 595.28 841.89]
+needle_bytes=29
+occurrences=2
+replacement=second occurrence replaced with 29 spaces (0x20)
+damaged_bytes=5956
+damaged_sha256=57c1ade1ab2c00375ac61703db3d4ce5d27b996ea067647aba585866dc6ec221
+differs_from_original=1
+derivation=tests android_recognition_test.dart _damageSecondPageMediaBox (T061 source), copied into the T071A integration test
+host_verification=python3 byte-substitution check against the committed fixture
+device_verification=NOT_RUN (coordinator emulator run pending)
+committed_damaged_pdf=no
