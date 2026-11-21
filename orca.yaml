@@ -1,12 +1,13 @@
-# Orca repo-defined setup hook (hardened v3).
+# Orca repo-defined setup hook (hardened v4).
 # Grants Pi project-local trust ONLY for worktrees that provably belong to this
 # repository: exact normalized origin identity + git worktree membership in the
 # registered main repository + Orca `worktree current` repo registration.
 # Additionally trusts the Orca worktree base directory (Pi honors parent trust),
 # which removes the async setup-hook vs. worker-start race for every future
-# worktree created beneath it. Additive/idempotent, revokes stale entries for
-# reused paths, concurrency-safe (lock + atomic replace + read-verify retry),
-# never overwrites a corrupt or symlinked trust file. Fail-closed otherwise.
+# worktree created beneath it. Concurrency uses Pi's NATIVE trust lock scheme
+# (trust.json.lock as a lock DIRECTORY); legacy plain-file locks are self-healed.
+# Additive/idempotent, revokes stale entries for reused paths, never overwrites
+# a corrupt or symlinked trust file. Fail-closed on any identity mismatch.
 scripts:
   setup: |
     #!/usr/bin/env bash
@@ -43,10 +44,11 @@ scripts:
     python3 - "$WDIR" "$ORCA_CLI" \
       "$EXPECTED_REPO_ID" "$EXPECTED_HOST" "$EXPECTED_OWNER" "$EXPECTED_REPO" \
       "$WORKTREE_BASE" <<'PY'
-    import json, os, re, subprocess, sys, tempfile, time, fcntl
+    import json, os, re, subprocess, sys, tempfile, time
 
     wdir, orca_cli, exp_repo_id, exp_host, exp_owner, exp_repo, worktree_base = sys.argv[1:8]
     TRUST = os.path.expanduser("~/.pi/agent/trust.json")
+    LOCKDIR = TRUST + ".lock"
 
     def run(cmd, cwd=None):
         return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
@@ -159,68 +161,84 @@ scripts:
     if not os.path.isdir(wdir):
         die("worktree path vanished")
 
-    for attempt in range(6):
-        lock_fd = None
+    # Pi guards trust.json with a lock DIRECTORY (mkdir/rmdir, same path:
+    # trust.json.lock). Use the identical native scheme so hooks serialize with
+    # Pi itself, and self-heal a plain file lock left by older hook versions.
+    if os.path.lexists(LOCKDIR) and not os.path.isdir(LOCKDIR):
         try:
-            lock_path = TRUST + ".lock"
-            lock_fd = os.open(lock_path, os.O_RDWR | os.O_CREAT, 0o600)
-            fcntl.flock(lock_fd, fcntl.LOCK_EX)
-            raw = None
-            if os.path.exists(TRUST):
-                with open(TRUST, "rb") as f:
-                    raw = f.read()
-            if raw is not None and raw.strip():
-                try:
-                    data = json.loads(raw.decode("utf-8"))
-                    if not isinstance(data, dict):
-                        raise ValueError("top level is not an object")
-                except (ValueError, UnicodeDecodeError):
-                    stamp = time.strftime("%Y%m%dT%H%M%S")
-                    backup = TRUST + ".corrupt." + stamp
-                    try:
-                        os.rename(TRUST, backup)
-                    except OSError:
-                        backup = None
-                    print("pi-trust: ERROR: trust.json is corrupt; preserved as %s; not overwriting" % (backup,))
-                    sys.exit(3)
-            else:
-                data = {}
-            before = dict(data)
-            grant = {wdir: True}
-            norm_base = worktree_base.rstrip("/")
-            if os.path.dirname(wdir) == norm_base and wdir.startswith(norm_base + "/"):
-                # Ancestor trust: Pi honors parent-directory entries, so trusting the
-                # worktree base directory removes the hook-vs-worker-start race for
-                # every future worktree created beneath it by Orca for this repo.
-                grant[norm_base] = True
-            data.update(grant)
-            fd, tmp = tempfile.mkstemp(prefix=".trust.", dir=os.path.dirname(TRUST) or ".")
-            with os.fdopen(fd, "w") as f:
-                json.dump(data, f, indent=2)
-                f.write("\n")
-                f.flush()
-                os.fsync(f.fileno())
-            os.chmod(tmp, 0o600)
-            os.replace(tmp, TRUST)
-            # Read-back verification: a concurrent writer (e.g. Pi itself, another hook)
-            # may have overwritten between our read and write; retry by merging again.
-            time.sleep(0.05)
+            os.unlink(LOCKDIR)
+        except OSError:
+            fail_hard("cannot remove legacy file lock %s" % LOCKDIR)
+    acquired = False
+    for _ in range(10):
+        try:
+            os.mkdir(LOCKDIR, 0o700)
+            acquired = True
+            break
+        except FileExistsError:
+            time.sleep(0.1)
+    if not acquired:
+        fail_hard("pi trust lock held by another process: %s" % LOCKDIR)
+    try:
+        for attempt in range(6):
             try:
-                with open(TRUST, "rb") as f:
-                    after = json.loads(f.read().decode("utf-8"))
-            except ValueError:
-                after = {}
-            if isinstance(after, dict) and all(after.get(k) is True for k in grant):
-                action = "kept" if before.get(wdir) is True else "granted"
-                extra = " (+worktree-base)" if norm_base in grant and norm_base != wdir else ""
-                print("pi-trust: %s %s%s" % (action, wdir, extra))
-                sys.exit(0)
-            # lost update -> loop and merge again
-        finally:
-            if lock_fd is not None:
+                raw = None
+                if os.path.exists(TRUST):
+                    with open(TRUST, "rb") as f:
+                        raw = f.read()
+                if raw is not None and raw.strip():
+                    try:
+                        data = json.loads(raw.decode("utf-8"))
+                        if not isinstance(data, dict):
+                            raise ValueError("top level is not an object")
+                    except (ValueError, UnicodeDecodeError):
+                        stamp = time.strftime("%Y%m%dT%H%M%S")
+                        backup = TRUST + ".corrupt." + stamp
+                        try:
+                            os.rename(TRUST, backup)
+                        except OSError:
+                            backup = None
+                        print("pi-trust: ERROR: trust.json is corrupt; preserved as %s; not overwriting" % (backup,))
+                        sys.exit(3)
+                else:
+                    data = {}
+                before = dict(data)
+                grant = {wdir: True}
+                norm_base = worktree_base.rstrip("/")
+                if os.path.dirname(wdir) == norm_base and wdir.startswith(norm_base + "/"):
+                    # Ancestor trust: Pi honors parent-directory entries, so trusting the
+                    # worktree base directory removes the hook-vs-worker-start race for
+                    # every future worktree created beneath it by Orca for this repo.
+                    grant[norm_base] = True
+                data.update(grant)
+                fd, tmp = tempfile.mkstemp(prefix=".trust.", dir=os.path.dirname(TRUST) or ".")
+                with os.fdopen(fd, "w") as f:
+                    json.dump(data, f, indent=2)
+                    f.write("\n")
+                    f.flush()
+                    os.fsync(f.fileno())
+                os.chmod(tmp, 0o600)
+                os.replace(tmp, TRUST)
+                # Read-back verification: a concurrent writer (e.g. Pi itself, another hook)
+                # may have overwritten between our read and write; retry by merging again.
+                time.sleep(0.05)
                 try:
-                    fcntl.flock(lock_fd, fcntl.LOCK_UN)
-                finally:
-                    os.close(lock_fd)
-    fail_hard("concurrent trust updates did not converge after retries")
+                    with open(TRUST, "rb") as f:
+                        after = json.loads(f.read().decode("utf-8"))
+                except ValueError:
+                    after = {}
+                if isinstance(after, dict) and all(after.get(k) is True for k in grant):
+                    action = "kept" if before.get(wdir) is True else "granted"
+                    extra = " (+worktree-base)" if norm_base in grant and norm_base != wdir else ""
+                    print("pi-trust: %s %s%s" % (action, wdir, extra))
+                    sys.exit(0)
+                # lost update -> loop and merge again
+            except OSError as e:
+                fail_hard("trust update failed: %s" % e)
+        fail_hard("concurrent trust updates did not converge after retries")
+    finally:
+        try:
+            os.rmdir(LOCKDIR)
+        except OSError:
+            pass
     PY
