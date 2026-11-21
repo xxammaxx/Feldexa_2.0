@@ -583,7 +583,7 @@ post-review F9 regression run is recorded in
 
 | # | Command | Exit | Result |
 | ---: | --- | ---: | --- |
-| 1 | `cd apps/feldexa_app && flutter analyze --no-pub` | 0 | No issues found |
+| 1 | `cd apps/feldexa_app && flutter analyze --no-pub` (post-test Y working-tree analyze, including the new `editor_composition_test.dart` regression test; log `/tmp/t071a-y-analyze.log`) | 0 | No issues found! (ran in 46.0s) |
 | 2 | `cd packages/feldexa_application && dart analyze` | 0 | No issues found |
 | 3 | `dart format --output=none --set-exit-if-changed` over the eight correction-4 Dart files | 0 | 8 files, 0 changed (pre-test) |
 | 4 | `cd apps/feldexa_app && flutter test --no-pub test/editor_composition_test.dart test/field_value_sheet_test.dart` | 0 | **21/21** passed (editor_composition 12 + field_value_sheet 9) |
@@ -803,7 +803,7 @@ Correction-4 run bundle:
 | --- | ---: | --- |
 | `README.md` (bundle index) | 7359 | `305af26403e4d68a8837d2e6e58a23f9af7e296ebb7124f7493bb512770c5dba` |
 | `correction-4-host-gates.txt` | 140937 | `209b0271a7a773e8c80aa2f568305d94a81a0b89622878ab54b7cbe0e011d9dd` |
-| `correction-4-regression-host-gates.txt` | 1926 | `a7ca505188128ebfd8c5e2b693b6d43272115559c960e6d9b48e4ad2efefac38` |
+| `correction-4-regression-host-gates.txt` | 2088 | `9cc74fcaedecc5b7d400174ab138e26b0f2c5a480f0e9bb0ee7ca151fa308936` |
 | `correction-4-command-binding.txt` | 1086 | `3af12916081f69322da1eac3b555297e49d756104d95dadf0f14b8d284177209` |
 | `git-identity.txt` | 355 | `1142cb341b9e738392709ff28e12dee06d906dec42cc9798d543dfe6bff88533` |
 | `apk-sha256.txt` | 212 | `a315790811e0f76e71635a0f15a7dee8563f8e4fd2dfb769fe36b43dcdccdaaf` |

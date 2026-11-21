@@ -27,4 +27,7 @@ exit=0  [format check]
 $ git diff --check
 exit=0  [git diff check]
 
+post-test Y working-tree analyze:
+cd apps/feldexa_app && flutter analyze --no-pub  -> exit 0, "No issues found! (ran in 46.0s)"  (log: /tmp/t071a-y-analyze.log)
+
 OVERALL_EXIT=0
