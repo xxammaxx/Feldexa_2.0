@@ -1,0 +1,1 @@
+../integration_test/web_recognition_test.dart
