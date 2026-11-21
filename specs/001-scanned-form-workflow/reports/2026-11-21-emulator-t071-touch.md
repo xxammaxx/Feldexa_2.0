@@ -16,6 +16,7 @@
   (§2.1–§2.5, §5).
 - **Dependency**: T071B integrated as PR #258 (merge `a5f3bae`); T071A integrated
   as PR #246 (merge `11675f3`). Base commit of this branch: `d53fb57`.
+- **Integration**: 2026-11-21, PR #265 (merge `d562fb828950927150032bb270c4868e8d37b665`), final candidate `3f8401c` (tree `753944ac`), executed evidence candidate `44eb3e4` (tree `2747c4ea`), evidence head `de39679` (tree `e910aa43`); test/driver blobs identical on `origin/main`; issue #71 closed.
 
 ## 0. Machine-first handoff
 
@@ -32,8 +33,9 @@
   "candidate_tree": "2747c4eafd0b6abda528e72a2217aeb9d22b7e11",
   "evidence_head": "de39679f17b3efa2fc6bc294a650f00db24bb3ff",
   "evidence_head_tree": "e910aa43d7d39aaf303eb49f182b592bf738bbf1",
-  "documentation_head": "the correction-2 documentation/evidence commit on top of evidence_head; its own SHA/tree are reported in the task handoff",
-  "evidence_commit": "external dispatch handoff; the documentation commit's own SHA/tree cannot be embedded in its own bytes",
+  "documentation_head": "3f8401c799dc5488554691e6a462c59fb22f33a8",
+  "documentation_head_tree": "753944ac47bbbcc9486c63c589741e8d8d72d07b",
+  "integration": "PR #265, merge d562fb828950927150032bb270c4868e8d37b665",
   "host_evidence_class": "NONE",
   "emulator_evidence_class": "EMULATOR",
   "overall_result": "PASS",
