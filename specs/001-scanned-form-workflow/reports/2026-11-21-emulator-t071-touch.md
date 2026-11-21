@@ -366,12 +366,12 @@ was recomputed from the committed file.
 | `command-binding.txt` | 2356 | `8c592417ca704e6e3277d44a8ebcb0ffba5b8ad3ae0172ec5c36c346cecdebc7` |
 | `apk-sha256.txt` | 213 | `1d2796e036b5ec05594129b05f7c524c2ad6b3b3d1eb922011e3bf341e22217a` |
 | `commands.txt` | 1562 | `199eee32e568328cd48176080d183bcdb534a933bbf665e9512c47589e721096` |
-| `device-identity.txt` | 300 | `2ac7e85ab159fbb83398cb9eeeb4301fb8613bda5b4133a7ad9e82ab3d36fa54` |
+| `device-identity.txt` | 298 | `265c299fe643739f0c63d2fc73f638d221a7aa9322b021641ab53bc0fedbbf56` |
 | `fixture-sha256.txt` | 510 | `ae13daf5c2e23ab38c631bb54efeea1078415b14e8f821b20b648277bc2fa60b` |
 | `git-identity.txt` | 324 | `d91724adba8c1912e997a745ca07e751d68cb8193c3833d833c3bc152c07d591` |
 | `host-flutter-pub-get.log` | 349 | `3c23abfe9ee53ae785ef9119e4040c124b3fcb72a71e53fbbfc77d5414315680` |
-| `host-gates.txt` | 3045 | `c04f9fd5f00d9f011717db8a3c975833f1477c3146a1fa032123590de5ec2b62` |
-| `integration-android-t071.log` | 12493 | `b59b1691c9fc27ea5cfddc8e4b93fab621574ff85e2736381d60f057954a8e8f` |
+| `host-gates.txt` | 3005 | `b37690bbd1eb3a7446d2c2ccf97cb1c8bc5f1a92e92f5d1e3514858783533b08` |
+| `integration-android-t071.log` | 12467 | `b8abf8763a30777cd9dfaaa4519850d0b0b692fff5324c7efae2c3ee5b5d32e4` |
 | `logcat-flutter.log` | 315 | `f5daffbbbca8aef1e5f1e02289170e9bfac1aa3a412476f8e62d7bde8e7b75a9` |
 | `logcat-t071-markers.log` | 775 | `1476c4e299f9945fbe0033a0c9c2d5e473ea9e9e2a4f5dc3998d41c5c1d4e2d7` |
 | `marker-contract.txt` | 655 | `fe1efc5c44e3bbd80ed6dcc387a4ffe335e15e01154acd27bd563eac5876d006` |
@@ -383,7 +383,14 @@ was recomputed from the committed file.
 | `privacy-source-check.txt` | 76 | `41a0e0e059f3dad7ae90044e3a2e4acfc186422b4bcc0b1a0a68e3a05361d877` |
 | `run-status.txt` | 32 | `7fd607f90d24581a4b9b797cff3d71e0f238dc52f3f869fd23b88a688a94f0b3` |
 | `screenshot-hashes.txt` | 1148 | `1e48f14cd56d591b43d0de9b0930eb3c094a7373a621f69478c5c5c96c12bee0` |
-| `host-gates.txt` (recomputed after the emulator run) | 3045 | see above |
+
+Byte-integrity note: the driver originals at `/tmp/t071-run-5/` are 300 bytes
+(`device-identity.txt`), 3045 bytes (`host-gates.txt`) and 12493 bytes
+(`integration-android-t071.log`); the committed copies are 298, 3005 and 12467
+bytes. The only difference is trailing spaces stripped from the `wm_size`/
+`wm_density` lines, one `flutter analyze` padding line, and one Gradle progress
+line, so `git diff --check` is clean. All values, markers, and log content are
+identical; `diff` against the stripped original reports no difference.
 
 ### 6.2 Screenshots
 

@@ -41,6 +41,6 @@ exit=0
 01:13 +469: All tests passed!
 exit=0
 ### 7 flutter analyze --no-pub
-Analyzing feldexa_app...                                        
+Analyzing feldexa_app...
 No issues found! (ran in 114.9s)
 exit=0
