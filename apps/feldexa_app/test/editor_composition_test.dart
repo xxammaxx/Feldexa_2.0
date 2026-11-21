@@ -17,12 +17,18 @@
 //   * the T095 start list loads stored documents through the runtime store,
 //     opens a readable document, re-reads the list after return, and refuses
 //     an unreadable entry;
+//   * barrier taps, drag-down, and system back on the value sheet are cancels:
+//     they save nothing, never pop the editor, and the focus-loss commit still
+//     works while the sheet is current;
+//   * a save that completes after the sheet route is gone does not pop the
+//     next route (the deterministic F7-R1 race);
 //   * 200 % text scale composes the editor and the value sheet without a
 //     RenderFlex overflow.
 
 @TestOn('vm')
 library;
 
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:feldexa_app/features/editor/durability_status.dart';
@@ -205,6 +211,7 @@ final class _FakeStore implements SecureStorePort {
   LoadedDocument loaded;
   final Object? saveError;
   final List<StoredMeta>? documents;
+  Completer<StoredMeta>? saveGate;
   int listCalls = 0;
   int loads = 0;
   final List<SaveRevisionRequest> saves = <SaveRevisionRequest>[];
@@ -235,6 +242,10 @@ final class _FakeStore implements SecureStorePort {
     saves.add(request);
     if (saveError != null) {
       throw saveError!;
+    }
+    final Completer<StoredMeta>? gate = saveGate;
+    if (gate != null) {
+      await gate.future;
     }
     final core.DocumentMeta meta = core.DocumentMeta(
       id: loaded.meta.id,
@@ -426,6 +437,47 @@ Future<void> _pumpEditor(
 
 EditorScreenState _state(WidgetTester tester) {
   return tester.state<EditorScreenState>(find.byType(EditorScreen));
+}
+
+/// Pumps the real editor above a host route so an extra pop is observable.
+///
+/// The host route is the only route below the editor; a leaked
+/// `Navigator.pop(true)` after the value sheet is dismissed would remove the
+/// editor and reveal the host.
+Future<GlobalKey<NavigatorState>> _pumpEditorOverHost(
+  WidgetTester tester, {
+  required _FakeEditorRuntime runtime,
+}) async {
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  await tester.pumpWidget(
+    MaterialApp(
+      navigatorKey: navigatorKey,
+      locale: const Locale('de'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: const <Locale>[Locale('de')],
+      home: const Scaffold(body: Center(child: Text('Startseite'))),
+    ),
+  );
+  unawaited(
+    navigatorKey.currentState!.push<void>(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) => EditorScreen(
+          source: _source(),
+          sourceBytes: (String _) async => _sourceBytes,
+          runtime: runtime,
+          rendererFactory: _renderer,
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  return navigatorKey;
+}
+
+void _expectEditorOverHost(GlobalKey<NavigatorState> navigatorKey) {
+  expect(find.byType(EditorScreen), findsOneWidget);
+  expect(find.text('Startseite'), findsNothing);
+  expect(navigatorKey.currentState!.canPop(), isTrue);
 }
 
 Offset _screenPoint(
@@ -719,6 +771,187 @@ void main() {
       (state.durabilityStatus as core.SaveFailedDurabilityStatus).errorCode,
       'SAVE-003',
     );
+  });
+
+  testWidgets('a barrier tap saves nothing and keeps the editor', (
+    tester,
+  ) async {
+    final _FakeStore store = _FakeStore(loaded: _loaded());
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+    final GlobalKey<NavigatorState> navigatorKey = await _pumpEditorOverHost(
+      tester,
+      runtime: runtime,
+    );
+    final EditorScreenState state = _state(tester);
+    await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(fieldTextControlInputKey), 'Entwurf');
+
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+    expect(store.saves, isEmpty);
+    expect(state.content!.values.containsKey(_fieldId), isFalse);
+    _expectEditorOverHost(navigatorKey);
+  });
+
+  testWidgets('dragging the sheet down saves nothing and keeps the editor', (
+    tester,
+  ) async {
+    final _FakeStore store = _FakeStore(loaded: _loaded());
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+    final GlobalKey<NavigatorState> navigatorKey = await _pumpEditorOverHost(
+      tester,
+      runtime: runtime,
+    );
+    final EditorScreenState state = _state(tester);
+    await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(fieldTextControlInputKey), 'Entwurf');
+
+    final Rect sheetRect = tester.getRect(find.byKey(fieldValueSheetKey));
+    await tester.dragFrom(
+      sheetRect.topCenter + const Offset(0, 16),
+      const Offset(0, 320),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+    expect(store.saves, isEmpty);
+    expect(state.content!.values.containsKey(_fieldId), isFalse);
+    _expectEditorOverHost(navigatorKey);
+  });
+
+  testWidgets('system back cancels without saving or popping the editor', (
+    tester,
+  ) async {
+    final _FakeStore store = _FakeStore(loaded: _loaded());
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+    final GlobalKey<NavigatorState> navigatorKey = await _pumpEditorOverHost(
+      tester,
+      runtime: runtime,
+    );
+    final EditorScreenState state = _state(tester);
+    await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(fieldTextControlInputKey), 'Entwurf');
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(fieldValueSheetKey), findsNothing);
+    expect(store.saves, isEmpty);
+    expect(state.content!.values.containsKey(_fieldId), isFalse);
+    _expectEditorOverHost(navigatorKey);
+  });
+
+  testWidgets('explicit close cancels without saving or popping the editor', (
+    tester,
+  ) async {
+    final _FakeStore store = _FakeStore(loaded: _loaded());
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+    final GlobalKey<NavigatorState> navigatorKey = await _pumpEditorOverHost(
+      tester,
+      runtime: runtime,
+    );
+    final EditorScreenState state = _state(tester);
+    await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(fieldTextControlInputKey), 'Entwurf');
+
+    await tester.tap(find.byKey(fieldValueCloseKey));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(fieldValueSheetKey), findsNothing);
+    expect(store.saves, isEmpty);
+    expect(state.content!.values.containsKey(_fieldId), isFalse);
+    _expectEditorOverHost(navigatorKey);
+  });
+
+  testWidgets('focus loss still saves when the sheet is current', (
+    tester,
+  ) async {
+    final _FakeStore store = _FakeStore(loaded: _loaded());
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+    final GlobalKey<NavigatorState> navigatorKey = await _pumpEditorOverHost(
+      tester,
+      runtime: runtime,
+    );
+    final EditorScreenState state = _state(tester);
+    await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byKey(fieldTextControlInputKey),
+      'Müller & Söhne',
+    );
+    FocusScope.of(tester.element(find.byKey(fieldTextControlInputKey)))
+        .unfocus();
+    await tester.pumpAndSettle();
+
+    expect(store.saves, hasLength(1));
+    expect(find.byKey(fieldValueSheetKey), findsNothing);
+    final core.FieldValue? value = state.content!.values[_fieldId];
+    expect(value, isA<core.TextValue>());
+    expect((value! as core.TextValue).text, 'Müller & Söhne');
+    _expectEditorOverHost(navigatorKey);
+  });
+
+  testWidgets(
+    'a save completing after the sheet route is gone does not pop the editor',
+    (tester) async {
+      final _FakeStore store = _FakeStore(loaded: _loaded());
+      final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+      final GlobalKey<NavigatorState> navigatorKey = await _pumpEditorOverHost(
+        tester,
+        runtime: runtime,
+      );
+      final EditorScreenState state = _state(tester);
+      await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(fieldTextControlInputKey), 'Entwurf');
+
+      // Gate the verified store commit so the save is still in flight while
+      // system back dismisses the sheet (the deterministic F7-R1 race).
+      final Completer<StoredMeta> gate = Completer<StoredMeta>();
+      store.saveGate = gate;
+      await tester.tap(find.byKey(fieldValueSaveKey));
+      await tester.pump();
+      expect(store.saves, hasLength(1));
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+
+      await tester.binding.handlePopRoute();
+      await tester.pump();
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+      gate.complete(_storedMeta());
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(fieldValueSheetKey), findsNothing);
+      _expectEditorOverHost(navigatorKey);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('the production value-sheet route disables barrier and drag', (
+    tester,
+  ) async {
+    final _FakeStore store = _FakeStore(loaded: _loaded());
+    final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+    await _pumpEditor(tester, runtime: runtime);
+    final EditorScreenState state = _state(tester);
+    await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+    await tester.pumpAndSettle();
+
+    final ModalRoute<dynamic>? route = ModalRoute.of(
+      tester.element(find.byKey(fieldValueSheetKey)),
+    );
+    expect(route, isA<ModalBottomSheetRoute<bool>>());
+    final ModalBottomSheetRoute<bool> sheetRoute =
+        route! as ModalBottomSheetRoute<bool>;
+    expect(sheetRoute.isDismissible, isFalse);
+    expect(sheetRoute.enableDrag, isFalse);
   });
 
   testWidgets(

@@ -29,10 +29,18 @@
 //
 // Commit triggers: the explicit save button, focus loss, single-line Enter, and
 // the multiline done action (T079 `onCommitted`) all run the same validated
-// `_save()` path. The explicit close button is the one exception: it sets
-// `_closing` before popping so the focus loss caused by closing cannot turn
-// into a save. A failed save leaves the sheet open and editable and displays
-// the caller-supplied content-free message; no `saved` claim is made here.
+// `_save()` path. Cancellation is explicit: the caller opens the route without
+// barrier or drag dismissal, and a `PopScope` routes system back and the close
+// button through `_close()`, which sets `_closing` before popping so the focus
+// loss caused by leaving cannot turn into a save. `_commit` also refuses while
+// the route is leaving, so a dismissal cannot persist a draft. A failed save
+// leaves the sheet open and editable and displays the caller-supplied
+// content-free message; no `saved` claim is made here.
+//
+// A successful save pops only while this route is still current and mounted.
+// If the route is already leaving when the caller's verified commit completes,
+// the result is dropped rather than `pop(true)` being delivered to the next
+// route (which would eject the editor).
 //
 // The sheet root is keyboard-safe: the real view insets lift the visible sheet
 // box above the software keyboard on the 411 x 914 logical phone surface, and
@@ -259,17 +267,30 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
   /// Commits the current text through the same validated save path.
   ///
   /// T079 reports focus loss, single-line Enter, and the multiline done action
-  /// here. The text is assigned first so the value is current even if the
-  /// control's rebuild order changes.
+  /// here. A dismissal pops the route without setting the draft as a value;
+  /// Flutter disables the modal focus scope during the reverse animation, so
+  /// that focus loss must not save. The text is assigned first so the value is
+  /// current even if the control's rebuild order changes.
   void _commit(String value) {
+    if (_closing || ModalRoute.of(context)?.isCurrent != true) {
+      return;
+    }
     _text = value;
     unawaited(_save());
   }
 
   /// Cancels the sheet without saving a focus-loss commit.
+  ///
+  /// This is the only cancel path; the close button and system back both use
+  /// it. It is deliberately allowed while a save is in flight: the success-pop
+  /// guard in [_save] keeps the completed save from touching the next route.
+  /// `Navigator.pop` is used because `canPop: false` would refuse `maybePop`.
   void _close() {
+    if (_closing) {
+      return;
+    }
     _closing = true;
-    Navigator.of(context).maybePop(false);
+    Navigator.of(context).pop(false);
   }
 
   Future<void> _save() async {
@@ -300,10 +321,13 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
         AppLocalizations.of(context).save003,
       );
     }
-    if (!mounted) {
+    if (!mounted || ModalRoute.of(context)?.isCurrent != true) {
+      // The route is leaving (dismissed/cancelled) or gone. Do not pop the
+      // next route with this save result.
       return;
     }
     if (result.isSaved) {
+      _closing = true;
       Navigator.of(context).pop(true);
       return;
     }
@@ -323,64 +347,74 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
     final double availableHeight =
         media.size.height - insets - media.padding.top;
     final double maxHeight = availableHeight < 1 ? 1 : availableHeight;
-    return AnimatedPadding(
-      duration: const Duration(milliseconds: 100),
-      curve: Curves.easeOut,
-      padding: EdgeInsets.only(bottom: insets),
-      child: ConstrainedBox(
-        // The key marks the visible, keyboard-safe sheet box rather than the
-        // animated keyboard spacer, so the global rect stays above the IME.
-        key: fieldValueSheetKey,
-        constraints: BoxConstraints(maxHeight: maxHeight),
-        child: SafeArea(
-          top: false,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Text(
-                  widget.field.label,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 4),
-                Text(_typeLabel(l10n, widget.field.type)),
-                const SizedBox(height: 12),
-                AbsorbPointer(absorbing: _busy, child: _buildControl(l10n)),
-                if (!signature) ...<Widget>[
+    return PopScope<bool>(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, bool? result) {
+        // A programmatic pop also invokes this callback with `didPop == true`;
+        // only a refused pop (system back / predictive back) starts a cancel.
+        if (!didPop) {
+          _close();
+        }
+      },
+      child: AnimatedPadding(
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+        padding: EdgeInsets.only(bottom: insets),
+        child: ConstrainedBox(
+          // The key marks the visible, keyboard-safe sheet box rather than the
+          // animated keyboard spacer, so the global rect stays above the IME.
+          key: fieldValueSheetKey,
+          constraints: BoxConstraints(maxHeight: maxHeight),
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Text(
+                    widget.field.label,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(_typeLabel(l10n, widget.field.type)),
                   const SizedBox(height: 12),
-                  FieldOverflowWarning(visible: overflow),
-                  if (_error != null) ...<Widget>[
-                    const SizedBox(height: 8),
-                    Text(
-                      _error!,
-                      key: fieldValueErrorKey,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.error,
+                  AbsorbPointer(absorbing: _busy, child: _buildControl(l10n)),
+                  if (!signature) ...<Widget>[
+                    const SizedBox(height: 12),
+                    FieldOverflowWarning(visible: overflow),
+                    if (_error != null) ...<Widget>[
+                      const SizedBox(height: 8),
+                      Text(
+                        _error!,
+                        key: fieldValueErrorKey,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
                       ),
+                    ],
+                    const SizedBox(height: 16),
+                    FilledButton(
+                      key: fieldValueSaveKey,
+                      onPressed: _busy ? null : _save,
+                      child: _busy
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(l10n.saveNow),
                     ),
                   ],
-                  const SizedBox(height: 16),
-                  FilledButton(
-                    key: fieldValueSaveKey,
-                    onPressed: _busy ? null : _save,
-                    child: _busy
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(l10n.saveNow),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    key: fieldValueCloseKey,
+                    onPressed: _close,
+                    child: Text(l10n.reviewConflictCloseAction),
                   ),
                 ],
-                const SizedBox(height: 8),
-                TextButton(
-                  key: fieldValueCloseKey,
-                  onPressed: _busy ? null : _close,
-                  child: Text(l10n.reviewConflictCloseAction),
-                ),
-              ],
+              ),
             ),
           ),
         ),

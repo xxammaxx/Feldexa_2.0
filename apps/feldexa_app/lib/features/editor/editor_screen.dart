@@ -1051,7 +1051,7 @@ class EditorScreenState extends State<EditorScreen> {
       );
     } catch (error) {
       if (!mounted) {
-        return const FieldValueCommitResult.saved();
+        return FieldValueCommitResult.failed(l10n.save003);
       }
       final String code = _saveFailureCode(error);
       setState(() {
@@ -1111,6 +1111,12 @@ class EditorScreenState extends State<EditorScreen> {
         context: context,
         isScrollControlled: true,
         useSafeArea: true,
+        // Dismissal must be an explicit cancel: barrier tap and drag would pop
+        // the route without `_closing`, and the focus loss during the reverse
+        // animation would commit the draft and could pop the editor. System
+        // back and the sheet's close action route through the guarded cancel.
+        isDismissible: false,
+        enableDrag: false,
         builder: (BuildContext context) {
           return FieldValueSheet(
             field: field,
