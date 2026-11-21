@@ -45,11 +45,14 @@
 //      multi-root does not collapse `..` out of `test/`.
 //
 // The only Chrome-compilable arrangement with a single source of truth is this
-// one real file (mode 100644) inside `test/`, carrying the suite itself: no
-// symlink, no wrapper, and no duplicated copy that could drift. The suite
-// content is unchanged; only its path moved, and the T062 `tasks.md` entry
-// records that deviation. Working commands (the fixture server is a
-// prerequisite, and a skipped run is not evidence):
+// one real file (mode 100644) inside `test/`, carrying the suite itself: one
+// real file, no symlink, no wrapper, and no duplicated copy that could drift.
+// The test body below is unchanged from the suite's previous location; only the
+// path moved. The T062 task row is owned by the coordinator and is deliberately
+// not edited by this correction.
+//
+// Working commands (the fixture server is a prerequisite, and a skipped run
+// is not evidence):
 //
 //   dart run tools/corpus/synthetic/serve_web_fixtures.dart \
 //     --root apps/feldexa_app/web --port 8765
