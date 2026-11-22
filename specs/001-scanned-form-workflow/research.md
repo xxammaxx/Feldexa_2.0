@@ -412,3 +412,68 @@ Every adapter returns `CapabilityEvidence.simulated` with `reason` and `adapterI
 | Corpus and metric freezing | `corpus-1.0.0`, `metric-definition.v1.md`, separate error classes, manual baseline (D-18) |
 | Named performance device and method | Samsung Galaxy A54 5G, release build, per-stage timers (D-20) |
 | Accessibility acceptance method | Semantics tests + 200 % scale + TalkBack + contrast checks (D-21) |
+| How geometric field inventory and adaptive verification are split | Evaluation-first inventory + structure comparison; adaptive pass blocked on T086B and on a pass-provenance schema decision (D-23) |
+
+---
+
+## D-23: Geometric field inventory, structure comparison, and adaptive split (T264A/T264B)
+
+**Context**: issue #264 asks for geometrically measurable fill regions as
+independent structural evidence against OCR labels, plus an adaptive second
+analysis. The 2026-11-22 planning reviews A/B rejected implementing the adaptive
+pass directly: it would touch detector ownership (T086B), the suggestion schema,
+and the fixed 200 DPI raster contract at once, and the productive pipeline has
+no pass/observation provenance for a cross-pass merge.
+
+**Decision** (delivered by T264A/T264B under the authoritative planning-review split of 2026-11-22, additive only, no contract change):
+
+1. `packages/feldexa_recognition/lib/src/field_inventory.dart` turns the
+   existing T052 candidate list of one page into a deduplicated, role-classified
+   inventory (checkbox, text, number, multiline, date, signature, table field,
+   unknown) with explicit non-field categories (print margin, decorative frame,
+   glyph counter, duplicate geometry) and explicit review states (table header
+   row, no label context, ambiguous kind, overlapping/nested candidates). It is
+   an **evaluation and diagnostics artifact**: it adds no section model, no UI,
+   no persistence, and no second recognition pipeline.
+2. `packages/feldexa_recognition/lib/src/structure_comparison.dart` compares
+   declared ground truth with observations independently of any label count,
+   using exact `IoU >= 0.5` matching (plus a small-field centre-distance
+   fallback), and reports missing, extra, duplicate, overlapping, ambiguous,
+   unlabelled, type-mismatched, and geometry-mismatched fields per page and kind.
+   Equal counts with wrong positions are a FAIL; an undeclared page is never
+   completeness proof and is not scored at all.
+3. Numeric inputs are made explicit through the existing `TypeInference` output
+   (`betrag`, `summe`, `iban`, `steuernummer` -> `number`; `plz` and `telefon`
+   stay `text`) via `FieldTypeHint`. A hint never moves a rectangle and never
+   overrides a geometric `small_square`/`table_cell` cue; a contradiction becomes
+   an ambiguity flag instead.
+4. `tools/evaluation/field_inventory_baseline.dart` draws a declared synthetic
+   corpus at 200 DPI, declares ground truth at draw time, runs the real
+   `RasterAnalysis` -> `GeometryDetector.detect` -> `TypeInference.infer` stages
+   plus the inventory and the comparison, and writes a run report (`SIMULATED`)
+   and a canonical golden snapshot
+   (`tools/evaluation/goldens/field-inventory-baseline.v1.json`).
+5. The adaptive pass is **not implemented**. `tools/evaluation/adaptive-policy.v1.json`
+   freezes its numeric runtime signals, thresholds, hysteresis, pass bounds,
+   render strategy, independence rule, holdout split, and acceptance thresholds
+   before any scored run, and records the two blocking prerequisites: T086B
+   ownership of `geometry_detector.dart`, and the `SuggestionSchema` / T058 /
+   cross-pass-merge provenance decision, which is the registered task T264P.
+6. Task mapping after the rebase onto the planning-correction merge: **T264A**
+   (pre-change golden snapshot and frozen scorer) and **T264B** (field inventory
+   and structure comparison as an evaluation artifact) are delivered by this
+   slice; **T264P** (pass/observation provenance contract), **T264C** (adaptive
+   pass) and **T264D** (A/B/C benchmark and evidence) remain registered and
+   blocked. The earlier local split that named the provenance work "T264B" and
+   the benchmark "T264C" was superseded by the merged correction.
+
+**Rationale**: an evaluation artifact can prove the structural gap (duplicate
+candidates, missed faint fields, broken frames) without changing any normative
+contract, and it produces a regression snapshot now. The adaptive pass then has a
+frozen baseline and a frozen policy to be qualified against, which is the only
+way "no gain" can be stated honestly.
+
+**Alternatives rejected**: implementing the adaptive pass first (touches three
+blocked areas, no provenance, no frozen thresholds); a new section/field model in
+the app (scope expansion, not required by the evidence); tuning the inventory
+thresholds on the holdout pages (forbidden by the frozen policy).
