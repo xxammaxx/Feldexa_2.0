@@ -779,6 +779,20 @@ final class GeometryDetector {
     final List<_Rule> verticals =
         rules.where((_Rule rule) => !rule.horizontal).toList()
           ..sort(_compareRuleCenterX);
+    // Candidate indexing (T086B). `_cornersAgree` requires every side rule's
+    // centre to lie within [_cornerTolerancePx] of the matching corner, so a
+    // box can only exist for a (top, bottom, left, right) combination whose
+    // perpendicular centres agree. A vertical rule can be the *left* side only
+    // when its centre x is within tolerance of both `top.x0` and `bottom.x0`
+    // and its y extent starts within tolerance of `top.centerY` and ends
+    // within tolerance of `bottom.centerY`; the *right* side is the same with
+    // `x1`. The index answers exactly that question, so the former
+    // quadruple-nested scan (`O(h^2 * v^2)`; 6.1e9 iterations and ~83 s on the
+    // committed sf-001 page 1 raster) now visits only combinations that can
+    // pass the corner test. The predicates inside the loop are unchanged, so
+    // the accepted combinations, their cues, and their emission order are
+    // identical to the exhaustive scan.
+    final _VerticalRuleIndex verticalIndex = _VerticalRuleIndex(verticals);
     final List<_RawCandidate> candidates = <_RawCandidate>[];
     final Set<_Rule> consumed = <_Rule>{};
 
@@ -794,13 +808,36 @@ final class GeometryDetector {
             bottom.y0 - top.y1 < _minInteriorSidePx) {
           continue;
         }
-        for (int leftIndex = 0; leftIndex < verticals.length; leftIndex++) {
-          for (
-            int rightIndex = leftIndex + 1;
-            rightIndex < verticals.length;
-            rightIndex++
-          ) {
-            final _Rule left = verticals[leftIndex];
+        final List<int> leftCandidates = verticalIndex.candidatesFor(
+          lowX: _maxInt(top.x0, bottom.x0) - _cornerTolerancePx,
+          highX: _minInt(top.x0, bottom.x0) + _cornerTolerancePx,
+          lowStartY: top.centerY - _cornerTolerancePx,
+          highStartY: top.centerY + _cornerTolerancePx,
+          lowEndY: bottom.centerY - _cornerTolerancePx,
+          highEndY: bottom.centerY + _cornerTolerancePx,
+        );
+        if (leftCandidates.isEmpty) {
+          continue;
+        }
+        final List<int> rightCandidates = verticalIndex.candidatesFor(
+          lowX: _maxInt(top.x1, bottom.x1) - _cornerTolerancePx,
+          highX: _minInt(top.x1, bottom.x1) + _cornerTolerancePx,
+          lowStartY: top.centerY - _cornerTolerancePx,
+          highStartY: top.centerY + _cornerTolerancePx,
+          lowEndY: bottom.centerY - _cornerTolerancePx,
+          highEndY: bottom.centerY + _cornerTolerancePx,
+        );
+        if (rightCandidates.isEmpty) {
+          continue;
+        }
+        for (final int leftRuleIndex in leftCandidates) {
+          final _Rule left = verticals[leftRuleIndex];
+          for (final int rightIndex in rightCandidates) {
+            // The exhaustive scan only paired a strictly later vertical rule
+            // with an earlier one; keep that pairing and its order.
+            if (rightIndex <= leftRuleIndex) {
+              continue;
+            }
             final _Rule right = verticals[rightIndex];
             if (right.centerX <= left.centerX ||
                 right.x0 - left.x1 < _minInteriorSidePx) {
@@ -1377,6 +1414,161 @@ final class _Rule {
 
   @override
   String toString() => '_Rule(${horizontal ? 'H' : 'V'} $x0,$y0..$x1,$y1)';
+}
+
+/// Bounded lookup of the vertical rules that can be one side of a box.
+///
+/// The box scan pairs two horizontal rules (`top`, `bottom`) and two vertical
+/// rules (`left`, `right`) whose corners agree within
+/// [_cornerTolerancePx]. For a fixed horizontal pair the corner test permits a
+/// vertical rule as the `left` side only when
+///
+///  * its centre x lies within [_cornerTolerancePx] of `top.x0` **and**
+///    `bottom.x0` (hence inside the two-centre intersection window), and
+///  * its start y lies within [_cornerTolerancePx] of `top.centerY` and its
+///    end y within [_cornerTolerancePx] of `bottom.centerY`.
+///
+/// The `right` side uses `x1` instead of `x0`. This index answers exactly that
+/// query with two binary searches over centre-x and start-y and one window
+/// filter, so the caller never enumerates rule pairs that the corner test is
+/// guaranteed to reject. Every returned index satisfies a necessary condition
+/// of the corner test, and every rule the corner test can accept is returned,
+/// so candidate sets and their order are unchanged.
+final class _VerticalRuleIndex {
+  _VerticalRuleIndex._(this._centerX, this._startY, this._endY, this._byStartY);
+
+  /// Builds the index over [rules], which must be sorted by centre x.
+  factory _VerticalRuleIndex(List<_Rule> rules) {
+    final int length = rules.length;
+    final List<double> centerX = List<double>.generate(
+      length,
+      (int index) => rules[index].centerX,
+      growable: false,
+    );
+    final List<double> startY = List<double>.generate(
+      length,
+      (int index) => rules[index].y0.toDouble(),
+      growable: false,
+    );
+    final List<double> endY = List<double>.generate(
+      length,
+      (int index) => rules[index].y1.toDouble(),
+      growable: false,
+    );
+    final List<int> byStartY = List<int>.generate(
+      length,
+      (int index) => index,
+      growable: false,
+    );
+    byStartY.sort((int first, int second) {
+      final int byY = startY[first].compareTo(startY[second]);
+      return byY != 0 ? byY : first.compareTo(second);
+    });
+    return _VerticalRuleIndex._(centerX, startY, endY, byStartY);
+  }
+
+  final List<double> _centerX;
+  final List<double> _startY;
+  final List<double> _endY;
+  final List<int> _byStartY;
+
+  /// Ascending rule indices that can be a side of a box whose horizontal pair
+  /// spans the given corner windows.
+  List<int> candidatesFor({
+    required int lowX,
+    required int highX,
+    required double lowStartY,
+    required double highStartY,
+    required double lowEndY,
+    required double highEndY,
+  }) {
+    final int xStart = _lowerBound(
+      _centerX.length,
+      (int index) => _centerX[index],
+      lowX.toDouble(),
+    );
+    final int xEnd = _upperBound(
+      _centerX.length,
+      (int index) => _centerX[index],
+      highX.toDouble(),
+    );
+    if (xStart >= xEnd) {
+      return const <int>[];
+    }
+    final int yStart = _lowerBound(
+      _byStartY.length,
+      (int slot) => _startY[_byStartY[slot]],
+      lowStartY,
+    );
+    final int yEnd = _upperBound(
+      _byStartY.length,
+      (int slot) => _startY[_byStartY[slot]],
+      highStartY,
+    );
+    if (yStart >= yEnd) {
+      return const <int>[];
+    }
+    final List<int> result = <int>[];
+    if (xEnd - xStart <= yEnd - yStart) {
+      for (int index = xStart; index < xEnd; index++) {
+        if (_endY[index] >= lowEndY && _endY[index] <= highEndY) {
+          result.add(index);
+        }
+      }
+      return result;
+    }
+    final double low = lowX.toDouble();
+    final double high = highX.toDouble();
+    for (int slot = yStart; slot < yEnd; slot++) {
+      final int index = _byStartY[slot];
+      if (_centerX[index] < low || _centerX[index] > high) {
+        continue;
+      }
+      if (_endY[index] >= lowEndY && _endY[index] <= highEndY) {
+        result.add(index);
+      }
+    }
+    result.sort();
+    return result;
+  }
+
+  /// First position whose value is at least [value].
+  static int _lowerBound(
+    int length,
+    double Function(int index) valueAt,
+    double value,
+  ) {
+    int low = 0;
+    int high = length;
+    while (low < high) {
+      final int middle = (low + high) >> 1;
+      if (valueAt(middle) < value) {
+        low = middle + 1;
+      } else {
+        high = middle;
+      }
+    }
+    return low;
+  }
+
+  /// First position whose value is greater than [value].
+  static int _upperBound(
+    int length,
+    double Function(int index) valueAt,
+    double value,
+  ) {
+    int low = 0;
+    int high = length;
+    while (low < high) {
+      final int middle = (low + high) >> 1;
+      if (valueAt(middle) <= value) {
+        low = middle + 1;
+      } else {
+        high = middle;
+      }
+    }
+    return low;
+  }
 }
 
 /// One consecutive ink run on a scan line.
