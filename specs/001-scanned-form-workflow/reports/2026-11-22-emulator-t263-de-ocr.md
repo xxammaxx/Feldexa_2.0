@@ -25,8 +25,10 @@ findings (NFC/NFD, case, `ae/oe/ue/ss`, missing umlaut dots, `ß`→`B`), semant
 label/type assignment from the production `AnalyzeDocument` suggestions, and one
 `confirmSuggestion` plus encrypted-store label takeover round trip.
 
-The correction-1 label/type-association fix for this task is host-verified only
-(§5.7); its post-fix emulator rerun is `NOT_RUN` and §5 stays the pre-fix run.
+All three corrections of this task were executed on the device: §5.7 records the
+correction-1 label/type fix, §5.8 the correction-2 deskew stage and §5.9 the
+correction-3 review fixes. §5.1–§5.6 remain the *pre-fix baseline* by design; the
+current runtime results are §5.9 (committed HEAD `3102557`).
 
 What it does **not** prove: physical-device behaviour (`DEVICE`), performance or
 the SC-004 claim, corpus `corpus-1.0.0`/`metric-definition.v1` figures (those
@@ -228,10 +230,13 @@ character-faithful takeover path, not a correct label assignment (§5.4).
   `t263-run-injected.json`
   `4cab7b85d7dde49e611c2ef1a08bc999886c24031a795a1a1799895912177140`.
 
-### 5.7 T263 correction-1 — defect fix status (host-verified only)
+### 5.7 T263 correction-1 — defect fix status (executed; measured in §5.8/§5.9)
 
 The label/type defect in §5.4 has a proven root cause and a verified fix. The
-on-device rerun for this correction is **NOT_RUN**.
+correction-1 rerun itself could not be executed at the time (Orca runtime
+outage, no device evidence, no device command issued); the fix is measured in the
+later executed runs — label accuracy 69.23 % in §5.8 and 76.92 % in §5.9 against
+the 0.00 % baseline of §5.4.
 
 - **Root cause.** `TypeInference` accepted a label only inside a 24 pt Euclidean
   gap, but this fixture — like a typical authority form — prints each field
@@ -261,12 +266,14 @@ on-device rerun for this correction is **NOT_RUN**.
   Removing them would require a different engine or character-substitution
   post-processing, and both are forbidden by this correction's rules, so those
   cases stay `FAIL` as measured.
-- **Skew remains unfixed.** `scan-200dpi-skew-3deg` still fails because the
-  pipeline has no deskew stage: a tilted raster reaches the recognizer as-is, and
-  the resulting line boxes are too tall and too far from the annotated rows to be
-  associated (30/51). A deskew implementation was drafted but reverted
-  unverified — its host JVM test gate could not be executed — so no unverified
-  production change was shipped.
+- **Skew: fixed, and the variant is re-classified.** At the correction-1 state
+  the pipeline had no deskew stage, so a tilted raster reached the recognizer
+  as-is (30/51 lines associated). Correction-2 added the verified deskew stage
+  (§5.8) and correction-3 corrected its inverse rectangle mapping (§5.9). The
+  variant's remaining `FAIL` (CER 43.51 % in §5.9) is **not** a missing deskew
+  stage: the product reports boxes in the raster frame it was given, while the
+  suite annotates the upright page, so the measurement is not frame-comparable —
+  see §5.9 for the decision that is still open.
 
 ### 5.8 T263 correction-2 — deskew stage, post-fix run (Orca runtime ready)
 
@@ -278,8 +285,8 @@ state `booted`; session attached to this worktree). The run is
 `2026-11-22-t263-emulator-c2`; the pre-fix `2026-11-22-t263-emulator/` evidence is
 unchanged.
 
-**Skew root cause and fix.** The pipeline had no deskew stage, so the injected
-3° raster reached the recognizer tilted: lines merged or were dropped (30/51
+**Skew root cause and fix.** At the pre-correction state the pipeline had no
+deskew stage, so the injected 3° raster reached the recognizer tilted: lines merged or were dropped (30/51
 associated) and the resulting boxes were too tall and too far from the annotated
 rows. `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/ocr/SkewCorrection.kt`
 now estimates the dominant row skew with a projection-profile search
