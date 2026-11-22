@@ -482,11 +482,11 @@ own.
 
 | Artifact | Path | Bytes | SHA-256 |
 | --- | --- | ---: | --- |
-| `t263-report.md` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-report.md` | 12327 | `46c10989e4825a299be825e669d162601db7fd4e06f976ad49dc420465aa0d2d` |
+| `t263-report.md` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-report.md` | 12623 | `89dac4b69e7712d46973469ccc8ee5edb7c66e8b610cf33e3ee12e8adc4237a0` |
 | Authoritative frame-correct report (c4, JSON) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c4/t263-report.json` | 100974 | `bfbc2d7cba08b69f5728ddb0d821ef75f112b9467acd7f0b8be24e05794ceeca` |
 | Authoritative frame-correct report (c4, Markdown) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c4/t263-report.md` | 12327 | `46c10989e4825a299be825e669d162601db7fd4e06f976ad49dc420465aa0d2d` |
 | c4 report provenance note | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c4/README.md` | 2245 | `a364a75388507acab266668b8b98e165a8d2173a01fc0e4f04d64552150475c8` |
-| `t263-report.json` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-report.json` | 100975 | `88123466bf4d438a9208fdd6b1939d22fa3dbd6e1139d6a2ceae4eaf40e01778` |
+| `t263-report.json` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-report.json` | 113927 | `557e9155c9a76667d367506fe601e50d83117099bfcc8c0fb4831f9b7bc39300` |
 | `t263-run-emulator.json` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-run-emulator.json` | 175100 | `d2524d1c7736fd9d33f90bff1f62688514f04108158e9c71077ae9855e3d00a2` |
 | `t263-run-injected.json` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-run-injected.json` | 340591 | `44b9c043e30ff4898f5f34c706f5139ff991e62829bd7a978c54936b51c579d9` |
 | `metrics-emulator.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/metrics-emulator.log` | 715 | `39892a0723814ece4aa8806e4edafefd02839880e8d1879860f3f0fec63b2214` |
