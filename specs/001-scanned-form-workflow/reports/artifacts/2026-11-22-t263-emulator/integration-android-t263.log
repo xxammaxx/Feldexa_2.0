@@ -1,5 +1,5 @@
 00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0/t263-ocr-german/apps/feldexa_app/integration_test/android_de_ocr_test.dart
-Running Gradle task 'assembleDebug'...                          
+Running Gradle task 'assembleDebug'...
 WARNING: A restricted method in java.lang.System has been called
 WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/home/xxammaxx/.gradle/wrapper/dists/gradle-9.3.1-all/9ot9r568e8zfvvd4mn8rbu1j0/gradle-9.3.1/lib/native-platform-0.22-milestone-29.jar)
 WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module

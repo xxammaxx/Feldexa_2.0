@@ -260,13 +260,17 @@ No performance claim.
 
 Every row is repository-relative, with byte size and SHA-256 at the reported
 revision. This report's own row is omitted by design (self-reference rule); its
-bytes and SHA-256 live in the external attestation.
+bytes and SHA-256 live in the external attestation. Trailing whitespace only was
+stripped from `device-identity.txt` and `integration-android-t263.log` in the
+follow-up hygiene commit, so the byte sizes and SHA-256 values below are the
+post-hygiene values; no measured value, verdict, variant result, label-takeover
+evidence, or device identity changed.
 
 | Artifact | Path | Bytes | SHA-256 |
 | --- | --- | ---: | --- |
 | Driver marker sequence | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator/marker-sequence.txt` | 427 | `683f3a8bc9e525669219e618ef276d07a8bbb194f1b845e334a06bf46b3d3cfa` |
-| Integration test log (content-free markers) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator/integration-android-t263.log` | 3035 | `e3972d503a7c5458524f937934174b05d88cf266d0201f7832d0e0c4a62a017c` |
-| Device identity | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator/device-identity.txt` | 300 | `2ac7e85ab159fbb83398cb9eeeb4301fb8613bda5b4133a7ad9e82ab3d36fa54` |
+| Integration test log (content-free markers) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator/integration-android-t263.log` | 3009 | `673bfbae661d968b0f67be2dccf608f5abe63ef983a1ec4bd4004f84d2de6ff0` |
+| Device identity | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator/device-identity.txt` | 298 | `265c299fe643739f0c63d2fc73f638d221a7aa9322b021641ab53bc0fedbbf56` |
 | APK SHA-256 | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator/apk-sha256.txt` | 183 | `6af70a090a6458f16d976b1f7435d27954d72cea9127f20ffad2d6c17935ef53` |
 | Fixture and ground-truth SHA-256 | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator/fixture-sha256.txt` | 542 | `7a869b854d8cd816339a0f9e84a41202c17b7ded810f5689dd4960f87dfda96d` |
 | Git identity of the run | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator/git-identity.txt` | 573 | `67170fc74edc9844405a4f01fe71554820f54ca432bb7f76e52f54567135d859` |
