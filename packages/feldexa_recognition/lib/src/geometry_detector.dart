@@ -835,7 +835,10 @@ final class GeometryDetector {
     // the indexed branch, and both branches call the same `_considerBox`
     // acceptance logic, so the accepted combinations, their cues, and their
     // emission order are identical.
-    final _VerticalRuleIndex verticalIndex = _VerticalRuleIndex(verticals);
+    //
+    // The index is built lazily on the first horizontal pair of the indexed
+    // branch, so the exhaustive test path never pays for it.
+    _VerticalRuleIndex? verticalIndex;
 
     for (int topIndex = 0; topIndex < horizontals.length; topIndex++) {
       for (
@@ -871,7 +874,10 @@ final class GeometryDetector {
           }
           continue;
         }
-        final List<int> leftCandidates = verticalIndex.candidatesFor(
+        final _VerticalRuleIndex index = verticalIndex ??= _VerticalRuleIndex(
+          verticals,
+        );
+        final List<int> leftCandidates = index.candidatesFor(
           lowX: _maxInt(top.x0, bottom.x0) - _cornerTolerancePx,
           highX: _minInt(top.x0, bottom.x0) + _cornerTolerancePx,
           lowStartY: top.centerY - _cornerTolerancePx,
@@ -882,7 +888,7 @@ final class GeometryDetector {
         if (leftCandidates.isEmpty) {
           continue;
         }
-        final List<int> rightCandidates = verticalIndex.candidatesFor(
+        final List<int> rightCandidates = index.candidatesFor(
           lowX: _maxInt(top.x1, bottom.x1) - _cornerTolerancePx,
           highX: _minInt(top.x1, bottom.x1) + _cornerTolerancePx,
           lowStartY: top.centerY - _cornerTolerancePx,
@@ -1611,7 +1617,7 @@ final class _VerticalRuleIndex {
     final List<int> result = <int>[];
     if (xEnd - xStart <= yEnd - yStart) {
       for (int index = xStart; index < xEnd; index++) {
-        if (_endY[index] >= lowEndY && _endY[index] <= highEndY) {
+        if (_withinYWindows(index, lowStartY, highStartY, lowEndY, highEndY)) {
           result.add(index);
         }
       }
@@ -1624,12 +1630,32 @@ final class _VerticalRuleIndex {
       if (_centerX[index] < low || _centerX[index] > high) {
         continue;
       }
-      if (_endY[index] >= lowEndY && _endY[index] <= highEndY) {
+      if (_withinYWindows(index, lowStartY, highStartY, lowEndY, highEndY)) {
         result.add(index);
       }
     }
     result.sort();
     return result;
+  }
+
+  /// Whether [index] satisfies both y windows of the query.
+  ///
+  /// The x-window branch applies the start-y window explicitly; the y-sorted
+  /// branch has already restricted start y to the window, so the check is
+  /// redundant there but keeps both branches on one predicate. Every condition
+  /// is a necessary condition of `_cornersAgree`, so applying it earlier only
+  /// removes candidates that the caller would reject anyway.
+  bool _withinYWindows(
+    int index,
+    double lowStartY,
+    double highStartY,
+    double lowEndY,
+    double highEndY,
+  ) {
+    return _startY[index] >= lowStartY &&
+        _startY[index] <= highStartY &&
+        _endY[index] >= lowEndY &&
+        _endY[index] <= highEndY;
   }
 
   /// First position whose value is at least [value].

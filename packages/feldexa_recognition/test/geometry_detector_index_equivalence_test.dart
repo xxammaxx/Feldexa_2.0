@@ -121,10 +121,23 @@ void main() {
       expect(_boxCount(candidates), 0);
     });
 
-    test('duplicate centre-x rules at different y extents', () {
-      // Both vertical rules have centre x = 103 but different extents and
-      // thicknesses, so they do not merge. The pairing rule
-      // (`right.centerX <= left.centerX`) has to reject them as a pair.
+    test('identical centre-x rules cannot pair, in either scan', () {
+      // Two vertical rules share centre x = 103 but sit in disjoint y bands, so
+      // rule detection keeps both instead of merging them. Neither can be a
+      // side of the box drawn on top: the corner test needs a side that starts
+      // at the top rule's centre y and ends at the bottom rule's centre y, and
+      // each of these two rules covers only one of those bands. Both scans must
+      // therefore reject every combination the same way.
+      //
+      // Scope note: the `right.centerX <= left.centerX` and
+      // `rightIndex > leftRuleIndex` guards are *not* exercised here, and no
+      // fixture can exercise them through the public entry point. Two vertical
+      // rules with the same centre x either merge in rule detection (their x
+      // bands overlap within the parallel-gap limit while both satisfy one
+      // box's y windows) or, as here, cannot satisfy one box's y windows at
+      // all; and corner agreement already forces `top.x0 < top.x1`, so a right
+      // rule that sits left of the left rule can never close a box. The guards
+      // remain as defensive mirrors of the exhaustive loop's pairing order.
       final _Canvas canvas = _Canvas()
         ..fillRect(100, 50, 106, 150)
         ..fillRect(101, 250, 105, 350)
@@ -134,14 +147,15 @@ void main() {
 
       final List<GeometryCandidate> candidates = _expectAgreement(
         canvas.build(),
-        reason: 'duplicate centre-x must be rejected identically by both scans',
+        reason: 'identical centre-x rules must be rejected identically',
       );
       expect(_boxCount(candidates), 1);
     });
 
     test('box narrower than twice the corner tolerance', () {
-      // Interior width 162 - 152 = 10 px < 2 x 6 px, so the two centre-x
-      // windows of the horizontal pair overlap.
+      // Interior width is 160 - 152 = 8 px (the inner edges of the two 2 px
+      // side rules), which is below 2 x 6 px, so the two centre-x windows of
+      // the horizontal pair overlap.
       final _Canvas canvas = _Canvas()..strokeRect(150, 100, 162, 200);
 
       final List<GeometryCandidate> candidates = _expectAgreement(

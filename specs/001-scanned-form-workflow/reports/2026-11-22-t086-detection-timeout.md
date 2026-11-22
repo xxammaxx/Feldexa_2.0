@@ -239,10 +239,14 @@ including `x`, `y`, `width`, `height`, sorted `cues`, and measured
 | `sf-003` page 5 | `NOT_RUN` | `NOT_RUN` |
 
 No field, cue, or coverage value was dropped, added, reordered, or degraded.
-Cue classes exercised across these pages include `box`, `small_square`,
-`grid_cell`, `table_cell`, `underline`, `whitespace`, and `alignment_left`. The
-323 pre-existing recognition tests, the 64 focused application tests, and the
-fixture-parity suite all pass unchanged.
+The 12 pages cover 5 of the 7 cue classes the detector can emit, counted from
+the committed after snapshots: `alignment_left` 184, `box` 131,
+`small_square` 96, `whitespace` 66, and `underline` 52 cue occurrences.
+`grid_cell` and `table_cell` occur 0 times in these snapshots, so this report
+makes no page-level claim for them: grid and table-cell equivalence is covered
+by the synthetic geometry tests in `geometry_detector_test.dart`, not by these
+pages. The 323 pre-existing recognition tests, the 64 focused application
+tests, and the fixture-parity suite all pass unchanged.
 
 The evidence is committed at
 `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t086b/`: 12
@@ -335,11 +339,11 @@ as separate rows here. The report's own row is omitted per
 
 | Artifact | Path | Bytes | SHA-256 |
 | --- | --- | ---: | --- |
-| Detector with indexed box scan | packages/feldexa_recognition/lib/src/geometry_detector.dart | 57266 | `4eec05938d88598ac7df18d156df7b30347ba94e9e3c745d7ab96f3bd157c416` |
+| Detector with indexed box scan | packages/feldexa_recognition/lib/src/geometry_detector.dart | 58224 | `dbdf84e6e47649848569372c2dcf212200023fa4848c983f5eb6c727405572a8` |
 | Rule-dense regression test | packages/feldexa_recognition/test/geometry_detector_performance_test.dart | 6751 | `735f2cd616b963f90ab6aadd4136e57e21efa0a0e9e75cfdbb3d130b3223ebcf` |
-| Indexed versus exhaustive differential tests | packages/feldexa_recognition/test/geometry_detector_index_equivalence_test.dart | 9174 | `ab5d05e08a44b75fe20cace630e0fd87dec541a11aafbef93a44a773d4184060` |
+| Indexed versus exhaustive differential tests | packages/feldexa_recognition/test/geometry_detector_index_equivalence_test.dart | 10185 | `53671e19eae473c413485ae68b8b9c1fb16ffc49358f2f90a5d8797189f67322` |
 | Host per-page detection benchmark | tools/evaluation/benchmark_detection_pgm.dart | 6908 | `e5b0a01cc2fddc1b9e054ec507334e0fa3e6db95378e225585a2c9a2494fa7a5` |
-| RED check harness | tools/evaluation/t086bp_red_check.sh | 2612 | `c4dc32e2ee6c97147d42e058c7fe5883579e9b728dfae1fdb02fe1de2edb2651` |
+| RED check harness | tools/evaluation/t086bp_red_check.sh | 3184 | `73e3f8581b71fbe27769e29b5ff273a6e12cf8cc36c645ac2a8e8f43e3712ea4` |
 | Candidate snapshot manifest | specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t086b/manifest.json | 9901 | `ced5c9aba92ebf4fcc52d26ddd32719e1e99c0c07a1eeb8da3452c8187e33102` |
 | Snapshot bundle README | specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t086b/README.md | 2692 | `7da61182a193482e02849680a6bec5159c73e4aafba288643ed4af5b37605156` |
 

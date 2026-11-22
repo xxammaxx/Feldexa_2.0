@@ -60,12 +60,23 @@ grep -E 'T086B dense page' /tmp/t086bp_red_check.log || true
 echo "T086BP_RED_TEST_EXIT=$status"
 echo "T086BP_RED_RESTORED=$([ "$restored_sha" = "$original_sha" ] && echo yes || echo no)"
 
+if [ "$restored_sha" != "$original_sha" ]; then
+  echo "T086BP_RED_FAILED: the detector worktree file was not restored" >&2
+  exit 1
+fi
 if [ "$status" -eq 0 ]; then
   echo "T086BP_RED_FAILED: the performance test passed on the base-revision detector"
   exit 1
 fi
-if [ "$restored_sha" != "$original_sha" ]; then
-  echo "T086BP_RED_FAILED: the detector worktree file was not restored" >&2
+# A compile, import, or harness error also exits non-zero. Only the documented
+# wall-clock budget assertion may count as RED, so require both markers.
+if ! grep -q 'T086B dense page:' /tmp/t086bp_red_check.log; then
+  echo "T086BP_RED_FAILED: the test never reached the dense-page measurement" >&2
+  echo "T086BP_RED_FAILED: this is a compile, import, or harness error, not RED" >&2
+  exit 1
+fi
+if ! grep -q 'is not a value less than Duration' /tmp/t086bp_red_check.log; then
+  echo "T086BP_RED_FAILED: the failure is not the wall-clock budget assertion" >&2
   exit 1
 fi
 echo "T086BP_RED_CONFIRMED"
