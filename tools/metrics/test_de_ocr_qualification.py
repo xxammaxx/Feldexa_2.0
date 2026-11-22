@@ -286,6 +286,52 @@ class DeOcrQualificationTest(unittest.TestCase):
         self.assertIn("does not match the annotated", result.stderr)
         self.assertIsNone(report)
 
+    def test_label_verbatimness_is_only_judged_on_the_analysis_raster(self):
+        """Review B4: a label from another DPI capture is not "normalization".
+
+        The run record's OCR lines come from the test's own call at the variant's
+        capture DPI, while `AnalyzeDocument` always analyses its own 200 DPI
+        raster. A differing label text therefore measures the second recognition,
+        not a silent rewrite: it must be classified as not comparable and must
+        never produce a FAIL reason. The reference variant is always part of the
+        run so the scorer evaluates the full variant table.
+        """
+        def relabel(pages):
+            for page in pages.values():
+                for suggestion in page["suggestions"]:
+                    if suggestion["labelText"] == "Geschäftszeichen":
+                        suggestion["labelText"] = "Geschaeftszeichen"
+
+        def with_variant(variant_id, dpi, mutate):
+            payload = build_run(
+                self.ground_truth, evidence_class="EMULATOR",
+                variant=variant_id, mutate=mutate,
+            )
+            payload["variants"][0]["raster"] = {"source": "test", "dpi": dpi}
+            return payload
+
+        reference = with_variant("clean-200dpi", 200, None)
+        for variant, dpi, expected_comparable in (
+            ("clean-150dpi", 150, False),
+            ("clean-300dpi", 300, False),
+        ):
+            with self.subTest(variant=variant):
+                payload = json.loads(json.dumps(reference))
+                payload["variants"].append(
+                    with_variant(variant, dpi, relabel)["variants"][0]
+                )
+                run = self.write_run(f"{variant}.json", payload)
+                result, report = self.score(run)
+                variants = {v["id"]: v for v in report["variants"]}
+                semantic = variants[variant]["semantic"]
+                self.assertEqual(semantic["nonVerbatimLabels"], 0)
+                self.assertEqual(semantic["nonVerbatimNotComparable"], 1)
+                reasons = variants[variant].get("statusReasons") or []
+                self.assertFalse(
+                    any("verbatim" in reason for reason in reasons),
+                    f"unexpected verbatim reason for {variant}: {reasons}",
+                )
+
     def test_unknown_suite_is_rejected(self):
         payload = build_run(self.ground_truth)
         payload["suiteId"] = "de-ocr-9.9.9"

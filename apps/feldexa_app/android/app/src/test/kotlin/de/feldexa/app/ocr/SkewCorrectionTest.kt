@@ -121,4 +121,50 @@ class SkewCorrectionTest {
         assertTrue(mapped.bottom - mapped.top >= offCentre.bottom - offCentre.top)
         assertTrue(mapped.left <= offCentre.left || mapped.right >= offCentre.right)
     }
+
+    @Test
+    fun mapRectBackInvertsTheDeskewRotation() {
+        // Review A1: the mapped rectangle must land back on the ORIGINAL
+        // position of the content. `rotate(gray, correction)` moves content to
+        // `c + R(-correction) * (p - c)`, so a box around that deskewed position
+        // must map back to `p`.
+        val width = 400
+        val height = 600
+        val correction = 3.0
+        val centreX = (width - 1) / 2.0
+        val centreY = (height - 1) / 2.0
+        val originalX = 300.0
+        val originalY = 100.0
+        val radians = Math.toRadians(-correction)
+        val dx = originalX - centreX
+        val dy = originalY - centreY
+        val deskewedX = centreX + dx * Math.cos(radians) - dy * Math.sin(radians)
+        val deskewedY = centreY + dx * Math.sin(radians) + dy * Math.cos(radians)
+        val box = OcrRasterRect(
+            (deskewedX - 5).toInt(),
+            (deskewedY - 3).toInt(),
+            (deskewedX + 5).toInt(),
+            (deskewedY + 3).toInt(),
+        )
+        val mapped = SkewCorrection.mapRectBack(box, width, height, correction)
+        val mappedX = (mapped.left + mapped.right) / 2.0
+        val mappedY = (mapped.top + mapped.bottom) / 2.0
+        assertTrue(
+            "expected the original centre ($originalX, $originalY), got ($mappedX, $mappedY)",
+            abs(mappedX - originalX) <= 2.0 && abs(mappedY - originalY) <= 2.0,
+        )
+    }
+
+    @Test
+    fun mapRectBackClampsToTheRasterBounds() {
+        val width = 400
+        val height = 600
+        val corner = OcrRasterRect(0, 0, 20, 20)
+        val mapped = SkewCorrection.mapRectBack(corner, width, height, 3.0)
+        assertTrue("left=${mapped.left}", mapped.left >= 0)
+        assertTrue("top=${mapped.top}", mapped.top >= 0)
+        assertTrue("right=${mapped.right}", mapped.right <= width)
+        assertTrue("bottom=${mapped.bottom}", mapped.bottom <= height)
+        assertTrue(mapped.right > mapped.left && mapped.bottom > mapped.top)
+    }
 }

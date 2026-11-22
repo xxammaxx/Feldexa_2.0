@@ -429,6 +429,15 @@ final class _RecordedSuggestion {
   final bool hasKeywordCue;
 }
 
+/// Raster DPI the production analysis pipeline renders for geometry and OCR.
+///
+/// The run record's `lines` come from the test's own OCR call, which uses the
+/// variant's capture DPI. Label verbatimness can only be judged against the OCR
+/// text of the *same* raster the analysis recognised, so it is evaluated only
+/// for variants captured at this DPI and classified as not comparable
+/// otherwise (T263 review B4).
+const int analysisRasterDpi = 200;
+
 final class _RunVariant {
   const _RunVariant({
     required this.id,
@@ -1134,6 +1143,7 @@ final class _SemanticScore {
     required this.unresolvedLabels,
     required this.forcedTypeViolations,
     required this.nonVerbatimLabels,
+    required this.nonVerbatimNotComparable,
     required this.autoResolvedSuggestions,
     required this.meanFieldIoU,
     required this.meanLabelIoU,
@@ -1149,6 +1159,7 @@ final class _SemanticScore {
   final int unresolvedLabels;
   final int forcedTypeViolations;
   final int nonVerbatimLabels;
+  final int nonVerbatimNotComparable;
   final int autoResolvedSuggestions;
   final double meanFieldIoU;
   final double meanLabelIoU;
@@ -1178,6 +1189,7 @@ _SemanticScore _scoreSemantic(
     for (final _OcrLine line in variant.lines) line.text.trim(),
   };
   int nonVerbatimLabels = 0;
+  int nonVerbatimNotComparable = 0;
 
   for (final _GtField field in groundTruth.fields) {
     _RecordedSuggestion? best;
@@ -1247,7 +1259,19 @@ _SemanticScore _scoreSemantic(
     if (observedLabel != null &&
         !ocrLineTexts.contains(observedLabel.trim()) &&
         !_isPrefixOfAnyLine(observedLabel.trim(), ocrLineTexts)) {
-      nonVerbatimLabels++;
+      // Whitespace-only differences are already excluded above (both sides are
+      // trimmed), so a remaining difference is either a different OCR call or a
+      // real content rewrite. It can only be judged against the recorded OCR
+      // text of the raster the analysis itself recognised; for a variant
+      // captured at another DPI the two recognitions see different pixels.
+      final Object? rasterDpi = variant.raster['dpi'];
+      final bool comparable =
+          rasterDpi is num && rasterDpi.round() == analysisRasterDpi;
+      if (comparable) {
+        nonVerbatimLabels++;
+      } else {
+        nonVerbatimNotComparable++;
+      }
     }
     results.add(
       _FieldResult(
@@ -1293,6 +1317,7 @@ _SemanticScore _scoreSemantic(
     unresolvedLabels: unresolvedLabels,
     forcedTypeViolations: forcedTypeViolations,
     nonVerbatimLabels: nonVerbatimLabels,
+    nonVerbatimNotComparable: nonVerbatimNotComparable,
     autoResolvedSuggestions: autoResolved,
     meanFieldIoU: groundTruth.fields.isEmpty
         ? 0
@@ -1508,6 +1533,7 @@ final class _VariantResult {
               'meanLabelIoU': _round(semantics.meanLabelIoU),
               'forcedTypeViolations': semantics.forcedTypeViolations,
               'nonVerbatimLabels': semantics.nonVerbatimLabels,
+              'nonVerbatimNotComparable': semantics.nonVerbatimNotComparable,
               'autoResolvedSuggestions': semantics.autoResolvedSuggestions,
               'fields': <Object>[
                 for (final _FieldResult result in semantics.results)
@@ -1663,7 +1689,9 @@ final class _Report {
           '${groundTruth.fields.length} fields with a matching label, '
           '${semantics.unresolvedLabels} unresolved label(s), '
           '${semantics.forcedTypeViolations} forced-type violation(s), '
-          '${semantics.nonVerbatimLabels} non-verbatim label(s), '
+          '${semantics.nonVerbatimLabels} non-verbatim label(s) '
+          '(${semantics.nonVerbatimNotComparable} not comparable: recorded OCR '
+          'raster differs from the analysis raster), '
           '${semantics.autoResolvedSuggestions} auto-resolved suggestion(s).',
         );
       }
@@ -1709,8 +1737,7 @@ bool _isDeviceEvidence(String evidenceClass) => evidenceClass == 'EMULATOR';
 /// scan variants. The two are still reported apart: `deviceEvidence` stays
 /// clean-path-only, and every variant keeps its own evidence class.
 bool _isOnDevice(String evidenceClass) =>
-    evidenceClass == 'EMULATOR' ||
-    evidenceClass == 'EMULATOR_INJECTED_RASTER';
+    evidenceClass == 'EMULATOR' || evidenceClass == 'EMULATOR_INJECTED_RASTER';
 
 _Report _score({
   required _GroundTruth groundTruth,

@@ -128,6 +128,12 @@ const double _maxLabelDistanceSquared =
 /// Minimum OCR confidence for a label observation to be credible.
 const double _minLabelConfidence = 0.5;
 
+/// Tolerance in points for the label-to-candidate left/right direction.
+const double _rowDirectionTolerancePt = 2.0;
+
+/// Minimum share of the shorter box that must overlap for a same-row label.
+const double _minRowOverlapFraction = 0.5;
+
 /// Single-line height factor from `recognition-output.md` §3.2.
 const double _multilineHeightFactor = 2.2;
 
@@ -433,16 +439,22 @@ final class TypeInference {
     return credible;
   }
 
-  /// True when [label] is printed on the candidate's own row and outside it.
+  /// True when [label] is printed on the candidate's own row, to its left.
   ///
   /// `contracts/recognition-output.md` §3.1 defines the cue
   /// `ocr_alignment_right` as "the candidate is to the right of an OCR label
-  /// line". A left label is therefore associated by layout: the two vertical
-  /// spans overlap, and the label is not printed inside the candidate region.
-  /// The horizontal gap is deliberately not distance-capped here, because a
-  /// short label in a fixed label column leaves a wide empty gap that says
-  /// nothing about the association; the same-row relation does.
+  /// line". A left label is therefore associated by layout only when that
+  /// direction holds (the label's right edge is at or before the candidate's
+  /// left edge, within the layout tolerance) and the two rows really overlap:
+  /// at least half of the shorter box, so a one-point sliver at the top of a
+  /// candidate never counts. The horizontal gap itself is not distance-capped,
+  /// because a short label in a fixed label column leaves a wide empty gap that
+  /// says nothing about the association.
   static bool _sharesRow(DisplayRect label, DisplayRect candidate) {
+    final double labelRight = label.x + label.width;
+    if (labelRight > candidate.x + _rowDirectionTolerancePt) {
+      return false;
+    }
     final double labelBottom = label.y + label.height;
     final double candidateBottom = candidate.y + candidate.height;
     final double verticalOverlap = _overlap(
@@ -451,7 +463,9 @@ final class TypeInference {
       candidate.y,
       candidateBottom,
     );
-    if (verticalOverlap <= _epsilon) {
+    final double shorterHeight = math.min(label.height, candidate.height);
+    if (shorterHeight <= 0 ||
+        verticalOverlap < _minRowOverlapFraction * shorterHeight - _epsilon) {
       return false;
     }
     // A line printed mostly inside the candidate is printed content of that

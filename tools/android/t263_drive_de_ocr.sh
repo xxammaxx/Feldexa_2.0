@@ -298,7 +298,7 @@ HOST_FIXTURE_SHA="$(sha256sum "$FIXTURE_PDF" | awk '{print $1}')"
 [[ "$DEVICE_FIXTURE_SHA" == "$GT_SHA" ]] ||
   fail "device fixture sha256 $DEVICE_FIXTURE_SHA != ground truth $GT_SHA"
 {
-  log "ground_truth_sha256=$GT_SHA"
+  log "fixture_pdf_sha256=$GT_SHA"
   log "host_fixture_sha256=$HOST_FIXTURE_SHA"
   log "device_fixture_sha256=$DEVICE_FIXTURE_SHA"
   log "device_ground_truth_sha256=$(adb_shell sha256sum "$STAGING/reference-de.ground-truth.json" | awk '{print $1}')"

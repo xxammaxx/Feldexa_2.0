@@ -188,7 +188,9 @@ internal object SkewCorrection {
         correction: Double,
     ): OcrRasterRect {
         if (abs(correction) < 1e-9) return rect
-        val radians = Math.toRadians(-correction)
+        // `rotate` moves content by R(-degrees) (destination-to-source), so the
+        // deskewed frame maps back into the original frame with R(+correction).
+        val radians = Math.toRadians(correction)
         val cosA = cos(radians)
         val sinA = sin(radians)
         val centreX = (width - 1) / 2.0
@@ -213,11 +215,13 @@ internal object SkewCorrection {
             minY = min(minY, ry)
             maxY = max(maxY, ry)
         }
+        // Rotated corners of an edge rectangle leave the raster; the OCR
+        // contract keeps every box inside the page.
         return OcrRasterRect(
-            left = floor(minX).toInt(),
-            top = floor(minY).toInt(),
-            right = ceil(maxX).toInt(),
-            bottom = ceil(maxY).toInt(),
+            left = floor(minX).toInt().coerceIn(0, width),
+            top = floor(minY).toInt().coerceIn(0, height),
+            right = ceil(maxX).toInt().coerceIn(0, width),
+            bottom = ceil(maxY).toInt().coerceIn(0, height),
         )
     }
 

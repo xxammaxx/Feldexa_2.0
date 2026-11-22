@@ -1030,4 +1030,65 @@ void main() {
       });
     },
   );
+
+  group('T263 correction-3 — label direction, overlap and tall rows', () {
+    // Review A2: `_sharesRow` accepted any label with any vertical overlap and
+    // outside the candidate, regardless of side. The documented
+    // `ocr_alignment_right` cue requires the candidate to be to the RIGHT of the
+    // label line, with a meaningful vertical overlap of the row.
+
+    test('a right-side value line is not the left label', () {
+      // The right-side value is closer (10 pt) than the printed left label, but
+      // the documented direction makes only the left line the field's label.
+      final TypeInferenceResult result = _infer(
+        candidate: _candidate(rect: _rect(190, 150, 120, 18)),
+        pageWidthPt: 600,
+        pageHeightPt: 900,
+        labels: <LabelObservation>[
+          _label('320,00', x: 320, y: 152, width: 40, height: 12),
+          _label(
+            'Straße und Hausnummer',
+            x: 56.7,
+            y: 152,
+            width: 119.3,
+            height: 12,
+          ),
+        ],
+      );
+      expect(result.labelText, 'Straße und Hausnummer');
+      expect(result.addedCues, contains('ocr_alignment_right'));
+    });
+
+    test('a one-point top sliver is not a row overlap', () {
+      final TypeInferenceResult result = _infer(
+        candidate: _candidate(rect: _rect(190, 150, 120, 18)),
+        pageWidthPt: 600,
+        pageHeightPt: 900,
+        // Only one point of vertical overlap: a sliver, not a shared row.
+        labels: <LabelObservation>[
+          _label('Straße', x: 56.7, y: 139, width: 60, height: 12),
+        ],
+      );
+      expect(result.labelText, isNull);
+    });
+
+    test('a left label of a tall multiline candidate is associated', () {
+      final TypeInferenceResult result = _infer(
+        candidate: _candidate(rect: _rect(190, 540, 300, 66)),
+        pageWidthPt: 600,
+        pageHeightPt: 900,
+        labels: <LabelObservation>[
+          _label(
+            'Erklärung und Äußerung',
+            x: 56.7,
+            y: 542,
+            width: 116.7,
+            height: 12,
+          ),
+        ],
+      );
+      expect(result.labelText, 'Erklärung und Äußerung');
+      expect(result.addedCues, contains('ocr_alignment_right'));
+    });
+  });
 }
