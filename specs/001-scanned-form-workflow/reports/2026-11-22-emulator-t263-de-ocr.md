@@ -315,12 +315,14 @@ Gradle daemon was stopped afterwards.
 | `clean-300dpi` | `EMULATOR` | 2.27 % → 2.27 % | 92.31 % → 92.31 % | 0.00 % → 69.23 % | 15.38 % → 15.38 % | 8 → 1 | FAIL → FAIL |
 | `scan-150dpi-low-contrast` | `EMULATOR_INJECTED_RASTER` | 2.21 % → 2.21 % | 96.15 % → 96.15 % | 7.69 % → 84.62 % | 69.23 % → 69.23 % | 8 → 1 | PASS → PASS |
 | `scan-200dpi-shadow` | `EMULATOR_INJECTED_RASTER` | 2.63 % → 2.63 % | 92.31 % → 92.31 % | 7.69 % → 84.62 % | 15.38 % → 15.38 % | 8 → 1 | PASS → PASS |
-| `scan-200dpi-skew-3deg` | `EMULATOR_INJECTED_RASTER` | 48.48 % → **15.42 %** | 68.27 % → **87.50 %** | 0.00 % → 0.00 % | 0.00 % → **100.00 %** | 0 → 0 | FAIL → **PASS** |
+| `scan-200dpi-skew-3deg` (⚠ superseded by §5.9 — double-rotation artifact) | `EMULATOR_INJECTED_RASTER` | 48.48 % → **15.42 %** (superseded by §5.9: 2.33 %) | 68.27 % → **87.50 %** (superseded: 92.31 %) | 0.00 % → 0.00 % | 0.00 % → **100.00 %** | 0 → 0 | FAIL → **PASS** (superseded by §5.9) |
 | `scan-200dpi-jpeg-q35` | `EMULATOR_INJECTED_RASTER` | 2.27 % → 2.27 % | 93.27 % → 93.27 % | 7.69 % → 84.62 % | 15.38 % → 15.38 % | 8 → 1 | PASS → PASS |
 
 The deskew fixes the skew case (CER 48.48 % → 15.42 %, special recall 68.27 % →
 87.50 %, now inside the pre-declared ceiling 20 % / floor 60 %) and changes
-nothing on upright pages. The label/type fix from correction-1 is now measured
+nothing on upright pages. **Those 15.42 % / 87.50 % values are superseded by
+§5.9 (§5.9: 51/51 associations, CER 2.33 %, special recall 92.31 %): they came
+from the forward-mapped rectangle artifact that correction-3 removed.** The label/type fix from correction-1 is now measured
 on device: label accuracy 0.00 % → 69.23 % on the clean variants and 7.69 % →
 84.62 % on the degraded ones, unresolved labels 8 → 1. Field precision/recall,
 CER and special-character recall on the clean variants are unchanged, because
@@ -434,6 +436,15 @@ are the current skew numbers; the upright-annotation run's 0.37 % / 7.69 %
 figure is evidence of a broad semantic improvement: field matching uses
 axis-aligned IoU, which degrades under a rotated capture frame.
 
+**Authoritative artifact.** The current frame-correct metrics report is committed
+twice by design: `artifacts/2026-11-22-t263-emulator-c4/` is the authoritative
+report directory (generated with the frame-correct scorer from the byte-unchanged
+c3 raw run files, `t263-report.json` carrying
+`groundTruthTransform: {skewDegrees: 3.0, annotationTransformed: true}`), and
+`artifacts/2026-11-22-t263-emulator-c3/` stays the source of record for the raw
+run files, device identity, APK and driver hashes and the pull logs. The two
+reports agree because they are generated from the same raw bytes.
+
 **Remaining FAILs.**
 
 - `clean-200dpi` (reference): CER 2.33 % > 2.00 %, special recall 93.27 % <
@@ -465,6 +476,9 @@ axis-aligned IoU, which degrades under a rotated capture frame.
 | Artifact | Path | Bytes | SHA-256 |
 | --- | --- | ---: | --- |
 | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-report.md` | 12327 | `46c10989e4825a299be825e669d162601db7fd4e06f976ad49dc420465aa0d2d` |
+| Authoritative frame-correct report (c4, JSON) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c4/t263-report.json` | 100975 | `77f70d69221750a251e7a1572d881e1450fa332a23502210e9c43f31f4bfdff5` |
+| Authoritative frame-correct report (c4, Markdown) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c4/t263-report.md` | 12327 | `46c10989e4825a299be825e669d162601db7fd4e06f976ad49dc420465aa0d2d` |
+| c4 report provenance note | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c4/README.md` | 1866 | `c1e3216ddc43e05df03d9e4ed9fd2c7a4e9b5ae457990b775ddc3555e7efdada` |
 | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-report.json` | 100975 | `88123466bf4d438a9208fdd6b1939d22fa3dbd6e1139d6a2ceae4eaf40e01778` |
 | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-run-emulator.json` | 175100 | `d2524d1c7736fd9d33f90bff1f62688514f04108158e9c71077ae9855e3d00a2` |
 | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-run-injected.json` | 340591 | `44b9c043e30ff4898f5f34c706f5139ff991e62829bd7a978c54936b51c579d9` |
