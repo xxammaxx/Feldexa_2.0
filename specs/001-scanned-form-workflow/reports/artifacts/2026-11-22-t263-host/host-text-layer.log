@@ -1,0 +1,16 @@
+{"compute_slot": "QUEUED"}
+{"compute_slot": "ACQUIRED", "device": 50, "inode": 677616, "uid": 1000}
++ python3 tools/metrics/build_text_layer_run.py --pdf apps/feldexa_app/assets/fixtures/sf-005.pdf --ground-truth tools/corpus/de-ocr/reference-de.ground-truth.json --output specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-host/t263-text-layer-run.json
+wrote specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-host/t263-text-layer-run.json (42 lines)
++ dart run tools/metrics/de_ocr_qualification.dart --run specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-host/t263-text-layer-run.json --output specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-host/t263-text-layer-report.json --markdown specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-host/t263-text-layer-report.md
+wrote specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-host/t263-text-layer-report.json (overall verdict FAIL)
+wrote specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-host/t263-text-layer-report.md
+control text-layer (TEXT_LAYER): PASS CER 0.00%
+variant clean-200dpi (EMULATOR): NOT_RUN
+variant clean-150dpi (EMULATOR): NOT_RUN
+variant clean-300dpi (EMULATOR): NOT_RUN
+variant scan-150dpi-low-contrast (EMULATOR_INJECTED_RASTER): NOT_RUN
+variant scan-200dpi-shadow (EMULATOR_INJECTED_RASTER): NOT_RUN
+variant scan-200dpi-skew-3deg (EMULATOR_INJECTED_RASTER): NOT_RUN
+variant scan-200dpi-jpeg-q35 (EMULATOR_INJECTED_RASTER): NOT_RUN
+{"compute_slot": "SETTLED", "exit_code": 1}

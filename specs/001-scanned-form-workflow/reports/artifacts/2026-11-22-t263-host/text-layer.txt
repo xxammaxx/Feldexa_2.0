@@ -1,0 +1,73 @@
+MUSTERSTADT
+Musteramt für Bürgerdienste
+
+SYNTHETISCHES TESTDOKUMENT – kein amtliches Formular
+
+Zeichensatz- und Unicode-Referenz
+Deutsche Sonderzeichen, Währung, Einheiten und Behördenbegriffe.
+
+1. Grundzeichen (Groß- und Kleinschreibung)
+
+ÄÖÜäöüßẞ
+Ärger Öffnung Übung Äußerst
+ärger öffnung übung äußerst
+Straße Größe Äußerung
+2. Währung, Einheiten und Satzzeichen
+
+Gebühr: 12,50 € · Fläche: 45 m² · Raum: 7 m³
+„Deutsch“ – Gedankenstrich — Auslassung … § 5
+3. Behördenbegriffe
+Straße und Hausnummer
+Größe, Gebühr, Geschäftszeichen, Staatsangehörigkeit
+Überweisung, Erklärung, Anträge, Begründung
+Rückumschlag, Äußerung, Antragstellung, Bürgerdienste
+4. Frei erfundene Namen
+
+Jürgen Mühlbach, Bärbel Süßbier, Käthe Gröhnert, Matthäus Ölmüller
+MÜLLER-GRÄBER, SCHRÖDER-WEISS, BÄUERLE, ÖHMICHEN
+Zeichen: ẞ ß Ä Ö Ü ä ö ü € m² m³
+
+Hinweis: Dieses Dokument ist synthetisch und enthält keine realen Personendaten.
+Es dient ausschließlich der Entwicklung und Prüfung des Editors.
+
+Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten
+
+Seite 1 von 2
+
+MUSTERSTADT
+Musteramt für Bürgerdienste
+
+SYNTHETISCHES TESTDOKUMENT – kein amtliches Formular
+
+Bezeichnungen und Feldübernahme
+Deutsche Feldbezeichnungen mit Sonderzeichen für die Label-Übernahme.
+
+1. Felder mit deutschen Bezeichnungen
+Straße und Hausnummer
+Größe in cm
+Gebühr in €
+Geschäftszeichen
+Staatsangehörigkeit
+Überweisung an
+Anträge vom
+Familienname
+Vorname
+Geburtsdatum
+
+TT.MM.JJJJ
+
+2. Mehrzeilige Erklärung
+Erklärung und Äußerung
+
+3. Einverständnis und Unterschrift
+Einverständnis erteilt
+
+Unterschrift
+
+Beispiel: Müller-Gräber, Äußere Straße 12, 8 m²
+
+Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten
+
+Seite 2 von 2
+
+

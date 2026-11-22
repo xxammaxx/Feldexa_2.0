@@ -1,0 +1,17 @@
+{"compute_slot": "QUEUED"}
+{"compute_slot": "ACQUIRED", "device": 50, "inode": 677616, "uid": 1000}
+test_confusions_are_reported_and_never_repaired (tools.metrics.test_de_ocr_qualification.DeOcrQualificationTest.test_confusions_are_reported_and_never_repaired) ... ok
+test_forced_type_without_label_fails_the_variant (tools.metrics.test_de_ocr_qualification.DeOcrQualificationTest.test_forced_type_without_label_fails_the_variant) ... ok
+test_missing_label_keeps_uncertainty_and_is_not_a_pass (tools.metrics.test_de_ocr_qualification.DeOcrQualificationTest.test_missing_label_keeps_uncertainty_and_is_not_a_pass) ... ok
+test_perfect_emulator_run_scores_zero_cer (tools.metrics.test_de_ocr_qualification.DeOcrQualificationTest.test_perfect_emulator_run_scores_zero_cer) ... ok
+test_run_must_describe_the_annotated_bytes (tools.metrics.test_de_ocr_qualification.DeOcrQualificationTest.test_run_must_describe_the_annotated_bytes) ... ok
+test_simulated_run_never_satisfies_the_device_gate (tools.metrics.test_de_ocr_qualification.DeOcrQualificationTest.test_simulated_run_never_satisfies_the_device_gate) ... ok
+test_text_layer_is_a_control_path_only (tools.metrics.test_de_ocr_qualification.DeOcrQualificationTest.test_text_layer_is_a_control_path_only) ... ok
+test_unexecuted_variants_are_not_run_and_never_pass (tools.metrics.test_de_ocr_qualification.DeOcrQualificationTest.test_unexecuted_variants_are_not_run_and_never_pass) ... ok
+test_unknown_suite_is_rejected (tools.metrics.test_de_ocr_qualification.DeOcrQualificationTest.test_unknown_suite_is_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 7.435s
+
+OK
+{"compute_slot": "SETTLED", "exit_code": 0}
