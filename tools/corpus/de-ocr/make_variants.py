@@ -178,7 +178,17 @@ def shadow(width: int, height: int, pixels: bytearray) -> bytearray:
 
 
 def skew(width: int, height: int, pixels: bytearray, degrees: float = 3.0) -> bytearray:
-    """Rotates the content about the page centre with bilinear sampling."""
+    """Rotates the content about the page centre with bilinear sampling.
+
+    Every destination pixel samples its source pixel as
+    ``source = c + R(-degrees)(dest - c)`` with ``R(a) = [[cos a, -sin a],
+    [sin a, cos a]]`` and ``c`` the page centre. Equivalently the content itself
+    sits at ``dest = c + R(+degrees)(source - c)``, i.e. a positive ``degrees``
+    turns the content counter-clockwise in the screen frame. The T263 scorer
+    annotation transform and `test_de_ocr_qualification.rotate_about_page_centre`
+    use this same pair; a wrong sign there is caught by the transform
+    sensitivity test.
+    """
     radians = math.radians(degrees)
     cos_a = math.cos(radians)
     sin_a = math.sin(radians)

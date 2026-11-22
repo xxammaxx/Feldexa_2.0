@@ -83,8 +83,10 @@ def rotate_about_page_centre(ground_truth, page_index, x, y, degrees):
     """Maps a point from the upright page frame into the injected raster frame.
 
     Mirrors `tools/corpus/de-ocr/make_variants.py` `skew()`: the injector samples
-    `source = c + R(+degrees)(dest - c)`, so the recorded content sits at
-    `dest = c + R(-degrees)(source - c)`.
+    `source = c + R(-degrees)(dest - c)`, so the recorded content sits at
+    `dest = c + R(+degrees)(source - c)`. That is the pair the scorer's annotation
+    transform applies, and reversing it is exactly what the transform
+    sensitivity test must reject.
     """
     page = next(p for p in ground_truth["pages"] if p["index"] == page_index)
     centre_x = page["widthPt"] / 2.0
