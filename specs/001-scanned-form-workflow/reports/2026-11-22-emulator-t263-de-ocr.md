@@ -344,18 +344,18 @@ neither fix touches the raster of an upright page or the character model.
 
 | Artifact | Path | Bytes | SHA-256 |
 | --- | --- | ---: | --- |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/host-jvm-skew-red.log` | 22585 | `a6ace6f9e9a5ad33e9b1dc5ebb6f46a492578a4ecd7961e13f6d778dc47848b1` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/host-jvm-skew-green.log` | 17839 | `e29d478331dc199ad5774356280218d25759a743b83be5d630e7a0e1e816f73e` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/t263-report.md` | 11934 | `82be2bc9f7cee5b320c16b265b601202b22665baab98d48ffd9f149ff95badb4` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/t263-report.json` | 108234 | `a09f9fbddf19c007aba7fe0fa106b5cad437a91fadbc97b54c39dc07bb4ec709` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/t263-run-emulator.json` | 174866 | `2d1f38ca46dddcab7de7e911712c10ea7bbe03f78feea9a16b0c3b32ffd9227f` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/t263-run-injected.json` | 347991 | `e3dfff338d8d6427696fbbb77e635f89638df740a6fd9049164cebbdd8ecf0df` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/metrics-emulator.log` | 715 | `db0dbb65452fbb2a878be520516588c7dc23bf779866dac8c8d45eaf9f8e4c6f` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/marker-sequence.txt` | 530 | `624f5e7ca6678036b833855a174ca724caf4090cb7c0e901688f59cf39672441` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/device-identity.txt` | 298 | `265c299fe643739f0c63d2fc73f638d221a7aa9322b021641ab53bc0fedbbf56` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/git-identity.txt` | 771 | `04d83eddc026474edb84652c027589016ccd8caaadbbeb6f8e7406b82bf2893f` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/orca-emulator-devices.json` | 2151 | `3ac64d4e93ab2258fd006a98d9b4f60760f6bfd7b4fc17cfc372ee15ebbdbc79` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/orca-emulator-sessions.json` | 484 | `0040ae70cc95df319e96d81c87b7046d8a1f46dfa34a8a6e4e51a185ab783b25` |
+| `host-jvm-skew-red.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/host-jvm-skew-red.log` | 22585 | `a6ace6f9e9a5ad33e9b1dc5ebb6f46a492578a4ecd7961e13f6d778dc47848b1` |
+| `host-jvm-skew-green.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/host-jvm-skew-green.log` | 17839 | `e29d478331dc199ad5774356280218d25759a743b83be5d630e7a0e1e816f73e` |
+| `t263-report.md` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/t263-report.md` | 11934 | `82be2bc9f7cee5b320c16b265b601202b22665baab98d48ffd9f149ff95badb4` |
+| `t263-report.json` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/t263-report.json` | 108234 | `a09f9fbddf19c007aba7fe0fa106b5cad437a91fadbc97b54c39dc07bb4ec709` |
+| `t263-run-emulator.json` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/t263-run-emulator.json` | 174866 | `2d1f38ca46dddcab7de7e911712c10ea7bbe03f78feea9a16b0c3b32ffd9227f` |
+| `t263-run-injected.json` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/t263-run-injected.json` | 347991 | `e3dfff338d8d6427696fbbb77e635f89638df740a6fd9049164cebbdd8ecf0df` |
+| `metrics-emulator.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/metrics-emulator.log` | 715 | `db0dbb65452fbb2a878be520516588c7dc23bf779866dac8c8d45eaf9f8e4c6f` |
+| `marker-sequence.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/marker-sequence.txt` | 530 | `624f5e7ca6678036b833855a174ca724caf4090cb7c0e901688f59cf39672441` |
+| `device-identity.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/device-identity.txt` | 298 | `265c299fe643739f0c63d2fc73f638d221a7aa9322b021641ab53bc0fedbbf56` |
+| `git-identity.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/git-identity.txt` | 771 | `04d83eddc026474edb84652c027589016ccd8caaadbbeb6f8e7406b82bf2893f` |
+| `orca-emulator-devices.json` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/orca-emulator-devices.json` | 2151 | `3ac64d4e93ab2258fd006a98d9b4f60760f6bfd7b4fc17cfc372ee15ebbdbc79` |
+| `orca-emulator-sessions.json` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/orca-emulator-sessions.json` | 484 | `0040ae70cc95df319e96d81c87b7046d8a1f46dfa34a8a6e4e51a185ab783b25` |
 
 ### 5.9 T263 correction-3 — review fixes, post-fix run at a committed HEAD
 
@@ -414,7 +414,7 @@ candidate now agree.
 | `clean-300dpi` | 2.27 % → 2.27 % | 92.31 % → 92.31 % | 69.23 % → 76.92 % | FAIL → **PASS** |
 | `scan-150dpi-low-contrast` | 2.21 % → 2.21 % | 96.15 % → 96.15 % | 84.62 % → 92.31 % | PASS → PASS |
 | `scan-200dpi-shadow` | 2.63 % → 2.63 % | 92.31 % → 92.31 % | 84.62 % → 92.31 % | PASS → PASS |
-| `scan-200dpi-skew-3deg` | 43.51 % (upright annotation, non-comparable) | 62.50 % (same) | 0.00 % → 100 % (1/1) | FAIL → **PASS frame-correct** (51/51, CER 2.33 %; §5.9) |
+| `scan-200dpi-skew-3deg` | 43.51 % (upright annotation, non-comparable) | 62.50 % (same) | 0.00 % → 100 % (2/2 matched fields) | FAIL → **PASS frame-correct** (51/51, CER 2.33 %; §5.9) |
 | `scan-200dpi-jpeg-q35` | 2.27 % → 2.27 % | 93.27 % → 93.27 % | 84.62 % → 92.31 % | PASS → PASS |
 
 `clean-150dpi` and `clean-300dpi` now pass because their only FAIL reason was the
@@ -436,14 +436,21 @@ are the current skew numbers; the upright-annotation run's 0.37 % / 7.69 %
 figure is evidence of a broad semantic improvement: field matching uses
 axis-aligned IoU, which degrades under a rotated capture frame.
 
-**Authoritative artifact.** The current frame-correct metrics report is committed
-twice by design: `artifacts/2026-11-22-t263-emulator-c4/` is the authoritative
-report directory (generated with the frame-correct scorer from the byte-unchanged
-c3 raw run files, `t263-report.json` carrying
-`groundTruthTransform: {skewDegrees: 3.0, annotationTransformed: true}`), and
-`artifacts/2026-11-22-t263-emulator-c3/` stays the source of record for the raw
-run files, device identity, APK and driver hashes and the pull logs. The two
-reports agree because they are generated from the same raw bytes.
+**Frozen run report versus authoritative re-score.** `artifacts/2026-11-22-t263-emulator-c3/t263-report.{json,md}`
+is **frozen** at its run-time bytes (restored exactly to commit `871c1f9`: JSON
+113 927 B / SHA-256 `557e9155c9a76667d367506fe601e50d83117099bfcc8c0fb4831f9b7bc39300`,
+Markdown 12 623 B / SHA-256 `89dac4b69e7712d46973469ccc8ee5edb7c66e8b610cf33e3ee12e8adc4237a0`).
+It records `requireDeviceEvidence: true` and the skew variant as `FAIL` at
+CER 43.51 % with 30 of 51 lines associated — the state of the measurement at that
+commit. It is never overwritten by a re-score (README §1 freeze rule).
+`artifacts/2026-11-22-t263-emulator-c4/` is the **authoritative** frame-correct
+report: regenerated with `--require-device-evidence` from the byte-unchanged c3
+raw run files, `t263-report.json` carrying
+`groundTruthTransform: {skewDegrees: 3.0, annotationTransformed: true}` and
+`requireDeviceEvidence: true`, with the skew variant `PASS` at 51/51 and CER
+2.33 %. c3 remains the source of record for the raw run files, device identity,
+APK and driver hashes and the pull logs; c4 contains no device execution of its
+own.
 
 **Remaining FAILs.**
 
@@ -463,7 +470,7 @@ reports agree because they are generated from the same raw bytes.
   recall is 92.31 % vs 93.27 %, exact lines 38 vs 39, substitutions 20 vs 18,
   insertions 2 vs 4 and critical non-exact lines 8 vs 5. The variant is therefore
   frame-correctly inside its pre-declared ceilings (CER ≤ 20 %, special recall
-  ≥ 60 %), but it is not byte-identical to the reference read. The upright-annotation score of the same run
+  ≥ 60 %), but it is not equal to the reference read. The upright-annotation score of the same run
   (CER 43.51 %, 30/51 associations) is kept only as the explicitly
   **non-comparable** measurement. The transform is not a free pass: the Python
   regression test shows that no transform, the wrong sign and a doubled angle all
@@ -475,25 +482,25 @@ reports agree because they are generated from the same raw bytes.
 
 | Artifact | Path | Bytes | SHA-256 |
 | --- | --- | ---: | --- |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-report.md` | 12327 | `46c10989e4825a299be825e669d162601db7fd4e06f976ad49dc420465aa0d2d` |
-| Authoritative frame-correct report (c4, JSON) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c4/t263-report.json` | 100975 | `77f70d69221750a251e7a1572d881e1450fa332a23502210e9c43f31f4bfdff5` |
+| `t263-report.md` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-report.md` | 12327 | `46c10989e4825a299be825e669d162601db7fd4e06f976ad49dc420465aa0d2d` |
+| Authoritative frame-correct report (c4, JSON) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c4/t263-report.json` | 100974 | `bfbc2d7cba08b69f5728ddb0d821ef75f112b9467acd7f0b8be24e05794ceeca` |
 | Authoritative frame-correct report (c4, Markdown) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c4/t263-report.md` | 12327 | `46c10989e4825a299be825e669d162601db7fd4e06f976ad49dc420465aa0d2d` |
-| c4 report provenance note | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c4/README.md` | 1866 | `c1e3216ddc43e05df03d9e4ed9fd2c7a4e9b5ae457990b775ddc3555e7efdada` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-report.json` | 100975 | `88123466bf4d438a9208fdd6b1939d22fa3dbd6e1139d6a2ceae4eaf40e01778` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-run-emulator.json` | 175100 | `d2524d1c7736fd9d33f90bff1f62688514f04108158e9c71077ae9855e3d00a2` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-run-injected.json` | 340591 | `44b9c043e30ff4898f5f34c706f5139ff991e62829bd7a978c54936b51c579d9` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/metrics-emulator.log` | 715 | `39892a0723814ece4aa8806e4edafefd02839880e8d1879860f3f0fec63b2214` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/marker-sequence.txt` | 427 | `b7fcf8569dd7639d64af7724dc7caee446e3c2d9ddbdc1584f4f9fcc6e269628` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/device-identity.txt` | 298 | `265c299fe643739f0c63d2fc73f638d221a7aa9322b021641ab53bc0fedbbf56` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/git-identity.txt` | 511 | `4554517f936e812199d77297b1b448c93219879157100c1ceea68b59fced091a` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/apk-sha256.txt` | 183 | `3eac809d8cb7e0fcd117abf48a4db27d573cfa76a7a569d4855fdb9cbc2824dd` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/fixture-sha256.txt` | 541 | `ccafa20140f8d65b59d9211cdac94dd7fe9797df72b9741f19fdb591887bfcf3` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/orca-emulator-devices.json` | 1898 | `63957772a64a08729e50223ad4c2becc9af92f01c728a62c1f8d8adaa6b68398` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/orca-emulator-sessions.json` | 484 | `394a10428f8261ce3767e08f158587d67cc26fb5988d1e77b77171ce69b65b16` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/host-jvm-mapback-red.log` | 21983 | `66bd23960b2a5f886d7fd5055180ffba43c463bb762a3f734ca51ecb443436e4` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/host-jvm-mapback-green.log` | 17692 | `e1e936354782787717abcda000a11e45dc36d217fc66b27e899c7fa002e0b62d` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/host-dart-label-direction-red.log` | 7229 | `c78cf04b2f81d62e03ddee361ee684e88e32dadf14f9914c37dacaca1a6c88b1` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/host-dart-label-direction-green.log` | 5875 | `4ec0c71009b98c6a444a76008233be3998c8f79ed09ab503c60b92090ff70037` |
+| c4 report provenance note | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c4/README.md` | 2245 | `a364a75388507acab266668b8b98e165a8d2173a01fc0e4f04d64552150475c8` |
+| `t263-report.json` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-report.json` | 100975 | `88123466bf4d438a9208fdd6b1939d22fa3dbd6e1139d6a2ceae4eaf40e01778` |
+| `t263-run-emulator.json` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-run-emulator.json` | 175100 | `d2524d1c7736fd9d33f90bff1f62688514f04108158e9c71077ae9855e3d00a2` |
+| `t263-run-injected.json` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-run-injected.json` | 340591 | `44b9c043e30ff4898f5f34c706f5139ff991e62829bd7a978c54936b51c579d9` |
+| `metrics-emulator.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/metrics-emulator.log` | 715 | `39892a0723814ece4aa8806e4edafefd02839880e8d1879860f3f0fec63b2214` |
+| `marker-sequence.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/marker-sequence.txt` | 427 | `b7fcf8569dd7639d64af7724dc7caee446e3c2d9ddbdc1584f4f9fcc6e269628` |
+| `device-identity.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/device-identity.txt` | 298 | `265c299fe643739f0c63d2fc73f638d221a7aa9322b021641ab53bc0fedbbf56` |
+| `git-identity.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/git-identity.txt` | 511 | `4554517f936e812199d77297b1b448c93219879157100c1ceea68b59fced091a` |
+| `apk-sha256.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/apk-sha256.txt` | 183 | `3eac809d8cb7e0fcd117abf48a4db27d573cfa76a7a569d4855fdb9cbc2824dd` |
+| `fixture-sha256.txt` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/fixture-sha256.txt` | 541 | `ccafa20140f8d65b59d9211cdac94dd7fe9797df72b9741f19fdb591887bfcf3` |
+| `orca-emulator-devices.json` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/orca-emulator-devices.json` | 1898 | `63957772a64a08729e50223ad4c2becc9af92f01c728a62c1f8d8adaa6b68398` |
+| `orca-emulator-sessions.json` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/orca-emulator-sessions.json` | 484 | `394a10428f8261ce3767e08f158587d67cc26fb5988d1e77b77171ce69b65b16` |
+| `host-jvm-mapback-red.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/host-jvm-mapback-red.log` | 21983 | `66bd23960b2a5f886d7fd5055180ffba43c463bb762a3f734ca51ecb443436e4` |
+| `host-jvm-mapback-green.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/host-jvm-mapback-green.log` | 17692 | `e1e936354782787717abcda000a11e45dc36d217fc66b27e899c7fa002e0b62d` |
+| `host-dart-label-direction-red.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/host-dart-label-direction-red.log` | 7229 | `c78cf04b2f81d62e03ddee361ee684e88e32dadf14f9914c37dacaca1a6c88b1` |
+| `host-dart-label-direction-green.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/host-dart-label-direction-green.log` | 5875 | `4ec0c71009b98c6a444a76008233be3998c8f79ed09ab503c60b92090ff70037` |
 
 ## 6. Performance
 
@@ -514,10 +521,13 @@ No performance claim.
   `AnalyzeDocument` always analyses its own fixed 200 DPI raster.
 - `scan-200dpi-skew-3deg` is a declared degradation, not a product failure. Its
   **pre-fix** CER 48.48 % (commit `40a4260`, no deskew stage) is superseded: the
-  frame-correct score of the correction-3 run is 51/51 associated lines at
-  CER 2.33 % with special-character recall 92.31 % — identical to the reference
-  capture (§5.9). The upright-annotation score of that same run (43.51 %) is
-  reported only as the explicitly non-comparable measurement.
+  frame-correct score of the same raw run (§5.9) is 51/51 associated lines at
+  CER 2.33 % with special-character recall 92.31 %. That is a precise comparison,
+  not an equivalence: association 51/51 = 51/51 and CER 2.33 % = 2.33 % match,
+  while special recall is 92.31 % vs 93.27 %, exact lines 38 vs 39, substitutions
+  20 vs 18, insertions 2 vs 4 and critical non-exact lines 8 vs 5. The
+  upright-annotation score of that same run (43.51 %) is reported only as the
+  explicitly non-comparable measurement.
 - The semantic label/type weakness in §5.4 **was** addressed here: the
   `type_inference.dart` label-association fix (same-row label, documented
   `ocr_alignment_right` direction) landed and lifted label accuracy from 0.00 %
@@ -552,6 +562,13 @@ evidence, or device identity changed.
 
 | Artifact | Path | Bytes | SHA-256 |
 | --- | --- | ---: | --- |
+| Frozen run report (c3, JSON) - never overwritten by a re-score | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-report.json` | 113927 | `557e9155c9a76667d367506fe601e50d83117099bfcc8c0fb4831f9b7bc39300` |
+| Frozen run report (c3, Markdown) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-report.md` | 12623 | `89dac4b69e7712d46973469ccc8ee5edb7c66e8b610cf33e3ee12e8adc4237a0` |
+| Frozen raw run file (c3, EMULATOR) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-run-emulator.json` | 175100 | `d2524d1c7736fd9d33f90bff1f62688514f04108158e9c71077ae9855e3d00a2` |
+| Frozen raw run file (c3, EMULATOR_INJECTED_RASTER) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-run-injected.json` | 340591 | `44b9c043e30ff4898f5f34c706f5139ff991e62829bd7a978c54936b51c579d9` |
+| Authoritative frame-correct re-score (c4, JSON) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c4/t263-report.json` | 100974 | `bfbc2d7cba08b69f5728ddb0d821ef75f112b9467acd7f0b8be24e05794ceeca` |
+| Authoritative frame-correct re-score (c4, Markdown) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c4/t263-report.md` | 12327 | `46c10989e4825a299be825e669d162601db7fd4e06f976ad49dc420465aa0d2d` |
+| c4 provenance note (links the c3 raw runs) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c4/README.md` | 2245 | `a364a75388507acab266668b8b98e165a8d2173a01fc0e4f04d64552150475c8` |
 | Driver marker sequence | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator/marker-sequence.txt` | 427 | `683f3a8bc9e525669219e618ef276d07a8bbb194f1b845e334a06bf46b3d3cfa` |
 | Integration test log (content-free markers) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator/integration-android-t263.log` | 3009 | `673bfbae661d968b0f67be2dccf608f5abe63ef983a1ec4bd4004f84d2de6ff0` |
 | Device identity | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator/device-identity.txt` | 298 | `265c299fe643739f0c63d2fc73f638d221a7aa9322b021641ab53bc0fedbbf56` |

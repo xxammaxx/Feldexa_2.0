@@ -3,7 +3,7 @@
   "suiteId": "de-ocr-1.0.0",
   "fixtureId": "sf-005",
   "fixtureSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
-  "generatedAtUtc": "2026-11-22T18:21:51.404708Z",
+  "generatedAtUtc": "2026-11-22T18:32:52.580968Z",
   "metricDefinitionVersion": "metric-definition.v1",
   "rawComparisonNormalization": "none",
   "groundTruthTransform": {
@@ -11,7 +11,7 @@
     "overrideDegrees": null,
     "note": "a variant whose raster records a known skew injection (for example \"skew-3deg\") is scored with its annotation rotated into the input-raster frame; only line/field geometry moves, never text; upright variants keep the upright annotation"
   },
-  "requireDeviceEvidence": false,
+  "requireDeviceEvidence": true,
   "overallVerdict": "FAIL",
   "overallReasons": [
     "reference variant clean-200dpi is FAIL: CER 2.33% exceeds the pre-declared ceiling 2.00%; special-character recall 93.27% is below the pre-declared floor 100.00%; 5 critical line(s) are not exactly recognised; 1 reference field(s) have no credible label; uncertainty is kept instead of forcing a type; label accuracy 76.92% on the reference variant is not 100 %"
