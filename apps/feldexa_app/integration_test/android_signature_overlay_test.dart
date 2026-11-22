@@ -947,16 +947,36 @@ void main() {
         .firstWhere(
           (core.ConfirmedField field) => field.id == signatureFieldId,
         );
+    // The reopened route starts at fit-width with the page top in view, so the
+    // signed field (74 % down the page) must be centred before it can be tapped.
+    await _setScaleOnPoint(
+      tester,
+      reopened,
+      0,
+      Offset(
+        reopenedSignature.rect.left + reopenedSignature.rect.width / 2,
+        reopenedSignature.rect.top + reopenedSignature.rect.height / 2,
+      ),
+      1,
+    );
     await tester.tapAt(_screenPoint(tester, reopened, reopenedSignature));
     await _pumpUntil(
       tester,
-      () =>
-          find.byKey(fieldValueSheetKey).evaluate().isNotEmpty &&
-          find.text(_de.a11ySignatureSigned).evaluate().isNotEmpty,
+      () => find.byKey(fieldValueSheetKey).evaluate().isNotEmpty,
       timeout: const Duration(seconds: 120),
-      reason: 'the reopened sheet did not show the signed state',
+      reason: 'the reopened value sheet did not open for the signed field',
     );
     await tester.pumpAndSettle();
+    expect(
+      find.text(_de.a11ySignatureSigned),
+      findsOneWidget,
+      reason: 'the reopened sheet must show the signed state from the store',
+    );
+    expect(
+      find.text(_de.a11ySignatureUnsigned),
+      findsNothing,
+      reason: 'a signed field must never be shown as unsigned',
+    );
     await _waitForDriver('signature-reopened');
     await _closeValueSheet(tester);
     _marker('CLEANUP_DONE');
