@@ -178,9 +178,10 @@ at 420 dpi). Journey:
    existing `addField` command and one verified revision (documented detector
    gap, see §5);
 4. reopen the stored document from the start list (analysis skipped from the
-   persisted suggestions), confirm one real machine suggestion, select it, and
-   move/resize on the real page with one verified revision per gesture and no
-   write while the pointer is held;
+   persisted suggestions), confirm one real machine suggestion and select it;
+   then move/resize the seeded confirmed signature field on the real page. The
+   emulator asserts a changed head after each gesture and no write while the
+   pointer is held; the exact one-save count is host-proven, not emulator-proven;
 5. open the signature sheet from the confirmed field, draw two strokes, undo,
    clear, draw again, apply; the editor writes the PNG asset, then one revision
    with the value and the mark;
@@ -364,8 +365,8 @@ comment-only change in host test tooling and changes no driver behavior.
 ### 7.2 Report accuracy corrections
 
 1. `host_counts.app_field_controls_signature_group` is **3** (the `signature
-   control` group in `field_controls_test.dart`), not 4; the 4 came from counting
-   the type groups instead of the tests.
+   control` group in `field_controls_test.dart`), not 4; the earlier 4 was a
+   miscount.
 2. The clear action's „Ablehnen“ wording is a trash-`IconButton` tooltip plus
    accessibility label (`Icons.delete_outline`), so it is **not** visible as text
    in `signature-sheet.png` (§1.2, §3).
@@ -402,6 +403,11 @@ focused application run apply_signature_test.dart → 10/10 (focused seven-file 
 app analyze             No issues found!
 git diff --check        exit 0
 ```
+
+The front-matter host counts (app 546/546, application 187/187, format 115
+files) are the `f72e9b9` candidate gates. Correction-1 did not rerun the full
+suites; it reran the focused gates listed above plus app analyze and
+`git diff --check`.
 
 `tools/evaluation/validate_report.dart` does not cover this report: it validates
 the `YYYY-MM-DD--<slug>.md` class-run template, and this hand-written T086A
