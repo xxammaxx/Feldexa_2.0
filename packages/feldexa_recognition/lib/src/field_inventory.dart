@@ -58,7 +58,9 @@
 // both cue sets and the larger measured ink coverage. Near-duplicates below
 // that threshold are never collapsed; they are reported as `overlapping` or
 // `nested` relations so a reviewer sees them. No field is dropped to reach a
-// count.
+// count. The collapse runs on unclassified slots, so there is no
+// structural-region exemption in it: roles (including the decorative-frame and
+// print-margin exclusions) are assigned after the collapse, by `_classify`.
 //
 // Explicit non-fields:
 //  * a region wholly inside a `printMarginPt` band of a page edge is a print
@@ -925,11 +927,9 @@ final class FieldInventoryBuilder {
     for (final _Slot slot in slots) {
       _Slot? representative;
       for (final _Slot candidate in kept) {
-        if (!candidate.isStructural && !slot.isStructural) {
-          if (iou(candidate.rect, slot.rect) >= config.nearDuplicateIou) {
-            representative = candidate;
-            break;
-          }
+        if (iou(candidate.rect, slot.rect) >= config.nearDuplicateIou) {
+          representative = candidate;
+          break;
         }
       }
       if (representative == null) {

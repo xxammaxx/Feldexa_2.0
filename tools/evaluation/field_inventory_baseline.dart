@@ -53,8 +53,10 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:feldexa_recognition/src/field_inventory.dart';
 import 'package:feldexa_recognition/src/geometry_detector.dart';
 import 'package:feldexa_recognition/src/photometric_quality.dart';
@@ -64,6 +66,20 @@ import 'package:feldexa_recognition/src/type_inference.dart';
 
 const int _schemaVersion = 1;
 const String _corpusId = 'field-inventory-synthetic-v1';
+
+/// Why a kind has no corpus instance. A zero-count row must never be silent.
+const Map<FieldInventoryKind, String> _kindAbsenceReasons =
+    <FieldInventoryKind, String>{
+      FieldInventoryKind.signature:
+          'No detector cue produces `signature_area` on this corpus, so no '
+          'signature ground truth is declared and no signature recall is '
+          'claimed; signature typing is covered only by the recognition '
+          'unit tests (field_inventory_test.dart, type_inference_test.dart).',
+      FieldInventoryKind.unknown:
+          'Every detected region carries at least one kind cue, so no region '
+          'falls through to `unknown`; no unknown ground truth is declared '
+          'and unknown typing is covered only by the recognition unit tests.',
+    };
 
 const int _exitOk = 0;
 const int _exitInvalid = 1;
@@ -119,6 +135,9 @@ void _run(List<String> arguments) {
     pages.add(_analysePage(spec));
   }
   final Map<String, Object?> snapshot = _snapshot(pages);
+  final String snapshotJson = const JsonEncoder.withIndent('  ')
+      .convert(snapshot);
+  final Map<String, Object?> fixture = _fixtureIdentity(pages);
   final Map<String, Object?> report = <String, Object?>{
     'schemaVersion': _schemaVersion,
     'corpusId': _corpusId,
@@ -138,6 +157,13 @@ void _run(List<String> arguments) {
     },
     'noRegressionGate': _noRegressionGate(pages).toJson(),
     'totals': _totals(pages).toJson(),
+    'memory': _memoryMeasurement(),
+    'hashes': <String, Object?>{
+      'goldenSha256': _sha256Hex(utf8.encode(snapshotJson)),
+      'corpusSha256': fixture['corpusSha256'],
+      'fixtureSha256': fixture['fixtureSha256'],
+      'groundTruthSha256': fixture['groundTruthSha256'],
+    },
     'pages': <Map<String, Object?>>[
       for (final _PageResult page in pages) page.toJson(includeTimings: true),
     ],
@@ -164,9 +190,7 @@ void _run(List<String> arguments) {
     if (snapshotPath != null) {
       final File target = File(snapshotPath);
       target.parent.createSync(recursive: true);
-      target.writeAsStringSync(
-        const JsonEncoder.withIndent('  ').convert(snapshot),
-      );
+      target.writeAsStringSync(snapshotJson);
     }
   } on FileSystemException catch (error) {
     throw _Failure(_exitInvalid, 'io: ${error.message}');
@@ -206,12 +230,40 @@ final class _Expected {
     required this.rect,
     required this.kind,
     this.labelText,
+    this.sectionId,
   });
 
   final String id;
   final DisplayRect rect;
   final FieldInventoryKind kind;
   final String? labelText;
+
+  /// Declared evaluation section that contains this field's centre.
+  final String? sectionId;
+
+  _Expected withSection(String id) => _Expected(
+    id: this.id,
+    rect: rect,
+    kind: kind,
+    labelText: labelText,
+    sectionId: id,
+  );
+}
+
+/// One declared page region used only for evaluation grouping.
+///
+/// This is an evaluation-only section dimension: it never becomes a persistent
+/// section model, a persisted field attribute, or a UI element.
+final class _SectionSpec {
+  const _SectionSpec({
+    required this.id,
+    required this.label,
+    required this.rect,
+  });
+
+  final String id;
+  final String label;
+  final DisplayRect rect;
 }
 
 /// One declared region that is deliberately *not* a field.
@@ -243,6 +295,11 @@ final class _PageSpec {
     required this.expected,
     required this.nonFields,
     required this.labels,
+    required this.sections,
+    required this.rasterSha256,
+    required this.rasterWidthPx,
+    required this.rasterHeightPx,
+    required this.groundTruthSha256,
   });
 
   final String id;
@@ -254,6 +311,11 @@ final class _PageSpec {
   final List<_Expected> expected;
   final List<_NonField> nonFields;
   final List<_LabelSpec> labels;
+  final List<_SectionSpec> sections;
+  final String rasterSha256;
+  final int rasterWidthPx;
+  final int rasterHeightPx;
+  final String groundTruthSha256;
 }
 
 /// A deterministic grayscale drawing canvas in 200 DPI pixels.
@@ -305,6 +367,9 @@ final class _Canvas {
 
   GrayRaster build() =>
       GrayRaster.fromGrayBytes(width: width, height: height, bytes: _bytes);
+
+  /// Exact fixture bytes of the drawn page, used for the raster hash.
+  Uint8List get bytes => Uint8List.fromList(_bytes);
 }
 
 int _px(double point) => pointToPixel(point);
@@ -348,6 +413,25 @@ final class _Form {
   final List<_Expected> expected = <_Expected>[];
   final List<_NonField> nonFields = <_NonField>[];
   final List<_LabelSpec> labels = <_LabelSpec>[];
+  final List<_SectionSpec> sections = <_SectionSpec>[];
+
+  /// Declares one evaluation-only section region of this page.
+  ///
+  /// The section dimension exists only for the `per page/section/type`
+  /// evaluation grouping: it is declared ground truth, never a detector input,
+  /// never a persisted field attribute, and never a UI construct.
+  void section({
+    required String id,
+    required String label,
+    required double x,
+    required double y,
+    required double width,
+    required double height,
+  }) {
+    sections.add(
+      _SectionSpec(id: id, label: label, rect: _ptRect(x, y, width, height)),
+    );
+  }
 
   /// A rule plus the 18 pt write-on band above it.
   void textField({
@@ -563,6 +647,32 @@ final class _Form {
         canvas.height != _rasterSize.heightPx) {
       throw StateError('canvas does not match the page raster size');
     }
+    final List<_SectionSpec> declaredSections = sections.isEmpty
+        ? <_SectionSpec>[
+            _SectionSpec(
+              id: 'page',
+              label: 'whole page (no section split declared)',
+              rect: _ptRect(0, 0, widthPt, heightPt),
+            ),
+          ]
+        : List<_SectionSpec>.unmodifiable(sections);
+    final List<_Expected> assigned = <_Expected>[];
+    for (final _Expected field in expected) {
+      final double centreX = field.rect.x + field.rect.width / 2;
+      final double centreY = field.rect.y + field.rect.height / 2;
+      final List<_SectionSpec> owners = <_SectionSpec>[
+        for (final _SectionSpec section in declaredSections)
+          if (_containsPoint(section.rect, centreX, centreY)) section,
+      ];
+      if (owners.isEmpty) {
+        throw StateError('declared field ${field.id} is outside every section');
+      }
+      if (owners.length > 1) {
+        throw StateError('declared sections overlap at field ${field.id}');
+      }
+      assigned.add(field.withSection(owners.single.id));
+    }
+    final Uint8List rasterBytes = canvas.bytes;
     return _PageSpec(
       id: id,
       scenario: scenario,
@@ -570,12 +680,77 @@ final class _Form {
       widthPt: widthPt,
       heightPt: heightPt,
       raster: canvas.build(),
-      expected: List<_Expected>.unmodifiable(expected),
+      expected: List<_Expected>.unmodifiable(assigned),
       nonFields: List<_NonField>.unmodifiable(nonFields),
       labels: List<_LabelSpec>.unmodifiable(labels),
+      sections: List<_SectionSpec>.unmodifiable(declaredSections),
+      rasterSha256: _sha256Hex(rasterBytes),
+      rasterWidthPx: canvas.width,
+      rasterHeightPx: canvas.height,
+      groundTruthSha256: _sha256Hex(
+        utf8.encode(
+          _canonicalJson(<String, Object?>{
+            'pageId': id,
+            'widthPt': widthPt,
+            'heightPt': heightPt,
+            'fields': <Map<String, Object?>>[
+              for (final _Expected field in assigned)
+                <String, Object?>{
+                  'id': field.id,
+                  'rect': _rectJson(field.rect),
+                  'kind': field.kind.wireName,
+                  'labelText': field.labelText,
+                  'sectionId': field.sectionId,
+                },
+            ],
+            'nonFields': <Map<String, Object?>>[
+              for (final _NonField nonField in nonFields)
+                <String, Object?>{
+                  'id': nonField.id,
+                  'reason': nonField.reason,
+                  'rect': _rectJson(nonField.rect),
+                },
+            ],
+            'sections': <Map<String, Object?>>[
+              for (final _SectionSpec section in declaredSections)
+                <String, Object?>{
+                  'id': section.id,
+                  'label': section.label,
+                  'rect': _rectJson(section.rect),
+                },
+            ],
+          }),
+        ),
+      ),
     );
   }
 }
+
+bool _containsPoint(DisplayRect rect, double x, double y) {
+  const double epsilon = 1e-9;
+  return x >= rect.x - epsilon &&
+      x <= rect.x + rect.width + epsilon &&
+      y >= rect.y - epsilon &&
+      y <= rect.y + rect.height + epsilon;
+}
+
+/// Canonical JSON used for identity hashes: compact, sorted-key, no whitespace.
+String _canonicalJson(Object? value) => jsonEncode(_sortedKeys(value));
+
+Object? _sortedKeys(Object? value) {
+  if (value is Map<String, Object?>) {
+    final List<String> keys = value.keys.toList()..sort();
+    return <String, Object?>{
+      for (final String key in keys) key: _sortedKeys(value[key]),
+    };
+  }
+  if (value is List<Object?>) {
+    return <Object?>[for (final Object? item in value) _sortedKeys(item)];
+  }
+  return value;
+}
+
+String _sha256Hex(List<int> bytes) => sha256.convert(bytes).toString();
 
 List<_PageSpec> _corpus() {
   final List<_PageSpec> pages = <_PageSpec>[];
@@ -588,6 +763,24 @@ List<_PageSpec> _corpus() {
       description:
           'Three labelled text fields, two checkboxes, a decorative '
           'frame, and a rule inside the print margin.',
+    );
+    // Two declared evaluation sections, so the per page/section/type grouping
+    // is exercised on a page that passes.
+    form.section(
+      id: 'header',
+      label: 'Kopfbereich',
+      x: 0,
+      y: 0,
+      width: form.widthPt,
+      height: 215,
+    );
+    form.section(
+      id: 'body',
+      label: 'Rumpfbereich',
+      x: 0,
+      y: 215,
+      width: form.widthPt,
+      height: form.heightPt - 215,
     );
     form.decorativeFrame();
     form.marginRule();
@@ -914,6 +1107,83 @@ List<_PageSpec> _corpus() {
     pages.add(form.build());
   }
 
+  // 11. Numeric value-format variants: negative, percentage, leading zeros,
+  //     and an explicit numeric/date ambiguity. The decimal-comma/thousands/
+  //     currency label stays on the `numeric-formats` page.
+  {
+    final _Form form = _Form(
+      id: 'numeric-variants',
+      scenario: 'numeric_variants',
+      description:
+          'Negative amount, percentage, a zero-padded number kept as text, '
+          'and a label carrying both a date and an amount keyword.',
+    );
+    form.textField(
+      fieldId: 'betrag-negativ',
+      x: 180,
+      y: 120,
+      width: 220,
+      label: 'Betrag negativ (-1.234,56 €)',
+      kind: FieldInventoryKind.number,
+    );
+    form.textField(
+      fieldId: 'summe-prozent',
+      x: 180,
+      y: 165,
+      width: 220,
+      label: 'Summe in Prozent (12,5 %)',
+      kind: FieldInventoryKind.number,
+    );
+    form.textField(
+      fieldId: 'kundennummer-nullen',
+      x: 180,
+      y: 210,
+      width: 200,
+      label: 'Kundennummer 0004711',
+    );
+    form.textField(
+      fieldId: 'datum-oder-betrag',
+      x: 180,
+      y: 255,
+      width: 200,
+      label: 'Datum oder Betrag',
+      kind: FieldInventoryKind.date,
+    );
+    pages.add(form.build());
+  }
+
+  // 12. A tall box that must classify as multiline, next to one single-line
+  //     field that fixes the single-line reference height.
+  {
+    final _Form form = _Form(
+      id: 'multiline-area',
+      scenario: 'multiline',
+      description:
+          'Five single-line fields that fix the single-line reference height '
+          'and one tall bounded area: the tall area must be typed multiline, '
+          'not text and not a table.',
+    );
+    for (int index = 0; index < 5; index++) {
+      form.textField(
+        fieldId: 'zeile-${index + 1}',
+        x: 150,
+        y: 120 + index * 20,
+        width: 300,
+        label: index == 0 ? 'Betreff' : null,
+      );
+    }
+    form.boxField(
+      fieldId: 'bemerkung-mehrzeilig',
+      x: 150,
+      y: 260,
+      width: 320,
+      height: 64,
+      kind: FieldInventoryKind.multiline,
+      label: 'Bemerkung',
+    );
+    pages.add(form.build());
+  }
+
   return pages;
 }
 
@@ -926,6 +1196,7 @@ final class _PageResult {
     required this.spec,
     required this.quality,
     required this.candidates,
+    required this.typeObservations,
     required this.inventory,
     required this.baselineComparison,
     required this.inventoryComparison,
@@ -941,6 +1212,7 @@ final class _PageResult {
   final _PageSpec spec;
   final PhotometricQuality quality;
   final List<GeometryCandidate> candidates;
+  final List<_TypeObservation> typeObservations;
   final FieldInventory inventory;
   final StructureComparisonResult baselineComparison;
   final StructureComparisonResult inventoryComparison;
@@ -952,6 +1224,18 @@ final class _PageResult {
   final int inventoryMs;
   final int compareMs;
 
+  /// Declared evaluation section that contains [rect], or `unassigned`.
+  String _sectionOf(DisplayRect rect) {
+    final double centreX = rect.x + rect.width / 2;
+    final double centreY = rect.y + rect.height / 2;
+    for (final _SectionSpec section in spec.sections) {
+      if (_containsPoint(section.rect, centreX, centreY)) {
+        return section.id;
+      }
+    }
+    return 'unassigned';
+  }
+
   Map<String, Object?> toJson({required bool includeTimings}) {
     return <String, Object?>{
       'id': spec.id,
@@ -960,6 +1244,16 @@ final class _PageResult {
       'pageSizePt': <String, double>{
         'width': spec.widthPt,
         'height': spec.heightPt,
+      },
+      'fixture': <String, Object?>{
+        'rasterSha256': spec.rasterSha256,
+        'rasterWidthPx': spec.rasterWidthPx,
+        'rasterHeightPx': spec.rasterHeightPx,
+        'rasterBytes': spec.rasterWidthPx * spec.rasterHeightPx,
+      },
+      'groundTruth': <String, Object?>{
+        'fieldCount': spec.expected.length,
+        'groundTruthSha256': spec.groundTruthSha256,
       },
       'declaredGroundTruth': <String, Object?>{
         'fieldCount': spec.expected.length,
@@ -978,18 +1272,72 @@ final class _PageResult {
       'photometricQuality': quality.toJson(),
       'candidateCount': candidates.length,
       'inventoryCoverage': inventory.coverage.toJson(),
-      if (includeTimings)
-        'candidates': <Map<String, Object?>>[
-          for (final GeometryCandidate candidate in candidates)
+      'sections': <Map<String, Object?>>[
+        for (final _SectionSpec section in spec.sections)
+          <String, Object?>{
+            'id': section.id,
+            'label': section.label,
+            'rect': _rectJson(section.rect),
+            'declared': <String, Object?>{
+              'fieldCount': _fieldsIn(section.id).length,
+              'kinds': _countKinds(<FieldInventoryKind>[
+                for (final _Expected field in _fieldsIn(section.id)) field.kind,
+              ]),
+            },
+            'inventory': <String, Object?>{
+              'candidateCount': _entriesIn(section.id).length,
+              'kinds': _countKinds(<FieldInventoryKind>[
+                for (final FieldInventoryEntry entry in _entriesIn(section.id))
+                  entry.kind,
+              ]),
+            },
+          },
+      ],
+      'fields': <String, Object?>{
+        'expected': <Map<String, Object?>>[
+          for (int index = 0; index < spec.expected.length; index++)
             <String, Object?>{
-              'rect': _rectJson(candidate.rect),
-              'cues': candidate.cues,
-              'inkCoverage': _round6(candidate.inkCoverage),
+              'index': index,
+              'id': spec.expected[index].id,
+              'sectionId': spec.expected[index].sectionId,
+              'rect': _rectJson(spec.expected[index].rect),
+              'kind': spec.expected[index].kind.wireName,
+              'labelText': spec.expected[index].labelText,
             },
         ],
-      if (includeTimings) 'inventoryEntries': inventory.toJson()['entries'],
-      if (includeTimings)
-        'observedFieldCount': inventory.fieldCandidates.length,
+        'candidates': <Map<String, Object?>>[
+          for (int index = 0; index < candidates.length; index++)
+            <String, Object?>{
+              'index': index,
+              'sectionId': _sectionOf(candidates[index].rect),
+              'rect': _rectJson(candidates[index].rect),
+              'cues': candidates[index].cues,
+              'inkCoverage': _round6(candidates[index].inkCoverage),
+            },
+        ],
+        'typeObservations': <Map<String, Object?>>[
+          for (int index = 0; index < typeObservations.length; index++)
+            typeObservations[index].toJson(index),
+        ],
+        'inventory': <Map<String, Object?>>[
+          for (int index = 0; index < inventory.entries.length; index++)
+            <String, Object?>{
+              'index': index,
+              'id': inventory.entries[index].id,
+              'sectionId': _sectionOf(inventory.entries[index].rect),
+              'rect': _rectJson(inventory.entries[index].rect),
+              'kind': inventory.entries[index].kind.wireName,
+              'role': inventory.entries[index].role.name,
+              'labelText': inventory.entries[index].labelText,
+              'cues': inventory.entries[index].cues,
+              'inkCoverage': _round6(inventory.entries[index].inkCoverage),
+              'collapsedDuplicateCount':
+                  inventory.entries[index].collapsedDuplicateCount,
+            },
+        ],
+        'baselineMatches': _matchJson(baselineComparison),
+        'inventoryMatches': _matchJson(inventoryComparison),
+      },
       'baseline': _comparisonJson(
         baselineComparison,
         baselineMetrics,
@@ -1010,7 +1358,59 @@ final class _PageResult {
         },
     };
   }
+
+  List<_Expected> _fieldsIn(String sectionId) => <_Expected>[
+    for (final _Expected field in spec.expected)
+      if (field.sectionId == sectionId) field,
+  ];
+
+  List<FieldInventoryEntry> _entriesIn(String sectionId) =>
+      <FieldInventoryEntry>[
+        for (final FieldInventoryEntry entry in inventory.fieldCandidates)
+          if (_sectionOf(entry.rect) == sectionId) entry,
+      ];
 }
+
+/// One `TypeInference` result kept for the frozen projection.
+///
+/// It carries the proposed type, the selected label text, and the sorted cue
+/// additions (keyword, numeric-context, date-context and alignment cues), so a
+/// frozen snapshot can prove that a field kept its label evidence.
+final class _TypeObservation {
+  const _TypeObservation({
+    required this.rect,
+    required this.proposedType,
+    required this.labelText,
+    required this.addedCues,
+  });
+
+  final DisplayRect rect;
+  final String proposedType;
+  final String? labelText;
+  final List<String> addedCues;
+
+  Map<String, Object?> toJson(int index) => <String, Object?>{
+    'index': index,
+    'rect': _rectJson(rect),
+    'proposedType': proposedType,
+    'labelText': labelText,
+    'addedCues': addedCues,
+  };
+}
+
+List<Map<String, Object?>> _matchJson(StructureComparisonResult result) =>
+    <Map<String, Object?>>[
+      for (final StructureMatch match in result.matches)
+        <String, Object?>{
+          'expectedIndex': match.expectedIndex,
+          'observedIndex': match.observedIndex,
+          'iou': _round6(match.iou),
+          'centerDistancePt': _round6(match.centerDistancePt),
+          'geometryOk': match.geometryOk,
+          'kindOk': match.kindOk,
+          'labelOk': match.labelOk,
+        },
+    ];
 
 Map<String, Object?> _comparisonJson(
   StructureComparisonResult result,
@@ -1095,6 +1495,7 @@ _PageResult _analysePage(_PageSpec spec) {
   final double medianHeight = _medianCandidateHeight(candidates);
   final List<ObservedField> baselineObserved = <ObservedField>[];
   final List<FieldTypeHint> hints = <FieldTypeHint>[];
+  final List<_TypeObservation> typeObservations = <_TypeObservation>[];
   for (final GeometryCandidate candidate in candidates) {
     final TypeInferenceResult inference = TypeInference.infer(
       candidate: candidate,
@@ -1102,6 +1503,14 @@ _PageResult _analysePage(_PageSpec spec) {
       singleLineMedianHeightPt: medianHeight,
       pageWidthPt: spec.widthPt,
       pageHeightPt: spec.heightPt,
+    );
+    typeObservations.add(
+      _TypeObservation(
+        rect: candidate.rect,
+        proposedType: inference.proposedType,
+        labelText: inference.labelText,
+        addedCues: inference.addedCues,
+      ),
     );
     baselineObserved.add(
       ObservedField(
@@ -1171,6 +1580,7 @@ _PageResult _analysePage(_PageSpec spec) {
     spec: spec,
     quality: quality,
     candidates: candidates,
+    typeObservations: List<_TypeObservation>.unmodifiable(typeObservations),
     inventory: inventory,
     baselineComparison: baselineComparison,
     inventoryComparison: inventoryComparison,
@@ -1487,6 +1897,10 @@ _Totals _totals(List<_PageResult> pages) {
 }
 
 /// Per-kind recall/type accuracy over the whole corpus, for both paths.
+///
+/// Every kind of [FieldInventoryKind] gets a row, including the kinds this
+/// corpus does not draw: a zero-count kind must be visible as an explicit
+/// absence with a reason, never as a silently missing row.
 Map<String, Object?> _kindTotals(List<_PageResult> pages) {
   final Map<String, Object?> result = <String, Object?>{};
   for (final FieldInventoryKind kind in FieldInventoryKind.values) {
@@ -1504,24 +1918,25 @@ Map<String, Object?> _kindTotals(List<_PageResult> pages) {
       _accumulateKind(page.spec, page.baselineComparison, baseline, kind);
       _accumulateKind(page.spec, page.inventoryComparison, inventory, kind);
     }
-    if (baseline['expected'] == 0 && inventory['expected'] == 0) {
-      continue;
-    }
     Map<String, Object?> summary(Map<String, int> counts) => <String, Object?>{
       'expected': counts['expected'],
       'matched': counts['matched'],
-      'recall': _round6(
-        counts['expected'] == 0 ? 1 : counts['matched']! / counts['expected']!,
-      ),
-      'typeAccuracy': _round6(
-        counts['matched'] == 0
-            ? 0
-            : counts['kindMatched']! / counts['matched']!,
-      ),
+      'recall': counts['expected'] == 0
+          ? null
+          : _round6(counts['matched']! / counts['expected']!),
+      'typeAccuracy': counts['matched'] == 0
+          ? null
+          : _round6(counts['kindMatched']! / counts['matched']!),
     };
+    final int instances = baseline['expected']!;
     result[kind.wireName] = <String, Object?>{
       'baseline': summary(baseline),
       'inventory': summary(inventory),
+      'corpusInstances': instances,
+      'absence': instances == 0
+          ? (_kindAbsenceReasons[kind] ??
+                'no corpus instance for this kind; absence is not a PASS')
+          : null,
     };
   }
   return result;
@@ -1557,14 +1972,119 @@ Map<String, Object?> _snapshot(List<_PageResult> pages) {
     'evidenceClass': 'SIMULATED',
     'generator': 'tools/evaluation/field_inventory_baseline.dart',
     'note':
-        'Canonical golden snapshot: no generatedAt, no timings, no paths. '
-        'Byte equality with tools/evaluation/goldens/'
-        'field-inventory-baseline.v1.json is the regression check.',
+        'Canonical golden snapshot: no generatedAt, no timings, no memory, no '
+        'paths. It freezes the per-page/per-field projection (rects, kinds, '
+        'labels, cue sets, per-page candidates, section grouping) and the '
+        'fixture/corpus/ground-truth identity. Byte equality with '
+        'tools/evaluation/goldens/field-inventory-baseline.v1.json is the '
+        'regression check.',
+    'fixture': _fixtureIdentity(pages),
     'noRegressionGate': _noRegressionGate(pages).toJson(),
     'totals': _totals(pages).toJson(),
     'pages': <Map<String, Object?>>[
       for (final _PageResult page in pages) page.toJson(includeTimings: false),
     ],
+  };
+}
+
+/// Deterministic fixture, corpus and ground-truth identity.
+///
+/// `fixtureSha256` is the SHA-256 over the ordered per-page raster digests (the
+/// exact grayscale bytes the pipeline analysed), `corpusSha256` is the SHA-256
+/// over the canonical corpus manifest (page geometry plus both per-page
+/// digests), and `groundTruthSha256` is the SHA-256 over the canonical declared
+/// ground truth. All three are reproducible from the corpus definition alone.
+Map<String, Object?> _fixtureIdentity(List<_PageResult> pages) {
+  final List<Map<String, Object?>> manifest = <Map<String, Object?>>[
+    for (final _PageResult page in pages)
+      <String, Object?>{
+        'id': page.spec.id,
+        'scenario': page.spec.scenario,
+        'widthPt': page.spec.widthPt,
+        'heightPt': page.spec.heightPt,
+        'rasterSha256': page.spec.rasterSha256,
+        'groundTruthSha256': page.spec.groundTruthSha256,
+      },
+  ];
+  return <String, Object?>{
+    'corpusId': _corpusId,
+    'pageCount': pages.length,
+    'fixtureSha256': _sha256Hex(
+      utf8.encode(
+        <String>[for (final _PageResult page in pages) page.spec.rasterSha256]
+            .join('\n'),
+      ),
+    ),
+    'corpusSha256': _sha256Hex(
+      utf8.encode(
+        _canonicalJson(<String, Object?>{
+          'corpusId': _corpusId,
+          'pages': manifest,
+        }),
+      ),
+    ),
+    'groundTruthSha256': _sha256Hex(
+      utf8.encode(
+        _canonicalJson(<String, Object?>{
+          'corpusId': _corpusId,
+          'pages': <Map<String, Object?>>[
+            for (final _PageResult page in pages)
+              <String, Object?>{
+                'id': page.spec.id,
+                'groundTruthSha256': page.spec.groundTruthSha256,
+                'fieldCount': page.spec.expected.length,
+              },
+          ],
+        }),
+      ),
+    ),
+  };
+}
+
+/// One real host memory measurement, recorded as a diagnostic only.
+///
+/// `kernelPeakResidentKb`/`kernelResidentKb` are the `VmHWM`/`VmRSS` values of
+/// the kernel's per-process status counters (Linux, kibibytes) and are the
+/// primary measurement;
+/// `processInfoMaxRss` is `dart:io`'s own reading reported verbatim. Nothing
+/// here is a performance claim and none of it enters the golden snapshot.
+Map<String, Object?> _memoryMeasurement() {
+  int? peakKb;
+  int? residentKb;
+  String unit =
+      'linux kernel per-process status counters VmHWM and VmRSS (kibibytes)';
+  try {
+    for (final String line in File('/proc/self/status').readAsLinesSync()) {
+      if (line.startsWith('VmHWM:')) {
+        peakKb = int.tryParse(line.replaceAll(RegExp(r'[^0-9]'), ''));
+      } else if (line.startsWith('VmRSS:')) {
+        residentKb = int.tryParse(line.replaceAll(RegExp(r'[^0-9]'), ''));
+      }
+    }
+  } on FileSystemException {
+    peakKb = null;
+    residentKb = null;
+  }
+  final int processInfoMaxRss = ProcessInfo.maxRss;
+  if (peakKb == null || residentKb == null) {
+    // No /proc: fall back to the VM reading and say so, never invent a value.
+    final int fallbackKb = math.max(processInfoMaxRss ~/ 1024, 1);
+    peakKb = fallbackKb;
+    residentKb = fallbackKb;
+    unit =
+        'fallback: dart:io ProcessInfo.maxRss / 1024 (no kernel status '
+        'counters on this host)';
+  }
+  return <String, Object?>{
+    'note':
+        'host diagnostics only, no performance claim, excluded from the golden '
+        'snapshot; processInfoMaxRss is the dart:io value in bytes and agrees '
+        'with the kernel peak on this host',
+    'unit': unit,
+    'kernelPeakResidentKb': peakKb,
+    'kernelResidentKb': residentKb,
+    'processInfoMaxRss': processInfoMaxRss,
+    'peakResidentSetBytes': peakKb * 1024,
   };
 }
 
