@@ -266,14 +266,15 @@ the 0.00 % baseline of §5.4.
   Removing them would require a different engine or character-substitution
   post-processing, and both are forbidden by this correction's rules, so those
   cases stay `FAIL` as measured.
-- **Skew: fixed, and the variant is re-classified.** At the correction-1 state
-  the pipeline had no deskew stage, so a tilted raster reached the recognizer
-  as-is (30/51 lines associated). Correction-2 added the verified deskew stage
-  (§5.8) and correction-3 corrected its inverse rectangle mapping (§5.9). The
-  variant's remaining `FAIL` (CER 43.51 % in §5.9) is **not** a missing deskew
-  stage: the product reports boxes in the raster frame it was given, while the
-  suite annotates the upright page, so the measurement is not frame-comparable —
-  see §5.9 for the decision that is still open.
+- **Skew: fixed, and the variant passes frame-correctly.** At the correction-1
+  state the pipeline had no deskew stage, so a tilted raster reached the
+  recognizer as-is (30/51 lines associated). Correction-2 added the verified
+  deskew stage (§5.8), correction-3 corrected its inverse rectangle mapping and
+  correction-4 made the measurement frame-correct (§5.9). Final state:
+  `scan-200dpi-skew-3deg` is **PASS** with 51/51 associated lines, CER 2.33 %
+  and special-character recall 92.31 % (inside its pre-declared 20 % / 60 %
+  ceilings). The old upright-annotation value (43.51 %) is kept only as the
+  explicitly non-comparable measurement; no decision is open here.
 
 ### 5.8 T263 correction-2 — deskew stage, post-fix run (Orca runtime ready)
 
@@ -425,9 +426,13 @@ one that requires them.
 variant: 13 ground-truth fields, 13 matched, precision 17.81 %
 (13 / 73 suggestions across both pages, and page 1 of the fixture prints no
 fields at all), recall 100 %, type accuracy 23.08 % (3/13), label accuracy
-76.92 % (10/13), 1 unresolved label. The skew variant's `type accuracy 100 %`
-is **1/1 matched field** with field precision 0.37 % and recall 7.69 % (1/13):
-it is not evidence of a broad semantic improvement.
+76.92 % (10/13), 1 unresolved label. The frame-correct skew variant is
+TP 2 / FP 270 / FN 11 → **field precision 0.74 %, recall 15.38 % (2/13)**, with
+`type accuracy 100 %` on those 2 matched fields and 0 unresolved labels. Those
+are the current skew numbers; the upright-annotation run's 0.37 % / 7.69 %
+(1/13) is the **non-comparable** value and is not quoted as a result. Neither
+figure is evidence of a broad semantic improvement: field matching uses
+axis-aligned IoU, which degrades under a rotated capture frame.
 
 **Remaining FAILs.**
 
@@ -441,9 +446,13 @@ it is not evidence of a broad semantic improvement.
   records a known skew injection (`raster.degradations: ["skew-3deg"]`, with
   `evidence.skewDegrees` honoured when present), using the same mapping as
   `make_variants.skew`. Re-scoring this same c3 run file that way gives
-  **51/51 associated lines, CER 2.33 %, special-character recall 92.31 %, PASS** —
-  identical to the reference capture, which is what a correct deskew plus a
-  correct map-back must produce. The upright-annotation score of the same run
+  **51/51 associated lines, CER 2.33 %, special-character recall 92.31 %, PASS**.
+  The comparison with the reference capture is precise, not an equivalence
+  claim: association 51/51 = 51/51 and CER 2.33 % = 2.33 % match, while special
+  recall is 92.31 % vs 93.27 %, exact lines 38 vs 39, substitutions 20 vs 18,
+  insertions 2 vs 4 and critical non-exact lines 8 vs 5. The variant is therefore
+  frame-correctly inside its pre-declared ceilings (CER ≤ 20 %, special recall
+  ≥ 60 %), but it is not byte-identical to the reference read. The upright-annotation score of the same run
   (CER 43.51 %, 30/51 associations) is kept only as the explicitly
   **non-comparable** measurement. The transform is not a free pass: the Python
   regression test shows that no transform, the wrong sign and a doubled angle all
@@ -455,8 +464,8 @@ it is not evidence of a broad semantic improvement.
 
 | Artifact | Path | Bytes | SHA-256 |
 | --- | --- | ---: | --- |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-report.md` | 12623 | `89dac4b69e7712d46973469ccc8ee5edb7c66e8b610cf33e3ee12e8adc4237a0` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-report.json` | 113927 | `557e9155c9a76667d367506fe601e50d83117099bfcc8c0fb4831f9b7bc39300` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-report.md` | 12327 | `46c10989e4825a299be825e669d162601db7fd4e06f976ad49dc420465aa0d2d` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-report.json` | 100975 | `88123466bf4d438a9208fdd6b1939d22fa3dbd6e1139d6a2ceae4eaf40e01778` |
 | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-run-emulator.json` | 175100 | `d2524d1c7736fd9d33f90bff1f62688514f04108158e9c71077ae9855e3d00a2` |
 | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-run-injected.json` | 340591 | `44b9c043e30ff4898f5f34c706f5139ff991e62829bd7a978c54936b51c579d9` |
 | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/metrics-emulator.log` | 715 | `39892a0723814ece4aa8806e4edafefd02839880e8d1879860f3f0fec63b2214` |

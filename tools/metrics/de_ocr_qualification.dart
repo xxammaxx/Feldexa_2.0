@@ -342,11 +342,12 @@ final class _GroundTruth {
   /// injects a three-degree rotation about the page centre in
   /// `tools/corpus/de-ocr/make_variants.py`). The ground truth stays in the
   /// upright page frame, so scoring such a run against it compares two different
-  /// frames and is not comparable. With a non-zero [degrees] the line and field
-  /// rectangles are rotated about their page centre with the *same* mapping the
-  /// injector uses (`source = c + R(+degrees)(dest - c)` implies
-  /// `dest = c + R(-degrees)(source - c)`), which puts the annotation where the
-  /// tilted content actually is. Rectangles keep their upright size, so the
+  /// frames. With a non-zero [degrees] the line and field rectangles are rotated
+  /// about their page centre to where the tilted content actually is. The
+  /// injector samples `source = c + R(-degrees)(dest - c)`, which means the
+  /// content sits at `dest = c + R(+degrees)(source - c)`; the rotation applied
+  /// here is exactly that `R(+degrees)`, i.e. the same angle and sign as the
+  /// injection. Rectangles keep their upright size, so the
   /// transform is a pure translation of each rectangle's centre; that is exactly
   /// what the line-association rule (vertical centre inside the box grown by
   /// 4 pt, at least 30 % horizontal overlap) compares.
@@ -1593,7 +1594,7 @@ final class _VariantResult {
       'raster': raster,
       'groundTruthTransform': <String, Object?>{
         'skewDegrees': skewDegrees,
-        'frameComparable': skewDegrees != 0,
+        'annotationTransformed': skewDegrees != 0,
       },
       'timings': timings,
       'raw': raw == null

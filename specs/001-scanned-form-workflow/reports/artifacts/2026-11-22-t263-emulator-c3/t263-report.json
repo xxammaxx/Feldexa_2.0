@@ -3,17 +3,22 @@
   "suiteId": "de-ocr-1.0.0",
   "fixtureId": "sf-005",
   "fixtureSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
-  "generatedAtUtc": "2026-11-22T17:11:06.349354Z",
+  "generatedAtUtc": "2026-11-22T18:18:41.214443Z",
   "metricDefinitionVersion": "metric-definition.v1",
   "rawComparisonNormalization": "none",
-  "requireDeviceEvidence": true,
+  "groundTruthTransform": {
+    "kind": "per-variant-from-recorded-injection",
+    "overrideDegrees": null,
+    "note": "a variant whose raster records a known skew injection (for example \"skew-3deg\") is scored with its annotation rotated into the input-raster frame; only line/field geometry moves, never text; upright variants keep the upright annotation"
+  },
+  "requireDeviceEvidence": false,
   "overallVerdict": "FAIL",
   "overallReasons": [
     "reference variant clean-200dpi is FAIL: CER 2.33% exceeds the pre-declared ceiling 2.00%; special-character recall 93.27% is below the pre-declared floor 100.00%; 5 critical line(s) are not exactly recognised; 1 reference field(s) have no credible label; uncertainty is kept instead of forcing a type; label accuracy 76.92% on the reference variant is not 100 %"
   ],
   "runs": [
     {
-      "path": "/tmp/feldexa-t263-run.xi2Q7f/pulled/t263-run-emulator.json",
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-run-emulator.json",
       "evidenceClass": "EMULATOR",
       "engine": "mlkit-latin-bundled-v1",
       "fixtureSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
@@ -26,7 +31,7 @@
       "deviceEvidence": true
     },
     {
-      "path": "/tmp/feldexa-t263-run.xi2Q7f/pulled/t263-run-injected.json",
+      "path": "specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-run-injected.json",
       "evidenceClass": "EMULATOR_INJECTED_RASTER",
       "engine": "mlkit-latin-bundled-v1",
       "fixtureSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
@@ -56,6 +61,10 @@
         "source": "production-raster-port",
         "dpi": 200,
         "degradations": []
+      },
+      "groundTruthTransform": {
+        "skewDegrees": 0.0,
+        "annotationTransformed": false
       },
       "timings": {
         "rasterMs-0": 2273,
@@ -530,6 +539,10 @@
         "dpi": 150,
         "degradations": []
       },
+      "groundTruthTransform": {
+        "skewDegrees": 0.0,
+        "annotationTransformed": false
+      },
       "timings": {
         "rasterMs-0": 84,
         "ocrMs-0": 5929,
@@ -996,6 +1009,10 @@
         "source": "production-raster-port",
         "dpi": 300,
         "degradations": []
+      },
+      "groundTruthTransform": {
+        "skewDegrees": 0.0,
+        "annotationTransformed": false
       },
       "timings": {
         "rasterMs-0": 192,
@@ -1478,6 +1495,10 @@
           "low-contrast"
         ]
       },
+      "groundTruthTransform": {
+        "skewDegrees": 0.0,
+        "annotationTransformed": false
+      },
       "timings": {
         "rasterMs-0": 0,
         "ocrMs-0": 5983,
@@ -1916,6 +1937,10 @@
         "degradations": [
           "shadow"
         ]
+      },
+      "groundTruthTransform": {
+        "skewDegrees": 0.0,
+        "annotationTransformed": false
       },
       "timings": {
         "rasterMs-0": 0,
@@ -2401,16 +2426,18 @@
       "id": "scan-200dpi-skew-3deg",
       "evidenceClass": "EMULATOR_INJECTED_RASTER",
       "description": "200 DPI scan rotated by three degrees about the page centre on a white background.",
-      "status": "FAIL",
-      "statusReasons": [
-        "CER 43.51% exceeds the pre-declared ceiling 20.00%"
-      ],
+      "status": "PASS",
+      "statusReasons": [],
       "raster": {
         "source": "injected-scan-simulation",
         "dpi": 200,
         "degradations": [
           "skew-3deg"
         ]
+      },
+      "groundTruthTransform": {
+        "skewDegrees": 3.0,
+        "annotationTransformed": true
       },
       "timings": {
         "rasterMs-0": 0,
@@ -2421,21 +2448,21 @@
       "raw": {
         "groundTruthLines": 51,
         "ocrLines": 51,
-        "associatedLines": 30,
-        "exactLines": 19,
+        "associatedLines": 51,
+        "exactLines": 38,
         "groundTruthCodePoints": 1673,
         "ocrCodePoints": 1658,
-        "substitutions": 35,
-        "deletions": 354,
-        "insertions": 339,
-        "cer": 0.4351,
+        "substitutions": 20,
+        "deletions": 17,
+        "insertions": 2,
+        "cer": 0.0233,
         "criticalLines": 14,
         "criticalExact": 6,
         "criticalUnresolved": [
           {
             "lineId": "p0-l07",
             "expected": "Ä Ö Ü ä ö ü ß ẞ",
-            "observed": null,
+            "observed": "Ä Öüä ö üßB",
             "exact": false
           },
           {
@@ -2459,7 +2486,7 @@
           {
             "lineId": "p0-l15",
             "expected": "Straße und Hausnummer",
-            "observed": null,
+            "observed": "Stralße und Hausnummer",
             "exact": false
           },
           {
@@ -2471,7 +2498,7 @@
           {
             "lineId": "p0-l22",
             "expected": "Zeichen: ẞ ß Ä Ö Ü ä ö ü € m² m³",
-            "observed": null,
+            "observed": "Zeichen: BBÄÖÜä ö ü€ m² m",
             "exact": false
           },
           {
@@ -2485,65 +2512,65 @@
           {
             "character": "Ä",
             "codePoint": "U+00C4",
-            "truePositives": 6,
-            "falsePositives": 3,
-            "falseNegatives": 4,
-            "precision": 0.6667,
-            "recall": 0.6
+            "truePositives": 9,
+            "falsePositives": 0,
+            "falseNegatives": 1,
+            "precision": 1.0,
+            "recall": 0.9
           },
           {
             "character": "Ö",
             "codePoint": "U+00D6",
-            "truePositives": 4,
-            "falsePositives": 2,
-            "falseNegatives": 2,
-            "precision": 0.6667,
-            "recall": 0.6667
+            "truePositives": 6,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
           },
           {
             "character": "Ü",
             "codePoint": "U+00DC",
-            "truePositives": 4,
-            "falsePositives": 2,
-            "falseNegatives": 3,
-            "precision": 0.6667,
-            "recall": 0.5714
+            "truePositives": 6,
+            "falsePositives": 0,
+            "falseNegatives": 1,
+            "precision": 1.0,
+            "recall": 0.8571
           },
           {
             "character": "ä",
             "codePoint": "U+00E4",
-            "truePositives": 16,
-            "falsePositives": 5,
-            "falseNegatives": 5,
-            "precision": 0.7619,
-            "recall": 0.7619
+            "truePositives": 21,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
           },
           {
             "character": "ö",
             "codePoint": "U+00F6",
-            "truePositives": 7,
-            "falsePositives": 4,
-            "falseNegatives": 4,
-            "precision": 0.6364,
-            "recall": 0.6364
+            "truePositives": 11,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
           },
           {
             "character": "ü",
             "codePoint": "U+00FC",
-            "truePositives": 14,
-            "falsePositives": 8,
-            "falseNegatives": 7,
-            "precision": 0.6364,
-            "recall": 0.6667
+            "truePositives": 21,
+            "falsePositives": 1,
+            "falseNegatives": 0,
+            "precision": 0.9545,
+            "recall": 1.0
           },
           {
             "character": "ß",
             "codePoint": "U+00DF",
-            "truePositives": 12,
-            "falsePositives": 5,
-            "falseNegatives": 6,
-            "precision": 0.7059,
-            "recall": 0.6667
+            "truePositives": 17,
+            "falsePositives": 0,
+            "falseNegatives": 1,
+            "precision": 1.0,
+            "recall": 0.9444
           },
           {
             "character": "ẞ",
@@ -2557,20 +2584,20 @@
           {
             "character": "€",
             "codePoint": "U+20AC",
-            "truePositives": 1,
-            "falsePositives": 2,
-            "falseNegatives": 2,
-            "precision": 0.3333,
-            "recall": 0.3333
+            "truePositives": 3,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
           },
           {
             "character": "²",
             "codePoint": "U+00B2",
-            "truePositives": 1,
-            "falsePositives": 2,
-            "falseNegatives": 2,
-            "precision": 0.3333,
-            "recall": 0.3333
+            "truePositives": 2,
+            "falsePositives": 1,
+            "falseNegatives": 1,
+            "precision": 0.6667,
+            "recall": 0.6667
           },
           {
             "character": "³",
@@ -2582,164 +2609,14 @@
             "recall": 0.0
           }
         ],
-        "specialCharacterPrecision": 0.6633,
-        "specialCharacterRecall": 0.625,
+        "specialCharacterPrecision": 0.9796,
+        "specialCharacterRecall": 0.9231,
         "confusionMatrix": [
           {
             "expected": " ",
             "observed": null,
             "kind": "deletion",
-            "count": 46
-          },
-          {
-            "expected": "e",
-            "observed": null,
-            "kind": "deletion",
-            "count": 39
-          },
-          {
-            "expected": null,
-            "observed": " ",
-            "kind": "insertion",
-            "count": 33
-          },
-          {
-            "expected": null,
-            "observed": "e",
-            "kind": "insertion",
-            "count": 33
-          },
-          {
-            "expected": "n",
-            "observed": null,
-            "kind": "deletion",
-            "count": 26
-          },
-          {
-            "expected": "r",
-            "observed": null,
-            "kind": "deletion",
-            "count": 26
-          },
-          {
-            "expected": null,
-            "observed": "n",
-            "kind": "insertion",
-            "count": 24
-          },
-          {
-            "expected": null,
-            "observed": "r",
-            "kind": "insertion",
-            "count": 24
-          },
-          {
-            "expected": "t",
-            "observed": null,
-            "kind": "deletion",
-            "count": 19
-          },
-          {
-            "expected": null,
-            "observed": "t",
-            "kind": "insertion",
-            "count": 17
-          },
-          {
-            "expected": "u",
-            "observed": null,
-            "kind": "deletion",
-            "count": 16
-          },
-          {
-            "expected": null,
-            "observed": "u",
-            "kind": "insertion",
-            "count": 16
-          },
-          {
-            "expected": "a",
-            "observed": null,
-            "kind": "deletion",
-            "count": 15
-          },
-          {
-            "expected": "i",
-            "observed": null,
-            "kind": "deletion",
-            "count": 15
-          },
-          {
-            "expected": "m",
-            "observed": null,
-            "kind": "deletion",
-            "count": 15
-          },
-          {
-            "expected": null,
-            "observed": "a",
-            "kind": "insertion",
-            "count": 15
-          },
-          {
-            "expected": null,
-            "observed": "m",
-            "kind": "insertion",
-            "count": 15
-          },
-          {
-            "expected": null,
-            "observed": "i",
-            "kind": "insertion",
-            "count": 13
-          },
-          {
-            "expected": "s",
-            "observed": null,
-            "kind": "deletion",
-            "count": 12
-          },
-          {
-            "expected": null,
-            "observed": "S",
-            "kind": "insertion",
-            "count": 10
-          },
-          {
-            "expected": null,
-            "observed": "s",
-            "kind": "insertion",
-            "count": 10
-          },
-          {
-            "expected": "g",
-            "observed": null,
-            "kind": "deletion",
-            "count": 8
-          },
-          {
-            "expected": null,
-            "observed": "T",
-            "kind": "insertion",
-            "count": 8
-          },
-          {
-            "expected": null,
-            "observed": "ü",
-            "kind": "insertion",
-            "count": 8
-          },
-          {
-            "expected": "d",
-            "observed": null,
-            "kind": "deletion",
-            "count": 7
-          },
-          {
-            "expected": "ü",
-            "observed": null,
-            "kind": "deletion",
-            "count": 7
+            "count": 11
           },
           {
             "expected": "–",
@@ -2748,524 +2625,50 @@
             "count": 7
           },
           {
-            "expected": "f",
-            "observed": null,
-            "kind": "deletion",
-            "count": 6
-          },
-          {
-            "expected": "h",
-            "observed": null,
-            "kind": "deletion",
-            "count": 6
-          },
-          {
-            "expected": null,
-            "observed": "g",
-            "kind": "insertion",
-            "count": 6
-          },
-          {
-            "expected": null,
-            "observed": "h",
-            "kind": "insertion",
-            "count": 6
-          },
-          {
-            "expected": "ß",
-            "observed": null,
-            "kind": "deletion",
-            "count": 6
-          },
-          {
-            "expected": "S",
-            "observed": null,
-            "kind": "deletion",
-            "count": 5
-          },
-          {
-            "expected": "c",
-            "observed": null,
-            "kind": "deletion",
-            "count": 5
-          },
-          {
-            "expected": null,
-            "observed": "B",
-            "kind": "insertion",
-            "count": 5
-          },
-          {
-            "expected": null,
-            "observed": "c",
-            "kind": "insertion",
-            "count": 5
-          },
-          {
-            "expected": null,
-            "observed": "d",
-            "kind": "insertion",
-            "count": 5
-          },
-          {
-            "expected": null,
-            "observed": "f",
-            "kind": "insertion",
-            "count": 5
-          },
-          {
-            "expected": null,
-            "observed": "ß",
-            "kind": "insertion",
-            "count": 5
-          },
-          {
-            "expected": null,
-            "observed": "ä",
-            "kind": "insertion",
-            "count": 5
-          },
-          {
-            "expected": "ä",
-            "observed": null,
-            "kind": "deletion",
-            "count": 5
-          },
-          {
-            "expected": "G",
-            "observed": null,
-            "kind": "deletion",
-            "count": 4
-          },
-          {
-            "expected": "J",
-            "observed": null,
-            "kind": "deletion",
-            "count": 4
-          },
-          {
-            "expected": "M",
-            "observed": null,
-            "kind": "deletion",
-            "count": 4
-          },
-          {
-            "expected": "S",
-            "observed": "e",
-            "kind": "substitution",
-            "count": 4
-          },
-          {
-            "expected": "o",
-            "observed": null,
-            "kind": "deletion",
-            "count": 4
-          },
-          {
-            "expected": null,
-            "observed": "G",
-            "kind": "insertion",
-            "count": 4
-          },
-          {
-            "expected": null,
-            "observed": "M",
-            "kind": "insertion",
-            "count": 4
-          },
-          {
-            "expected": null,
-            "observed": "o",
-            "kind": "insertion",
-            "count": 4
-          },
-          {
-            "expected": null,
-            "observed": "ö",
-            "kind": "insertion",
-            "count": 4
-          },
-          {
-            "expected": "ö",
-            "observed": null,
-            "kind": "deletion",
-            "count": 4
-          },
-          {
-            "expected": ".",
-            "observed": null,
-            "kind": "deletion",
-            "count": 3
-          },
-          {
-            "expected": "2",
-            "observed": null,
-            "kind": "deletion",
-            "count": 3
-          },
-          {
-            "expected": "b",
-            "observed": null,
-            "kind": "deletion",
-            "count": 3
-          },
-          {
-            "expected": "v",
-            "observed": null,
-            "kind": "deletion",
-            "count": 3
-          },
-          {
-            "expected": null,
-            "observed": "2",
-            "kind": "insertion",
-            "count": 3
-          },
-          {
-            "expected": null,
-            "observed": "A",
-            "kind": "insertion",
-            "count": 3
-          },
-          {
-            "expected": null,
-            "observed": "E",
-            "kind": "insertion",
-            "count": 3
-          },
-          {
-            "expected": null,
-            "observed": "J",
-            "kind": "insertion",
-            "count": 3
-          },
-          {
-            "expected": null,
-            "observed": "U",
-            "kind": "insertion",
-            "count": 3
-          },
-          {
-            "expected": null,
-            "observed": "b",
-            "kind": "insertion",
-            "count": 3
-          },
-          {
-            "expected": null,
-            "observed": "l",
-            "kind": "insertion",
-            "count": 3
-          },
-          {
-            "expected": null,
-            "observed": "v",
-            "kind": "insertion",
-            "count": 3
-          },
-          {
-            "expected": null,
-            "observed": "Ä",
-            "kind": "insertion",
-            "count": 3
-          },
-          {
-            "expected": "Ä",
-            "observed": null,
-            "kind": "deletion",
-            "count": 3
-          },
-          {
-            "expected": "Ü",
-            "observed": null,
-            "kind": "deletion",
-            "count": 3
-          },
-          {
-            "expected": "A",
-            "observed": "s",
-            "kind": "substitution",
-            "count": 2
-          },
-          {
-            "expected": "B",
-            "observed": null,
-            "kind": "deletion",
-            "count": 2
-          },
-          {
-            "expected": "D",
-            "observed": "t",
-            "kind": "substitution",
-            "count": 2
-          },
-          {
-            "expected": "E",
-            "observed": "d",
-            "kind": "substitution",
-            "count": 2
-          },
-          {
-            "expected": "F",
-            "observed": null,
-            "kind": "deletion",
-            "count": 2
-          },
-          {
-            "expected": "H",
-            "observed": null,
-            "kind": "deletion",
-            "count": 2
-          },
-          {
-            "expected": "R",
-            "observed": "i",
-            "kind": "substitution",
-            "count": 2
-          },
-          {
-            "expected": "T",
-            "observed": "e",
-            "kind": "substitution",
-            "count": 2
-          },
-          {
-            "expected": "T",
-            "observed": "n",
-            "kind": "substitution",
-            "count": 2
-          },
-          {
-            "expected": "T",
-            "observed": "r",
-            "kind": "substitution",
-            "count": 2
-          },
-          {
-            "expected": "T",
-            "observed": null,
-            "kind": "deletion",
-            "count": 2
-          },
-          {
-            "expected": "U",
-            "observed": "g",
-            "kind": "substitution",
-            "count": 2
-          },
-          {
-            "expected": "k",
-            "observed": null,
-            "kind": "deletion",
-            "count": 2
-          },
-          {
-            "expected": "l",
-            "observed": null,
-            "kind": "deletion",
-            "count": 2
-          },
-          {
-            "expected": null,
-            "observed": ".",
-            "kind": "insertion",
-            "count": 2
-          },
-          {
-            "expected": null,
-            "observed": "D",
-            "kind": "insertion",
-            "count": 2
-          },
-          {
-            "expected": null,
-            "observed": "F",
-            "kind": "insertion",
-            "count": 2
-          },
-          {
-            "expected": null,
-            "observed": "H",
-            "kind": "insertion",
-            "count": 2
-          },
-          {
-            "expected": null,
-            "observed": "R",
-            "kind": "insertion",
-            "count": 2
-          },
-          {
-            "expected": null,
-            "observed": "k",
-            "kind": "insertion",
-            "count": 2
-          },
-          {
-            "expected": null,
-            "observed": "Ö",
-            "kind": "insertion",
-            "count": 2
-          },
-          {
-            "expected": null,
-            "observed": "Ü",
-            "kind": "insertion",
-            "count": 2
-          },
-          {
-            "expected": null,
-            "observed": "€",
-            "kind": "insertion",
-            "count": 2
-          },
-          {
-            "expected": "Ö",
-            "observed": null,
-            "kind": "deletion",
-            "count": 2
-          },
-          {
-            "expected": "ẞ",
-            "observed": null,
-            "kind": "deletion",
-            "count": 2
-          },
-          {
-            "expected": "€",
-            "observed": null,
-            "kind": "deletion",
-            "count": 2
-          },
-          {
             "expected": " ",
             "observed": ".",
             "kind": "substitution",
             "count": 1
           },
           {
-            "expected": "1",
+            "expected": " ",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": " ",
+            "observed": "ü",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": ".",
             "observed": null,
             "kind": "deletion",
             "count": 1
           },
           {
-            "expected": "4",
-            "observed": null,
-            "kind": "deletion",
-            "count": 1
-          },
-          {
-            "expected": ":",
-            "observed": null,
-            "kind": "deletion",
-            "count": 1
-          },
-          {
-            "expected": "A",
-            "observed": null,
-            "kind": "deletion",
-            "count": 1
-          },
-          {
-            "expected": "E",
-            "observed": null,
-            "kind": "deletion",
-            "count": 1
-          },
-          {
-            "expected": "N",
-            "observed": null,
-            "kind": "deletion",
-            "count": 1
-          },
-          {
-            "expected": "U",
-            "observed": null,
-            "kind": "deletion",
-            "count": 1
-          },
-          {
-            "expected": "V",
-            "observed": null,
-            "kind": "deletion",
-            "count": 1
-          },
-          {
-            "expected": "Z",
-            "observed": null,
-            "kind": "deletion",
-            "count": 1
-          },
-          {
-            "expected": "w",
-            "observed": null,
-            "kind": "deletion",
-            "count": 1
-          },
-          {
-            "expected": "z",
-            "observed": null,
-            "kind": "deletion",
-            "count": 1
-          },
-          {
-            "expected": null,
-            "observed": "1",
-            "kind": "insertion",
-            "count": 1
-          },
-          {
-            "expected": null,
-            "observed": "4",
-            "kind": "insertion",
-            "count": 1
-          },
-          {
-            "expected": null,
-            "observed": ":",
-            "kind": "insertion",
-            "count": 1
-          },
-          {
-            "expected": null,
+            "expected": "J",
             "observed": "I",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "f",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": null,
+            "observed": "S",
             "kind": "insertion",
             "count": 1
           },
           {
             "expected": null,
-            "observed": "N",
-            "kind": "insertion",
-            "count": 1
-          },
-          {
-            "expected": null,
-            "observed": "V",
-            "kind": "insertion",
-            "count": 1
-          },
-          {
-            "expected": null,
-            "observed": "Z",
-            "kind": "insertion",
-            "count": 1
-          },
-          {
-            "expected": null,
-            "observed": "w",
-            "kind": "insertion",
-            "count": 1
-          },
-          {
-            "expected": null,
-            "observed": "z",
-            "kind": "insertion",
-            "count": 1
-          },
-          {
-            "expected": null,
-            "observed": "²",
+            "observed": "l",
             "kind": "insertion",
             "count": 1
           },
@@ -3279,12 +2682,6 @@
             "expected": "²",
             "observed": "?",
             "kind": "substitution",
-            "count": 1
-          },
-          {
-            "expected": "²",
-            "observed": null,
-            "kind": "deletion",
             "count": 1
           },
           {
@@ -3312,6 +2709,30 @@
             "count": 1
           },
           {
+            "expected": "Ü",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "ß",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "ẞ",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "ẞ",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
             "expected": "—",
             "observed": "–",
             "kind": "substitution",
@@ -3331,11 +2752,11 @@
           }
         ],
         "unicode": {
-          "nfcExactLines": 19,
+          "nfcExactLines": 38,
           "nfdFormLines": 0,
           "combiningMarkLines": 0,
           "missingUmlautDots": 1,
-          "sharpSAsCapitalB": 0,
+          "sharpSAsCapitalB": 1,
           "asciiFoldedLines": 0,
           "caseChangedLines": 0
         }
@@ -3343,16 +2764,16 @@
       "semantic": {
         "groundTruthFields": 13,
         "recordedSuggestions": 272,
-        "truePositives": 1,
-        "falsePositives": 271,
-        "falseNegatives": 12,
-        "precision": 0.0037,
-        "recall": 0.0769,
+        "truePositives": 2,
+        "falsePositives": 270,
+        "falseNegatives": 11,
+        "precision": 0.0074,
+        "recall": 0.1538,
         "typeAccuracy": 1.0,
         "labelAccuracy": 1.0,
         "unresolvedLabels": 0,
-        "meanFieldIoU": 0.06,
-        "meanLabelIoU": 0.1308,
+        "meanFieldIoU": 0.1338,
+        "meanLabelIoU": 0.6991,
         "forcedTypeViolations": 0,
         "nonVerbatimLabels": 0,
         "nonVerbatimNotComparable": 0,
@@ -3364,7 +2785,7 @@
             "expectedLabel": "Straße und Hausnummer",
             "observedType": null,
             "observedLabel": null,
-            "fieldIoU": 0.1053,
+            "fieldIoU": 0.1134,
             "labelIoU": 0.0,
             "status": "missing",
             "reason": "no recorded suggestion reaches IoU 0.5"
@@ -3375,7 +2796,7 @@
             "expectedLabel": "Größe in cm",
             "observedType": null,
             "observedLabel": null,
-            "fieldIoU": 0.1133,
+            "fieldIoU": 0.1077,
             "labelIoU": 0.0,
             "status": "missing",
             "reason": "no recorded suggestion reaches IoU 0.5"
@@ -3386,7 +2807,7 @@
             "expectedLabel": "Gebühr in €",
             "observedType": null,
             "observedLabel": null,
-            "fieldIoU": 0.1145,
+            "fieldIoU": 0.1131,
             "labelIoU": 0.0,
             "status": "missing",
             "reason": "no recorded suggestion reaches IoU 0.5"
@@ -3397,7 +2818,7 @@
             "expectedLabel": "Geschäftszeichen",
             "observedType": null,
             "observedLabel": null,
-            "fieldIoU": 0.1106,
+            "fieldIoU": 0.1103,
             "labelIoU": 0.0,
             "status": "missing",
             "reason": "no recorded suggestion reaches IoU 0.5"
@@ -3408,7 +2829,7 @@
             "expectedLabel": "Staatsangehörigkeit",
             "observedType": null,
             "observedLabel": null,
-            "fieldIoU": 0.1129,
+            "fieldIoU": 0.1088,
             "labelIoU": 0.0,
             "status": "missing",
             "reason": "no recorded suggestion reaches IoU 0.5"
@@ -3419,7 +2840,7 @@
             "expectedLabel": "Überweisung an",
             "observedType": null,
             "observedLabel": null,
-            "fieldIoU": 0.1145,
+            "fieldIoU": 0.109,
             "labelIoU": 0.0,
             "status": "missing",
             "reason": "no recorded suggestion reaches IoU 0.5"
@@ -3430,7 +2851,7 @@
             "expectedLabel": "Anträge vom",
             "observedType": null,
             "observedLabel": null,
-            "fieldIoU": 0.112,
+            "fieldIoU": 0.1125,
             "labelIoU": 0.0,
             "status": "missing",
             "reason": "no recorded suggestion reaches IoU 0.5"
@@ -3441,7 +2862,7 @@
             "expectedLabel": "Familienname",
             "observedType": null,
             "observedLabel": null,
-            "fieldIoU": 0.1124,
+            "fieldIoU": 0.111,
             "labelIoU": 0.0,
             "status": "missing",
             "reason": "no recorded suggestion reaches IoU 0.5"
@@ -3452,7 +2873,7 @@
             "expectedLabel": "Vorname",
             "observedType": null,
             "observedLabel": null,
-            "fieldIoU": 0.1076,
+            "fieldIoU": 0.1137,
             "labelIoU": 0.0,
             "status": "missing",
             "reason": "no recorded suggestion reaches IoU 0.5"
@@ -3463,7 +2884,7 @@
             "expectedLabel": "Geburtsdatum",
             "observedType": null,
             "observedLabel": null,
-            "fieldIoU": 0.112,
+            "fieldIoU": 0.1088,
             "labelIoU": 0.0,
             "status": "missing",
             "reason": "no recorded suggestion reaches IoU 0.5"
@@ -3474,8 +2895,8 @@
             "expectedLabel": "Erklärung und Äußerung",
             "observedType": "multiline",
             "observedLabel": "Erklärung und Äußerung",
-            "fieldIoU": 0.78,
-            "labelIoU": 0.1308,
+            "fieldIoU": 0.8132,
+            "labelIoU": 0.6649,
             "status": "matched",
             "reason": "label and type match"
           },
@@ -3483,12 +2904,12 @@
             "id": "p1-einverstaendnis",
             "expectedType": "checkbox",
             "expectedLabel": "Einverständnis erteilt",
-            "observedType": null,
-            "observedLabel": null,
-            "fieldIoU": 0.0246,
-            "labelIoU": 0.0,
-            "status": "missing",
-            "reason": "no recorded suggestion reaches IoU 0.5"
+            "observedType": "checkbox",
+            "observedLabel": "Einverständnis erteilt",
+            "fieldIoU": 0.9264,
+            "labelIoU": 0.7332,
+            "status": "matched",
+            "reason": "label and type match"
           },
           {
             "id": "p1-unterschrift",
@@ -3516,6 +2937,10 @@
         "degradations": [
           "jpeg-q35"
         ]
+      },
+      "groundTruthTransform": {
+        "skewDegrees": 0.0,
+        "annotationTransformed": false
       },
       "timings": {
         "rasterMs-0": 0,

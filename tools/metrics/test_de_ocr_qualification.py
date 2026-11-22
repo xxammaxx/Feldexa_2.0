@@ -423,7 +423,7 @@ class DeOcrQualificationTest(unittest.TestCase):
             v for v in report["variants"] if v["id"] == "scan-200dpi-skew-3deg"
         )
         self.assertEqual(variant["groundTruthTransform"]["skewDegrees"], degrees)
-        self.assertTrue(variant["groundTruthTransform"]["frameComparable"])
+        self.assertTrue(variant["groundTruthTransform"]["annotationTransformed"])
         self.assertEqual(variant["raw"]["associatedLines"], 51)
         self.assertEqual(variant["raw"]["cer"], 0.0)
         self.assertEqual(variant["status"], "PASS")
