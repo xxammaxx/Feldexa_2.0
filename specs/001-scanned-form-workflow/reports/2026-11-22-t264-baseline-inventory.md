@@ -232,7 +232,7 @@ missing row):
 | `date` | 2 | 2 | 1.000 | 1.000 | — |
 | `signature` | 0 | 0 | — | — | no detector cue produces `signature_area`; unit tests only |
 | `table_field` | 5 | 5 | 1.000 | 1.000 | — |
-| `unknown` | 0 | 0 | — | — | no region falls through every kind cue; unit tests only |
+| `unknown` | 0 | 0 | — | — | no region falls through every kind cue; explicit zero-instance row, no classifier test |
 
 Numeric value-format cases (correction 1). `numeric-formats` keeps the
 decimal-comma/thousands/currency label `Betrag (1.234,56 €)` and the
@@ -299,9 +299,11 @@ Honest findings, not tuned away:
    hint, and it matches with IoU 0.997 and correct type.
 8. `signature` and `unknown` have **no** corpus instance. No detector cue emits
    `signature_area` on this corpus, and no detected region falls through every
-   kind cue to `unknown`. Their unit tests exist in
-   `field_inventory_test.dart`; this corpus does not measure them, and the table
-   above states that absence instead of implying coverage.
+   kind cue to `unknown`. `signature` has a unit test in
+   `field_inventory_test.dart`; `unknown` is consumed by the structure-comparison
+   tests but not exercised through the classifier's no-cue path. This corpus does
+   not measure either kind, and the table above states that absence instead of
+   implying coverage.
 
 Determinism: two consecutive runs produced byte-identical snapshots (SHA-256
 `508ed9beed5a3844aa3ce101d378f7243b47e259cbcda72a412bbe6067f205e6`) while differing only in `generatedAtUtc`, the per-stage
@@ -343,8 +345,9 @@ memory figure.
   ambiguity exist here as *label* cases (typing/classification only). Nothing
   parses, validates or converts an entered value, and no precision/rounding
   claim is made. T264D and T263 own the value-level measurement.
-- `signature` and `unknown` have no corpus instance (§5 rows 8); their behaviour
-  is unit-tested only and must not be read as corpus-qualified.
+- `signature` and `unknown` have no corpus instance (§5 rows 8); `signature` is
+  unit-tested, `unknown` is consumed by structure-comparison tests but not by a
+  classifier no-cue test, and neither may be read as corpus-qualified.
 - Skew and DPI-variant handling are frozen in the policy but `UNAVAILABLE`,
   because the adaptive pass and the region-render decision are blocked.
 - The evaluation-only section grouping is declared ground truth. It is not a
