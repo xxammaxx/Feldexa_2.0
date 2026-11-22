@@ -266,6 +266,13 @@ Offset _screenPoint(
   return tester.getTopLeft(find.byKey(_editorPageViewKey)) + local;
 }
 
+/// The runtime of the editor that is on screen right now.
+///
+/// A popped `EditorScreen` disposes its runtime, so every read-back after a
+/// route change must go through the live editor instead of a captured one.
+EditorRuntime _liveRuntime(WidgetTester tester) =>
+    tester.widget<EditorScreen>(find.byType(EditorScreen)).runtime;
+
 String _contentJson(EditorScreenState state) =>
     core.canonicalJsonEncode(state.content!.toJson());
 
@@ -814,9 +821,8 @@ void main() {
     await _waitForDriver('signature-sheet');
 
     final String? headBeforeSignature = state.headRevisionId;
-    final LoadedDocument beforeSignature = await runtime.loadDocument(
-      documentId,
-    );
+    final LoadedDocument beforeSignature = await _liveRuntime(tester)
+        .loadDocument(documentId);
     await tester.tap(find.byKey(signatureSheetApplyKey));
     await _pumpUntil(
       tester,
@@ -852,7 +858,8 @@ void main() {
     await _waitForDriver('signature-signed');
 
     // --- Verified store read-back ------------------------------------------
-    final LoadedDocument signed = await runtime.store.loadDocument(documentId);
+    final LoadedDocument signed = await _liveRuntime(tester).store
+        .loadDocument(documentId);
     final core.FieldValue? storedValue =
         signed.content.values[signatureFieldId];
     expect(storedValue, isA<core.SignatureValue>());
@@ -862,10 +869,8 @@ void main() {
       (storedValue! as core.SignatureValue).signatureAssetId,
       storedMark.assetId,
     );
-    final Uint8List assetBytes = await runtime.store.readSignature(
-      documentId,
-      storedMark.assetId,
-    );
+    final Uint8List assetBytes = await _liveRuntime(tester).store
+        .readSignature(documentId, storedMark.assetId);
     expect(assetBytes, isNotEmpty);
     expect(
       crypto.sha256.convert(assetBytes).toString(),
@@ -933,10 +938,11 @@ void main() {
       reopened.content!.signatures[signatureFieldId]!.sha256,
       storedMark.sha256,
     );
-    final Uint8List reopenedAsset = await runtime.store.readSignature(
-      documentId,
-      reopened.content!.signatures[signatureFieldId]!.assetId,
-    );
+    final Uint8List reopenedAsset = await _liveRuntime(tester).store
+        .readSignature(
+          documentId,
+          reopened.content!.signatures[signatureFieldId]!.assetId,
+        );
     expect(crypto.sha256.convert(reopenedAsset).toString(), storedMark.sha256);
     _marker('SIGNATURE_REOPENED_READBACK:OK:ASSET_SAME=1');
 
