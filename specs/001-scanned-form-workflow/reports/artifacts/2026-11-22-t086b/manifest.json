@@ -1,0 +1,283 @@
+{
+  "artifactId": "2026-11-22-t086b",
+  "task": "T086B-P",
+  "kind": "candidate-snapshot-manifest",
+  "claim": "For each of the 12 contract-valid fixture/corpus pages the box detector returns byte-identical candidates before and after the T086B rule-pair indexing: same rect, same sorted cue list, same measured ink coverage, same count and order.",
+  "detector": {
+    "productionPath": "packages/feldexa_recognition/lib/src/geometry_detector.dart",
+    "beforeRevision": "2ab14cc93f2452a0153e6ca28293573df8376f48",
+    "beforeSnapshotProducedBy": "the base-revision detector with the quadruple-nested box scan, measured with the same host benchmark tool",
+    "afterSnapshotProducedBy": "the T086B-P candidate commit recorded in the external attestation of the report"
+  },
+  "tool": "tools/evaluation/benchmark_detection_pgm.dart",
+  "rasterization": {
+    "command": "pdftoppm -gray -r 200 -f PAGE -l PAGE PDF OUT",
+    "rasterizer": "Poppler pdftoppm 26.10.0",
+    "note": "The host rasterizer is not the product PDFium rasterizer. Only 1654 x 2339 and 2339 x 1654 rasters are used; sf-003 page 5 is excluded because pdftoppm renders that rotated page as 1654 x 1166 instead of the contract 1654 x 1165."
+  },
+  "pageCount": 12,
+  "allIdentical": true,
+  "host": {
+    "cpu": "Intel Core i5-3570K @ 3.40 GHz, 4 threads",
+    "ramGiB": 23,
+    "os": "Linux 7.2.7-1-cachyos x86_64",
+    "dart": "3.13.5",
+    "flutter": "3.47.7 stable (framework abaf9c5237)",
+    "buildMode": "host JIT dart run, single shot per page, no warm-up",
+    "computeSlot": "shared maintainer compute slot, one sequence at a time"
+  },
+  "pages": [
+    {
+      "page": "sf-001-p1",
+      "fixtureOrCorpusPdfSha256": "22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038",
+      "pageWidthPt": 595.28,
+      "pageHeightPt": 841.89,
+      "raster": "1654 x 2339",
+      "candidates": 22,
+      "detectMsBefore": 81080,
+      "detectMsAfter": 328,
+      "before": {
+        "path": "before/sf-001-p1.json",
+        "bytes": 4008,
+        "sha256": "8c07fe2d79bfb7ff5a259dba460267ed008b5d7fb3681211a5d9a50a95f06817"
+      },
+      "after": {
+        "path": "after/sf-001-p1.json",
+        "bytes": 4008,
+        "sha256": "8c07fe2d79bfb7ff5a259dba460267ed008b5d7fb3681211a5d9a50a95f06817"
+      },
+      "identical": true
+    },
+    {
+      "page": "sf-001-p2",
+      "fixtureOrCorpusPdfSha256": "22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038",
+      "pageWidthPt": 595.28,
+      "pageHeightPt": 841.89,
+      "raster": "1654 x 2339",
+      "candidates": 42,
+      "detectMsBefore": 141823,
+      "detectMsAfter": 339,
+      "before": {
+        "path": "before/sf-001-p2.json",
+        "bytes": 7838,
+        "sha256": "0c975850e4f67e463153660d562751b076c64ebc1a360be55a98f8ba504e3908"
+      },
+      "after": {
+        "path": "after/sf-001-p2.json",
+        "bytes": 7838,
+        "sha256": "0c975850e4f67e463153660d562751b076c64ebc1a360be55a98f8ba504e3908"
+      },
+      "identical": true
+    },
+    {
+      "page": "sf-002-p1",
+      "fixtureOrCorpusPdfSha256": "bd8a0f7b231b0d5ba494b816350144999534c6dbffb151a14dc175f9fe802025",
+      "pageWidthPt": 595.28,
+      "pageHeightPt": 841.89,
+      "raster": "1654 x 2339",
+      "candidates": 15,
+      "detectMsBefore": 230034,
+      "detectMsAfter": 404,
+      "before": {
+        "path": "before/sf-002-p1.json",
+        "bytes": 2958,
+        "sha256": "4f31f6d1fefa61e192259599f3ea86b32b04d186a198d7c4b6393f75cb75630e"
+      },
+      "after": {
+        "path": "after/sf-002-p1.json",
+        "bytes": 2958,
+        "sha256": "4f31f6d1fefa61e192259599f3ea86b32b04d186a198d7c4b6393f75cb75630e"
+      },
+      "identical": true
+    },
+    {
+      "page": "sf-002-p2",
+      "fixtureOrCorpusPdfSha256": "bd8a0f7b231b0d5ba494b816350144999534c6dbffb151a14dc175f9fe802025",
+      "pageWidthPt": 595.28,
+      "pageHeightPt": 841.89,
+      "raster": "1654 x 2339",
+      "candidates": 19,
+      "detectMsBefore": 191191,
+      "detectMsAfter": 373,
+      "before": {
+        "path": "before/sf-002-p2.json",
+        "bytes": 3748,
+        "sha256": "c27aa731f212037cf5d959ba2c3b7f30e02679f2f70238493acc66a6a563ab3a"
+      },
+      "after": {
+        "path": "after/sf-002-p2.json",
+        "bytes": 3748,
+        "sha256": "c27aa731f212037cf5d959ba2c3b7f30e02679f2f70238493acc66a6a563ab3a"
+      },
+      "identical": true
+    },
+    {
+      "page": "sf-002-p3",
+      "fixtureOrCorpusPdfSha256": "bd8a0f7b231b0d5ba494b816350144999534c6dbffb151a14dc175f9fe802025",
+      "pageWidthPt": 595.28,
+      "pageHeightPt": 841.89,
+      "raster": "1654 x 2339",
+      "candidates": 18,
+      "detectMsBefore": 188591,
+      "detectMsAfter": 378,
+      "before": {
+        "path": "before/sf-002-p3.json",
+        "bytes": 3535,
+        "sha256": "9e45ce6036d700c5f0eb017eb7f17d963b7bcddbe4870bbef9635981e0d26695"
+      },
+      "after": {
+        "path": "after/sf-002-p3.json",
+        "bytes": 3535,
+        "sha256": "9e45ce6036d700c5f0eb017eb7f17d963b7bcddbe4870bbef9635981e0d26695"
+      },
+      "identical": true
+    },
+    {
+      "page": "sf-002-p4",
+      "fixtureOrCorpusPdfSha256": "bd8a0f7b231b0d5ba494b816350144999534c6dbffb151a14dc175f9fe802025",
+      "pageWidthPt": 595.28,
+      "pageHeightPt": 841.89,
+      "raster": "1654 x 2339",
+      "candidates": 17,
+      "detectMsBefore": 205653,
+      "detectMsAfter": 423,
+      "before": {
+        "path": "before/sf-002-p4.json",
+        "bytes": 3312,
+        "sha256": "e776437e8343d90a857a2290235d77e8874b50216d84c0b075906849e4e6b8e6"
+      },
+      "after": {
+        "path": "after/sf-002-p4.json",
+        "bytes": 3312,
+        "sha256": "e776437e8343d90a857a2290235d77e8874b50216d84c0b075906849e4e6b8e6"
+      },
+      "identical": true
+    },
+    {
+      "page": "sf-002-p5",
+      "fixtureOrCorpusPdfSha256": "bd8a0f7b231b0d5ba494b816350144999534c6dbffb151a14dc175f9fe802025",
+      "pageWidthPt": 595.28,
+      "pageHeightPt": 841.89,
+      "raster": "1654 x 2339",
+      "candidates": 13,
+      "detectMsBefore": 182624,
+      "detectMsAfter": 397,
+      "before": {
+        "path": "before/sf-002-p5.json",
+        "bytes": 2531,
+        "sha256": "8ff656c49f48fc61267952ad9af13f12ac0017ded558c82405754e1c71551707"
+      },
+      "after": {
+        "path": "after/sf-002-p5.json",
+        "bytes": 2531,
+        "sha256": "8ff656c49f48fc61267952ad9af13f12ac0017ded558c82405754e1c71551707"
+      },
+      "identical": true
+    },
+    {
+      "page": "sf-003-p1",
+      "fixtureOrCorpusPdfSha256": "c19afcf6f86ed21a422426c5f01613bb9643b097d0facad3b3349f9873e4ea4f",
+      "pageWidthPt": 595.28,
+      "pageHeightPt": 841.89,
+      "raster": "1654 x 2339",
+      "candidates": 7,
+      "detectMsBefore": 1787,
+      "detectMsAfter": 321,
+      "before": {
+        "path": "before/sf-003-p1.json",
+        "bytes": 1298,
+        "sha256": "759346d7923af1a6c9083ae8d029a8662f811f85caa25b538cff8e238aa4027e"
+      },
+      "after": {
+        "path": "after/sf-003-p1.json",
+        "bytes": 1298,
+        "sha256": "759346d7923af1a6c9083ae8d029a8662f811f85caa25b538cff8e238aa4027e"
+      },
+      "identical": true
+    },
+    {
+      "page": "sf-003-p2",
+      "fixtureOrCorpusPdfSha256": "c19afcf6f86ed21a422426c5f01613bb9643b097d0facad3b3349f9873e4ea4f",
+      "pageWidthPt": 841.89,
+      "pageHeightPt": 595.28,
+      "raster": "2339 x 1654",
+      "candidates": 7,
+      "detectMsBefore": 1584,
+      "detectMsAfter": 354,
+      "before": {
+        "path": "before/sf-003-p2.json",
+        "bytes": 1299,
+        "sha256": "47486cfac32a4e171a90f73ab7a43e3833b456d75699ffa6ad24cf56f6687db9"
+      },
+      "after": {
+        "path": "after/sf-003-p2.json",
+        "bytes": 1299,
+        "sha256": "47486cfac32a4e171a90f73ab7a43e3833b456d75699ffa6ad24cf56f6687db9"
+      },
+      "identical": true
+    },
+    {
+      "page": "sf-003-p3",
+      "fixtureOrCorpusPdfSha256": "c19afcf6f86ed21a422426c5f01613bb9643b097d0facad3b3349f9873e4ea4f",
+      "pageWidthPt": 841.89,
+      "pageHeightPt": 595.28,
+      "raster": "2339 x 1654",
+      "candidates": 7,
+      "detectMsBefore": 1914,
+      "detectMsAfter": 392,
+      "before": {
+        "path": "before/sf-003-p3.json",
+        "bytes": 1299,
+        "sha256": "47486cfac32a4e171a90f73ab7a43e3833b456d75699ffa6ad24cf56f6687db9"
+      },
+      "after": {
+        "path": "after/sf-003-p3.json",
+        "bytes": 1299,
+        "sha256": "47486cfac32a4e171a90f73ab7a43e3833b456d75699ffa6ad24cf56f6687db9"
+      },
+      "identical": true
+    },
+    {
+      "page": "sf-003-p4",
+      "fixtureOrCorpusPdfSha256": "c19afcf6f86ed21a422426c5f01613bb9643b097d0facad3b3349f9873e4ea4f",
+      "pageWidthPt": 595.28,
+      "pageHeightPt": 841.89,
+      "raster": "1654 x 2339",
+      "candidates": 7,
+      "detectMsBefore": 1622,
+      "detectMsAfter": 292,
+      "before": {
+        "path": "before/sf-003-p4.json",
+        "bytes": 1296,
+        "sha256": "48ba6278ad4ca3ca384bb910e54688dffbca20a4b2b779c917a9fb01654e9114"
+      },
+      "after": {
+        "path": "after/sf-003-p4.json",
+        "bytes": 1296,
+        "sha256": "48ba6278ad4ca3ca384bb910e54688dffbca20a4b2b779c917a9fb01654e9114"
+      },
+      "identical": true
+    },
+    {
+      "page": "sf-004-p1",
+      "fixtureOrCorpusPdfSha256": "009c3babd2013e13fad9ef5977ec3d4c1d5842a52da0718e4ac06e3ff39d171e",
+      "pageWidthPt": 595.28,
+      "pageHeightPt": 841.89,
+      "raster": "1654 x 2339",
+      "candidates": 24,
+      "detectMsBefore": 294564,
+      "detectMsAfter": 474,
+      "before": {
+        "path": "before/sf-004-p1.json",
+        "bytes": 4544,
+        "sha256": "5d04ec2741fefba1bc311fac6fccba5a6eaa0ebfd6670b3f6d994fdeac398f93"
+      },
+      "after": {
+        "path": "after/sf-004-p1.json",
+        "bytes": 4544,
+        "sha256": "5d04ec2741fefba1bc311fac6fccba5a6eaa0ebfd6670b3f6d994fdeac398f93"
+      },
+      "identical": true
+    }
+  ]
+}
