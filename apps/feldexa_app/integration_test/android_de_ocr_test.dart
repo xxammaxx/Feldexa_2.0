@@ -50,8 +50,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
-/// App-readable staging directory prepared by the host driver.
+/// Host-owned input staging directory prepared by the driver.
 const String _staging = '/data/local/tmp/t263-fixtures';
+
+/// App-private external output directory the driver pulls the run files from.
+///
+/// `/data/local/tmp` is not reliably writable for an app under SELinux, while
+/// `Android/data/<package>/files` is written by the app itself and can be
+/// pulled by `adb` for a debuggable build.
+const String _outputRoot = '/storage/emulated/0/Android/data/de.feldexa/files/t263';
 
 /// Fixed document identity for the recognition run.
 const String _sourceId = '7d0f8b1c-3a2e-4f66-9c15-6b0e2d4a8f31';
@@ -312,7 +319,11 @@ Future<void> main() async {
           'suggestions=${suggestions.length}',
         );
         if (productionRaster && id == 'clean-200dpi' && pageIndex == 1) {
-          cleanPageOneSuggestions = <String, Object?>{'suggestions': suggestions};
+          // Keep the unmodified production suggestion maps for the takeover
+          // journey so the confirmed field reuses the recorded evidence.
+          cleanPageOneSuggestions = <String, Object?>{
+            'suggestions': analysis.pages.first.suggestions,
+          };
         }
       }
 
@@ -334,6 +345,9 @@ Future<void> main() async {
     }
     _marker('VARIANTS_DONE');
 
+    final Directory output = Directory(_outputRoot);
+    output.createSync(recursive: true);
+
     void writeRun(String name, String evidenceClass, List<Map<String, Object?>> variants) {
       final Map<String, Object?> run = <String, Object?>{
         'schemaVersion': 1,
@@ -350,7 +364,7 @@ Future<void> main() async {
         'generatedAtUtc': DateTime.now().toUtc().toIso8601String(),
         'variants': variants,
       };
-      File('$_staging/$name').writeAsStringSync(
+      File('${output.path}/$name').writeAsStringSync(
         '${const JsonEncoder.withIndent('  ').convert(run)}\n',
       );
     }
@@ -392,25 +406,13 @@ Future<void> main() async {
       reason: 'at least one German-labelled suggestion is expected on page 2',
     );
     final String verbatimLabel = german!['labelText']! as String;
-    final Map<String, Object?> rect = german['rect']! as Map<String, Object?>;
-    final core.FieldSuggestion suggestion = core.FieldSuggestion(
-      id: 's_p1_0001',
-      pageIndex: 1,
-      rect: core.Rect.fromLTWH(
-        (rect['x']! as num).toDouble(),
-        (rect['y']! as num).toDouble(),
-        (rect['width']! as num).toDouble(),
-        (rect['height']! as num).toDouble(),
-      ),
-      proposedType: core.FieldType.fromWire(
-        german['proposedType']! as String,
-      ),
-      confidence: (german['confidence']! as num).toDouble(),
-      labelText: verbatimLabel,
-      evidence: core.SuggestionEvidence(
-        cues: <core.SuggestionCue>{core.SuggestionCue.underline},
-        ocrUsed: true,
-      ),
+    final core.FieldSuggestion suggestion = core.FieldSuggestion.fromJson(
+      german,
+    );
+    expect(suggestion.labelText, verbatimLabel);
+    expect(
+      suggestion.rect.width,
+      (german['rect']! as Map<String, Object?>)['width'],
     );
     final core.RevisionContent content = core.RevisionContent(
       pages: <core.Page>[
@@ -422,7 +424,7 @@ Future<void> main() async {
     );
     final SuggestionReviewChange confirmed = confirmSuggestion(
       content,
-      's_p1_0001',
+      suggestion.id,
       '0d1e2f3a-4b5c-4d6e-8f90-1a2b3c4d5e6f',
       verbatimLabel,
       DateTime.now().toUtc(),

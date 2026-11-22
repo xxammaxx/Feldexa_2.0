@@ -1349,7 +1349,7 @@
         ],
         "reference": {
           "path": "tools/corpus/de-ocr/reference-de.ground-truth.json",
-          "sha256": "17e7ce72157ae016307344f9de78e21c073eff71bde5caddf1a2f4fd8071eeef",
+          "sha256": "b557323c346f9d8422b93706e75425a0dcc9b9de9bde7c887712a46803d23881",
           "suiteId": "de-ocr-1.0.0",
           "lineCount": 51,
           "criticalLineCount": 14,

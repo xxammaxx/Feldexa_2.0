@@ -787,8 +787,10 @@ final class DeOcrReferenceSuite {
 const List<Map<String, Object?>> variantBaselines = <Map<String, Object?>>[
   <String, Object?>{
     'id': 'clean-200dpi',
-    'description': 'Clean reference render at the fixed 200 DPI analysis scale '
-        'over the production raster and OCR ports.',
+    'description':
+        'Clean reference render at the fixed 200 DPI analysis scale over the '
+        'production raster and OCR ports; this is the reference variant for '
+        'both raw text and semantic assignment.',
     'evidenceClass': 'EMULATOR',
     'requiresExactCriticalLines': true,
     'maxCer': 0.02,
@@ -797,7 +799,10 @@ const List<Map<String, Object?>> variantBaselines = <Map<String, Object?>>[
   },
   <String, Object?>{
     'id': 'clean-150dpi',
-    'description': 'Clean reference render at 150 DPI.',
+    'description':
+        'Raw OCR capture at 150 DPI through the production raster and OCR '
+        'ports. The semantic pipeline keeps its fixed 200 DPI analysis raster, '
+        'so this variant qualifies the DPI effect on raw text only.',
     'evidenceClass': 'EMULATOR',
     'requiresExactCriticalLines': false,
     'maxCer': 0.08,
@@ -806,7 +811,10 @@ const List<Map<String, Object?>> variantBaselines = <Map<String, Object?>>[
   },
   <String, Object?>{
     'id': 'clean-300dpi',
-    'description': 'Clean reference render at 300 DPI.',
+    'description':
+        'Raw OCR capture at 300 DPI through the production raster and OCR '
+        'ports. The semantic pipeline keeps its fixed 200 DPI analysis raster, '
+        'so this variant qualifies the DPI effect on raw text only.',
     'evidenceClass': 'EMULATOR',
     'requiresExactCriticalLines': false,
     'maxCer': 0.05,

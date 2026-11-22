@@ -9,6 +9,14 @@ then feeds to the **production** ML Kit OCR port. Nothing here replaces the OCR
 engine; the injected part is only the pixel buffer, which is why those run
 variants carry the evidence class `EMULATOR_INJECTED_RASTER`.
 
+Every injected raster is normalised to the fixed 200 DPI analysis raster size
+(1654 x 2339 pixels for A4), because the production pipeline maps pixels to
+page points with the fixed `200 / 72` analysis scale. A 150 DPI capture is
+therefore upsampled to that pixel grid; the resolution loss stays in the
+content, while the geometry mapping the pipeline assumes stays valid. The
+declared `dpi` records the capture resolution, `rasterDpi` the grid actually
+delivered.
+
 Degradations (declared before the run):
   low-contrast   luminance is compressed linearly into [70, 200] and shifted
   shadow         a multiplicative shadow gradient darkens the top-left corner
@@ -53,6 +61,34 @@ DEGRADED_VARIANTS = (
 
 def run(command: list[str]) -> subprocess.CompletedProcess:
     return subprocess.run(command, check=True, capture_output=True)
+
+
+ANALYSIS_DPI = 200
+
+
+def analysis_size(dpi: int) -> tuple[int, int]:
+    return (
+        round(PAGE_WIDTH_PT / 72.0 * dpi),
+        round(PAGE_HEIGHT_PT / 72.0 * dpi),
+    )
+
+
+def resample_pgm(path: pathlib.Path, width: int, height: int) -> None:
+    """Resamples a PGM to the fixed analysis raster size (bilinear filter)."""
+    magick = shutil.which("magick") or shutil.which("convert")
+    if magick is None:
+        raise SystemExit("error: ImageMagick is required for resampling")
+    run(
+        [
+            magick,
+            str(path),
+            "-filter",
+            "Triangle",
+            "-resize",
+            f"{width}x{height}!",
+            str(path),
+        ]
+    )
 
 
 def render_pages(pdf: pathlib.Path, dpi: int, directory: pathlib.Path) -> list[pathlib.Path]:
@@ -231,7 +267,11 @@ def main() -> int:
         if dpi not in rendered:
             rendered[dpi] = render_pages(pdf, dpi, output)
         pages = []
+        target_width, target_height = analysis_size(ANALYSIS_DPI)
         for page_index, pgm in enumerate(rendered[dpi]):
+            width, height, _ = read_pgm(pgm)
+            if (width, height) != (target_width, target_height):
+                resample_pgm(pgm, target_width, target_height)
             width, height, pixels = read_pgm(pgm)
             if degradation == "low-contrast":
                 degraded = low_contrast(pixels)
@@ -245,7 +285,15 @@ def main() -> int:
                 raise SystemExit(f"error: unknown degradation {degradation}")
             name = f"{variant_id}.p{page_index}.gray8"
             write_gray8(output / name, width, height, degraded)
-            pages.append({"index": page_index, "file": name, "widthPx": width, "heightPx": height})
+            pages.append(
+                {
+                    "index": page_index,
+                    "file": name,
+                    "widthPx": width,
+                    "heightPx": height,
+                    "rasterDpi": ANALYSIS_DPI,
+                }
+            )
         variants.append(
             {
                 "id": variant_id,

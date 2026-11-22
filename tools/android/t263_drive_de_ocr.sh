@@ -46,6 +46,9 @@ SEQUENCE="$RUN_DIR/marker-sequence.txt"
 BACKUP_DIR=""
 
 STAGING="/data/local/tmp/t263-fixtures"
+# The app writes its run files into its own external files directory (the
+# staging directory is not reliably writable for an app under SELinux).
+DEVICE_OUTPUT="/storage/emulated/0/Android/data/de.feldexa/files/t263"
 FIXTURE_PDF="$ROOT/apps/feldexa_app/assets/fixtures/sf-005.pdf"
 GROUND_TRUTH="$ROOT/tools/corpus/de-ocr/reference-de.ground-truth.json"
 VARIANTS_DIR="$RUN_DIR/variants"
@@ -90,6 +93,7 @@ cleanup() {
     wait "$TEST_PID" 2>/dev/null
   fi
   adb_shell rm -rf "$STAGING" >/dev/null
+  adb_shell rm -rf "$DEVICE_OUTPUT" >/dev/null
   adb_shell am force-stop de.feldexa >/dev/null
   rm -f "$RUN_DIR/logcat-full.txt"
 }
@@ -249,6 +253,7 @@ cp "$VARIANTS_DIR/t263-variants.json" "$RUN_DIR/t263-variants.json"
 
 adb_shell am force-stop de.feldexa >/dev/null
 adb_shell rm -rf "$STAGING" >/dev/null
+adb_shell rm -rf "$DEVICE_OUTPUT" >/dev/null
 adb_shell mkdir -p "$STAGING" >/dev/null
 "$ADB" -s "$SERIAL" push "$FIXTURE_PDF" "$STAGING/sf-005.pdf" >/dev/null ||
   fail "fixture push failed"
@@ -359,8 +364,9 @@ TEST_EXIT=$?
 # --- 7. Pull run files and score them --------------------------------------
 mkdir -p "$RUN_DIR/pulled"
 for run_file in t263-run-emulator.json t263-run-injected.json; do
-  "$ADB" -s "$SERIAL" pull "$STAGING/$run_file" "$RUN_DIR/pulled/$run_file" >/dev/null ||
-    fail "cannot pull $run_file from the device"
+  "$ADB" -s "$SERIAL" pull "$DEVICE_OUTPUT/$run_file" "$RUN_DIR/pulled/$run_file" >/dev/null ||
+    fail "cannot pull $run_file from $DEVICE_OUTPUT"
+  sha256sum "$RUN_DIR/pulled/$run_file" >>"$RUN_DIR/pulled/run-sha256.txt"
 done
 
 (
