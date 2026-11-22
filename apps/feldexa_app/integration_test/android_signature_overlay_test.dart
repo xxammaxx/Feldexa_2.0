@@ -40,6 +40,11 @@
 // Markers carry phase names and content-free counts only. No label, OCR text,
 // title, path, URI, entered value, asset id, or digest is printed.
 
+// The workspace `feldexa_ui` package is consumed through the workspace package
+// config; T086A may not add an app `pubspec.yaml` dependency (same documented
+// situation as `editor_screen.dart`).
+// ignore_for_file: depend_on_referenced_packages
+
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -59,6 +64,7 @@ import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:flutter/material.dart' hide PageView;
 import 'package:flutter/services.dart';
+import 'package:feldexa_ui/feldexa_ui.dart' as ui;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:image/image.dart' as img;
@@ -262,6 +268,63 @@ Offset _screenPoint(
 
 String _contentJson(EditorScreenState state) =>
     core.canonicalJsonEncode(state.content!.toJson());
+
+/// Sets the view scale on one page-display point (documented `setView` seam).
+Future<void> _setScaleOnPoint(
+  WidgetTester tester,
+  EditorScreenState state,
+  int pageIndex,
+  Offset displayPoint,
+  double scale,
+) async {
+  final Size? viewport = state.viewController.viewportSize;
+  expect(viewport, isNotNull, reason: 'the page viewport must be laid out');
+  final PageViewMapping mapping = state.viewController.mappingFor(pageIndex);
+  final Offset center = Offset(
+    mapping.pageRect.left + displayPoint.dx,
+    mapping.pageRect.top + displayPoint.dy,
+  );
+  state.viewController.setView(
+    scale: scale,
+    pan: Offset(
+      viewport!.width / 2 - center.dx * scale,
+      viewport.height / 2 - center.dy * scale,
+    ),
+    clampToViewport: true,
+  );
+  await tester.pumpAndSettle();
+}
+
+/// Resolves the T071B hit region of [field] at [displayPoint].
+///
+/// This is the same pure rule the editor applies at gesture start
+/// (`hitTestFieldGeometry` over `layoutFieldOverlay`), evaluated from the
+/// public viewer mapping so the journey can assert which region a real touch-down
+/// selects instead of assuming the body.
+ui.FieldGeometryHandle? _hitRegionAt(
+  WidgetTester tester,
+  EditorScreenState state,
+  core.ConfirmedField field,
+  Offset displayPoint,
+) {
+  final PageViewMapping mapping = state.viewController.mappingFor(
+    field.pageIndex,
+  );
+  final Rect viewRect = ui
+      .layoutFieldOverlay(
+        items: <ui.FieldOverlayItem>[
+          ui.FieldOverlayItem.fromConfirmedField(field),
+        ],
+        pageSize: mapping.pageSize.contentSize,
+        pageRect: mapping.pageRectInViewport,
+      )
+      .single
+      .viewRect;
+  // `pageRectInViewport` and the gesture point share the page-view coordinate
+  // space, so the mapped display point is the same value the editor hit-tests.
+  final Offset local = mapping.displayToView(displayPoint);
+  return ui.hitTestFieldGeometry(viewRect: viewRect, viewPoint: local);
+}
 
 /// Waits until the editor is not busy and its head differs from [headBefore].
 Future<void> _waitForCommit(
@@ -509,26 +572,86 @@ void main() {
     await _waitForDriver('overlay-selection');
     _marker('OVERLAY_SELECTED:PAGE=0:FIELD_CONFIRMED=1');
 
-    // --- Move on the real page ---------------------------------------------
-    core.Rect storedRect() => state.content!.fields
+    // --- Geometry on the real page -----------------------------------------
+    // The confirmed machine suggestion is a thin strip: at the current scale its
+    // view height is below the 24 dp handle hit region, so `hitTestFieldGeometry`
+    // resolves its centre to an edge handle by design (contract §4 tests corner
+    // and edge regions before the body). The seeded signature field is the field
+    // this task composes, it is a confirmed field of the real page too, and its
+    // 48 pt height gives it a reachable body region at a 1x view scale. Geometry
+    // is therefore exercised on the signature field, after centring it.
+    final core.ConfirmedField seededSignature = state.content!.fields
         .firstWhere(
-          (core.ConfirmedField field) => field.id == machineField.id,
-        )
-        .rect;
-    Future<void> dragBody(Offset totalPx) async {
+          (core.ConfirmedField field) => field.id == signatureFieldId,
+        );
+    final ui.FieldGeometryHandle? machineCentreRegion = _hitRegionAt(
+      tester,
+      state,
+      machineField,
+      Offset(
+        machineField.rect.left + machineField.rect.width / 2,
+        machineField.rect.top + machineField.rect.height / 2,
+      ),
+    );
+    _marker('MACHINE_CENTRE_REGION:${machineCentreRegion?.name ?? 'none'}');
+    await _setScaleOnPoint(
+      tester,
+      state,
+      0,
+      Offset(
+        seededSignature.rect.left + seededSignature.rect.width / 2,
+        seededSignature.rect.top + seededSignature.rect.height / 2,
+      ),
+      1,
+    );
+
+    core.ConfirmedField signatureFieldNow() => state.content!.fields.firstWhere(
+      (core.ConfirmedField field) => field.id == signatureFieldId,
+    );
+    core.Rect storedRect() => signatureFieldNow().rect;
+
+    // Select the signature field through the real tap path.
+    await tester.tapAt(_screenPoint(tester, state, signatureFieldNow()));
+    await _pumpUntil(
+      tester,
+      () => find.byKey(fieldValueSheetKey).evaluate().isNotEmpty,
+      timeout: const Duration(seconds: 120),
+      reason: 'tapping the signature field did not open the value sheet',
+    );
+    expect(state.selection.selectedId, signatureFieldId);
+    await _closeValueSheet(tester);
+    expect(state.selection.selectedId, signatureFieldId);
+
+    final ui.FieldGeometryHandle? bodyRegion = _hitRegionAt(
+      tester,
+      state,
+      signatureFieldNow(),
+      Offset(
+        signatureFieldNow().rect.left + signatureFieldNow().rect.width / 2,
+        signatureFieldNow().rect.top + signatureFieldNow().rect.height / 2,
+      ),
+    );
+    expect(
+      bodyRegion,
+      ui.FieldGeometryHandle.body,
+      reason:
+          'the centred signature field must expose a real body region so the '
+          'composed move gesture is reachable at 1x',
+    );
+
+    Future<void> dragBody(Offset totalPx, {int steps = 12}) async {
+      final String contentBefore = _contentJson(state);
       final TestGesture gesture = await tester.startGesture(
-        _screenPoint(
-          tester,
-          state,
-          state.content!.fields.firstWhere(
-            (core.ConfirmedField field) => field.id == machineField.id,
-          ),
-        ),
+        _screenPoint(tester, state, signatureFieldNow()),
       );
-      await tester.pump(const Duration(milliseconds: 50));
-      for (int step = 0; step < 4; step++) {
-        await gesture.moveBy(totalPx / 4);
-        await tester.pump(const Duration(milliseconds: 30));
+      await tester.pump(const Duration(milliseconds: 60));
+      for (int step = 0; step < steps; step++) {
+        await gesture.moveBy(totalPx / steps.toDouble());
+        await tester.pump(const Duration(milliseconds: 40));
+        // Every held frame stays transient: the preview may move, the stored
+        // revision and the head may not.
+        expect(state.reviewBusy, isFalse);
+        expect(_contentJson(state), contentBefore);
       }
       expect(
         state.geometryGestureActive,
@@ -540,10 +663,14 @@ void main() {
       await tester.pump();
     }
 
+    final double dragScale = state.viewController.mappingFor(0).scale;
     final core.Rect beforeMove = storedRect();
     final String? headBeforeMove = state.headRevisionId;
-    final String contentBeforeMove = _contentJson(state);
-    await dragBody(const Offset(24, 0));
+    await dragBody(const Offset(120, 0));
+    _marker(
+      'MOVE_GESTURE:SCALE_MILLI=${(dragScale * 1000).round()}:'
+      'DRAG_PX=120:STEPS=12',
+    );
     await _waitForCommit(
       tester,
       state,
@@ -551,17 +678,37 @@ void main() {
       reason: 'the move gesture did not commit one verified revision',
     );
     final core.Rect afterMove = storedRect();
-    expect(afterMove.left, greaterThan(beforeMove.left));
+    _marker(
+      'MOVE_DIAG:BEFORE_LEFT_MILLI=${(beforeMove.left * 1000).round()}:'
+      'AFTER_LEFT_MILLI=${(afterMove.left * 1000).round()}:'
+      'BEFORE_TOP_MILLI=${(beforeMove.top * 1000).round()}:'
+      'AFTER_TOP_MILLI=${(afterMove.top * 1000).round()}',
+    );
+    expect(
+      afterMove.left - beforeMove.left,
+      closeTo(120 / dragScale, 2),
+      reason: 'the body drag must move the field by the gesture delta/scale',
+    );
+    expect(afterMove.top, closeTo(beforeMove.top, 1e-6));
     expect(afterMove.width, beforeMove.width);
     expect(afterMove.height, beforeMove.height);
-    expect(_contentJson(state), isNot(contentBeforeMove));
     _marker(
-      'FIELD_MOVED:DELTA_POSITIVE_LEFT=1:WIDTH_KEPT=1:'
+      'FIELD_MOVED:DELTA_MATCHES_SCALE=1:WIDTH_KEPT=1:HEIGHT_KEPT=1:'
       'SAVES=1:HEAD_CHANGED=1',
     );
     await _waitForDriver('field-moved');
 
-    // --- Resize on the real page -------------------------------------------
+    // Re-centre on the moved field before resizing from its bottom-right corner.
+    await _setScaleOnPoint(
+      tester,
+      state,
+      0,
+      Offset(
+        signatureFieldNow().rect.left + signatureFieldNow().rect.width / 2,
+        signatureFieldNow().rect.top + signatureFieldNow().rect.height / 2,
+      ),
+      1,
+    );
     final core.Rect beforeResize = storedRect();
     final String? headBeforeResize = state.headRevisionId;
     final Offset corner = Offset(
@@ -572,11 +719,14 @@ void main() {
     final Offset cornerScreen =
         tester.getTopLeft(find.byKey(_editorPageViewKey)) +
         mapping.displayToView(corner);
+    final String contentBeforeResize = _contentJson(state);
     final TestGesture resize = await tester.startGesture(cornerScreen);
-    await tester.pump(const Duration(milliseconds: 50));
-    for (int step = 0; step < 4; step++) {
-      await resize.moveBy(const Offset(10, 8));
-      await tester.pump(const Duration(milliseconds: 30));
+    await tester.pump(const Duration(milliseconds: 60));
+    for (int step = 0; step < 12; step++) {
+      await resize.moveBy(const Offset(8, 6));
+      await tester.pump(const Duration(milliseconds: 40));
+      expect(state.reviewBusy, isFalse);
+      expect(_contentJson(state), contentBeforeResize);
     }
     expect(state.geometryGestureActive, isTrue);
     await resize.up();
@@ -598,10 +748,18 @@ void main() {
     await _waitForDriver('field-resized');
 
     // --- Signature: draw, undo, clear, draw, apply --------------------------
-    final core.ConfirmedField signatureField = state.content!.fields.firstWhere(
-      (core.ConfirmedField field) => field.id == signatureFieldId,
-    );
+    final core.ConfirmedField signatureField = signatureFieldNow();
     expect(signatureField.type, core.FieldType.signature);
+    await _setScaleOnPoint(
+      tester,
+      state,
+      0,
+      Offset(
+        signatureField.rect.left + signatureField.rect.width / 2,
+        signatureField.rect.top + signatureField.rect.height / 2,
+      ),
+      1,
+    );
     await tester.tapAt(_screenPoint(tester, state, signatureField));
     await _pumpUntil(
       tester,
@@ -695,7 +853,8 @@ void main() {
 
     // --- Verified store read-back ------------------------------------------
     final LoadedDocument signed = await runtime.store.loadDocument(documentId);
-    final core.FieldValue? storedValue = signed.content.values[signatureFieldId];
+    final core.FieldValue? storedValue =
+        signed.content.values[signatureFieldId];
     expect(storedValue, isA<core.SignatureValue>());
     final core.SignatureMark storedMark =
         signed.content.signatures[signatureFieldId]!;
@@ -766,7 +925,10 @@ void main() {
     final EditorScreenState reopened = tester.state<EditorScreenState>(
       find.byType(EditorScreen),
     );
-    expect(reopened.content!.signatures[signatureFieldId]!.assetId, storedMark.assetId);
+    expect(
+      reopened.content!.signatures[signatureFieldId]!.assetId,
+      storedMark.assetId,
+    );
     expect(
       reopened.content!.signatures[signatureFieldId]!.sha256,
       storedMark.sha256,
@@ -775,10 +937,7 @@ void main() {
       documentId,
       reopened.content!.signatures[signatureFieldId]!.assetId,
     );
-    expect(
-      crypto.sha256.convert(reopenedAsset).toString(),
-      storedMark.sha256,
-    );
+    expect(crypto.sha256.convert(reopenedAsset).toString(), storedMark.sha256);
     _marker('SIGNATURE_REOPENED_READBACK:OK:ASSET_SAME=1');
 
     final core.ConfirmedField reopenedSignature = reopened.content!.fields
