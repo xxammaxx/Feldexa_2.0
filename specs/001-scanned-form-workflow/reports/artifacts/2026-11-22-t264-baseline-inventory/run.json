@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "corpusId": "field-inventory-synthetic-v1",
   "evidenceClass": "SIMULATED",
-  "generatedAtUtc": "2026-11-22T09:40:16.081514Z",
+  "generatedAtUtc": "2026-11-22T12:40:48.650210Z",
   "conditions": {
     "runtime": "host VM",
     "dart": "3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on \"linux_x64\"",
@@ -501,10 +501,10 @@
       },
       "timingsMs": {
         "raster": 112,
-        "detect": 250,
-        "type": 12,
-        "inventory": 14,
-        "compare": 10
+        "detect": 242,
+        "type": 14,
+        "inventory": 15,
+        "compare": 14
       }
     },
     {
@@ -987,10 +987,10 @@
         "typeMismatches": []
       },
       "timingsMs": {
-        "raster": 99,
-        "detect": 219,
-        "type": 2,
-        "inventory": 1,
+        "raster": 108,
+        "detect": 210,
+        "type": 1,
+        "inventory": 0,
         "compare": 1
       }
     },
@@ -1560,11 +1560,11 @@
         "typeMismatches": []
       },
       "timingsMs": {
-        "raster": 98,
-        "detect": 155,
+        "raster": 96,
+        "detect": 149,
         "type": 0,
         "inventory": 2,
-        "compare": 1
+        "compare": 2
       }
     },
     {
@@ -1837,8 +1837,8 @@
         "typeMismatches": []
       },
       "timingsMs": {
-        "raster": 99,
-        "detect": 155,
+        "raster": 98,
+        "detect": 147,
         "type": 0,
         "inventory": 0,
         "compare": 0
@@ -2074,8 +2074,8 @@
         "typeMismatches": []
       },
       "timingsMs": {
-        "raster": 98,
-        "detect": 154,
+        "raster": 100,
+        "detect": 148,
         "type": 0,
         "inventory": 0,
         "compare": 0
@@ -2603,11 +2603,11 @@
         "typeMismatches": []
       },
       "timingsMs": {
-        "raster": 98,
-        "detect": 155,
+        "raster": 99,
+        "detect": 149,
         "type": 0,
         "inventory": 1,
-        "compare": 2
+        "compare": 0
       }
     },
     {
@@ -2749,8 +2749,8 @@
         "typeMismatches": []
       },
       "timingsMs": {
-        "raster": 106,
-        "detect": 176,
+        "raster": 96,
+        "detect": 151,
         "type": 0,
         "inventory": 0,
         "compare": 0
@@ -2904,8 +2904,8 @@
         "typeMismatches": []
       },
       "timingsMs": {
-        "raster": 108,
-        "detect": 158,
+        "raster": 97,
+        "detect": 150,
         "type": 0,
         "inventory": 0,
         "compare": 0
@@ -3176,7 +3176,7 @@
       },
       "timingsMs": {
         "raster": 98,
-        "detect": 154,
+        "detect": 145,
         "type": 0,
         "inventory": 0,
         "compare": 0
@@ -3427,8 +3427,8 @@
         "typeMismatches": []
       },
       "timingsMs": {
-        "raster": 101,
-        "detect": 153,
+        "raster": 97,
+        "detect": 144,
         "type": 0,
         "inventory": 0,
         "compare": 0
@@ -3437,11 +3437,11 @@
   ],
   "timings": {
     "note": "host VM measurements, diagnostics only, never a performance claim; excluded from the golden snapshot",
-    "totalRasterMs": 1017,
-    "totalDetectMs": 1729,
-    "totalTypeMs": 14,
+    "totalRasterMs": 1001,
+    "totalDetectMs": 1635,
+    "totalTypeMs": 15,
     "totalInventoryMs": 18,
-    "totalCompareMs": 14
+    "totalCompareMs": 17
   },
   "snapshot": {
     "schemaVersion": 1,

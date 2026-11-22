@@ -6,7 +6,7 @@
 | Result | `PARTIAL` |
 | Task / issue | `T264` / `#264` |
 | Date / timezone | `2026-11-22 10:20 Europe/Berlin` |
-| Revision | base commit `1a141cdac586238021ade8a18e40c08883a9d1a6` (the first run was produced from `c1b0e5d` and rebased onto this base on 2026-11-22; only documentation conflicted and no code, golden, or test byte changed); tree `dirty` (at run time; pre-existing line-ending-only `apps/feldexa_app/android/gradlew.bat` SHA-256 `c13c6e91b9a517783976de213d46398c661ea9e17651376d7301e839eaedcc62` not created, staged, or committed by T264A), plus the then-uncommitted T264A/T264B files: `packages/feldexa_recognition/lib/src/geometry_metrics.dart` SHA-256 `54a093742c5a10f924a06a2e7ce154b3ca18a55b938b653e7c74b7831ba1b8d9`; `packages/feldexa_recognition/lib/src/field_inventory.dart` SHA-256 `bf0ba2107b258be04c63050c2de44207533e2a18ef32b8c172981f5a00a5c189`; `packages/feldexa_recognition/lib/src/structure_comparison.dart` SHA-256 `93b9e484902a6567e07e304870f4b7522741829ad2215101c0148cd8c7ab0030`; `packages/feldexa_recognition/lib/src/photometric_quality.dart` SHA-256 `8ef935ecb401c9e4103302ed2370a98d539ddf3d7435e9426ade028dfca106b6`; `packages/feldexa_recognition/test/geometry_metrics_test.dart` SHA-256 `a3e8389279eb95c8a12f0b9d934190066ad1194f470681df1c45ccf97007d1e6`; `packages/feldexa_recognition/test/field_inventory_test.dart` SHA-256 `039a05dc78198602813be480110ce96d47d4380bc82aa603c8cd4d56dc0c3782`; `packages/feldexa_recognition/test/structure_comparison_test.dart` SHA-256 `65fa7093cf013be6b58bb7a0613bba4ebdbf79300e6c3cc445f1898796eb6786`; `packages/feldexa_recognition/test/photometric_quality_test.dart` SHA-256 `b1f458ac8eb27c22aba176a3d73a3a09e8ee29439b7badfa8ab137d4052c9790`; `tools/evaluation/field_inventory_baseline.dart` SHA-256 `89ed7e58a95364fff3008900fbc307ba9bbd2e02adacb00fef277043f99a69f5`; `tools/evaluation/test_field_inventory_baseline.py` SHA-256 `80d8c81aff14be5dfb65f62d6e61ebfdd55de174f86caa6f830a14ad1091341e`; `tools/evaluation/goldens/field-inventory-baseline.v1.json` SHA-256 `f05d9dafb89bf143892a9113bf457fbf4246dc8343e655392cd7cc5989cadde8`; `tools/evaluation/adaptive-policy.v1.json` SHA-256 `eb940399ce1533aaa0a6dba4bba814b311a5041b06daeddc0f9866cacc40e073`; `tools/evaluation/adaptive-policy.v1.md` SHA-256 `78bf3eb1464a2b0e182eff4f13bd80e3a468e9a2ab25d1d8e63e085b979a3678`; `specs/001-scanned-form-workflow/tasks.md` SHA-256 `bce1e3af4d79e1ba184a9ed86902cfa6cb561fbfc228167284fd84997b396b4f`; `specs/001-scanned-form-workflow/research.md` SHA-256 `ee775e956a4aebceb5e1eed9e70f143d374bc43d91458a7d4b19c5dd26c910fc`; `specs/001-scanned-form-workflow/reports/README.md` SHA-256 `8241f50bebdfb17c9bb1d0459937c03d926dbfc9cf2166377adc5b166b20a56d`; `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t264-baseline-inventory/run.json` SHA-256 `b694b4bdca3d0490c11ebd0b879000b3601fb6750f77defc242bc4626316b14a`; candidate SHA and report hash in the external attestation |
+| Revision | base commit `2a1452b378660940d70f99f0ead88da6a933da28` (the first run was produced from `c1b0e5d` and rebased onto `1a141cd` on 2026-11-22; the T264A/T264B commit was then rebased onto `2a1452b` the same day, only documentation conflicted in both rebases, no code, golden, policy, or test byte changed, and every host gate was rerun at the rebased HEAD); tree `dirty` (pre-existing line-ending-only `apps/feldexa_app/android/gradlew.bat` SHA-256 `c13c6e91b9a517783976de213d46398c661ea9e17651376d7301e839eaedcc62` not created, staged, or committed by T264A), plus the T264A/T264B files committed at the HEAD of this re-gate, each with its SHA-256: `packages/feldexa_recognition/lib/src/geometry_metrics.dart` SHA-256 `54a093742c5a10f924a06a2e7ce154b3ca18a55b938b653e7c74b7831ba1b8d9`; `packages/feldexa_recognition/lib/src/field_inventory.dart` SHA-256 `bf0ba2107b258be04c63050c2de44207533e2a18ef32b8c172981f5a00a5c189`; `packages/feldexa_recognition/lib/src/structure_comparison.dart` SHA-256 `93b9e484902a6567e07e304870f4b7522741829ad2215101c0148cd8c7ab0030`; `packages/feldexa_recognition/lib/src/photometric_quality.dart` SHA-256 `8ef935ecb401c9e4103302ed2370a98d539ddf3d7435e9426ade028dfca106b6`; `packages/feldexa_recognition/test/geometry_metrics_test.dart` SHA-256 `a3e8389279eb95c8a12f0b9d934190066ad1194f470681df1c45ccf97007d1e6`; `packages/feldexa_recognition/test/field_inventory_test.dart` SHA-256 `039a05dc78198602813be480110ce96d47d4380bc82aa603c8cd4d56dc0c3782`; `packages/feldexa_recognition/test/structure_comparison_test.dart` SHA-256 `65fa7093cf013be6b58bb7a0613bba4ebdbf79300e6c3cc445f1898796eb6786`; `packages/feldexa_recognition/test/photometric_quality_test.dart` SHA-256 `b1f458ac8eb27c22aba176a3d73a3a09e8ee29439b7badfa8ab137d4052c9790`; `tools/evaluation/field_inventory_baseline.dart` SHA-256 `89ed7e58a95364fff3008900fbc307ba9bbd2e02adacb00fef277043f99a69f5`; `tools/evaluation/test_field_inventory_baseline.py` SHA-256 `80d8c81aff14be5dfb65f62d6e61ebfdd55de174f86caa6f830a14ad1091341e`; `tools/evaluation/goldens/field-inventory-baseline.v1.json` SHA-256 `f05d9dafb89bf143892a9113bf457fbf4246dc8343e655392cd7cc5989cadde8`; `tools/evaluation/adaptive-policy.v1.json` SHA-256 `eb940399ce1533aaa0a6dba4bba814b311a5041b06daeddc0f9866cacc40e073`; `tools/evaluation/adaptive-policy.v1.md` SHA-256 `78bf3eb1464a2b0e182eff4f13bd80e3a468e9a2ab25d1d8e63e085b979a3678`; `specs/001-scanned-form-workflow/tasks.md` SHA-256 `5d992bfac847a73dffa950a4533b6ebdd17428b50cf7f11cc66e383bf652cdd6`; `specs/001-scanned-form-workflow/research.md` SHA-256 `ee775e956a4aebceb5e1eed9e70f143d374bc43d91458a7d4b19c5dd26c910fc`; `specs/001-scanned-form-workflow/reports/README.md` SHA-256 `a514ad983db69e0480ebafbf6ef6e33a0965ab15946bbdfa5cc1df5588f9740e`; `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t264-baseline-inventory/run.json` SHA-256 `227f568a2fd42bbbab8b1a2d7c8edd1cfcb3ebd27cf86adffb5ae7cad081bf5c`; candidate SHA and report hash in the external attestation |
 | External attestation | Coordinator-held transport attestation for the T264A dispatch; it records the candidate commit, tree, this report's bytes and SHA-256, and the report HEAD |
 | Build identity | No application build artifact. Host Dart CLI `dart run tools/evaluation/field_inventory_baseline.dart`; no APK, Android, Gradle, release, or Web build |
 | Toolchain | Flutter `3.47.7` stable, Dart `3.13.5`, Python `3.13`; Linux host VM; no emulator, device, browser, OCR engine, PDF engine, Gradle, or Android SDK invoked |
@@ -39,14 +39,26 @@ blocked; they are not implemented.
 
 ## 2. Revision and build
 
-Base `c1b0e5dfa9c247103a3bd53d23c6224348c8c4eb`.
+Base `2a1452b378660940d70f99f0ead88da6a933da28` for this re-gate; the first run
+was produced from `c1b0e5dfa9c247103a3bd53d23c6224348c8c4eb`.
 
-Rebase note: the branch was rebased onto `1a141cdac586238021ade8a18e40c08883a9d1a6`
-(planning-correction merge). The only conflict was `tasks.md`; it was resolved by
-adopting the authoritative T264A/T264B/T264P/T264C/T264D split while keeping the
-delivered T264A/T264B scope. `research.md`, the evidence index, this report, and
-the frozen policy were aligned to that naming. No production file, test, golden,
-or tool byte changed during the rebase, and the host gates were rerun afterwards.
+Rebase note 1: the branch was rebased onto
+`1a141cdac586238021ade8a18e40c08883a9d1a6` (planning-correction merge). The only
+conflict was `tasks.md`; it was resolved by adopting the authoritative
+T264A/T264B/T264P/T264C/T264D split while keeping the delivered T264A/T264B
+scope. `research.md`, the evidence index, this report, and the frozen policy were
+aligned to that naming. No production file, test, golden, or tool byte changed
+during the rebase, and the host gates were rerun afterwards.
+
+Rebase note 2 (this re-gate): the T264A/T264B commit was then rebased onto
+`2a1452b378660940d70f99f0ead88da6a933da28`, the integration head that contains
+T086B-P (PR #274, merge `7ccc175`) and T086A (PR #276, merge `2287160`). Only
+documentation conflicted: `reports/README.md` keeps both the origin/main T086B-P
+and T086A rows and the T264A/T264B row, and `tasks.md` merged both edits. No
+production, test, tool, golden, or frozen-policy byte changed, the golden
+snapshot is still byte-identical, and every host gate in §4 was rerun at the
+rebased HEAD. Only the run report was regenerated, because it records
+nondeterministic per-stage milliseconds.
 
 New or changed T264A/T264B files, each with its SHA-256:
 
@@ -65,10 +77,10 @@ New or changed T264A/T264B files, each with its SHA-256:
 | `tools/evaluation/goldens/field-inventory-baseline.v1.json` | 46229 | `f05d9dafb89bf143892a9113bf457fbf4246dc8343e655392cd7cc5989cadde8` |
 | `tools/evaluation/adaptive-policy.v1.json` | 7414 | `eb940399ce1533aaa0a6dba4bba814b311a5041b06daeddc0f9866cacc40e073` |
 | `tools/evaluation/adaptive-policy.v1.md` | 4639 | `78bf3eb1464a2b0e182eff4f13bd80e3a468e9a2ab25d1d8e63e085b979a3678` |
-| `specs/001-scanned-form-workflow/tasks.md` | 170760 | `bce1e3af4d79e1ba184a9ed86902cfa6cb561fbfc228167284fd84997b396b4f` |
+| `specs/001-scanned-form-workflow/tasks.md` | 178533 | `5d992bfac847a73dffa950a4533b6ebdd17428b50cf7f11cc66e383bf652cdd6` |
 | `specs/001-scanned-form-workflow/research.md` | 41906 | `ee775e956a4aebceb5e1eed9e70f143d374bc43d91458a7d4b19c5dd26c910fc` |
-| `specs/001-scanned-form-workflow/reports/README.md` | 75694 | `8241f50bebdfb17c9bb1d0459937c03d926dbfc9cf2166377adc5b166b20a56d` |
-| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t264-baseline-inventory/run.json` | 136263 | `b694b4bdca3d0490c11ebd0b879000b3601fb6750f77defc242bc4626316b14a` |
+| `specs/001-scanned-form-workflow/reports/README.md` | 79470 | `a514ad983db69e0480ebafbf6ef6e33a0965ab15946bbdfa5cc1df5588f9740e` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t264-baseline-inventory/run.json` | 136262 | `227f568a2fd42bbbab8b1a2d7c8edd1cfcb3ebd27cf86adffb5ae7cad081bf5c` |
 
 No production file owned by another task changed: `geometry_detector.dart`
 (T086B), `type_inference.dart` and the German OCR fixtures (T263), the editor,
@@ -100,10 +112,13 @@ draw time.
 | 10 | adaptive second pass and A/B/C benchmark (`not applicable`) | `-` | none | `UNAVAILABLE` |
 | 11 | rights-cleared real authority corpus (`not applicable`) | `-` | none | `ABSENT` |
 
-Key result lines: check 1 `Formatted 26 files (0 changed)`; check 2
-`No issues found!`; check 3 `+371: All tests passed!`; check 4
-`Ran 15 tests ... OK`; check 5 `baseline written: pages=10
-verdicts={pass: 4, fail: 6}`; check 6 no output; check 7
+Key result lines at the rebased HEAD: check 1 `Formatted 29 files (0 changed)`
+(three more `tools/evaluation` files exist after the T086B-P merge); check 2
+`No issues found!`; check 3 `+382: All tests passed!` (371 before this re-gate plus
+the 11 T086B-P detector tests that origin/main added to
+`packages/feldexa_recognition`); check 4 `Ran 15 tests ... OK`; check 5
+`baseline written: pages=10 verdicts={pass: 4, fail: 6}`; check 6
+`cmp` byte equality against the golden, no output; check 7
 `OK: evidence documents and attestation are consistent`; check 8
 `1/1 report(s) valid`.
 
@@ -209,16 +224,18 @@ remains owned by T136 and T141 on a named Android device.
 | Inventory test | `packages/feldexa_recognition/test/field_inventory_test.dart` | 12147 | `039a05dc78198602813be480110ce96d47d4380bc82aa603c8cd4d56dc0c3782` |
 | Comparison test | `packages/feldexa_recognition/test/structure_comparison_test.dart` | 12567 | `65fa7093cf013be6b58bb7a0613bba4ebdbf79300e6c3cc445f1898796eb6786` |
 | Quality test | `packages/feldexa_recognition/test/photometric_quality_test.dart` | 2133 | `b1f458ac8eb27c22aba176a3d73a3a09e8ee29439b7badfa8ab137d4052c9790` |
-| Baseline run report | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t264-baseline-inventory/run.json` | 136263 | `b694b4bdca3d0490c11ebd0b879000b3601fb6750f77defc242bc4626316b14a` |
+| Baseline run report | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t264-baseline-inventory/run.json` | 136262 | `227f568a2fd42bbbab8b1a2d7c8edd1cfcb3ebd27cf86adffb5ae7cad081bf5c` |
 
 ## 9. Reproducibility
 
-1. Start from base commit `1a141cdac586238021ade8a18e40c08883a9d1a6`.
+1. Start from base commit `2a1452b378660940d70f99f0ead88da6a933da28` (the
+   T264A/T264B commit is the child of that merge).
 2. Run `flutter pub get` at the repository root for workspace resolution.
 3. Run `dart run tools/evaluation/field_inventory_baseline.dart --output run.json --snapshot snapshot.json`; expected `baseline written: pages=10 verdicts={pass: 4, fail: 6}` and exit `0`.
 4. Run `cmp snapshot.json tools/evaluation/goldens/field-inventory-baseline.v1.json`; expected byte equality.
 5. Run `python3 -m unittest tools/evaluation/test_field_inventory_baseline.py`; expected 5/5.
-6. Run `flutter test` in `packages/feldexa_recognition`; expected 371/371.
+6. Run `flutter test` in `packages/feldexa_recognition`; expected 382/382 at this
+   base (371 before origin/main added the 11 T086B-P detector tests).
 7. Clean up the two local JSON files; no device, emulator, or allocation is used.
 
 ## 10. External attestation
