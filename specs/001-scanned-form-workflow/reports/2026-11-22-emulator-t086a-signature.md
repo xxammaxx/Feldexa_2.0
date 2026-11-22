@@ -23,7 +23,10 @@
   "candidate_code_tree": "18837b31a94fbdaa4485a84ea23fdb7428881390",
   "emulator_run_head": "ef65da35ea67fea3169365d037b62385c1300e86",
   "emulator_run_tree": "54994b64fc227afad92b91eafbdb03f3f231a432",
-  "production_test_identical_to_candidate": true,
+  "production_identical_to_candidate": true,
+  "emulator_bound_test_identical_to_candidate": true,
+  "host_test_identical_to_candidate": false,
+  "host_test_difference": "apps/feldexa_app/test/field_value_sheet_test.dart — correction-1 removed three unused _pumpSheet parameters (canGoPrevious, signatureDrafts, signatureResult); host widget test, never compiled into the emulator run",
   "evidence_bundle": "specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t086a-signature",
   "host_evidence_class": "NONE",
   "emulator_evidence_class": "EMULATOR",
@@ -41,7 +44,7 @@
     "application_apply_signature": 10,
     "app_signature_png": 7,
     "app_editor_signature": 7,
-    "app_field_controls_signature_group": 4,
+    "app_field_controls_signature_group": 3,
     "focused_seven_file_run": 100,
     "app_suite": 546,
     "application_suite": 187
@@ -111,8 +114,11 @@ undo `suggestionUndoAction` („Rückgängig“), cancel
 `reviewConflictCloseAction` („Schließen“), the capture action `fillAction`
 („Ausfüllen“), and clear `suggestionRejectAction` („Ablehnen“). The clear action
 is the one wording compromise: the catalog has no „Leeren“ action and adding
-one is a contract change outside this task. It is disclosed here and visible in
-the `signature-sheet` screenshot.
+one is a contract change outside this task. It is disclosed here as a label
+compromise only: in `signature_sheet.dart` the clear action is an `IconButton`
+with `Icons.delete_outline` whose `tooltip` (tooltip plus accessibility label)
+carries that text, so the „Ablehnen“ wording is **not** visible as text in the
+`signature-sheet` screenshot — only the trash icon is.
 
 ### 1.3 Test paths (5 new files, 4 updated)
 
@@ -120,7 +126,8 @@ the `signature-sheet` screenshot.
   FIPS 180-4 digests pinned against independently computed values for four
   padding shapes, asset validation and byte copy, field/page/rect binding,
   preservation of every other revision member, replacing an earlier signature,
-  document/field independence (no global ink), and content-free errors.
+  independence of two signature fields **within one document** (no global ink;
+  the test never opens a second document), and content-free errors.
 - `apps/feldexa_app/test/signature_png_test.dart` (7 tests): real PNG output,
   no upscaling, 1024 px cap, transparent background with dark ink only,
   determinism and buffer independence, unusable-canvas null, empty draft, and
@@ -207,6 +214,27 @@ The move delta is exactly `120 px / 1.0` display points
 width and height while keeping the top-left anchor exact — real touches on the
 real page, not a fixture unit test.
 
+Two marker caveats (correction-1):
+
+- The `SAVES=1` / `HEAD_CHANGED=1` suffixes above are **literal label text**
+  printed by `android_signature_overlay_test.dart`, not measurements. What the
+  run actually asserts is the head change after each gesture (`_waitForCommit`:
+  a non-null head different from the pre-gesture head) and "no stored revision
+  while the pointer is held" (the canonical content JSON is compared on every
+  held frame). The exact one-save count is host-proven, not emulator-proven:
+  `editor_signature_test`'s recording store shows exactly one asset write plus
+  one verified revision, and `field_controls_test` shows exactly one applied
+  draft.
+- `logcat-t086a-markers.log` contains **no** `T086A_` marker. It holds five
+  `ActivityTaskManager` lifecycle lines (start, displayed, fully drawn, force
+  remove, no app thread) because the markers are printed by the integration-test
+  harness, not by the app process. The authoritative marker sequence is
+  `markers-integration.txt`, which the driver extracts from
+  `integration-android-t086a.log`. That file also carries the fixture/readiness
+  and screenshot-handshake lines, and its screenshot lines appear with a doubled
+  `T086A_T086A_SCREENSHOT_*` prefix; the sequence quoted above is the subset the
+  journey asserts.
+
 Screenshots (6, all distinct, `screenshot-hashes.txt`):
 `overlay-selection`, `field-moved`, `field-resized`, `signature-sheet`,
 `signature-signed`, `signature-reopened`.
@@ -247,8 +275,8 @@ out of the viewport (all field taps now centre through the documented
 | --- | --- |
 | `SignatureSheet` in the real signature branch, draw/undo/clear/apply | `field_controls_test` signature group, `editor_signature_test` first and reopen tests, `signature-sheet` screenshot |
 | Smallest command: draft → PNG asset → `writeSignature` + `SignatureMark`/`SignatureValue` in ONE verified revision | `apply_signature_test`, `signature_png_test`, `editor_signature_test`, `SIGNATURE_READBACK` marker |
-| Bound to the current document/field, no library, no global/static ink | `applySignature` rejects missing/non-signature fields and binds field id + page; `no global ink` and `two fields never share ink` tests; no static ink in `signature_sheet.dart`/`signature_png.dart` |
-| Overlay/geometry on real pages for signature and confirmed fields | `editor_signature_test` real-page overlay test; emulator `OVERLAY_SELECTED`, `FIELD_MOVED`, `FIELD_RESIZED` markers plus three screenshots |
+| Bound to the current document/field, no library, no global/static ink | `applySignature` rejects missing/non-signature fields and binds field id + page; `keeps two documents and fields independent (no global ink)` (which exercises two signature fields of **one** document) and `two fields never share ink` tests; no static ink in `signature_sheet.dart`/`signature_png.dart` |
+| Overlay/geometry on real pages | The emulator run confirms and selects one real **machine** suggestion on the real page (`MACHINE_FIELD_CONFIRMED` → `OVERLAY_SELECTED`) but does **not** move or resize it; the move (`FIELD_MOVED`) and the corner resize (`FIELD_RESIZED`) run on the seeded **signature** field, which is itself a confirmed field on the real page. `editor_signature_test` repeats paint/select/move/resize as a host test. Three screenshots. |
 | Host tests for command/asset/revision/binding, sheet wiring, overlay/geometry, no global ink | 35 new/rewritten host tests listed in §1.3 |
 | Real emulator evidence with screenshots/logs/APK SHA/commit SHA | §3 and the evidence bundle |
 | No recognition performance/quality change (T086B) | no recognition file touched; analysis result identical to the US2 baseline (28 suggestions, 0 signature) |
@@ -290,3 +318,147 @@ out of the viewport (all field taps now centre through the documented
 
 Two independent read-only reviews and the merge gates are owned by the
 coordinator and were **`NOT_RUN`** at the time of writing.
+
+## 7. Correction-1 (scoped documentation/evidence correction, issue #269)
+
+Correction-1 changes no production behavior and no emulator-bound test byte. It
+ran as the scoped Spec Kit implementation wrapper `command:speckit.implement`
+(`.opencode/commands/speckit.implement.md`, SHA-256
+`e036ce63702db93e656e1c91ee6c02a8dc3d4a4f8624f8ba4adc69027fe68983`) with
+`SPECIFY_FEATURE_DIRECTORY=specs/001-scanned-form-workflow`,
+`SPECIFY_FEATURE_NO_PERSIST=1`, `check-prerequisites.sh --json --require-tasks
+--include-tasks` → exit 0, `.specify/extensions.yml` read (no hooks), the three
+feature checklists left read-only, and the argument “T086A correction-1 only”
+(T086, T086B, T263 and T264 untouched).
+
+### 7.1 Trailing-whitespace normalization of the evidence bytes
+
+`git diff --check 1a141cd..HEAD` reported trailing whitespace in six artifacts.
+Only the trailing spaces/tabs were removed; every other byte of those files is
+unchanged:
+
+| Artifact | Lines | Bytes after | SHA-256 after |
+| --- | --- | --- | --- |
+| `device-identity.txt` | 9–10 | 298 | `265c299fe643739f0c63d2fc73f638d221a7aa9322b021641ab53bc0fedbbf56` |
+| `failed-run-1/device-identity.txt` | 9–10 | 298 | `265c299fe643739f0c63d2fc73f638d221a7aa9322b021641ab53bc0fedbbf56` |
+| `failed-run-1/integration-android-t086a.log` | 2, 99 | 5945 | `cbdb36136c2e7b23c760dddd1e5f0cbad5e6d8b0132e086439603b0c1d678fc0` |
+| `integration-android-t086a.log` | 2 | 5751 | `fd64428c9b5ab1c979e52e646c848004bbf6084967f7d0258b8a503e666eb6c0` |
+| `runs/run-2-preformat/device-identity.txt` | 9–10 | 298 | `265c299fe643739f0c63d2fc73f638d221a7aa9322b021641ab53bc0fedbbf56` |
+| `runs/run-2-preformat/integration-android-t086a.log` | 2 | 5751 | `74e9241b8986dcf1662ea940ead6cd1cc85ad8e52b27f5a6e890838cd2726b01` |
+
+All three runs now carry the same byte-identical device identity (serial, AVD,
+build fingerprint, `wm_size` 1080x2400, `wm_density` 420), so the recorded device
+fact is preserved; only the padding spaces and the one whitespace-only log line
+are gone. No hash row in this report or in the bundle manifests
+(`apk-sha256.txt`, `fixture-sha256.txt`, `screenshot-hashes.txt`,
+`run-status.txt`, `git-identity.txt`, `markers-integration.txt`,
+`marker-sequence.txt`) covers those six files, so no recorded hash needed
+updating; the APK `e7ced48b…`, fixture `22c939cc…`, derived fixture `57c1ade1…`
+and six screenshot digests are untouched.
+
+The driver's own header line said
+`# Usage (repo root): tools/android/t086a_drive_composition.sh`; it now names
+the script that exists, `tools/android/t086a_drive_signature.sh`. That is a
+comment-only change in host test tooling and changes no driver behavior.
+
+### 7.2 Report accuracy corrections
+
+1. `host_counts.app_field_controls_signature_group` is **3** (the `signature
+   control` group in `field_controls_test.dart`), not 4; the 4 came from counting
+   the type groups instead of the tests.
+2. The clear action's „Ablehnen“ wording is a trash-`IconButton` tooltip plus
+   accessibility label (`Icons.delete_outline`), so it is **not** visible as text
+   in `signature-sheet.png` (§1.2, §3).
+3. `logcat-t086a-markers.log` contains **no** `T086A_` marker — only five
+   `ActivityTaskManager` lifecycle lines. The authoritative markers are in
+   `markers-integration.txt`, extracted from the integration log (§3).
+4. The driver usage line names `tools/android/t086a_drive_signature.sh` (§7.1).
+5. The “two documents” independence claim is withdrawn: the
+   `keeps two documents and fields independent (no global ink)` test exercises two
+   signature fields of **one** document and never opens a second document (§1.3,
+   §4).
+6. The emulator markers `SAVES=1` / `HEAD_CHANGED=1` are literal label text, not
+   measurements. The run proves the head change and the absence of a stored
+   revision while the pointer is held; the exact one-save count is host-proven
+   (§3).
+7. The §4 overlay row now states that the machine-confirmed field is confirmed and
+   selected but not moved or resized, and that the real move and corner resize run
+   on the seeded signature field, which is itself a confirmed field.
+
+### 7.3 Test hygiene and correction-1 gates
+
+`apps/feldexa_app/test/field_value_sheet_test.dart` had three dead `_pumpSheet`
+parameters (`canGoPrevious`, `signatureDrafts`, `signatureResult`) that no test
+supplied; they are removed. This is a host widget test that is never compiled
+into the emulator journey (`flutter test
+integration_test/android_signature_overlay_test.dart`), so it is outside the
+emulator-bound byte set. `integration_test/android_signature_overlay_test.dart`
+was **not** touched.
+
+```text
+format (touched file)   dart format --output=none --set-exit-if-changed → 1 file, 0 changed
+focused app 6-file run  signature_png, editor_signature, field_controls, field_value_sheet, editor_composition, review_degraded → 90/90
+focused application run apply_signature_test.dart → 10/10 (focused seven-file total 100/100)
+app analyze             No issues found!
+git diff --check        exit 0
+```
+
+`tools/evaluation/validate_report.dart` does not cover this report: it validates
+the `YYYY-MM-DD--<slug>.md` class-run template, and this hand-written T086A
+report fails it in exactly the same way as its siblings
+(e.g. `2026-11-21-emulator-t071a-composition.md`), before and after
+correction-1. That gate is therefore `NOT_RUN` (not applicable), not `PASS`.
+
+### 7.4 Emulator binding after correction-1
+
+| Set | `f72e9b9` (candidate) → correction-1 HEAD | Binding |
+| --- | --- | --- |
+| Production: `apps/feldexa_app/lib/**`, `packages/**/lib/**`, `apps/feldexa_app/assets/**`, all `pubspec*` | identical (no diff) | holds |
+| Emulator-bound test: `apps/feldexa_app/integration_test/android_signature_overlay_test.dart` | identical (no diff) | holds |
+| Host test: `apps/feldexa_app/test/field_value_sheet_test.dart` | `77cb368bfcdbe9707f8cce96b6298e81c0b8f988ce19d29f6a412b0c472dbf74` → `ff1d401fda7a05d74b571155424bea4e83b76064ac659e947e0f386819ca8a6f` | outside the emulator run |
+| Pre-existing dirty file | `apps/feldexa_app/android/gradlew.bat` (CRLF), never staged | unchanged |
+
+The committed `EMULATOR` `PASS` therefore still binds: the APK `e7ced48b…`
+built from the identical production bytes, and the only test-side byte change is
+a host widget-test helper that the emulator run never compiles. The emulator
+evidence itself was not rerun in correction-1.
+
+## 8. Follow-ups (non-blocking code LOWs, not fixed here)
+
+Correction-1 deliberately changes no production code. These LOWs from the two
+independent reviews are recorded so they are not lost:
+
+1. **Weak PNG validation.** `SignatureAsset.fromPng`
+   (`packages/feldexa_application/lib/src/review/apply_signature.dart`) checks
+   only the eight magic bytes plus the caller-supplied `widthPx`/`heightPx`; it
+   parses no IHDR/CRC and never cross-checks the declared size against the
+   encoded PNG, so a truncated stream with the right magic is accepted.
+2. **Mutable asset bytes.** `SignatureAsset.bytes` is a public `final Uint8List`
+   (same file). The factory copies the caller buffer once, but any later holder
+   can mutate that buffer while `sha256` stays the digest from construction time,
+   so the in-memory asset can stop matching its recorded digest.
+3. **Stale `_content` across `await`.** `EditorScreenState._saveSignature`
+   (`apps/feldexa_app/lib/features/editor/editor_screen.dart`) captures `_content`
+   before `await encodeSignaturePng(draft)` and before
+   `await store.writeSignature(...)`, then calls `applySignature` with that stale
+   snapshot; a revision committed during those awaits would be silently dropped
+   because the signature command is built from the pre-await base.
+4. **Generic `save003`.** The same function returns
+   `FieldValueCommitResult.failed(l10n.save003)` for “not mounted”, “busy”,
+   encode failure and commit failure. The signature path cannot distinguish a
+   failed asset write, a failed revision write and an unavailable screen, so the
+   user message is generic where `SAVE-007`/a signature-specific code would be
+   more accurate.
+5. **Signed-field mark rect.** `applySignature` stores
+   `SignatureMark(rect: field.rect, …)` at capture time, and
+   `_translateField` in
+   `packages/feldexa_application/lib/src/review/edit_field.dart` (the shared body
+   of `moveField` and `resizeField`) copies `content.signatures` unchanged. Moving
+   or resizing a signed field therefore leaves the mark rectangle stale. Nothing
+   renders `mark.rect` yet, so the defect is latent.
+6. **Orphaned assets.** In `_saveSignature`, a successful
+   `store.writeSignature` followed by a failed `_commitSnapshot` leaves the asset
+   in the encrypted store with no revision referencing it. The startup recovery
+   (`apps/feldexa_app/lib/bootstrap/startup_sweep.dart`, native step 2/3
+   “unreferenced signatures”) removes it on the next launch, but it persists for
+   the rest of the session.

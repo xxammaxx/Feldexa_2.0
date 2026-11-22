@@ -34,7 +34,7 @@
 # or steals another worktree's emulator session.
 #
 # Test-only tooling: adds no production dependency and changes no app file.
-# Usage (repo root): tools/android/t086a_drive_composition.sh
+# Usage (repo root): tools/android/t086a_drive_signature.sh
 set -uo pipefail
 
 SERIAL="${T086A_SERIAL:-emulator-5554}"
