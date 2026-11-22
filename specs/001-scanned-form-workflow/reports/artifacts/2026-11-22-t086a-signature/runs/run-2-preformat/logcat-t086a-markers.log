@@ -1,0 +1,6 @@
+11-22 10:52:38.588   631  1187 I ActivityTaskManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x30000000 cmp=de.feldexa.app/.MainActivity (has extras)} with LAUNCH_SINGLE_TOP from uid 2000 (BAL_ALLOW_PERMISSION) result code=0
+11-22 10:52:47.809   631   661 I ActivityTaskManager: Displayed de.feldexa.app/.MainActivity for user 0: +9s245ms
+11-22 10:52:47.809   631   661 I ActivityTaskManager: Fully drawn de.feldexa.app/.MainActivity: +9s245ms
+11-22 10:55:59.021   631  3775 W ActivityTaskManager: Force removing ActivityRecord{7251c82 u0 de.feldexa.app/.MainActivity t66 f}}: app died, no saved state
+11-22 10:55:59.077   631   665 W ActivityTaskManager: Unable to send transaction to client proc de.feldexa.app: no app thread
+11-22 10:56:00.135   631   665 W ActivityTaskManager: Unable to send transaction to client proc de.feldexa.app: no app thread

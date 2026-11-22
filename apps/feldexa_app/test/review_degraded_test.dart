@@ -52,6 +52,7 @@ import 'package:feldexa_app/features/editor/field_value_sheet.dart';
 import 'package:feldexa_app/features/editor/page_strip.dart';
 import 'package:feldexa_app/features/editor/page_view.dart' as viewer;
 import 'package:feldexa_app/features/editor/suggestion_review_panel.dart';
+import 'package:feldexa_app/features/fill/signature_sheet.dart';
 import 'package:feldexa_app/features/fill/text_control.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_application/src/review/confirm_suggestion.dart'
@@ -787,6 +788,8 @@ final class _DegradedEditorState extends State<_DegradedEditor> {
             field: field,
             currentValue: _content.values[field.id],
             onCommit: (core.FieldValue value) => _saveValue(field, value),
+            onSignatureCommit: (SignatureDraft draft) async =>
+                const FieldValueCommitResult.saved(),
           );
         },
       );

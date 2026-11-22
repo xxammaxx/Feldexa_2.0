@@ -99,9 +99,13 @@ import 'package:feldexa_app/features/editor/page_state.dart';
 import 'package:feldexa_app/features/editor/page_strip.dart';
 import 'package:feldexa_app/features/editor/page_view.dart';
 import 'package:feldexa_app/features/editor/suggestion_review_panel.dart';
+import 'package:feldexa_app/features/fill/signature_png.dart';
+import 'package:feldexa_app/features/fill/signature_sheet.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_application/src/recognition/analyze_document.dart'
     as analysis;
+import 'package:feldexa_application/src/review/apply_signature.dart'
+    as signature;
 import 'package:feldexa_application/src/review/command_history.dart' as history;
 import 'package:feldexa_application/src/review/confirm_suggestion.dart'
     as review;
@@ -1268,6 +1272,97 @@ class EditorScreenState extends State<EditorScreen> {
     }
   }
 
+  /// Persists one captured signature for [field] (T086A, issue #269).
+  ///
+  /// The path is one bounded, verified round with no reuse library and no
+  /// shared ink:
+  ///   1. [encodeSignaturePng] rasterizes exactly the captured draft, with the
+  ///      long edge bounded by the model's 1024 px limit;
+  ///   2. `SignatureAsset.fromPng` copies the bytes and derives the SHA-256 the
+  ///      encrypted store verifies on write and again after its read-back;
+  ///   3. `SecureStorePort.writeSignature` stores those bytes once in this
+  ///      document's aggregate;
+  ///   4. `applySignature` produces the snapshot that carries both the
+  ///      `SignatureValue` and the `SignatureMark` for this field and page;
+  ///   5. `_commitSnapshot` persists that snapshot as one verified autosave
+  ///      revision with one `addSignature` undo step.
+  ///
+  /// A failed asset write performs no revision write. A failed revision save can
+  /// leave the written asset unreferenced: no stored mark, no export plan, and
+  /// no read-back can reach an asset id that no revision names, so the visible
+  /// document never claims a signature that is not durable.
+  Future<FieldValueCommitResult> _saveSignature(
+    core.ConfirmedField field,
+    SignatureDraft draft,
+  ) async {
+    final core.RevisionContent? content = _content;
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    if (content == null || _reviewBusy) {
+      return FieldValueCommitResult.failed(l10n.save003);
+    }
+    final SignaturePng? png = await encodeSignaturePng(draft);
+    if (!mounted) {
+      return FieldValueCommitResult.failed(l10n.save003);
+    }
+    if (png == null) {
+      return FieldValueCommitResult.failed(l10n.save007);
+    }
+    final signature.SignatureAsset asset;
+    final signature.SignatureChange change;
+    final String assetId = widget.runtime.ids.newId();
+    final DateTime capturedAt = widget.runtime.clock.nowUtc().toUtc();
+    try {
+      asset = signature.SignatureAsset.fromPng(
+        bytes: png.bytes,
+        widthPx: png.widthPx,
+        heightPx: png.heightPx,
+      );
+      change = signature.applySignature(
+        content,
+        field.id,
+        assetId: assetId,
+        asset: asset,
+        capturedAt: capturedAt,
+      );
+    } catch (_) {
+      return FieldValueCommitResult.failed(l10n.save007);
+    }
+    setState(() {
+      _durabilityStatus = core.DurabilityStatus.saving;
+    });
+    try {
+      await widget.runtime.store.writeSignature(
+        WriteSignatureRequest(
+          documentId: widget.source.documentId,
+          assetId: assetId,
+          bytes: asset.bytes,
+          sha256: asset.sha256,
+        ),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return FieldValueCommitResult.failed(l10n.save003);
+      }
+      final String code = _saveFailureCode(error);
+      setState(() {
+        _durabilityStatus = core.DurabilityStatus.saveFailed(code);
+      });
+      return FieldValueCommitResult.failed(_saveMessageForCode(l10n, code));
+    }
+    if (!mounted) {
+      return FieldValueCommitResult.failed(l10n.save003);
+    }
+    final bool committed = await _commitSnapshot(
+      change.content,
+      kind: history.EditCommandKind.addSignature,
+      fieldId: field.id,
+    );
+    if (!committed) {
+      return FieldValueCommitResult.failed(l10n.save003);
+    }
+    return const FieldValueCommitResult.saved();
+  }
+
   /// Persists one corrected field value through the same verified save path.
   ///
   /// The command snapshot is written with the current head as `expectedHead`.
@@ -1435,6 +1530,8 @@ class EditorScreenState extends State<EditorScreen> {
                     canGoNext: nextId != null,
                     onCommit: (core.FieldValue value) =>
                         _saveFieldValue(shown, value),
+                    onSignatureCommit: (SignatureDraft draft) =>
+                        _saveSignature(shown, draft),
                     onNavigate: (FieldValueNavigation direction) {
                       final String? targetId =
                           direction == FieldValueNavigation.next

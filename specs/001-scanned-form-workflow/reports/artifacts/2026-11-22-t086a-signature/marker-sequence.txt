@@ -1,0 +1,13 @@
+screenshot overlay-selection after T086A_SCREENSHOT_OVERLAY_SELECTION
+screenshot ack overlay-selection
+screenshot field-moved after T086A_SCREENSHOT_FIELD_MOVED
+screenshot ack field-moved
+screenshot field-resized after T086A_SCREENSHOT_FIELD_RESIZED
+screenshot ack field-resized
+screenshot signature-sheet after T086A_SCREENSHOT_SIGNATURE_SHEET
+screenshot ack signature-sheet
+screenshot signature-signed after T086A_SCREENSHOT_SIGNATURE_SIGNED
+screenshot ack signature-signed
+screenshot signature-reopened after T086A_SCREENSHOT_SIGNATURE_REOPENED
+screenshot ack signature-reopened
+PASS (flutter test exit 0; cleanup marker observed; privacy checks PASS)

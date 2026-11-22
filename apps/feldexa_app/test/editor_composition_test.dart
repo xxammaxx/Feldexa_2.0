@@ -1220,7 +1220,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(state.selection.selectedId, _secondFieldId);
-    expect(find.byKey(fieldValueSignatureNotRunKey), findsOneWidget);
+    expect(find.byKey(fieldValueSignatureActionKey), findsOneWidget);
     final Focus focus = tester.widget<Focus>(
       find.byKey(fieldValueNonTextFocusKey),
     );

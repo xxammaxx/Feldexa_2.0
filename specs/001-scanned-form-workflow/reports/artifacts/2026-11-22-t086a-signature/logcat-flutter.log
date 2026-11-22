@@ -1,0 +1,3 @@
+--------- beginning of main
+11-22 11:16:24.311 31989 32096 I flutter : The Dart VM service is listening on http://127.0.0.1:46395/5otpOg2DAZg=/
+11-22 11:16:26.720 31989 32089 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
