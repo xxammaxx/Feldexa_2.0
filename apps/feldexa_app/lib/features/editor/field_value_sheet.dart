@@ -69,16 +69,28 @@
 // focusable container that autofocuses, which is what makes a next/previous
 // swap land the focus on the control instead of only repainting it.
 //
-// Signature editing is not faked. No production signature-asset write flow is
-// composed by T071A, so the sheet visibly marks signature editing `NOT_RUN`
-// and offers no save action. Overflow measurement is also not implemented in
-// T071A: T084 is rendered only when the caller already marked the stored value
-// `overflow`, and the journey report records layout measurement as `NOT_RUN`.
+// Signature editing (T086A)
+// -------------------------
+// The signature branch is no longer a `NOT_RUN` placeholder. It opens the
+// existing T083 `SignatureSheet` full screen, lets the user draw, undo, clear,
+// cancel, or apply, and hands the immutable `SignatureDraft` to the caller's
+// [FieldValueSheet.onSignatureCommit]. That callback owns the PNG encoding, the
+// verified `SecureStorePort.writeSignature` asset write, and the one revision
+// that carries both the `SignatureValue` and its `SignatureMark`; this sheet
+// still performs no I/O, clock read, or command call of its own. An empty draft
+// (apply without ink) is honest no-op: nothing is written and no value is
+// invented. Sheet labels come from the committed German ARB; T086A adds no
+// catalog text, so the clear action reuses the existing discard wording.
+//
+// Overflow measurement is still not implemented: T084 is rendered only when the
+// caller already marked the stored value `overflow`, and the journey report
+// records layout measurement as `NOT_RUN`.
 
 import 'dart:async';
 
 import 'package:feldexa_app/features/fill/checkbox_control.dart';
 import 'package:feldexa_app/features/fill/overflow_warning.dart';
+import 'package:feldexa_app/features/fill/signature_sheet.dart';
 import 'package:feldexa_app/features/fill/text_control.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_core/feldexa_core.dart' as core;
@@ -102,9 +114,14 @@ const ValueKey<String> fieldValueErrorKey = ValueKey<String>(
   'field-value-error',
 );
 
-/// Stable key for the visible `NOT_RUN` signature marker.
-const ValueKey<String> fieldValueSignatureNotRunKey = ValueKey<String>(
-  'field-value-signature-not-run',
+/// Stable key for the signature capture action (opens the T083 sheet).
+const ValueKey<String> fieldValueSignatureActionKey = ValueKey<String>(
+  'field-value-signature-action',
+);
+
+/// Stable key for the visible signature signed/unsigned state.
+const ValueKey<String> fieldValueSignatureStateKey = ValueKey<String>(
+  'field-value-signature-state',
 );
 
 /// Stable key for the per-field „In Reihenfolge verschieben“ action.
@@ -167,7 +184,9 @@ final class FieldValueCommitResult {
 /// * `number` and `date` use T079 plus the T080/T081 parsers and the catalog
 ///   error text; invalid input stays in the control;
 /// * `checkbox` uses T082;
-/// * `signature` is visibly `NOT_RUN` and offers no save action.
+/// * `signature` opens the T083 sheet and reports the captured draft through
+///   [onSignatureCommit]; there is no inline save button because the asset and
+///   the revision must be written together by the caller.
 ///
 /// The sheet calls [onCommit] exactly once per save action. A successful result
 /// pops with `true`; a failed result keeps the sheet open with the returned
@@ -179,6 +198,7 @@ class FieldValueSheet extends StatefulWidget {
     required this.field,
     required this.currentValue,
     required this.onCommit,
+    required this.onSignatureCommit,
     this.onNavigate,
     this.canGoPrevious = false,
     this.canGoNext = false,
@@ -194,6 +214,16 @@ class FieldValueSheet extends StatefulWidget {
   /// Saves one validated value; the caller stamps the real edit instant,
   /// applies `setFieldValue`, and persists the revision.
   final Future<FieldValueCommitResult> Function(core.FieldValue value) onCommit;
+
+  /// Stores one captured signature draft bound to [field].
+  ///
+  /// The caller encodes the draft, writes the signature asset, and persists the
+  /// one revision that carries both the value and the mark. It returns the same
+  /// result shape as [onCommit] so a failure keeps this sheet open and editable
+  /// and a success closes it. The draft is only handed over when it carries ink;
+  /// an empty apply is a no-op and never reaches this callback.
+  final Future<FieldValueCommitResult> Function(SignatureDraft draft)
+  onSignatureCommit;
 
   /// Moves focus to the previous/next field in the current order.
   ///
@@ -455,6 +485,70 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
     Navigator.of(context).pop();
   }
 
+  /// Opens the T083 signature sheet and stores the captured ink.
+  ///
+  /// The sheet is a full-screen route of its own, so cancel simply discards the
+  /// transient ink. Applying an empty draft writes nothing: a signature value
+  /// without ink would be a fabricated asset. A stored draft goes through
+  /// [FieldValueSheet.onSignatureCommit] exactly once; a failure keeps this
+  /// sheet open with the caller's content-free message.
+  Future<void> _captureSignature() async {
+    if (_busy || _closing) {
+      return;
+    }
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    final SignatureDraft? draft = await Navigator.of(context)
+        .push<SignatureDraft>(
+          MaterialPageRoute<SignatureDraft>(
+            fullscreenDialog: true,
+            builder: (BuildContext routeContext) {
+              return SignatureSheet(
+                title: l10n.suggestionTypeSignature,
+                clearLabel: l10n.suggestionRejectAction,
+                undoLabel: l10n.suggestionUndoAction,
+                applyLabel: l10n.suggestionConfirmAction,
+                cancelLabel: l10n.reviewConflictCloseAction,
+                onApply: (SignatureDraft captured) {
+                  Navigator.of(routeContext).pop(captured);
+                },
+                onCancel: () {
+                  Navigator.of(routeContext).pop();
+                },
+              );
+            },
+          ),
+        );
+    if (!mounted || draft == null || draft.isEmpty) {
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    FieldValueCommitResult result;
+    try {
+      result = await widget.onSignatureCommit(draft);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      result = FieldValueCommitResult.failed(
+        AppLocalizations.of(context).save003,
+      );
+    }
+    if (!mounted) {
+      return;
+    }
+    if (result.isSaved) {
+      Navigator.of(context).pop();
+      return;
+    }
+    setState(() {
+      _busy = false;
+      _error = result.message;
+    });
+  }
+
   /// Persists a changed draft and reports whether the action may proceed.
   ///
   /// A pristine draft returns true without validating or writing anything: an
@@ -564,6 +658,19 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
                   absorbing: _busy,
                   child: _buildFocusableControl(l10n),
                 ),
+                if (signature) ...<Widget>[
+                  const SizedBox(height: 12),
+                  if (_error != null) ...<Widget>[
+                    const SizedBox(height: 8),
+                    Text(
+                      _error!,
+                      key: fieldValueErrorKey,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ],
+                ],
                 if (!signature) ...<Widget>[
                   const SizedBox(height: 12),
                   FieldOverflowWarning(visible: overflow),
@@ -703,16 +810,25 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
           },
         );
       case core.FieldType.signature:
+        final bool signed = widget.currentValue is core.SignatureValue;
         return Column(
-          key: fieldValueSignatureNotRunKey,
+          key: fieldValueSignatureStateKey,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(l10n.a11ySignatureUnsigned),
-            const SizedBox(height: 8),
             Text(
-              'NOT_RUN',
-              style: Theme.of(context).textTheme.titleMedium
-                  ?.copyWith(color: Theme.of(context).colorScheme.error),
+              signed ? l10n.a11ySignatureSigned : l10n.a11ySignatureUnsigned,
+            ),
+            const SizedBox(height: 8),
+            FilledButton.icon(
+              key: fieldValueSignatureActionKey,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+              ),
+              onPressed: _busy ? null : () {
+                unawaited(_captureSignature());
+              },
+              icon: const Icon(Icons.draw_outlined),
+              label: Text(l10n.fillAction, textAlign: TextAlign.center),
             ),
           ],
         );

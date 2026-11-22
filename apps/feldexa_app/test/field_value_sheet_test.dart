@@ -19,6 +19,7 @@ library;
 import 'dart:async';
 
 import 'package:feldexa_app/features/editor/field_value_sheet.dart';
+import 'package:feldexa_app/features/fill/signature_sheet.dart';
 import 'package:feldexa_app/features/fill/text_control.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_core/feldexa_core.dart' as core;
@@ -51,6 +52,8 @@ Future<void> _pumpSheet(
   core.FieldValue? currentValue,
   List<core.FieldValue>? commits,
   FieldValueCommitResult Function(core.FieldValue value)? result,
+  List<SignatureDraft>? signatureDrafts,
+  FieldValueCommitResult Function(SignatureDraft draft)? signatureResult,
   List<FieldValueSheetOutcome?>? outcomes,
   bool Function(FieldValueNavigation)? onNavigate,
   bool canGoPrevious = false,
@@ -83,6 +86,11 @@ Future<void> _pumpSheet(
                           onCommit: (core.FieldValue value) async {
                             commits?.add(value);
                             return result?.call(value) ??
+                                const FieldValueCommitResult.saved();
+                          },
+                          onSignatureCommit: (SignatureDraft draft) async {
+                            signatureDrafts?.add(draft);
+                            return signatureResult?.call(draft) ??
                                 const FieldValueCommitResult.saved();
                           },
                         );

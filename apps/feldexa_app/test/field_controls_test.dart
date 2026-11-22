@@ -2,13 +2,16 @@
 //
 // Evidence class: NONE. These are host-VM widget tests around the existing
 // `FieldValueSheet` composition and the existing T079/T082 controls. The T083
-// signature path is visibly NOT_RUN and is not exercised here. They open no
-// store, PDF, platform channel, emulator, or device and make no
-// Android, IME, screen-reader, or visual claim.
+// signature path is exercised through its T086A wiring: the sheet opens the
+// full-screen signature surface instead of the former `NOT_RUN` placeholder and
+// reports the captured draft through the caller callback. They open no store,
+// PDF, platform channel, emulator, or device and make no Android, IME,
+// screen-reader, or visual claim.
 //
 // Normative sources: `spec.md` FR-031/FR-032 (a selected field is edited with a
 // control appropriate to its type), FR-035 (line breaks preserved), FR-038 (no
-// silent truncation), FR-042 (checkbox state), and the German catalog
+// silent truncation), FR-042 (checkbox state), FR-036 (a handwritten signature
+// belongs only to the current document), and the German catalog
 // `contracts/error-catalog.de.md` §6 (`NUM-001`, `DATE-001`, `DATE-002`).
 //
 // The sheet is not modified here. Every assertion runs against the production
@@ -20,10 +23,8 @@
 //   * a valid German date is accepted and stored canonically, invalid dates
 //     stay in the control and commit nothing;
 //   * the checkbox control toggles the committed value;
-//   * signature editing is visibly `NOT_RUN` and invents no signature value.
-//
-// Signature asset editing remains `NOT_RUN` in production, so this file asserts
-// the explicit `NOT_RUN` marker instead of a fabricated signature value.
+//   * signature editing opens the T083 sheet, invents no value on cancel, and
+//     reports exactly one captured draft on apply.
 
 @TestOn('vm')
 library;
@@ -32,6 +33,7 @@ import 'dart:async';
 
 import 'package:feldexa_app/features/editor/field_value_sheet.dart';
 import 'package:feldexa_app/features/fill/checkbox_control.dart';
+import 'package:feldexa_app/features/fill/signature_sheet.dart';
 import 'package:feldexa_app/features/fill/text_control.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_core/feldexa_core.dart' as core;
@@ -64,6 +66,7 @@ Future<void> _pumpSheet(
   WidgetTester tester, {
   required core.FieldType type,
   List<core.FieldValue>? commits,
+  List<SignatureDraft>? signatureDrafts,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -88,6 +91,10 @@ Future<void> _pumpSheet(
                           currentValue: null,
                           onCommit: (core.FieldValue value) async {
                             commits?.add(value);
+                            return const FieldValueCommitResult.saved();
+                          },
+                          onSignatureCommit: (SignatureDraft draft) async {
+                            signatureDrafts?.add(draft);
                             return const FieldValueCommitResult.saved();
                           },
                         );
@@ -119,7 +126,7 @@ void main() {
       expect(find.byType(FieldCheckboxControl), findsNothing);
       expect(find.byKey(fieldTextControlInputKey), findsOneWidget);
       expect(find.text(_de.suggestionTypeText), findsOneWidget);
-      expect(find.byKey(fieldValueSignatureNotRunKey), findsNothing);
+      expect(find.byKey(fieldValueSignatureActionKey), findsNothing);
     });
 
     testWidgets('German text is accepted and preserved without truncation', (
@@ -295,7 +302,7 @@ void main() {
       expect(find.byType(FieldTextControl), findsOneWidget);
       expect(find.byType(FieldCheckboxControl), findsNothing);
       expect(find.text(_de.suggestionTypeDate), findsOneWidget);
-      expect(find.byKey(fieldValueSignatureNotRunKey), findsNothing);
+      expect(find.byKey(fieldValueSignatureActionKey), findsNothing);
     });
 
     testWidgets('31.12.2025 is accepted and stored canonically', (
@@ -439,23 +446,29 @@ void main() {
   });
 
   group('signature control', () {
-    testWidgets('signature editing is visibly NOT_RUN and invents no value', (
+    testWidgets('signature editing opens the sheet and invents no value', (
       tester,
     ) async {
       final List<core.FieldValue> commits = <core.FieldValue>[];
+      final List<SignatureDraft> drafts = <SignatureDraft>[];
       await _pumpSheet(
         tester,
         type: core.FieldType.signature,
         commits: commits,
+        signatureDrafts: drafts,
       );
 
-      // The type-appropriate signature surface is the explicit NOT_RUN marker.
-      expect(find.byKey(fieldValueSignatureNotRunKey), findsOneWidget);
-      expect(find.text('NOT_RUN'), findsOneWidget);
+      // The type-appropriate signature surface is the capture action plus the
+      // signed/unsigned state, not a `NOT_RUN` placeholder.
+      expect(find.byKey(fieldValueSignatureActionKey), findsOneWidget);
+      expect(find.byKey(fieldValueSignatureStateKey), findsOneWidget);
       expect(find.text(_de.a11ySignatureUnsigned), findsOneWidget);
       expect(find.text(_de.suggestionTypeSignature), findsOneWidget);
+      expect(find.text('NOT_RUN'), findsNothing);
 
-      // No editing control and no save action exist, so nothing can be stored.
+      // No inline value control and no inline save action exist: the asset and
+      // the revision are written together by the caller, never one without the
+      // other.
       expect(find.byType(FieldTextControl), findsNothing);
       expect(find.byType(FieldCheckboxControl), findsNothing);
       expect(find.byKey(fieldValueSaveKey), findsNothing);
@@ -463,11 +476,76 @@ void main() {
       expect(commits, isEmpty);
       expect(tester.takeException(), isNull);
 
-      // Closing the NOT_RUN surface still reports no signature value.
+      // Opening the capture surface shows the real T083 sheet, and cancelling
+      // it returns to the value sheet without a draft or a value.
+      await tester.tap(find.byKey(fieldValueSignatureActionKey));
+      await tester.pumpAndSettle();
+      expect(find.byType(SignatureSheet), findsOneWidget);
+      expect(drafts, isEmpty);
+      await tester.tap(find.byKey(signatureSheetCancelKey));
+      await tester.pumpAndSettle();
+      expect(find.byType(SignatureSheet), findsNothing);
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+      expect(drafts, isEmpty);
+      expect(commits, isEmpty);
+
+      // Closing the signature surface reports no signature value either.
       await tester.tap(find.byKey(fieldValueCloseKey));
       await tester.pumpAndSettle();
       expect(find.byKey(fieldValueSheetKey), findsNothing);
       expect(commits, isEmpty);
+      expect(drafts, isEmpty);
+    });
+
+    testWidgets('applying ink reports exactly one hint-bearing draft', (
+      tester,
+    ) async {
+      final List<core.FieldValue> commits = <core.FieldValue>[];
+      final List<SignatureDraft> drafts = <SignatureDraft>[];
+      await _pumpSheet(
+        tester,
+        type: core.FieldType.signature,
+        commits: commits,
+        signatureDrafts: drafts,
+      );
+
+      await tester.tap(find.byKey(fieldValueSignatureActionKey));
+      await tester.pumpAndSettle();
+      final TestGesture gesture = await tester.startGesture(
+        tester.getCenter(find.byKey(signatureSheetCanvasKey)),
+      );
+      await gesture.moveBy(const Offset(40, 12));
+      await gesture.up();
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(signatureSheetApplyKey));
+      await tester.pumpAndSettle();
+
+      expect(drafts, hasLength(1));
+      expect(drafts.single.isEmpty, isFalse);
+      expect(drafts.single.strokes.single.points, hasLength(2));
+      expect(commits, isEmpty, reason: 'no inline value is invented');
+      expect(find.byKey(fieldValueSheetKey), findsNothing);
+    });
+
+    testWidgets('an empty apply stores nothing and keeps the sheet open', (
+      tester,
+    ) async {
+      final List<SignatureDraft> drafts = <SignatureDraft>[];
+      await _pumpSheet(
+        tester,
+        type: core.FieldType.signature,
+        signatureDrafts: drafts,
+      );
+
+      await tester.tap(find.byKey(fieldValueSignatureActionKey));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(signatureSheetApplyKey));
+      await tester.pumpAndSettle();
+
+      expect(drafts, isEmpty, reason: 'empty ink is never stored');
+      expect(find.byType(SignatureSheet), findsNothing);
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+      expect(find.byKey(fieldValueErrorKey), findsNothing);
     });
   });
 }
