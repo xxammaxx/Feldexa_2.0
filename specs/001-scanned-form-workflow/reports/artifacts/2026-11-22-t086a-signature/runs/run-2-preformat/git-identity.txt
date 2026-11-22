@@ -1,0 +1,7 @@
+head=57311619806722df8f4b1fa56338771e96670b84
+tree=f9e90f590a4d45964242b22d694334ddae81f295
+branch=xxammaxx/t086a
+subject=test(T086A): centre every tapped field on the real page
+status_porcelain:
+ M apps/feldexa_app/android/gradlew.bat
+flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
