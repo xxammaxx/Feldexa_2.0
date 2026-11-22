@@ -1,0 +1,1722 @@
+{
+  "schemaVersion": 1,
+  "corpusId": "field-inventory-synthetic-v1",
+  "evidenceClass": "SIMULATED",
+  "generator": "tools/evaluation/field_inventory_baseline.dart",
+  "note": "Canonical golden snapshot: no generatedAt, no timings, no paths. Byte equality with tools/evaluation/goldens/field-inventory-baseline.v1.json is the regression check.",
+  "noRegressionGate": {
+    "criterion": "inventory matched >= baseline matched AND inventory false positives <= baseline false positives, per the whole corpus",
+    "applies": true,
+    "passed": true,
+    "baselineMatched": 28,
+    "inventoryMatched": 28,
+    "baselineFalsePositives": 12,
+    "inventoryFalsePositives": 11
+  },
+  "totals": {
+    "expectedFields": 33,
+    "baseline": {
+      "matched": 28,
+      "extra": 7,
+      "duplicate": 6,
+      "duplicateUnmatched": 5,
+      "precision": 0.7,
+      "recall": 0.848485,
+      "f1": 0.767123,
+      "typeAccuracy": 0.821429,
+      "labelAccuracy": 0.8125
+    },
+    "inventory": {
+      "matched": 28,
+      "extra": 6,
+      "duplicate": 6,
+      "duplicateUnmatched": 5,
+      "precision": 0.717949,
+      "recall": 0.848485,
+      "f1": 0.777778,
+      "typeAccuracy": 1.0,
+      "labelAccuracy": 0.8125
+    },
+    "inventoryVerdicts": {
+      "pass": 4,
+      "fail": 6
+    },
+    "byKind": {
+      "checkbox": {
+        "baseline": {
+          "expected": 12,
+          "matched": 11,
+          "recall": 0.916667,
+          "typeAccuracy": 1.0
+        },
+        "inventory": {
+          "expected": 12,
+          "matched": 11,
+          "recall": 0.916667,
+          "typeAccuracy": 1.0
+        }
+      },
+      "text": {
+        "baseline": {
+          "expected": 11,
+          "matched": 7,
+          "recall": 0.636364,
+          "typeAccuracy": 1.0
+        },
+        "inventory": {
+          "expected": 11,
+          "matched": 7,
+          "recall": 0.636364,
+          "typeAccuracy": 1.0
+        }
+      },
+      "number": {
+        "baseline": {
+          "expected": 4,
+          "matched": 4,
+          "recall": 1.0,
+          "typeAccuracy": 1.0
+        },
+        "inventory": {
+          "expected": 4,
+          "matched": 4,
+          "recall": 1.0,
+          "typeAccuracy": 1.0
+        }
+      },
+      "date": {
+        "baseline": {
+          "expected": 1,
+          "matched": 1,
+          "recall": 1.0,
+          "typeAccuracy": 1.0
+        },
+        "inventory": {
+          "expected": 1,
+          "matched": 1,
+          "recall": 1.0,
+          "typeAccuracy": 1.0
+        }
+      },
+      "table_field": {
+        "baseline": {
+          "expected": 5,
+          "matched": 5,
+          "recall": 1.0,
+          "typeAccuracy": 0.0
+        },
+        "inventory": {
+          "expected": 5,
+          "matched": 5,
+          "recall": 1.0,
+          "typeAccuracy": 1.0
+        }
+      }
+    }
+  },
+  "pages": [
+    {
+      "id": "clean-text",
+      "scenario": "clean",
+      "description": "Three labelled text fields, two checkboxes, a decorative frame, and a rule inside the print margin.",
+      "pageSizePt": {
+        "width": 595.28,
+        "height": 841.89
+      },
+      "declaredGroundTruth": {
+        "fieldCount": 5,
+        "kinds": {
+          "checkbox": 2,
+          "text": 3
+        },
+        "nonFields": [
+          {
+            "id": "decorative-frame",
+            "reason": "decorative_frame",
+            "rect": {
+              "x": 4.0,
+              "y": 4.0,
+              "width": 587.28,
+              "height": 833.89
+            }
+          },
+          {
+            "id": "margin-rule",
+            "reason": "print_margin",
+            "rect": {
+              "x": 2.0,
+              "y": 402.945,
+              "width": 10.0,
+              "height": 18.0
+            }
+          }
+        ]
+      },
+      "photometricQuality": {
+        "pixelCount": 3868706,
+        "meanLuminance": 253.48715306875218,
+        "standardDeviation": 19.582830786962496,
+        "inkDensity": 0.005932733063716912,
+        "p05Luminance": 255,
+        "p95Luminance": 255,
+        "dynamicRange": 0
+      },
+      "candidateCount": 5,
+      "inventoryCoverage": {
+        "candidatesIn": 5,
+        "entriesOut": 5,
+        "deduplicatedCount": 0,
+        "printMarginRejections": 0,
+        "decorativeFrameRejections": 0,
+        "letterInteriorRejections": 0,
+        "outsidePageRejections": 0,
+        "filledRegions": 0,
+        "structuralRegions": 0,
+        "tableHeaderRowCells": 0,
+        "adjacentPairs": 0,
+        "overlappingPairs": 0,
+        "nestedPairs": 0,
+        "unlabelledFieldCandidates": 1,
+        "ambiguousKindCandidates": 0
+      },
+      "baseline": {
+        "verdict": "pass",
+        "failureCodes": [],
+        "expectedCount": 5,
+        "observedCount": 5,
+        "matchedCount": 5,
+        "missingCount": 0,
+        "extraCount": 0,
+        "duplicateCount": 0,
+        "overlapCount": 0,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.955011,
+        "minMatchedIou": 0.937021,
+        "metrics": {
+          "expected": 5,
+          "matched": 5,
+          "extra": 0,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 5,
+          "labelledExpected": 4,
+          "labelsAgree": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0
+        },
+        "buckets": [
+          {
+            "pageIndex": 0,
+            "kind": "checkbox",
+            "expected": 2,
+            "observed": 2,
+            "matched": 2,
+            "missing": 0,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          },
+          {
+            "pageIndex": 0,
+            "kind": "text",
+            "expected": 3,
+            "observed": 3,
+            "matched": 3,
+            "missing": 0,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          }
+        ]
+      },
+      "inventory": {
+        "verdict": "pass",
+        "failureCodes": [],
+        "expectedCount": 5,
+        "observedCount": 5,
+        "matchedCount": 5,
+        "missingCount": 0,
+        "extraCount": 0,
+        "duplicateCount": 0,
+        "overlapCount": 0,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.955011,
+        "minMatchedIou": 0.937021,
+        "metrics": {
+          "expected": 5,
+          "matched": 5,
+          "extra": 0,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 5,
+          "labelledExpected": 4,
+          "labelsAgree": 4,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0
+        },
+        "buckets": [
+          {
+            "pageIndex": 0,
+            "kind": "checkbox",
+            "expected": 2,
+            "observed": 2,
+            "matched": 2,
+            "missing": 0,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          },
+          {
+            "pageIndex": 0,
+            "kind": "text",
+            "expected": 3,
+            "observed": 3,
+            "matched": 3,
+            "missing": 0,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "numeric-formats",
+      "scenario": "numeric",
+      "description": "Betrag, Summe, IBAN, Steuernummer (number), PLZ, Telefon, Kundennummer (text), and a German date mask.",
+      "pageSizePt": {
+        "width": 595.28,
+        "height": 841.89
+      },
+      "declaredGroundTruth": {
+        "fieldCount": 8,
+        "kinds": {
+          "text": 3,
+          "number": 4,
+          "date": 1
+        },
+        "nonFields": []
+      },
+      "photometricQuality": {
+        "pixelCount": 3868706,
+        "meanLuminance": 254.46583689740186,
+        "standardDeviation": 11.658741825014644,
+        "inkDensity": 0.0020947572650907046,
+        "p05Luminance": 255,
+        "p95Luminance": 255,
+        "dynamicRange": 0
+      },
+      "candidateCount": 8,
+      "inventoryCoverage": {
+        "candidatesIn": 8,
+        "entriesOut": 8,
+        "deduplicatedCount": 0,
+        "printMarginRejections": 0,
+        "decorativeFrameRejections": 0,
+        "letterInteriorRejections": 0,
+        "outsidePageRejections": 0,
+        "filledRegions": 0,
+        "structuralRegions": 0,
+        "tableHeaderRowCells": 0,
+        "adjacentPairs": 0,
+        "overlappingPairs": 0,
+        "nestedPairs": 0,
+        "unlabelledFieldCandidates": 0,
+        "ambiguousKindCandidates": 0
+      },
+      "baseline": {
+        "verdict": "pass",
+        "failureCodes": [],
+        "expectedCount": 8,
+        "observedCount": 8,
+        "matchedCount": 8,
+        "missingCount": 0,
+        "extraCount": 0,
+        "duplicateCount": 0,
+        "overlapCount": 0,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.985234,
+        "minMatchedIou": 0.983583,
+        "metrics": {
+          "expected": 8,
+          "matched": 8,
+          "extra": 0,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 8,
+          "labelledExpected": 8,
+          "labelsAgree": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0
+        },
+        "buckets": [
+          {
+            "pageIndex": 0,
+            "kind": "text",
+            "expected": 3,
+            "observed": 3,
+            "matched": 3,
+            "missing": 0,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          },
+          {
+            "pageIndex": 0,
+            "kind": "number",
+            "expected": 4,
+            "observed": 4,
+            "matched": 4,
+            "missing": 0,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          },
+          {
+            "pageIndex": 0,
+            "kind": "date",
+            "expected": 1,
+            "observed": 1,
+            "matched": 1,
+            "missing": 0,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          }
+        ]
+      },
+      "inventory": {
+        "verdict": "pass",
+        "failureCodes": [],
+        "expectedCount": 8,
+        "observedCount": 8,
+        "matchedCount": 8,
+        "missingCount": 0,
+        "extraCount": 0,
+        "duplicateCount": 0,
+        "overlapCount": 0,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.985234,
+        "minMatchedIou": 0.983583,
+        "metrics": {
+          "expected": 8,
+          "matched": 8,
+          "extra": 0,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 8,
+          "labelledExpected": 8,
+          "labelsAgree": 8,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0
+        },
+        "buckets": [
+          {
+            "pageIndex": 0,
+            "kind": "text",
+            "expected": 3,
+            "observed": 3,
+            "matched": 3,
+            "missing": 0,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          },
+          {
+            "pageIndex": 0,
+            "kind": "number",
+            "expected": 4,
+            "observed": 4,
+            "matched": 4,
+            "missing": 0,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          },
+          {
+            "pageIndex": 0,
+            "kind": "date",
+            "expected": 1,
+            "observed": 1,
+            "matched": 1,
+            "missing": 0,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "checkbox-row",
+      "scenario": "adjacent",
+      "description": "Four adjacent 11 pt checkboxes with 1 pt gaps.",
+      "pageSizePt": {
+        "width": 595.28,
+        "height": 841.89
+      },
+      "declaredGroundTruth": {
+        "fieldCount": 4,
+        "kinds": {
+          "checkbox": 4
+        },
+        "nonFields": []
+      },
+      "photometricQuality": {
+        "pixelCount": 3868706,
+        "meanLuminance": 254.93909591475807,
+        "standardDeviation": 3.9404101853861904,
+        "inkDensity": 0.00023883954996838737,
+        "p05Luminance": 255,
+        "p95Luminance": 255,
+        "dynamicRange": 0
+      },
+      "candidateCount": 10,
+      "inventoryCoverage": {
+        "candidatesIn": 10,
+        "entriesOut": 10,
+        "deduplicatedCount": 0,
+        "printMarginRejections": 0,
+        "decorativeFrameRejections": 0,
+        "letterInteriorRejections": 0,
+        "outsidePageRejections": 0,
+        "filledRegions": 0,
+        "structuralRegions": 0,
+        "tableHeaderRowCells": 0,
+        "adjacentPairs": 14,
+        "overlappingPairs": 8,
+        "nestedPairs": 4,
+        "unlabelledFieldCandidates": 10,
+        "ambiguousKindCandidates": 0
+      },
+      "baseline": {
+        "verdict": "fail",
+        "failureCodes": [
+          "duplicate_fields",
+          "extra_fields"
+        ],
+        "expectedCount": 4,
+        "observedCount": 10,
+        "matchedCount": 4,
+        "missingCount": 0,
+        "extraCount": 2,
+        "duplicateCount": 5,
+        "overlapCount": 8,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.940195,
+        "minMatchedIou": 0.937021,
+        "metrics": {
+          "expected": 4,
+          "matched": 4,
+          "extra": 2,
+          "duplicate": 5,
+          "duplicateUnmatched": 4,
+          "kindMatched": 4,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "precision": 0.4,
+          "recall": 1.0,
+          "f1": 0.571429,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0
+        },
+        "buckets": [
+          {
+            "pageIndex": 0,
+            "kind": "checkbox",
+            "expected": 4,
+            "observed": 7,
+            "matched": 4,
+            "missing": 0,
+            "extra": 1,
+            "duplicate": 3,
+            "typeMismatch": 0
+          },
+          {
+            "pageIndex": 0,
+            "kind": "text",
+            "expected": 0,
+            "observed": 3,
+            "matched": 0,
+            "missing": 0,
+            "extra": 1,
+            "duplicate": 2,
+            "typeMismatch": 0
+          }
+        ]
+      },
+      "inventory": {
+        "verdict": "fail",
+        "failureCodes": [
+          "duplicate_fields",
+          "extra_fields"
+        ],
+        "expectedCount": 4,
+        "observedCount": 10,
+        "matchedCount": 4,
+        "missingCount": 0,
+        "extraCount": 2,
+        "duplicateCount": 5,
+        "overlapCount": 8,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.940195,
+        "minMatchedIou": 0.937021,
+        "metrics": {
+          "expected": 4,
+          "matched": 4,
+          "extra": 2,
+          "duplicate": 5,
+          "duplicateUnmatched": 4,
+          "kindMatched": 4,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "precision": 0.4,
+          "recall": 1.0,
+          "f1": 0.571429,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0
+        },
+        "buckets": [
+          {
+            "pageIndex": 0,
+            "kind": "checkbox",
+            "expected": 4,
+            "observed": 7,
+            "matched": 4,
+            "missing": 0,
+            "extra": 1,
+            "duplicate": 3,
+            "typeMismatch": 0
+          },
+          {
+            "pageIndex": 0,
+            "kind": "text",
+            "expected": 0,
+            "observed": 3,
+            "matched": 0,
+            "missing": 0,
+            "extra": 1,
+            "duplicate": 2,
+            "typeMismatch": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "missing-checkbox",
+      "scenario": "missing",
+      "description": "Three drawn checkboxes against four declared ground-truth boxes: the missing one must be reported, never absorbed by a count.",
+      "pageSizePt": {
+        "width": 595.28,
+        "height": 841.89
+      },
+      "declaredGroundTruth": {
+        "fieldCount": 4,
+        "kinds": {
+          "checkbox": 4
+        },
+        "nonFields": []
+      },
+      "photometricQuality": {
+        "pixelCount": 3868706,
+        "meanLuminance": 254.9543878495807,
+        "standardDeviation": 3.4101345851230613,
+        "inkDensity": 0.00017887117811485288,
+        "p05Luminance": 255,
+        "p95Luminance": 255,
+        "dynamicRange": 0
+      },
+      "candidateCount": 3,
+      "inventoryCoverage": {
+        "candidatesIn": 3,
+        "entriesOut": 3,
+        "deduplicatedCount": 0,
+        "printMarginRejections": 0,
+        "decorativeFrameRejections": 0,
+        "letterInteriorRejections": 0,
+        "outsidePageRejections": 0,
+        "filledRegions": 0,
+        "structuralRegions": 0,
+        "tableHeaderRowCells": 0,
+        "adjacentPairs": 0,
+        "overlappingPairs": 0,
+        "nestedPairs": 0,
+        "unlabelledFieldCandidates": 3,
+        "ambiguousKindCandidates": 0
+      },
+      "baseline": {
+        "verdict": "fail",
+        "failureCodes": [
+          "missing_fields"
+        ],
+        "expectedCount": 4,
+        "observedCount": 3,
+        "matchedCount": 3,
+        "missingCount": 1,
+        "extraCount": 0,
+        "duplicateCount": 0,
+        "overlapCount": 0,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.94146,
+        "minMatchedIou": 0.925325,
+        "metrics": {
+          "expected": 4,
+          "matched": 3,
+          "extra": 0,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 3,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "precision": 1.0,
+          "recall": 0.75,
+          "f1": 0.857143,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0
+        },
+        "buckets": [
+          {
+            "pageIndex": 0,
+            "kind": "checkbox",
+            "expected": 4,
+            "observed": 3,
+            "matched": 3,
+            "missing": 1,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          }
+        ]
+      },
+      "inventory": {
+        "verdict": "fail",
+        "failureCodes": [
+          "missing_fields"
+        ],
+        "expectedCount": 4,
+        "observedCount": 3,
+        "matchedCount": 3,
+        "missingCount": 1,
+        "extraCount": 0,
+        "duplicateCount": 0,
+        "overlapCount": 0,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.94146,
+        "minMatchedIou": 0.925325,
+        "metrics": {
+          "expected": 4,
+          "matched": 3,
+          "extra": 0,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 3,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "precision": 1.0,
+          "recall": 0.75,
+          "f1": 0.857143,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0
+        },
+        "buckets": [
+          {
+            "pageIndex": 0,
+            "kind": "checkbox",
+            "expected": 4,
+            "observed": 3,
+            "matched": 3,
+            "missing": 1,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "duplicate-checkbox",
+      "scenario": "duplicate",
+      "description": "A checkbox inside a second border 1 pt larger: one logical field, two geometric candidates.",
+      "pageSizePt": {
+        "width": 595.28,
+        "height": 841.89
+      },
+      "declaredGroundTruth": {
+        "fieldCount": 1,
+        "kinds": {
+          "checkbox": 1
+        },
+        "nonFields": []
+      },
+      "photometricQuality": {
+        "pixelCount": 3868706,
+        "meanLuminance": 254.95016938480205,
+        "standardDeviation": 3.564312526317834,
+        "inkDensity": 0.00019541417724686238,
+        "p05Luminance": 255,
+        "p95Luminance": 255,
+        "dynamicRange": 0
+      },
+      "candidateCount": 2,
+      "inventoryCoverage": {
+        "candidatesIn": 2,
+        "entriesOut": 2,
+        "deduplicatedCount": 0,
+        "printMarginRejections": 0,
+        "decorativeFrameRejections": 0,
+        "letterInteriorRejections": 0,
+        "outsidePageRejections": 0,
+        "filledRegions": 0,
+        "structuralRegions": 0,
+        "tableHeaderRowCells": 0,
+        "adjacentPairs": 0,
+        "overlappingPairs": 1,
+        "nestedPairs": 0,
+        "unlabelledFieldCandidates": 2,
+        "ambiguousKindCandidates": 0
+      },
+      "baseline": {
+        "verdict": "fail",
+        "failureCodes": [
+          "duplicate_fields"
+        ],
+        "expectedCount": 1,
+        "observedCount": 2,
+        "matchedCount": 1,
+        "missingCount": 0,
+        "extraCount": 0,
+        "duplicateCount": 1,
+        "overlapCount": 1,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.933064,
+        "minMatchedIou": 0.933064,
+        "metrics": {
+          "expected": 1,
+          "matched": 1,
+          "extra": 0,
+          "duplicate": 1,
+          "duplicateUnmatched": 1,
+          "kindMatched": 1,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.666667,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0
+        },
+        "buckets": [
+          {
+            "pageIndex": 0,
+            "kind": "checkbox",
+            "expected": 1,
+            "observed": 2,
+            "matched": 1,
+            "missing": 0,
+            "extra": 0,
+            "duplicate": 1,
+            "typeMismatch": 0
+          }
+        ]
+      },
+      "inventory": {
+        "verdict": "fail",
+        "failureCodes": [
+          "duplicate_fields"
+        ],
+        "expectedCount": 1,
+        "observedCount": 2,
+        "matchedCount": 1,
+        "missingCount": 0,
+        "extraCount": 0,
+        "duplicateCount": 1,
+        "overlapCount": 1,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.933064,
+        "minMatchedIou": 0.933064,
+        "metrics": {
+          "expected": 1,
+          "matched": 1,
+          "extra": 0,
+          "duplicate": 1,
+          "duplicateUnmatched": 1,
+          "kindMatched": 1,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.666667,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0
+        },
+        "buckets": [
+          {
+            "pageIndex": 0,
+            "kind": "checkbox",
+            "expected": 1,
+            "observed": 2,
+            "matched": 1,
+            "missing": 0,
+            "extra": 0,
+            "duplicate": 1,
+            "typeMismatch": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "table",
+      "scenario": "table",
+      "description": "A 2 x 3 grid: five empty cells are fields, one printed cell is not, and a marked checkbox is a filled region.",
+      "pageSizePt": {
+        "width": 595.28,
+        "height": 841.89
+      },
+      "declaredGroundTruth": {
+        "fieldCount": 5,
+        "kinds": {
+          "table_field": 5
+        },
+        "nonFields": [
+          {
+            "id": "cell-r0c0",
+            "reason": "printed_table_cell",
+            "rect": {
+              "x": 120.72,
+              "y": 200.72,
+              "width": 148.56,
+              "height": 38.56
+            }
+          },
+          {
+            "id": "filled-box",
+            "reason": "already_filled",
+            "rect": {
+              "x": 120.72,
+              "y": 380.72,
+              "width": 9.56,
+              "height": 9.56
+            }
+          }
+        ]
+      },
+      "photometricQuality": {
+        "pixelCount": 3868706,
+        "meanLuminance": 253.63783135756503,
+        "standardDeviation": 18.587563057337093,
+        "inkDensity": 0.005341837813470448,
+        "p05Luminance": 255,
+        "p95Luminance": 255,
+        "dynamicRange": 0
+      },
+      "candidateCount": 7,
+      "inventoryCoverage": {
+        "candidatesIn": 7,
+        "entriesOut": 7,
+        "deduplicatedCount": 0,
+        "printMarginRejections": 0,
+        "decorativeFrameRejections": 0,
+        "letterInteriorRejections": 0,
+        "outsidePageRejections": 0,
+        "filledRegions": 1,
+        "structuralRegions": 0,
+        "tableHeaderRowCells": 1,
+        "adjacentPairs": 2,
+        "overlappingPairs": 0,
+        "nestedPairs": 0,
+        "unlabelledFieldCandidates": 6,
+        "ambiguousKindCandidates": 5
+      },
+      "baseline": {
+        "verdict": "fail",
+        "failureCodes": [
+          "extra_fields",
+          "type_mismatch"
+        ],
+        "expectedCount": 5,
+        "observedCount": 7,
+        "matchedCount": 5,
+        "missingCount": 0,
+        "extraCount": 2,
+        "duplicateCount": 0,
+        "overlapCount": 0,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 5,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.977866,
+        "minMatchedIou": 0.975146,
+        "metrics": {
+          "expected": 5,
+          "matched": 5,
+          "extra": 2,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 0,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "precision": 0.714286,
+          "recall": 1.0,
+          "f1": 0.833333,
+          "typeAccuracy": 0.0,
+          "labelAccuracy": 1.0
+        },
+        "buckets": [
+          {
+            "pageIndex": 0,
+            "kind": "checkbox",
+            "expected": 0,
+            "observed": 1,
+            "matched": 0,
+            "missing": 0,
+            "extra": 1,
+            "duplicate": 0,
+            "typeMismatch": 0
+          },
+          {
+            "pageIndex": 0,
+            "kind": "text",
+            "expected": 0,
+            "observed": 6,
+            "matched": 0,
+            "missing": 0,
+            "extra": 1,
+            "duplicate": 0,
+            "typeMismatch": 0
+          },
+          {
+            "pageIndex": 0,
+            "kind": "table_field",
+            "expected": 5,
+            "observed": 0,
+            "matched": 5,
+            "missing": 0,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 5
+          }
+        ]
+      },
+      "inventory": {
+        "verdict": "fail",
+        "failureCodes": [
+          "extra_fields"
+        ],
+        "expectedCount": 5,
+        "observedCount": 6,
+        "matchedCount": 5,
+        "missingCount": 0,
+        "extraCount": 1,
+        "duplicateCount": 0,
+        "overlapCount": 0,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.977866,
+        "minMatchedIou": 0.975146,
+        "metrics": {
+          "expected": 5,
+          "matched": 5,
+          "extra": 1,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 5,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "precision": 0.833333,
+          "recall": 1.0,
+          "f1": 0.909091,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0
+        },
+        "buckets": [
+          {
+            "pageIndex": 0,
+            "kind": "text",
+            "expected": 0,
+            "observed": 1,
+            "matched": 0,
+            "missing": 0,
+            "extra": 1,
+            "duplicate": 0,
+            "typeMismatch": 0
+          },
+          {
+            "pageIndex": 0,
+            "kind": "table_field",
+            "expected": 5,
+            "observed": 5,
+            "matched": 5,
+            "missing": 0,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "furniture-only",
+      "scenario": "whitespace",
+      "description": "Decorative frame, margin rules, and empty whitespace only. The declared ground truth has zero fields.",
+      "pageSizePt": {
+        "width": 595.28,
+        "height": 841.89
+      },
+      "declaredGroundTruth": {
+        "fieldCount": 0,
+        "kinds": {},
+        "nonFields": [
+          {
+            "id": "decorative-frame",
+            "reason": "decorative_frame",
+            "rect": {
+              "x": 4.0,
+              "y": 4.0,
+              "width": 587.28,
+              "height": 833.89
+            }
+          },
+          {
+            "id": "margin-rule",
+            "reason": "print_margin",
+            "rect": {
+              "x": 2.0,
+              "y": 402.945,
+              "width": 10.0,
+              "height": 18.0
+            }
+          }
+        ]
+      },
+      "photometricQuality": {
+        "pixelCount": 3868706,
+        "meanLuminance": 253.9569845834757,
+        "standardDeviation": 16.27516666749024,
+        "inkDensity": 0.004090256535389352,
+        "p05Luminance": 255,
+        "p95Luminance": 255,
+        "dynamicRange": 0
+      },
+      "candidateCount": 0,
+      "inventoryCoverage": {
+        "candidatesIn": 0,
+        "entriesOut": 0,
+        "deduplicatedCount": 0,
+        "printMarginRejections": 0,
+        "decorativeFrameRejections": 0,
+        "letterInteriorRejections": 0,
+        "outsidePageRejections": 0,
+        "filledRegions": 0,
+        "structuralRegions": 0,
+        "tableHeaderRowCells": 0,
+        "adjacentPairs": 0,
+        "overlappingPairs": 0,
+        "nestedPairs": 0,
+        "unlabelledFieldCandidates": 0,
+        "ambiguousKindCandidates": 0
+      },
+      "baseline": {
+        "verdict": "pass",
+        "failureCodes": [],
+        "expectedCount": 0,
+        "observedCount": 0,
+        "matchedCount": 0,
+        "missingCount": 0,
+        "extraCount": 0,
+        "duplicateCount": 0,
+        "overlapCount": 0,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.0,
+        "minMatchedIou": 0.0,
+        "metrics": {
+          "expected": 0,
+          "matched": 0,
+          "extra": 0,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 0,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "typeAccuracy": 0.0,
+          "labelAccuracy": 1.0
+        },
+        "buckets": []
+      },
+      "inventory": {
+        "verdict": "pass",
+        "failureCodes": [],
+        "expectedCount": 0,
+        "observedCount": 0,
+        "matchedCount": 0,
+        "missingCount": 0,
+        "extraCount": 0,
+        "duplicateCount": 0,
+        "overlapCount": 0,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.0,
+        "minMatchedIou": 0.0,
+        "metrics": {
+          "expected": 0,
+          "matched": 0,
+          "extra": 0,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 0,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "typeAccuracy": 0.0,
+          "labelAccuracy": 1.0
+        },
+        "buckets": []
+      }
+    },
+    {
+      "id": "low-contrast",
+      "scenario": "low_contrast",
+      "description": "Faint printing (ink 170 on 255 paper) on an otherwise clean form. The fixed 128 ink threshold cannot see it; the deferred contrast variant is NOT_RUN.",
+      "pageSizePt": {
+        "width": 595.28,
+        "height": 841.89
+      },
+      "declaredGroundTruth": {
+        "fieldCount": 3,
+        "kinds": {
+          "text": 3
+        },
+        "nonFields": []
+      },
+      "photometricQuality": {
+        "pixelCount": 3868706,
+        "meanLuminance": 254.89128664726655,
+        "standardDeviation": 3.0378967048404375,
+        "inkDensity": 0.0,
+        "p05Luminance": 255,
+        "p95Luminance": 255,
+        "dynamicRange": 0
+      },
+      "candidateCount": 0,
+      "inventoryCoverage": {
+        "candidatesIn": 0,
+        "entriesOut": 0,
+        "deduplicatedCount": 0,
+        "printMarginRejections": 0,
+        "decorativeFrameRejections": 0,
+        "letterInteriorRejections": 0,
+        "outsidePageRejections": 0,
+        "filledRegions": 0,
+        "structuralRegions": 0,
+        "tableHeaderRowCells": 0,
+        "adjacentPairs": 0,
+        "overlappingPairs": 0,
+        "nestedPairs": 0,
+        "unlabelledFieldCandidates": 0,
+        "ambiguousKindCandidates": 0
+      },
+      "baseline": {
+        "verdict": "fail",
+        "failureCodes": [
+          "missing_fields"
+        ],
+        "expectedCount": 3,
+        "observedCount": 0,
+        "matchedCount": 0,
+        "missingCount": 3,
+        "extraCount": 0,
+        "duplicateCount": 0,
+        "overlapCount": 0,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.0,
+        "minMatchedIou": 0.0,
+        "metrics": {
+          "expected": 3,
+          "matched": 0,
+          "extra": 0,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 0,
+          "labelledExpected": 3,
+          "labelsAgree": 0,
+          "precision": 1.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "typeAccuracy": 0.0,
+          "labelAccuracy": 0.0
+        },
+        "buckets": [
+          {
+            "pageIndex": 0,
+            "kind": "text",
+            "expected": 3,
+            "observed": 0,
+            "matched": 0,
+            "missing": 3,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          }
+        ]
+      },
+      "inventory": {
+        "verdict": "fail",
+        "failureCodes": [
+          "missing_fields"
+        ],
+        "expectedCount": 3,
+        "observedCount": 0,
+        "matchedCount": 0,
+        "missingCount": 3,
+        "extraCount": 0,
+        "duplicateCount": 0,
+        "overlapCount": 0,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.0,
+        "minMatchedIou": 0.0,
+        "metrics": {
+          "expected": 3,
+          "matched": 0,
+          "extra": 0,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 0,
+          "labelledExpected": 3,
+          "labelsAgree": 0,
+          "precision": 1.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "typeAccuracy": 0.0,
+          "labelAccuracy": 0.0
+        },
+        "buckets": [
+          {
+            "pageIndex": 0,
+            "kind": "text",
+            "expected": 3,
+            "observed": 0,
+            "matched": 0,
+            "missing": 3,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "broken-frame",
+      "scenario": "broken_frame",
+      "description": "A bordered field whose bottom rule has a 4 pt gap. The box is not closed, so the lower rules and the bounded whitespace are the remaining evidence.",
+      "pageSizePt": {
+        "width": 595.28,
+        "height": 841.89
+      },
+      "declaredGroundTruth": {
+        "fieldCount": 1,
+        "kinds": {
+          "text": 1
+        },
+        "nonFields": []
+      },
+      "photometricQuality": {
+        "pixelCount": 3868706,
+        "meanLuminance": 254.7931633988212,
+        "standardDeviation": 7.2595145788823086,
+        "inkDensity": 0.0008111239261913415,
+        "p05Luminance": 255,
+        "p95Luminance": 255,
+        "dynamicRange": 0
+      },
+      "candidateCount": 3,
+      "inventoryCoverage": {
+        "candidatesIn": 3,
+        "entriesOut": 3,
+        "deduplicatedCount": 0,
+        "printMarginRejections": 0,
+        "decorativeFrameRejections": 0,
+        "letterInteriorRejections": 0,
+        "outsidePageRejections": 0,
+        "filledRegions": 0,
+        "structuralRegions": 0,
+        "tableHeaderRowCells": 0,
+        "adjacentPairs": 0,
+        "overlappingPairs": 0,
+        "nestedPairs": 0,
+        "unlabelledFieldCandidates": 3,
+        "ambiguousKindCandidates": 0
+      },
+      "baseline": {
+        "verdict": "fail",
+        "failureCodes": [
+          "extra_fields",
+          "missing_fields"
+        ],
+        "expectedCount": 1,
+        "observedCount": 3,
+        "matchedCount": 0,
+        "missingCount": 1,
+        "extraCount": 3,
+        "duplicateCount": 0,
+        "overlapCount": 0,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.0,
+        "minMatchedIou": 0.0,
+        "metrics": {
+          "expected": 1,
+          "matched": 0,
+          "extra": 3,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 0,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "typeAccuracy": 0.0,
+          "labelAccuracy": 1.0
+        },
+        "buckets": [
+          {
+            "pageIndex": 0,
+            "kind": "text",
+            "expected": 1,
+            "observed": 3,
+            "matched": 0,
+            "missing": 1,
+            "extra": 3,
+            "duplicate": 0,
+            "typeMismatch": 0
+          }
+        ]
+      },
+      "inventory": {
+        "verdict": "fail",
+        "failureCodes": [
+          "extra_fields",
+          "missing_fields"
+        ],
+        "expectedCount": 1,
+        "observedCount": 3,
+        "matchedCount": 0,
+        "missingCount": 1,
+        "extraCount": 3,
+        "duplicateCount": 0,
+        "overlapCount": 0,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.0,
+        "minMatchedIou": 0.0,
+        "metrics": {
+          "expected": 1,
+          "matched": 0,
+          "extra": 3,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 0,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "typeAccuracy": 0.0,
+          "labelAccuracy": 1.0
+        },
+        "buckets": [
+          {
+            "pageIndex": 0,
+            "kind": "text",
+            "expected": 1,
+            "observed": 3,
+            "matched": 0,
+            "missing": 1,
+            "extra": 3,
+            "duplicate": 0,
+            "typeMismatch": 0
+          }
+        ]
+      }
+    },
+    {
+      "id": "shadow",
+      "scenario": "shadow",
+      "description": "A vertical shadow gradient (155-215) behind one checkbox and one underline. Geometry must survive the photometric degradation.",
+      "pageSizePt": {
+        "width": 595.28,
+        "height": 841.89
+      },
+      "declaredGroundTruth": {
+        "fieldCount": 2,
+        "kinds": {
+          "checkbox": 1,
+          "text": 1
+        },
+        "nonFields": []
+      },
+      "photometricQuality": {
+        "pixelCount": 3868706,
+        "meanLuminance": 202.15213898393932,
+        "standardDeviation": 37.92736063545392,
+        "inkDensity": 0.0007056623067247808,
+        "p05Luminance": 154,
+        "p95Luminance": 255,
+        "dynamicRange": 101
+      },
+      "candidateCount": 2,
+      "inventoryCoverage": {
+        "candidatesIn": 2,
+        "entriesOut": 2,
+        "deduplicatedCount": 0,
+        "printMarginRejections": 0,
+        "decorativeFrameRejections": 0,
+        "letterInteriorRejections": 0,
+        "outsidePageRejections": 0,
+        "filledRegions": 0,
+        "structuralRegions": 0,
+        "tableHeaderRowCells": 0,
+        "adjacentPairs": 0,
+        "overlappingPairs": 0,
+        "nestedPairs": 0,
+        "unlabelledFieldCandidates": 1,
+        "ambiguousKindCandidates": 0
+      },
+      "baseline": {
+        "verdict": "pass",
+        "failureCodes": [],
+        "expectedCount": 2,
+        "observedCount": 2,
+        "matchedCount": 2,
+        "missingCount": 0,
+        "extraCount": 0,
+        "duplicateCount": 0,
+        "overlapCount": 0,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.954412,
+        "minMatchedIou": 0.937021,
+        "metrics": {
+          "expected": 2,
+          "matched": 2,
+          "extra": 0,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 2,
+          "labelledExpected": 1,
+          "labelsAgree": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0
+        },
+        "buckets": [
+          {
+            "pageIndex": 0,
+            "kind": "checkbox",
+            "expected": 1,
+            "observed": 1,
+            "matched": 1,
+            "missing": 0,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          },
+          {
+            "pageIndex": 0,
+            "kind": "text",
+            "expected": 1,
+            "observed": 1,
+            "matched": 1,
+            "missing": 0,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          }
+        ]
+      },
+      "inventory": {
+        "verdict": "pass",
+        "failureCodes": [],
+        "expectedCount": 2,
+        "observedCount": 2,
+        "matchedCount": 2,
+        "missingCount": 0,
+        "extraCount": 0,
+        "duplicateCount": 0,
+        "overlapCount": 0,
+        "ambiguousCount": 0,
+        "unlabelledCount": 0,
+        "labelMismatchCount": 0,
+        "geometryMismatchCount": 0,
+        "typeMismatchCount": 0,
+        "sameCountWrongGeometry": false,
+        "unknownGroundTruthPages": [],
+        "meanMatchedIou": 0.954412,
+        "minMatchedIou": 0.937021,
+        "metrics": {
+          "expected": 2,
+          "matched": 2,
+          "extra": 0,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 2,
+          "labelledExpected": 1,
+          "labelsAgree": 1,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0
+        },
+        "buckets": [
+          {
+            "pageIndex": 0,
+            "kind": "checkbox",
+            "expected": 1,
+            "observed": 1,
+            "matched": 1,
+            "missing": 0,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          },
+          {
+            "pageIndex": 0,
+            "kind": "text",
+            "expected": 1,
+            "observed": 1,
+            "matched": 1,
+            "missing": 0,
+            "extra": 0,
+            "duplicate": 0,
+            "typeMismatch": 0
+          }
+        ]
+      }
+    }
+  ]
+}

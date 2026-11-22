@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "artifactId": "feldexa.adaptive-ocr-policy",
+  "version": "1.0.0",
+  "status": "frozen-before-run",
+  "implementation": "BLOCKED",
+  "frozenAtUtc": "2026-11-22T00:00:00Z",
+  "frozenBy": "T264A (owner-approved issue #264 correction; planning review A/B FAIL)",
+  "task": "T264A",
+  "relatedTasks": ["T264A", "T264B", "T264P", "T264C", "T264D"],
+  "issue": 264,
+  "feature": "001-scanned-form-workflow",
+  "userStory": "US2",
+  "purpose": "Pre-declare the numeric runtime signals, thresholds, hysteresis, pass bounds, render strategy, independence rule, holdout split, and acceptance thresholds for a later adaptive second-analysis pass, before any of it is implemented or measured. No value below may be changed after a scored run; a change requires a new version and a separately reported run.",
+  "prerequisites": [
+    {
+      "id": "P1",
+      "blocking": true,
+      "description": "geometry_detector.dart is owned by T086B until that task merges. T264 must not edit it concurrently.",
+      "state": "NOT_MERGED",
+      "evidence": "xxammaxx/t086b has no commits beyond the task-doc merge at the T264 start; the T264 baseline reads the detector read-only."
+    },
+    {
+      "id": "P2",
+      "blocking": true,
+      "description": "Pass/observation provenance decision. A cross-pass observation needs an explicit detector-pass identity; SuggestionSchema v1 and recognition-output §6 only dedup exact duplicates within one pass (same type, same detectorPass, IoU > 0.98), so cross-pass near-duplicates would currently surface as conflicts.",
+      "requiredChange": [
+        "SuggestionSchema schemaVersion bump decision (v1 -> v2) with a documented migration",
+        "T058 persistence migration for the bumped schema",
+        "A cross-pass merge rule: same-pass exact-duplicate collapse stays IoU > 0.98; cross-pass observations require an explicit detectorPass provenance field and a declared spatial merge rule before any adaptive pass writes into a suggestion set"
+      ],
+      "state": "UNDECIDED",
+      "ownerDecisionRequired": true,
+      "ownerDecisionTask": "T264P"
+    },
+    {
+      "id": "P3",
+      "blocking": true,
+      "description": "Structure comparison needs a declared ground truth, so it is an evaluation signal, not a runtime trigger. Runtime triggers must use only measurable page/pipeline state.",
+      "state": "DECIDED",
+      "decision": "Runtime triggers are limited to photometric quality, caller-supplied skew, OCR failure/emptiness, unlabelled-field fraction, and conflict-graph pair count. Structure comparison stays evaluation-only (benchmark and evidence), never a production trigger."
+    }
+  ],
+  "independence": {
+    "rule": "Every adaptive variant derives from the same original page scan and is correlated evidence.",
+    "twoIndependentOcrLinesAgree": false,
+    "note": "An adaptive pass must never set twoIndependentOcrLinesAgree, must never raise the independent-OCR confidence bonus, and must report its provenance as correlated."
+  },
+  "runtimeSignals": {
+    "measuredOn": "photometric original (full luminance histogram), never on a binarised derivative",
+    "lowContrast": {
+      "metric": "p95Luminance - p05Luminance (nearest-rank percentiles)",
+      "enterBelow": 96,
+      "leaveAbove": 112,
+      "hysteresisPoints": 16
+    },
+    "skew": {
+      "metric": "caller-supplied absolute skew in degrees (never estimated by the policy)",
+      "enterAbove": 0.5,
+      "leaveBelow": 0.25
+    },
+    "ocrFailure": {
+      "metric": "OCR port threw, or produced zero usable label lines",
+      "enterAt": true
+    },
+    "missingLabel": {
+      "metric": "unlabelled field candidates / all field candidates",
+      "enterAtOrAbove": 0.5,
+      "minimumFieldCandidates": 3
+    },
+    "conflict": {
+      "metric": "conflict-graph pairs with IoU >= 0.5",
+      "enterAtOrAbove": 1
+    },
+    "structureMismatch": {
+      "metric": "evaluation-only structure-comparison mismatch count",
+      "runtimeTrigger": false
+    }
+  },
+  "bounds": {
+    "maxPassesPerPage": 2,
+    "maxElapsedMsPerPage": 4000,
+    "maxVariantPixels": 8000000,
+    "maxConcurrentPasses": 1,
+    "maxVariantRastersInMemory": 1,
+    "pageFailureIsolation": "A failed adaptive pass returns the pass-1 result unchanged and never removes page geometry."
+  },
+  "renderStrategy": {
+    "decision": "v1 uses same-DPI photometric variants plus deskew only.",
+    "allowed": [
+      "contrastStretch: linear stretch from the measured 5th/95th percentiles to 0/255 on the same raster grid",
+      "deskew: nearest-neighbour rotation at the caller-supplied angle on the same page extent"
+    ],
+    "excluded": [
+      "higher-resolution crop in v1: the analysis contract is fixed at 200 DPI with an exact RasterSize, the port has no RasterRequest crop, and the documented 4096 px cap silently downscales, so a 2x crop would either change the analysis scale or silently lose resolution"
+    ],
+    "futureOption": "A region render or scale-aware analysis path needs its own contract change and a measured pixel-identity proof before any 2x claim.",
+    "memoryCeiling": "A variant raster may not exceed 8000000 pixels (one variant at a time). A4 portrait at 200 DPI is 1654 x 2339 = 3,868,706 px, so exactly one full-page variant fits."
+  },
+  "acceptanceThresholds": {
+    "comparisonModes": ["A: single pass", "B: full second pass", "C: targeted adaptive"],
+    "sameInputs": true,
+    "holdoutTuning": false,
+    "requiredOutcomes": [
+      "field recall(C) >= field recall(A)",
+      "field precision(C) >= field precision(A)",
+      "type accuracy(C) >= type accuracy(A)",
+      "mean matched IoU(C) >= mean matched IoU(A)",
+      "missing fields(C) <= missing fields(A)",
+      "extra fields(C) <= extra fields(A)",
+      "review rate(C) <= review rate(A) + 0.05",
+      "passes(C) < passes(B)",
+      "median latency(C) <= 2.0 * median latency(A)",
+      "median latency(C) <= median latency(B)",
+      "peak variant pixels <= 8000000",
+      "false accepts: zero extra or type-mismatched proposals may be auto-confirmed; nothing is auto-confirmed, so the reported false-accept count must be 0"
+    ],
+    "noGainClaim": "If no mode C outcome is strictly better than mode A, the conservative baseline stays and the report must say so. No existing SC gate is lowered by this policy."
+  },
+  "corpusAndHoldout": {
+    "corpusId": "field-inventory-synthetic-v1",
+    "generator": "tools/evaluation/field_inventory_baseline.dart",
+    "golden": "tools/evaluation/goldens/field-inventory-baseline.v1.json",
+    "devPages": [
+      "clean-text",
+      "numeric-formats",
+      "checkbox-row",
+      "missing-checkbox",
+      "duplicate-checkbox",
+      "table"
+    ],
+    "holdoutPages": [
+      "furniture-only",
+      "low-contrast",
+      "broken-frame",
+      "shadow"
+    ],
+    "rule": "Thresholds and variants may be developed on devPages only. holdoutPages are scored once at the end; a holdout-driven change requires a new policy version and a new scored run.",
+    "realForms": "No rights-cleared real authority form is part of this corpus. Real-form and Android EMULATOR evidence remain NOT_RUN until a rights-cleared holdout exists."
+  },
+  "notRun": [
+    "adaptive pass implementation",
+    "pass/observation provenance schema change",
+    "A/B/C benchmark",
+    "Android EMULATOR production-path evidence",
+    "real-corpus qualification"
+  ]
+}
