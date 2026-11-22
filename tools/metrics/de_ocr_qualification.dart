@@ -1702,7 +1702,15 @@ String _pct(double value) => '${(value * 100).toStringAsFixed(2)}%';
 
 double _round(double value) => (value * 10000).roundToDouble() / 10000;
 
+/// `true` only for a clean production-path emulator run.
 bool _isDeviceEvidence(String evidenceClass) => evidenceClass == 'EMULATOR';
+
+/// `true` for any run that executed on the emulator, including the injected
+/// scan variants. The two are still reported apart: `deviceEvidence` stays
+/// clean-path-only, and every variant keeps its own evidence class.
+bool _isOnDevice(String evidenceClass) =>
+    evidenceClass == 'EMULATOR' ||
+    evidenceClass == 'EMULATOR_INJECTED_RASTER';
 
 _Report _score({
   required _GroundTruth groundTruth,
@@ -1894,10 +1902,10 @@ _Report _score({
       if (result.status == 'NOT_RUN') {
         continue;
       }
-      if (!_isDeviceEvidence(result.evidenceClass)) {
+      if (!_isOnDevice(result.evidenceClass)) {
         overallReasons.add(
-          'variant ${result.id} is ${result.evidenceClass}, which is not '
-          'device evidence',
+          'variant ${result.id} is ${result.evidenceClass}, which is not an '
+          'on-emulator run',
         );
       }
     }
@@ -2227,7 +2235,10 @@ Options:
   --output PATH               Metrics report JSON to write.
   --markdown PATH             Optional Markdown summary to write.
   --ground-truth PATH         Ground truth (default: $_defaultGroundTruth).
-  --require-device-evidence   Fail unless every executed variant is EMULATOR.
+  --require-device-evidence   Fail unless the reference variant is EMULATOR and
+                              every executed variant ran on the emulator
+                              (EMULATOR or EMULATOR_INJECTED_RASTER). SIMULATED
+                              and TEXT_LAYER runs never satisfy it.
   --help, -h                  Show this help.
 
 Exit codes: 0 PASS, 1 gate failure/UNRESOLVED/NOT_RUN, 2 usage or input error.

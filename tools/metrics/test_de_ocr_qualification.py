@@ -262,7 +262,7 @@ class DeOcrQualificationTest(unittest.TestCase):
         result, report = self.score(run, "--require-device-evidence")
         self.assertEqual(result.returncode, 1)
         self.assertTrue(
-            any("not device evidence" in reason for reason in report["overallReasons"])
+            any("not an on-emulator run" in reason for reason in report["overallReasons"])
         )
 
     def test_unexecuted_variants_are_not_run_and_never_pass(self):
