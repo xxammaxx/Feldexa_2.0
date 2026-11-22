@@ -1,0 +1,7 @@
+screenshot overflow-warning after T086C_SCREENSHOT_OVERFLOW_WARNING
+screenshot ack overflow-warning
+screenshot overflow-closed after T086C_SCREENSHOT_OVERFLOW_CLOSED
+screenshot ack overflow-closed
+screenshot overflow-reopened after T086C_SCREENSHOT_OVERFLOW_REOPENED
+screenshot ack overflow-reopened
+PASS (flutter test exit 0; cleanup marker observed; privacy checks PASS)

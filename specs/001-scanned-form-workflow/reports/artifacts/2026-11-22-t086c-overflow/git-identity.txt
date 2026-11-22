@@ -1,0 +1,7 @@
+head=c7a3ca73eb5a597cf3803b028e22467b367f3e34
+tree=662916860ece2100133f84aacc1d56dc3b9772bb
+branch=xxammaxx/t086c
+subject=test(T086C): guard the reopened editor content and single-prefix markers
+status_porcelain:
+ M apps/feldexa_app/android/gradlew.bat
+flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
