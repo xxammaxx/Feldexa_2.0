@@ -20,6 +20,7 @@ import 'dart:async';
 
 import 'package:feldexa_app/features/editor/field_value_sheet.dart';
 import 'package:feldexa_app/features/fill/signature_sheet.dart';
+import 'package:feldexa_app/features/fill/overflow_warning.dart';
 import 'package:feldexa_app/features/fill/text_control.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_core/feldexa_core.dart' as core;
@@ -185,7 +186,7 @@ void main() {
     expect(find.byKey(fieldValueSheetKey), findsNothing);
   });
 
-  testWidgets('the multiline done action commits once and closes', (
+  testWidgets('the multiline done action commits once and shows FLD-001', (
     tester,
   ) async {
     final List<core.FieldValue> commits = <core.FieldValue>[];
@@ -201,6 +202,12 @@ void main() {
 
     expect(commits, hasLength(1));
     expect((commits.single as core.MultilineValue).text, 'Zeile 1\nZeile 2');
+    // T086C: two lines do not fit the 100 × 20 pt field, so the FLD-001 warning
+    // keeps the sheet open; closing is the user's next step.
+    expect((commits.single as core.MultilineValue).overflow, isTrue);
+    expect(find.byKey(fieldOverflowWarningKey), findsOneWidget);
+    await tester.tap(find.byKey(fieldValueCloseKey));
+    await tester.pumpAndSettle();
     expect(find.byKey(fieldValueSheetKey), findsNothing);
   });
 

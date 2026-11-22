@@ -3,6 +3,7 @@ import 'package:feldexa_app/bootstrap/startup_sweep.dart';
 import 'package:feldexa_app/bootstrap/startup_sweep_app.dart';
 import 'package:feldexa_app/bootstrap/startup_sweep_bootstrap.dart';
 import 'package:feldexa_app/features/editor/page_view.dart';
+import 'package:feldexa_app/features/fill/field_text_fit.dart';
 import 'package:feldexa_app/features/start/import_runtime.dart';
 import 'package:feldexa_app/features/start/start_screen.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
@@ -10,6 +11,12 @@ import 'package:flutter/material.dart' hide PageView;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // T086C: read the bundled Noto Sans advance table once, so the FLD-001
+  // overflow measurement on the value-sheet commit path is synchronous and
+  // identical to the export metrics. A failure degrades to "no warning"; it
+  // never blocks a save (the measurement returns null and the flag stays
+  // unset).
+  await initializeFieldTextMeasure();
   StartupSweepStartup startup;
   StartupSweep? sweep;
   try {
