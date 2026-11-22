@@ -333,6 +333,30 @@ ui.FieldGeometryHandle? _hitRegionAt(
   return ui.hitTestFieldGeometry(viewRect: viewRect, viewPoint: local);
 }
 
+/// Centres [field] at a readable 1x scale and taps it on the real page.
+///
+/// The review header and the page scroll move a stored field out of the viewport
+/// after a route change, and a tap only reaches the overlay when its display
+/// point is inside the visible page rectangle. Centring first is the documented
+/// viewer seam (`PageViewController.setView`), not a geometry shortcut.
+Future<void> _centreAndTapField(
+  WidgetTester tester,
+  EditorScreenState state,
+  core.ConfirmedField field,
+) async {
+  await _setScaleOnPoint(
+    tester,
+    state,
+    field.pageIndex,
+    Offset(
+      field.rect.left + field.rect.width / 2,
+      field.rect.top + field.rect.height / 2,
+    ),
+    1,
+  );
+  await tester.tapAt(_screenPoint(tester, state, field));
+}
+
 /// Waits until the editor is not busy and its head differs from [headBefore].
 Future<void> _waitForCommit(
   WidgetTester tester,
@@ -566,7 +590,7 @@ void main() {
     _marker('MACHINE_FIELD_CONFIRMED:OVERLAY=1');
 
     // Select it through the real tap, then show the painted/selected state.
-    await tester.tapAt(_screenPoint(tester, state, machineField));
+    await _centreAndTapField(tester, state, machineField);
     await _pumpUntil(
       tester,
       () => find.byKey(fieldValueSheetKey).evaluate().isNotEmpty,
@@ -618,7 +642,7 @@ void main() {
     core.Rect storedRect() => signatureFieldNow().rect;
 
     // Select the signature field through the real tap path.
-    await tester.tapAt(_screenPoint(tester, state, signatureFieldNow()));
+    await _centreAndTapField(tester, state, signatureFieldNow());
     await _pumpUntil(
       tester,
       () => find.byKey(fieldValueSheetKey).evaluate().isNotEmpty,
@@ -757,17 +781,7 @@ void main() {
     // --- Signature: draw, undo, clear, draw, apply --------------------------
     final core.ConfirmedField signatureField = signatureFieldNow();
     expect(signatureField.type, core.FieldType.signature);
-    await _setScaleOnPoint(
-      tester,
-      state,
-      0,
-      Offset(
-        signatureField.rect.left + signatureField.rect.width / 2,
-        signatureField.rect.top + signatureField.rect.height / 2,
-      ),
-      1,
-    );
-    await tester.tapAt(_screenPoint(tester, state, signatureField));
+    await _centreAndTapField(tester, state, signatureField);
     await _pumpUntil(
       tester,
       () => find.byKey(fieldValueSheetKey).evaluate().isNotEmpty,
@@ -949,17 +963,7 @@ void main() {
         );
     // The reopened route starts at fit-width with the page top in view, so the
     // signed field (74 % down the page) must be centred before it can be tapped.
-    await _setScaleOnPoint(
-      tester,
-      reopened,
-      0,
-      Offset(
-        reopenedSignature.rect.left + reopenedSignature.rect.width / 2,
-        reopenedSignature.rect.top + reopenedSignature.rect.height / 2,
-      ),
-      1,
-    );
-    await tester.tapAt(_screenPoint(tester, reopened, reopenedSignature));
+    await _centreAndTapField(tester, reopened, reopenedSignature);
     await _pumpUntil(
       tester,
       () => find.byKey(fieldValueSheetKey).evaluate().isNotEmpty,
