@@ -820,9 +820,8 @@ void main() {
     _marker('SIGNATURE_SHEET_INK:DRAW=1:UNDO=1:CLEAR=1:REDRAW=1');
     await _waitForDriver('signature-sheet');
 
+    // Captured before the commit: the saved read-back must name a new revision.
     final String? headBeforeSignature = state.headRevisionId;
-    final LoadedDocument beforeSignature = await _liveRuntime(tester)
-        .loadDocument(documentId);
     await tester.tap(find.byKey(signatureSheetApplyKey));
     await _pumpUntil(
       tester,
@@ -885,10 +884,8 @@ void main() {
     final img.Image decoded = img.decodePng(assetBytes)!;
     expect(decoded.width, storedMark.widthPx);
     expect(decoded.height, storedMark.heightPx);
-    expect(
-      signed.meta.latestRevisionId,
-      isNot(beforeSignature.meta.latestRevisionId),
-    );
+    expect(signed.meta.latestRevisionId, isNotNull);
+    expect(signed.meta.latestRevisionId, isNot(headBeforeSignature));
     _marker(
       'SIGNATURE_READBACK:OK:PNG=1:DIGEST_MATCH=1:'
       'DIMS_MATCH=1:VALUE_BOUND=1:MARK_BOUND=1',
