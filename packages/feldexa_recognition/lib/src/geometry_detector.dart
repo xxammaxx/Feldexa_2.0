@@ -322,6 +322,41 @@ final class GeometryDetector {
     required double pageWidthPt,
     required double pageHeightPt,
   }) {
+    return _detect(
+      analysis,
+      pageWidthPt: pageWidthPt,
+      pageHeightPt: pageHeightPt,
+      exhaustiveBoxScan: false,
+    );
+  }
+
+  /// Test-only equivalent of [detect] that enumerates box candidates with the
+  /// pre-T086B quadruple-nested rule loop instead of [_VerticalRuleIndex].
+  ///
+  /// Host tests use it as the differential oracle for the indexed scan on
+  /// adversarial rule sets. Production code never calls it: [detect] always
+  /// takes the indexed branch, and both branches share the same `_considerBox`
+  /// acceptance logic, so the result of this method must equal [detect] for
+  /// every input.
+  static List<GeometryCandidate> debugDetectExhaustiveBoxScan(
+    RasterAnalysis analysis, {
+    required double pageWidthPt,
+    required double pageHeightPt,
+  }) {
+    return _detect(
+      analysis,
+      pageWidthPt: pageWidthPt,
+      pageHeightPt: pageHeightPt,
+      exhaustiveBoxScan: true,
+    );
+  }
+
+  static List<GeometryCandidate> _detect(
+    RasterAnalysis analysis, {
+    required double pageWidthPt,
+    required double pageHeightPt,
+    required bool exhaustiveBoxScan,
+  }) {
     _checkPage(analysis, pageWidthPt, pageHeightPt);
 
     final _InkMask mask = _InkMask.from(analysis);
@@ -332,6 +367,7 @@ final class GeometryDetector {
       mask,
       analysis,
       grids.rules,
+      exhaustiveScan: exhaustiveBoxScan,
     );
     final Set<_Rule> consumed = <_Rule>{...boxes.rules, ...grids.rules};
     final List<_RawCandidate> raw = <_RawCandidate>[
@@ -771,14 +807,18 @@ final class GeometryDetector {
     List<_Rule> rules,
     _InkMask mask,
     RasterAnalysis analysis,
-    Set<_Rule> gridRules,
-  ) {
+    Set<_Rule> gridRules, {
+    required bool exhaustiveScan,
+  }) {
     final List<_Rule> horizontals =
         rules.where((_Rule rule) => rule.horizontal).toList()
           ..sort(_compareRuleCenterY);
     final List<_Rule> verticals =
         rules.where((_Rule rule) => !rule.horizontal).toList()
           ..sort(_compareRuleCenterX);
+    final List<_RawCandidate> candidates = <_RawCandidate>[];
+    final Set<_Rule> consumed = <_Rule>{};
+
     // Candidate indexing (T086B). `_cornersAgree` requires every side rule's
     // centre to lie within [_cornerTolerancePx] of the matching corner, so a
     // box can only exist for a (top, bottom, left, right) combination whose
@@ -786,15 +826,16 @@ final class GeometryDetector {
     // when its centre x is within tolerance of both `top.x0` and `bottom.x0`
     // and its y extent starts within tolerance of `top.centerY` and ends
     // within tolerance of `bottom.centerY`; the *right* side is the same with
-    // `x1`. The index answers exactly that question, so the former
-    // quadruple-nested scan (`O(h^2 * v^2)`; 6.1e9 iterations and ~83 s on the
-    // committed sf-001 page 1 raster) now visits only combinations that can
-    // pass the corner test. The predicates inside the loop are unchanged, so
-    // the accepted combinations, their cues, and their emission order are
-    // identical to the exhaustive scan.
+    // `x1`. Those are necessary conditions, not sufficient ones, so
+    // [_VerticalRuleIndex] returns a superset of the acceptable side rules and
+    // the surplus candidates are rejected by the unchanged `_considerBox`
+    // predicates. The quadruple-nested scan (`O(h^2 * v^2)`; 6.1e9 rule-pair
+    // slots and about 83 s on the committed sf-001 page 1 raster) is retained
+    // only for [debugDetectExhaustiveBoxScan]; production [detect] always takes
+    // the indexed branch, and both branches call the same `_considerBox`
+    // acceptance logic, so the accepted combinations, their cues, and their
+    // emission order are identical.
     final _VerticalRuleIndex verticalIndex = _VerticalRuleIndex(verticals);
-    final List<_RawCandidate> candidates = <_RawCandidate>[];
-    final Set<_Rule> consumed = <_Rule>{};
 
     for (int topIndex = 0; topIndex < horizontals.length; topIndex++) {
       for (
@@ -806,6 +847,28 @@ final class GeometryDetector {
         final _Rule bottom = horizontals[bottomIndex];
         if (bottom.centerY <= top.centerY ||
             bottom.y0 - top.y1 < _minInteriorSidePx) {
+          continue;
+        }
+        if (exhaustiveScan) {
+          for (int leftIndex = 0; leftIndex < verticals.length; leftIndex++) {
+            for (
+              int rightIndex = leftIndex + 1;
+              rightIndex < verticals.length;
+              rightIndex++
+            ) {
+              _considerBox(
+                top: top,
+                bottom: bottom,
+                left: verticals[leftIndex],
+                right: verticals[rightIndex],
+                mask: mask,
+                analysis: analysis,
+                gridRules: gridRules,
+                candidates: candidates,
+                consumed: consumed,
+              );
+            }
+          }
           continue;
         }
         final List<int> leftCandidates = verticalIndex.candidatesFor(
@@ -838,72 +901,100 @@ final class GeometryDetector {
             if (rightIndex <= leftRuleIndex) {
               continue;
             }
-            final _Rule right = verticals[rightIndex];
-            if (right.centerX <= left.centerX ||
-                right.x0 - left.x1 < _minInteriorSidePx) {
-              continue;
-            }
-            if (!_cornersAgree(top, bottom, left, right)) {
-              continue;
-            }
-            final PixelRect? interior = _pixelRect(
-              left.x1,
-              top.y1,
-              right.x0,
-              bottom.y0,
-              mask,
-            );
-            if (interior == null) {
-              continue;
-            }
-
-            consumed.addAll(<_Rule>{top, bottom, left, right});
-            final int outerLeft = _minInt(
-              _minInt(top.x0, bottom.x0),
-              _minInt(left.x0, right.x0),
-            );
-            final int outerRight = _maxInt(
-              _maxInt(top.x1, bottom.x1),
-              _maxInt(left.x1, right.x1),
-            );
-            final int outerTop = _minInt(
-              _minInt(top.y0, bottom.y0),
-              _minInt(left.y0, right.y0),
-            );
-            final int outerBottom = _maxInt(
-              _maxInt(top.y1, bottom.y1),
-              _maxInt(left.y1, right.y1),
-            );
-            if (outerRight - outerLeft >= mask.width * 0.9 &&
-                outerBottom - outerTop >= mask.height * 0.9) {
-              continue;
-            }
-            if (_containsGridLine(interior, gridRules)) {
-              continue;
-            }
-
-            final InkCoverage coverage = analysis.inkCoverage(interior);
-            final bool smallSquare = _isSmallSquare(
-              outerRight - outerLeft,
-              outerBottom - outerTop,
-              coverage,
-            );
-            if (coverage.exceedsPercent(_maxInkPercent) && !smallSquare) {
-              continue;
-            }
-            candidates.add(
-              _RawCandidate(
-                pixelRect: interior,
-                cues: <String>{'box', if (smallSquare) 'small_square'},
-                inkCoverage: coverage.fraction,
-                sideRules: <_Rule>{top, bottom, left, right},
-              ),
+            _considerBox(
+              top: top,
+              bottom: bottom,
+              left: left,
+              right: verticals[rightIndex],
+              mask: mask,
+              analysis: analysis,
+              gridRules: gridRules,
+              candidates: candidates,
+              consumed: consumed,
             );
           }
         }
       }
     }
     return _BoxDetection(candidates, consumed);
+  }
+
+  /// Accepts or rejects one box candidate; shared by both enumeration paths.
+  ///
+  /// Every predicate below is the pre-T086B logic in its original order. The
+  /// exhaustive and the indexed scan differ only in which rule combinations
+  /// reach this function.
+  static void _considerBox({
+    required _Rule top,
+    required _Rule bottom,
+    required _Rule left,
+    required _Rule right,
+    required _InkMask mask,
+    required RasterAnalysis analysis,
+    required Set<_Rule> gridRules,
+    required List<_RawCandidate> candidates,
+    required Set<_Rule> consumed,
+  }) {
+    if (right.centerX <= left.centerX ||
+        right.x0 - left.x1 < _minInteriorSidePx) {
+      return;
+    }
+    if (!_cornersAgree(top, bottom, left, right)) {
+      return;
+    }
+    final PixelRect? interior = _pixelRect(
+      left.x1,
+      top.y1,
+      right.x0,
+      bottom.y0,
+      mask,
+    );
+    if (interior == null) {
+      return;
+    }
+
+    consumed.addAll(<_Rule>{top, bottom, left, right});
+    final int outerLeft = _minInt(
+      _minInt(top.x0, bottom.x0),
+      _minInt(left.x0, right.x0),
+    );
+    final int outerRight = _maxInt(
+      _maxInt(top.x1, bottom.x1),
+      _maxInt(left.x1, right.x1),
+    );
+    final int outerTop = _minInt(
+      _minInt(top.y0, bottom.y0),
+      _minInt(left.y0, right.y0),
+    );
+    final int outerBottom = _maxInt(
+      _maxInt(top.y1, bottom.y1),
+      _maxInt(left.y1, right.y1),
+    );
+    if (outerRight - outerLeft >= mask.width * 0.9 &&
+        outerBottom - outerTop >= mask.height * 0.9) {
+      return;
+    }
+    if (_containsGridLine(interior, gridRules)) {
+      return;
+    }
+
+    final InkCoverage coverage = analysis.inkCoverage(interior);
+    final bool smallSquare = _isSmallSquare(
+      outerRight - outerLeft,
+      outerBottom - outerTop,
+      coverage,
+    );
+    if (coverage.exceedsPercent(_maxInkPercent) && !smallSquare) {
+      return;
+    }
+    candidates.add(
+      _RawCandidate(
+        pixelRect: interior,
+        cues: <String>{'box', if (smallSquare) 'small_square'},
+        inkCoverage: coverage.fraction,
+        sideRules: <_Rule>{top, bottom, left, right},
+      ),
+    );
   }
 
   static bool _cornersAgree(_Rule top, _Rule bottom, _Rule left, _Rule right) {
@@ -1428,12 +1519,17 @@ final class _Rule {
 ///  * its start y lies within [_cornerTolerancePx] of `top.centerY` and its
 ///    end y within [_cornerTolerancePx] of `bottom.centerY`.
 ///
-/// The `right` side uses `x1` instead of `x0`. This index answers exactly that
-/// query with two binary searches over centre-x and start-y and one window
-/// filter, so the caller never enumerates rule pairs that the corner test is
-/// guaranteed to reject. Every returned index satisfies a necessary condition
-/// of the corner test, and every rule the corner test can accept is returned,
-/// so candidate sets and their order are unchanged.
+/// The `right` side uses `x1` instead of `x0`. This index answers that query
+/// with two binary searches over centre-x and start-y and one window filter.
+///
+/// Every index it returns satisfies a necessary condition of the corner test,
+/// so no acceptable side rule is lost; the converse does not hold, and this is
+/// deliberately a *superset* lookup. Candidate side rules that share the
+/// window geometry but fail `_cornersAgree` (for example a diagonal offset, or
+/// a duplicate centre-x that the pairing rule rejects) are returned as well and
+/// are then discarded by `_considerBox`, exactly as the exhaustive loop
+/// discarded them. The index therefore narrows enumeration without deciding
+/// acceptance, and candidate sets and their order are unchanged.
 final class _VerticalRuleIndex {
   _VerticalRuleIndex._(this._centerX, this._startY, this._endY, this._byStartY);
 
@@ -1472,8 +1568,12 @@ final class _VerticalRuleIndex {
   final List<double> _endY;
   final List<int> _byStartY;
 
-  /// Ascending rule indices that can be a side of a box whose horizontal pair
+  /// Ascending rule indices that may be a side of a box whose horizontal pair
   /// spans the given corner windows.
+  ///
+  /// The result is a necessary-condition superset: every side rule that
+  /// `_cornersAgree` can accept is included, and it may also include rules the
+  /// caller's predicates will reject.
   List<int> candidatesFor({
     required int lowX,
     required int highX,
