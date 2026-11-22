@@ -1,0 +1,7 @@
+head=ef65da35ea67fea3169365d037b62385c1300e86
+tree=54994b64fc227afad92b91eafbdb03f3f231a432
+branch=xxammaxx/t086a
+subject=docs(T086A): preserve the pre-format emulator PASS evidence
+status_porcelain:
+ M apps/feldexa_app/android/gradlew.bat
+flutter=
