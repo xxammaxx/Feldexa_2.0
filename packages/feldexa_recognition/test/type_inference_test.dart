@@ -573,10 +573,13 @@ void main() {
 
   group('label proximity', () {
     test('nearest credible label wins and only its evidence is used', () {
+      // Both labels are off-row (above/below), so the proximity rule decides.
+      // A same-row label is associated structurally and outranks these; that
+      // case is covered by the T263 structural-association group below.
       final TypeInferenceResult result = _infer(
         labels: <LabelObservation>[
-          _label('Name', y: 90, height: 10),
-          _label('Betrag', x: 230, y: 100, width: 30),
+          _label('Name', y: 88, height: 10),
+          _label('Betrag', x: 100, y: 124, width: 30),
         ],
       );
       expect(result.labelText, 'Name');
@@ -586,15 +589,15 @@ void main() {
     });
 
     test('24 pt is the inclusive credibility boundary', () {
+      // Off-row (above) labels are bounded by the 24 pt proximity radius; a
+      // label on the candidate's own row is associated structurally instead.
       final TypeInferenceResult atBoundary = _infer(
-        labels: <LabelObservation>[_label('Name', x: 244, y: 100, width: 30)],
+        labels: <LabelObservation>[_label('Name', y: 66, width: 30)],
       );
       expect(atBoundary.labelText, 'Name');
 
       final TypeInferenceResult beyond = _infer(
-        labels: <LabelObservation>[
-          _label('Name', x: 244.125, y: 100, width: 30),
-        ],
+        labels: <LabelObservation>[_label('Name', y: 65.875, width: 30)],
       );
       expect(beyond.labelText, isNull);
       expect(beyond.proposedType, 'text');
@@ -629,8 +632,8 @@ void main() {
     });
 
     test('distance tie is broken by rect y, then rect x, then text', () {
-      // Both labels have squared distance 576: one is 24 pt above, the other
-      // 24 pt to the right. The smaller y wins.
+      // Both labels have squared distance 576 and are off-row: one is 24 pt
+      // above, the other 24 pt below. The smaller y wins.
       final LabelObservation smallerY = _label(
         'SmallerY',
         x: 100,
@@ -639,8 +642,8 @@ void main() {
       );
       final LabelObservation largerY = _label(
         'LargerY',
-        x: 244,
-        y: 100,
+        x: 100,
+        y: 136,
         width: 20,
       );
       expect(
@@ -941,4 +944,90 @@ void main() {
       );
     });
   });
+
+  group(
+    'T263 correction-1 — structural label association (left-label rows)',
+    () {
+      // T263 EMULATOR evidence at 40a4260 showed label accuracy 0.00 % on the
+      // reference variant: printed field labels sit left of their field on the
+      // same row with a gap of 14-90 pt, so the fixed 24 pt Euclidean radius
+      // never reached them and the pipeline either reported no label or took a
+      // heading above the row. These cases pin the documented cue semantics
+      // (`ocr_alignment_right`: "candidate is to the right of an OCR label
+      // line") instead of a fixed radius.
+
+      test('a left label on the same row is associated beyond 24 pt', () {
+        final TypeInferenceResult result = _infer(
+          candidate: _candidate(rect: _rect(190, 150, 300, 18)),
+          pageWidthPt: 600,
+          pageHeightPt: 900,
+          labels: <LabelObservation>[
+            _label(
+              'Staatsangehörigkeit',
+              x: 56.7,
+              y: 152,
+              width: 94.6,
+              height: 12,
+            ),
+          ],
+        );
+        expect(result.labelText, 'Staatsangehörigkeit');
+        expect(result.addedCues, contains('ocr_alignment_right'));
+      });
+
+      test('a same-row left label wins over a heading line above', () {
+        final TypeInferenceResult result = _infer(
+          candidate: _candidate(rect: _rect(190, 150, 300, 18)),
+          pageWidthPt: 600,
+          pageHeightPt: 900,
+          labels: <LabelObservation>[
+            _label(
+              '1. Felder mit deutschen Bezeichnungen',
+              x: 56.7,
+              y: 137,
+              width: 200,
+              height: 12,
+            ),
+            _label(
+              'Straße und Hausnummer',
+              x: 56.7,
+              y: 152,
+              width: 119.3,
+              height: 12,
+            ),
+          ],
+        );
+        expect(result.labelText, 'Straße und Hausnummer');
+      });
+
+      test(
+        'a printed mask inside the candidate is not the structural label',
+        () {
+          final TypeInferenceResult result = _infer(
+            candidate: _candidate(rect: _rect(190, 474, 300, 18)),
+            pageWidthPt: 600,
+            pageHeightPt: 900,
+            labels: <LabelObservation>[
+              _label('TT.MM.JJJJ', x: 200, y: 476, width: 60, height: 10),
+              _label('Geburtsdatum', x: 56.7, y: 476, width: 68.7, height: 12),
+            ],
+          );
+          expect(result.labelText, 'Geburtsdatum');
+          expect(result.proposedType, 'date');
+        },
+      );
+
+      test('a label two rows above is still not a same-row label', () {
+        final TypeInferenceResult result = _infer(
+          candidate: _candidate(rect: _rect(190, 300, 300, 18)),
+          pageWidthPt: 600,
+          pageHeightPt: 900,
+          labels: <LabelObservation>[
+            _label('Familienname', x: 56.7, y: 230, width: 66.5, height: 12),
+          ],
+        );
+        expect(result.labelText, isNull);
+      });
+    },
+  );
 }

@@ -25,6 +25,9 @@ findings (NFC/NFD, case, `ae/oe/ue/ss`, missing umlaut dots, `ß`→`B`), semant
 label/type assignment from the production `AnalyzeDocument` suggestions, and one
 `confirmSuggestion` plus encrypted-store label takeover round trip.
 
+The correction-1 label/type-association fix for this task is host-verified only
+(§5.7); its post-fix emulator rerun is `NOT_RUN` and §5 stays the pre-fix run.
+
 What it does **not** prove: physical-device behaviour (`DEVICE`), performance or
 the SC-004 claim, corpus `corpus-1.0.0`/`metric-definition.v1` figures (those
 belong to T033/T034/T059/T060/T142), or any SC-001/SC-003 claim. The measured
@@ -225,6 +228,50 @@ character-faithful takeover path, not a correct label assignment (§5.4).
   `t263-run-injected.json`
   `4cab7b85d7dde49e611c2ef1a08bc999886c24031a795a1a1799895912177140`.
 
+### 5.7 T263 correction-1 — defect fix status (host-verified only)
+
+The label/type defect in §5.4 has a proven root cause and a verified fix. The
+on-device rerun for this correction is **NOT_RUN**.
+
+- **Root cause.** `TypeInference` accepted a label only inside a 24 pt Euclidean
+  gap, but this fixture — like a typical authority form — prints each field
+  label in a left column and its input region in a second column, so the
+  label-to-field gap is 14–90 pt depending on the label's own length. 9 of the
+  13 reference fields therefore got no label at all and the rest took the
+  nearest heading. That is why label accuracy was 0.00 % and 8 field labels were
+  unresolved, and it is also why 12 of 13 suggestions fell back to `multiline`.
+- **Fix.** A label printed on the candidate's own row (overlapping vertical
+  spans, not printed inside the candidate region) is now associated by layout,
+  and a same-row label outranks a nearer line above or below. This is the
+  documented cue semantics of `ocr_alignment_right` ("the candidate is to the
+  right of an OCR label line"). No threshold, golden datum, ground truth,
+  expected text, or recognized character was changed, and no recognized text is
+  rewritten or normalized.
+- **RED/GREEN.** Three new regression tests fail at the pre-fix bytes of
+  `packages/feldexa_recognition/lib/src/type_inference.dart` (commit `40a4260`)
+  and pass after the fix; the focused suite is 58/58 green. The RED and GREEN
+  console logs, the exact tests, and the file hashes are recorded in
+  `2026-11-22-t263-evidence.md` (class `NONE`).
+- **Rerun status.** The seven variants were **not** re-executed for this
+  correction. The driver's mandatory Orca allocation gate
+  (`orca emulator devices --json`) stopped answering (`runtime_timeout`, then no
+  response at all), and the driver aborted before issuing any device command
+  (its log records `orca emulator devices --json failed; no Orca allocation
+  evidence`). The numbers in §5 are therefore still the pre-fix run at commit
+  `40a4260`; they are not superseded and must not be read as post-fix results.
+  No `DEVICE` or performance claim is affected.
+- **Special characters remain unfixed.** `ß`/`ẞ`→`B`, `m³`→`m²`, `§`→`S` and the
+  ASCII-folded punctuation are limitations of the bundled ML Kit Latin model.
+  Removing them would require a different engine or character-substitution
+  post-processing, and both are forbidden by this correction's rules, so those
+  cases stay `FAIL` as measured.
+- **Skew remains unfixed.** `scan-200dpi-skew-3deg` still fails because the
+  pipeline has no deskew stage: a tilted raster reaches the recognizer as-is, and
+  the resulting line boxes are too tall and too far from the annotated rows to be
+  associated (30/51). A deskew implementation was drafted but reverted
+  unverified — its host JVM test gate could not be executed — so no unverified
+  production change was shipped.
+
 ## 6. Performance
 
 No performance claim.
@@ -247,6 +294,9 @@ No performance claim.
 - The semantic label/type weakness in §5.4 is a measured product observation. It
   was **not** fixed here (no production change): T263 qualifies, it does not
   repair `AnalyzeDocument`, and issue #264 owns the inventory/adaptive work.
+- The correction-1 label/type fix is host-verified only (RED/GREEN in
+  `2026-11-22-t263-evidence.md`); there is no post-fix emulator run, because the
+  Orca allocation gate did not respond. §5 keeps the pre-fix numbers.
 - Not run here: `DEVICE` acceptance, TalkBack/accessibility, browser
   (`flutter test --platform chrome`) suites, character-faithful PDF export (no
   field-to-PDF renderer exists yet), and any `corpus-1.0.0` /

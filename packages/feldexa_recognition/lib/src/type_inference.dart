@@ -112,6 +112,13 @@ import 'geometry_detector.dart';
 import 'suggestion_schema.dart';
 
 /// Maximum Euclidean gap in points between a credible label and its candidate.
+///
+/// This radius is the proximity rule for the *non-structural* cases: a label
+/// above or below a candidate whose rectangles are still close. It is not the
+/// rule for a label printed on the candidate's own row (the common left-label
+/// layout), because there the horizontal gap between the label column and the
+/// field column grows with the label's own length and is bounded by the layout,
+/// not by a fixed distance. See [_sharesRow].
 const double _maxLabelDistancePt = 24;
 
 /// Squared form of [_maxLabelDistancePt] for exact, monotonic comparisons.
@@ -409,7 +416,8 @@ final class TypeInference {
         continue;
       }
       final double distanceSquared = _gapSquared(label.rect, candidate);
-      if (distanceSquared > _maxLabelDistanceSquared + _epsilon) {
+      final bool sharesRow = _sharesRow(label.rect, candidate);
+      if (!sharesRow && distanceSquared > _maxLabelDistanceSquared + _epsilon) {
         continue;
       }
       credible.add(
@@ -418,10 +426,45 @@ final class TypeInference {
           rect: label.rect,
           confidence: label.ocrConfidence,
           distanceSquared: distanceSquared,
+          sharesRow: sharesRow,
         ),
       );
     }
     return credible;
+  }
+
+  /// True when [label] is printed on the candidate's own row and outside it.
+  ///
+  /// `contracts/recognition-output.md` §3.1 defines the cue
+  /// `ocr_alignment_right` as "the candidate is to the right of an OCR label
+  /// line". A left label is therefore associated by layout: the two vertical
+  /// spans overlap, and the label is not printed inside the candidate region.
+  /// The horizontal gap is deliberately not distance-capped here, because a
+  /// short label in a fixed label column leaves a wide empty gap that says
+  /// nothing about the association; the same-row relation does.
+  static bool _sharesRow(DisplayRect label, DisplayRect candidate) {
+    final double labelBottom = label.y + label.height;
+    final double candidateBottom = candidate.y + candidate.height;
+    final double verticalOverlap = _overlap(
+      label.y,
+      labelBottom,
+      candidate.y,
+      candidateBottom,
+    );
+    if (verticalOverlap <= _epsilon) {
+      return false;
+    }
+    // A line printed mostly inside the candidate is printed content of that
+    // region (for example a `TT.MM.JJJJ` mask), not the region's label.
+    final double labelArea = label.width * label.height;
+    final double horizontalOverlap = _overlap(
+      label.x,
+      label.x + label.width,
+      candidate.x,
+      candidate.x + candidate.width,
+    );
+    final double insideArea = horizontalOverlap * verticalOverlap;
+    return !(labelArea > 0 && insideArea > 0.5 * labelArea);
   }
 
   static _CredibleLabel? _nearest(List<_CredibleLabel> credible) {
@@ -437,6 +480,12 @@ final class TypeInference {
     _CredibleLabel first,
     _CredibleLabel second,
   ) {
+    // A label printed on the candidate's own row is the field's label by
+    // layout, so it outranks a nearer heading or neighbouring line above or
+    // below the row.
+    if (first.sharesRow != second.sharesRow) {
+      return first.sharesRow ? -1 : 1;
+    }
     int result = first.distanceSquared.compareTo(second.distanceSquared);
     if (result != 0) {
       return result;
@@ -781,12 +830,16 @@ final class _CredibleLabel {
     required this.rect,
     required this.confidence,
     required this.distanceSquared,
+    required this.sharesRow,
   });
 
   final String text;
   final DisplayRect rect;
   final double confidence;
   final double distanceSquared;
+
+  /// The label is printed on the candidate's own row and outside it.
+  final bool sharesRow;
 }
 
 /// The matched lexicon keys for the selected label.
