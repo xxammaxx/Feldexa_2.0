@@ -184,7 +184,8 @@ def skew(width: int, height: int, pixels: bytearray, degrees: float = 3.0) -> by
     ``source = c + R(-degrees)(dest - c)`` with ``R(a) = [[cos a, -sin a],
     [sin a, cos a]]`` and ``c`` the page centre. Equivalently the content itself
     sits at ``dest = c + R(+degrees)(source - c)``, i.e. a positive ``degrees``
-    turns the content counter-clockwise in the screen frame. The T263 scorer
+    turns the content clockwise on screen (counter-clockwise in a y-up page
+    frame). The T263 scorer
     annotation transform and `test_de_ocr_qualification.rotate_about_page_centre`
     use this same pair; a wrong sign there is caught by the transform
     sensitivity test.
