@@ -177,9 +177,12 @@ internal object SkewCorrection {
     /**
      * Maps a rectangle from the deskewed frame back into the original frame.
      *
-     * The four corners are rotated by `-correction` about the raster centre and
+     * The four corners are rotated by `+correction` about the raster centre and
      * the axis-aligned bounding box is returned, because the OCR contract is
-     * axis-aligned. `correction == 0.0` is the identity.
+     * axis-aligned. `rotate` moves content by `R(-degrees)`, so the deskewed
+     * frame maps back into the original frame with `R(+correction)`; the result
+     * is clamped to `[0,width] x [0,height]`. `correction == 0.0` is the
+     * identity.
      */
     fun mapRectBack(
         rect: OcrRasterRect,

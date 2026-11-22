@@ -22,6 +22,7 @@ Run:
   python3 tools/metrics/test_de_ocr_qualification.py
 """
 import json
+import math
 import os
 import pathlib
 import shutil
@@ -75,6 +76,28 @@ def perfect_pages(ground_truth):
             }
         )
     return pages
+
+
+
+def rotate_about_page_centre(ground_truth, page_index, x, y, degrees):
+    """Maps a point from the upright page frame into the injected raster frame.
+
+    Mirrors `tools/corpus/de-ocr/make_variants.py` `skew()`: the injector samples
+    `source = c + R(+degrees)(dest - c)`, so the recorded content sits at
+    `dest = c + R(-degrees)(source - c)`.
+    """
+    page = next(p for p in ground_truth["pages"] if p["index"] == page_index)
+    centre_x = page["widthPt"] / 2.0
+    centre_y = page["heightPt"] / 2.0
+    radians = math.radians(degrees)
+    cos_a = math.cos(radians)
+    sin_a = math.sin(radians)
+    dx = x - centre_x
+    dy = y - centre_y
+    return (
+        centre_x + dx * cos_a - dy * sin_a,
+        centre_y + dx * sin_a + dy * cos_a,
+    )
 
 
 def build_run(ground_truth, evidence_class="SIMULATED", variant="clean-200dpi",
@@ -330,6 +353,98 @@ class DeOcrQualificationTest(unittest.TestCase):
                 self.assertFalse(
                     any("verbatim" in reason for reason in reasons),
                     f"unexpected verbatim reason for {variant}: {reasons}",
+                )
+
+    def test_label_normalization_guard_fires_at_200_dpi(self):
+        """B4-1: the anti-normalization guard must not silently stop firing.
+
+        A 200 DPI capture (the raster AnalyzeDocument itself recognises) is the
+        only frame where label verbatimness is comparable, so a relabelled
+        suggestion there must raise the verbatim FAIL reason.
+        """
+        def relabel(pages):
+            for page in pages.values():
+                for suggestion in page["suggestions"]:
+                    if suggestion["labelText"] == "Geschäftszeichen":
+                        suggestion["labelText"] = "Geschaeftszeichen"
+
+        payload = build_run(
+            self.ground_truth, evidence_class="EMULATOR",
+            variant="clean-200dpi", mutate=relabel,
+        )
+        payload["variants"][0]["raster"] = {"source": "test", "dpi": 200}
+        run = self.write_run("positive-control.json", payload)
+        result, report = self.score(run)
+        variant = report["variants"][0]
+        self.assertEqual(variant["semantic"]["nonVerbatimLabels"], 1)
+        self.assertEqual(variant["semantic"]["nonVerbatimNotComparable"], 0)
+        self.assertIn(
+            "verbatim",
+            " ".join(variant.get("statusReasons") or []),
+            "the verbatim FAIL reason must fire for a 200 DPI capture",
+        )
+        self.assertEqual(result.returncode, 1)
+
+    def test_skew_transform_is_frame_correct_and_sensitive(self):
+        """The skew annotation transform must be right, and must stay sensitive.
+
+        A tilted capture records OCR lines in the input-raster frame while the
+        ground truth stays upright. The scorer rotates the annotation into the
+        raster frame for a variant that records a known skew injection, which
+        restores full line association. A wrong sign, a wrong angle or no
+        transform at all must not reproduce that result.
+        """
+        degrees = 3.0
+        payload = build_run(
+            self.ground_truth, evidence_class="EMULATOR_INJECTED_RASTER",
+            variant="scan-200dpi-skew-3deg",
+        )
+        # Move every recorded line to where the injector puts the content.
+        for page in payload["variants"][0]["pages"]:
+            for line in page["lines"]:
+                rect = line["rect"]
+                centre_x = rect["x"] + rect["width"] / 2.0
+                centre_y = rect["y"] + rect["height"] / 2.0
+                moved_x, moved_y = rotate_about_page_centre(
+                    self.ground_truth, page["index"], centre_x, centre_y, degrees
+                )
+                rect["x"] = moved_x - rect["width"] / 2.0
+                rect["y"] = moved_y - rect["height"] / 2.0
+        payload["variants"][0]["raster"] = {
+            "source": "injected-scan-simulation",
+            "dpi": 200,
+            "degradations": ["skew-3deg"],
+        }
+        run = self.write_run("skew.json", payload)
+
+        # Frame-correct: the recorded injection drives the transform.
+        result, report = self.score(run)
+        variant = next(
+            v for v in report["variants"] if v["id"] == "scan-200dpi-skew-3deg"
+        )
+        self.assertEqual(variant["groundTruthTransform"]["skewDegrees"], degrees)
+        self.assertTrue(variant["groundTruthTransform"]["frameComparable"])
+        self.assertEqual(variant["raw"]["associatedLines"], 51)
+        self.assertEqual(variant["raw"]["cer"], 0.0)
+        self.assertEqual(variant["status"], "PASS")
+
+        # Sensitivity: no transform, wrong sign and a wrong angle must all lose
+        # association, so the transform cannot be faked.
+        for override, label in (
+            ("0", "no transform"),
+            (f"-{degrees}", "wrong sign"),
+            (f"{degrees * 2}", "wrong angle"),
+        ):
+            with self.subTest(case=label):
+                result, report = self.score(run, "--gt-skew-degrees", override)
+                variant = next(
+                    v
+                    for v in report["variants"]
+                    if v["id"] == "scan-200dpi-skew-3deg"
+                )
+                self.assertLess(
+                    variant["raw"]["associatedLines"], 51,
+                    f"{label} must not reproduce the frame-correct association",
                 )
 
     def test_unknown_suite_is_rejected(self):

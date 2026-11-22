@@ -379,12 +379,17 @@ candidate now agree.
   record's OCR lines as "silent normalization". Those lines come from the test's
   own OCR call at the variant's capture DPI while `AnalyzeDocument` always
   recognises its own 200 DPI raster, so for the 150/300 DPI variants it compared
-  two different recognitions. The three differing labels
-  (`Straße und Hausnummner`, `TT.MM.JJ`, `D Einverständnis erteilt`) are
+  two different recognitions. In the correction-2 run **three** labels differed
+  per 150/300 DPI variant (`Straße und Hausnummner`, `TT.MM.JJ`,
+  `D Einverständnis erteilt`); in the correction-3 run **two** differ per
+  variant (the checkbox label now comes from the merged line), and both are
   **content** differences caused by that second raster — not whitespace, and not
   a product normalization. The check now applies only to 200 DPI captures and
-  classifies the rest as not comparable (`nonVerbatimNotComparable: 2`), never as
-  a FAIL reason. Covered by a new Python regression test.
+  classifies the rest as not comparable (`nonVerbatimNotComparable: 2` in
+  correction-3), never as a FAIL reason. Covered by a Python regression test that
+  also pins the 200 DPI positive control (a relabelled 200 DPI suggestion must
+  still raise the verbatim FAIL reason, so the guard cannot silently stop
+  firing).
 - *B7 (provenance).* The run below was executed at committed HEAD
   `3102557` (tree `22dbc94`) with a deliberately dirty tree containing only
   `apps/feldexa_app/android/gradlew.bat` (CRLF artifact, SHA-256
@@ -406,7 +411,7 @@ candidate now agree.
 | `clean-300dpi` | 2.27 % → 2.27 % | 92.31 % → 92.31 % | 69.23 % → 76.92 % | FAIL → **PASS** |
 | `scan-150dpi-low-contrast` | 2.21 % → 2.21 % | 96.15 % → 96.15 % | 84.62 % → 92.31 % | PASS → PASS |
 | `scan-200dpi-shadow` | 2.63 % → 2.63 % | 92.31 % → 92.31 % | 84.62 % → 92.31 % | PASS → PASS |
-| `scan-200dpi-skew-3deg` | 15.42 % → 43.51 % | 87.50 % → 62.50 % | 0.00 % → 100 % (1/1) | PASS → **FAIL** (frame, see below) |
+| `scan-200dpi-skew-3deg` | 43.51 % (upright annotation, non-comparable) | 62.50 % (same) | 0.00 % → 100 % (1/1) | FAIL → **PASS frame-correct** (51/51, CER 2.33 %; §5.9) |
 | `scan-200dpi-jpeg-q35` | 2.27 % → 2.27 % | 93.27 % → 93.27 % | 84.62 % → 92.31 % | PASS → PASS |
 
 `clean-150dpi` and `clean-300dpi` now pass because their only FAIL reason was the
@@ -431,15 +436,20 @@ it is not evidence of a broad semantic improvement.
   character losses are bundled-ML-Kit model limits (`ß`/`ẞ`→`B`, `m³`→`m²`,
   `§`→`S`, ASCII-folded punctuation); fixing them needs a different engine or
   forbidden character substitution.
-- `scan-200dpi-skew-3deg`: CER 43.51 % after the A1 fix. This is a **frame
-  mismatch in the measurement, not a recognition regression**: the product now
-  reports boxes in the raster frame it was given (correct for the overlay), while
-  the suite annotates the *upright* page, so a 3°-rotated raster cannot be
-  associated line-by-line in the scorer. The correction-2 value (15.42 %) came
-  from the double rotation that A1 removed and must not be quoted as the product
-  result. Measuring this variant needs the applied correction in the run record
-  (a small OCR-result/contract addition) — an owner/reviewer decision, not
-  something to fake in the scorer.
+- `scan-200dpi-skew-3deg`: **frame-correct PASS** (correction-4). The scorer now
+  rotates the annotation into the input-raster frame for exactly the variant that
+  records a known skew injection (`raster.degradations: ["skew-3deg"]`, with
+  `evidence.skewDegrees` honoured when present), using the same mapping as
+  `make_variants.skew`. Re-scoring this same c3 run file that way gives
+  **51/51 associated lines, CER 2.33 %, special-character recall 92.31 %, PASS** —
+  identical to the reference capture, which is what a correct deskew plus a
+  correct map-back must produce. The upright-annotation score of the same run
+  (CER 43.51 %, 30/51 associations) is kept only as the explicitly
+  **non-comparable** measurement. The transform is not a free pass: the Python
+  regression test shows that no transform, the wrong sign and a doubled angle all
+  lose association. Field-level semantics of this variant remain unreliable
+  (precision 0.74 %, recall 15.38 %) because field matching uses axis-aligned IoU
+  across two frames — a property of the metric, not of the reading.
 
 **Correction-3 artifacts (this run).**
 
@@ -479,11 +489,21 @@ No performance claim.
   production-path evidence.
 - `clean-150dpi`/`clean-300dpi` qualify the DPI effect on **raw text only**:
   `AnalyzeDocument` always analyses its own fixed 200 DPI raster.
-- `scan-200dpi-skew-3deg` is a declared degradation, not a product failure; its
-  CER 48.48 % is recorded, not treated as a regression gate.
-- The semantic label/type weakness in §5.4 is a measured product observation. It
-  was **not** fixed here (no production change): T263 qualifies, it does not
-  repair `AnalyzeDocument`, and issue #264 owns the inventory/adaptive work.
+- `scan-200dpi-skew-3deg` is a declared degradation, not a product failure. Its
+  **pre-fix** CER 48.48 % (commit `40a4260`, no deskew stage) is superseded: the
+  frame-correct score of the correction-3 run is 51/51 associated lines at
+  CER 2.33 % with special-character recall 92.31 % — identical to the reference
+  capture (§5.9). The upright-annotation score of that same run (43.51 %) is
+  reported only as the explicitly non-comparable measurement.
+- The semantic label/type weakness in §5.4 **was** addressed here: the
+  `type_inference.dart` label-association fix (same-row label, documented
+  `ocr_alignment_right` direction) landed and lifted label accuracy from 0.00 %
+  to 76.92 % on the reference variant (§5.9). The residual weakness is different
+  and remains open: reference field precision is 17.81 % (13/73 suggestions) and
+  type accuracy 23.08 % (3/13) because the fixture's character page yields many
+  candidates and the closed keyword lexicon has no entry for some labels
+  (`Größe`, `Gebühr`). That inventory/lexicon work belongs to issue #264; T263
+  qualifies, it does not redesign detection.
 - §5.1–§5.6 are the pre-fix baseline run at commit `40a4260`. Current status is
   §5.8 (correction-2) and §5.9 (correction-3); §5.9 supersedes everything
   before it. Host JVM and Dart RED/GREEN logs are in `2026-11-22-t263-evidence.md`

@@ -19,7 +19,8 @@
 //   dart run tools/metrics/de_ocr_qualification.dart \
 //     --run <run.json> [--run <run2.json> ...] \
 //     --output <report.json> [--markdown <report.md>] \
-//     [--ground-truth <path>] [--require-device-evidence]
+//     [--ground-truth <path>] [--require-device-evidence] \
+//     [--gt-skew-degrees <deg>]
 //
 // Raw-text metrics use **no** normalization: ground-truth text and OCR text are
 // compared as Unicode code points. Normalization, case folding, NFC/NFD, and
@@ -36,6 +37,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 const String _defaultGroundTruth =
     'tools/corpus/de-ocr/reference-de.ground-truth.json';
@@ -85,6 +87,7 @@ Future<void> main(List<String> arguments) async {
       groundTruth: groundTruth,
       runs: runs,
       requireDeviceEvidence: options.requireDeviceEvidence,
+      gtSkewOverride: options.gtSkewDegrees,
     );
     final File output = File(options.output);
     output.parent.createSync(recursive: true);
@@ -136,6 +139,7 @@ final class _Options {
     required this.output,
     required this.markdown,
     required this.requireDeviceEvidence,
+    required this.gtSkewDegrees,
     required this.help,
   });
 
@@ -144,6 +148,7 @@ final class _Options {
   final String output;
   final String? markdown;
   final bool requireDeviceEvidence;
+  final double? gtSkewDegrees;
   final bool help;
 }
 
@@ -153,6 +158,7 @@ _Options _parseArguments(List<String> arguments) {
   String? output;
   String? markdown;
   bool requireDeviceEvidence = false;
+  double? gtSkewDegrees;
   bool help = false;
   for (int index = 0; index < arguments.length; index++) {
     final String argument = arguments[index];
@@ -173,6 +179,13 @@ _Options _parseArguments(List<String> arguments) {
         markdown = next();
       case '--ground-truth':
         groundTruth = next();
+      case '--gt-skew-degrees':
+        final String raw = next();
+        final double? parsed = double.tryParse(raw);
+        if (parsed == null || !parsed.isFinite) {
+          throw _Fail('--gt-skew-degrees requires a finite number');
+        }
+        gtSkewDegrees = parsed;
       case '--require-device-evidence':
         requireDeviceEvidence = true;
       case '--help' || '-h':
@@ -190,6 +203,7 @@ _Options _parseArguments(List<String> arguments) {
     output: output ?? '',
     markdown: markdown,
     requireDeviceEvidence: requireDeviceEvidence,
+    gtSkewDegrees: gtSkewDegrees,
     help: help,
   );
 }
@@ -304,6 +318,8 @@ final class _GroundTruth {
     required this.fields,
     required this.variants,
     required this.pages,
+    this.pageSizes = const <int, ({double widthPt, double heightPt})>{},
+    this.skewDegrees = 0,
   });
 
   final String suiteId;
@@ -313,6 +329,91 @@ final class _GroundTruth {
   final List<_GtField> fields;
   final List<_VariantSpec> variants;
   final int pages;
+
+  /// Page display size in points, keyed by zero-based page index.
+  final Map<int, ({double widthPt, double heightPt})> pageSizes;
+
+  /// Non-zero when the annotation was rotated into a tilted raster frame.
+  final double skewDegrees;
+
+  /// Rotates the annotation geometry into the input-raster frame.
+  ///
+  /// A variant may be a deliberately tilted capture (`scan-200dpi-skew-3deg`
+  /// injects a three-degree rotation about the page centre in
+  /// `tools/corpus/de-ocr/make_variants.py`). The ground truth stays in the
+  /// upright page frame, so scoring such a run against it compares two different
+  /// frames and is not comparable. With a non-zero [degrees] the line and field
+  /// rectangles are rotated about their page centre with the *same* mapping the
+  /// injector uses (`source = c + R(+degrees)(dest - c)` implies
+  /// `dest = c + R(-degrees)(source - c)`), which puts the annotation where the
+  /// tilted content actually is. Rectangles keep their upright size, so the
+  /// transform is a pure translation of each rectangle's centre; that is exactly
+  /// what the line-association rule (vertical centre inside the box grown by
+  /// 4 pt, at least 30 % horizontal overlap) compares.
+  ///
+  /// A wrong angle or the wrong sign therefore does **not** reproduce the
+  /// frame-correct result; the sensitivity is pinned by
+  /// `tools/metrics/test_de_ocr_qualification.py`.
+  _GroundTruth intoRasterFrame(double degrees) {
+    if (degrees == 0) {
+      return this;
+    }
+    final double radians = degrees * math.pi / 180.0;
+    final double cosA = math.cos(radians);
+    final double sinA = math.sin(radians);
+    _Rect transform(int pageIndex, _Rect rect) {
+      final ({double widthPt, double heightPt}) size =
+          pageSizes[pageIndex] ?? (widthPt: 0.0, heightPt: 0.0);
+      if (size.widthPt <= 0 || size.heightPt <= 0) {
+        return rect;
+      }
+      final double centreX = size.widthPt / 2.0;
+      final double centreY = size.heightPt / 2.0;
+      final double dx = rect.x + rect.width / 2.0 - centreX;
+      final double dy = rect.y + rect.height / 2.0 - centreY;
+      final double x = centreX + dx * cosA - dy * sinA;
+      final double y = centreY + dx * sinA + dy * cosA;
+      return _Rect(
+        x - rect.width / 2.0,
+        y - rect.height / 2.0,
+        rect.width,
+        rect.height,
+      );
+    }
+
+    return _GroundTruth(
+      suiteId: suiteId,
+      fixtureId: fixtureId,
+      pdfSha256: pdfSha256,
+      lines: <_GtLine>[
+        for (final _GtLine line in lines)
+          _GtLine(
+            id: line.id,
+            pageIndex: line.pageIndex,
+            text: line.text,
+            role: line.role,
+            critical: line.critical,
+            rect: transform(line.pageIndex, line.rect),
+            presentRequiredCharacters: line.presentRequiredCharacters,
+          ),
+      ],
+      fields: <_GtField>[
+        for (final _GtField field in fields)
+          _GtField(
+            id: field.id,
+            pageIndex: field.pageIndex,
+            type: field.type,
+            label: field.label,
+            labelLineId: field.labelLineId,
+            rect: transform(field.pageIndex, field.rect),
+          ),
+      ],
+      variants: variants,
+      pages: pages,
+      pageSizes: pageSizes,
+      skewDegrees: degrees,
+    );
+  }
 
   static _GroundTruth load(String path) {
     final File file = File(path);
@@ -379,6 +480,18 @@ final class _GroundTruth {
       );
     }
     final Map<String, Object?> pdf = _asMap(root['pdf'], 'pdf');
+    final Map<int, ({double widthPt, double heightPt})> pageSizes =
+        <int, ({double widthPt, double heightPt})>{};
+    for (final Object? entry in _asList(
+      root['pages'] ?? <Object?>[],
+      'pages',
+    )) {
+      final Map<String, Object?> page = _asMap(entry, 'page');
+      pageSizes[_asInt(page['index'], 'page index')] = (
+        widthPt: _asDouble(page['widthPt'], 'page widthPt'),
+        heightPt: _asDouble(page['heightPt'], 'page heightPt'),
+      );
+    }
     return _GroundTruth(
       suiteId: _asString(root['suiteId'], 'suiteId'),
       fixtureId: _asString(root['fixtureId'], 'fixtureId'),
@@ -387,6 +500,7 @@ final class _GroundTruth {
       fields: fields,
       variants: variants,
       pages: _asInt(pdf['pageCount'], 'pageCount'),
+      pageSizes: pageSizes,
     );
   }
 }
@@ -445,10 +559,12 @@ final class _RunVariant {
     required this.lines,
     required this.suggestions,
     required this.timings,
+    this.evidence = const <String, Object?>{},
   });
 
   final String id;
   final Map<String, Object?> raster;
+  final Map<String, Object?> evidence;
   final List<_OcrLine> lines;
   final List<_RecordedSuggestion> suggestions;
   final Map<String, Object?> timings;
@@ -582,6 +698,10 @@ final class _Run {
           lines: lines,
           suggestions: suggestions,
           timings: _asMap(variant['timings'] ?? <String, Object?>{}, 'timings'),
+          evidence: _asMap(
+            variant['evidence'] ?? <String, Object?>{},
+            'variant evidence',
+          ),
         ),
       );
     }
@@ -1262,8 +1382,11 @@ _SemanticScore _scoreSemantic(
       // Whitespace-only differences are already excluded above (both sides are
       // trimmed), so a remaining difference is either a different OCR call or a
       // real content rewrite. It can only be judged against the recorded OCR
-      // text of the raster the analysis itself recognised; for a variant
-      // captured at another DPI the two recognitions see different pixels.
+      // text of the raster the analysis itself recognised; for a variant whose
+      // capture DPI differs from the 200 DPI analysis raster the two
+      // recognitions see different pixels (the run record's lines come from the
+      // test's own OCR call on the delivered capture grid, not from the
+      // analysis raster), so the comparison is not comparable.
       final Object? rasterDpi = variant.raster['dpi'];
       final bool comparable =
           rasterDpi is num && rasterDpi.round() == analysisRasterDpi;
@@ -1365,6 +1488,7 @@ final class _VariantResult {
     required this.groundTruthFields,
     required this.ocrLines,
     required this.criticalUnresolved,
+    this.skewDegrees = 0,
   });
 
   final String id;
@@ -1381,6 +1505,9 @@ final class _VariantResult {
   final int groundTruthFields;
   final int ocrLines;
   final int criticalUnresolved;
+
+  /// Annotation rotation applied to this variant's ground truth, in degrees.
+  final double skewDegrees;
 
   double? get cer {
     final _Alignment? raw = alignment;
@@ -1464,6 +1591,10 @@ final class _VariantResult {
       'status': status,
       'statusReasons': statusReasons,
       'raster': raster,
+      'groundTruthTransform': <String, Object?>{
+        'skewDegrees': skewDegrees,
+        'frameComparable': skewDegrees != 0,
+      },
       'timings': timings,
       'raw': raw == null
           ? null
@@ -1553,6 +1684,7 @@ final class _Report {
     required this.overallVerdict,
     required this.overallReasons,
     required this.requireDeviceEvidence,
+    this.gtSkewOverride,
   });
 
   final _GroundTruth groundTruth;
@@ -1562,6 +1694,7 @@ final class _Report {
   final String overallVerdict;
   final List<String> overallReasons;
   final bool requireDeviceEvidence;
+  final double? gtSkewOverride;
 
   Map<String, Object?> toJson() {
     return <String, Object?>{
@@ -1572,6 +1705,17 @@ final class _Report {
       'generatedAtUtc': DateTime.now().toUtc().toIso8601String(),
       'metricDefinitionVersion': 'metric-definition.v1',
       'rawComparisonNormalization': 'none',
+      'groundTruthTransform': <String, Object?>{
+        'kind': gtSkewOverride == null
+            ? 'per-variant-from-recorded-injection'
+            : 'fixed-override',
+        'overrideDegrees': gtSkewOverride,
+        'note':
+            'a variant whose raster records a known skew injection '
+            '(for example "skew-3deg") is scored with its annotation rotated '
+            'into the input-raster frame; only line/field geometry moves, never '
+            'text; upright variants keep the upright annotation',
+      },
       'requireDeviceEvidence': requireDeviceEvidence,
       'overallVerdict': overallVerdict,
       'overallReasons': overallReasons,
@@ -1739,10 +1883,41 @@ bool _isDeviceEvidence(String evidenceClass) => evidenceClass == 'EMULATOR';
 bool _isOnDevice(String evidenceClass) =>
     evidenceClass == 'EMULATOR' || evidenceClass == 'EMULATOR_INJECTED_RASTER';
 
+/// Injected skew of a recorded variant, in degrees, from its own raster record.
+///
+/// `make_variants.py` records `raster.degradations` (for example
+/// `["skew-3deg"]`), and the optional `raster.skewDegrees`/`evidence.skewDegrees`
+/// trace is honoured when present. Anything else is an upright capture (0).
+double _injectedSkewDegrees(_RunVariant variant) {
+  final Object? trace = variant.evidence['skewDegrees'];
+  if (trace is num && trace.isFinite) {
+    return trace.toDouble();
+  }
+  final Object? rasterTrace = variant.raster['skewDegrees'];
+  if (rasterTrace is num && rasterTrace.isFinite) {
+    return rasterTrace.toDouble();
+  }
+  final Object? degradations = variant.raster['degradations'];
+  if (degradations is List) {
+    for (final Object? entry in degradations) {
+      if (entry is! String) {
+        continue;
+      }
+      final RegExpMatch? match = RegExp(r'^skew-(-?[0-9]+(?:\.[0-9]+)?)deg$')
+          .firstMatch(entry.trim());
+      if (match != null) {
+        return double.parse(match.group(1)!);
+      }
+    }
+  }
+  return 0;
+}
+
 _Report _score({
   required _GroundTruth groundTruth,
   required List<_Run> runs,
   required bool requireDeviceEvidence,
+  double? gtSkewOverride,
 }) {
   final Map<String, _RunVariant> recordedVariants = <String, _RunVariant>{};
   for (final _Run run in runs) {
@@ -1770,15 +1945,24 @@ _Report _score({
           groundTruthFields: groundTruth.fields.length,
           ocrLines: 0,
           criticalUnresolved: 0,
+          skewDegrees: gtSkewOverride ?? 0,
         ),
       );
       continue;
     }
-    final _Alignment alignment = _scoreRaw(groundTruth, recorded);
+    // A deliberately tilted capture is annotated in the upright frame, so the
+    // annotation is rotated into the raster frame for exactly that variant. The
+    // override forces one angle for every variant and exists only to prove the
+    // sensitivity of the measurement (wrong sign, wrong angle, no transform).
+    final double variantSkew = gtSkewOverride ?? _injectedSkewDegrees(recorded);
+    final _GroundTruth variantGroundTruth = groundTruth.intoRasterFrame(
+      variantSkew,
+    );
+    final _Alignment alignment = _scoreRaw(variantGroundTruth, recorded);
     final List<_SpecialCharacterScore> specialCharacters =
         _scoreRequiredCharacters(alignment);
     final _SemanticScore semantic = _scoreSemantic(
-      groundTruth,
+      variantGroundTruth,
       recorded,
       alignment,
     );
@@ -1878,6 +2062,7 @@ _Report _score({
         groundTruthFields: groundTruth.fields.length,
         ocrLines: recorded.lines.length,
         criticalUnresolved: criticalUnresolved,
+        skewDegrees: variantSkew,
       ),
     );
   }
@@ -1955,6 +2140,7 @@ _Report _score({
     overallVerdict: overallVerdict,
     overallReasons: overallReasons,
     requireDeviceEvidence: requireDeviceEvidence,
+    gtSkewOverride: gtSkewOverride,
   );
 }
 
@@ -2262,6 +2448,15 @@ Options:
   --output PATH               Metrics report JSON to write.
   --markdown PATH             Optional Markdown summary to write.
   --ground-truth PATH         Ground truth (default: $_defaultGroundTruth).
+  --gt-skew-degrees DEG       Transform the ground-truth geometry (lines and
+                              fields) from the upright page frame into the
+                              input-raster frame by rotating it about the page
+                              centre with the same mapping the variant injector
+                              uses (`tools/corpus/de-ocr/make_variants.py`,
+                              `skew(..., degrees=3.0)`). Use it to score a
+                              deliberately tilted capture frame-correctly; the
+                              upright-GT score of such a variant is not
+                              comparable and is reported separately.
   --require-device-evidence   Fail unless the reference variant is EMULATOR and
                               every executed variant ran on the emulator
                               (EMULATOR or EMULATOR_INJECTED_RASTER). SIMULATED
