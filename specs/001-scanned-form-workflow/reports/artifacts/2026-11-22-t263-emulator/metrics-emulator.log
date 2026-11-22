@@ -1,0 +1,9 @@
+wrote /tmp/feldexa-t263-run.iKzX3n/t263-report.json (overall verdict FAIL)
+wrote /tmp/feldexa-t263-run.iKzX3n/t263-report.md
+variant clean-200dpi (EMULATOR): FAIL CER 2.33% special-recall 93.27%
+variant clean-150dpi (EMULATOR): FAIL CER 2.21% special-recall 93.27%
+variant clean-300dpi (EMULATOR): FAIL CER 2.27% special-recall 92.31%
+variant scan-150dpi-low-contrast (EMULATOR_INJECTED_RASTER): PASS CER 2.21% special-recall 96.15%
+variant scan-200dpi-shadow (EMULATOR_INJECTED_RASTER): PASS CER 2.63% special-recall 92.31%
+variant scan-200dpi-skew-3deg (EMULATOR_INJECTED_RASTER): FAIL CER 48.48% special-recall 68.27%
+variant scan-200dpi-jpeg-q35 (EMULATOR_INJECTED_RASTER): PASS CER 2.27% special-recall 93.27%

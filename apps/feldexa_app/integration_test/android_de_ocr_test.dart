@@ -38,6 +38,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:feldexa_adapters_android/feldexa_adapters_android.dart';
 import 'package:feldexa_application/src/recognition/analyze_document.dart';
@@ -53,12 +54,16 @@ import 'package:integration_test/integration_test.dart';
 /// Host-owned input staging directory prepared by the driver.
 const String _staging = '/data/local/tmp/t263-fixtures';
 
-/// App-private external output directory the driver pulls the run files from.
+/// App-private output directory the host driver pulls the run files from.
 ///
-/// `/data/local/tmp` is not reliably writable for an app under SELinux, while
-/// `Android/data/<package>/files` is written by the app itself and can be
-/// pulled by `adb` for a debuggable build.
-const String _outputRoot = '/storage/emulated/0/Android/data/de.feldexa/files/t263';
+/// `Android/data/<package>/files` cannot be created by a targetSdk 36 app
+/// (scoped storage), so the run files go to the app cache directory, whose
+/// absolute path the test reports as `T263_OUTPUT_PATH=<dir>`. The driver pulls
+/// them with `adb exec-out run-as <application id>` while this test still runs,
+/// because the test runner uninstalls the app (and deletes that directory) on
+/// exit. Both run files hold recognized document text, so they never reach a
+/// log.
+const String _outputDirName = 't263-output';
 
 /// Fixed document identity for the recognition run.
 const String _sourceId = '7d0f8b1c-3a2e-4f66-9c15-6b0e2d4a8f31';
@@ -99,7 +104,10 @@ final class _InjectedRasterPort implements PageRasterPort {
   CapabilityEvidence get evidence => _evidence;
 
   @override
-  Future<core.PageGeometry> pageDimensions(String sourceId, int pageIndex) async {
+  Future<core.PageGeometry> pageDimensions(
+    String sourceId,
+    int pageIndex,
+  ) async {
     final ({double widthPt, double heightPt}) size = pageSizes[pageIndex]!;
     return core.PageGeometry(
       mediaBox: core.Rect.fromLTWH(0, 0, size.widthPt, size.heightPt),
@@ -137,27 +145,22 @@ Future<void> main() async {
     );
     final Uint8List pdf = File('$_staging/reference-de.pdf').readAsBytesSync();
     final String pdfSha256 = crypto.sha256.convert(pdf).toString();
-    final Map<String, Object?> groundTruth =
-        jsonDecode(
-              File('$_staging/reference-de.ground-truth.json').readAsStringSync(),
-            )
-            as Map<String, Object?>;
+    final Map<String, Object?> groundTruth = jsonDecode(
+      File('$_staging/reference-de.ground-truth.json').readAsStringSync(),
+    ) as Map<String, Object?>;
     final Map<String, Object?> pdfInfo =
         groundTruth['pdf']! as Map<String, Object?>;
     expect(pdfSha256, pdfInfo['sha256']);
     expect(pdf.length, pdfInfo['sizeBytes']);
     _marker('FIXTURE_VERIFIED');
 
-    final Map<String, Object?> variantsManifest =
-        jsonDecode(
-              File('$_staging/t263-variants.json').readAsStringSync(),
-            )
-            as Map<String, Object?>;
+    final Map<String, Object?> variantsManifest = jsonDecode(
+      File('$_staging/t263-variants.json').readAsStringSync(),
+    ) as Map<String, Object?>;
     final List<Object?> variants =
         variantsManifest['variants']! as List<Object?>;
 
-    final List<Map<String, Object?>> production =
-        <Map<String, Object?>>[];
+    final List<Map<String, Object?>> production = <Map<String, Object?>>[];
     final List<Map<String, Object?>> injected = <Map<String, Object?>>[];
     Map<String, Object?>? cleanPageOneSuggestions;
 
@@ -191,9 +194,8 @@ Future<void> main() async {
           final int pageIndex = page['index']! as int;
           final int widthPx = page['widthPx']! as int;
           final int heightPx = page['heightPx']! as int;
-          final Uint8List bytes = File(
-            '$_staging/${page['file']! as String}',
-          ).readAsBytesSync();
+          final Uint8List bytes = File('$_staging/${page['file']! as String}')
+              .readAsBytesSync();
           expect(bytes.length, widthPx * heightPx);
           final RasterImage image = RasterImage(
             bytes: bytes,
@@ -218,10 +220,14 @@ Future<void> main() async {
 
       final AndroidOcrClient ocr = AndroidOcrClient(
         pageSizeResolver: (RasterImage image) {
-          final ({double widthPt, double heightPt})? size = sizes[image];
-          if (size == null) {
-            throw StateError('unknown raster page size');
-          }
+          // `AnalyzeDocument` re-renders the page through this same raster port,
+          // so it hands the OCR port a raster instance this test never saw.
+          // Its page display size is still the variant's page size; resoling
+          // from the variant (instead of only from test-rendered instances)
+          // keeps OCR active inside the production pipeline instead of
+          // silently degrading it to the geometry-only fallback.
+          final ({double widthPt, double heightPt}) size =
+              sizes[image] ?? (widthPt: pageWidthPt, heightPt: pageHeightPt);
           return size;
         },
       );
@@ -345,10 +351,16 @@ Future<void> main() async {
     }
     _marker('VARIANTS_DONE');
 
-    final Directory output = Directory(_outputRoot);
-    output.createSync(recursive: true);
+    final Directory output = Directory(
+      '${Directory.systemTemp.path}/$_outputDirName',
+    )..createSync(recursive: true);
+    _marker('OUTPUT_PATH=${output.path}');
 
-    void writeRun(String name, String evidenceClass, List<Map<String, Object?>> variants) {
+    void writeRun(
+      String name,
+      String evidenceClass,
+      List<Map<String, Object?>> variants,
+    ) {
       final Map<String, Object?> run = <String, Object?>{
         'schemaVersion': 1,
         'suiteId': groundTruth['suiteId'],
@@ -370,16 +382,16 @@ Future<void> main() async {
     }
 
     writeRun('t263-run-emulator.json', 'EMULATOR', production);
-    writeRun(
-      't263-run-injected.json',
-      'EMULATOR_INJECTED_RASTER',
-      injected,
-    );
+    writeRun('t263-run-injected.json', 'EMULATOR_INJECTED_RASTER', injected);
     _marker('RUN_FILES_WRITTEN');
 
     // --- Label takeover: production confirm command plus real store round trip.
     final Map<String, Object?>? pageOne = cleanPageOneSuggestions;
-    expect(pageOne, isNotNull, reason: 'clean page 2 analysis must be recorded');
+    expect(
+      pageOne,
+      isNotNull,
+      reason: 'clean page 2 analysis must be recorded',
+    );
     final List<Object?> pageOneSuggestions =
         pageOne!['suggestions']! as List<Object?>;
     Map<String, Object?>? german;
@@ -488,13 +500,13 @@ Future<void> main() async {
     } finally {
       if (created) {
         await store.delete(
-        StoreKind.document,
-        documentId,
-        DeleteConfirmation(
-          title: 'T263 Zeichensatz-Referenz',
-          acknowledged: true,
-        ),
-      );
+          StoreKind.document,
+          documentId,
+          DeleteConfirmation(
+            title: 'T263 Zeichensatz-Referenz',
+            acknowledged: true,
+          ),
+        );
       }
     }
     _marker('CLEANUP_DONE');

@@ -1,0 +1,41 @@
+00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0/t263-ocr-german/apps/feldexa_app/integration_test/android_de_ocr_test.dart
+Running Gradle task 'assembleDebug'...                          
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/home/xxammaxx/.gradle/wrapper/dists/gradle-9.3.1-all/9ot9r568e8zfvvd4mn8rbu1j0/gradle-9.3.1/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: Your app uses the following plugins that apply Kotlin Gradle Plugin (KGP): share_plus
+Future versions of Flutter will fail to build if your app uses plugins that apply KGP.
+
+Please check the changelogs of these plugins and upgrade to a version that supports Built-in Kotlin.
+If no such version exists, report the issue to the plugin. If necessary, here is a guide on filing
+an issue against a plugin: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers#report-incompatible-kotlin-gradle-plugin-usage-to-plugin-authors
+
+If you are a plugin author, please migrate your plugin to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
+Running Gradle task 'assembleDebug'...                            172,6s
+✓ Built build/app/outputs/flutter-apk/app-debug.apk
+Installing build/app/outputs/flutter-apk/app-debug.apk...        1.665ms
+00:00 +0: German OCR characters and label takeover on Android
+T263_FIXTURE_VERIFIED
+T263_VARIANT_PAGE_DONE id=clean-200dpi page=0 lines=26 suggestions=41
+T263_VARIANT_PAGE_DONE id=clean-200dpi page=1 lines=25 suggestions=32
+T263_VARIANT_PAGE_DONE id=clean-150dpi page=0 lines=26 suggestions=41
+T263_VARIANT_PAGE_DONE id=clean-150dpi page=1 lines=25 suggestions=32
+T263_VARIANT_PAGE_DONE id=clean-300dpi page=0 lines=26 suggestions=41
+T263_VARIANT_PAGE_DONE id=clean-300dpi page=1 lines=25 suggestions=32
+T263_VARIANT_PAGE_DONE id=scan-150dpi-low-contrast page=0 lines=26 suggestions=29
+T263_VARIANT_PAGE_DONE id=scan-150dpi-low-contrast page=1 lines=25 suggestions=22
+T263_VARIANT_PAGE_DONE id=scan-200dpi-shadow page=0 lines=26 suggestions=55
+T263_VARIANT_PAGE_DONE id=scan-200dpi-shadow page=1 lines=25 suggestions=44
+T263_VARIANT_PAGE_DONE id=scan-200dpi-skew-3deg page=0 lines=26 suggestions=69
+T263_VARIANT_PAGE_DONE id=scan-200dpi-skew-3deg page=1 lines=25 suggestions=203
+T263_VARIANT_PAGE_DONE id=scan-200dpi-jpeg-q35 page=0 lines=26 suggestions=47
+T263_VARIANT_PAGE_DONE id=scan-200dpi-jpeg-q35 page=1 lines=25 suggestions=36
+T263_VARIANTS_DONE
+T263_OUTPUT_PATH=/data/user/0/de.feldexa.app/code_cache/t263-output
+T263_RUN_FILES_WRITTEN
+T263_LABEL_TAKEOVER_STORE_VERIFIED
+T263_CLEANUP_DONE
+02:29 +1: (tearDownAll)
+02:32 +1: All tests passed!

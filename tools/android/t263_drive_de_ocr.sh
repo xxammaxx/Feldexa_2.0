@@ -2,8 +2,11 @@
 # T263 host driver: real EMULATOR German OCR qualification run (issue #263).
 #
 # What this script does, in order:
-#   1. verifies the exclusively allocated Pixel 7 API 35 AVD on the single
-#      attached serial `emulator-5554`, including the Orca device inventory;
+#   1. verifies the exclusively allocated Pixel 7 API 35 AVD on the explicit
+#      serial `emulator-5554`, including the Orca device inventory. Other
+#      attached devices (for example a physical handset) are tolerated but
+#      never addressed: every adb device command is scoped with `-s` and the
+#      serial must be an emulator serial;
 #   2. builds the T263 scan variants on the host (Poppler render plus the
 #      declared pixel degradations) and stages the additive `sf-005` reference
 #      PDF, its pre-annotated ground truth, and those rasters in an
@@ -46,9 +49,15 @@ SEQUENCE="$RUN_DIR/marker-sequence.txt"
 BACKUP_DIR=""
 
 STAGING="/data/local/tmp/t263-fixtures"
-# The app writes its run files into its own external files directory (the
-# staging directory is not reliably writable for an app under SELinux).
-DEVICE_OUTPUT="/storage/emulated/0/Android/data/de.feldexa/files/t263"
+# The integration test writes its run files into the app cache directory and
+# reports the absolute path as `T263_OUTPUT_PATH=<dir>`. That directory is
+# writable by the app without a storage permission and is pulled through
+# `adb exec-out run-as <app id>` while the test is still running, because the
+# test runner uninstalls the app when it exits (which also deletes
+# `Android/data/<package>`). Writing to `Android/data/<package>` directly is
+# not permitted for a targetSdk 36 app.
+APP_ID="de.feldexa.app"
+DEVICE_OUTPUT_DIR=""
 FIXTURE_PDF="$ROOT/apps/feldexa_app/assets/fixtures/sf-005.pdf"
 GROUND_TRUTH="$ROOT/tools/corpus/de-ocr/reference-de.ground-truth.json"
 VARIANTS_DIR="$RUN_DIR/variants"
@@ -93,8 +102,10 @@ cleanup() {
     wait "$TEST_PID" 2>/dev/null
   fi
   adb_shell rm -rf "$STAGING" >/dev/null
-  adb_shell rm -rf "$DEVICE_OUTPUT" >/dev/null
-  adb_shell am force-stop de.feldexa >/dev/null
+  if [[ -n "$DEVICE_OUTPUT_DIR" ]]; then
+    adb_shell run-as "$APP_ID" rm -rf "$DEVICE_OUTPUT_DIR" >/dev/null
+  fi
+  adb_shell am force-stop "$APP_ID" >/dev/null
   rm -f "$RUN_DIR/logcat-full.txt"
 }
 trap cleanup EXIT INT TERM
@@ -184,12 +195,21 @@ done
 ) >"$RUN_DIR/host-suite-verify.log" 2>&1 ||
   fail "suite verification failed; see host-suite-verify.log"
 
-# --- 2. Device identity and exclusive allocation ---------------------------
+# --- 2. Device identity and scoped target ----------------------------------
+# The host may carry more than one device (this project also has a physical
+# handset attached). The run is scoped to exactly one explicit emulator serial:
+# that serial must be attached and booted, no other device is ever addressed,
+# and a non-emulator serial is refused so the physical device can never be used.
+[[ "$SERIAL" == emulator-* ]] ||
+  fail "T263_SERIAL must be an emulator serial, got '$SERIAL' (physical devices are prohibited)"
 DEVICES="$("$ADB" devices | awk 'NR>1 && NF>=2 && $2=="device" {print $1}')"
-[[ "$(printf '%s\n' "$DEVICES" | sed '/^$/d' | wc -l)" -eq 1 ]] ||
-  fail "expected exactly one attached device, got: ${DEVICES:-none}"
-[[ "$DEVICES" == "$SERIAL" ]] ||
-  fail "attached device is $DEVICES, expected $SERIAL"
+printf '%s\n' "$DEVICES" | sed '/^$/d' | grep -Fxq "$SERIAL" ||
+  fail "expected the booted emulator $SERIAL to be attached, got: ${DEVICES:-none}"
+TOLERATED="$(printf '%s\n' "$DEVICES" | sed '/^$/d' | grep -Fxv "$SERIAL" | tr '\n' ' ' || true)"
+if [[ -n "$TOLERATED" ]]; then
+  record "tolerated additional attached device(s), never addressed: $TOLERATED"
+fi
+record "target device serial=$SERIAL (all adb commands scoped with -s)"
 
 SDK="$(adb_shell getprop ro.build.version.sdk)"
 [[ "$SDK" == "35" ]] || fail "API 35 required, device reports sdk=$SDK"
@@ -251,11 +271,11 @@ mkdir -p "$VARIANTS_DIR" || fail "cannot create variants directory"
   fail "variant generation failed; see host-variants.log"
 cp "$VARIANTS_DIR/t263-variants.json" "$RUN_DIR/t263-variants.json"
 
-adb_shell am force-stop de.feldexa >/dev/null
+adb_shell am force-stop "$APP_ID" >/dev/null
 adb_shell rm -rf "$STAGING" >/dev/null
-adb_shell rm -rf "$DEVICE_OUTPUT" >/dev/null
 adb_shell mkdir -p "$STAGING" >/dev/null
-"$ADB" -s "$SERIAL" push "$FIXTURE_PDF" "$STAGING/sf-005.pdf" >/dev/null ||
+# The integration test reads the additive reference PDF as `reference-de.pdf`.
+"$ADB" -s "$SERIAL" push "$FIXTURE_PDF" "$STAGING/reference-de.pdf" >/dev/null ||
   fail "fixture push failed"
 "$ADB" -s "$SERIAL" push "$GROUND_TRUTH" "$STAGING/reference-de.ground-truth.json" >/dev/null ||
   fail "ground truth push failed"
@@ -267,11 +287,11 @@ for raster in "$VARIANTS_DIR"/*.gray8; do
     fail "raster push failed: $(basename "$raster")"
 done
 adb_shell chmod 777 "$STAGING" >/dev/null
-adb_shell chmod 666 "$STAGING/sf-005.pdf" "$STAGING/reference-de.ground-truth.json" \
+adb_shell chmod 666 "$STAGING/reference-de.pdf" "$STAGING/reference-de.ground-truth.json" \
   "$STAGING/t263-variants.json" >/dev/null
 
 GT_SHA="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['pdf']['sha256'])" "$GROUND_TRUTH")"
-DEVICE_FIXTURE_SHA="$(adb_shell sha256sum "$STAGING/sf-005.pdf" | awk '{print $1}')"
+DEVICE_FIXTURE_SHA="$(adb_shell sha256sum "$STAGING/reference-de.pdf" | awk '{print $1}')"
 HOST_FIXTURE_SHA="$(sha256sum "$FIXTURE_PDF" | awk '{print $1}')"
 [[ "$HOST_FIXTURE_SHA" == "$GT_SHA" ]] ||
   fail "host fixture sha256 $HOST_FIXTURE_SHA != ground truth $GT_SHA"
@@ -325,6 +345,16 @@ marker_present() {
   "$ADB" -s "$SERIAL" logcat -d 2>/dev/null | grep -F "T263_$1" >/dev/null
 }
 
+# Reads the value of a `T263_<key>=<value>` marker from the test log or logcat.
+marker_value() {
+  local key="$1" line
+  line="$(grep -F "T263_$key=" "$LOG" 2>/dev/null | tail -1)"
+  if [[ -z "$line" ]]; then
+    line="$("$ADB" -s "$SERIAL" logcat -d 2>/dev/null | grep -F "T263_$key=" | tail -1 | tr -d '\r')"
+  fi
+  printf '%s' "${line##*T263_$key=}"
+}
+
 wait_for_marker() {
   local marker="$1" deadline=$((SECONDS + ${2:-1800}))
   while ((SECONDS < deadline)); do
@@ -339,7 +369,51 @@ wait_for_marker() {
   return 1
 }
 
-for marker in FIXTURE_VERIFIED VARIANTS_DONE RUN_FILES_WRITTEN LABEL_TAKEOVER_STORE_VERIFIED CLEANUP_DONE; do
+for marker in FIXTURE_VERIFIED VARIANTS_DONE RUN_FILES_WRITTEN; do
+  log "T263 DRIVER: waiting for marker $marker"
+  if ! wait_for_marker "$marker"; then
+    log "T263 DRIVER: marker $marker not observed; test log follows"
+    tail -160 "$LOG"
+    fail "missing marker T263_$marker"
+  fi
+  record "marker $marker observed"
+done
+
+# --- 7. Pull the run files while the test still runs ------------------------
+# `flutter test -d <serial>` uninstalls the app when it exits, which deletes its
+# cache directory, so the pull has to happen as soon as the run files exist.
+DEVICE_OUTPUT_DIR="$(marker_value OUTPUT_PATH)"
+[[ -n "$DEVICE_OUTPUT_DIR" ]] ||
+  fail "integration test did not report T263_OUTPUT_PATH; cannot pull run files"
+record "device output directory $DEVICE_OUTPUT_DIR"
+mkdir -p "$RUN_DIR/pulled"
+# One tar stream per attempt keeps both run files in a single transfer, so a
+# teardown that uninstalls the app between two pulls cannot split the pair.
+PULL_OK=0
+for attempt in 1 2 3 4 5 6 7 8; do
+  rm -f "$RUN_DIR/pulled/runs.tar" "$RUN_DIR/pulled/t263-run-emulator.json" \
+    "$RUN_DIR/pulled/t263-run-injected.json"
+  if "$ADB" -s "$SERIAL" exec-out run-as "$APP_ID" \
+    tar -cf - -C "$DEVICE_OUTPUT_DIR" \
+    t263-run-emulator.json t263-run-injected.json \
+    >"$RUN_DIR/pulled/runs.tar" 2>"$RUN_DIR/pulled/tar-attempt.err" &&
+    tar -xf "$RUN_DIR/pulled/runs.tar" -C "$RUN_DIR/pulled" &&
+    [[ -s "$RUN_DIR/pulled/t263-run-emulator.json" ]] &&
+    [[ -s "$RUN_DIR/pulled/t263-run-injected.json" ]]; then
+    PULL_OK=1
+    break
+  fi
+  sleep 1
+done
+[[ "$PULL_OK" -eq 1 ]] ||
+  fail "cannot pull both run files from $DEVICE_OUTPUT_DIR (see pulled/tar-attempt.err)"
+rm -f "$RUN_DIR/pulled/runs.tar"
+for run_file in t263-run-emulator.json t263-run-injected.json; do
+  sha256sum "$RUN_DIR/pulled/$run_file" >>"$RUN_DIR/pulled/run-sha256.txt"
+done
+record "run files pulled ($(grep -c '' "$RUN_DIR/pulled/run-sha256.txt") files)"
+
+for marker in LABEL_TAKEOVER_STORE_VERIFIED CLEANUP_DONE; do
   log "T263 DRIVER: waiting for marker $marker"
   if ! wait_for_marker "$marker"; then
     log "T263 DRIVER: marker $marker not observed; test log follows"
@@ -361,14 +435,7 @@ done
 wait "$TEST_PID"
 TEST_EXIT=$?
 
-# --- 7. Pull run files and score them --------------------------------------
-mkdir -p "$RUN_DIR/pulled"
-for run_file in t263-run-emulator.json t263-run-injected.json; do
-  "$ADB" -s "$SERIAL" pull "$DEVICE_OUTPUT/$run_file" "$RUN_DIR/pulled/$run_file" >/dev/null ||
-    fail "cannot pull $run_file from $DEVICE_OUTPUT"
-  sha256sum "$RUN_DIR/pulled/$run_file" >>"$RUN_DIR/pulled/run-sha256.txt"
-done
-
+# --- 8. Score the pulled run files -----------------------------------------
 (
   cd "$ROOT" || exit 1
   "$DART" run tools/metrics/de_ocr_qualification.dart \
