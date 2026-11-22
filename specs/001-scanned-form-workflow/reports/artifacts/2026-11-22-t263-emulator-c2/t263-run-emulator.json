@@ -1,0 +1,5617 @@
+{
+  "schemaVersion": 1,
+  "suiteId": "de-ocr-1.0.0",
+  "fixtureId": "sf-005",
+  "fixtureSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+  "engine": "mlkit-latin-bundled-v1",
+  "evidenceClass": "EMULATOR",
+  "runner": {
+    "kind": "android-integration-test",
+    "test": "integration_test/android_de_ocr_test.dart",
+    "device": "sdk_gphone64_x86_64-userdebug 15 AE3A.240806.043 12960925 dev-keys"
+  },
+  "generatedAtUtc": "2026-11-22T15:59:26.698545Z",
+  "variants": [
+    {
+      "id": "clean-200dpi",
+      "raster": {
+        "source": "production-raster-port",
+        "dpi": 200,
+        "degradations": []
+      },
+      "pages": [
+        {
+          "index": 0,
+          "widthPt": 595.280029296875,
+          "heightPt": 841.8900146484375,
+          "lines": [
+            {
+              "text": "MUSTERSTADT",
+              "rect": {
+                "x": 57.22462192152547,
+                "y": 32.39422886633577,
+                "width": 62.26326787687991,
+                "height": 7.198717525852394
+              },
+              "confidence": 0.8671875
+            },
+            {
+              "text": "Musteramt für Bürgerdienste",
+              "rect": {
+                "x": 57.584525204050784,
+                "y": 44.27211278399222,
+                "width": 123.08692262365855,
+                "height": 8.638461031022873
+              },
+              "confidence": 0.9040625095367432
+            },
+            {
+              "text": "Zeichensatz- und Unicode-Referenz",
+              "rect": {
+                "x": 56.864718639000145,
+                "y": 76.30640577403537,
+                "width": 248.333264942469,
+                "height": 12.23781979394907
+              },
+              "confidence": 0.8545867204666138
+            },
+            {
+              "text": "Deutsche Sonderzeichen, Währung, Einheiten und Behördenbegriffe.",
+              "rect": {
+                "x": 57.584525204050784,
+                "y": 98.26249422788517,
+                "width": 290.0820457154058,
+                "height": 8.638461031022873
+              },
+              "confidence": 0.8872483968734741
+            },
+            {
+              "text": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "rect": {
+                "x": 57.584525204050784,
+                "y": 126.33749257870952,
+                "width": 231.7777139463044,
+                "height": 11.158012165071211
+              },
+              "confidence": 0.8480569124221802
+            },
+            {
+              "text": "ÄÖüä ö üßB",
+              "rect": {
+                "x": 64.78259085455713,
+                "y": 147.21377340368144,
+                "width": 99.3333059769876,
+                "height": 16.916986185753125
+              },
+              "confidence": 0.4384765625
+            },
+            {
+              "text": "Ärger Öffnung Übung Ảußerst",
+              "rect": {
+                "x": 56.50481535647483,
+                "y": 178.888130517432,
+                "width": 185.35019050053845,
+                "height": 14.757370927997407
+              },
+              "confidence": 0.80419921875
+            },
+            {
+              "text": "ärger öffnung übung äußerst",
+              "rect": {
+                "x": 57.22462192152547,
+                "y": 206.24325711567107,
+                "width": 178.87193141508274,
+                "height": 13.317627422826929
+              },
+              "confidence": 0.8250325322151184
+            },
+            {
+              "text": "Straße Größe Äußerung",
+              "rect": {
+                "x": 57.22462192152547,
+                "y": 230.71889670356921,
+                "width": 144.6811195751776,
+                "height": 13.677563299119548
+              },
+              "confidence": 0.8497121930122375
+            },
+            {
+              "text": "2. Währung, Einheiten und Satzzeichen",
+              "rect": {
+                "x": 56.864718639000145,
+                "y": 266.35254845653856,
+                "width": 200.4661283666018,
+                "height": 10.438140412485971
+              },
+              "confidence": 0.884824812412262
+            },
+            {
+              "text": "Gebühr: 12,50 €· Fläche: 45 m² Raum: 7 m",
+              "rect": {
+                "x": 57.22462192152547,
+                "y": 289.0285086629736,
+                "width": 243.29461898711455,
+                "height": 11.87788391765645
+              },
+              "confidence": 0.8189697265625
+            },
+            {
+              "text": "„Deutsch\" - Gedankenstrich– Auslassung ... S5",
+              "rect": {
+                "x": 56.864718639000145,
+                "y": 313.50414825087176,
+                "width": 270.28736517651333,
+                "height": 12.597755670241689
+              },
+              "confidence": 0.806347668170929
+            },
+            {
+              "text": "3. Behördenbegriffe",
+              "rect": {
+                "x": 56.864718639000145,
+                "y": 348.05799237496325,
+                "width": 103.65214536729141,
+                "height": 11.51794804136383
+              },
+              "confidence": 0.8901909589767456
+            },
+            {
+              "text": "Straße und Hausnummer",
+              "rect": {
+                "x": 57.22462192152547,
+                "y": 372.53363196286136,
+                "width": 129.92508499163958,
+                "height": 8.278525154730254
+              },
+              "confidence": 0.8540295958518982
+            },
+            {
+              "text": "SYNTHETISCHES TESTDOKUMENT - kein amtliches Formular",
+              "rect": {
+                "x": 330.031310075716,
+                "y": 44.27211278399222,
+                "width": 196.5071922588233,
+                "height": 5.399038144389295
+              },
+              "confidence": 0.8466588854789734
+            },
+            {
+              "text": "Größe, Gebühr, Geschäftszeichen, Staatsangehörigkeit",
+              "rect": {
+                "x": 62.98307444193054,
+                "y": 394.4897204167112,
+                "width": 276.40572097944374,
+                "height": 13.317627422826929
+              },
+              "confidence": 0.8708546161651611
+            },
+            {
+              "text": "Überweisung, Erklärung, Anträge, Begründung",
+              "rect": {
+                "x": 57.584525204050784,
+                "y": 418.96536000460935,
+                "width": 241.85500585701328,
+                "height": 12.23781979394907
+              },
+              "confidence": 0.8612304925918579
+            },
+            {
+              "text": "Rückumschlag, Äußerung, Antragstellung, Bürgerdienste",
+              "rect": {
+                "x": 57.584525204050784,
+                "y": 443.0810637162148,
+                "width": 293.681078540659,
+                "height": 12.23781979394907
+              },
+              "confidence": 0.8506249785423279
+            },
+            {
+              "text": "4. Frei erfundene Namen",
+              "rect": {
+                "x": 56.864718639000145,
+                "y": 478.3547795928916,
+                "width": 128.125568579013,
+                "height": 8.638461031022873
+              },
+              "confidence": 0.8779296875
+            },
+            {
+              "text": "Jürgen Mühlbach, Bärbel Süßbier, Käthe Gröhnert, Matthäus Ölmüller",
+              "rect": {
+                "x": 55.7850087914242,
+                "y": 500.670803923034,
+                "width": 393.0143845176466,
+                "height": 12.597755670241689
+              },
+              "confidence": 0.8163400292396545
+            },
+            {
+              "text": "MÜLLER-GRÄBER, SCHRÖDER-WEISS, BÄUERLE, ÖHMICHEN",
+              "rect": {
+                "x": 57.584525204050784,
+                "y": 526.5861870161026,
+                "width": 331.4709232058173,
+                "height": 12.597755670241689
+              },
+              "confidence": 0.8356770873069763
+            },
+            {
+              "text": "Zeichen: BBÄÖÜä ö ü € m² m²",
+              "rect": {
+                "x": 56.864718639000145,
+                "y": 559.7002876350236,
+                "width": 166.99512309174727,
+                "height": 12.597755670241689
+              },
+              "confidence": 0.5829613208770752
+            },
+            {
+              "text": "Hinweis: Dieses Dokument ist synthetisch und enthält keine realen Personendaten.",
+              "rect": {
+                "x": 57.22462192152547,
+                "y": 700.4352152654379,
+                "width": 310.2366295368236,
+                "height": 7.558653402145014
+              },
+              "confidence": 0.8942011594772339
+            },
+            {
+              "text": "Es dient ausschließlich der Entwicklung und Prüfung des Editors.",
+              "rect": {
+                "x": 57.22462192152547,
+                "y": 716.2723938223132,
+                "width": 240.41539272691202,
+                "height": 7.558653402145014
+              },
+              "confidence": 0.8869280219078064
+            },
+            {
+              "text": "Synthetisches Testdokument - kein amtliches Formular - keine personenbezogenen Daten",
+              "rect": {
+                "x": 56.864718639000145,
+                "y": 804.0967476377124,
+                "width": 296.92020808338685,
+                "height": 7.198717525852394
+              },
+              "confidence": 0.8784375190734863
+            },
+            {
+              "text": "Seite 1 von 2",
+              "rect": {
+                "x": 491.26798064705827,
+                "y": 803.3768758851271,
+                "width": 45.347813598189994,
+                "height": 7.198717525852394
+              },
+              "confidence": 0.848828136920929
+            }
+          ],
+          "suggestions": [
+            {
+              "rect": {
+                "x": 109.5,
+                "y": 33.5,
+                "width": 3.125,
+                "height": 4.625
+              },
+              "proposedType": "checkbox",
+              "labelText": "MUSTERSTADT",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 56.875,
+                "y": 43.5,
+                "width": 481.625,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Musteramt für Bürgerdienste",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "alignment_left",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 122.0,
+                "y": 45.375,
+                "width": 5.125,
+                "height": 5.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "Musteramt für Bürgerdienste",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 207.0,
+                "y": 81.375,
+                "width": 5.375,
+                "height": 5.375
+              },
+              "proposedType": "checkbox",
+              "labelText": "Zeichensatz- und Unicode-Referenz",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 214.25,
+                "y": 81.375,
+                "width": 3.875,
+                "height": 5.375
+              },
+              "proposedType": "checkbox",
+              "labelText": "Zeichensatz- und Unicode-Referenz",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square",
+                "whitespace"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 211.625,
+                "y": 99.375,
+                "width": 4.0,
+                "height": 5.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "Deutsche Sonderzeichen, Währung, Einheiten und Behördenbegriffe.",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 70.5,
+                "y": 127.75,
+                "width": 6.875,
+                "height": 6.125
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 149.0,
+                "y": 127.75,
+                "width": 6.875,
+                "height": 6.125
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 108.75,
+                "y": 130.0,
+                "width": 5.0,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 130.0,
+                "y": 130.0,
+                "width": 5.0,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 214.5,
+                "y": 130.0,
+                "width": 5.125,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 252.375,
+                "y": 130.0,
+                "width": 5.0,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 72.75,
+                "y": 152.25,
+                "width": 6.75,
+                "height": 8.625
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "ocr_alignment_below",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 115.25,
+                "y": 155.125,
+                "width": 4.625,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "ocr_alignment_below",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 96.5,
+                "y": 181.75,
+                "width": 6.125,
+                "height": 8.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "Ärger Öffnung Übung Ảußerst",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 95.375,
+                "y": 210.25,
+                "width": 4.0,
+                "height": 5.375
+              },
+              "proposedType": "checkbox",
+              "labelText": "ärger öffnung übung äußerst",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 117.0,
+                "y": 236.125,
+                "width": 4.0,
+                "height": 5.375
+              },
+              "proposedType": "checkbox",
+              "labelText": "Straße Größe Äußerung",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_straße",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 124.875,
+                "y": 268.25,
+                "width": 4.75,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Währung, Einheiten und Satzzeichen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 80.625,
+                "y": 270.0,
+                "width": 2.5,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Währung, Einheiten und Satzzeichen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 147.25,
+                "y": 270.0,
+                "width": 5.0,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Währung, Einheiten und Satzzeichen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 160.25,
+                "y": 270.0,
+                "width": 5.0,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Währung, Einheiten und Satzzeichen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 225.75,
+                "y": 270.0,
+                "width": 5.0,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Währung, Einheiten und Satzzeichen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 247.0,
+                "y": 270.0,
+                "width": 5.0,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Währung, Einheiten und Satzzeichen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 64.125,
+                "y": 316.125,
+                "width": 4.25,
+                "height": 6.75
+              },
+              "proposedType": "text",
+              "labelText": "„Deutsch\" - Gedankenstrich– Auslassung ... S5",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "whitespace"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 90.75,
+                "y": 351.75,
+                "width": 3.25,
+                "height": 4.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "3. Behördenbegriffe",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 141.5,
+                "y": 397.75,
+                "width": 7.125,
+                "height": 6.5
+              },
+              "proposedType": "checkbox",
+              "labelText": "Größe, Gebühr, Geschäftszeichen, Staatsangehörigkeit",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_geschäftszeichen",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 70.875,
+                "y": 400.0,
+                "width": 3.25,
+                "height": 4.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "Größe, Gebühr, Geschäftszeichen, Staatsangehörigkeit",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_geschäftszeichen",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 301.625,
+                "y": 400.0,
+                "width": 3.25,
+                "height": 4.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "Größe, Gebühr, Geschäftszeichen, Staatsangehörigkeit",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_geschäftszeichen",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 133.5,
+                "y": 421.5,
+                "width": 5.125,
+                "height": 6.5
+              },
+              "proposedType": "checkbox",
+              "labelText": "Überweisung, Erklärung, Anträge, Begründung",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 243.75,
+                "y": 425.875,
+                "width": 5.375,
+                "height": 2.125
+              },
+              "proposedType": "text",
+              "labelText": "Überweisung, Erklärung, Anträge, Begründung",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "alignment_left",
+                "box"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 158.0,
+                "y": 482.0,
+                "width": 5.125,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "4. Frei erfundene Namen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 174.625,
+                "y": 482.0,
+                "width": 5.0,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "4. Frei erfundene Namen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 402.125,
+                "y": 503.625,
+                "width": 5.375,
+                "height": 7.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "Jürgen Mühlbach, Bärbel Süßbier, Käthe Gröhnert, Matthäus Ölmüller",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 300.625,
+                "y": 506.125,
+                "width": 3.875,
+                "height": 4.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "Jürgen Mühlbach, Bärbel Süßbier, Käthe Gröhnert, Matthäus Ölmüller",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 191.5,
+                "y": 529.875,
+                "width": 5.375,
+                "height": 7.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "MÜLLER-GRÄBER, SCHRÖDER-WEISS, BÄUERLE, ÖHMICHEN",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 326.875,
+                "y": 529.875,
+                "width": 5.375,
+                "height": 7.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "MÜLLER-GRÄBER, SCHRÖDER-WEISS, BÄUERLE, ÖHMICHEN",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 135.0,
+                "y": 563.75,
+                "width": 5.0,
+                "height": 6.5
+              },
+              "proposedType": "checkbox",
+              "labelText": "Zeichen: BBÄÖÜä ö ü € m² m²",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 166.375,
+                "y": 565.875,
+                "width": 3.125,
+                "height": 4.375
+              },
+              "proposedType": "checkbox",
+              "labelText": "Zeichen: BBÄÖÜä ö ü € m² m²",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 92.125,
+                "y": 701.625,
+                "width": 2.875,
+                "height": 4.375
+              },
+              "proposedType": "text",
+              "labelText": "Hinweis: Dieses Dokument ist synthetisch und enthält keine realen Personendaten.",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "alignment_left",
+                "box"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 118.75,
+                "y": 701.625,
+                "width": 2.875,
+                "height": 4.375
+              },
+              "proposedType": "text",
+              "labelText": "Hinweis: Dieses Dokument ist synthetisch und enthält keine realen Personendaten.",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "alignment_left",
+                "box"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 56.875,
+                "y": 777.625,
+                "width": 481.625,
+                "height": 18.0
+              },
+              "proposedType": "text",
+              "labelText": "Seite 1 von 2",
+              "confidence": 0.93,
+              "uncertainty": 0.07,
+              "cues": [
+                "alignment_left",
+                "keyword_von",
+                "label_below",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "widthPt": 595.280029296875,
+          "heightPt": 841.8900146484375,
+          "lines": [
+            {
+              "text": "MUSTERSTADT",
+              "rect": {
+                "x": 57.22462192152547,
+                "y": 32.39422886633577,
+                "width": 62.26326787687991,
+                "height": 7.198717525852394
+              },
+              "confidence": 0.8615056872367859
+            },
+            {
+              "text": "Musteramt für Bürgerdienste",
+              "rect": {
+                "x": 57.584525204050784,
+                "y": 44.27211278399222,
+                "width": 123.08692262365855,
+                "height": 8.638461031022873
+              },
+              "confidence": 0.9040625095367432
+            },
+            {
+              "text": "Bezeichnungen und Feldübernahme",
+              "rect": {
+                "x": 57.9444284865761,
+                "y": 76.30640577403537,
+                "width": 254.4516207453994,
+                "height": 15.117306804290028
+              },
+              "confidence": 0.8832166194915771
+            },
+            {
+              "text": "Deutsche Feldbezeichnungen mit Sonderzeichen für die Label-Übernahme.",
+              "rect": {
+                "x": 57.584525204050784,
+                "y": 97.18268659900731,
+                "width": 314.91537220965273,
+                "height": 10.07820453619335
+              },
+              "confidence": 0.8704736828804016
+            },
+            {
+              "text": "1. Felder mit deutschen Bezeichnungen",
+              "rect": {
+                "x": 57.22462192152547,
+                "y": 124.1778773209538,
+                "width": 202.26564477922838,
+                "height": 12.95769154653431
+              },
+              "confidence": 0.8774858117103577
+            },
+            {
+              "text": "Straße und Hausnummner",
+              "rect": {
+                "x": 56.864718639000145,
+                "y": 151.53300391919288,
+                "width": 118.40817995082942,
+                "height": 9.358332783608112
+              },
+              "confidence": 0.8169921636581421
+            },
+            {
+              "text": "Größe in cm",
+              "rect": {
+                "x": 56.864718639000145,
+                "y": 187.52659154845486,
+                "width": 55.7850087914242,
+                "height": 9.358332783608112
+              },
+              "confidence": 0.8485243320465088
+            },
+            {
+              "text": "Gebühr in €",
+              "rect": {
+                "x": 56.864718639000145,
+                "y": 223.88011505400945,
+                "width": 54.345395661322925,
+                "height": 8.638461031022873
+              },
+              "confidence": 0.8641493320465088
+            },
+            {
+              "text": "Geschäftszeichen",
+              "rect": {
+                "x": 57.22462192152547,
+                "y": 260.5935744358567,
+                "width": 79.89852872062046,
+                "height": 7.558653402145014
+              },
+              "confidence": 0.86376953125
+            },
+            {
+              "text": "Staatsangehörigkeit",
+              "rect": {
+                "x": 57.22462192152547,
+                "y": 296.5871620651186,
+                "width": 93.93475673910784,
+                "height": 10.07820453619335
+              },
+              "confidence": 0.8499177694320679
+            },
+            {
+              "text": "Überweisung an",
+              "rect": {
+                "x": 57.22462192152547,
+                "y": 330.42113443662487,
+                "width": 75.57968933031665,
+                "height": 12.23781979394907
+              },
+              "confidence": 0.8611778616905212
+            },
+            {
+              "text": "Anträge vom",
+              "rect": {
+                "x": 56.50481535647483,
+                "y": 368.2144014473499,
+                "width": 60.103848181728004,
+                "height": 10.07820453619335
+              },
+              "confidence": 0.885937511920929
+            },
+            {
+              "text": "Familienname",
+              "rect": {
+                "x": 57.22462192152547,
+                "y": 403.84805320031927,
+                "width": 65.14249413708245,
+                "height": 8.998396907315492
+              },
+              "confidence": 0.8860676884651184
+            },
+            {
+              "text": "Vorname",
+              "rect": {
+                "x": 56.50481535647483,
+                "y": 440.9214484584591,
+                "width": 42.46858733798745,
+                "height": 7.198717525852394
+              },
+              "confidence": 0.875
+            },
+            {
+              "text": "Geburtsdatum",
+              "rect": {
+                "x": 57.22462192152547,
+                "y": 476.55510021142845,
+                "width": 67.30191383223435,
+                "height": 7.558653402145014
+              },
+              "confidence": 0.8974609375
+            },
+            {
+              "text": "2. Mehrzeilige Erklärung",
+              "rect": {
+                "x": 56.864718639000145,
+                "y": 516.1480466036166,
+                "width": 124.88643903628514,
+                "height": 11.51794804136383
+              },
+              "confidence": 0.8524503111839294
+            },
+            {
+              "text": "Erklärung und Äußerung",
+              "rect": {
+                "x": 57.584525204050784,
+                "y": 540.9836220678073,
+                "width": 115.16905040810157,
+                "height": 10.79807628877859
+              },
+              "confidence": 0.86328125
+            },
+            {
+              "text": "3. Einverständnis und Unterschrift",
+              "rect": {
+                "x": 56.864718639000145,
+                "y": 624.1288094914025,
+                "width": 175.9927051548802,
+                "height": 8.998396907315492
+              },
+              "confidence": 0.83203125
+            },
+            {
+              "text": "Unterschrift",
+              "rect": {
+                "x": 57.22462192152547,
+                "y": 683.1582932033922,
+                "width": 54.70529894384824,
+                "height": 9.358332783608112
+              },
+              "confidence": 0.8557942509651184
+            },
+            {
+              "text": "D Einverständnis erteilt",
+              "rect": {
+                "x": 202.985451344279,
+                "y": 646.0848979452524,
+                "width": 92.49514360900658,
+                "height": 9.718268659900732
+              },
+              "confidence": 0.8036221861839294
+            },
+            {
+              "text": "SYNTHETISCHES TESTDOKUMENT - kein amtliches Formular",
+              "rect": {
+                "x": 330.031310075716,
+                "y": 44.27211278399222,
+                "width": 196.5071922588233,
+                "height": 5.399038144389295
+              },
+              "confidence": 0.8466588854789734
+            },
+            {
+              "text": "Beispiel: Müller-Gräber, Äußere Straße 12, 8 m²",
+              "rect": {
+                "x": 57.584525204050784,
+                "y": 749.0265585649416,
+                "width": 220.26080890549423,
+                "height": 10.79807628877859
+              },
+              "confidence": 0.8365091681480408
+            },
+            {
+              "text": "Synthetisches Testdokument - kein amtliches Formular - keine personenbezogenen Daten",
+              "rect": {
+                "x": 56.864718639000145,
+                "y": 804.0967476377124,
+                "width": 296.92020808338685,
+                "height": 6.838781649559774
+              },
+              "confidence": 0.8898958563804626
+            },
+            {
+              "text": "TT.MM.JJ",
+              "rect": {
+                "x": 496.666529884938,
+                "y": 477.99484371659895,
+                "width": 30.951682297177296,
+                "height": 7.918589278437633
+              },
+              "confidence": 0.544921875
+            },
+            {
+              "text": "Seite 2 von 2",
+              "rect": {
+                "x": 491.26798064705827,
+                "y": 804.456683514005,
+                "width": 46.42752344576594,
+                "height": 5.758974020681915
+              },
+              "confidence": 0.828906238079071
+            }
+          ],
+          "suggestions": [
+            {
+              "rect": {
+                "x": 109.5,
+                "y": 33.5,
+                "width": 3.125,
+                "height": 4.625
+              },
+              "proposedType": "checkbox",
+              "labelText": "MUSTERSTADT",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 56.875,
+                "y": 43.5,
+                "width": 481.625,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Musteramt für Bürgerdienste",
+              "confidence": 0.47,
+              "uncertainty": 0.53,
+              "cues": [
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 122.0,
+                "y": 45.375,
+                "width": 5.125,
+                "height": 5.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "Musteramt für Bürgerdienste",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 183.25,
+                "y": 128.125,
+                "width": 5.375,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Felder mit deutschen Bezeichnungen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 92.125,
+                "y": 130.0,
+                "width": 5.125,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Felder mit deutschen Bezeichnungen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 132.5,
+                "y": 130.0,
+                "width": 5.0,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Felder mit deutschen Bezeichnungen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 201.25,
+                "y": 130.0,
+                "width": 5.0,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Felder mit deutschen Bezeichnungen",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 249.5,
+                "y": 130.0,
+                "width": 5.0,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Felder mit deutschen Bezeichnungen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 149.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Straße und Hausnummner",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "keyword_straße",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 185.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Größe in cm",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 221.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Gebühr in €",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 58.375,
+                "y": 225.75,
+                "width": 6.375,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "Gebühr in €",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 257.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Geschäftszeichen",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "keyword_geschäftszeichen",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 58.375,
+                "y": 261.75,
+                "width": 6.375,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "Geschäftszeichen",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_geschäftszeichen",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 293.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Staatsangehörigkeit",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 329.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Überweisung an",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 365.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Anträge vom",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 401.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Familienname",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "keyword_familienname",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 437.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Vorname",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "keyword_vorname",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 473.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "TT.MM.JJ",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "alignment_left",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 58.375,
+                "y": 477.75,
+                "width": 6.375,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "Geburtsdatum",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_geburtsdatum",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 134.25,
+                "y": 518.0,
+                "width": 4.75,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Mehrzeilige Erklärung",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 103.375,
+                "y": 519.875,
+                "width": 5.0,
+                "height": 4.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Mehrzeilige Erklärung",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.5,
+                "y": 540.375,
+                "width": 299.5,
+                "height": 65.5
+              },
+              "proposedType": "multiline",
+              "labelText": "Erklärung und Äußerung",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "ocr_alignment_right",
+                "whitespace"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 58.625,
+                "y": 543.625,
+                "width": 4.375,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "Erklärung und Äußerung",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 70.875,
+                "y": 626.0,
+                "width": 4.75,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "3. Einverständnis und Unterschrift",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_unterschrift",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 191.5,
+                "y": 627.875,
+                "width": 5.0,
+                "height": 4.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "3. Einverständnis und Unterschrift",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_unterschrift",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.5,
+                "y": 648.375,
+                "width": 9.25,
+                "height": 9.375
+              },
+              "proposedType": "checkbox",
+              "labelText": "D Einverständnis erteilt",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square",
+                "whitespace"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 207.75,
+                "y": 648.75,
+                "width": 3.875,
+                "height": 5.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "D Einverständnis erteilt",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 693.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": null,
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "alignment_left",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 133.25,
+                "y": 751.625,
+                "width": 6.75,
+                "height": 5.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "Beispiel: Müller-Gräber, Äußere Straße 12, 8 m²",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_straße",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 56.875,
+                "y": 777.625,
+                "width": 481.625,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Synthetisches Testdokument - kein amtliches Formular - keine personenbezogenen Daten",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "label_below",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            }
+          ]
+        }
+      ],
+      "timings": {
+        "rasterMs-0": 390,
+        "ocrMs-0": 9658,
+        "rasterMs-1": 128,
+        "ocrMs-1": 4791
+      }
+    },
+    {
+      "id": "clean-150dpi",
+      "raster": {
+        "source": "production-raster-port",
+        "dpi": 150,
+        "degradations": []
+      },
+      "pages": [
+        {
+          "index": 0,
+          "widthPt": 595.280029296875,
+          "heightPt": 841.8900146484375,
+          "lines": [
+            {
+              "text": "MUSTERSTADT",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 32.638837512026086,
+                "width": 62.40839016822077,
+                "height": 6.719760664240664
+              },
+              "confidence": 0.83984375
+            },
+            {
+              "text": "Musteramt für Bürgerdienste",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 44.15842722215294,
+                "width": 123.3765867171749,
+                "height": 9.599658091772378
+              },
+              "confidence": 0.8884375095367432
+            },
+            {
+              "text": "Zeichensatz- und Unicode-Referenz",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 76.3172818295904,
+                "width": 248.19336705361644,
+                "height": 11.999572614715472
+              },
+              "confidence": 0.864037275314331
+            },
+            {
+              "text": "Deutsche Sonderzeichen, Währung, Einheiten und Behördenbegriffe.",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 97.91651253607824,
+                "width": 290.43904655210434,
+                "height": 9.11967518718376
+              },
+              "confidence": 0.8775159120559692
+            },
+            {
+              "text": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 126.23550390680676,
+                "width": 231.87117270192792,
+                "height": 11.519589710126853
+              },
+              "confidence": 0.8497596383094788
+            },
+            {
+              "text": "ÄÖüä ö üßB",
+              "rect": {
+                "x": 65.28877740675404,
+                "y": 147.354751708706,
+                "width": 96.97303703061996,
+                "height": 17.27938456519028
+              },
+              "confidence": 0.4775390625
+            },
+            {
+              "text": "Ärger Öffnung Übung Äußerst",
+              "rect": {
+                "x": 56.647615691154236,
+                "y": 179.03362341155483,
+                "width": 185.30491234564013,
+                "height": 14.399487137658566
+              },
+              "confidence": 0.8058268427848816
+            },
+            {
+              "text": "ärger öffnung übung äußerst",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 203.5127515455744,
+                "width": 178.10394424930695,
+                "height": 16.79940166060166
+              },
+              "confidence": 0.84130859375
+            },
+            {
+              "text": "Straße Größe Äußerung",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 230.87177710712567,
+                "width": 144.97949100617438,
+                "height": 14.399487137658566
+              },
+              "confidence": 0.8277137875556946
+            },
+            {
+              "text": "2. Währung, Einheiten und Satzzeichen",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 265.91052914209484,
+                "width": 200.186913078062,
+                "height": 11.039606805538234
+              },
+              "confidence": 0.880800187587738
+            },
+            {
+              "text": "Gebühr: 12,50 €· Fläche: 45 m² Raum: 7 m?",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 288.9497085623486,
+                "width": 246.7531734343498,
+                "height": 11.999572614715472
+              },
+              "confidence": 0.7890625
+            },
+            {
+              "text": "„Deutsch\" - Gedankenstrich– Auslassung ... S5",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 313.42883669636814,
+                "width": 269.7962713426159,
+                "height": 11.999572614715472
+              },
+              "confidence": 0.821484386920929
+            },
+            {
+              "text": "3. Behördenbegriffe",
+              "rect": {
+                "x": 60.48813200919859,
+                "y": 345.58769130380557,
+                "width": 99.37335972939768,
+                "height": 14.399487137658566
+              },
+              "confidence": 0.8943142294883728
+            },
+            {
+              "text": "Straße und Hausnummer",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 371.9867510561796,
+                "width": 129.61742573399698,
+                "height": 8.63969228259514
+              },
+              "confidence": 0.8423108458518982
+            },
+            {
+              "text": "SYNTHETISCHES TESTDOKUMENT - kein amtliches Formular",
+              "rect": {
+                "x": 330.28440335181455,
+                "y": 44.15842722215294,
+                "width": 196.34639676001765,
+                "height": 5.279811950474808
+              },
+              "confidence": 0.8451629281044006
+            },
+            {
+              "text": "Größe, Gebühr, Geschäftszeichen, Staatsangehörigkeit",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 395.9858962856106,
+                "width": 282.2779493762601,
+                "height": 11.519589710126853
+              },
+              "confidence": 0.8482940196990967
+            },
+            {
+              "text": "Überweisung, Erklärung, Anträge, Begründung",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 419.50505861045286,
+                "width": 241.95252803679435,
+                "height": 11.999572614715472
+              },
+              "confidence": 0.8541015386581421
+            },
+            {
+              "text": "Rückumschlag, Äußerung, Antragstellung, Bürgerdienste",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 443.0242209352952,
+                "width": 293.79949833039313,
+                "height": 11.999572614715472
+              },
+              "confidence": 0.8514843583106995
+            },
+            {
+              "text": "4. Frei erfundene Namen",
+              "rect": {
+                "x": 56.647615691154236,
+                "y": 477.10300716108713,
+                "width": 128.6572966544859,
+                "height": 11.999572614715472
+              },
+              "confidence": 0.8599609136581421
+            },
+            {
+              "text": "Jürgen Mühlbach, Bärbel Süßbier, Käthe Gröhnert, Matthäus Ölmüller",
+              "rect": {
+                "x": 55.687486611643145,
+                "y": 500.6221694859295,
+                "width": 393.1728580597908,
+                "height": 12.95953842389271
+              },
+              "confidence": 0.8350768089294434
+            },
+            {
+              "text": "MÜLLER-GRÄBER, SCHRÖDER-WEISS, BÂUERLE, ÖHMICHEN",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 527.0212292383035,
+                "width": 331.72459697108116,
+                "height": 11.999572614715472
+              },
+              "confidence": 0.8299478888511658
+            },
+            {
+              "text": "Zeichen: BBÄÖÜä ö ü € m² m",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 559.6600667503296,
+                "width": 163.70200805664064,
+                "height": 12.47955551930409
+              },
+              "confidence": 0.593945324420929
+            },
+            {
+              "text": "Hinweis: Dieses Dokument ist synthetisch und enthält keine realen Personendaten.",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 700.295057794795,
+                "width": 309.1615636025706,
+                "height": 7.679726473417902
+              },
+              "confidence": 0.9018486142158508
+            },
+            {
+              "text": "Es dient ausschließlich der Entwicklung und Prüfung des Editors.",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 716.1344936462193,
+                "width": 240.99239895728326,
+                "height": 8.159709378006522
+              },
+              "confidence": 0.8683733344078064
+            },
+            {
+              "text": "Synthetisches Testdokument - kein amtliches Formular - keine personenbezogenen Daten",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 803.9713651859366,
+                "width": 296.6798855689264,
+                "height": 6.719760664240664
+              },
+              "confidence": 0.8941666483879089
+            },
+            {
+              "text": "Seite 1 von 2",
+              "rect": {
+                "x": 491.1060241699219,
+                "y": 803.491382281348,
+                "width": 45.606131276776715,
+                "height": 6.719760664240664
+              },
+              "confidence": 0.7734375
+            }
+          ],
+          "suggestions": [
+            {
+              "rect": {
+                "x": 109.5,
+                "y": 33.5,
+                "width": 3.125,
+                "height": 4.625
+              },
+              "proposedType": "checkbox",
+              "labelText": "MUSTERSTADT",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 56.875,
+                "y": 43.5,
+                "width": 481.625,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Musteramt für Bürgerdienste",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "alignment_left",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 122.0,
+                "y": 45.375,
+                "width": 5.125,
+                "height": 5.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "Musteramt für Bürgerdienste",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 207.0,
+                "y": 81.375,
+                "width": 5.375,
+                "height": 5.375
+              },
+              "proposedType": "checkbox",
+              "labelText": "Zeichensatz- und Unicode-Referenz",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 214.25,
+                "y": 81.375,
+                "width": 3.875,
+                "height": 5.375
+              },
+              "proposedType": "checkbox",
+              "labelText": "Zeichensatz- und Unicode-Referenz",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square",
+                "whitespace"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 211.625,
+                "y": 99.375,
+                "width": 4.0,
+                "height": 5.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "Deutsche Sonderzeichen, Währung, Einheiten und Behördenbegriffe.",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 70.5,
+                "y": 127.75,
+                "width": 6.875,
+                "height": 6.125
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 149.0,
+                "y": 127.75,
+                "width": 6.875,
+                "height": 6.125
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 108.75,
+                "y": 130.0,
+                "width": 5.0,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 130.0,
+                "y": 130.0,
+                "width": 5.0,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 214.5,
+                "y": 130.0,
+                "width": 5.125,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 252.375,
+                "y": 130.0,
+                "width": 5.0,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 72.75,
+                "y": 152.25,
+                "width": 6.75,
+                "height": 8.625
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "ocr_alignment_below",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 115.25,
+                "y": 155.125,
+                "width": 4.625,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "ocr_alignment_below",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 96.5,
+                "y": 181.75,
+                "width": 6.125,
+                "height": 8.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "Ärger Öffnung Übung Ảußerst",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 95.375,
+                "y": 210.25,
+                "width": 4.0,
+                "height": 5.375
+              },
+              "proposedType": "checkbox",
+              "labelText": "ärger öffnung übung äußerst",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 117.0,
+                "y": 236.125,
+                "width": 4.0,
+                "height": 5.375
+              },
+              "proposedType": "checkbox",
+              "labelText": "Straße Größe Äußerung",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_straße",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 124.875,
+                "y": 268.25,
+                "width": 4.75,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Währung, Einheiten und Satzzeichen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 80.625,
+                "y": 270.0,
+                "width": 2.5,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Währung, Einheiten und Satzzeichen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 147.25,
+                "y": 270.0,
+                "width": 5.0,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Währung, Einheiten und Satzzeichen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 160.25,
+                "y": 270.0,
+                "width": 5.0,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Währung, Einheiten und Satzzeichen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 225.75,
+                "y": 270.0,
+                "width": 5.0,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Währung, Einheiten und Satzzeichen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 247.0,
+                "y": 270.0,
+                "width": 5.0,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Währung, Einheiten und Satzzeichen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 64.125,
+                "y": 316.125,
+                "width": 4.25,
+                "height": 6.75
+              },
+              "proposedType": "text",
+              "labelText": "„Deutsch\" - Gedankenstrich– Auslassung ... S5",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "whitespace"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 90.75,
+                "y": 351.75,
+                "width": 3.25,
+                "height": 4.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "3. Behördenbegriffe",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 141.5,
+                "y": 397.75,
+                "width": 7.125,
+                "height": 6.5
+              },
+              "proposedType": "checkbox",
+              "labelText": "Größe, Gebühr, Geschäftszeichen, Staatsangehörigkeit",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_geschäftszeichen",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 70.875,
+                "y": 400.0,
+                "width": 3.25,
+                "height": 4.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "Größe, Gebühr, Geschäftszeichen, Staatsangehörigkeit",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_geschäftszeichen",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 301.625,
+                "y": 400.0,
+                "width": 3.25,
+                "height": 4.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "Größe, Gebühr, Geschäftszeichen, Staatsangehörigkeit",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_geschäftszeichen",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 133.5,
+                "y": 421.5,
+                "width": 5.125,
+                "height": 6.5
+              },
+              "proposedType": "checkbox",
+              "labelText": "Überweisung, Erklärung, Anträge, Begründung",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 243.75,
+                "y": 425.875,
+                "width": 5.375,
+                "height": 2.125
+              },
+              "proposedType": "text",
+              "labelText": "Überweisung, Erklärung, Anträge, Begründung",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "alignment_left",
+                "box"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 158.0,
+                "y": 482.0,
+                "width": 5.125,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "4. Frei erfundene Namen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 174.625,
+                "y": 482.0,
+                "width": 5.0,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "4. Frei erfundene Namen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 402.125,
+                "y": 503.625,
+                "width": 5.375,
+                "height": 7.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "Jürgen Mühlbach, Bärbel Süßbier, Käthe Gröhnert, Matthäus Ölmüller",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 300.625,
+                "y": 506.125,
+                "width": 3.875,
+                "height": 4.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "Jürgen Mühlbach, Bärbel Süßbier, Käthe Gröhnert, Matthäus Ölmüller",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 191.5,
+                "y": 529.875,
+                "width": 5.375,
+                "height": 7.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "MÜLLER-GRÄBER, SCHRÖDER-WEISS, BÄUERLE, ÖHMICHEN",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 326.875,
+                "y": 529.875,
+                "width": 5.375,
+                "height": 7.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "MÜLLER-GRÄBER, SCHRÖDER-WEISS, BÄUERLE, ÖHMICHEN",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 135.0,
+                "y": 563.75,
+                "width": 5.0,
+                "height": 6.5
+              },
+              "proposedType": "checkbox",
+              "labelText": "Zeichen: BBÄÖÜä ö ü € m² m²",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 166.375,
+                "y": 565.875,
+                "width": 3.125,
+                "height": 4.375
+              },
+              "proposedType": "checkbox",
+              "labelText": "Zeichen: BBÄÖÜä ö ü € m² m²",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 92.125,
+                "y": 701.625,
+                "width": 2.875,
+                "height": 4.375
+              },
+              "proposedType": "text",
+              "labelText": "Hinweis: Dieses Dokument ist synthetisch und enthält keine realen Personendaten.",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "alignment_left",
+                "box"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 118.75,
+                "y": 701.625,
+                "width": 2.875,
+                "height": 4.375
+              },
+              "proposedType": "text",
+              "labelText": "Hinweis: Dieses Dokument ist synthetisch und enthält keine realen Personendaten.",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "alignment_left",
+                "box"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 56.875,
+                "y": 777.625,
+                "width": 481.625,
+                "height": 18.0
+              },
+              "proposedType": "text",
+              "labelText": "Seite 1 von 2",
+              "confidence": 0.93,
+              "uncertainty": 0.07,
+              "cues": [
+                "alignment_left",
+                "keyword_von",
+                "label_below",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "widthPt": 595.280029296875,
+          "heightPt": 841.8900146484375,
+          "lines": [
+            {
+              "text": "MUSTERSTADT",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 32.15885460743746,
+                "width": 62.40839016822077,
+                "height": 7.199743568829283
+              },
+              "confidence": 0.8572443127632141
+            },
+            {
+              "text": "Musteramt für Bürgerdienste",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 44.638410126741555,
+                "width": 122.89652217741936,
+                "height": 9.11967518718376
+              },
+              "confidence": 0.8923437595367432
+            },
+            {
+              "text": "Bezeichnungen und Feldübernahme",
+              "rect": {
+                "x": 58.087809310420866,
+                "y": 76.3172818295904,
+                "width": 254.4342060704385,
+                "height": 14.879470042247185
+              },
+              "confidence": 0.8595097064971924
+            },
+            {
+              "text": "Deutsche Feldbezeichnungen mit Sonderzeichen für die Label-Übernahme.",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 96.95654672690101,
+                "width": 315.40240261939266,
+                "height": 10.079640996360997
+              },
+              "confidence": 0.8701636791229248
+            },
+            {
+              "text": "1. Felder mit deutschen Bezeichnungen",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 126.23550390680676,
+                "width": 202.58723577683972,
+                "height": 11.519589710126853
+              },
+              "confidence": 0.8825757503509521
+            },
+            {
+              "text": "Straße und Hausnummer",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 152.1545807545922,
+                "width": 118.57594131961946,
+                "height": 7.679726473417902
+              },
+              "confidence": 0.8675987124443054
+            },
+            {
+              "text": "Größe in cm",
+              "rect": {
+                "x": 56.647615691154236,
+                "y": 187.19333278956137,
+                "width": 56.16755115139869,
+                "height": 9.11967518718376
+              },
+              "confidence": 0.8702256679534912
+            },
+            {
+              "text": "Gebühr in €",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 224.152016442885,
+                "width": 54.247292992376515,
+                "height": 7.679726473417902
+              },
+              "confidence": 0.875
+            },
+            {
+              "text": "Geschäftszeichen",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 260.1507342870314,
+                "width": 80.65084267893145,
+                "height": 7.679726473417902
+              },
+              "confidence": 0.876220703125
+            },
+            {
+              "text": "Staatsangehörigkeit",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 296.14945213117784,
+                "width": 94.09264979208669,
+                "height": 10.079640996360997
+              },
+              "confidence": 0.8682154417037964
+            },
+            {
+              "text": "Überweisung an",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 330.22823835696977,
+                "width": 75.37013274162047,
+                "height": 12.47955551930409
+              },
+              "confidence": 0.8665865659713745
+            },
+            {
+              "text": "Anträge vom",
+              "rect": {
+                "x": 56.16755115139869,
+                "y": 367.666904914882,
+                "width": 60.00806746944305,
+                "height": 10.079640996360997
+              },
+              "confidence": 0.895703136920929
+            },
+            {
+              "text": "Familienname",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 403.66562275902845,
+                "width": 65.28877740675404,
+                "height": 8.63969228259514
+              },
+              "confidence": 0.9104817509651184
+            },
+            {
+              "text": "Vorname",
+              "rect": {
+                "x": 56.647615691154236,
+                "y": 440.6243064123521,
+                "width": 42.72574403824345,
+                "height": 7.199743568829283
+              },
+              "confidence": 0.8950892686843872
+            },
+            {
+              "text": "Geburtsdatum",
+              "rect": {
+                "x": 56.647615691154236,
+                "y": 475.1830755427327,
+                "width": 67.68910010553175,
+                "height": 9.599658091772378
+              },
+              "confidence": 0.8580729365348816
+            },
+            {
+              "text": "2. Mehrzeilige Erklärung",
+              "rect": {
+                "x": 56.647615691154236,
+                "y": 514.5416737189994,
+                "width": 124.81678033644154,
+                "height": 13.439521328481328
+              },
+              "confidence": 0.8648792505264282
+            },
+            {
+              "text": "Erklärung und Äußerung",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 540.9407334713735,
+                "width": 115.21548954133064,
+                "height": 11.039606805538234
+              },
+              "confidence": 0.848437488079071
+            },
+            {
+              "text": "3. Einverständnis und Unterschrift",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 623.9777759652045,
+                "width": 175.70362155052925,
+                "height": 9.11967518718376
+              },
+              "confidence": 0.8795362710952759
+            },
+            {
+              "text": "Unterschrift",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 684.4556219433705,
+                "width": 55.2074220718876,
+                "height": 7.679726473417902
+              },
+              "confidence": 0.9007161259651184
+            },
+            {
+              "text": "Einverständnis erteilt",
+              "rect": {
+                "x": 206.90781663463963,
+                "y": 647.0169553854582,
+                "width": 88.33187531502016,
+                "height": 7.199743568829283
+              },
+              "confidence": 0.8772321343421936
+            },
+            {
+              "text": "SYNTHETISCHES TESTDOKUMENT - kein amtliches Formular",
+              "rect": {
+                "x": 330.28440335181455,
+                "y": 44.15842722215294,
+                "width": 196.34639676001765,
+                "height": 5.279811950474808
+              },
+              "confidence": 0.8640292286872864
+            },
+            {
+              "text": "Beispiel: Müller-Gräber, Äußere Straße 12, 8 m²",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 748.7733311582455,
+                "width": 219.8695592080393,
+                "height": 10.079640996360997
+              },
+              "confidence": 0.8400343060493469
+            },
+            {
+              "text": "Synthetisches Testdokument - kein amtliches Formular - keine personenbezogenen Daten",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 803.9713651859366,
+                "width": 296.6798855689264,
+                "height": 6.239777759652045
+              },
+              "confidence": 0.8780729174613953
+            },
+            {
+              "text": "TT.MMJIJ",
+              "rect": {
+                "x": 497.346863186744,
+                "y": 479.50292168403024,
+                "width": 30.244066004599294,
+                "height": 6.239777759652045
+              },
+              "confidence": 0.51318359375
+            },
+            {
+              "text": "Seite 2 von 2",
+              "rect": {
+                "x": 491.1060241699219,
+                "y": 803.491382281348,
+                "width": 46.08619581653226,
+                "height": 6.719760664240664
+              },
+              "confidence": 0.842968761920929
+            }
+          ],
+          "suggestions": [
+            {
+              "rect": {
+                "x": 109.5,
+                "y": 33.5,
+                "width": 3.125,
+                "height": 4.625
+              },
+              "proposedType": "checkbox",
+              "labelText": "MUSTERSTADT",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 56.875,
+                "y": 43.5,
+                "width": 481.625,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Musteramt für Bürgerdienste",
+              "confidence": 0.47,
+              "uncertainty": 0.53,
+              "cues": [
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 122.0,
+                "y": 45.375,
+                "width": 5.125,
+                "height": 5.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "Musteramt für Bürgerdienste",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 183.25,
+                "y": 128.125,
+                "width": 5.375,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Felder mit deutschen Bezeichnungen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 92.125,
+                "y": 130.0,
+                "width": 5.125,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Felder mit deutschen Bezeichnungen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 132.5,
+                "y": 130.0,
+                "width": 5.0,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Felder mit deutschen Bezeichnungen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 201.25,
+                "y": 130.0,
+                "width": 5.0,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Felder mit deutschen Bezeichnungen",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 249.5,
+                "y": 130.0,
+                "width": 5.0,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Felder mit deutschen Bezeichnungen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 149.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Straße und Hausnummner",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "keyword_straße",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 185.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Größe in cm",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 221.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Gebühr in €",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 58.375,
+                "y": 225.75,
+                "width": 6.375,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "Gebühr in €",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 257.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Geschäftszeichen",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "keyword_geschäftszeichen",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 58.375,
+                "y": 261.75,
+                "width": 6.375,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "Geschäftszeichen",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_geschäftszeichen",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 293.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Staatsangehörigkeit",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 329.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Überweisung an",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 365.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Anträge vom",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 401.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Familienname",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "keyword_familienname",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 437.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Vorname",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "keyword_vorname",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 473.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "TT.MM.JJ",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "alignment_left",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 58.375,
+                "y": 477.75,
+                "width": 6.375,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "Geburtsdatum",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_geburtsdatum",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 134.25,
+                "y": 518.0,
+                "width": 4.75,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Mehrzeilige Erklärung",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 103.375,
+                "y": 519.875,
+                "width": 5.0,
+                "height": 4.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Mehrzeilige Erklärung",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.5,
+                "y": 540.375,
+                "width": 299.5,
+                "height": 65.5
+              },
+              "proposedType": "multiline",
+              "labelText": "Erklärung und Äußerung",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "ocr_alignment_right",
+                "whitespace"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 58.625,
+                "y": 543.625,
+                "width": 4.375,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "Erklärung und Äußerung",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 70.875,
+                "y": 626.0,
+                "width": 4.75,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "3. Einverständnis und Unterschrift",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_unterschrift",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 191.5,
+                "y": 627.875,
+                "width": 5.0,
+                "height": 4.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "3. Einverständnis und Unterschrift",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_unterschrift",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.5,
+                "y": 648.375,
+                "width": 9.25,
+                "height": 9.375
+              },
+              "proposedType": "checkbox",
+              "labelText": "D Einverständnis erteilt",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square",
+                "whitespace"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 207.75,
+                "y": 648.75,
+                "width": 3.875,
+                "height": 5.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "D Einverständnis erteilt",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 693.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": null,
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "alignment_left",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 133.25,
+                "y": 751.625,
+                "width": 6.75,
+                "height": 5.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "Beispiel: Müller-Gräber, Äußere Straße 12, 8 m²",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_straße",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 56.875,
+                "y": 777.625,
+                "width": 481.625,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Synthetisches Testdokument - kein amtliches Formular - keine personenbezogenen Daten",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "label_below",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            }
+          ]
+        }
+      ],
+      "timings": {
+        "rasterMs-0": 121,
+        "ocrMs-0": 5863,
+        "rasterMs-1": 48,
+        "ocrMs-1": 4323
+      }
+    },
+    {
+      "id": "clean-300dpi",
+      "raster": {
+        "source": "production-raster-port",
+        "dpi": 300,
+        "degradations": []
+      },
+      "pages": [
+        {
+          "index": 0,
+          "widthPt": 595.280029296875,
+          "heightPt": 841.8900146484375,
+          "lines": [
+            {
+              "text": "MUSTERSTADT",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 31.678871702848845,
+                "width": 61.68829335858745,
+                "height": 8.159709378006522
+              },
+              "confidence": 0.8572443127632141
+            },
+            {
+              "text": "Musteramt für Bürgerdienste",
+              "rect": {
+                "x": 57.367712500787555,
+                "y": 44.15842722215294,
+                "width": 123.3765867171749,
+                "height": 8.63969228259514
+              },
+              "confidence": 0.8889062404632568
+            },
+            {
+              "text": "Zeichensatz- und Unicode-Referenz",
+              "rect": {
+                "x": 56.88764796103201,
+                "y": 76.3172818295904,
+                "width": 248.4333993234942,
+                "height": 12.23956406700978
+              },
+              "confidence": 0.8573588728904724
+            },
+            {
+              "text": "Deutsche Sonderzeichen, Währung, Einheiten und Behördenbegriffe.",
+              "rect": {
+                "x": 57.367712500787555,
+                "y": 96.95654672690101,
+                "width": 290.6790788219821,
+                "height": 9.839649544066686
+              },
+              "confidence": 0.8738744854927063
+            },
+            {
+              "text": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 126.23550390680676,
+                "width": 231.63114043205016,
+                "height": 11.519589710126853
+              },
+              "confidence": 0.8544671535491943
+            },
+            {
+              "text": "Ä Öüäö üßB",
+              "rect": {
+                "x": 70.08942280430948,
+                "y": 147.354751708706,
+                "width": 94.81274660172001,
+                "height": 17.03939311289597
+              },
+              "confidence": 0.45361328125
+            },
+            {
+              "text": "Ärger Öfnung Übung Äußerst",
+              "rect": {
+                "x": 56.88764796103201,
+                "y": 178.55364050696622,
+                "width": 184.8248478058846,
+                "height": 14.879470042247185
+              },
+              "confidence": 0.79517662525177
+            },
+            {
+              "text": "ärger öffnung übung äußerst",
+              "rect": {
+                "x": 57.367712500787555,
+                "y": 206.3926489731061,
+                "width": 178.82404105894028,
+                "height": 13.199529876187018
+              },
+              "confidence": 0.81640625
+            },
+            {
+              "text": "Straße Größe Äußerung",
+              "rect": {
+                "x": 57.367712500787555,
+                "y": 230.87177710712567,
+                "width": 144.49942646641884,
+                "height": 13.919504233069947
+              },
+              "confidence": 0.8268914222717285
+            },
+            {
+              "text": "2. Währung, Einheiten und Satzzeichen",
+              "rect": {
+                "x": 60.96819654895413,
+                "y": 264.9505633329176,
+                "width": 196.34639676001765,
+                "height": 11.999572614715472
+              },
+              "confidence": 0.8686079382896423
+            },
+            {
+              "text": "Gebühr: 12,50 € · Fläche: 45 m² Raum: 7 m²",
+              "rect": {
+                "x": 57.367712500787555,
+                "y": 289.1897000146429,
+                "width": 246.7531734343498,
+                "height": 11.759581162421162
+              },
+              "confidence": 0.7888257503509521
+            },
+            {
+              "text": "„Deutsch\" - Gedankenstrich - Auslassung ... S5",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 314.14881105325105,
+                "width": 270.0363036124937,
+                "height": 11.519589710126853
+              },
+              "confidence": 0.799023449420929
+            },
+            {
+              "text": "3. Behördenbegriffe",
+              "rect": {
+                "x": 56.88764796103201,
+                "y": 348.227597279043,
+                "width": 103.45390831731982,
+                "height": 11.279598257832543
+              },
+              "confidence": 0.8869357705116272
+            },
+            {
+              "text": "Straße und Hausnummer",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 372.46673396076824,
+                "width": 130.33752254363029,
+                "height": 8.63969228259514
+              },
+              "confidence": 0.8390213847160339
+            },
+            {
+              "text": "SYNTHETISCHES TESTDOKUMENT- kein amtliches Formular",
+              "rect": {
+                "x": 330.28440335181455,
+                "y": 44.39841867444724,
+                "width": 196.10636449013987,
+                "height": 5.279811950474808
+              },
+              "confidence": 0.8514794111251831
+            },
+            {
+              "text": "Größe, Gebühr, Geschäftszeichen, Staatsangehörigkeit",
+              "rect": {
+                "x": 63.368519247731854,
+                "y": 394.0659646672561,
+                "width": 276.03711035943803,
+                "height": 14.159495685364256
+              },
+              "confidence": 0.847257673740387
+            },
+            {
+              "text": "Überweisung, Erklärung, Anträge, Begründung",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 419.02507570586425,
+                "width": 241.7124957669166,
+                "height": 12.47955551930409
+              },
+              "confidence": 0.85986328125
+            },
+            {
+              "text": "Rückumschlag, Äußerung, Antragstellung, Bürgerdienste",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 443.5042038398838,
+                "width": 293.3194337906376,
+                "height": 11.999572614715472
+              },
+              "confidence": 0.853515625
+            },
+            {
+              "text": "4. Frei erfundene Namen",
+              "rect": {
+                "x": 59.28797065980973,
+                "y": 477.10300716108713,
+                "width": 125.77690941595262,
+                "height": 11.519589710126853
+              },
+              "confidence": 0.886914074420929
+            },
+            {
+              "text": "Jürgen Mühlbach, Bärbel Süßbier, Käthe Gröhnert, Matthäus Ölmüller",
+              "rect": {
+                "x": 55.687486611643145,
+                "y": 501.1021523905181,
+                "width": 393.1728580597908,
+                "height": 12.7195469715984
+              },
+              "confidence": 0.8308395147323608
+            },
+            {
+              "text": "MÜLLER-GRÄBER, SCHRÖDER-WEISS, BÄUERLE, ÖHMICHEN",
+              "rect": {
+                "x": 57.84777704054309,
+                "y": 526.7812377860092,
+                "width": 331.24453243132564,
+                "height": 12.23956406700978
+              },
+              "confidence": 0.843663215637207
+            },
+            {
+              "text": "Zeichen: BBÄÖÜ ä ö ü € m m",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 559.9000582026239,
+                "width": 163.2219435168851,
+                "height": 12.23956406700978
+              },
+              "confidence": 0.6354851722717285
+            },
+            {
+              "text": "Hinweis: Dieses Dokument ist synthetisch und enthält keine realen Personendaten.",
+              "rect": {
+                "x": 57.367712500787555,
+                "y": 700.0550663425006,
+                "width": 309.88166041220387,
+                "height": 7.439735021123592
+              },
+              "confidence": 0.8939810991287231
+            },
+            {
+              "text": "Es dient ausschließlich der Entwicklung und Prüfung des Editors.",
+              "rect": {
+                "x": 57.367712500787555,
+                "y": 716.1344936462193,
+                "width": 240.27230214764995,
+                "height": 6.959752116534974
+              },
+              "confidence": 0.8596540093421936
+            },
+            {
+              "text": "Synthetisches Testdokument - kein amtliches Formular - keine personenbezogenen Daten",
+              "rect": {
+                "x": 56.88764796103201,
+                "y": 804.2113566382309,
+                "width": 296.6798855689264,
+                "height": 6.719760664240664
+              },
+              "confidence": 0.8763541579246521
+            },
+            {
+              "text": "Seite 1 von 2",
+              "rect": {
+                "x": 491.34605643979967,
+                "y": 803.9713651859366,
+                "width": 46.32622808641003,
+                "height": 7.199743568829283
+              },
+              "confidence": 0.8492187261581421
+            }
+          ],
+          "suggestions": [
+            {
+              "rect": {
+                "x": 109.5,
+                "y": 33.5,
+                "width": 3.125,
+                "height": 4.625
+              },
+              "proposedType": "checkbox",
+              "labelText": "MUSTERSTADT",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 56.875,
+                "y": 43.5,
+                "width": 481.625,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Musteramt für Bürgerdienste",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "alignment_left",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 122.0,
+                "y": 45.375,
+                "width": 5.125,
+                "height": 5.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "Musteramt für Bürgerdienste",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 207.0,
+                "y": 81.375,
+                "width": 5.375,
+                "height": 5.375
+              },
+              "proposedType": "checkbox",
+              "labelText": "Zeichensatz- und Unicode-Referenz",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 214.25,
+                "y": 81.375,
+                "width": 3.875,
+                "height": 5.375
+              },
+              "proposedType": "checkbox",
+              "labelText": "Zeichensatz- und Unicode-Referenz",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square",
+                "whitespace"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 211.625,
+                "y": 99.375,
+                "width": 4.0,
+                "height": 5.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "Deutsche Sonderzeichen, Währung, Einheiten und Behördenbegriffe.",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 70.5,
+                "y": 127.75,
+                "width": 6.875,
+                "height": 6.125
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 149.0,
+                "y": 127.75,
+                "width": 6.875,
+                "height": 6.125
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 108.75,
+                "y": 130.0,
+                "width": 5.0,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 130.0,
+                "y": 130.0,
+                "width": 5.0,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 214.5,
+                "y": 130.0,
+                "width": 5.125,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 252.375,
+                "y": 130.0,
+                "width": 5.0,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 72.75,
+                "y": 152.25,
+                "width": 6.75,
+                "height": 8.625
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "ocr_alignment_below",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 115.25,
+                "y": 155.125,
+                "width": 4.625,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "ocr_alignment_below",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 96.5,
+                "y": 181.75,
+                "width": 6.125,
+                "height": 8.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "Ärger Öffnung Übung Ảußerst",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 95.375,
+                "y": 210.25,
+                "width": 4.0,
+                "height": 5.375
+              },
+              "proposedType": "checkbox",
+              "labelText": "ärger öffnung übung äußerst",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 117.0,
+                "y": 236.125,
+                "width": 4.0,
+                "height": 5.375
+              },
+              "proposedType": "checkbox",
+              "labelText": "Straße Größe Äußerung",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_straße",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 124.875,
+                "y": 268.25,
+                "width": 4.75,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Währung, Einheiten und Satzzeichen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 80.625,
+                "y": 270.0,
+                "width": 2.5,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Währung, Einheiten und Satzzeichen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 147.25,
+                "y": 270.0,
+                "width": 5.0,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Währung, Einheiten und Satzzeichen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 160.25,
+                "y": 270.0,
+                "width": 5.0,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Währung, Einheiten und Satzzeichen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 225.75,
+                "y": 270.0,
+                "width": 5.0,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Währung, Einheiten und Satzzeichen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 247.0,
+                "y": 270.0,
+                "width": 5.0,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Währung, Einheiten und Satzzeichen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 64.125,
+                "y": 316.125,
+                "width": 4.25,
+                "height": 6.75
+              },
+              "proposedType": "text",
+              "labelText": "„Deutsch\" - Gedankenstrich– Auslassung ... S5",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "whitespace"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 90.75,
+                "y": 351.75,
+                "width": 3.25,
+                "height": 4.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "3. Behördenbegriffe",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 141.5,
+                "y": 397.75,
+                "width": 7.125,
+                "height": 6.5
+              },
+              "proposedType": "checkbox",
+              "labelText": "Größe, Gebühr, Geschäftszeichen, Staatsangehörigkeit",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_geschäftszeichen",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 70.875,
+                "y": 400.0,
+                "width": 3.25,
+                "height": 4.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "Größe, Gebühr, Geschäftszeichen, Staatsangehörigkeit",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_geschäftszeichen",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 301.625,
+                "y": 400.0,
+                "width": 3.25,
+                "height": 4.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "Größe, Gebühr, Geschäftszeichen, Staatsangehörigkeit",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_geschäftszeichen",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 133.5,
+                "y": 421.5,
+                "width": 5.125,
+                "height": 6.5
+              },
+              "proposedType": "checkbox",
+              "labelText": "Überweisung, Erklärung, Anträge, Begründung",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 243.75,
+                "y": 425.875,
+                "width": 5.375,
+                "height": 2.125
+              },
+              "proposedType": "text",
+              "labelText": "Überweisung, Erklärung, Anträge, Begründung",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "alignment_left",
+                "box"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 158.0,
+                "y": 482.0,
+                "width": 5.125,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "4. Frei erfundene Namen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 174.625,
+                "y": 482.0,
+                "width": 5.0,
+                "height": 4.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "4. Frei erfundene Namen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 402.125,
+                "y": 503.625,
+                "width": 5.375,
+                "height": 7.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "Jürgen Mühlbach, Bärbel Süßbier, Käthe Gröhnert, Matthäus Ölmüller",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 300.625,
+                "y": 506.125,
+                "width": 3.875,
+                "height": 4.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "Jürgen Mühlbach, Bärbel Süßbier, Käthe Gröhnert, Matthäus Ölmüller",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 191.5,
+                "y": 529.875,
+                "width": 5.375,
+                "height": 7.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "MÜLLER-GRÄBER, SCHRÖDER-WEISS, BÄUERLE, ÖHMICHEN",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 326.875,
+                "y": 529.875,
+                "width": 5.375,
+                "height": 7.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "MÜLLER-GRÄBER, SCHRÖDER-WEISS, BÄUERLE, ÖHMICHEN",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 135.0,
+                "y": 563.75,
+                "width": 5.0,
+                "height": 6.5
+              },
+              "proposedType": "checkbox",
+              "labelText": "Zeichen: BBÄÖÜä ö ü € m² m²",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 166.375,
+                "y": 565.875,
+                "width": 3.125,
+                "height": 4.375
+              },
+              "proposedType": "checkbox",
+              "labelText": "Zeichen: BBÄÖÜä ö ü € m² m²",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 92.125,
+                "y": 701.625,
+                "width": 2.875,
+                "height": 4.375
+              },
+              "proposedType": "text",
+              "labelText": "Hinweis: Dieses Dokument ist synthetisch und enthält keine realen Personendaten.",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "alignment_left",
+                "box"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 118.75,
+                "y": 701.625,
+                "width": 2.875,
+                "height": 4.375
+              },
+              "proposedType": "text",
+              "labelText": "Hinweis: Dieses Dokument ist synthetisch und enthält keine realen Personendaten.",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "alignment_left",
+                "box"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 56.875,
+                "y": 777.625,
+                "width": 481.625,
+                "height": 18.0
+              },
+              "proposedType": "text",
+              "labelText": "Seite 1 von 2",
+              "confidence": 0.93,
+              "uncertainty": 0.07,
+              "cues": [
+                "alignment_left",
+                "keyword_von",
+                "label_below",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "widthPt": 595.280029296875,
+          "heightPt": 841.8900146484375,
+          "lines": [
+            {
+              "text": "MUSTERSTADT",
+              "rect": {
+                "x": 57.367712500787555,
+                "y": 32.398846059731774,
+                "width": 61.928325628465224,
+                "height": 6.959752116534974
+              },
+              "confidence": 0.8650568127632141
+            },
+            {
+              "text": "Musteramt für Bürgerdienste",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 44.15842722215294,
+                "width": 123.13655444729713,
+                "height": 8.159709378006522
+              },
+              "confidence": 0.8779687285423279
+            },
+            {
+              "text": "Bezeichnungen und Feldübernahme",
+              "rect": {
+                "x": 57.84777704054309,
+                "y": 76.3172818295904,
+                "width": 254.6742383403163,
+                "height": 14.879470042247185
+              },
+              "confidence": 0.8735183477401733
+            },
+            {
+              "text": "Deutsche Feldbezeichnungen mit Sonderzeichen für die Label-Übernahme.",
+              "rect": {
+                "x": 57.367712500787555,
+                "y": 97.19653817919531,
+                "width": 315.40240261939266,
+                "height": 9.599658091772378
+              },
+              "confidence": 0.8847966194152832
+            },
+            {
+              "text": "1. Felder mit deutschen Bezeichnungen",
+              "rect": {
+                "x": 61.208228818831905,
+                "y": 123.35560647927505,
+                "width": 198.5066871889176,
+                "height": 14.399487137658566
+              },
+              "confidence": 0.875
+            },
+            {
+              "text": "Straße und Hausnummer",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 151.91458930229788,
+                "width": 118.09587677986391,
+                "height": 9.599658091772378
+              },
+              "confidence": 0.8367598652839661
+            },
+            {
+              "text": "Größe in cm",
+              "rect": {
+                "x": 56.88764796103201,
+                "y": 187.91330714644428,
+                "width": 56.16755115139869,
+                "height": 8.879683734889449
+              },
+              "confidence": 0.8480902910232544
+            },
+            {
+              "text": "Gebühr in €",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 224.39200789517932,
+                "width": 54.48732526225429,
+                "height": 7.679726473417902
+              },
+              "confidence": 0.8589409589767456
+            },
+            {
+              "text": "Geschäftszeichen",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 259.1907684778542,
+                "width": 79.93074586929814,
+                "height": 9.839649544066686
+              },
+              "confidence": 0.879150390625
+            },
+            {
+              "text": "Staatsangehörigkeit",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 296.38944358347214,
+                "width": 93.85261752220892,
+                "height": 10.079640996360997
+              },
+              "confidence": 0.8604029417037964
+            },
+            {
+              "text": "Überweisung an",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 330.7082212615584,
+                "width": 75.85019728137601,
+                "height": 11.999572614715472
+              },
+              "confidence": 0.858473539352417
+            },
+            {
+              "text": "Anträge vom",
+              "rect": {
+                "x": 56.647615691154236,
+                "y": 368.1468878194707,
+                "width": 60.00806746944305,
+                "height": 10.319632448655305
+              },
+              "confidence": 0.8882812261581421
+            },
+            {
+              "text": "Familienname",
+              "rect": {
+                "x": 57.367712500787555,
+                "y": 403.90561421132276,
+                "width": 65.04874513687626,
+                "height": 8.63969228259514
+              },
+              "confidence": 0.8818359375
+            },
+            {
+              "text": "Vorname",
+              "rect": {
+                "x": 56.40758342127646,
+                "y": 440.3843149600578,
+                "width": 42.485711768365675,
+                "height": 8.159709378006522
+              },
+              "confidence": 0.8504464030265808
+            },
+            {
+              "text": "Geburtsdatum",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 476.3830328042042,
+                "width": 67.44906783565398,
+                "height": 7.679726473417902
+              },
+              "confidence": 0.884765625
+            },
+            {
+              "text": "2. Mehrzeilige Erklärung",
+              "rect": {
+                "x": 57.12768023090978,
+                "y": 516.2216138850596,
+                "width": 124.57674806656377,
+                "height": 11.279598257832543
+              },
+              "confidence": 0.8497869372367859
+            },
+            {
+              "text": "Erklärung und Äußerung",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 541.1807249236678,
+                "width": 114.97545727145287,
+                "height": 10.799615353243924
+              },
+              "confidence": 0.8365234136581421
+            },
+            {
+              "text": "3. Einverständnis und Unterschrift",
+              "rect": {
+                "x": 56.88764796103201,
+                "y": 624.2177674174989,
+                "width": 175.70362155052925,
+                "height": 8.879683734889449
+              },
+              "confidence": 0.8543346524238586
+            },
+            {
+              "text": "Unterschrift",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 684.2156304910762,
+                "width": 55.2074220718876,
+                "height": 7.679726473417902
+              },
+              "confidence": 0.8564453125
+            },
+            {
+              "text": "Einverständnis erteilt",
+              "rect": {
+                "x": 209.78820387317288,
+                "y": 645.0970237671038,
+                "width": 84.25132672709803,
+                "height": 10.799615353243924
+              },
+              "confidence": 0.8249627947807312
+            },
+            {
+              "text": "SYNTHETISCHES TESTDOKUMENT- kein amtliches Formular",
+              "rect": {
+                "x": 330.28440335181455,
+                "y": 44.39841867444724,
+                "width": 196.10636449013987,
+                "height": 5.279811950474808
+              },
+              "confidence": 0.8514794111251831
+            },
+            {
+              "text": "Beispiel: Müller-Gräber, Äußere Straße 12, 8 m?",
+              "rect": {
+                "x": 57.60774477066532,
+                "y": 748.2933482536569,
+                "width": 220.1095914779171,
+                "height": 11.279598257832543
+              },
+              "confidence": 0.8424161672592163
+            },
+            {
+              "text": "Synthetisches Testdokument - kein amtliches Formular - keine personenbezogenen Daten",
+              "rect": {
+                "x": 56.88764796103201,
+                "y": 804.2113566382309,
+                "width": 296.6798855689264,
+                "height": 6.719760664240664
+              },
+              "confidence": 0.8763541579246521
+            },
+            {
+              "text": "TT.MM.J)",
+              "rect": {
+                "x": 496.62676637711064,
+                "y": 478.0629729702644,
+                "width": 30.964162814232612,
+                "height": 7.679726473417902
+              },
+              "confidence": 0.55810546875
+            },
+            {
+              "text": "Seite 2 von 2",
+              "rect": {
+                "x": 491.1060241699219,
+                "y": 803.2513908290537,
+                "width": 46.566260356287806,
+                "height": 7.679726473417902
+              },
+              "confidence": 0.825390636920929
+            }
+          ],
+          "suggestions": [
+            {
+              "rect": {
+                "x": 109.5,
+                "y": 33.5,
+                "width": 3.125,
+                "height": 4.625
+              },
+              "proposedType": "checkbox",
+              "labelText": "MUSTERSTADT",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 56.875,
+                "y": 43.5,
+                "width": 481.625,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Musteramt für Bürgerdienste",
+              "confidence": 0.47,
+              "uncertainty": 0.53,
+              "cues": [
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 122.0,
+                "y": 45.375,
+                "width": 5.125,
+                "height": 5.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "Musteramt für Bürgerdienste",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 183.25,
+                "y": 128.125,
+                "width": 5.375,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Felder mit deutschen Bezeichnungen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 92.125,
+                "y": 130.0,
+                "width": 5.125,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Felder mit deutschen Bezeichnungen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 132.5,
+                "y": 130.0,
+                "width": 5.0,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Felder mit deutschen Bezeichnungen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 201.25,
+                "y": 130.0,
+                "width": 5.0,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Felder mit deutschen Bezeichnungen",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 249.5,
+                "y": 130.0,
+                "width": 5.0,
+                "height": 3.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "1. Felder mit deutschen Bezeichnungen",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 149.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Straße und Hausnummner",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "keyword_straße",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 185.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Größe in cm",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 221.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Gebühr in €",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 58.375,
+                "y": 225.75,
+                "width": 6.375,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "Gebühr in €",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 257.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Geschäftszeichen",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "keyword_geschäftszeichen",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 58.375,
+                "y": 261.75,
+                "width": 6.375,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "Geschäftszeichen",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_geschäftszeichen",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 293.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Staatsangehörigkeit",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 329.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Überweisung an",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 365.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Anträge vom",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 401.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Familienname",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "keyword_familienname",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 437.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Vorname",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "keyword_vorname",
+                "ocr_alignment_right",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 473.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "TT.MM.JJ",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "alignment_left",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 58.375,
+                "y": 477.75,
+                "width": 6.375,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "Geburtsdatum",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_geburtsdatum",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 134.25,
+                "y": 518.0,
+                "width": 4.75,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Mehrzeilige Erklärung",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 103.375,
+                "y": 519.875,
+                "width": 5.0,
+                "height": 4.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "2. Mehrzeilige Erklärung",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.5,
+                "y": 540.375,
+                "width": 299.5,
+                "height": 65.5
+              },
+              "proposedType": "multiline",
+              "labelText": "Erklärung und Äußerung",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "ocr_alignment_right",
+                "whitespace"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 58.625,
+                "y": 543.625,
+                "width": 4.375,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "Erklärung und Äußerung",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 70.875,
+                "y": 626.0,
+                "width": 4.75,
+                "height": 5.75
+              },
+              "proposedType": "checkbox",
+              "labelText": "3. Einverständnis und Unterschrift",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_unterschrift",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 191.5,
+                "y": 627.875,
+                "width": 5.0,
+                "height": 4.25
+              },
+              "proposedType": "checkbox",
+              "labelText": "3. Einverständnis und Unterschrift",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_unterschrift",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.5,
+                "y": 648.375,
+                "width": 9.25,
+                "height": 9.375
+              },
+              "proposedType": "checkbox",
+              "labelText": "D Einverständnis erteilt",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square",
+                "whitespace"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 207.75,
+                "y": 648.75,
+                "width": 3.875,
+                "height": 5.0
+              },
+              "proposedType": "checkbox",
+              "labelText": "D Einverständnis erteilt",
+              "confidence": 0.71,
+              "uncertainty": 0.29,
+              "cues": [
+                "alignment_left",
+                "box",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 190.125,
+                "y": 693.75,
+                "width": 299.875,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": null,
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "alignment_left",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 133.25,
+                "y": 751.625,
+                "width": 6.75,
+                "height": 5.875
+              },
+              "proposedType": "checkbox",
+              "labelText": "Beispiel: Müller-Gräber, Äußere Straße 12, 8 m²",
+              "confidence": 0.83,
+              "uncertainty": 0.17,
+              "cues": [
+                "alignment_left",
+                "box",
+                "keyword_straße",
+                "small_square"
+              ],
+              "resolution": "unresolved"
+            },
+            {
+              "rect": {
+                "x": 56.875,
+                "y": 777.625,
+                "width": 481.625,
+                "height": 18.0
+              },
+              "proposedType": "multiline",
+              "labelText": "Synthetisches Testdokument - kein amtliches Formular - keine personenbezogenen Daten",
+              "confidence": 0.59,
+              "uncertainty": 0.41,
+              "cues": [
+                "label_below",
+                "underline"
+              ],
+              "resolution": "unresolved"
+            }
+          ]
+        }
+      ],
+      "timings": {
+        "rasterMs-0": 176,
+        "ocrMs-0": 6573,
+        "rasterMs-1": 163,
+        "ocrMs-1": 5056
+      }
+    }
+  ]
+}

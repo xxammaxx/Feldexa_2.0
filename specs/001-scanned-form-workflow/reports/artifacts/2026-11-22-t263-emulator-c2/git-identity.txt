@@ -1,0 +1,13 @@
+head=b3ac1f1b45bca2bc65de90906fd7c37485fa1d09
+tree=82e7562c182c2ff8bac8770644497188f7eadff0
+branch=xxammaxx/t263
+status_porcelain:
+ M apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/ocr/MlKitOcrService.kt
+ M apps/feldexa_app/android/gradlew.bat
+ M tools/android/t263_drive_de_ocr.sh
+?? apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/ocr/SkewCorrection.kt
+?? apps/feldexa_app/android/app/src/test/kotlin/de/feldexa/app/ocr/SkewCorrectionTest.kt
+flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
+dart=Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "linux_x64"
+pdftoppm=pdftoppm version 26.10.0
+magick=Version: ImageMagick 7.1.2-34 Q16-HDRI x86_64 c5d4ca8a0:20261014 https://imagemagick.org

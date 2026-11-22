@@ -387,27 +387,32 @@ DEVICE_OUTPUT_DIR="$(marker_value OUTPUT_PATH)"
   fail "integration test did not report T263_OUTPUT_PATH; cannot pull run files"
 record "device output directory $DEVICE_OUTPUT_DIR"
 mkdir -p "$RUN_DIR/pulled"
-# One tar stream per attempt keeps both run files in a single transfer, so a
-# teardown that uninstalls the app between two pulls cannot split the pair.
+# Pull both run files while the test still runs (the runner uninstalls the app
+# on exit and deletes its cache directory). `adb exec-out` keeps the bytes
+# binary-clean; each file is verified as non-empty JSON before the pull counts.
 PULL_OK=0
-for attempt in 1 2 3 4 5 6 7 8; do
-  rm -f "$RUN_DIR/pulled/runs.tar" "$RUN_DIR/pulled/t263-run-emulator.json" \
-    "$RUN_DIR/pulled/t263-run-injected.json"
-  if "$ADB" -s "$SERIAL" exec-out run-as "$APP_ID" \
-    tar -cf - -C "$DEVICE_OUTPUT_DIR" \
-    t263-run-emulator.json t263-run-injected.json \
-    >"$RUN_DIR/pulled/runs.tar" 2>"$RUN_DIR/pulled/tar-attempt.err" &&
-    tar -xf "$RUN_DIR/pulled/runs.tar" -C "$RUN_DIR/pulled" &&
-    [[ -s "$RUN_DIR/pulled/t263-run-emulator.json" ]] &&
-    [[ -s "$RUN_DIR/pulled/t263-run-injected.json" ]]; then
+for attempt in $(seq 1 10); do
+  for run_file in t263-run-emulator.json t263-run-injected.json; do
+    "$ADB" -s "$SERIAL" exec-out run-as "$APP_ID" cat "$DEVICE_OUTPUT_DIR/$run_file" \
+      >"$RUN_DIR/pulled/$run_file" 2>"$RUN_DIR/pulled/pull-$run_file.err" || true
+  done
+  if python3 - "$RUN_DIR/pulled" <<'PYCHECK'
+import json, pathlib, sys
+base = pathlib.Path(sys.argv[1])
+for name in ("t263-run-emulator.json", "t263-run-injected.json"):
+    path = base / name
+    if not path.is_file() or path.stat().st_size == 0:
+        raise SystemExit(1)
+    json.loads(path.read_text(encoding="utf-8"))
+PYCHECK
+  then
     PULL_OK=1
     break
   fi
   sleep 1
 done
 [[ "$PULL_OK" -eq 1 ]] ||
-  fail "cannot pull both run files from $DEVICE_OUTPUT_DIR (see pulled/tar-attempt.err)"
-rm -f "$RUN_DIR/pulled/runs.tar"
+  fail "cannot pull both run files from $DEVICE_OUTPUT_DIR (see pulled/pull-*.err)"
 for run_file in t263-run-emulator.json t263-run-injected.json; do
   sha256sum "$RUN_DIR/pulled/$run_file" >>"$RUN_DIR/pulled/run-sha256.txt"
 done

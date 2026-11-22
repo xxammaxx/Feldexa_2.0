@@ -1,0 +1,19 @@
+{
+  "id": "c701f332-6e92-42eb-b6da-327e7fee9a67",
+  "ok": true,
+  "result": {
+    "sessions": [
+      {
+        "worktreeId": "5cfd8bbd-7af0-43a2-b81d-7e8d50eda284::/home/xxammaxx/Schreibtisch/Feldexa_2.0/t263-ocr-german",
+        "backend": "android",
+        "deviceUdid": "emulator-5554",
+        "wsUrl": "",
+        "streamUrl": "scrcpy://emulator-5554",
+        "streamCodec": "h264"
+      }
+    ]
+  },
+  "_meta": {
+    "runtimeId": "6c073663-13db-438b-868d-0765e6daab30"
+  }
+}

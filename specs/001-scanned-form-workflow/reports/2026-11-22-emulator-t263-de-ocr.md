@@ -272,6 +272,85 @@ on-device rerun for this correction is **NOT_RUN**.
   unverified — its host JVM test gate could not be executed — so no unverified
   production change was shipped.
 
+### 5.8 T263 correction-2 — deskew stage, post-fix run (Orca runtime ready)
+
+Correction-2 adds a verified deskew preprocessing stage and re-measures all
+seven pre-declared variants at the new candidate. **Orca visibility: observed.**
+The driver's Orca allocation gate passed (`orca emulator devices --json` →
+`ok: true`, one `emulator-5554` entry, `T025_Pixel7_API35_KVM_20261115`, API 35,
+state `booted`; session attached to this worktree). The run is
+`2026-11-22-t263-emulator-c2`; the pre-fix `2026-11-22-t263-emulator/` evidence is
+unchanged.
+
+**Skew root cause and fix.** The pipeline had no deskew stage, so the injected
+3° raster reached the recognizer tilted: lines merged or were dropped (30/51
+associated) and the resulting boxes were too tall and too far from the annotated
+rows. `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/ocr/SkewCorrection.kt`
+now estimates the dominant row skew with a projection-profile search
+(±5°, 0.25° steps, ink-thresholded, subsampled), rotates the raster upright with
+bilinear sampling on a white background, and maps the recognizer's rectangles
+back into the original raster frame so the page-point mapping is unchanged. An
+upright page (estimate below 1.0°) is passed through untouched, which is why
+every non-skew variant keeps its exact pre-fix values.
+
+**RED/GREEN (host JVM, `NONE` class).** `SkewCorrectionTest` fails at the
+pre-fix baseline (`correctionFor` returned no correction; exactly the 3
+deskew/symmetry tests fail, the 3 no-op/identity tests pass) and passes after the
+fix. `./gradlew --no-daemon :app:testDebugUnitTest --tests
+'de.feldexa.app.ocr.SkewCorrectionTest' --tests
+'de.feldexa.app.ocr.MlKitOcrServiceTest'` → `BUILD SUCCESSFUL` (RED log:
+`…-c2/host-jvm-skew-red.log`, GREEN log: `…-c2/host-jvm-skew-green.log`). The
+Gradle daemon was stopped afterwards.
+
+**Before/after, all seven pre-declared variants (thresholds unchanged).**
+
+| Variant | Class | CER before → after | Special recall before → after | Label acc. before → after | Type acc. before → after | Unres. labels before → after | Result before → after |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `clean-200dpi` (reference) | `EMULATOR` | 2.33 % → 2.33 % | 93.27 % → 93.27 % | 0.00 % → 69.23 % | 15.38 % → 15.38 % | 8 → 1 | FAIL → FAIL |
+| `clean-150dpi` | `EMULATOR` | 2.21 % → 2.21 % | 93.27 % → 93.27 % | 0.00 % → 69.23 % | 15.38 % → 15.38 % | 8 → 1 | FAIL → FAIL |
+| `clean-300dpi` | `EMULATOR` | 2.27 % → 2.27 % | 92.31 % → 92.31 % | 0.00 % → 69.23 % | 15.38 % → 15.38 % | 8 → 1 | FAIL → FAIL |
+| `scan-150dpi-low-contrast` | `EMULATOR_INJECTED_RASTER` | 2.21 % → 2.21 % | 96.15 % → 96.15 % | 7.69 % → 84.62 % | 69.23 % → 69.23 % | 8 → 1 | PASS → PASS |
+| `scan-200dpi-shadow` | `EMULATOR_INJECTED_RASTER` | 2.63 % → 2.63 % | 92.31 % → 92.31 % | 7.69 % → 84.62 % | 15.38 % → 15.38 % | 8 → 1 | PASS → PASS |
+| `scan-200dpi-skew-3deg` | `EMULATOR_INJECTED_RASTER` | 48.48 % → **15.42 %** | 68.27 % → **87.50 %** | 0.00 % → 0.00 % | 0.00 % → **100.00 %** | 0 → 0 | FAIL → **PASS** |
+| `scan-200dpi-jpeg-q35` | `EMULATOR_INJECTED_RASTER` | 2.27 % → 2.27 % | 93.27 % → 93.27 % | 7.69 % → 84.62 % | 15.38 % → 15.38 % | 8 → 1 | PASS → PASS |
+
+The deskew fixes the skew case (CER 48.48 % → 15.42 %, special recall 68.27 % →
+87.50 %, now inside the pre-declared ceiling 20 % / floor 60 %) and changes
+nothing on upright pages. The label/type fix from correction-1 is now measured
+on device: label accuracy 0.00 % → 69.23 % on the clean variants and 7.69 % →
+84.62 % on the degraded ones, unresolved labels 8 → 1. Field precision/recall,
+CER and special-character recall on the clean variants are unchanged, because
+neither fix touches the raster of an upright page or the character model.
+
+**Remaining FAILs (unchanged thresholds, no substitutions).**
+
+- `clean-200dpi` (reference): CER 2.33 % > 2.00 %, special recall 93.27 % < 100 %,
+  5 critical lines not exactly recognised, label accuracy 69.23 % < 100 %.
+- `clean-150dpi`: CER 2.21 % (inside its 8 % ceiling) but special recall 93.27 %
+  and 4 critical lines unresolved keep it FAIL; `clean-300dpi`: same at 2.27 % /
+  92.31 %.
+- Special characters (`ß`/`ẞ`→`B`, `m³`→`m²`, `§`→`S`, ASCII-folded punctuation)
+  remain a bundled-ML-Kit Latin model limit. A fix would need a different engine
+  or character-substitution post-processing, both forbidden here, so they stay
+  FAIL as measured.
+
+**Correction-2 artifacts.**
+
+| Artifact | Path | Bytes | SHA-256 |
+| --- | --- | ---: | --- |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/host-jvm-skew-red.log` | 22585 | `a6ace6f9e9a5ad33e9b1dc5ebb6f46a492578a4ecd7961e13f6d778dc47848b1` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/host-jvm-skew-green.log` | 17839 | `e29d478331dc199ad5774356280218d25759a743b83be5d630e7a0e1e816f73e` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/t263-report.md` | 11934 | `82be2bc9f7cee5b320c16b265b601202b22665baab98d48ffd9f149ff95badb4` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/t263-report.json` | 108234 | `a09f9fbddf19c007aba7fe0fa106b5cad437a91fadbc97b54c39dc07bb4ec709` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/t263-run-emulator.json` | 174866 | `2d1f38ca46dddcab7de7e911712c10ea7bbe03f78feea9a16b0c3b32ffd9227f` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/t263-run-injected.json` | 347991 | `e3dfff338d8d6427696fbbb77e635f89638df740a6fd9049164cebbdd8ecf0df` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/metrics-emulator.log` | 715 | `db0dbb65452fbb2a878be520516588c7dc23bf779866dac8c8d45eaf9f8e4c6f` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/marker-sequence.txt` | 530 | `624f5e7ca6678036b833855a174ca724caf4090cb7c0e901688f59cf39672441` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/device-identity.txt` | 298 | `265c299fe643739f0c63d2fc73f638d221a7aa9322b021641ab53bc0fedbbf56` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/git-identity.txt` | 771 | `04d83eddc026474edb84652c027589016ccd8caaadbbeb6f8e7406b82bf2893f` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/orca-emulator-devices.json` | 2151 | `3ac64d4e93ab2258fd006a98d9b4f60760f6bfd7b4fc17cfc372ee15ebbdbc79` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/orca-emulator-sessions.json` | 484 | `0040ae70cc95df319e96d81c87b7046d8a1f46dfa34a8a6e4e51a185ab783b25` |
+
 ## 6. Performance
 
 No performance claim.
@@ -294,9 +373,11 @@ No performance claim.
 - The semantic label/type weakness in §5.4 is a measured product observation. It
   was **not** fixed here (no production change): T263 qualifies, it does not
   repair `AnalyzeDocument`, and issue #264 owns the inventory/adaptive work.
-- The correction-1 label/type fix is host-verified only (RED/GREEN in
-  `2026-11-22-t263-evidence.md`); there is no post-fix emulator run, because the
-  Orca allocation gate did not respond. §5 keeps the pre-fix numbers.
+- §5.1–§5.6 are the pre-fix run at commit `40a4260`; §5.8 is the correction-2
+  run at the correction candidate and supersedes them for current status. The
+  correction-1 label/type fix and the correction-2 deskew stage are both
+  measured on device in §5.8; the host JVM and Dart RED/GREEN logs are in
+  `2026-11-22-t263-evidence.md` and §5.8.
 - Not run here: `DEVICE` acceptance, TalkBack/accessibility, browser
   (`flutter test --platform chrome`) suites, character-faithful PDF export (no
   field-to-PDF renderer exists yet), and any `corpus-1.0.0` /
