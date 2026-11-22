@@ -406,7 +406,10 @@ void main() {
       expect(first.mark.sha256, alpha.sha256);
       expect(second.mark.sha256, beta.sha256);
       expect(first.mark.sha256, isNot(second.mark.sha256));
-      expect(first.content.signatures.containsKey(_fieldOtherSignature), isTrue);
+      expect(
+        first.content.signatures.containsKey(_fieldOtherSignature),
+        isTrue,
+      );
       // The first receipt still describes only its own field and asset.
       expect(first.content.signatures[_fieldSignature]!.assetId, _assetId);
       expect(

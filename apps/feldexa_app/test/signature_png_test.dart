@@ -44,7 +44,9 @@ SignatureDraft _draft({
 }
 
 void main() {
-  testWidgets('encodes a real PNG at the drawn size', (WidgetTester tester) async {
+  testWidgets('encodes a real PNG at the drawn size', (
+    WidgetTester tester,
+  ) async {
     final SignatureDraft draft = _draft(
       canvas: const Size(300, 120),
       strokes: <List<Offset>>[
@@ -165,7 +167,9 @@ void main() {
     expect(other!.bytes, isNot(orderedEquals(first.bytes)));
   });
 
-  testWidgets('an unusable canvas yields no image', (WidgetTester tester) async {
+  testWidgets('an unusable canvas yields no image', (
+    WidgetTester tester,
+  ) async {
     expect(
       await tester.runAsync<SignaturePng?>(
         () => encodeSignaturePng(

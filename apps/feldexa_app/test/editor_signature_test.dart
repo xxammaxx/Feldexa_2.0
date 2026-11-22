@@ -233,19 +233,14 @@ ImportedSource _source() {
 /// In-memory encrypted-store stand-in that verifies the signature digest the
 /// same way the Android adapter does before it accepts a write.
 final class _FakeStore implements SecureStorePort {
-  _FakeStore({
-    required this.loaded,
-    this.saveError,
-    this.signatureError,
-  });
+  _FakeStore({required this.loaded, this.saveError, this.signatureError});
 
   LoadedDocument loaded;
   final Object? saveError;
   final Object? signatureError;
   final List<SaveRevisionRequest> saves = <SaveRevisionRequest>[];
   final List<String?> savedHeads = <String?>[];
-  final List<WriteSignatureRequest> signatureWrites =
-      <WriteSignatureRequest>[];
+  final List<WriteSignatureRequest> signatureWrites = <WriteSignatureRequest>[];
   final Map<String, Uint8List> assets = <String, Uint8List>{};
 
   @override
@@ -303,9 +298,7 @@ final class _FakeStore implements SecureStorePort {
       throw signatureError!;
     }
     // Fail closed exactly like the reverse-verified Android channel.
-    final String digest = crypto.sha256
-        .convert(request.bytes)
-        .toString();
+    final String digest = crypto.sha256.convert(request.bytes).toString();
     if (digest != request.sha256) {
       throw const FormatException('Signature write is not verified');
     }
@@ -570,9 +563,13 @@ void main() {
     WidgetTester tester,
   ) async {
     final _FakeStore store = _FakeStore(
-      loaded: _loaded(content: _content(unknownFields: <String, Object?>{
-        'laterField': <String, Object?>{'enabled': true},
-      })),
+      loaded: _loaded(
+        content: _content(
+          unknownFields: <String, Object?>{
+            'laterField': <String, Object?>{'enabled': true},
+          },
+        ),
+      ),
     );
     final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
     await _pumpEditor(tester, runtime: runtime);
@@ -682,16 +679,15 @@ void main() {
     // that has no in-memory document state at all.
     final _FakeStore reopenedStore = _FakeStore(loaded: store.loaded)
       ..assets.addAll(store.assets);
-    final _FakeEditorRuntime reopenedRuntime = _FakeEditorRuntime(reopenedStore);
+    final _FakeEditorRuntime reopenedRuntime = _FakeEditorRuntime(
+      reopenedStore,
+    );
     await _pumpEditor(tester, runtime: reopenedRuntime);
     final EditorScreenState reopened = _state(tester);
 
     final core.FieldValue? value = reopened.content!.values[_signatureFieldId];
     expect(value, isA<core.SignatureValue>());
-    expect(
-      (value! as core.SignatureValue).signatureAssetId,
-      assetId,
-    );
+    expect((value! as core.SignatureValue).signatureAssetId, assetId);
     expect(reopened.content!.signatures[_signatureFieldId]!.assetId, assetId);
     final Uint8List readBack = await reopenedStore.readSignature(
       _documentId,
@@ -773,10 +769,7 @@ void main() {
     expect(state.content, same(before));
     expect(find.byKey(fieldValueSheetKey), findsOneWidget);
     expect(find.byType(SignatureSheet), findsNothing);
-    expect(
-      state.durabilityStatus,
-      isA<core.SaveFailedDurabilityStatus>(),
-    );
+    expect(state.durabilityStatus, isA<core.SaveFailedDurabilityStatus>());
     final String? message = tester
         .widget<Text>(find.byKey(fieldValueErrorKey))
         .data;
@@ -811,10 +804,7 @@ void main() {
     // The asset is unreferenced: no stored mark or value names it.
     expect(state.content!.signatures, isEmpty);
     expect(state.content, same(before));
-    expect(
-      state.content!.values.containsKey(_signatureFieldId),
-      isFalse,
-    );
+    expect(state.content!.values.containsKey(_signatureFieldId), isFalse);
     expect(find.byKey(fieldValueSheetKey), findsOneWidget);
     expect(state.durabilityStatus, isA<core.SaveFailedDurabilityStatus>());
     expect(state.headRevisionId, _revisionId);
@@ -843,11 +833,7 @@ void main() {
     // field can carry ink, so the document keeps exactly one mark.
     runtime.fakeClock.now = _savedAt.add(const Duration(minutes: 1));
     await tester.tapAt(
-      _screenPoint(
-        tester,
-        state,
-        core.Rect.fromLTWH(40, _textTop, 100, 30),
-      ),
+      _screenPoint(tester, state, core.Rect.fromLTWH(40, _textTop, 100, 30)),
     );
     await tester.pumpAndSettle();
     expect(find.byKey(fieldValueSheetKey), findsOneWidget);
@@ -922,9 +908,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(store.saves, hasLength(1));
-    final core.Rect moved = state.content!.fields.firstWhere(
-      (core.ConfirmedField field) => field.id == _signatureFieldId,
-    ).rect;
+    final core.Rect moved = state.content!.fields
+        .firstWhere(
+          (core.ConfirmedField field) => field.id == _signatureFieldId,
+        )
+        .rect;
     expect(moved.left, closeTo(_signatureLeft + 60 / scale + 24, 1e-6));
     expect(
       moved.top,
@@ -950,9 +938,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(store.saves, hasLength(2));
-    final core.Rect resized = state.content!.fields.firstWhere(
-      (core.ConfirmedField field) => field.id == _signatureFieldId,
-    ).rect;
+    final core.Rect resized = state.content!.fields
+        .firstWhere(
+          (core.ConfirmedField field) => field.id == _signatureFieldId,
+        )
+        .rect;
     expect(resized.width, greaterThan(moved.width));
     expect(resized.height, greaterThan(moved.height));
     expect(resized.left, closeTo(moved.left, 1e-6));
@@ -963,9 +953,11 @@ void main() {
     await tester.tap(find.byKey(const ValueKey<String>(undoReviewKey)));
     await tester.pumpAndSettle();
     expect(store.saves, hasLength(3));
-    final core.Rect restored = state.content!.fields.firstWhere(
-      (core.ConfirmedField field) => field.id == _signatureFieldId,
-    ).rect;
+    final core.Rect restored = state.content!.fields
+        .firstWhere(
+          (core.ConfirmedField field) => field.id == _signatureFieldId,
+        )
+        .rect;
     expect(restored.left, closeTo(moved.left, 1e-6));
     expect(restored.top, closeTo(moved.top, 1e-6));
     expect(restored.width, closeTo(moved.width, 1e-6));

@@ -824,9 +824,11 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(48),
               ),
-              onPressed: _busy ? null : () {
-                unawaited(_captureSignature());
-              },
+              onPressed: _busy
+                  ? null
+                  : () {
+                      unawaited(_captureSignature());
+                    },
               icon: const Icon(Icons.draw_outlined),
               label: Text(l10n.fillAction, textAlign: TextAlign.center),
             ),

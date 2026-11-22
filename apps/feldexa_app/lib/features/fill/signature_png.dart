@@ -132,11 +132,7 @@ void _paintStrokes(Canvas canvas, List<SignatureStroke> strokes, Color color) {
       continue;
     }
     if (points.length == 1) {
-      canvas.drawCircle(
-        points.single,
-        signaturePngStrokeWidth / 2,
-        dotPaint,
-      );
+      canvas.drawCircle(points.single, signaturePngStrokeWidth / 2, dotPaint);
       continue;
     }
     final Path path = Path()..moveTo(points.first.dx, points.first.dy);
