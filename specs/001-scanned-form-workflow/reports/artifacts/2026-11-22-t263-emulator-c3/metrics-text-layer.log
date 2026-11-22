@@ -1,0 +1,10 @@
+wrote /tmp/feldexa-t263-run.xi2Q7f/t263-text-layer-run.json (42 lines)
+wrote /tmp/feldexa-t263-run.xi2Q7f/t263-text-layer-report.json (overall verdict FAIL)
+control text-layer (TEXT_LAYER): PASS CER 0.00%
+variant clean-200dpi (EMULATOR): NOT_RUN
+variant clean-150dpi (EMULATOR): NOT_RUN
+variant clean-300dpi (EMULATOR): NOT_RUN
+variant scan-150dpi-low-contrast (EMULATOR_INJECTED_RASTER): NOT_RUN
+variant scan-200dpi-shadow (EMULATOR_INJECTED_RASTER): NOT_RUN
+variant scan-200dpi-skew-3deg (EMULATOR_INJECTED_RASTER): NOT_RUN
+variant scan-200dpi-jpeg-q35 (EMULATOR_INJECTED_RASTER): NOT_RUN

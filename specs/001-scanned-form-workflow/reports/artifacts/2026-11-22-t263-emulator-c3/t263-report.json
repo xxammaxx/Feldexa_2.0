@@ -1,0 +1,3960 @@
+{
+  "schemaVersion": 1,
+  "suiteId": "de-ocr-1.0.0",
+  "fixtureId": "sf-005",
+  "fixtureSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+  "generatedAtUtc": "2026-11-22T17:11:06.349354Z",
+  "metricDefinitionVersion": "metric-definition.v1",
+  "rawComparisonNormalization": "none",
+  "requireDeviceEvidence": true,
+  "overallVerdict": "FAIL",
+  "overallReasons": [
+    "reference variant clean-200dpi is FAIL: CER 2.33% exceeds the pre-declared ceiling 2.00%; special-character recall 93.27% is below the pre-declared floor 100.00%; 5 critical line(s) are not exactly recognised; 1 reference field(s) have no credible label; uncertainty is kept instead of forcing a type; label accuracy 76.92% on the reference variant is not 100 %"
+  ],
+  "runs": [
+    {
+      "path": "/tmp/feldexa-t263-run.xi2Q7f/pulled/t263-run-emulator.json",
+      "evidenceClass": "EMULATOR",
+      "engine": "mlkit-latin-bundled-v1",
+      "fixtureSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+      "runner": {
+        "kind": "android-integration-test",
+        "test": "integration_test/android_de_ocr_test.dart",
+        "device": "sdk_gphone64_x86_64-userdebug 15 AE3A.240806.043 12960925 dev-keys"
+      },
+      "generatedAtUtc": "2026-11-22T17:10:53.810653Z",
+      "deviceEvidence": true
+    },
+    {
+      "path": "/tmp/feldexa-t263-run.xi2Q7f/pulled/t263-run-injected.json",
+      "evidenceClass": "EMULATOR_INJECTED_RASTER",
+      "engine": "mlkit-latin-bundled-v1",
+      "fixtureSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+      "runner": {
+        "kind": "android-integration-test",
+        "test": "integration_test/android_de_ocr_test.dart",
+        "device": "sdk_gphone64_x86_64-userdebug 15 AE3A.240806.043 12960925 dev-keys"
+      },
+      "generatedAtUtc": "2026-11-22T17:10:53.876100Z",
+      "deviceEvidence": false
+    }
+  ],
+  "variants": [
+    {
+      "id": "clean-200dpi",
+      "evidenceClass": "EMULATOR",
+      "description": "Clean reference render at the fixed 200 DPI analysis scale over the production raster and OCR ports; this is the reference variant for both raw text and semantic assignment.",
+      "status": "FAIL",
+      "statusReasons": [
+        "CER 2.33% exceeds the pre-declared ceiling 2.00%",
+        "special-character recall 93.27% is below the pre-declared floor 100.00%",
+        "5 critical line(s) are not exactly recognised",
+        "1 reference field(s) have no credible label; uncertainty is kept instead of forcing a type",
+        "label accuracy 76.92% on the reference variant is not 100 %"
+      ],
+      "raster": {
+        "source": "production-raster-port",
+        "dpi": 200,
+        "degradations": []
+      },
+      "timings": {
+        "rasterMs-0": 2273,
+        "ocrMs-0": 7701,
+        "rasterMs-1": 106,
+        "ocrMs-1": 5902
+      },
+      "raw": {
+        "groundTruthLines": 51,
+        "ocrLines": 51,
+        "associatedLines": 51,
+        "exactLines": 39,
+        "groundTruthCodePoints": 1673,
+        "ocrCodePoints": 1660,
+        "substitutions": 18,
+        "deletions": 17,
+        "insertions": 4,
+        "cer": 0.0233,
+        "criticalLines": 14,
+        "criticalExact": 9,
+        "criticalUnresolved": [
+          {
+            "lineId": "p0-l07",
+            "expected": "Ä Ö Ü ä ö ü ß ẞ",
+            "observed": "ÄÖüä ö üßB",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l08",
+            "expected": "Ärger Öffnung Übung Äußerst",
+            "observed": "Ärger Öffnung Übung Ảußerst",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l12",
+            "expected": "Gebühr: 12,50 € · Fläche: 45 m² · Raum: 7 m³",
+            "observed": "Gebühr: 12,50 €· Fläche: 45 m² Raum: 7 m",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l13",
+            "expected": "„Deutsch“ – Gedankenstrich — Auslassung … § 5",
+            "observed": "„Deutsch\" - Gedankenstrich– Auslassung ... S5",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l22",
+            "expected": "Zeichen: ẞ ß Ä Ö Ü ä ö ü € m² m³",
+            "observed": "Zeichen: BBÄÖÜä ö ü € m² m²",
+            "exact": false
+          }
+        ],
+        "specialCharacters": [
+          {
+            "character": "Ä",
+            "codePoint": "U+00C4",
+            "truePositives": 9,
+            "falsePositives": 0,
+            "falseNegatives": 1,
+            "precision": 1.0,
+            "recall": 0.9
+          },
+          {
+            "character": "Ö",
+            "codePoint": "U+00D6",
+            "truePositives": 6,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "Ü",
+            "codePoint": "U+00DC",
+            "truePositives": 6,
+            "falsePositives": 0,
+            "falseNegatives": 1,
+            "precision": 1.0,
+            "recall": 0.8571
+          },
+          {
+            "character": "ä",
+            "codePoint": "U+00E4",
+            "truePositives": 21,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "ö",
+            "codePoint": "U+00F6",
+            "truePositives": 11,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "ü",
+            "codePoint": "U+00FC",
+            "truePositives": 21,
+            "falsePositives": 1,
+            "falseNegatives": 0,
+            "precision": 0.9545,
+            "recall": 1.0
+          },
+          {
+            "character": "ß",
+            "codePoint": "U+00DF",
+            "truePositives": 17,
+            "falsePositives": 0,
+            "falseNegatives": 1,
+            "precision": 1.0,
+            "recall": 0.9444
+          },
+          {
+            "character": "ẞ",
+            "codePoint": "U+1E9E",
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 2,
+            "precision": 0.0,
+            "recall": 0.0
+          },
+          {
+            "character": "€",
+            "codePoint": "U+20AC",
+            "truePositives": 3,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "²",
+            "codePoint": "U+00B2",
+            "truePositives": 3,
+            "falsePositives": 1,
+            "falseNegatives": 0,
+            "precision": 0.75,
+            "recall": 1.0
+          },
+          {
+            "character": "³",
+            "codePoint": "U+00B3",
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 2,
+            "precision": 0.0,
+            "recall": 0.0
+          }
+        ],
+        "specialCharacterPrecision": 0.9798,
+        "specialCharacterRecall": 0.9327,
+        "confusionMatrix": [
+          {
+            "expected": " ",
+            "observed": null,
+            "kind": "deletion",
+            "count": 11
+          },
+          {
+            "expected": "–",
+            "observed": "-",
+            "kind": "substitution",
+            "count": 7
+          },
+          {
+            "expected": "J",
+            "observed": null,
+            "kind": "deletion",
+            "count": 2
+          },
+          {
+            "expected": " ",
+            "observed": ".",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": " ",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": " ",
+            "observed": "ü",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": null,
+            "observed": " ",
+            "kind": "insertion",
+            "count": 1
+          },
+          {
+            "expected": null,
+            "observed": "D",
+            "kind": "insertion",
+            "count": 1
+          },
+          {
+            "expected": null,
+            "observed": "S",
+            "kind": "insertion",
+            "count": 1
+          },
+          {
+            "expected": null,
+            "observed": "n",
+            "kind": "insertion",
+            "count": 1
+          },
+          {
+            "expected": "§",
+            "observed": ".",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "³",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "³",
+            "observed": "²",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "·",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "Ä",
+            "observed": "Ả",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "Ü",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "ß",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "ẞ",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "ẞ",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "—",
+            "observed": "–",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "“",
+            "observed": "\"",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "…",
+            "observed": ".",
+            "kind": "substitution",
+            "count": 1
+          }
+        ],
+        "unicode": {
+          "nfcExactLines": 39,
+          "nfdFormLines": 0,
+          "combiningMarkLines": 0,
+          "missingUmlautDots": 0,
+          "sharpSAsCapitalB": 1,
+          "asciiFoldedLines": 0,
+          "caseChangedLines": 0
+        }
+      },
+      "semantic": {
+        "groundTruthFields": 13,
+        "recordedSuggestions": 73,
+        "truePositives": 13,
+        "falsePositives": 60,
+        "falseNegatives": 0,
+        "precision": 0.1781,
+        "recall": 1.0,
+        "typeAccuracy": 0.2308,
+        "labelAccuracy": 0.7692,
+        "unresolvedLabels": 1,
+        "meanFieldIoU": 0.9369,
+        "meanLabelIoU": 0.7058,
+        "forcedTypeViolations": 0,
+        "nonVerbatimLabels": 0,
+        "nonVerbatimNotComparable": 0,
+        "autoResolvedSuggestions": 0,
+        "fields": [
+          {
+            "id": "p1-strasse",
+            "expectedType": "text",
+            "expectedLabel": "Straße und Hausnummer",
+            "observedType": "multiline",
+            "observedLabel": "Straße und Hausnummner",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.7079,
+            "status": "wrong_label",
+            "reason": "label text differs from the ground truth"
+          },
+          {
+            "id": "p1-groesse",
+            "expectedType": "number",
+            "expectedLabel": "Größe in cm",
+            "observedType": "multiline",
+            "observedLabel": "Größe in cm",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6916,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-gebuhr",
+            "expectedType": "number",
+            "expectedLabel": "Gebühr in €",
+            "observedType": "multiline",
+            "observedLabel": "Gebühr in €",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6916,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-geschaeftszeichen",
+            "expectedType": "text",
+            "expectedLabel": "Geschäftszeichen",
+            "observedType": "multiline",
+            "observedLabel": "Geschäftszeichen",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6148,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-staatsangehoerigkeit",
+            "expectedType": "text",
+            "expectedLabel": "Staatsangehörigkeit",
+            "observedType": "multiline",
+            "observedLabel": "Staatsangehörigkeit",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.8343,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-ueberweisung",
+            "expectedType": "text",
+            "expectedLabel": "Überweisung an",
+            "observedType": "multiline",
+            "observedLabel": "Überweisung an",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.7721,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-antraege",
+            "expectedType": "text",
+            "expectedLabel": "Anträge vom",
+            "observedType": "multiline",
+            "observedLabel": "Anträge vom",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.8254,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-familienname",
+            "expectedType": "text",
+            "expectedLabel": "Familienname",
+            "observedType": "multiline",
+            "observedLabel": "Familienname",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.7134,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-vorname",
+            "expectedType": "text",
+            "expectedLabel": "Vorname",
+            "observedType": "multiline",
+            "observedLabel": "Vorname",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.5887,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-geburtsdatum",
+            "expectedType": "date",
+            "expectedLabel": "Geburtsdatum",
+            "observedType": "date",
+            "observedLabel": "Geburtsdatum",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6172,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-erklaerung",
+            "expectedType": "multiline",
+            "expectedLabel": "Erklärung und Äußerung",
+            "observedType": "multiline",
+            "observedLabel": "Erklärung und Äußerung",
+            "fieldIoU": 0.9908,
+            "labelIoU": 0.7422,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-einverstaendnis",
+            "expectedType": "checkbox",
+            "expectedLabel": "Einverständnis erteilt",
+            "observedType": "checkbox",
+            "observedLabel": "D Einverständnis erteilt",
+            "fieldIoU": 0.8672,
+            "labelIoU": 0.7308,
+            "status": "wrong_label",
+            "reason": "label text differs from the ground truth"
+          },
+          {
+            "id": "p1-unterschrift",
+            "expectedType": "signature",
+            "expectedLabel": "Unterschrift",
+            "observedType": "multiline",
+            "observedLabel": null,
+            "fieldIoU": 0.5998,
+            "labelIoU": 0.6445,
+            "status": "unresolved",
+            "reason": "no credible label assigned; uncertainty kept"
+          }
+        ]
+      }
+    },
+    {
+      "id": "clean-150dpi",
+      "evidenceClass": "EMULATOR",
+      "description": "Raw OCR capture at 150 DPI through the production raster and OCR ports. The semantic pipeline keeps its fixed 200 DPI analysis raster, so this variant qualifies the DPI effect on raw text only.",
+      "status": "PASS",
+      "statusReasons": [],
+      "raster": {
+        "source": "production-raster-port",
+        "dpi": 150,
+        "degradations": []
+      },
+      "timings": {
+        "rasterMs-0": 84,
+        "ocrMs-0": 5929,
+        "rasterMs-1": 55,
+        "ocrMs-1": 4790
+      },
+      "raw": {
+        "groundTruthLines": 51,
+        "ocrLines": 51,
+        "associatedLines": 51,
+        "exactLines": 41,
+        "groundTruthCodePoints": 1673,
+        "ocrCodePoints": 1657,
+        "substitutions": 19,
+        "deletions": 17,
+        "insertions": 1,
+        "cer": 0.0221,
+        "criticalLines": 14,
+        "criticalExact": 9,
+        "criticalUnresolved": [
+          {
+            "lineId": "p0-l07",
+            "expected": "Ä Ö Ü ä ö ü ß ẞ",
+            "observed": "ÄÖüä ö üßB",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l12",
+            "expected": "Gebühr: 12,50 € · Fläche: 45 m² · Raum: 7 m³",
+            "observed": "Gebühr: 12,50 €· Fläche: 45 m² Raum: 7 m?",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l13",
+            "expected": "„Deutsch“ – Gedankenstrich — Auslassung … § 5",
+            "observed": "„Deutsch\" - Gedankenstrich– Auslassung ... S5",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l21",
+            "expected": "MÜLLER-GRÄBER, SCHRÖDER-WEISS, BÄUERLE, ÖHMICHEN",
+            "observed": "MÜLLER-GRÄBER, SCHRÖDER-WEISS, BÂUERLE, ÖHMICHEN",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l22",
+            "expected": "Zeichen: ẞ ß Ä Ö Ü ä ö ü € m² m³",
+            "observed": "Zeichen: BBÄÖÜä ö ü € m² m",
+            "exact": false
+          }
+        ],
+        "specialCharacters": [
+          {
+            "character": "Ä",
+            "codePoint": "U+00C4",
+            "truePositives": 9,
+            "falsePositives": 0,
+            "falseNegatives": 1,
+            "precision": 1.0,
+            "recall": 0.9
+          },
+          {
+            "character": "Ö",
+            "codePoint": "U+00D6",
+            "truePositives": 6,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "Ü",
+            "codePoint": "U+00DC",
+            "truePositives": 6,
+            "falsePositives": 0,
+            "falseNegatives": 1,
+            "precision": 1.0,
+            "recall": 0.8571
+          },
+          {
+            "character": "ä",
+            "codePoint": "U+00E4",
+            "truePositives": 21,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "ö",
+            "codePoint": "U+00F6",
+            "truePositives": 11,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "ü",
+            "codePoint": "U+00FC",
+            "truePositives": 21,
+            "falsePositives": 1,
+            "falseNegatives": 0,
+            "precision": 0.9545,
+            "recall": 1.0
+          },
+          {
+            "character": "ß",
+            "codePoint": "U+00DF",
+            "truePositives": 17,
+            "falsePositives": 0,
+            "falseNegatives": 1,
+            "precision": 1.0,
+            "recall": 0.9444
+          },
+          {
+            "character": "ẞ",
+            "codePoint": "U+1E9E",
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 2,
+            "precision": 0.0,
+            "recall": 0.0
+          },
+          {
+            "character": "€",
+            "codePoint": "U+20AC",
+            "truePositives": 3,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "²",
+            "codePoint": "U+00B2",
+            "truePositives": 3,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "³",
+            "codePoint": "U+00B3",
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 2,
+            "precision": 0.0,
+            "recall": 0.0
+          }
+        ],
+        "specialCharacterPrecision": 0.9898,
+        "specialCharacterRecall": 0.9327,
+        "confusionMatrix": [
+          {
+            "expected": " ",
+            "observed": null,
+            "kind": "deletion",
+            "count": 11
+          },
+          {
+            "expected": "–",
+            "observed": "-",
+            "kind": "substitution",
+            "count": 7
+          },
+          {
+            "expected": " ",
+            "observed": ".",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": " ",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": " ",
+            "observed": "ü",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": ".",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "J",
+            "observed": "I",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "J",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": null,
+            "observed": "S",
+            "kind": "insertion",
+            "count": 1
+          },
+          {
+            "expected": "§",
+            "observed": ".",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "³",
+            "observed": "?",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "³",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "·",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "Ä",
+            "observed": "Â",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "Ü",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "ß",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "ẞ",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "ẞ",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "—",
+            "observed": "–",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "“",
+            "observed": "\"",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "…",
+            "observed": ".",
+            "kind": "substitution",
+            "count": 1
+          }
+        ],
+        "unicode": {
+          "nfcExactLines": 41,
+          "nfdFormLines": 0,
+          "combiningMarkLines": 0,
+          "missingUmlautDots": 0,
+          "sharpSAsCapitalB": 1,
+          "asciiFoldedLines": 0,
+          "caseChangedLines": 0
+        }
+      },
+      "semantic": {
+        "groundTruthFields": 13,
+        "recordedSuggestions": 73,
+        "truePositives": 13,
+        "falsePositives": 60,
+        "falseNegatives": 0,
+        "precision": 0.1781,
+        "recall": 1.0,
+        "typeAccuracy": 0.2308,
+        "labelAccuracy": 0.7692,
+        "unresolvedLabels": 1,
+        "meanFieldIoU": 0.9369,
+        "meanLabelIoU": 0.6821,
+        "forcedTypeViolations": 0,
+        "nonVerbatimLabels": 0,
+        "nonVerbatimNotComparable": 2,
+        "autoResolvedSuggestions": 0,
+        "fields": [
+          {
+            "id": "p1-strasse",
+            "expectedType": "text",
+            "expectedLabel": "Straße und Hausnummer",
+            "observedType": "multiline",
+            "observedLabel": "Straße und Hausnummner",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.636,
+            "status": "wrong_label",
+            "reason": "label text differs from the ground truth"
+          },
+          {
+            "id": "p1-groesse",
+            "expectedType": "number",
+            "expectedLabel": "Größe in cm",
+            "observedType": "multiline",
+            "observedLabel": "Größe in cm",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6338,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-gebuhr",
+            "expectedType": "number",
+            "expectedLabel": "Gebühr in €",
+            "observedType": "multiline",
+            "observedLabel": "Gebühr in €",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6285,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-geschaeftszeichen",
+            "expectedType": "text",
+            "expectedLabel": "Geschäftszeichen",
+            "observedType": "multiline",
+            "observedLabel": "Geschäftszeichen",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6305,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-staatsangehoerigkeit",
+            "expectedType": "text",
+            "expectedLabel": "Staatsangehörigkeit",
+            "observedType": "multiline",
+            "observedLabel": "Staatsangehörigkeit",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.8358,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-ueberweisung",
+            "expectedType": "text",
+            "expectedLabel": "Überweisung an",
+            "observedType": "multiline",
+            "observedLabel": "Überweisung an",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.7631,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-antraege",
+            "expectedType": "text",
+            "expectedLabel": "Anträge vom",
+            "observedType": "multiline",
+            "observedLabel": "Anträge vom",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.7681,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-familienname",
+            "expectedType": "text",
+            "expectedLabel": "Familienname",
+            "observedType": "multiline",
+            "observedLabel": "Familienname",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6615,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-vorname",
+            "expectedType": "text",
+            "expectedLabel": "Vorname",
+            "observedType": "multiline",
+            "observedLabel": "Vorname",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.5955,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-geburtsdatum",
+            "expectedType": "date",
+            "expectedLabel": "Geburtsdatum",
+            "observedType": "date",
+            "observedLabel": "Geburtsdatum",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6751,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-erklaerung",
+            "expectedType": "multiline",
+            "expectedLabel": "Erklärung und Äußerung",
+            "observedType": "multiline",
+            "observedLabel": "Erklärung und Äußerung",
+            "fieldIoU": 0.9908,
+            "labelIoU": 0.7551,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-einverstaendnis",
+            "expectedType": "checkbox",
+            "expectedLabel": "Einverständnis erteilt",
+            "observedType": "checkbox",
+            "observedLabel": "D Einverständnis erteilt",
+            "fieldIoU": 0.8672,
+            "labelIoU": 0.6579,
+            "status": "wrong_label",
+            "reason": "label text differs from the ground truth"
+          },
+          {
+            "id": "p1-unterschrift",
+            "expectedType": "signature",
+            "expectedLabel": "Unterschrift",
+            "observedType": "multiline",
+            "observedLabel": null,
+            "fieldIoU": 0.5998,
+            "labelIoU": 0.6264,
+            "status": "unresolved",
+            "reason": "no credible label assigned; uncertainty kept"
+          }
+        ]
+      }
+    },
+    {
+      "id": "clean-300dpi",
+      "evidenceClass": "EMULATOR",
+      "description": "Raw OCR capture at 300 DPI through the production raster and OCR ports. The semantic pipeline keeps its fixed 200 DPI analysis raster, so this variant qualifies the DPI effect on raw text only.",
+      "status": "PASS",
+      "statusReasons": [],
+      "raster": {
+        "source": "production-raster-port",
+        "dpi": 300,
+        "degradations": []
+      },
+      "timings": {
+        "rasterMs-0": 192,
+        "ocrMs-0": 6505,
+        "rasterMs-1": 171,
+        "ocrMs-1": 5006
+      },
+      "raw": {
+        "groundTruthLines": 51,
+        "ocrLines": 51,
+        "associatedLines": 51,
+        "exactLines": 40,
+        "groundTruthCodePoints": 1673,
+        "ocrCodePoints": 1656,
+        "substitutions": 19,
+        "deletions": 18,
+        "insertions": 1,
+        "cer": 0.0227,
+        "criticalLines": 14,
+        "criticalExact": 8,
+        "criticalUnresolved": [
+          {
+            "lineId": "p0-l07",
+            "expected": "Ä Ö Ü ä ö ü ß ẞ",
+            "observed": "Ä Öüäö üßB",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l08",
+            "expected": "Ärger Öffnung Übung Äußerst",
+            "observed": "Ärger Öfnung Übung Äußerst",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l12",
+            "expected": "Gebühr: 12,50 € · Fläche: 45 m² · Raum: 7 m³",
+            "observed": "Gebühr: 12,50 € · Fläche: 45 m² Raum: 7 m²",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l13",
+            "expected": "„Deutsch“ – Gedankenstrich — Auslassung … § 5",
+            "observed": "„Deutsch\" - Gedankenstrich - Auslassung ... S5",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l22",
+            "expected": "Zeichen: ẞ ß Ä Ö Ü ä ö ü € m² m³",
+            "observed": "Zeichen: BBÄÖÜ ä ö ü € m m",
+            "exact": false
+          },
+          {
+            "lineId": "p1-l23",
+            "expected": "Beispiel: Müller-Gräber, Äußere Straße 12, 8 m²",
+            "observed": "Beispiel: Müller-Gräber, Äußere Straße 12, 8 m?",
+            "exact": false
+          }
+        ],
+        "specialCharacters": [
+          {
+            "character": "Ä",
+            "codePoint": "U+00C4",
+            "truePositives": 10,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "Ö",
+            "codePoint": "U+00D6",
+            "truePositives": 6,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "Ü",
+            "codePoint": "U+00DC",
+            "truePositives": 6,
+            "falsePositives": 0,
+            "falseNegatives": 1,
+            "precision": 1.0,
+            "recall": 0.8571
+          },
+          {
+            "character": "ä",
+            "codePoint": "U+00E4",
+            "truePositives": 21,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "ö",
+            "codePoint": "U+00F6",
+            "truePositives": 11,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "ü",
+            "codePoint": "U+00FC",
+            "truePositives": 21,
+            "falsePositives": 1,
+            "falseNegatives": 0,
+            "precision": 0.9545,
+            "recall": 1.0
+          },
+          {
+            "character": "ß",
+            "codePoint": "U+00DF",
+            "truePositives": 17,
+            "falsePositives": 0,
+            "falseNegatives": 1,
+            "precision": 1.0,
+            "recall": 0.9444
+          },
+          {
+            "character": "ẞ",
+            "codePoint": "U+1E9E",
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 2,
+            "precision": 0.0,
+            "recall": 0.0
+          },
+          {
+            "character": "€",
+            "codePoint": "U+20AC",
+            "truePositives": 3,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "²",
+            "codePoint": "U+00B2",
+            "truePositives": 1,
+            "falsePositives": 1,
+            "falseNegatives": 2,
+            "precision": 0.5,
+            "recall": 0.3333
+          },
+          {
+            "character": "³",
+            "codePoint": "U+00B3",
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 2,
+            "precision": 0.0,
+            "recall": 0.0
+          }
+        ],
+        "specialCharacterPrecision": 0.9796,
+        "specialCharacterRecall": 0.9231,
+        "confusionMatrix": [
+          {
+            "expected": " ",
+            "observed": null,
+            "kind": "deletion",
+            "count": 10
+          },
+          {
+            "expected": "–",
+            "observed": "-",
+            "kind": "substitution",
+            "count": 7
+          },
+          {
+            "expected": "J",
+            "observed": null,
+            "kind": "deletion",
+            "count": 2
+          },
+          {
+            "expected": " ",
+            "observed": ".",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": " ",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": " ",
+            "observed": "ü",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "J",
+            "observed": ")",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "f",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": null,
+            "observed": "S",
+            "kind": "insertion",
+            "count": 1
+          },
+          {
+            "expected": "§",
+            "observed": ".",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "²",
+            "observed": "?",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "²",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "³",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "³",
+            "observed": "²",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "·",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "Ü",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "ß",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "ẞ",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "ẞ",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "—",
+            "observed": "-",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "“",
+            "observed": "\"",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "…",
+            "observed": ".",
+            "kind": "substitution",
+            "count": 1
+          }
+        ],
+        "unicode": {
+          "nfcExactLines": 40,
+          "nfdFormLines": 0,
+          "combiningMarkLines": 0,
+          "missingUmlautDots": 0,
+          "sharpSAsCapitalB": 1,
+          "asciiFoldedLines": 0,
+          "caseChangedLines": 0
+        }
+      },
+      "semantic": {
+        "groundTruthFields": 13,
+        "recordedSuggestions": 73,
+        "truePositives": 13,
+        "falsePositives": 60,
+        "falseNegatives": 0,
+        "precision": 0.1781,
+        "recall": 1.0,
+        "typeAccuracy": 0.2308,
+        "labelAccuracy": 0.7692,
+        "unresolvedLabels": 1,
+        "meanFieldIoU": 0.9369,
+        "meanLabelIoU": 0.7177,
+        "forcedTypeViolations": 0,
+        "nonVerbatimLabels": 0,
+        "nonVerbatimNotComparable": 2,
+        "autoResolvedSuggestions": 0,
+        "fields": [
+          {
+            "id": "p1-strasse",
+            "expectedType": "text",
+            "expectedLabel": "Straße und Hausnummer",
+            "observedType": "multiline",
+            "observedLabel": "Straße und Hausnummner",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.7792,
+            "status": "wrong_label",
+            "reason": "label text differs from the ground truth"
+          },
+          {
+            "id": "p1-groesse",
+            "expectedType": "number",
+            "expectedLabel": "Größe in cm",
+            "observedType": "multiline",
+            "observedLabel": "Größe in cm",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.7105,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-gebuhr",
+            "expectedType": "number",
+            "expectedLabel": "Gebühr in €",
+            "observedType": "multiline",
+            "observedLabel": "Gebühr in €",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6313,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-geschaeftszeichen",
+            "expectedType": "text",
+            "expectedLabel": "Geschäftszeichen",
+            "observedType": "multiline",
+            "observedLabel": "Geschäftszeichen",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6894,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-staatsangehoerigkeit",
+            "expectedType": "text",
+            "expectedLabel": "Staatsangehörigkeit",
+            "observedType": "multiline",
+            "observedLabel": "Staatsangehörigkeit",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.8337,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-ueberweisung",
+            "expectedType": "text",
+            "expectedLabel": "Überweisung an",
+            "observedType": "multiline",
+            "observedLabel": "Überweisung an",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.7947,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-antraege",
+            "expectedType": "text",
+            "expectedLabel": "Anträge vom",
+            "observedType": "multiline",
+            "observedLabel": "Anträge vom",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.8475,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-familienname",
+            "expectedType": "text",
+            "expectedLabel": "Familienname",
+            "observedType": "multiline",
+            "observedLabel": "Familienname",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6914,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-vorname",
+            "expectedType": "text",
+            "expectedLabel": "Vorname",
+            "observedType": "multiline",
+            "observedLabel": "Vorname",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6648,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-geburtsdatum",
+            "expectedType": "date",
+            "expectedLabel": "Geburtsdatum",
+            "observedType": "date",
+            "observedLabel": "Geburtsdatum",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6285,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-erklaerung",
+            "expectedType": "multiline",
+            "expectedLabel": "Erklärung und Äußerung",
+            "observedType": "multiline",
+            "observedLabel": "Erklärung und Äußerung",
+            "fieldIoU": 0.9908,
+            "labelIoU": 0.7676,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-einverstaendnis",
+            "expectedType": "checkbox",
+            "expectedLabel": "Einverständnis erteilt",
+            "observedType": "checkbox",
+            "observedLabel": "D Einverständnis erteilt",
+            "fieldIoU": 0.8672,
+            "labelIoU": 0.6651,
+            "status": "wrong_label",
+            "reason": "label text differs from the ground truth"
+          },
+          {
+            "id": "p1-unterschrift",
+            "expectedType": "signature",
+            "expectedLabel": "Unterschrift",
+            "observedType": "multiline",
+            "observedLabel": null,
+            "fieldIoU": 0.5998,
+            "labelIoU": 0.6264,
+            "status": "unresolved",
+            "reason": "no credible label assigned; uncertainty kept"
+          }
+        ]
+      }
+    },
+    {
+      "id": "scan-150dpi-low-contrast",
+      "evidenceClass": "EMULATOR_INJECTED_RASTER",
+      "description": "150 DPI scan with reduced contrast and a light gray wash.",
+      "status": "PASS",
+      "statusReasons": [],
+      "raster": {
+        "source": "injected-scan-simulation",
+        "dpi": 150,
+        "degradations": [
+          "low-contrast"
+        ]
+      },
+      "timings": {
+        "rasterMs-0": 0,
+        "ocrMs-0": 5983,
+        "rasterMs-1": 0,
+        "ocrMs-1": 4688
+      },
+      "raw": {
+        "groundTruthLines": 51,
+        "ocrLines": 51,
+        "associatedLines": 51,
+        "exactLines": 42,
+        "groundTruthCodePoints": 1673,
+        "ocrCodePoints": 1657,
+        "substitutions": 21,
+        "deletions": 16,
+        "insertions": 0,
+        "cer": 0.0221,
+        "criticalLines": 14,
+        "criticalExact": 10,
+        "criticalUnresolved": [
+          {
+            "lineId": "p0-l07",
+            "expected": "Ä Ö Ü ä ö ü ß ẞ",
+            "observed": "ÄÖÜä ö üßB",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l12",
+            "expected": "Gebühr: 12,50 € · Fläche: 45 m² · Raum: 7 m³",
+            "observed": "Gebühr: 12,50 €· Fläche: 45 m² Raum: 7 m²",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l13",
+            "expected": "„Deutsch“ – Gedankenstrich — Auslassung … § 5",
+            "observed": "„Deutsch\" - Gedankenstrich– Auslassung... S5",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l22",
+            "expected": "Zeichen: ẞ ß Ä Ö Ü ä ö ü € m² m³",
+            "observed": "Zeichen: BBÄÖÜä ö ü€ m² m³",
+            "exact": false
+          }
+        ],
+        "specialCharacters": [
+          {
+            "character": "Ä",
+            "codePoint": "U+00C4",
+            "truePositives": 10,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "Ö",
+            "codePoint": "U+00D6",
+            "truePositives": 6,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "Ü",
+            "codePoint": "U+00DC",
+            "truePositives": 7,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "ä",
+            "codePoint": "U+00E4",
+            "truePositives": 21,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "ö",
+            "codePoint": "U+00F6",
+            "truePositives": 11,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "ü",
+            "codePoint": "U+00FC",
+            "truePositives": 21,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "ß",
+            "codePoint": "U+00DF",
+            "truePositives": 17,
+            "falsePositives": 0,
+            "falseNegatives": 1,
+            "precision": 1.0,
+            "recall": 0.9444
+          },
+          {
+            "character": "ẞ",
+            "codePoint": "U+1E9E",
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 2,
+            "precision": 0.0,
+            "recall": 0.0
+          },
+          {
+            "character": "€",
+            "codePoint": "U+20AC",
+            "truePositives": 3,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "²",
+            "codePoint": "U+00B2",
+            "truePositives": 3,
+            "falsePositives": 1,
+            "falseNegatives": 0,
+            "precision": 0.75,
+            "recall": 1.0
+          },
+          {
+            "character": "³",
+            "codePoint": "U+00B3",
+            "truePositives": 1,
+            "falsePositives": 0,
+            "falseNegatives": 1,
+            "precision": 1.0,
+            "recall": 0.5
+          }
+        ],
+        "specialCharacterPrecision": 0.9901,
+        "specialCharacterRecall": 0.9615,
+        "confusionMatrix": [
+          {
+            "expected": " ",
+            "observed": null,
+            "kind": "deletion",
+            "count": 13
+          },
+          {
+            "expected": "–",
+            "observed": "-",
+            "kind": "substitution",
+            "count": 7
+          },
+          {
+            "expected": " ",
+            "observed": ".",
+            "kind": "substitution",
+            "count": 2
+          },
+          {
+            "expected": "J",
+            "observed": "I",
+            "kind": "substitution",
+            "count": 2
+          },
+          {
+            "expected": " ",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": " ",
+            "observed": "S",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": ".",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "J",
+            "observed": ")",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "§",
+            "observed": " ",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "³",
+            "observed": "²",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "·",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "ß",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "ẞ",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "ẞ",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "—",
+            "observed": "–",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "“",
+            "observed": "\"",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "…",
+            "observed": ".",
+            "kind": "substitution",
+            "count": 1
+          }
+        ],
+        "unicode": {
+          "nfcExactLines": 42,
+          "nfdFormLines": 0,
+          "combiningMarkLines": 0,
+          "missingUmlautDots": 0,
+          "sharpSAsCapitalB": 1,
+          "asciiFoldedLines": 0,
+          "caseChangedLines": 0
+        }
+      },
+      "semantic": {
+        "groundTruthFields": 13,
+        "recordedSuggestions": 51,
+        "truePositives": 13,
+        "falsePositives": 38,
+        "falseNegatives": 0,
+        "precision": 0.2549,
+        "recall": 1.0,
+        "typeAccuracy": 0.7692,
+        "labelAccuracy": 0.9231,
+        "unresolvedLabels": 1,
+        "meanFieldIoU": 0.9302,
+        "meanLabelIoU": 0.6693,
+        "forcedTypeViolations": 0,
+        "nonVerbatimLabels": 0,
+        "nonVerbatimNotComparable": 0,
+        "autoResolvedSuggestions": 0,
+        "fields": [
+          {
+            "id": "p1-strasse",
+            "expectedType": "text",
+            "expectedLabel": "Straße und Hausnummer",
+            "observedType": "text",
+            "observedLabel": "Straße und Hausnummer",
+            "fieldIoU": 0.9325,
+            "labelIoU": 0.6251,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-groesse",
+            "expectedType": "number",
+            "expectedLabel": "Größe in cm",
+            "observedType": "text",
+            "observedLabel": "Größe in cm",
+            "fieldIoU": 0.9325,
+            "labelIoU": 0.6148,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-gebuhr",
+            "expectedType": "number",
+            "expectedLabel": "Gebühr in €",
+            "observedType": "text",
+            "observedLabel": "Gebühr in €",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6197,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-geschaeftszeichen",
+            "expectedType": "text",
+            "expectedLabel": "Geschäftszeichen",
+            "observedType": "text",
+            "observedLabel": "Geschäftszeichen",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6203,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-staatsangehoerigkeit",
+            "expectedType": "text",
+            "expectedLabel": "Staatsangehörigkeit",
+            "observedType": "text",
+            "observedLabel": "Staatsangehörigkeit",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.8279,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-ueberweisung",
+            "expectedType": "text",
+            "expectedLabel": "Überweisung an",
+            "observedType": "text",
+            "observedLabel": "Überweisung an",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.7525,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-antraege",
+            "expectedType": "text",
+            "expectedLabel": "Anträge vom",
+            "observedType": "text",
+            "observedLabel": "Anträge vom",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.7703,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-familienname",
+            "expectedType": "text",
+            "expectedLabel": "Familienname",
+            "observedType": "text",
+            "observedLabel": "Familienname",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6171,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-vorname",
+            "expectedType": "text",
+            "expectedLabel": "Vorname",
+            "observedType": "text",
+            "observedLabel": "Vorname",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6181,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-geburtsdatum",
+            "expectedType": "date",
+            "expectedLabel": "Geburtsdatum",
+            "observedType": "date",
+            "observedLabel": "Geburtsdatum",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6466,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-erklaerung",
+            "expectedType": "multiline",
+            "expectedLabel": "Erklärung und Äußerung",
+            "observedType": "multiline",
+            "observedLabel": "Erklärung und Äußerung",
+            "fieldIoU": 0.9908,
+            "labelIoU": 0.7297,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-einverstaendnis",
+            "expectedType": "checkbox",
+            "expectedLabel": "Einverständnis erteilt",
+            "observedType": "checkbox",
+            "observedLabel": "Einverständnis erteilt",
+            "fieldIoU": 0.8663,
+            "labelIoU": 0.6302,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-unterschrift",
+            "expectedType": "signature",
+            "expectedLabel": "Unterschrift",
+            "observedType": "text",
+            "observedLabel": null,
+            "fieldIoU": 0.5931,
+            "labelIoU": 0.6281,
+            "status": "unresolved",
+            "reason": "no credible label assigned; uncertainty kept"
+          }
+        ]
+      }
+    },
+    {
+      "id": "scan-200dpi-shadow",
+      "evidenceClass": "EMULATOR_INJECTED_RASTER",
+      "description": "200 DPI scan with a soft page shadow in one corner.",
+      "status": "PASS",
+      "statusReasons": [],
+      "raster": {
+        "source": "injected-scan-simulation",
+        "dpi": 200,
+        "degradations": [
+          "shadow"
+        ]
+      },
+      "timings": {
+        "rasterMs-0": 0,
+        "ocrMs-0": 6159,
+        "rasterMs-1": 0,
+        "ocrMs-1": 4816
+      },
+      "raw": {
+        "groundTruthLines": 51,
+        "ocrLines": 51,
+        "associatedLines": 51,
+        "exactLines": 38,
+        "groundTruthCodePoints": 1673,
+        "ocrCodePoints": 1652,
+        "substitutions": 21,
+        "deletions": 22,
+        "insertions": 1,
+        "cer": 0.0263,
+        "criticalLines": 14,
+        "criticalExact": 7,
+        "criticalUnresolved": [
+          {
+            "lineId": "p0-l07",
+            "expected": "Ä Ö Ü ä ö ü ß ẞ",
+            "observed": "ÄÖüäöüßB",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l08",
+            "expected": "Ärger Öffnung Übung Äußerst",
+            "observed": "Ärger Öfnung Übung Äußerst",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l10",
+            "expected": "Straße Größe Äußerung",
+            "observed": "Straße Größe Åußerung",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l12",
+            "expected": "Gebühr: 12,50 € · Fläche: 45 m² · Raum: 7 m³",
+            "observed": "Gebühr: 12,50 € Fläche: 45 m² Raum: 7 m²",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l13",
+            "expected": "„Deutsch“ – Gedankenstrich — Auslassung … § 5",
+            "observed": "„Deutsch\" - Gedankenstrich– Auslassung ... S5",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l20",
+            "expected": "Jürgen Mühlbach, Bärbel Süßbier, Käthe Gröhnert, Matthäus Ölmüller",
+            "observed": "Jürgen Mühlbach, Bärbel SüBbier, Käthe Gröhnert, Matthäus Ölmüller",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l22",
+            "expected": "Zeichen: ẞ ß Ä Ö Ü ä ö ü € m² m³",
+            "observed": "Zeichen: BBÄÖÜä ö ü€ m² m",
+            "exact": false
+          }
+        ],
+        "specialCharacters": [
+          {
+            "character": "Ä",
+            "codePoint": "U+00C4",
+            "truePositives": 9,
+            "falsePositives": 0,
+            "falseNegatives": 1,
+            "precision": 1.0,
+            "recall": 0.9
+          },
+          {
+            "character": "Ö",
+            "codePoint": "U+00D6",
+            "truePositives": 6,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "Ü",
+            "codePoint": "U+00DC",
+            "truePositives": 6,
+            "falsePositives": 0,
+            "falseNegatives": 1,
+            "precision": 1.0,
+            "recall": 0.8571
+          },
+          {
+            "character": "ä",
+            "codePoint": "U+00E4",
+            "truePositives": 21,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "ö",
+            "codePoint": "U+00F6",
+            "truePositives": 11,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "ü",
+            "codePoint": "U+00FC",
+            "truePositives": 21,
+            "falsePositives": 1,
+            "falseNegatives": 0,
+            "precision": 0.9545,
+            "recall": 1.0
+          },
+          {
+            "character": "ß",
+            "codePoint": "U+00DF",
+            "truePositives": 16,
+            "falsePositives": 0,
+            "falseNegatives": 2,
+            "precision": 1.0,
+            "recall": 0.8889
+          },
+          {
+            "character": "ẞ",
+            "codePoint": "U+1E9E",
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 2,
+            "precision": 0.0,
+            "recall": 0.0
+          },
+          {
+            "character": "€",
+            "codePoint": "U+20AC",
+            "truePositives": 3,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "²",
+            "codePoint": "U+00B2",
+            "truePositives": 3,
+            "falsePositives": 1,
+            "falseNegatives": 0,
+            "precision": 0.75,
+            "recall": 1.0
+          },
+          {
+            "character": "³",
+            "codePoint": "U+00B3",
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 2,
+            "precision": 0.0,
+            "recall": 0.0
+          }
+        ],
+        "specialCharacterPrecision": 0.9796,
+        "specialCharacterRecall": 0.9231,
+        "confusionMatrix": [
+          {
+            "expected": " ",
+            "observed": null,
+            "kind": "deletion",
+            "count": 14
+          },
+          {
+            "expected": "–",
+            "observed": "-",
+            "kind": "substitution",
+            "count": 7
+          },
+          {
+            "expected": "·",
+            "observed": null,
+            "kind": "deletion",
+            "count": 2
+          },
+          {
+            "expected": "ß",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 2
+          },
+          {
+            "expected": " ",
+            "observed": ".",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": " ",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": " ",
+            "observed": "ü",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": ".",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "J",
+            "observed": "I",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "J",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "W",
+            "observed": "w",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "f",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": null,
+            "observed": "S",
+            "kind": "insertion",
+            "count": 1
+          },
+          {
+            "expected": "§",
+            "observed": ".",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "³",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "³",
+            "observed": "²",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "Ä",
+            "observed": "Å",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "Ü",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "ẞ",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "ẞ",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "—",
+            "observed": "–",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "“",
+            "observed": "\"",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "…",
+            "observed": ".",
+            "kind": "substitution",
+            "count": 1
+          }
+        ],
+        "unicode": {
+          "nfcExactLines": 38,
+          "nfdFormLines": 0,
+          "combiningMarkLines": 0,
+          "missingUmlautDots": 0,
+          "sharpSAsCapitalB": 2,
+          "asciiFoldedLines": 0,
+          "caseChangedLines": 0
+        }
+      },
+      "semantic": {
+        "groundTruthFields": 13,
+        "recordedSuggestions": 99,
+        "truePositives": 13,
+        "falsePositives": 86,
+        "falseNegatives": 0,
+        "precision": 0.1313,
+        "recall": 1.0,
+        "typeAccuracy": 0.2308,
+        "labelAccuracy": 0.9231,
+        "unresolvedLabels": 1,
+        "meanFieldIoU": 0.9364,
+        "meanLabelIoU": 0.672,
+        "forcedTypeViolations": 0,
+        "nonVerbatimLabels": 0,
+        "nonVerbatimNotComparable": 0,
+        "autoResolvedSuggestions": 0,
+        "fields": [
+          {
+            "id": "p1-strasse",
+            "expectedType": "text",
+            "expectedLabel": "Straße und Hausnummer",
+            "observedType": "multiline",
+            "observedLabel": "Straße und Hausnummer",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6604,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-groesse",
+            "expectedType": "number",
+            "expectedLabel": "Größe in cm",
+            "observedType": "multiline",
+            "observedLabel": "Größe in cm",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6636,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-gebuhr",
+            "expectedType": "number",
+            "expectedLabel": "Gebühr in €",
+            "observedType": "multiline",
+            "observedLabel": "Gebühr in €",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6354,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-geschaeftszeichen",
+            "expectedType": "text",
+            "expectedLabel": "Geschäftszeichen",
+            "observedType": "multiline",
+            "observedLabel": "Geschäftszeichen",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6148,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-staatsangehoerigkeit",
+            "expectedType": "text",
+            "expectedLabel": "Staatsangehörigkeit",
+            "observedType": "multiline",
+            "observedLabel": "Staatsangehörigkeit",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.8311,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-ueberweisung",
+            "expectedType": "text",
+            "expectedLabel": "Überweisung an",
+            "observedType": "multiline",
+            "observedLabel": "Überweisung an",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.7525,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-antraege",
+            "expectedType": "text",
+            "expectedLabel": "Anträge vom",
+            "observedType": "multiline",
+            "observedLabel": "Anträge vom",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.7992,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-familienname",
+            "expectedType": "text",
+            "expectedLabel": "Familienname",
+            "observedType": "multiline",
+            "observedLabel": "Familienname",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6087,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-vorname",
+            "expectedType": "text",
+            "expectedLabel": "Vorname",
+            "observedType": "multiline",
+            "observedLabel": "Vorname",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.588,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-geburtsdatum",
+            "expectedType": "date",
+            "expectedLabel": "Geburtsdatum",
+            "observedType": "date",
+            "observedLabel": "Geburtsdatum",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6172,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-erklaerung",
+            "expectedType": "multiline",
+            "expectedLabel": "Erklärung und Äußerung",
+            "observedType": "multiline",
+            "observedLabel": "Erklärung und Äußerung",
+            "fieldIoU": 0.9839,
+            "labelIoU": 0.7205,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-einverstaendnis",
+            "expectedType": "checkbox",
+            "expectedLabel": "Einverständnis erteilt",
+            "observedType": "checkbox",
+            "observedLabel": "Einverständnis erteilt",
+            "fieldIoU": 0.8672,
+            "labelIoU": 0.6312,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-unterschrift",
+            "expectedType": "signature",
+            "expectedLabel": "Unterschrift",
+            "observedType": "multiline",
+            "observedLabel": null,
+            "fieldIoU": 0.5998,
+            "labelIoU": 0.6135,
+            "status": "unresolved",
+            "reason": "no credible label assigned; uncertainty kept"
+          }
+        ]
+      }
+    },
+    {
+      "id": "scan-200dpi-skew-3deg",
+      "evidenceClass": "EMULATOR_INJECTED_RASTER",
+      "description": "200 DPI scan rotated by three degrees about the page centre on a white background.",
+      "status": "FAIL",
+      "statusReasons": [
+        "CER 43.51% exceeds the pre-declared ceiling 20.00%"
+      ],
+      "raster": {
+        "source": "injected-scan-simulation",
+        "dpi": 200,
+        "degradations": [
+          "skew-3deg"
+        ]
+      },
+      "timings": {
+        "rasterMs-0": 0,
+        "ocrMs-0": 6828,
+        "rasterMs-1": 0,
+        "ocrMs-1": 5804
+      },
+      "raw": {
+        "groundTruthLines": 51,
+        "ocrLines": 51,
+        "associatedLines": 30,
+        "exactLines": 19,
+        "groundTruthCodePoints": 1673,
+        "ocrCodePoints": 1658,
+        "substitutions": 35,
+        "deletions": 354,
+        "insertions": 339,
+        "cer": 0.4351,
+        "criticalLines": 14,
+        "criticalExact": 6,
+        "criticalUnresolved": [
+          {
+            "lineId": "p0-l07",
+            "expected": "Ä Ö Ü ä ö ü ß ẞ",
+            "observed": null,
+            "exact": false
+          },
+          {
+            "lineId": "p0-l08",
+            "expected": "Ärger Öffnung Übung Äußerst",
+            "observed": "Ärger Öfnung Übung Äußerst",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l12",
+            "expected": "Gebühr: 12,50 € · Fläche: 45 m² · Raum: 7 m³",
+            "observed": "Gebühr: 12,50 €· Fläche: 45 m² Raum: 7 m²",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l13",
+            "expected": "„Deutsch“ – Gedankenstrich — Auslassung … § 5",
+            "observed": "„Deutsch\" - Gedankenstrich– Auslassung ... S5",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l15",
+            "expected": "Straße und Hausnummer",
+            "observed": null,
+            "exact": false
+          },
+          {
+            "lineId": "p0-l18",
+            "expected": "Rückumschlag, Äußerung, Antragstellung, Bürgerdienste",
+            "observed": "Rückumschlag, Außerung, Antragstellung, Bürgerdienste",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l22",
+            "expected": "Zeichen: ẞ ß Ä Ö Ü ä ö ü € m² m³",
+            "observed": null,
+            "exact": false
+          },
+          {
+            "lineId": "p1-l23",
+            "expected": "Beispiel: Müller-Gräber, Äußere Straße 12, 8 m²",
+            "observed": "Beispiel: Müller-Gräber, Äußere Straße 12, 8 m?",
+            "exact": false
+          }
+        ],
+        "specialCharacters": [
+          {
+            "character": "Ä",
+            "codePoint": "U+00C4",
+            "truePositives": 6,
+            "falsePositives": 3,
+            "falseNegatives": 4,
+            "precision": 0.6667,
+            "recall": 0.6
+          },
+          {
+            "character": "Ö",
+            "codePoint": "U+00D6",
+            "truePositives": 4,
+            "falsePositives": 2,
+            "falseNegatives": 2,
+            "precision": 0.6667,
+            "recall": 0.6667
+          },
+          {
+            "character": "Ü",
+            "codePoint": "U+00DC",
+            "truePositives": 4,
+            "falsePositives": 2,
+            "falseNegatives": 3,
+            "precision": 0.6667,
+            "recall": 0.5714
+          },
+          {
+            "character": "ä",
+            "codePoint": "U+00E4",
+            "truePositives": 16,
+            "falsePositives": 5,
+            "falseNegatives": 5,
+            "precision": 0.7619,
+            "recall": 0.7619
+          },
+          {
+            "character": "ö",
+            "codePoint": "U+00F6",
+            "truePositives": 7,
+            "falsePositives": 4,
+            "falseNegatives": 4,
+            "precision": 0.6364,
+            "recall": 0.6364
+          },
+          {
+            "character": "ü",
+            "codePoint": "U+00FC",
+            "truePositives": 14,
+            "falsePositives": 8,
+            "falseNegatives": 7,
+            "precision": 0.6364,
+            "recall": 0.6667
+          },
+          {
+            "character": "ß",
+            "codePoint": "U+00DF",
+            "truePositives": 12,
+            "falsePositives": 5,
+            "falseNegatives": 6,
+            "precision": 0.7059,
+            "recall": 0.6667
+          },
+          {
+            "character": "ẞ",
+            "codePoint": "U+1E9E",
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 2,
+            "precision": 0.0,
+            "recall": 0.0
+          },
+          {
+            "character": "€",
+            "codePoint": "U+20AC",
+            "truePositives": 1,
+            "falsePositives": 2,
+            "falseNegatives": 2,
+            "precision": 0.3333,
+            "recall": 0.3333
+          },
+          {
+            "character": "²",
+            "codePoint": "U+00B2",
+            "truePositives": 1,
+            "falsePositives": 2,
+            "falseNegatives": 2,
+            "precision": 0.3333,
+            "recall": 0.3333
+          },
+          {
+            "character": "³",
+            "codePoint": "U+00B3",
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 2,
+            "precision": 0.0,
+            "recall": 0.0
+          }
+        ],
+        "specialCharacterPrecision": 0.6633,
+        "specialCharacterRecall": 0.625,
+        "confusionMatrix": [
+          {
+            "expected": " ",
+            "observed": null,
+            "kind": "deletion",
+            "count": 46
+          },
+          {
+            "expected": "e",
+            "observed": null,
+            "kind": "deletion",
+            "count": 39
+          },
+          {
+            "expected": null,
+            "observed": " ",
+            "kind": "insertion",
+            "count": 33
+          },
+          {
+            "expected": null,
+            "observed": "e",
+            "kind": "insertion",
+            "count": 33
+          },
+          {
+            "expected": "n",
+            "observed": null,
+            "kind": "deletion",
+            "count": 26
+          },
+          {
+            "expected": "r",
+            "observed": null,
+            "kind": "deletion",
+            "count": 26
+          },
+          {
+            "expected": null,
+            "observed": "n",
+            "kind": "insertion",
+            "count": 24
+          },
+          {
+            "expected": null,
+            "observed": "r",
+            "kind": "insertion",
+            "count": 24
+          },
+          {
+            "expected": "t",
+            "observed": null,
+            "kind": "deletion",
+            "count": 19
+          },
+          {
+            "expected": null,
+            "observed": "t",
+            "kind": "insertion",
+            "count": 17
+          },
+          {
+            "expected": "u",
+            "observed": null,
+            "kind": "deletion",
+            "count": 16
+          },
+          {
+            "expected": null,
+            "observed": "u",
+            "kind": "insertion",
+            "count": 16
+          },
+          {
+            "expected": "a",
+            "observed": null,
+            "kind": "deletion",
+            "count": 15
+          },
+          {
+            "expected": "i",
+            "observed": null,
+            "kind": "deletion",
+            "count": 15
+          },
+          {
+            "expected": "m",
+            "observed": null,
+            "kind": "deletion",
+            "count": 15
+          },
+          {
+            "expected": null,
+            "observed": "a",
+            "kind": "insertion",
+            "count": 15
+          },
+          {
+            "expected": null,
+            "observed": "m",
+            "kind": "insertion",
+            "count": 15
+          },
+          {
+            "expected": null,
+            "observed": "i",
+            "kind": "insertion",
+            "count": 13
+          },
+          {
+            "expected": "s",
+            "observed": null,
+            "kind": "deletion",
+            "count": 12
+          },
+          {
+            "expected": null,
+            "observed": "S",
+            "kind": "insertion",
+            "count": 10
+          },
+          {
+            "expected": null,
+            "observed": "s",
+            "kind": "insertion",
+            "count": 10
+          },
+          {
+            "expected": "g",
+            "observed": null,
+            "kind": "deletion",
+            "count": 8
+          },
+          {
+            "expected": null,
+            "observed": "T",
+            "kind": "insertion",
+            "count": 8
+          },
+          {
+            "expected": null,
+            "observed": "ü",
+            "kind": "insertion",
+            "count": 8
+          },
+          {
+            "expected": "d",
+            "observed": null,
+            "kind": "deletion",
+            "count": 7
+          },
+          {
+            "expected": "ü",
+            "observed": null,
+            "kind": "deletion",
+            "count": 7
+          },
+          {
+            "expected": "–",
+            "observed": "-",
+            "kind": "substitution",
+            "count": 7
+          },
+          {
+            "expected": "f",
+            "observed": null,
+            "kind": "deletion",
+            "count": 6
+          },
+          {
+            "expected": "h",
+            "observed": null,
+            "kind": "deletion",
+            "count": 6
+          },
+          {
+            "expected": null,
+            "observed": "g",
+            "kind": "insertion",
+            "count": 6
+          },
+          {
+            "expected": null,
+            "observed": "h",
+            "kind": "insertion",
+            "count": 6
+          },
+          {
+            "expected": "ß",
+            "observed": null,
+            "kind": "deletion",
+            "count": 6
+          },
+          {
+            "expected": "S",
+            "observed": null,
+            "kind": "deletion",
+            "count": 5
+          },
+          {
+            "expected": "c",
+            "observed": null,
+            "kind": "deletion",
+            "count": 5
+          },
+          {
+            "expected": null,
+            "observed": "B",
+            "kind": "insertion",
+            "count": 5
+          },
+          {
+            "expected": null,
+            "observed": "c",
+            "kind": "insertion",
+            "count": 5
+          },
+          {
+            "expected": null,
+            "observed": "d",
+            "kind": "insertion",
+            "count": 5
+          },
+          {
+            "expected": null,
+            "observed": "f",
+            "kind": "insertion",
+            "count": 5
+          },
+          {
+            "expected": null,
+            "observed": "ß",
+            "kind": "insertion",
+            "count": 5
+          },
+          {
+            "expected": null,
+            "observed": "ä",
+            "kind": "insertion",
+            "count": 5
+          },
+          {
+            "expected": "ä",
+            "observed": null,
+            "kind": "deletion",
+            "count": 5
+          },
+          {
+            "expected": "G",
+            "observed": null,
+            "kind": "deletion",
+            "count": 4
+          },
+          {
+            "expected": "J",
+            "observed": null,
+            "kind": "deletion",
+            "count": 4
+          },
+          {
+            "expected": "M",
+            "observed": null,
+            "kind": "deletion",
+            "count": 4
+          },
+          {
+            "expected": "S",
+            "observed": "e",
+            "kind": "substitution",
+            "count": 4
+          },
+          {
+            "expected": "o",
+            "observed": null,
+            "kind": "deletion",
+            "count": 4
+          },
+          {
+            "expected": null,
+            "observed": "G",
+            "kind": "insertion",
+            "count": 4
+          },
+          {
+            "expected": null,
+            "observed": "M",
+            "kind": "insertion",
+            "count": 4
+          },
+          {
+            "expected": null,
+            "observed": "o",
+            "kind": "insertion",
+            "count": 4
+          },
+          {
+            "expected": null,
+            "observed": "ö",
+            "kind": "insertion",
+            "count": 4
+          },
+          {
+            "expected": "ö",
+            "observed": null,
+            "kind": "deletion",
+            "count": 4
+          },
+          {
+            "expected": ".",
+            "observed": null,
+            "kind": "deletion",
+            "count": 3
+          },
+          {
+            "expected": "2",
+            "observed": null,
+            "kind": "deletion",
+            "count": 3
+          },
+          {
+            "expected": "b",
+            "observed": null,
+            "kind": "deletion",
+            "count": 3
+          },
+          {
+            "expected": "v",
+            "observed": null,
+            "kind": "deletion",
+            "count": 3
+          },
+          {
+            "expected": null,
+            "observed": "2",
+            "kind": "insertion",
+            "count": 3
+          },
+          {
+            "expected": null,
+            "observed": "A",
+            "kind": "insertion",
+            "count": 3
+          },
+          {
+            "expected": null,
+            "observed": "E",
+            "kind": "insertion",
+            "count": 3
+          },
+          {
+            "expected": null,
+            "observed": "J",
+            "kind": "insertion",
+            "count": 3
+          },
+          {
+            "expected": null,
+            "observed": "U",
+            "kind": "insertion",
+            "count": 3
+          },
+          {
+            "expected": null,
+            "observed": "b",
+            "kind": "insertion",
+            "count": 3
+          },
+          {
+            "expected": null,
+            "observed": "l",
+            "kind": "insertion",
+            "count": 3
+          },
+          {
+            "expected": null,
+            "observed": "v",
+            "kind": "insertion",
+            "count": 3
+          },
+          {
+            "expected": null,
+            "observed": "Ä",
+            "kind": "insertion",
+            "count": 3
+          },
+          {
+            "expected": "Ä",
+            "observed": null,
+            "kind": "deletion",
+            "count": 3
+          },
+          {
+            "expected": "Ü",
+            "observed": null,
+            "kind": "deletion",
+            "count": 3
+          },
+          {
+            "expected": "A",
+            "observed": "s",
+            "kind": "substitution",
+            "count": 2
+          },
+          {
+            "expected": "B",
+            "observed": null,
+            "kind": "deletion",
+            "count": 2
+          },
+          {
+            "expected": "D",
+            "observed": "t",
+            "kind": "substitution",
+            "count": 2
+          },
+          {
+            "expected": "E",
+            "observed": "d",
+            "kind": "substitution",
+            "count": 2
+          },
+          {
+            "expected": "F",
+            "observed": null,
+            "kind": "deletion",
+            "count": 2
+          },
+          {
+            "expected": "H",
+            "observed": null,
+            "kind": "deletion",
+            "count": 2
+          },
+          {
+            "expected": "R",
+            "observed": "i",
+            "kind": "substitution",
+            "count": 2
+          },
+          {
+            "expected": "T",
+            "observed": "e",
+            "kind": "substitution",
+            "count": 2
+          },
+          {
+            "expected": "T",
+            "observed": "n",
+            "kind": "substitution",
+            "count": 2
+          },
+          {
+            "expected": "T",
+            "observed": "r",
+            "kind": "substitution",
+            "count": 2
+          },
+          {
+            "expected": "T",
+            "observed": null,
+            "kind": "deletion",
+            "count": 2
+          },
+          {
+            "expected": "U",
+            "observed": "g",
+            "kind": "substitution",
+            "count": 2
+          },
+          {
+            "expected": "k",
+            "observed": null,
+            "kind": "deletion",
+            "count": 2
+          },
+          {
+            "expected": "l",
+            "observed": null,
+            "kind": "deletion",
+            "count": 2
+          },
+          {
+            "expected": null,
+            "observed": ".",
+            "kind": "insertion",
+            "count": 2
+          },
+          {
+            "expected": null,
+            "observed": "D",
+            "kind": "insertion",
+            "count": 2
+          },
+          {
+            "expected": null,
+            "observed": "F",
+            "kind": "insertion",
+            "count": 2
+          },
+          {
+            "expected": null,
+            "observed": "H",
+            "kind": "insertion",
+            "count": 2
+          },
+          {
+            "expected": null,
+            "observed": "R",
+            "kind": "insertion",
+            "count": 2
+          },
+          {
+            "expected": null,
+            "observed": "k",
+            "kind": "insertion",
+            "count": 2
+          },
+          {
+            "expected": null,
+            "observed": "Ö",
+            "kind": "insertion",
+            "count": 2
+          },
+          {
+            "expected": null,
+            "observed": "Ü",
+            "kind": "insertion",
+            "count": 2
+          },
+          {
+            "expected": null,
+            "observed": "€",
+            "kind": "insertion",
+            "count": 2
+          },
+          {
+            "expected": "Ö",
+            "observed": null,
+            "kind": "deletion",
+            "count": 2
+          },
+          {
+            "expected": "ẞ",
+            "observed": null,
+            "kind": "deletion",
+            "count": 2
+          },
+          {
+            "expected": "€",
+            "observed": null,
+            "kind": "deletion",
+            "count": 2
+          },
+          {
+            "expected": " ",
+            "observed": ".",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "1",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "4",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": ":",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "A",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "E",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "N",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "U",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "V",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "Z",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "w",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "z",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": null,
+            "observed": "1",
+            "kind": "insertion",
+            "count": 1
+          },
+          {
+            "expected": null,
+            "observed": "4",
+            "kind": "insertion",
+            "count": 1
+          },
+          {
+            "expected": null,
+            "observed": ":",
+            "kind": "insertion",
+            "count": 1
+          },
+          {
+            "expected": null,
+            "observed": "I",
+            "kind": "insertion",
+            "count": 1
+          },
+          {
+            "expected": null,
+            "observed": "N",
+            "kind": "insertion",
+            "count": 1
+          },
+          {
+            "expected": null,
+            "observed": "V",
+            "kind": "insertion",
+            "count": 1
+          },
+          {
+            "expected": null,
+            "observed": "Z",
+            "kind": "insertion",
+            "count": 1
+          },
+          {
+            "expected": null,
+            "observed": "w",
+            "kind": "insertion",
+            "count": 1
+          },
+          {
+            "expected": null,
+            "observed": "z",
+            "kind": "insertion",
+            "count": 1
+          },
+          {
+            "expected": null,
+            "observed": "²",
+            "kind": "insertion",
+            "count": 1
+          },
+          {
+            "expected": "§",
+            "observed": ".",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "²",
+            "observed": "?",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "²",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "³",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "³",
+            "observed": "²",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "·",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "Ä",
+            "observed": "A",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "—",
+            "observed": "–",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "“",
+            "observed": "\"",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "…",
+            "observed": ".",
+            "kind": "substitution",
+            "count": 1
+          }
+        ],
+        "unicode": {
+          "nfcExactLines": 19,
+          "nfdFormLines": 0,
+          "combiningMarkLines": 0,
+          "missingUmlautDots": 1,
+          "sharpSAsCapitalB": 0,
+          "asciiFoldedLines": 0,
+          "caseChangedLines": 0
+        }
+      },
+      "semantic": {
+        "groundTruthFields": 13,
+        "recordedSuggestions": 272,
+        "truePositives": 1,
+        "falsePositives": 271,
+        "falseNegatives": 12,
+        "precision": 0.0037,
+        "recall": 0.0769,
+        "typeAccuracy": 1.0,
+        "labelAccuracy": 1.0,
+        "unresolvedLabels": 0,
+        "meanFieldIoU": 0.06,
+        "meanLabelIoU": 0.1308,
+        "forcedTypeViolations": 0,
+        "nonVerbatimLabels": 0,
+        "nonVerbatimNotComparable": 0,
+        "autoResolvedSuggestions": 0,
+        "fields": [
+          {
+            "id": "p1-strasse",
+            "expectedType": "text",
+            "expectedLabel": "Straße und Hausnummer",
+            "observedType": null,
+            "observedLabel": null,
+            "fieldIoU": 0.1053,
+            "labelIoU": 0.0,
+            "status": "missing",
+            "reason": "no recorded suggestion reaches IoU 0.5"
+          },
+          {
+            "id": "p1-groesse",
+            "expectedType": "number",
+            "expectedLabel": "Größe in cm",
+            "observedType": null,
+            "observedLabel": null,
+            "fieldIoU": 0.1133,
+            "labelIoU": 0.0,
+            "status": "missing",
+            "reason": "no recorded suggestion reaches IoU 0.5"
+          },
+          {
+            "id": "p1-gebuhr",
+            "expectedType": "number",
+            "expectedLabel": "Gebühr in €",
+            "observedType": null,
+            "observedLabel": null,
+            "fieldIoU": 0.1145,
+            "labelIoU": 0.0,
+            "status": "missing",
+            "reason": "no recorded suggestion reaches IoU 0.5"
+          },
+          {
+            "id": "p1-geschaeftszeichen",
+            "expectedType": "text",
+            "expectedLabel": "Geschäftszeichen",
+            "observedType": null,
+            "observedLabel": null,
+            "fieldIoU": 0.1106,
+            "labelIoU": 0.0,
+            "status": "missing",
+            "reason": "no recorded suggestion reaches IoU 0.5"
+          },
+          {
+            "id": "p1-staatsangehoerigkeit",
+            "expectedType": "text",
+            "expectedLabel": "Staatsangehörigkeit",
+            "observedType": null,
+            "observedLabel": null,
+            "fieldIoU": 0.1129,
+            "labelIoU": 0.0,
+            "status": "missing",
+            "reason": "no recorded suggestion reaches IoU 0.5"
+          },
+          {
+            "id": "p1-ueberweisung",
+            "expectedType": "text",
+            "expectedLabel": "Überweisung an",
+            "observedType": null,
+            "observedLabel": null,
+            "fieldIoU": 0.1145,
+            "labelIoU": 0.0,
+            "status": "missing",
+            "reason": "no recorded suggestion reaches IoU 0.5"
+          },
+          {
+            "id": "p1-antraege",
+            "expectedType": "text",
+            "expectedLabel": "Anträge vom",
+            "observedType": null,
+            "observedLabel": null,
+            "fieldIoU": 0.112,
+            "labelIoU": 0.0,
+            "status": "missing",
+            "reason": "no recorded suggestion reaches IoU 0.5"
+          },
+          {
+            "id": "p1-familienname",
+            "expectedType": "text",
+            "expectedLabel": "Familienname",
+            "observedType": null,
+            "observedLabel": null,
+            "fieldIoU": 0.1124,
+            "labelIoU": 0.0,
+            "status": "missing",
+            "reason": "no recorded suggestion reaches IoU 0.5"
+          },
+          {
+            "id": "p1-vorname",
+            "expectedType": "text",
+            "expectedLabel": "Vorname",
+            "observedType": null,
+            "observedLabel": null,
+            "fieldIoU": 0.1076,
+            "labelIoU": 0.0,
+            "status": "missing",
+            "reason": "no recorded suggestion reaches IoU 0.5"
+          },
+          {
+            "id": "p1-geburtsdatum",
+            "expectedType": "date",
+            "expectedLabel": "Geburtsdatum",
+            "observedType": null,
+            "observedLabel": null,
+            "fieldIoU": 0.112,
+            "labelIoU": 0.0,
+            "status": "missing",
+            "reason": "no recorded suggestion reaches IoU 0.5"
+          },
+          {
+            "id": "p1-erklaerung",
+            "expectedType": "multiline",
+            "expectedLabel": "Erklärung und Äußerung",
+            "observedType": "multiline",
+            "observedLabel": "Erklärung und Äußerung",
+            "fieldIoU": 0.78,
+            "labelIoU": 0.1308,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-einverstaendnis",
+            "expectedType": "checkbox",
+            "expectedLabel": "Einverständnis erteilt",
+            "observedType": null,
+            "observedLabel": null,
+            "fieldIoU": 0.0246,
+            "labelIoU": 0.0,
+            "status": "missing",
+            "reason": "no recorded suggestion reaches IoU 0.5"
+          },
+          {
+            "id": "p1-unterschrift",
+            "expectedType": "signature",
+            "expectedLabel": "Unterschrift",
+            "observedType": null,
+            "observedLabel": null,
+            "fieldIoU": 0.069,
+            "labelIoU": 0.0,
+            "status": "missing",
+            "reason": "no recorded suggestion reaches IoU 0.5"
+          }
+        ]
+      }
+    },
+    {
+      "id": "scan-200dpi-jpeg-q35",
+      "evidenceClass": "EMULATOR_INJECTED_RASTER",
+      "description": "200 DPI scan compressed as a low-quality JPEG and decoded back to gray8.",
+      "status": "PASS",
+      "statusReasons": [],
+      "raster": {
+        "source": "injected-scan-simulation",
+        "dpi": 200,
+        "degradations": [
+          "jpeg-q35"
+        ]
+      },
+      "timings": {
+        "rasterMs-0": 0,
+        "ocrMs-0": 6152,
+        "rasterMs-1": 0,
+        "ocrMs-1": 4368
+      },
+      "raw": {
+        "groundTruthLines": 51,
+        "ocrLines": 51,
+        "associatedLines": 51,
+        "exactLines": 40,
+        "groundTruthCodePoints": 1673,
+        "ocrCodePoints": 1656,
+        "substitutions": 17,
+        "deletions": 19,
+        "insertions": 2,
+        "cer": 0.0227,
+        "criticalLines": 14,
+        "criticalExact": 8,
+        "criticalUnresolved": [
+          {
+            "lineId": "p0-l07",
+            "expected": "Ä Ö Ü ä ö ü ß ẞ",
+            "observed": "Ä ÖÜä ö üßB",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l08",
+            "expected": "Ärger Öffnung Übung Äußerst",
+            "observed": "Ärger Öfnung Übung Äußerst",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l12",
+            "expected": "Gebühr: 12,50 € · Fläche: 45 m² · Raum: 7 m³",
+            "observed": "Gebühr: 12,50 € Fläche: 45 m² Raum: 7 m²",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l13",
+            "expected": "„Deutsch“ – Gedankenstrich — Auslassung … § 5",
+            "observed": "„Deutsch\" - Gedankenstrich– Auslassung ... §5",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l20",
+            "expected": "Jürgen Mühlbach, Bärbel Süßbier, Käthe Gröhnert, Matthäus Ölmüller",
+            "observed": "Jürgen Mühlbach, Bärbel SüBbier, Käthe Gröhnert, Matthäus Ölmüller",
+            "exact": false
+          },
+          {
+            "lineId": "p0-l22",
+            "expected": "Zeichen: ẞ ß Ä Ö Ü ä ö ü € m² m³",
+            "observed": "Zeichen: BBÄÖÜ ä ö ü€ m m²",
+            "exact": false
+          }
+        ],
+        "specialCharacters": [
+          {
+            "character": "Ä",
+            "codePoint": "U+00C4",
+            "truePositives": 10,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "Ö",
+            "codePoint": "U+00D6",
+            "truePositives": 6,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "Ü",
+            "codePoint": "U+00DC",
+            "truePositives": 7,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "ä",
+            "codePoint": "U+00E4",
+            "truePositives": 21,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "ö",
+            "codePoint": "U+00F6",
+            "truePositives": 11,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "ü",
+            "codePoint": "U+00FC",
+            "truePositives": 21,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "ß",
+            "codePoint": "U+00DF",
+            "truePositives": 16,
+            "falsePositives": 0,
+            "falseNegatives": 2,
+            "precision": 1.0,
+            "recall": 0.8889
+          },
+          {
+            "character": "ẞ",
+            "codePoint": "U+1E9E",
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 2,
+            "precision": 0.0,
+            "recall": 0.0
+          },
+          {
+            "character": "€",
+            "codePoint": "U+20AC",
+            "truePositives": 3,
+            "falsePositives": 0,
+            "falseNegatives": 0,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          {
+            "character": "²",
+            "codePoint": "U+00B2",
+            "truePositives": 2,
+            "falsePositives": 2,
+            "falseNegatives": 1,
+            "precision": 0.5,
+            "recall": 0.6667
+          },
+          {
+            "character": "³",
+            "codePoint": "U+00B3",
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 2,
+            "precision": 0.0,
+            "recall": 0.0
+          }
+        ],
+        "specialCharacterPrecision": 0.9798,
+        "specialCharacterRecall": 0.9327,
+        "confusionMatrix": [
+          {
+            "expected": " ",
+            "observed": null,
+            "kind": "deletion",
+            "count": 12
+          },
+          {
+            "expected": "–",
+            "observed": "-",
+            "kind": "substitution",
+            "count": 7
+          },
+          {
+            "expected": null,
+            "observed": ".",
+            "kind": "insertion",
+            "count": 2
+          },
+          {
+            "expected": "³",
+            "observed": "²",
+            "kind": "substitution",
+            "count": 2
+          },
+          {
+            "expected": "·",
+            "observed": null,
+            "kind": "deletion",
+            "count": 2
+          },
+          {
+            "expected": "ß",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 2
+          },
+          {
+            "expected": " ",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": ".",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "J",
+            "observed": "I",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "J",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "f",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "²",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "ẞ",
+            "observed": "B",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "ẞ",
+            "observed": null,
+            "kind": "deletion",
+            "count": 1
+          },
+          {
+            "expected": "—",
+            "observed": "–",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "“",
+            "observed": "\"",
+            "kind": "substitution",
+            "count": 1
+          },
+          {
+            "expected": "…",
+            "observed": ".",
+            "kind": "substitution",
+            "count": 1
+          }
+        ],
+        "unicode": {
+          "nfcExactLines": 40,
+          "nfdFormLines": 0,
+          "combiningMarkLines": 0,
+          "missingUmlautDots": 0,
+          "sharpSAsCapitalB": 2,
+          "asciiFoldedLines": 0,
+          "caseChangedLines": 0
+        }
+      },
+      "semantic": {
+        "groundTruthFields": 13,
+        "recordedSuggestions": 83,
+        "truePositives": 13,
+        "falsePositives": 70,
+        "falseNegatives": 0,
+        "precision": 0.1566,
+        "recall": 1.0,
+        "typeAccuracy": 0.2308,
+        "labelAccuracy": 0.9231,
+        "unresolvedLabels": 1,
+        "meanFieldIoU": 0.9364,
+        "meanLabelIoU": 0.6728,
+        "forcedTypeViolations": 0,
+        "nonVerbatimLabels": 0,
+        "nonVerbatimNotComparable": 0,
+        "autoResolvedSuggestions": 0,
+        "fields": [
+          {
+            "id": "p1-strasse",
+            "expectedType": "text",
+            "expectedLabel": "Straße und Hausnummer",
+            "observedType": "multiline",
+            "observedLabel": "Straße und Hausnummer",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6251,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-groesse",
+            "expectedType": "number",
+            "expectedLabel": "Größe in cm",
+            "observedType": "multiline",
+            "observedLabel": "Größe in cm",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6636,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-gebuhr",
+            "expectedType": "number",
+            "expectedLabel": "Gebühr in €",
+            "observedType": "multiline",
+            "observedLabel": "Gebühr in €",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6197,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-geschaeftszeichen",
+            "expectedType": "text",
+            "expectedLabel": "Geschäftszeichen",
+            "observedType": "multiline",
+            "observedLabel": "Geschäftszeichen",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6176,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-staatsangehoerigkeit",
+            "expectedType": "text",
+            "expectedLabel": "Staatsangehörigkeit",
+            "observedType": "multiline",
+            "observedLabel": "Staatsangehörigkeit",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.8343,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-ueberweisung",
+            "expectedType": "text",
+            "expectedLabel": "Überweisung an",
+            "observedType": "multiline",
+            "observedLabel": "Überweisung an",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.7525,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-antraege",
+            "expectedType": "text",
+            "expectedLabel": "Anträge vom",
+            "observedType": "multiline",
+            "observedLabel": "Anträge vom",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.7766,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-familienname",
+            "expectedType": "text",
+            "expectedLabel": "Familienname",
+            "observedType": "multiline",
+            "observedLabel": "Familienname",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6087,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-vorname",
+            "expectedType": "text",
+            "expectedLabel": "Vorname",
+            "observedType": "multiline",
+            "observedLabel": "Vorname",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.671,
+            "status": "wrong_type",
+            "reason": "label matches, type differs"
+          },
+          {
+            "id": "p1-geburtsdatum",
+            "expectedType": "date",
+            "expectedLabel": "Geburtsdatum",
+            "observedType": "date",
+            "observedLabel": "Geburtsdatum",
+            "fieldIoU": 0.9722,
+            "labelIoU": 0.6172,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-erklaerung",
+            "expectedType": "multiline",
+            "expectedLabel": "Erklärung und Äußerung",
+            "observedType": "multiline",
+            "observedLabel": "Erklärung und Äußerung",
+            "fieldIoU": 0.9839,
+            "labelIoU": 0.7205,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-einverstaendnis",
+            "expectedType": "checkbox",
+            "expectedLabel": "Einverständnis erteilt",
+            "observedType": "checkbox",
+            "observedLabel": "Einverständnis erteilt",
+            "fieldIoU": 0.8672,
+            "labelIoU": 0.6264,
+            "status": "matched",
+            "reason": "label and type match"
+          },
+          {
+            "id": "p1-unterschrift",
+            "expectedType": "signature",
+            "expectedLabel": "Unterschrift",
+            "observedType": "multiline",
+            "observedLabel": null,
+            "fieldIoU": 0.5998,
+            "labelIoU": 0.6135,
+            "status": "unresolved",
+            "reason": "no credible label assigned; uncertainty kept"
+          }
+        ]
+      }
+    }
+  ],
+  "controls": []
+}

@@ -369,29 +369,22 @@ wait_for_marker() {
   return 1
 }
 
-for marker in FIXTURE_VERIFIED VARIANTS_DONE RUN_FILES_WRITTEN; do
-  log "T263 DRIVER: waiting for marker $marker"
-  if ! wait_for_marker "$marker"; then
-    log "T263 DRIVER: marker $marker not observed; test log follows"
-    tail -160 "$LOG"
-    fail "missing marker T263_$marker"
-  fi
-  record "marker $marker observed"
-done
-
 # --- 7. Pull the run files while the test still runs ------------------------
 # `flutter test -d <serial>` uninstalls the app when it exits, which deletes its
 # cache directory, so the pull has to happen as soon as the run files exist.
+# The integration test's markers reach this log through Flutter's buffered
+# stdout, so they can arrive only after the runner has already uninstalled the
+# app (which deletes its cache directory). The run files are therefore polled and
+# pulled straight from the app while it is still installed; the marker is used
+# only to report the device path when it is available.
+PULL_OK=0
 DEVICE_OUTPUT_DIR="$(marker_value OUTPUT_PATH)"
-[[ -n "$DEVICE_OUTPUT_DIR" ]] ||
-  fail "integration test did not report T263_OUTPUT_PATH; cannot pull run files"
+if [[ -z "$DEVICE_OUTPUT_DIR" ]]; then
+  DEVICE_OUTPUT_DIR="/data/user/0/de.feldexa.app/code_cache/t263-output"
+fi
 record "device output directory $DEVICE_OUTPUT_DIR"
 mkdir -p "$RUN_DIR/pulled"
-# Pull both run files while the test still runs (the runner uninstalls the app
-# on exit and deletes its cache directory). `adb exec-out` keeps the bytes
-# binary-clean; each file is verified as non-empty JSON before the pull counts.
-PULL_OK=0
-for attempt in $(seq 1 10); do
+for attempt in $(seq 1 900); do
   for run_file in t263-run-emulator.json t263-run-injected.json; do
     "$ADB" -s "$SERIAL" exec-out run-as "$APP_ID" cat "$DEVICE_OUTPUT_DIR/$run_file" \
       >"$RUN_DIR/pulled/$run_file" 2>"$RUN_DIR/pulled/pull-$run_file.err" || true
@@ -409,6 +402,9 @@ PYCHECK
     PULL_OK=1
     break
   fi
+  if ! kill -0 "$TEST_PID" 2>/dev/null; then
+    break
+  fi
   sleep 1
 done
 [[ "$PULL_OK" -eq 1 ]] ||
@@ -416,6 +412,16 @@ done
 for run_file in t263-run-emulator.json t263-run-injected.json; do
   sha256sum "$RUN_DIR/pulled/$run_file" >>"$RUN_DIR/pulled/run-sha256.txt"
 done
+for marker in FIXTURE_VERIFIED VARIANTS_DONE RUN_FILES_WRITTEN; do
+  log "T263 DRIVER: waiting for marker $marker"
+  if ! wait_for_marker "$marker"; then
+    log "T263 DRIVER: marker $marker not observed; test log follows"
+    tail -160 "$LOG"
+    fail "missing marker T263_$marker"
+  fi
+  record "marker $marker observed"
+done
+
 record "run files pulled ($(grep -c '' "$RUN_DIR/pulled/run-sha256.txt") files)"
 
 for marker in LABEL_TAKEOVER_STORE_VERIFIED CLEANUP_DONE; do

@@ -252,14 +252,10 @@ on-device rerun for this correction is **NOT_RUN**.
   and pass after the fix; the focused suite is 58/58 green. The RED and GREEN
   console logs, the exact tests, and the file hashes are recorded in
   `2026-11-22-t263-evidence.md` (class `NONE`).
-- **Rerun status.** The seven variants were **not** re-executed for this
-  correction. The driver's mandatory Orca allocation gate
-  (`orca emulator devices --json`) stopped answering (`runtime_timeout`, then no
-  response at all), and the driver aborted before issuing any device command
-  (its log records `orca emulator devices --json failed; no Orca allocation
-  evidence`). The numbers in §5 are therefore still the pre-fix run at commit
-  `40a4260`; they are not superseded and must not be read as post-fix results.
-  No `DEVICE` or performance claim is affected.
+- **Rerun status (superseded).** The correction-1 rerun was blocked by an Orca
+  runtime outage and produced no device evidence at the time. It was executed
+  later: §5.8 is the correction-2 run and §5.9 the correction-3 run. The numbers
+  in §5.1–§5.6 remain the *pre-fix* baseline by design and are cited as such.
 - **Special characters remain unfixed.** `ß`/`ẞ`→`B`, `m³`→`m²`, `§`→`S` and the
   ASCII-folded punctuation are limitations of the bundled ML Kit Latin model.
   Removing them would require a different engine or character-substitution
@@ -351,6 +347,114 @@ neither fix touches the raster of an upright page or the character model.
 | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/orca-emulator-devices.json` | 2151 | `3ac64d4e93ab2258fd006a98d9b4f60760f6bfd7b4fc17cfc372ee15ebbdbc79` |
 | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c2/orca-emulator-sessions.json` | 484 | `0040ae70cc95df319e96d81c87b7046d8a1f46dfa34a8a6e4e51a185ab783b25` |
 
+### 5.9 T263 correction-3 — review fixes, post-fix run at a committed HEAD
+
+Both independent reviews failed the correction-2 candidate. Correction-3 fixes
+the code findings and re-runs all seven variants **at the committed code HEAD**
+(commit `310255750fc6f828d5236f04c3e05a50f74b50ea`, tree
+`22dbc94098134e0d25240b6a407fb109587a0ad8`), so the run record and the
+candidate now agree.
+
+**Fixes.**
+
+- *A1 (inverse rect mapping).* `mapRectBack` used `R(-correction)`, the same
+  direction `rotate` already applies, so boxes were rotated twice. It now uses
+  `R(+correction)`; a known-point round-trip test failed before and passes after
+  (host JVM RED/GREEN in the evidence directory).
+- *A3 (AABB clamp).* The mapped axis-aligned box is clamped to
+  `[0,width] x [0,height]`; an edge-rectangle test failed before and passes after.
+- *A2 (label direction).* `_sharesRow` accepted any label with any vertical
+  overlap on any side. It now requires the label's right edge at or before the
+  candidate's left edge (2 pt tolerance) and at least half of the shorter box
+  overlapping; a right-side value line, a one-point top sliver and a tall
+  multiline candidate are pinned by tests (Dart RED 59+2 failed → 61/61 GREEN).
+- *B4 (verbatim scope).* The scorer counted any label differing from the run
+  record's OCR lines as "silent normalization". Those lines come from the test's
+  own OCR call at the variant's capture DPI while `AnalyzeDocument` always
+  recognises its own 200 DPI raster, so for the 150/300 DPI variants it compared
+  two different recognitions. The three differing labels
+  (`Straße und Hausnummner`, `TT.MM.JJ`, `D Einverständnis erteilt`) are
+  **content** differences caused by that second raster — not whitespace, and not
+  a product normalization. The check now applies only to 200 DPI captures and
+  classifies the rest as not comparable (`nonVerbatimNotComparable: 2`), never as
+  a FAIL reason. Covered by a new Python regression test.
+- *B7 (provenance).* The run below was executed at committed HEAD
+  `3102557` (tree `22dbc94`) with a deliberately dirty tree containing only
+  `apps/feldexa_app/android/gradlew.bat` (CRLF artifact, SHA-256
+  `c13c6e91b9a517783976de213d46398c661ea9e17651376d7301e839eaedcc62`) and the
+  driver's pull-poller fix, which is committed in this correction. The run-time
+  driver bytes are `tools/android/t263_drive_de_ocr.sh` (21675 B, SHA-256
+  `4dc7833c3368f9c3214fe820a1fca4baa9297be3dcbb5a1551d413e754404c5c`); APK SHA-256
+  `a8e460e2723da4159dd47d4998525063108d2dee2a47e8daad8d268e5f42c5f6`; the
+  evidence directory holds 27 files (not 31) and `fixture-sha256.txt` now labels
+  the fixture hash `fixture_pdf_sha256` instead of `ground_truth_sha256`.
+
+**Before/after, all seven pre-declared variants (thresholds unchanged; before =
+§5.8 at correction-2, after = this run).**
+
+| Variant | CER before → after | Special recall before → after | Label acc. before → after | Result before → after |
+| --- | --- | --- | --- | --- |
+| `clean-200dpi` (reference) | 2.33 % → 2.33 % | 93.27 % → 93.27 % | 69.23 % → 76.92 % | FAIL → FAIL |
+| `clean-150dpi` | 2.21 % → 2.21 % | 93.27 % → 93.27 % | 69.23 % → 76.92 % | FAIL → **PASS** |
+| `clean-300dpi` | 2.27 % → 2.27 % | 92.31 % → 92.31 % | 69.23 % → 76.92 % | FAIL → **PASS** |
+| `scan-150dpi-low-contrast` | 2.21 % → 2.21 % | 96.15 % → 96.15 % | 84.62 % → 92.31 % | PASS → PASS |
+| `scan-200dpi-shadow` | 2.63 % → 2.63 % | 92.31 % → 92.31 % | 84.62 % → 92.31 % | PASS → PASS |
+| `scan-200dpi-skew-3deg` | 15.42 % → 43.51 % | 87.50 % → 62.50 % | 0.00 % → 100 % (1/1) | PASS → **FAIL** (frame, see below) |
+| `scan-200dpi-jpeg-q35` | 2.27 % → 2.27 % | 93.27 % → 93.27 % | 84.62 % → 92.31 % | PASS → PASS |
+
+`clean-150dpi` and `clean-300dpi` now pass because their only FAIL reason was the
+invalid verbatim comparison (B4); their own thresholds were met before and after
+(2.21 %/2.27 % against 8 %/5 % CER, 93.27 %/92.31 % against 80 %/90 % special
+recall). They still record 5 and 6 critical lines that are not exact, which the
+`EMULATOR` class does not gate for those variants; the reference variant is the
+one that requires them.
+
+**Field metrics and denominators (no broad semantic claim).** On the reference
+variant: 13 ground-truth fields, 13 matched, precision 17.81 %
+(13 / 73 suggestions across both pages, and page 1 of the fixture prints no
+fields at all), recall 100 %, type accuracy 23.08 % (3/13), label accuracy
+76.92 % (10/13), 1 unresolved label. The skew variant's `type accuracy 100 %`
+is **1/1 matched field** with field precision 0.37 % and recall 7.69 % (1/13):
+it is not evidence of a broad semantic improvement.
+
+**Remaining FAILs.**
+
+- `clean-200dpi` (reference): CER 2.33 % > 2.00 %, special recall 93.27 % <
+  100 %, 5 critical lines not exact, label accuracy 76.92 % < 100 %. The
+  character losses are bundled-ML-Kit model limits (`ß`/`ẞ`→`B`, `m³`→`m²`,
+  `§`→`S`, ASCII-folded punctuation); fixing them needs a different engine or
+  forbidden character substitution.
+- `scan-200dpi-skew-3deg`: CER 43.51 % after the A1 fix. This is a **frame
+  mismatch in the measurement, not a recognition regression**: the product now
+  reports boxes in the raster frame it was given (correct for the overlay), while
+  the suite annotates the *upright* page, so a 3°-rotated raster cannot be
+  associated line-by-line in the scorer. The correction-2 value (15.42 %) came
+  from the double rotation that A1 removed and must not be quoted as the product
+  result. Measuring this variant needs the applied correction in the run record
+  (a small OCR-result/contract addition) — an owner/reviewer decision, not
+  something to fake in the scorer.
+
+**Correction-3 artifacts (this run).**
+
+| Artifact | Path | Bytes | SHA-256 |
+| --- | --- | ---: | --- |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-report.md` | 12623 | `89dac4b69e7712d46973469ccc8ee5edb7c66e8b610cf33e3ee12e8adc4237a0` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-report.json` | 113927 | `557e9155c9a76667d367506fe601e50d83117099bfcc8c0fb4831f9b7bc39300` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-run-emulator.json` | 175100 | `d2524d1c7736fd9d33f90bff1f62688514f04108158e9c71077ae9855e3d00a2` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-run-injected.json` | 340591 | `44b9c043e30ff4898f5f34c706f5139ff991e62829bd7a978c54936b51c579d9` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/metrics-emulator.log` | 715 | `39892a0723814ece4aa8806e4edafefd02839880e8d1879860f3f0fec63b2214` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/marker-sequence.txt` | 427 | `b7fcf8569dd7639d64af7724dc7caee446e3c2d9ddbdc1584f4f9fcc6e269628` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/device-identity.txt` | 298 | `265c299fe643739f0c63d2fc73f638d221a7aa9322b021641ab53bc0fedbbf56` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/git-identity.txt` | 511 | `4554517f936e812199d77297b1b448c93219879157100c1ceea68b59fced091a` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/apk-sha256.txt` | 183 | `3eac809d8cb7e0fcd117abf48a4db27d573cfa76a7a569d4855fdb9cbc2824dd` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/fixture-sha256.txt` | 541 | `ccafa20140f8d65b59d9211cdac94dd7fe9797df72b9741f19fdb591887bfcf3` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/orca-emulator-devices.json` | 1898 | `63957772a64a08729e50223ad4c2becc9af92f01c728a62c1f8d8adaa6b68398` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/orca-emulator-sessions.json` | 484 | `394a10428f8261ce3767e08f158587d67cc26fb5988d1e77b77171ce69b65b16` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/host-jvm-mapback-red.log` | 21983 | `66bd23960b2a5f886d7fd5055180ffba43c463bb762a3f734ca51ecb443436e4` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/host-jvm-mapback-green.log` | 17692 | `e1e936354782787717abcda000a11e45dc36d217fc66b27e899c7fa002e0b62d` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/host-dart-label-direction-red.log` | 7229 | `c78cf04b2f81d62e03ddee361ee684e88e32dadf14f9914c37dacaca1a6c88b1` |
+| `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/host-dart-label-direction-green.log` | 5875 | `4ec0c71009b98c6a444a76008233be3998c8f79ed09ab503c60b92090ff70037` |
+
 ## 6. Performance
 
 No performance claim.
@@ -373,11 +477,10 @@ No performance claim.
 - The semantic label/type weakness in §5.4 is a measured product observation. It
   was **not** fixed here (no production change): T263 qualifies, it does not
   repair `AnalyzeDocument`, and issue #264 owns the inventory/adaptive work.
-- §5.1–§5.6 are the pre-fix run at commit `40a4260`; §5.8 is the correction-2
-  run at the correction candidate and supersedes them for current status. The
-  correction-1 label/type fix and the correction-2 deskew stage are both
-  measured on device in §5.8; the host JVM and Dart RED/GREEN logs are in
-  `2026-11-22-t263-evidence.md` and §5.8.
+- §5.1–§5.6 are the pre-fix baseline run at commit `40a4260`. Current status is
+  §5.8 (correction-2) and §5.9 (correction-3); §5.9 supersedes everything
+  before it. Host JVM and Dart RED/GREEN logs are in `2026-11-22-t263-evidence.md`
+  and in the correction evidence directories.
 - Not run here: `DEVICE` acceptance, TalkBack/accessibility, browser
   (`flutter test --platform chrome`) suites, character-faithful PDF export (no
   field-to-PDF renderer exists yet), and any `corpus-1.0.0` /

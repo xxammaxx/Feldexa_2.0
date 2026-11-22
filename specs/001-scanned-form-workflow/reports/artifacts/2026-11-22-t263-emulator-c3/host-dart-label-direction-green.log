@@ -1,0 +1,65 @@
+{"compute_slot": "ACQUIRED", "device": 50, "inode": 677616, "uid": 1000}
+00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0/t263-ocr-german/packages/feldexa_recognition/test/type_inference_test.dart
+00:00 +0: lexicon v1 classification and cues every token maps to its documented §3.2 class
+00:00 +1: lexicon v1 classification and cues case and umlaut variants match while display text is preserved
+00:00 +2: lexicon v1 classification and cues literal Straße/Strasse choose their own lexicon spelling
+00:00 +3: lexicon v1 classification and cues NFD-decomposed umlauts match their composed lexicon spelling
+00:00 +4: lexicon v1 classification and cues NFD and NFC spellings select the same lexicon entry
+00:00 +5: lexicon v1 classification and cues capital sharp S folds like ß without changing display text
+00:00 +6: lexicon v1 classification and cues missing umlaut dots are not silently repaired for matching
+00:00 +7: lexicon v1 classification and cues plausible OCR confusion StraBe is not rewritten to Straße
+00:00 +8: lexicon v1 classification and cues internal whitespace is preserved in labelText
+00:00 +9: lexicon v1 classification and cues longest match avoids nested name, ort, and datum cues
+00:00 +10: lexicon v1 classification and cues compound Datum/Unterschrift is one signature lexeme
+00:00 +11: lexicon v1 classification and cues word boundaries reject substrings
+00:00 +12: lexicon v1 classification and cues numeric-family keywords add numeric_context only
+00:00 +13: lexicon v1 classification and cues postleitzahl and telefax are neutral, not forced text
+00:00 +14: date-guarded labels Monat, Zeitraum, von, bis remain text and never date
+00:00 +15: date-guarded labels a date mask does not override the date guard
+00:00 +16: date-guarded labels a date guard also suppresses a second date word
+00:00 +17: §3.2 precedence explicit cues override keyword, geometry, and date mask
+00:00 +18: §3.2 precedence keyword typing precedes geometry
+00:00 +19: §3.2 precedence geometry precedence: multiline, checkbox, single-line
+00:00 +20: §3.2 precedence multiline thresholds are inclusive
+00:00 +21: §3.2 precedence checkbox aspect and height thresholds are inclusive
+00:00 +22: §3.2 precedence geometry precedes the printed date mask
+00:00 +23: §3.2 precedence date mask applies after single-line geometry
+00:00 +24: §3.2 precedence a candidate satisfying every rule follows §3.2 exactly
+00:00 +25: printed date mask TT.MM.JJJJ is accepted case-insensitively
+00:00 +26: printed date mask a malformed mask does not become a date
+00:00 +27: printed date mask any credible adjacent mask counts; the nearest label is displayed
+00:00 +28: printed date mask a non-credible mask is ignored
+00:00 +29: label proximity nearest credible label wins and only its evidence is used
+00:00 +30: label proximity 24 pt is the inclusive credibility boundary
+00:00 +31: label proximity 0.5 is the inclusive confidence boundary
+00:00 +32: label proximity empty, whitespace, and missing labels yield null and text
+00:00 +33: label proximity distance tie is broken by rect y, then rect x, then text
+00:00 +34: label proximity input order does not change the result
+00:00 +35: alignment cues a label left of the candidate gets the right cue
+00:00 +36: alignment cues a label above the candidate gets the below cue
+00:00 +37: alignment cues a label to the right does not get the right cue
+00:00 +38: alignment cues a directly below label gets label_below only
+00:00 +39: alignment cues an offset below label gets no alignment cue
+00:00 +40: alignment cues label_below requires half of the narrower horizontal overlap
+00:00 +41: alignment cues ocr_alignment_below requires horizontal overlap
+00:00 +42: labelText trimming and truncation leading and trailing whitespace is trimmed
+00:00 +43: labelText trimming and truncation exactly 200 code points are preserved
+00:00 +44: labelText trimming and truncation more than 200 code points are truncated without a trailing space
+00:00 +45: labelText trimming and truncation truncation counts code points, not UTF-16 code units
+00:00 +46: labelText trimming and truncation a long whitespace tail is trimmed before truncation
+00:00 +47: result contract and determinism proposedType is always a SuggestionSchema proposed type
+00:00 +48: result contract and determinism added cues are sorted, unique, and unmodifiable
+00:00 +49: result contract and determinism equal inputs produce equal results and hashes
+00:00 +50: result contract and determinism type inference alone cannot create a suggestion or drop a cue
+00:00 +51: invalid inputs are content-free non-finite or out-of-range label confidence is rejected
+00:00 +52: invalid inputs are content-free invalid median and page metrics are rejected
+00:00 +53: invalid inputs are content-free rectangles outside the page are rejected content-free
+00:00 +54: T263 correction-1 — structural label association (left-label rows) a left label on the same row is associated beyond 24 pt
+00:00 +55: T263 correction-1 — structural label association (left-label rows) a same-row left label wins over a heading line above
+00:00 +56: T263 correction-1 — structural label association (left-label rows) a printed mask inside the candidate is not the structural label
+00:00 +57: T263 correction-1 — structural label association (left-label rows) a label two rows above is still not a same-row label
+00:00 +58: T263 correction-3 — label direction, overlap and tall rows a right-side value line is not the left label
+00:00 +59: T263 correction-3 — label direction, overlap and tall rows a one-point top sliver is not a row overlap
+00:00 +60: T263 correction-3 — label direction, overlap and tall rows a left label of a tall multiline candidate is associated
+00:00 +61: All tests passed!
+{"compute_slot": "SETTLED", "exit_code": 0, "launcher_exit_code": 0, "adopted_failures": []}
