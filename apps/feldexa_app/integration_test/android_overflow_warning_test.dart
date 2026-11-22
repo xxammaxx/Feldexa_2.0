@@ -75,10 +75,13 @@ const ValueKey<String> _editorPageViewKey = ValueKey<String>(
 const MethodChannel _testHooks = MethodChannel('de.feldexa/test.import');
 
 /// Screenshot handshake files the host driver creates after every capture.
+///
+/// The values carry the phase name only; [_waitForDriver] adds the single
+/// `T086C_` marker prefix.
 const Map<String, String> _screenshots = <String, String>{
-  'overflow-warning': 'T086C_SCREENSHOT_OVERFLOW_WARNING',
-  'overflow-closed': 'T086C_SCREENSHOT_OVERFLOW_CLOSED',
-  'overflow-reopened': 'T086C_SCREENSHOT_OVERFLOW_REOPENED',
+  'overflow-warning': 'SCREENSHOT_OVERFLOW_WARNING',
+  'overflow-closed': 'SCREENSHOT_OVERFLOW_CLOSED',
+  'overflow-reopened': 'SCREENSHOT_OVERFLOW_REOPENED',
 };
 
 /// The entered value: 176 runes of German text, far wider than any recognised
@@ -557,7 +560,10 @@ void main() {
         final EditorScreenState reopened = tester.state<EditorScreenState>(
           find.byType(EditorScreen),
         );
-        return reopened.content!.values[field.id] is core.TextValue;
+        // The editor route exists before its document content is loaded, so the
+        // content and the value lookup are both guarded here.
+        final core.RevisionContent? content = reopened.content;
+        return content != null && content.values[field.id] is core.TextValue;
       },
       timeout: const Duration(minutes: 3),
       reason: 'the reopened document did not show the stored value',
@@ -566,7 +572,8 @@ void main() {
     final EditorScreenState reopenedState = tester.state<EditorScreenState>(
       find.byType(EditorScreen),
     );
-    field = reopenedState.content!.fields.firstWhere(
+    final core.RevisionContent reopenedContent = reopenedState.content!;
+    field = reopenedContent.fields.firstWhere(
       (core.ConfirmedField candidate) => candidate.id == field.id,
     );
 
