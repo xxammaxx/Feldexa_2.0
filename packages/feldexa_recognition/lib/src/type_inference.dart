@@ -55,7 +55,16 @@
 // Keyword matching. The §3.1 lexicon v1 is read from
 // `SuggestionSchema.keywordLexiconV1` (single source of truth). For matching,
 // label text is trimmed, lowercased without locale rules, internal whitespace
-// is collapsed to one space, and `ä→ae`, `ö→oe`, `ü→ue`, `ß→ss` are folded.
+// is collapsed to one space, and `ä→ae`, `ö→oe`, `ü→ue`, `ß→ss` are folded
+// (T263: `ẞ` folds with `ß` through the lowercase step, so it becomes `ss`).
+// Decomposed spellings are folded too: a base letter `a`, `o`, or `u`
+// immediately followed by U+0308 COMBINING DIAERESIS folds to the same digraph
+// as its precomposed form, so an NFD label such as `Gescha\u0308ftszeichen`
+// matches `geschäftszeichen`. Partial spellings are never repaired: a label
+// with missing umlaut dots (`Geschaftszeichen`) or the plausible OCR confusion
+// `StraBe` keeps its own text and simply does not match the umlaut lexeme.
+// The raw label text is never rewritten; folding exists only for matching and
+// the returned display text stays verbatim.
 // Matching is a left-to-right longest non-overlapping lexeme match at word
 // boundaries (ASCII letters/digits are word characters after folding). A
 // label containing `Geburtsdatum` therefore matches only `geburtsdatum`, not
@@ -130,6 +139,12 @@ const int _maxLabelTextRunes = 200;
 
 /// Comparison epsilon for inclusive contract boundaries.
 const double _epsilon = 1e-6;
+
+/// U+0308 COMBINING DIAERESIS, the NFD part of the German umlauts.
+const int _combiningDiaeresis = 0x0308;
+
+/// The same mark as a string, for composition.
+const String _combiningDiaeresisChar = '\u0308';
 
 const String _keywordPrefix = 'keyword_';
 const String _smallSquareCue = 'small_square';
@@ -533,7 +548,9 @@ final class TypeInference {
     if (normalized.isEmpty) {
       return _KeywordMatch.none;
     }
-    final String exactSearchText = text.trim().toLowerCase();
+    final String exactSearchText = _composeGermanUmlauts(
+      text.trim().toLowerCase(),
+    );
     final List<String> keys = <String>[];
     int index = 0;
     while (index < normalized.length) {
@@ -624,14 +641,53 @@ final class TypeInference {
   }
 
   static String _normalizeForMatching(String text) {
-    return text
-        .trim()
-        .toLowerCase()
+    return _foldGermanUmlauts(text.trim().toLowerCase())
         .replaceAll(RegExp(r'\s+'), ' ')
         .replaceAll('ä', 'ae')
         .replaceAll('ö', 'oe')
         .replaceAll('ü', 'ue')
         .replaceAll('ß', 'ss');
+  }
+
+  /// Folds NFD spellings (`a` + U+0308, ...) to the same digraphs as their
+  /// precomposed forms. Other combining sequences are left untouched, so they
+  /// break word matching instead of being silently repaired.
+  static String _foldGermanUmlauts(String text) {
+    final List<int> runes = text.runes.toList(growable: false);
+    final StringBuffer buffer = StringBuffer();
+    for (int index = 0; index < runes.length; index++) {
+      final int rune = runes[index];
+      if (index + 1 < runes.length && runes[index + 1] == _combiningDiaeresis) {
+        switch (rune) {
+          case 0x61 || 0x41:
+            buffer.write('ae');
+            index++;
+            continue;
+          case 0x6F || 0x4F:
+            buffer.write('oe');
+            index++;
+            continue;
+          case 0x75 || 0x55:
+            buffer.write('ue');
+            index++;
+            continue;
+        }
+      }
+      buffer.writeCharCode(rune);
+    }
+    return buffer.toString();
+  }
+
+  /// Composes the four German umlaut pairs (and their capitals) so that the
+  /// literal-spelling preference is identical for NFC and NFD labels.
+  static String _composeGermanUmlauts(String text) {
+    return text
+        .replaceAll('a$_combiningDiaeresisChar', 'ä')
+        .replaceAll('o$_combiningDiaeresisChar', 'ö')
+        .replaceAll('u$_combiningDiaeresisChar', 'ü')
+        .replaceAll('A$_combiningDiaeresisChar', 'Ä')
+        .replaceAll('O$_combiningDiaeresisChar', 'Ö')
+        .replaceAll('U$_combiningDiaeresisChar', 'Ü');
   }
 
   static String _inferType(

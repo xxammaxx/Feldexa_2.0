@@ -127,7 +127,7 @@ void main() {
     () async {
       final SimulatedFixtureCatalog catalog = await _loadCatalog();
 
-      expect(catalog.catalogVersion, 'fixtures-1.0.0');
+      expect(catalog.catalogVersion, 'fixtures-1.1.0');
       expect(catalog.fixtures, hasLength(7));
       expect(catalog.ids, <String>[
         'sf-001',

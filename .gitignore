@@ -17,3 +17,7 @@ local.properties
 .DS_Store
 Thumbs.db
 *.swp
+
+# Python bytecode caches from the host tooling tests (tools/metrics, tools/evaluation).
+__pycache__/
+*.pyc

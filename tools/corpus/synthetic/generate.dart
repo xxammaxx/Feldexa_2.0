@@ -23,17 +23,27 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import '../de-ocr/reference_de_ocr.dart' as de_ocr;
+import '../de-ocr/ttf_embed.dart' as de_ttf;
 import 'crypto.dart';
 import 'fixtures.dart';
 import 'pdf_writer.dart';
 
 const String generatorVersion = '1.0.0';
-const String catalogVersion = 'fixtures-1.0.0';
+const String catalogVersion = 'fixtures-1.1.0';
 const String generatorPath = 'tools/corpus/synthetic/generate.dart';
 const String generationDate = '2026-11-12';
+
+/// Catalog revision note for the additive German OCR reference (T263).
+const String catalogRevisionNote =
+    'fixtures-1.1.0 (2026-11-22, T263): adds sf-005, the German OCR '
+    'special-character reference with an embedded Noto Sans font and per-line '
+    'ground truth. Existing fixture bytes and SHA-256 pins are unchanged.';
 const String canonicalDirectory = 'apps/feldexa_app/assets/fixtures';
 const String webDirectory = 'apps/feldexa_app/web/fixtures';
 const String corpusDirectory = 'tools/corpus/synthetic';
+const String deOcrGroundTruthPath =
+    'tools/corpus/de-ocr/reference-de.ground-truth.json';
 
 Future<void> main(List<String> arguments) async {
   try {
@@ -184,6 +194,92 @@ _Outputs _buildOutputs(Directory root) {
       'expectedError': null,
     });
   }
+
+  // T263: additive German OCR special-character reference (`sf-005`).
+  // The bytes come from the embedded-font writer because base-14/WinAnsi has
+  // no glyph for U+1E9E (ẞ); see ../de-ocr/ttf_embed.dart.
+  final de_ttf.TrueTypeFont embeddedFont = _loadEmbeddedFont(root);
+  final de_ocr.DeOcrReferenceSuite germanSuite = de_ocr.DeOcrReferenceSuite.build(
+    embeddedFont,
+  );
+  final Uint8List germanPdf = germanSuite.pdfBytes();
+  final String germanSha256 = sha256Hex(germanPdf);
+  final Map<String, Object?> germanGroundTruth = germanSuite.groundTruthJson(
+    pdfSha256: germanSha256,
+    pdfSizeBytes: germanPdf.length,
+  );
+  final Map<String, Object?> germanOcr = germanSuite.expectedOcrJson(
+    germanSuite.pageCount,
+  );
+  files['$canonicalDirectory/${de_ocr.fixtureId}.pdf'] = germanPdf;
+  files['$corpusDirectory/${de_ocr.fixtureId}.pdf'] = germanPdf;
+  files['$canonicalDirectory/${de_ocr.expectedOcrFileName}'] = _jsonBytes(
+    germanOcr,
+  );
+  files[deOcrGroundTruthPath] = _jsonBytes(germanGroundTruth);
+  fixtures.add(<String, Object?>{
+    'id': de_ocr.fixtureId,
+    'kind': 'synthetic',
+    'role': de_ocr.fixtureRole,
+    'status': 'valid',
+    'title': de_ocr.fixtureTitle,
+    'description': de_ocr.fixtureDescription,
+    'path': '${de_ocr.fixtureId}.pdf',
+    'assetPath': de_ocr.pdfAssetPath,
+    'corpusPath': de_ocr.corpusPdfPath,
+    'sha256': germanSha256,
+    'sizeBytes': germanPdf.length,
+    'pageCount': germanSuite.pageCount,
+    'provenance': _provenance(de_ocr.fixtureTitle),
+    'synthetic': <String, Object?>{
+      'generator': generatorPath,
+      'seed': 0,
+      'notes':
+          'Deterministic layout source. The PDF embeds the bundle-pinned '
+          '${de_ocr.fontAssetPath} (sha256 ${de_ocr.fontSha256}) as a '
+          'Type0/CIDFontType2 font with a ToUnicode CMap; the per-line ground '
+          'truth, the expected OCR blocks, and the PDF are emitted from one '
+          'declaration.',
+    },
+    'strata': de_ocr.fixtureStrata,
+    'pages': <Object>[
+      for (int index = 0; index < germanSuite.pageCount; index++)
+        <String, Object?>{
+          'index': index,
+          'widthPt': de_ocr.pageWidthPt,
+          'heightPt': de_ocr.pageHeightPt,
+          'rotation': 0,
+        },
+    ],
+    'groundTruth': <String, Object?>{
+      'notes':
+          'Per printed line: verbatim NFC text, NFD spelling, display-space '
+          'rectangle, role, and the special characters it carries; plus the '
+          'declared label/field roles. Used by the T263 qualification scorer.',
+      'fields': <Object>[
+        for (final de_ocr.GtField field in germanSuite.fields) field.toJson(),
+      ],
+      'reference': <String, Object?>{
+        'path': deOcrGroundTruthPath,
+        'sha256': sha256Hex(_jsonBytes(germanGroundTruth)),
+        'suiteId': de_ocr.suiteId,
+        'lineCount': germanSuite.lines.length,
+        'criticalLineCount': germanSuite.lines
+            .where((de_ocr.GtLine line) => line.critical)
+            .length,
+        'requiredCharacters': de_ocr.requiredCharacters,
+        'requiredAuthorityTerms': de_ocr.requiredAuthorityTerms,
+      },
+    },
+    'expectedOcr': <String, Object?>{
+      'path': de_ocr.expectedOcrFileName,
+      'schemaVersion': 1,
+      'language': 'de',
+      'pageCount': germanSuite.pageCount,
+      'blockCount': germanSuite.lines.length,
+    },
+    'expectedError': null,
+  });
 
   final _ProtectedFixture protected = _buildProtectedFixture();
   final Uint8List protectedPdf = protected.document.build();
@@ -346,7 +442,9 @@ _Outputs _buildOutputs(Directory root) {
       'notes':
           'All names, authorities, addresses, and form text are fictional. '
           'No real person, real authority form, scan, or font outline is '
-          'included. The forms use base-14 Helvetica and carry a visible '
+          'included. The forms use base-14 Helvetica, except sf-005 which '
+          'embeds the project-bundled Noto Sans Regular (SIL OFL 1.1) so the '
+          'real ẞ/€/m²/m³ glyphs exist; every page carries a visible '
           'synthetic marker.',
     },
     'generator': <String, Object?>{
@@ -357,7 +455,8 @@ _Outputs _buildOutputs(Directory root) {
       'checkCommand': 'dart run $generatorPath --check',
       'notes':
           'No randomness, wall clock, locale, or network input. Fixed object '
-          'order, fixed document ID, fixed generation date.',
+          'order, fixed document ID, fixed generation date. '
+          '$catalogRevisionNote',
     },
     'generationDate': generationDate,
     'delivery': <String, Object?>{
@@ -519,6 +618,25 @@ List<Map<String, Object?>> _pageJson(FormFixture form) {
         },
       )
       .toList();
+}
+
+de_ttf.TrueTypeFont _loadEmbeddedFont(Directory root) {
+  final File file = File('${root.path}/${de_ocr.fontAssetPath}');
+  if (!file.existsSync()) {
+    throw FileSystemException(
+      'embedded font asset is missing',
+      de_ocr.fontAssetPath,
+    );
+  }
+  final Uint8List bytes = file.readAsBytesSync();
+  final String actual = sha256Hex(bytes);
+  if (actual != de_ocr.fontSha256) {
+    throw FormatException(
+      'embedded font ${de_ocr.fontAssetPath} has sha256 $actual, expected '
+      '${de_ocr.fontSha256}',
+    );
+  }
+  return de_ttf.TrueTypeFont.parse(bytes);
 }
 
 Uint8List _jsonBytes(Object? value) {

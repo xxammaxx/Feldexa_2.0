@@ -107,7 +107,7 @@ void main() {
     'runs the six SIMULATED adapters in Chrome with SIMULATED evidence',
     () async {
       final SimulatedFixtureCatalog catalog = await _loadCatalog();
-      expect(catalog.fixtures.length, 7);
+      expect(catalog.fixtures.length, 8);
 
       final SimulatedBackend backend = SimulatedBackend();
       final SimulatedDocumentImportAdapter importAdapter =

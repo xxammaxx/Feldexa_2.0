@@ -182,6 +182,64 @@ void main() {
       expect(ascii.addedCues, isNot(contains('keyword_straße')));
     });
 
+    // T263 / issue #263: German Unicode forms. Raw label text is never
+    // rewritten; only the matching fold understands the Unicode forms.
+    test('NFD-decomposed umlauts match their composed lexicon spelling', () {
+      // "Geschäftszeichen" with U+0308 COMBINING DIAERESIS instead of U+00E4.
+      const String decomposed = 'Gescha\u0308ftszeichen';
+      final TypeInferenceResult result = _infer(
+        labels: <LabelObservation>[_label(decomposed)],
+      );
+      expect(result.addedCues, contains('keyword_geschäftszeichen'));
+      // The original spelling is preserved verbatim for display and storage.
+      expect(result.labelText, decomposed);
+      expect(result.labelText, isNot('Geschäftszeichen'));
+    });
+
+    test('NFD and NFC spellings select the same lexicon entry', () {
+      const String decomposed = 'Gescha\u0308ftszeichen';
+      const String composed = 'Geschäftszeichen';
+      final TypeInferenceResult nfd = _infer(
+        labels: <LabelObservation>[_label(decomposed)],
+      );
+      final TypeInferenceResult nfc = _infer(
+        labels: <LabelObservation>[_label(composed)],
+      );
+      expect(nfd.addedCues, nfc.addedCues);
+      expect(nfd.proposedType, nfc.proposedType);
+      expect(nfd.labelText, decomposed);
+      expect(nfc.labelText, composed);
+    });
+
+    test('capital sharp S folds like ß without changing display text', () {
+      // U+1E9E LATIN CAPITAL LETTER SHARP S.
+      const String capitalSharpS = 'STRA\u1E9EE';
+      final TypeInferenceResult result = _infer(
+        labels: <LabelObservation>[_label(capitalSharpS)],
+      );
+      expect(result.addedCues, contains('keyword_straße'));
+      expect(result.labelText, capitalSharpS);
+    });
+
+    test('missing umlaut dots are not silently repaired for matching', () {
+      // "Geschaftszeichen" (a instead of ä) must not match the umlaut lexeme,
+      // and the label text must stay exactly as recognized.
+      final TypeInferenceResult result = _infer(
+        labels: <LabelObservation>[_label('Geschaftszeichen')],
+      );
+      expect(result.addedCues, isNot(contains('keyword_geschäftszeichen')));
+      expect(result.labelText, 'Geschaftszeichen');
+    });
+
+    test('plausible OCR confusion StraBe is not rewritten to Straße', () {
+      final TypeInferenceResult result = _infer(
+        labels: <LabelObservation>[_label('StraBe')],
+      );
+      expect(result.addedCues, isNot(contains('keyword_straße')));
+      expect(result.addedCues, isNot(contains('keyword_strasse')));
+      expect(result.labelText, 'StraBe');
+    });
+
     test('internal whitespace is preserved in labelText', () {
       final TypeInferenceResult result = _infer(
         labels: <LabelObservation>[_label('  Name   des   Antragstellers  ')],
