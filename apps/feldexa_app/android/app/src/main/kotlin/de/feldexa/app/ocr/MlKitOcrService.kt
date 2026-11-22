@@ -335,16 +335,32 @@ internal class MlKitTextRecognizer : OcrRecognizer {
         require(raster.argb.size == raster.width * raster.height) { "invalid raster length" }
 
         val client = clientOrUnavailable()
+        // T263 correction-2: a tilted scan is rotated upright before
+        // recognition and the recognized rectangles are mapped back into the
+        // original raster frame. An upright page (correction below the
+        // threshold) is passed to the recognizer untouched.
+        val gray = ByteArray(raster.argb.size)
+        for (index in raster.argb.indices) {
+            gray[index] = (raster.argb[index] and 0xFF).toByte()
+        }
+        val correction = SkewCorrection.correctionFor(gray, raster.width, raster.height)
+        val argb = if (correction == 0.0) {
+            raster.argb
+        } else {
+            gray8ToArgb(SkewCorrection.rotate(gray, raster.width, raster.height, correction))
+        }
         var bitmap: Bitmap? = null
         try {
             bitmap = Bitmap.createBitmap(
-                raster.argb,
+                argb,
                 raster.width,
                 raster.height,
                 Bitmap.Config.ARGB_8888,
             )
             val text = Tasks.await(client.process(InputImage.fromBitmap(bitmap, 0)))
-            return text.textBlocks.mapNotNull(::mapBlock)
+            return text.textBlocks.mapNotNull { block ->
+                mapBlock(block, raster.width, raster.height, correction)
+            }
         } catch (interrupted: InterruptedException) {
             throw interrupted
         } catch (failure: Exception) {
@@ -374,21 +390,43 @@ internal class MlKitTextRecognizer : OcrRecognizer {
         return created
     }
 
-    private fun mapBlock(block: Text.TextBlock): OcrRawBlock? {
+    private fun mapBlock(
+        block: Text.TextBlock,
+        rasterWidth: Int,
+        rasterHeight: Int,
+        correction: Double,
+    ): OcrRawBlock? {
         val box = block.boundingBox ?: return null
         return OcrRawBlock(
             text = block.text,
-            rect = box.toRasterRect(),
+            rect = SkewCorrection.mapRectBack(
+                box.toRasterRect(),
+                rasterWidth,
+                rasterHeight,
+                correction,
+            ),
             confidence = null,
-            lines = block.lines.mapNotNull(::mapLine),
+            lines = block.lines.mapNotNull { line ->
+                mapLine(line, rasterWidth, rasterHeight, correction)
+            },
         )
     }
 
-    private fun mapLine(line: Text.Line): OcrRawLine? {
+    private fun mapLine(
+        line: Text.Line,
+        rasterWidth: Int,
+        rasterHeight: Int,
+        correction: Double,
+    ): OcrRawLine? {
         val box = line.boundingBox ?: return null
         return OcrRawLine(
             text = line.text,
-            rect = box.toRasterRect(),
+            rect = SkewCorrection.mapRectBack(
+                box.toRasterRect(),
+                rasterWidth,
+                rasterHeight,
+                correction,
+            ),
             confidence = line.confidence.toDouble(),
         )
     }

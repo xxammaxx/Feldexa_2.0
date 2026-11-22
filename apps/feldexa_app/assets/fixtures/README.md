@@ -47,7 +47,7 @@ mirrored byte-for-byte to `web/fixtures/`, and the PDFs are also written to
 
 ## Catalog schema
 
-`catalog.json` (`schemaVersion: 1`, `catalogVersion: fixtures-1.0.0`):
+`catalog.json` (`schemaVersion: 1`, `catalogVersion: fixtures-1.1.0`):
 
 | Field | Meaning |
 | --- | --- |

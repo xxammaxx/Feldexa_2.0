@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "suiteId": "de-ocr-1.0.0",
+  "fixtureId": "sf-005",
+  "fixtureSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+  "generatedAtUtc": "2026-11-22T12:56:48.601321Z",
+  "metricDefinitionVersion": "metric-definition.v1",
+  "rawComparisonNormalization": "none",
+  "requireDeviceEvidence": false,
+  "overallVerdict": "FAIL",
+  "overallReasons": [
+    "reference variant clean-200dpi was not executed"
+  ],
+  "runs": [
+    {
+      "path": "/tmp/feldexa-t263-run.iKzX3n/t263-text-layer-run.json",
+      "evidenceClass": "TEXT_LAYER",
+      "engine": "pdftotext-text-layer",
+      "fixtureSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+      "runner": {
+        "kind": "host-text-layer",
+        "tool": "pdftotext -bbox-layout",
+        "pdf": "/home/xxammaxx/Schreibtisch/Feldexa_2.0/t263-ocr-german/apps/feldexa_app/assets/fixtures/sf-005.pdf"
+      },
+      "generatedAtUtc": null,
+      "deviceEvidence": false
+    }
+  ],
+  "variants": [
+    {
+      "id": "clean-200dpi",
+      "evidenceClass": "EMULATOR",
+      "description": "Clean reference render at the fixed 200 DPI analysis scale over the production raster and OCR ports; this is the reference variant for both raw text and semantic assignment.",
+      "status": "NOT_RUN",
+      "statusReasons": [
+        "no run file recorded this variant"
+      ],
+      "raster": {},
+      "timings": {},
+      "raw": null,
+      "semantic": null
+    },
+    {
+      "id": "clean-150dpi",
+      "evidenceClass": "EMULATOR",
+      "description": "Raw OCR capture at 150 DPI through the production raster and OCR ports. The semantic pipeline keeps its fixed 200 DPI analysis raster, so this variant qualifies the DPI effect on raw text only.",
+      "status": "NOT_RUN",
+      "statusReasons": [
+        "no run file recorded this variant"
+      ],
+      "raster": {},
+      "timings": {},
+      "raw": null,
+      "semantic": null
+    },
+    {
+      "id": "clean-300dpi",
+      "evidenceClass": "EMULATOR",
+      "description": "Raw OCR capture at 300 DPI through the production raster and OCR ports. The semantic pipeline keeps its fixed 200 DPI analysis raster, so this variant qualifies the DPI effect on raw text only.",
+      "status": "NOT_RUN",
+      "statusReasons": [
+        "no run file recorded this variant"
+      ],
+      "raster": {},
+      "timings": {},
+      "raw": null,
+      "semantic": null
+    },
+    {
+      "id": "scan-150dpi-low-contrast",
+      "evidenceClass": "EMULATOR_INJECTED_RASTER",
+      "description": "150 DPI scan with reduced contrast and a light gray wash.",
+      "status": "NOT_RUN",
+      "statusReasons": [
+        "no run file recorded this variant"
+      ],
+      "raster": {},
+      "timings": {},
+      "raw": null,
+      "semantic": null
+    },
+    {
+      "id": "scan-200dpi-shadow",
+      "evidenceClass": "EMULATOR_INJECTED_RASTER",
+      "description": "200 DPI scan with a soft page shadow in one corner.",
+      "status": "NOT_RUN",
+      "statusReasons": [
+        "no run file recorded this variant"
+      ],
+      "raster": {},
+      "timings": {},
+      "raw": null,
+      "semantic": null
+    },
+    {
+      "id": "scan-200dpi-skew-3deg",
+      "evidenceClass": "EMULATOR_INJECTED_RASTER",
+      "description": "200 DPI scan rotated by three degrees about the page centre on a white background.",
+      "status": "NOT_RUN",
+      "statusReasons": [
+        "no run file recorded this variant"
+      ],
+      "raster": {},
+      "timings": {},
+      "raw": null,
+      "semantic": null
+    },
+    {
+      "id": "scan-200dpi-jpeg-q35",
+      "evidenceClass": "EMULATOR_INJECTED_RASTER",
+      "description": "200 DPI scan compressed as a low-quality JPEG and decoded back to gray8.",
+      "status": "NOT_RUN",
+      "statusReasons": [
+        "no run file recorded this variant"
+      ],
+      "raster": {},
+      "timings": {},
+      "raw": null,
+      "semantic": null
+    }
+  ],
+  "controls": [
+    {
+      "id": "text-layer",
+      "control": true,
+      "evidenceClass": "TEXT_LAYER",
+      "description": "Control path (pdftotext-text-layer); reported separately and never counted as OCR or device evidence.",
+      "status": "PASS",
+      "statusReasons": [],
+      "comparison": "whitespace removed, per-page code-point multiset, Unicode code points unchanged",
+      "pageCount": 2,
+      "exactPages": 2,
+      "groundTruthCodePoints": 1501,
+      "missingCodePointCount": 0,
+      "extraCodePointCount": 0,
+      "cer": 0.0,
+      "missingCodePoints": [],
+      "extraCodePoints": [],
+      "deviceEvidence": false
+    }
+  ]
+}

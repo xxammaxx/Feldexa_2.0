@@ -27,7 +27,7 @@ void main() {
 
     test('opens and validates the canonical catalogue', () {
       expect(loader.catalog.evidenceClass, EvidenceClass.simulated);
-      expect(loader.catalog.fixtures, hasLength(7));
+      expect(loader.catalog.fixtures, hasLength(8));
       expect(
         loader.source.description,
         contains(checkout.canonicalDevDirectory),

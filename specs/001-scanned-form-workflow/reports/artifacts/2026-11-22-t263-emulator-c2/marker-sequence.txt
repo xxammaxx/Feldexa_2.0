@@ -1,0 +1,11 @@
+tolerated additional attached device(s), never addressed: adb-RFCW80SMY4J-lidiWY._adb-tls-connect._tcp
+target device serial=emulator-5554 (all adb commands scoped with -s)
+marker FIXTURE_VERIFIED observed
+marker VARIANTS_DONE observed
+marker RUN_FILES_WRITTEN observed
+device output directory /data/user/0/de.feldexa.app/code_cache/t263-output
+run files pulled (2 files)
+marker LABEL_TAKEOVER_STORE_VERIFIED observed
+marker CLEANUP_DONE observed
+metrics exit 1 (0 = PASS, 1 = gate failure or unresolved)
+text-layer control exit 1

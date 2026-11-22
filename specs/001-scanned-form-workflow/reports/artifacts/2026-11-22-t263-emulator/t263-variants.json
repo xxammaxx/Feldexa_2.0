@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "description": "T263 raster variants. Clean variants are rendered on the device by the production raster port; degraded variants inject a host-made scan simulation into the production ML Kit OCR port.",
+  "variants": [
+    {
+      "id": "clean-200dpi",
+      "kind": "production-raster",
+      "dpi": 200,
+      "degradations": [],
+      "pageWidthPt": 595.28,
+      "pageHeightPt": 841.89
+    },
+    {
+      "id": "clean-150dpi",
+      "kind": "production-raster",
+      "dpi": 150,
+      "degradations": [],
+      "pageWidthPt": 595.28,
+      "pageHeightPt": 841.89
+    },
+    {
+      "id": "clean-300dpi",
+      "kind": "production-raster",
+      "dpi": 300,
+      "degradations": [],
+      "pageWidthPt": 595.28,
+      "pageHeightPt": 841.89
+    },
+    {
+      "id": "scan-150dpi-low-contrast",
+      "kind": "injected-raster",
+      "dpi": 150,
+      "degradations": [
+        "low-contrast"
+      ],
+      "pageWidthPt": 595.28,
+      "pageHeightPt": 841.89,
+      "pages": [
+        {
+          "index": 0,
+          "file": "scan-150dpi-low-contrast.p0.gray8",
+          "widthPx": 1654,
+          "heightPx": 2339,
+          "rasterDpi": 200
+        },
+        {
+          "index": 1,
+          "file": "scan-150dpi-low-contrast.p1.gray8",
+          "widthPx": 1654,
+          "heightPx": 2339,
+          "rasterDpi": 200
+        }
+      ]
+    },
+    {
+      "id": "scan-200dpi-shadow",
+      "kind": "injected-raster",
+      "dpi": 200,
+      "degradations": [
+        "shadow"
+      ],
+      "pageWidthPt": 595.28,
+      "pageHeightPt": 841.89,
+      "pages": [
+        {
+          "index": 0,
+          "file": "scan-200dpi-shadow.p0.gray8",
+          "widthPx": 1654,
+          "heightPx": 2339,
+          "rasterDpi": 200
+        },
+        {
+          "index": 1,
+          "file": "scan-200dpi-shadow.p1.gray8",
+          "widthPx": 1654,
+          "heightPx": 2339,
+          "rasterDpi": 200
+        }
+      ]
+    },
+    {
+      "id": "scan-200dpi-skew-3deg",
+      "kind": "injected-raster",
+      "dpi": 200,
+      "degradations": [
+        "skew-3deg"
+      ],
+      "pageWidthPt": 595.28,
+      "pageHeightPt": 841.89,
+      "pages": [
+        {
+          "index": 0,
+          "file": "scan-200dpi-skew-3deg.p0.gray8",
+          "widthPx": 1654,
+          "heightPx": 2339,
+          "rasterDpi": 200
+        },
+        {
+          "index": 1,
+          "file": "scan-200dpi-skew-3deg.p1.gray8",
+          "widthPx": 1654,
+          "heightPx": 2339,
+          "rasterDpi": 200
+        }
+      ]
+    },
+    {
+      "id": "scan-200dpi-jpeg-q35",
+      "kind": "injected-raster",
+      "dpi": 200,
+      "degradations": [
+        "jpeg-q35"
+      ],
+      "pageWidthPt": 595.28,
+      "pageHeightPt": 841.89,
+      "pages": [
+        {
+          "index": 0,
+          "file": "scan-200dpi-jpeg-q35.p0.gray8",
+          "widthPx": 1654,
+          "heightPx": 2339,
+          "rasterDpi": 200
+        },
+        {
+          "index": 1,
+          "file": "scan-200dpi-jpeg-q35.p1.gray8",
+          "widthPx": 1654,
+          "heightPx": 2339,
+          "rasterDpi": 200
+        }
+      ]
+    }
+  ]
+}

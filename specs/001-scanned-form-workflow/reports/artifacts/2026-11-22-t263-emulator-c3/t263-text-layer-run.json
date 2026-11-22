@@ -1,0 +1,461 @@
+{
+  "schemaVersion": 1,
+  "suiteId": "de-ocr-1.0.0",
+  "fixtureId": "sf-005",
+  "fixtureSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+  "engine": "pdftotext-text-layer",
+  "evidenceClass": "TEXT_LAYER",
+  "runner": {
+    "kind": "host-text-layer",
+    "tool": "pdftotext -bbox-layout",
+    "pdf": "/home/xxammaxx/Schreibtisch/Feldexa_2.0/t263-ocr-german/apps/feldexa_app/assets/fixtures/sf-005.pdf"
+  },
+  "generatedAtUtc": null,
+  "variants": [
+    {
+      "id": "text-layer",
+      "raster": {
+        "source": "pdf-text-layer",
+        "dpi": null,
+        "degradations": []
+      },
+      "timings": {},
+      "pages": [
+        {
+          "index": 0,
+          "widthPt": 595.28,
+          "heightPt": 841.89,
+          "lines": [
+            {
+              "text": "MUSTERSTADT Musteramt für Bürgerdienste SYNTHETISCHES TESTDOKUMENT – kein amtliches Formular",
+              "rect": {
+                "x": 56.7,
+                "y": 29.579,
+                "width": 470.119,
+                "height": 24.258
+              },
+              "confidence": null
+            },
+            {
+              "text": "Zeichensatz- und Unicode-Referenz Deutsche Sonderzeichen, Währung, Einheiten und Behördenbegriffe.",
+              "rect": {
+                "x": 56.7,
+                "y": 71.965,
+                "width": 292.113,
+                "height": 35.872
+              },
+              "confidence": null
+            },
+            {
+              "text": "1. Grundzeichen (Groß- und Kleinschreibung)",
+              "rect": {
+                "x": 56.7,
+                "y": 123.041,
+                "width": 233.079,
+                "height": 14.982
+              },
+              "confidence": null
+            },
+            {
+              "text": "Ä Ö Ü ä ö ü ß ẞ",
+              "rect": {
+                "x": 56.7,
+                "y": 145.965,
+                "width": 106.425,
+                "height": 20.43
+              },
+              "confidence": null
+            },
+            {
+              "text": "Ärger Öffnung Übung Äußerst",
+              "rect": {
+                "x": 56.7,
+                "y": 176.503,
+                "width": 185.432,
+                "height": 17.706
+              },
+              "confidence": null
+            },
+            {
+              "text": "ärger öffnung übung äußerst",
+              "rect": {
+                "x": 56.7,
+                "y": 202.503,
+                "width": 179.647,
+                "height": 17.706
+              },
+              "confidence": null
+            },
+            {
+              "text": "Straße Größe Äußerung",
+              "rect": {
+                "x": 56.7,
+                "y": 228.503,
+                "width": 146.328,
+                "height": 17.706
+              },
+              "confidence": null
+            },
+            {
+              "text": "2. Währung, Einheiten und Satzzeichen",
+              "rect": {
+                "x": 56.7,
+                "y": 263.041,
+                "width": 201.3,
+                "height": 14.982
+              },
+              "confidence": null
+            },
+            {
+              "text": "Gebühr: 12,50 € · Fläche: 45 m² · Raum: 7 m³",
+              "rect": {
+                "x": 56.7,
+                "y": 286.772,
+                "width": 247.752,
+                "height": 16.344
+              },
+              "confidence": null
+            },
+            {
+              "text": "„Deutsch“ – Gedankenstrich — Auslassung … § 5",
+              "rect": {
+                "x": 56.7,
+                "y": 310.772,
+                "width": 271.152,
+                "height": 16.344
+              },
+              "confidence": null
+            },
+            {
+              "text": "3. Behördenbegriffe",
+              "rect": {
+                "x": 56.7,
+                "y": 345.041,
+                "width": 104.104,
+                "height": 14.982
+              },
+              "confidence": null
+            },
+            {
+              "text": "Straße und Hausnummer",
+              "rect": {
+                "x": 56.7,
+                "y": 369.041,
+                "width": 131.252,
+                "height": 14.982
+              },
+              "confidence": null
+            },
+            {
+              "text": "Größe, Gebühr, Geschäftszeichen, Staatsangehörigkeit",
+              "rect": {
+                "x": 56.7,
+                "y": 393.041,
+                "width": 282.953,
+                "height": 14.982
+              },
+              "confidence": null
+            },
+            {
+              "text": "Überweisung, Erklärung, Anträge, Begründung",
+              "rect": {
+                "x": 56.7,
+                "y": 417.041,
+                "width": 243.606,
+                "height": 14.982
+              },
+              "confidence": null
+            },
+            {
+              "text": "Rückumschlag, Äußerung, Antragstellung, Bürgerdienste",
+              "rect": {
+                "x": 56.7,
+                "y": 441.041,
+                "width": 295.108,
+                "height": 14.982
+              },
+              "confidence": null
+            },
+            {
+              "text": "4. Frei erfundene Namen",
+              "rect": {
+                "x": 56.7,
+                "y": 475.041,
+                "width": 129.03,
+                "height": 14.982
+              },
+              "confidence": null
+            },
+            {
+              "text": "Jürgen Mühlbach, Bärbel Süßbier, Käthe Gröhnert, Matthäus Ölmüller",
+              "rect": {
+                "x": 56.7,
+                "y": 498.772,
+                "width": 392.436,
+                "height": 16.344
+              },
+              "confidence": null
+            },
+            {
+              "text": "MÜLLER-GRÄBER, SCHRÖDER-WEISS, BÄUERLE, ÖHMICHEN",
+              "rect": {
+                "x": 56.7,
+                "y": 524.772,
+                "width": 333.6,
+                "height": 16.344
+              },
+              "confidence": null
+            },
+            {
+              "text": "Zeichen: ẞ ß Ä Ö Ü ä ö ü € m² m³",
+              "rect": {
+                "x": 56.7,
+                "y": 559.041,
+                "width": 167.409,
+                "height": 14.982
+              },
+              "confidence": null
+            },
+            {
+              "text": "Hinweis: Dieses Dokument ist synthetisch und enthält keine realen Personendaten.",
+              "rect": {
+                "x": 56.7,
+                "y": 697.848,
+                "width": 311.648,
+                "height": 10.896
+              },
+              "confidence": null
+            },
+            {
+              "text": "Es dient ausschließlich der Entwicklung und Prüfung des Editors.",
+              "rect": {
+                "x": 56.7,
+                "y": 713.848,
+                "width": 242.24,
+                "height": 10.896
+              },
+              "confidence": null
+            },
+            {
+              "text": "Seite 1 von 2 Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+              "rect": {
+                "x": 56.7,
+                "y": 801.738,
+                "width": 481.88,
+                "height": 10.896
+              },
+              "confidence": null
+            }
+          ]
+        },
+        {
+          "index": 1,
+          "widthPt": 595.28,
+          "heightPt": 841.89,
+          "lines": [
+            {
+              "text": "MUSTERSTADT Musteramt für Bürgerdienste SYNTHETISCHES TESTDOKUMENT – kein amtliches Formular",
+              "rect": {
+                "x": 56.7,
+                "y": 29.579,
+                "width": 470.119,
+                "height": 24.258
+              },
+              "confidence": null
+            },
+            {
+              "text": "Bezeichnungen und Feldübernahme Deutsche Feldbezeichnungen mit Sonderzeichen für die Label-Übernahme.",
+              "rect": {
+                "x": 56.7,
+                "y": 71.965,
+                "width": 316.647,
+                "height": 35.872
+              },
+              "confidence": null
+            },
+            {
+              "text": "1. Felder mit deutschen Bezeichnungen",
+              "rect": {
+                "x": 56.7,
+                "y": 123.041,
+                "width": 203.929,
+                "height": 14.982
+              },
+              "confidence": null
+            },
+            {
+              "text": "Straße und Hausnummer",
+              "rect": {
+                "x": 56.7,
+                "y": 149.31,
+                "width": 119.32,
+                "height": 13.62
+              },
+              "confidence": null
+            },
+            {
+              "text": "Größe in cm",
+              "rect": {
+                "x": 56.7,
+                "y": 185.31,
+                "width": 57.52,
+                "height": 13.62
+              },
+              "confidence": null
+            },
+            {
+              "text": "Gebühr in €",
+              "rect": {
+                "x": 56.7,
+                "y": 221.31,
+                "width": 55.24,
+                "height": 13.62
+              },
+              "confidence": null
+            },
+            {
+              "text": "Geschäftszeichen",
+              "rect": {
+                "x": 56.7,
+                "y": 257.31,
+                "width": 81.86,
+                "height": 13.62
+              },
+              "confidence": null
+            },
+            {
+              "text": "Staatsangehörigkeit",
+              "rect": {
+                "x": 56.7,
+                "y": 293.31,
+                "width": 94.56,
+                "height": 13.62
+              },
+              "confidence": null
+            },
+            {
+              "text": "Überweisung an",
+              "rect": {
+                "x": 56.7,
+                "y": 329.31,
+                "width": 77.0,
+                "height": 13.62
+              },
+              "confidence": null
+            },
+            {
+              "text": "Anträge vom",
+              "rect": {
+                "x": 56.7,
+                "y": 365.31,
+                "width": 60.79,
+                "height": 13.62
+              },
+              "confidence": null
+            },
+            {
+              "text": "Familienname",
+              "rect": {
+                "x": 56.7,
+                "y": 401.31,
+                "width": 66.49,
+                "height": 13.62
+              },
+              "confidence": null
+            },
+            {
+              "text": "Vorname",
+              "rect": {
+                "x": 56.7,
+                "y": 437.31,
+                "width": 42.96,
+                "height": 13.62
+              },
+              "confidence": null
+            },
+            {
+              "text": "Geburtsdatum TT.MM.JJJJ",
+              "rect": {
+                "x": 56.7,
+                "y": 473.31,
+                "width": 472.178,
+                "height": 13.62
+              },
+              "confidence": null
+            },
+            {
+              "text": "2. Mehrzeilige Erklärung",
+              "rect": {
+                "x": 56.7,
+                "y": 513.041,
+                "width": 125.785,
+                "height": 14.982
+              },
+              "confidence": null
+            },
+            {
+              "text": "Erklärung und Äußerung",
+              "rect": {
+                "x": 56.7,
+                "y": 539.31,
+                "width": 116.73,
+                "height": 13.62
+              },
+              "confidence": null
+            },
+            {
+              "text": "3. Einverständnis und Unterschrift",
+              "rect": {
+                "x": 56.7,
+                "y": 621.041,
+                "width": 176.187,
+                "height": 14.982
+              },
+              "confidence": null
+            },
+            {
+              "text": "Einverständnis erteilt",
+              "rect": {
+                "x": 206.0,
+                "y": 644.579,
+                "width": 89.505,
+                "height": 12.258
+              },
+              "confidence": null
+            },
+            {
+              "text": "Unterschrift",
+              "rect": {
+                "x": 56.7,
+                "y": 681.31,
+                "width": 56.4,
+                "height": 13.62
+              },
+              "confidence": null
+            },
+            {
+              "text": "Beispiel: Müller-Gräber, Äußere Straße 12, 8 m²",
+              "rect": {
+                "x": 56.7,
+                "y": 747.31,
+                "width": 221.53,
+                "height": 13.62
+              },
+              "confidence": null
+            },
+            {
+              "text": "Seite 2 von 2 Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+              "rect": {
+                "x": 56.7,
+                "y": 801.738,
+                "width": 481.88,
+                "height": 10.896
+              },
+              "confidence": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

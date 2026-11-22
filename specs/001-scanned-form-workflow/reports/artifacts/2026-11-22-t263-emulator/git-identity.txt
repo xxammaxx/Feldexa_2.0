@@ -1,0 +1,11 @@
+head=a1718363747b16bb842d1cbaa43af9efb79e5382
+tree=90ea067abaff1d72d07d75fbba0c5966649fdc82
+branch=xxammaxx/t263
+status_porcelain:
+ M apps/feldexa_app/android/gradlew.bat
+ M apps/feldexa_app/integration_test/android_de_ocr_test.dart
+ M tools/android/t263_drive_de_ocr.sh
+flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
+dart=Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "linux_x64"
+pdftoppm=pdftoppm version 26.10.0
+magick=Version: ImageMagick 7.1.2-34 Q16-HDRI x86_64 c5d4ca8a0:20261014 https://imagemagick.org

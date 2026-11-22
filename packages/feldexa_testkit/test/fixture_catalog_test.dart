@@ -17,12 +17,12 @@ void main() {
       catalog = FixtureCatalog.parse(catalogSource());
     });
 
-    test('is schema 1, fixtures-1.0.0, and SIMULATED', () {
+    test('is schema 1, fixtures-1.1.0, and SIMULATED', () {
       expect(catalog.schemaVersion, 1);
-      expect(catalog.catalogVersion, 'fixtures-1.0.0');
+      expect(catalog.catalogVersion, 'fixtures-1.1.0');
       expect(catalog.evidenceClass, EvidenceClass.simulated);
       expect(catalog.evidenceClass.isAndroid, isFalse);
-      expect(catalog.fixtures, hasLength(7));
+      expect(catalog.fixtures, hasLength(8));
     });
 
     test('declares dev-only delivery and no Flutter assets', () {
@@ -39,13 +39,13 @@ void main() {
       expect(delivery.androidTestDelivery, contains('adb push'));
     });
 
-    test('exposes four valid fixtures and three import failures', () {
-      expect(catalog.validFixtures, hasLength(4));
+    test('exposes five valid fixtures and three import failures', () {
+      expect(catalog.validFixtures, hasLength(5));
       expect(catalog.importFailures, hasLength(3));
       expect(catalog.byRole(FixtureRole.editor), hasLength(1));
       expect(catalog.byRole(FixtureRole.navigation), hasLength(1));
       expect(catalog.byRole(FixtureRole.geometry), hasLength(1));
-      expect(catalog.byRole(FixtureRole.fields), hasLength(1));
+      expect(catalog.byRole(FixtureRole.fields), hasLength(2));
       expect(catalog.byRole(FixtureRole.importFailure), hasLength(3));
     });
 
@@ -133,7 +133,7 @@ void main() {
     test('round-trips to a stable string summary', () {
       expect(
         catalog.toString(),
-        'FixtureCatalog(fixtures-1.0.0, 7 SIMULATED fixtures)',
+        'FixtureCatalog(fixtures-1.1.0, 8 SIMULATED fixtures)',
       );
     });
   });
@@ -162,7 +162,7 @@ void main() {
 
     test('rejects a fixture count that does not match', () {
       final Map<String, Object?> catalog = copyOfCatalog();
-      catalog['fixtureCount'] = 8;
+      catalog['fixtureCount'] = 9;
       expect(
         () => FixtureCatalog.fromJson(catalog),
         throwsFormatWith('fixtureCount'),

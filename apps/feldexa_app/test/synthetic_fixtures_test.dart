@@ -236,7 +236,7 @@ void main() {
     test(
       'four valid forms cover every field type, rotation, and page-count need',
       () {
-        expect(valid.length, 4);
+        expect(valid.length, 5);
         expect(
           valid.map((Map<String, dynamic> f) => f['role'] as String).toSet(),
           <String>{'editor', 'navigation', 'geometry', 'fields'},

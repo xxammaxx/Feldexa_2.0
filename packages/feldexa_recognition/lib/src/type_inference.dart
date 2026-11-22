@@ -55,7 +55,16 @@
 // Keyword matching. The §3.1 lexicon v1 is read from
 // `SuggestionSchema.keywordLexiconV1` (single source of truth). For matching,
 // label text is trimmed, lowercased without locale rules, internal whitespace
-// is collapsed to one space, and `ä→ae`, `ö→oe`, `ü→ue`, `ß→ss` are folded.
+// is collapsed to one space, and `ä→ae`, `ö→oe`, `ü→ue`, `ß→ss` are folded
+// (T263: `ẞ` folds with `ß` through the lowercase step, so it becomes `ss`).
+// Decomposed spellings are folded too: a base letter `a`, `o`, or `u`
+// immediately followed by U+0308 COMBINING DIAERESIS folds to the same digraph
+// as its precomposed form, so an NFD label such as `Gescha\u0308ftszeichen`
+// matches `geschäftszeichen`. Partial spellings are never repaired: a label
+// with missing umlaut dots (`Geschaftszeichen`) or the plausible OCR confusion
+// `StraBe` keeps its own text and simply does not match the umlaut lexeme.
+// The raw label text is never rewritten; folding exists only for matching and
+// the returned display text stays verbatim.
 // Matching is a left-to-right longest non-overlapping lexeme match at word
 // boundaries (ASCII letters/digits are word characters after folding). A
 // label containing `Geburtsdatum` therefore matches only `geburtsdatum`, not
@@ -103,6 +112,13 @@ import 'geometry_detector.dart';
 import 'suggestion_schema.dart';
 
 /// Maximum Euclidean gap in points between a credible label and its candidate.
+///
+/// This radius is the proximity rule for the *non-structural* cases: a label
+/// above or below a candidate whose rectangles are still close. It is not the
+/// rule for a label printed on the candidate's own row (the common left-label
+/// layout), because there the horizontal gap between the label column and the
+/// field column grows with the label's own length and is bounded by the layout,
+/// not by a fixed distance. See [_sharesRow].
 const double _maxLabelDistancePt = 24;
 
 /// Squared form of [_maxLabelDistancePt] for exact, monotonic comparisons.
@@ -111,6 +127,12 @@ const double _maxLabelDistanceSquared =
 
 /// Minimum OCR confidence for a label observation to be credible.
 const double _minLabelConfidence = 0.5;
+
+/// Tolerance in points for the label-to-candidate left/right direction.
+const double _rowDirectionTolerancePt = 2.0;
+
+/// Minimum share of the shorter box that must overlap for a same-row label.
+const double _minRowOverlapFraction = 0.5;
 
 /// Single-line height factor from `recognition-output.md` §3.2.
 const double _multilineHeightFactor = 2.2;
@@ -130,6 +152,12 @@ const int _maxLabelTextRunes = 200;
 
 /// Comparison epsilon for inclusive contract boundaries.
 const double _epsilon = 1e-6;
+
+/// U+0308 COMBINING DIAERESIS, the NFD part of the German umlauts.
+const int _combiningDiaeresis = 0x0308;
+
+/// The same mark as a string, for composition.
+const String _combiningDiaeresisChar = '\u0308';
 
 const String _keywordPrefix = 'keyword_';
 const String _smallSquareCue = 'small_square';
@@ -394,7 +422,8 @@ final class TypeInference {
         continue;
       }
       final double distanceSquared = _gapSquared(label.rect, candidate);
-      if (distanceSquared > _maxLabelDistanceSquared + _epsilon) {
+      final bool sharesRow = _sharesRow(label.rect, candidate);
+      if (!sharesRow && distanceSquared > _maxLabelDistanceSquared + _epsilon) {
         continue;
       }
       credible.add(
@@ -403,10 +432,53 @@ final class TypeInference {
           rect: label.rect,
           confidence: label.ocrConfidence,
           distanceSquared: distanceSquared,
+          sharesRow: sharesRow,
         ),
       );
     }
     return credible;
+  }
+
+  /// True when [label] is printed on the candidate's own row, to its left.
+  ///
+  /// `contracts/recognition-output.md` §3.1 defines the cue
+  /// `ocr_alignment_right` as "the candidate is to the right of an OCR label
+  /// line". A left label is therefore associated by layout only when that
+  /// direction holds (the label's right edge is at or before the candidate's
+  /// left edge, within the layout tolerance) and the two rows really overlap:
+  /// at least half of the shorter box, so a one-point sliver at the top of a
+  /// candidate never counts. The horizontal gap itself is not distance-capped,
+  /// because a short label in a fixed label column leaves a wide empty gap that
+  /// says nothing about the association.
+  static bool _sharesRow(DisplayRect label, DisplayRect candidate) {
+    final double labelRight = label.x + label.width;
+    if (labelRight > candidate.x + _rowDirectionTolerancePt) {
+      return false;
+    }
+    final double labelBottom = label.y + label.height;
+    final double candidateBottom = candidate.y + candidate.height;
+    final double verticalOverlap = _overlap(
+      label.y,
+      labelBottom,
+      candidate.y,
+      candidateBottom,
+    );
+    final double shorterHeight = math.min(label.height, candidate.height);
+    if (shorterHeight <= 0 ||
+        verticalOverlap < _minRowOverlapFraction * shorterHeight - _epsilon) {
+      return false;
+    }
+    // A line printed mostly inside the candidate is printed content of that
+    // region (for example a `TT.MM.JJJJ` mask), not the region's label.
+    final double labelArea = label.width * label.height;
+    final double horizontalOverlap = _overlap(
+      label.x,
+      label.x + label.width,
+      candidate.x,
+      candidate.x + candidate.width,
+    );
+    final double insideArea = horizontalOverlap * verticalOverlap;
+    return !(labelArea > 0 && insideArea > 0.5 * labelArea);
   }
 
   static _CredibleLabel? _nearest(List<_CredibleLabel> credible) {
@@ -422,6 +494,12 @@ final class TypeInference {
     _CredibleLabel first,
     _CredibleLabel second,
   ) {
+    // A label printed on the candidate's own row is the field's label by
+    // layout, so it outranks a nearer heading or neighbouring line above or
+    // below the row.
+    if (first.sharesRow != second.sharesRow) {
+      return first.sharesRow ? -1 : 1;
+    }
     int result = first.distanceSquared.compareTo(second.distanceSquared);
     if (result != 0) {
       return result;
@@ -533,7 +611,9 @@ final class TypeInference {
     if (normalized.isEmpty) {
       return _KeywordMatch.none;
     }
-    final String exactSearchText = text.trim().toLowerCase();
+    final String exactSearchText = _composeGermanUmlauts(
+      text.trim().toLowerCase(),
+    );
     final List<String> keys = <String>[];
     int index = 0;
     while (index < normalized.length) {
@@ -624,14 +704,53 @@ final class TypeInference {
   }
 
   static String _normalizeForMatching(String text) {
-    return text
-        .trim()
-        .toLowerCase()
+    return _foldGermanUmlauts(text.trim().toLowerCase())
         .replaceAll(RegExp(r'\s+'), ' ')
         .replaceAll('ä', 'ae')
         .replaceAll('ö', 'oe')
         .replaceAll('ü', 'ue')
         .replaceAll('ß', 'ss');
+  }
+
+  /// Folds NFD spellings (`a` + U+0308, ...) to the same digraphs as their
+  /// precomposed forms. Other combining sequences are left untouched, so they
+  /// break word matching instead of being silently repaired.
+  static String _foldGermanUmlauts(String text) {
+    final List<int> runes = text.runes.toList(growable: false);
+    final StringBuffer buffer = StringBuffer();
+    for (int index = 0; index < runes.length; index++) {
+      final int rune = runes[index];
+      if (index + 1 < runes.length && runes[index + 1] == _combiningDiaeresis) {
+        switch (rune) {
+          case 0x61 || 0x41:
+            buffer.write('ae');
+            index++;
+            continue;
+          case 0x6F || 0x4F:
+            buffer.write('oe');
+            index++;
+            continue;
+          case 0x75 || 0x55:
+            buffer.write('ue');
+            index++;
+            continue;
+        }
+      }
+      buffer.writeCharCode(rune);
+    }
+    return buffer.toString();
+  }
+
+  /// Composes the four German umlaut pairs (and their capitals) so that the
+  /// literal-spelling preference is identical for NFC and NFD labels.
+  static String _composeGermanUmlauts(String text) {
+    return text
+        .replaceAll('a$_combiningDiaeresisChar', 'ä')
+        .replaceAll('o$_combiningDiaeresisChar', 'ö')
+        .replaceAll('u$_combiningDiaeresisChar', 'ü')
+        .replaceAll('A$_combiningDiaeresisChar', 'Ä')
+        .replaceAll('O$_combiningDiaeresisChar', 'Ö')
+        .replaceAll('U$_combiningDiaeresisChar', 'Ü');
   }
 
   static String _inferType(
@@ -725,12 +844,16 @@ final class _CredibleLabel {
     required this.rect,
     required this.confidence,
     required this.distanceSquared,
+    required this.sharesRow,
   });
 
   final String text;
   final DisplayRect rect;
   final double confidence;
   final double distanceSquared;
+
+  /// The label is printed on the candidate's own row and outside it.
+  final bool sharesRow;
 }
 
 /// The matched lexicon keys for the selected label.

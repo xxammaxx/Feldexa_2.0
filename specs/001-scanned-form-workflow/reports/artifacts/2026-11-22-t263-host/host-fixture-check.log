@@ -1,0 +1,14 @@
+{"compute_slot": "QUEUED"}
+{"compute_slot": "ACQUIRED", "device": 50, "inode": 677616, "uid": 1000}
++ dart run tools/corpus/synthetic/generate.dart --check
+OK all 37 generated files are byte-for-byte current (catalog sha256 0ea3ff5df5f69241fd6c339a9f2ff5ee1e188f11689adc2099d1ae300d401501)
++ bash tools/corpus/de-ocr/verify.sh --json
+{
+  "suiteId": "de-ocr-1.0.0",
+  "fixture": "sf-005",
+  "fixtureSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+  "textLayer": "PASS",
+  "result": "PASS",
+  "failures": []
+}
+{"compute_slot": "SETTLED", "exit_code": 0}

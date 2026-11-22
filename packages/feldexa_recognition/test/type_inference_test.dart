@@ -182,6 +182,64 @@ void main() {
       expect(ascii.addedCues, isNot(contains('keyword_straße')));
     });
 
+    // T263 / issue #263: German Unicode forms. Raw label text is never
+    // rewritten; only the matching fold understands the Unicode forms.
+    test('NFD-decomposed umlauts match their composed lexicon spelling', () {
+      // "Geschäftszeichen" with U+0308 COMBINING DIAERESIS instead of U+00E4.
+      const String decomposed = 'Gescha\u0308ftszeichen';
+      final TypeInferenceResult result = _infer(
+        labels: <LabelObservation>[_label(decomposed)],
+      );
+      expect(result.addedCues, contains('keyword_geschäftszeichen'));
+      // The original spelling is preserved verbatim for display and storage.
+      expect(result.labelText, decomposed);
+      expect(result.labelText, isNot('Geschäftszeichen'));
+    });
+
+    test('NFD and NFC spellings select the same lexicon entry', () {
+      const String decomposed = 'Gescha\u0308ftszeichen';
+      const String composed = 'Geschäftszeichen';
+      final TypeInferenceResult nfd = _infer(
+        labels: <LabelObservation>[_label(decomposed)],
+      );
+      final TypeInferenceResult nfc = _infer(
+        labels: <LabelObservation>[_label(composed)],
+      );
+      expect(nfd.addedCues, nfc.addedCues);
+      expect(nfd.proposedType, nfc.proposedType);
+      expect(nfd.labelText, decomposed);
+      expect(nfc.labelText, composed);
+    });
+
+    test('capital sharp S folds like ß without changing display text', () {
+      // U+1E9E LATIN CAPITAL LETTER SHARP S.
+      const String capitalSharpS = 'STRA\u1E9EE';
+      final TypeInferenceResult result = _infer(
+        labels: <LabelObservation>[_label(capitalSharpS)],
+      );
+      expect(result.addedCues, contains('keyword_straße'));
+      expect(result.labelText, capitalSharpS);
+    });
+
+    test('missing umlaut dots are not silently repaired for matching', () {
+      // "Geschaftszeichen" (a instead of ä) must not match the umlaut lexeme,
+      // and the label text must stay exactly as recognized.
+      final TypeInferenceResult result = _infer(
+        labels: <LabelObservation>[_label('Geschaftszeichen')],
+      );
+      expect(result.addedCues, isNot(contains('keyword_geschäftszeichen')));
+      expect(result.labelText, 'Geschaftszeichen');
+    });
+
+    test('plausible OCR confusion StraBe is not rewritten to Straße', () {
+      final TypeInferenceResult result = _infer(
+        labels: <LabelObservation>[_label('StraBe')],
+      );
+      expect(result.addedCues, isNot(contains('keyword_straße')));
+      expect(result.addedCues, isNot(contains('keyword_strasse')));
+      expect(result.labelText, 'StraBe');
+    });
+
     test('internal whitespace is preserved in labelText', () {
       final TypeInferenceResult result = _infer(
         labels: <LabelObservation>[_label('  Name   des   Antragstellers  ')],
@@ -515,10 +573,13 @@ void main() {
 
   group('label proximity', () {
     test('nearest credible label wins and only its evidence is used', () {
+      // Both labels are off-row (above/below), so the proximity rule decides.
+      // A same-row label is associated structurally and outranks these; that
+      // case is covered by the T263 structural-association group below.
       final TypeInferenceResult result = _infer(
         labels: <LabelObservation>[
-          _label('Name', y: 90, height: 10),
-          _label('Betrag', x: 230, y: 100, width: 30),
+          _label('Name', y: 88, height: 10),
+          _label('Betrag', x: 100, y: 124, width: 30),
         ],
       );
       expect(result.labelText, 'Name');
@@ -528,15 +589,15 @@ void main() {
     });
 
     test('24 pt is the inclusive credibility boundary', () {
+      // Off-row (above) labels are bounded by the 24 pt proximity radius; a
+      // label on the candidate's own row is associated structurally instead.
       final TypeInferenceResult atBoundary = _infer(
-        labels: <LabelObservation>[_label('Name', x: 244, y: 100, width: 30)],
+        labels: <LabelObservation>[_label('Name', y: 66, width: 30)],
       );
       expect(atBoundary.labelText, 'Name');
 
       final TypeInferenceResult beyond = _infer(
-        labels: <LabelObservation>[
-          _label('Name', x: 244.125, y: 100, width: 30),
-        ],
+        labels: <LabelObservation>[_label('Name', y: 65.875, width: 30)],
       );
       expect(beyond.labelText, isNull);
       expect(beyond.proposedType, 'text');
@@ -571,8 +632,8 @@ void main() {
     });
 
     test('distance tie is broken by rect y, then rect x, then text', () {
-      // Both labels have squared distance 576: one is 24 pt above, the other
-      // 24 pt to the right. The smaller y wins.
+      // Both labels have squared distance 576 and are off-row: one is 24 pt
+      // above, the other 24 pt below. The smaller y wins.
       final LabelObservation smallerY = _label(
         'SmallerY',
         x: 100,
@@ -581,8 +642,8 @@ void main() {
       );
       final LabelObservation largerY = _label(
         'LargerY',
-        x: 244,
-        y: 100,
+        x: 100,
+        y: 136,
         width: 20,
       );
       expect(
@@ -881,6 +942,153 @@ void main() {
           ),
         ),
       );
+    });
+  });
+
+  group(
+    'T263 correction-1 — structural label association (left-label rows)',
+    () {
+      // T263 EMULATOR evidence at 40a4260 showed label accuracy 0.00 % on the
+      // reference variant: printed field labels sit left of their field on the
+      // same row with a gap of 14-90 pt, so the fixed 24 pt Euclidean radius
+      // never reached them and the pipeline either reported no label or took a
+      // heading above the row. These cases pin the documented cue semantics
+      // (`ocr_alignment_right`: "candidate is to the right of an OCR label
+      // line") instead of a fixed radius.
+
+      test('a left label on the same row is associated beyond 24 pt', () {
+        final TypeInferenceResult result = _infer(
+          candidate: _candidate(rect: _rect(190, 150, 300, 18)),
+          pageWidthPt: 600,
+          pageHeightPt: 900,
+          labels: <LabelObservation>[
+            _label(
+              'Staatsangehörigkeit',
+              x: 56.7,
+              y: 152,
+              width: 94.6,
+              height: 12,
+            ),
+          ],
+        );
+        expect(result.labelText, 'Staatsangehörigkeit');
+        expect(result.addedCues, contains('ocr_alignment_right'));
+      });
+
+      test('a same-row left label wins over a heading line above', () {
+        final TypeInferenceResult result = _infer(
+          candidate: _candidate(rect: _rect(190, 150, 300, 18)),
+          pageWidthPt: 600,
+          pageHeightPt: 900,
+          labels: <LabelObservation>[
+            _label(
+              '1. Felder mit deutschen Bezeichnungen',
+              x: 56.7,
+              y: 137,
+              width: 200,
+              height: 12,
+            ),
+            _label(
+              'Straße und Hausnummer',
+              x: 56.7,
+              y: 152,
+              width: 119.3,
+              height: 12,
+            ),
+          ],
+        );
+        expect(result.labelText, 'Straße und Hausnummer');
+      });
+
+      test(
+        'a printed mask inside the candidate is not the structural label',
+        () {
+          final TypeInferenceResult result = _infer(
+            candidate: _candidate(rect: _rect(190, 474, 300, 18)),
+            pageWidthPt: 600,
+            pageHeightPt: 900,
+            labels: <LabelObservation>[
+              _label('TT.MM.JJJJ', x: 200, y: 476, width: 60, height: 10),
+              _label('Geburtsdatum', x: 56.7, y: 476, width: 68.7, height: 12),
+            ],
+          );
+          expect(result.labelText, 'Geburtsdatum');
+          expect(result.proposedType, 'date');
+        },
+      );
+
+      test('a label two rows above is still not a same-row label', () {
+        final TypeInferenceResult result = _infer(
+          candidate: _candidate(rect: _rect(190, 300, 300, 18)),
+          pageWidthPt: 600,
+          pageHeightPt: 900,
+          labels: <LabelObservation>[
+            _label('Familienname', x: 56.7, y: 230, width: 66.5, height: 12),
+          ],
+        );
+        expect(result.labelText, isNull);
+      });
+    },
+  );
+
+  group('T263 correction-3 — label direction, overlap and tall rows', () {
+    // Review A2: `_sharesRow` accepted any label with any vertical overlap and
+    // outside the candidate, regardless of side. The documented
+    // `ocr_alignment_right` cue requires the candidate to be to the RIGHT of the
+    // label line, with a meaningful vertical overlap of the row.
+
+    test('a right-side value line is not the left label', () {
+      // The right-side value is closer (10 pt) than the printed left label, but
+      // the documented direction makes only the left line the field's label.
+      final TypeInferenceResult result = _infer(
+        candidate: _candidate(rect: _rect(190, 150, 120, 18)),
+        pageWidthPt: 600,
+        pageHeightPt: 900,
+        labels: <LabelObservation>[
+          _label('320,00', x: 320, y: 152, width: 40, height: 12),
+          _label(
+            'Straße und Hausnummer',
+            x: 56.7,
+            y: 152,
+            width: 119.3,
+            height: 12,
+          ),
+        ],
+      );
+      expect(result.labelText, 'Straße und Hausnummer');
+      expect(result.addedCues, contains('ocr_alignment_right'));
+    });
+
+    test('a one-point top sliver is not a row overlap', () {
+      final TypeInferenceResult result = _infer(
+        candidate: _candidate(rect: _rect(190, 150, 120, 18)),
+        pageWidthPt: 600,
+        pageHeightPt: 900,
+        // Only one point of vertical overlap: a sliver, not a shared row.
+        labels: <LabelObservation>[
+          _label('Straße', x: 56.7, y: 139, width: 60, height: 12),
+        ],
+      );
+      expect(result.labelText, isNull);
+    });
+
+    test('a left label of a tall multiline candidate is associated', () {
+      final TypeInferenceResult result = _infer(
+        candidate: _candidate(rect: _rect(190, 540, 300, 66)),
+        pageWidthPt: 600,
+        pageHeightPt: 900,
+        labels: <LabelObservation>[
+          _label(
+            'Erklärung und Äußerung',
+            x: 56.7,
+            y: 542,
+            width: 116.7,
+            height: 12,
+          ),
+        ],
+      );
+      expect(result.labelText, 'Erklärung und Äußerung');
+      expect(result.addedCues, contains('ocr_alignment_right'));
     });
   });
 }

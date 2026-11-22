@@ -88,7 +88,7 @@ void main() {
       final Map<String, dynamic> catalog = await _fetchJson('catalog.json');
       expect(catalog['schemaVersion'], 1);
       expect(catalog['evidenceClass'], 'simulated');
-      expect(catalog['fixtureCount'], 7);
+      expect(catalog['fixtureCount'], 8);
       expect(catalog['description'], contains('not evidence about Android'));
 
       final Map<String, dynamic> delivery = _map(catalog['delivery']);
@@ -107,7 +107,7 @@ void main() {
           .map((dynamic value) => _map(value))
           .where((Map<String, dynamic> fixture) => fixture['status'] == 'valid')
           .toList();
-      expect(valid.length, 4);
+      expect(valid.length, 5);
 
       for (final Map<String, dynamic> fixture in valid) {
         final String id = fixture['id'] as String;
