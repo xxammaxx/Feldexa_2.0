@@ -35,8 +35,9 @@
 //
 // Evidence
 // --------
-// Covered by host-VM widget tests only. No Android, device, screen-reader, or
-// visual claim; evidence class NONE.
+// Covered by host-VM widget tests and the Android emulator PASS recorded in
+// `reports/2026-11-22-emulator-t086d-overview.md`; DEVICE, screen-reader,
+// stylus, visual and performance claims remain NOT_RUN.
 
 library;
 

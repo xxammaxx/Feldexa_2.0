@@ -164,7 +164,8 @@ diff:     git diff --check a84dec7..HEAD ; git diff --check                     
 
 Every heavy command ran under
 `<orca-maintainer-skill>/scripts/compute_slot.py --wait -- …` (absolute host
-paths redacted). The app and application suites ran on the unchanged `lib`
+paths redacted in this report; raw harness artifact logs may retain implementation-worktree
+paths, which are test provenance and not user data). The app and application suites ran on the unchanged `lib`
 tree of `f163eb9`; the later `ff74c62` change is confined to
 `integration_test/`, and format/analyze were re-run on it (both clean).
 
