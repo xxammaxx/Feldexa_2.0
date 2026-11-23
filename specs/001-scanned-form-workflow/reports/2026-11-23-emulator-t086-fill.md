@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Evidence class | `EMULATOR` (host checks `NONE`; `DEVICE` `NOT_RUN`; `SIMULATED` `NOT_RUN`) |
-| Result | `PASS` for the run-4 EMULATOR journey (every scenario of the two-page fill completed); `PARTIAL` for T086 as a whole, because `DEVICE`, TalkBack, stylus, and the visual/export halves are `NOT_RUN` and the acceptance row stays with the owner |
+| Result | `PASS` for the run-4 EMULATOR journey (every step of the recorded journey completed; §7 lists the US4 scenarios this journey does not execute); `PARTIAL` for T086 as a whole, because `DEVICE`, TalkBack, stylus, and the visual/export halves are `NOT_RUN` and the acceptance row stays with the owner |
 | Task / issue | `T086` / `#86` |
 | Date / timezone | `2026-11-23 17:49 Europe/Berlin` (run 4; runs 1-3 in the same afternoon) |
 | Revision | run-4 HEAD `69827d5c221ae10fd3840da9943bba9a3e478d51` (tree `a91d5700a118eed3a8ecde35d988b48705904831`, branch `<owner>/t086`), `git status --porcelain` empty at run start |
@@ -47,7 +47,8 @@ performance are `NOT_RUN`.
 | Build command | `flutter test --no-pub integration_test/android_fill_test.dart -d emulator-5554` (Gradle `assembleDebug`, incremental) |
 | Dirty files | none at run start; the driver's commit-before-run gate passed |
 
-Three files changed in this task: `apps/feldexa_app/integration_test/android_fill_test.dart`
+Three source files changed in this task (the test-only driver `tools/android/t086_drive_fill.sh`,
+this report, and its artifact bundle are additional, non-behavioural additions): `apps/feldexa_app/integration_test/android_fill_test.dart`
 (test-only instrumentation plus the untouched journey), `apps/feldexa_app/test/editor_composition_test.dart`
 (RED regression test), and `apps/feldexa_app/lib/features/editor/editor_screen.dart`
 (the minimal repair, 20 added lines in one composition method). No core, ports,
@@ -262,9 +263,9 @@ composition:
 | Seven typed fields seeded through `addField`, one verified revision, reopen with analysis skipped | 9 fields, 5 page 1 / 4 page 2 | `FIELDS=9:PAGES=2:ANALYSIS=skipped` | `PASS` |
 | FLD-001: entered text larger than the recognised region keeps every rune | warning visible, `TRUNCATED=0` | `RUNES=215:STORED_RUNES=215:TRUNCATED=0` + `overflow-warning` screenshot | `PASS` |
 | Page-1 touch fill: text, number, date, checkbox | committed values, canonical forms | 4 markers, `NUMBER_CANONICAL:MATCH=1`, `DATE_CANONICAL:MATCH=1`, `CHECKED=1` | `PASS` |
-| Page-1 completion screenshot | 5 filled fields | `PAGE1_FILLED:FIELDS=5` + `page1-values` screenshot | `PASS` |
+| Page-1 completion screenshot | 5 filled fields | `PAGE1_FILLED:FIELDS=5` marker (authority) + `page1-values` screenshot (captured during the IME transition, so the sheet header is visible but the value row sits behind the keyboard) | `PASS` (marker), screenshot illustrative |
 | Page-2 touch fill: text, multiline, drawn signature | three committed values | `RUNES=6`, `MULTILINE_STORED:LINES=2:TRUNCATED=0`, `signature:BOUND=1:WIDTH_LE_1024=1:HEIGHT_LE_1024=1` | `PASS` |
-| Page-2 completion screenshot | 3 filled fields | `PAGE2_FILLED:FIELDS=3` + `page2-signed` screenshot | `PASS` |
+| Page-2 completion screenshot | 3 filled fields | `PAGE2_FILLED:FIELDS=3` marker (authority) + `page2-signed` screenshot | `PASS` (marker), screenshot illustrative |
 | Page round trip: every page-1 value unchanged | 5 values | `VALUES_SURVIVED_NAVIGATION:PAGE1=5:PAGE2=3` | `PASS` |
 | Every filled field reopened on both pages | preserved and editable | 7 `FIELD_REOPENED` markers + `page1-preserved` screenshot | `PASS` |
 | Real edit after the round trip | updated value committed | `FIELD_EDITED_AFTER_NAVIGATION:TYPE=text:RUNES=19:TRUNCATED=0` | `PASS` |
@@ -288,6 +289,26 @@ No performance claim. Emulator timings are never a device claim.
 
 - `DEVICE`, TalkBack traversal, stylus, visual/golden, export of the filled
   document, and every performance claim are `NOT_RUN`.
+- **US4 acceptance scenarios this journey does not execute** (the journey covers
+  scenarios 1, 3, 5, 6 and 7 of `spec.md` §US4; "every step" in the result row
+  refers to the journey's own steps, not to all ten scenarios):
+  - scenario 2 (zoom brings the field region into a readable view) — the journey
+    sets the view itself (`_setScaleOnPoint`/`_centreAndTapField`) and asserts no
+    app-driven zoom; `zoomToFieldScale` has no caller under `apps/`.
+  - scenario 4 (next/previous field focus) — `fieldValueNextKey`/
+    `fieldValuePreviousKey` are not used; covered by host widget tests
+    (`test/field_value_sheet_test.dart`, the next-focus case in
+    `test/editor_composition_test.dart`).
+  - scenario 8 (overview completion state) — the journey leaves and reopens the
+    document but does not assert completion; covered by host tests
+    (`test/editor_composition_test.dart`, the overview completion case).
+  - scenario 9 (impossible date rejected) — only a valid date is entered; covered
+    by host tests (the impossible-date case in `test/editor_composition_test.dart`).
+  - scenario 10 (reclassify a date field as text) — no `changeType` UI exists in
+    `apps/feldexa_app/lib`; not demonstrated anywhere.
+- **8 of 9 seeded confirmed fields are filled**: the machine-confirmed text field on
+  page 2 (`machinePageTwo`) is measured and left untouched, so "entirely by touch"
+  holds for the 8 filled fields, not for every field on both pages.
 - The emulator proves wiring, real touch behaviour, and the production store, not
   silicon-specific behaviour.
 - The repair changes the hit precedence only. A machine candidate that overlaps a
