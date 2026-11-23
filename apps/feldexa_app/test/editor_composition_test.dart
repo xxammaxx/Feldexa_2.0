@@ -104,6 +104,18 @@ const ValueKey<String> _editorPageViewKey = ValueKey<String>(
 core.Rect _fieldRect() => core.Rect.fromLTWH(40, 60, 100, 30);
 core.Rect _suggestionRect() => core.Rect.fromLTWH(40, 20, 100, 20);
 
+/// A machine candidate that covers the middle of [_fieldRect] and extends
+/// past its right edge.
+///
+/// The T086 emulator run showed that an unresolved candidate can overlap a
+/// confirmed field: the page-2 tap resolved to the candidate and the field
+/// stayed unreachable. The overlap must not cost the field its tap, and the
+/// candidate must stay selectable where it is not covered.
+core.Rect _overlappingSuggestionRect() => core.Rect.fromLTWH(40, 65, 140, 20);
+
+/// A display point on the suggestion that [_fieldRect] does not cover.
+core.Rect _suggestionOnlyRect() => core.Rect.fromLTWH(160, 74, 1, 1);
+
 core.Page _page() {
   return core.Page(
     index: 0,
@@ -141,11 +153,11 @@ core.ConfirmedField _secondField([core.FieldType type = core.FieldType.text]) {
   );
 }
 
-core.FieldSuggestion _suggestion() {
+core.FieldSuggestion _suggestion({core.Rect? rect, String id = 's_p0_0001'}) {
   return core.FieldSuggestion(
-    id: 's_p0_0001',
+    id: id,
     pageIndex: 0,
-    rect: _suggestionRect(),
+    rect: rect ?? _suggestionRect(),
     proposedType: core.FieldType.text,
     confidence: 0.6,
     labelText: 'Vorschlag',
@@ -161,6 +173,7 @@ core.RevisionContent _content({
   bool withSecondField = false,
   bool secondFieldFirst = false,
   bool withSuggestion = false,
+  bool overlappingSuggestion = false,
   core.FieldType fieldType = core.FieldType.text,
   core.FieldType secondFieldType = core.FieldType.text,
   core.FieldValue? value,
@@ -178,7 +191,14 @@ core.RevisionContent _content({
   return core.RevisionContent(
     pages: <core.Page>[_page()],
     suggestions: withSuggestion
-        ? <core.FieldSuggestion>[_suggestion()]
+        ? <core.FieldSuggestion>[
+            overlappingSuggestion
+                ? _suggestion(
+                    rect: _overlappingSuggestionRect(),
+                    id: 's_p0_0002',
+                  )
+                : _suggestion(),
+          ]
         : const <core.FieldSuggestion>[],
     fields: fields,
     fieldOrder: <String>[
@@ -614,6 +634,40 @@ void main() {
     await tester.pumpAndSettle();
     expect(state.selection.selectedId, isNull);
   });
+
+  testWidgets(
+    'a confirmed field keeps its tap where an unresolved suggestion overlaps',
+    (tester) async {
+      // FR-031/FR-032: a tap on a field's position selects that field. An
+      // unresolved machine candidate is only a proposal, so an overlap must not
+      // swallow the tap; the candidate stays tappable where it is not covered.
+      final _FakeStore store = _FakeStore(
+        loaded: _loaded(
+          content: _content(withSuggestion: true, overlappingSuggestion: true),
+        ),
+      );
+      final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+      await _pumpEditor(tester, runtime: runtime);
+
+      final EditorScreenState state = _state(tester);
+      await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+      await tester.pumpAndSettle();
+
+      expect(state.selection.selectedId, _fieldId);
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+      expect(find.byKey(fieldTextControlInputKey), findsOneWidget);
+
+      await tester.tap(find.byKey(fieldValueCloseKey));
+      await tester.pumpAndSettle();
+      expect(find.byKey(fieldValueSheetKey), findsNothing);
+
+      await tester.tapAt(_screenPoint(tester, state, _suggestionOnlyRect()));
+      await tester.pumpAndSettle();
+
+      expect(state.selection.selectedId, 's_p0_0002');
+      expect(find.byKey(fieldValueSheetKey), findsNothing);
+    },
+  );
 
   testWidgets('an empty page still clears a stale selection', (tester) async {
     final _FakeStore store = _FakeStore(

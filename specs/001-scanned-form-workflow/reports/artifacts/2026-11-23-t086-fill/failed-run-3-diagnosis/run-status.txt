@@ -1,0 +1,5 @@
+result=FAIL
+flutter_test_exit=1
+driver_exit=1
+aborted_at=driver step 6, capture_screenshot page2-signed: "missing marker T086_SCREENSHOT_PAGE2_SIGNED before screenshot page2-signed"
+collected=partial (the driver exits through fail() before step 7 evidence collection; see collection-note.txt)

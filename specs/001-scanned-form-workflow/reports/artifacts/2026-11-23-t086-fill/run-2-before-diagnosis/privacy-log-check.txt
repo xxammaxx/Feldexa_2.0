@@ -1,0 +1,1 @@
+PASS: no document content, display name, or fixture path found in the integration log

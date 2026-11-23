@@ -1,0 +1,23 @@
+collection=partial, two stages, both from the single diagnostic run
+run_directory=/tmp/feldexa-t086-run.20261123T163500Z-c (kept unchanged)
+run_head=ad5ddac608e1d20e7e4afb77c20385eb80d6ca85 (test(T086): diagnose the page-2 tap seam)
+
+stage_1_from_driver (written before the abort):
+  compute-lock.txt device-binding.txt device-identity.txt fixture-sha256.txt
+  host-flutter-pub-get.log integration-android-t086.log marker-sequence.txt
+  privacy-source-check.txt screenshots/overflow-warning.png screenshots/page1-values.png
+
+stage_2_collected_after_the_abort (driver step 7 not reached; the driver exits
+through fail() and therefore writes no step-7 files):
+  markers-integration.txt   <- grep -E '^T086_' integration-android-t086.log
+  screenshot-hashes.txt     <- sha256sum of the two captured screenshots
+  run-status.txt            <- from the driver exit and the flutter test exit
+  apk-sha256.txt            <- sha256sum of build/app/outputs/flutter-apk/app-debug.apk
+  git-identity.txt          <- git rev-parse HEAD / HEAD^{tree} / branch / subject / file hashes
+  privacy-log-check.txt     <- the same grep the driver would run on the integration log
+  logcat-probe.txt          <- post-abort adb logcat probe (no T086 marker expected)
+
+why_this_directory_exists: the diagnostic run produced the decisive
+T086_DIAG_SHEET_* markers but is not the run this evidence bundle binds to; the
+verification run that follows it replaces the top-level files of
+2026-11-23-t086-fill/, so the diagnostic run is kept here unchanged.

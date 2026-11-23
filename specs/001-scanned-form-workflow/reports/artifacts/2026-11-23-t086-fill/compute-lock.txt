@@ -1,0 +1,6 @@
+mode=shared-heavy-work-lock
+require=python3 /home/xxammaxx/.agents/skills/pi-maintainer/scripts/compute_slot.py --wait <command>
+lock_path=/tmp/orca-maintainer-heavy-1000.lock
+inside_lock=1 (T086_COMPUTE_LOCK_HELD=1: the run is inside compute_slot.py's critical section)
+orca_command_used=0
+admitted_at_utc=2026-11-23T16:45:16Z

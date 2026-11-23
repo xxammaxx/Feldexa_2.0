@@ -1,0 +1,8 @@
+head=69827d5c221ae10fd3840da9943bba9a3e478d51
+tree=a91d5700a118eed3a8ecde35d988b48705904831
+branch=xxammaxx/t086
+subject=docs(T086): keep the diagnostic emulator run beside the fill evidence
+status_porcelain:
+test_sha256=c3a25fc8c38f1eec7a1a34ff67b71ebfb4dc2326f1a9132f260bb90c427434dd
+driver_sha256=5a271fd9902b331865078456b51351eb7f63206e5c37c0b52f912aaa997a87f7
+flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
