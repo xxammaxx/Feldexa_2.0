@@ -1,5 +1,5 @@
 00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t086/apps/feldexa_app/integration_test/android_fill_test.dart
-Running Gradle task 'assembleDebug'...
+Running Gradle task 'assembleDebug'...                          
 WARNING: A restricted method in java.lang.System has been called
 WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/home/xxammaxx/.gradle/wrapper/dists/gradle-9.3.1-all/9ot9r568e8zfvvd4mn8rbu1j0/gradle-9.3.1/lib/native-platform-0.22-milestone-29.jar)
 WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
@@ -13,9 +13,9 @@ If no such version exists, report the issue to the plugin. If necessary, here is
 an issue against a plugin: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers#report-incompatible-kotlin-gradle-plugin-usage-to-plugin-authors
 
 If you are a plugin author, please migrate your plugin to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
-Running Gradle task 'assembleDebug'...                            105,9s
+Running Gradle task 'assembleDebug'...                             64,3s
 ✓ Built build/app/outputs/flutter-apk/app-debug.apk
-Installing build/app/outputs/flutter-apk/app-debug.apk...        1.460ms
+Installing build/app/outputs/flutter-apk/app-debug.apk...        1.448ms
 00:00 +0: (setUpAll)
 T086_FIXTURE_READY:BYTES=5956:MATCH=1
 00:00 +0: two-page touch fill keeps every value and stays editable
@@ -40,8 +40,8 @@ T071A_DIAG_RASTER_OK:P=0:W=1654:H=2339
 T071A_DIAG_OCR_START:P=0
 T071A_DIAG_PAGE_RENDER_START:P=0:W=1080:H=1527
 T071A_DIAG_PAGE_RENDER_START:P=1:W=1080:H=1527
-T071A_DIAG_PAGE_RENDER_OK:P=0:W=1080:H=1527
 T071A_DIAG_PAGE_RENDER_OK:P=1:W=1080:H=1527
+T071A_DIAG_PAGE_RENDER_OK:P=0:W=1080:H=1527
 T071A_DIAG_OCR_OK:P=0:BLOCKS=25
 T071A_DIAG_RASTER_START:P=1:SCALE=2.7777777777777777:FORMAT=gray8
 T071A_DIAG_RASTER_OK:P=1:W=1654:H=2339
@@ -84,39 +84,55 @@ T071A_DIAG_VIEW_DOCUMENT_OPEN_OK:PAGES=2
 T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
 T071A_DIAG_PAGE_RENDER_START:P=0:W=1080:H=1527
 T071A_DIAG_PAGE_RENDER_START:P=1:W=1080:H=1527
-T071A_DIAG_PAGE_RENDER_OK:P=0:W=1080:H=1527
-T071A_DIAG_PAGE_RENDER_OK:P=1:W=1080:H=1527
 T086_DOCUMENT_REOPENED:FIELDS=9:PAGES=2:ANALYSIS=skipped
 T086_PAGE_VISIBLE:PAGE=1
+T071A_DIAG_PAGE_RENDER_OK:P=0:W=1080:H=1527
+T071A_DIAG_PAGE_RENDER_CANCELLED:P=1
 T071A_DIAG_PAGE_RENDER_START:P=0:W=1563:H=2210
+T086_DIAG_SHEET_GEOM_TAP:PAGE=1:TYPE=text:VIEWPORT=411.4x317.7:MEDIA=411.4x914.3:IME_BOTTOM=0.0:SCALE=1.000:PAN=0.0,0.0:PAGEVIEW=0.0,572.6,411.4,890.3:TAP=116.1,608.6:TAP_IN_PAGEVIEW=1:PAGE_IN_VIEW=0.0,0.0,595.3,841.9:TAP_IN_PAGE=1:TAP_PAGE_LOCAL=116.1,36.0:FIELD=114.9,33.9,117.4,38.1
+T086_DIAG_SHEET_STATE_TAP:SELECTION=THIS:SHEET=CLOSED:TEXT_INPUT=EMPTY:BARRIERS=1:FIELD_IN_CONTENT=1:PAGE_SUGGESTIONS=27:SURFACES=1:SURF0=IN1/ITEMS32/HASFIELD1/HIT:TARGET@114.9,33.9,117.4,38.1:HITPATH=RenderPointerListener>RenderSemanticsAnnotations>RenderSemanticsAnnotations>RenderSemanticsAnnotations>RenderSemanticsAnnotations>RenderTapRegionSurface:DEDUCED=GATE_STUCK_OPEN
 T071A_DIAG_PAGE_RENDER_OK:P=0:W=1563:H=2210
 T086_VALUE_OVERFLOW:TYPE=text:ENTERED_RUNES=215:STORED_RUNES=215:TRUNCATED=0
 T086_VALUE_SAVED:TYPE=text:RUNES=215:OVERFLOW=1
 T086_T086_SCREENSHOT_OVERFLOW_WARNING
+T086_DIAG_SHEET_GEOM_TAP:PAGE=1:TYPE=text:VIEWPORT=411.4x317.7:MEDIA=411.4x914.3:IME_BOTTOM=0.0:SCALE=1.000:PAN=0.0,-114.8:PAGEVIEW=0.0,572.6,411.4,890.3:TAP=169.7,731.4:TAP_IN_PAGEVIEW=1:PAGE_IN_VIEW=0.0,-114.8,595.3,727.1:TAP_IN_PAGE=1:TAP_PAGE_LOCAL=169.7,273.6:FIELD=35.7,252.6,303.6,294.7
+T086_DIAG_SHEET_STATE_TAP:SELECTION=THIS:SHEET=CLOSED:TEXT_INPUT=EMPTY:BARRIERS=1:FIELD_IN_CONTENT=1:PAGE_SUGGESTIONS=27:SURFACES=1:SURF0=IN1/ITEMS32/HASFIELD1/HIT:TARGET@35.7,252.6,303.6,294.7:HITPATH=RenderPointerListener>RenderSemanticsAnnotations>RenderSemanticsAnnotations>RenderSemanticsAnnotations>RenderSemanticsAnnotations>RenderTapRegionSurface:DEDUCED=GATE_STUCK_OPEN
 T086_VALUE_SAVED:TYPE=text:RUNES=14:OVERFLOW=0
+T086_DIAG_SHEET_GEOM_TAP:PAGE=1:TYPE=number:VIEWPORT=411.4x317.7:MEDIA=411.4x914.3:IME_BOTTOM=0.0:SCALE=1.000:PAN=-183.9,-110.6:PAGEVIEW=0.0,572.6,411.4,890.3:TAP=232.8,731.4:TAP_IN_PAGEVIEW=1:PAGE_IN_VIEW=-183.9,-110.6,411.4,731.3:TAP_IN_PAGE=1:TAP_PAGE_LOCAL=416.7,269.4:FIELD=327.4,252.6,506.0,286.2
+T086_DIAG_SHEET_STATE_TAP:SELECTION=THIS:SHEET=CLOSED:TEXT_INPUT=EMPTY:BARRIERS=1:FIELD_IN_CONTENT=1:PAGE_SUGGESTIONS=27:SURFACES=1:SURF0=IN1/ITEMS32/HASFIELD1/HIT:TARGET@327.4,252.6,506.0,286.2:HITPATH=RenderPointerListener>RenderSemanticsAnnotations>RenderSemanticsAnnotations>RenderSemanticsAnnotations>RenderSemanticsAnnotations>RenderTapRegionSurface:DEDUCED=GATE_STUCK_OPEN
 T086_VALUE_SAVED:TYPE=number:RUNES=8:OVERFLOW=0
 T086_NUMBER_CANONICAL:MATCH=1
+T086_DIAG_SHEET_GEOM_TAP:PAGE=1:TYPE=date:VIEWPORT=411.4x317.7:MEDIA=411.4x914.3:IME_BOTTOM=0.0:SCALE=1.000:PAN=0.0,-161.1:PAGEVIEW=0.0,572.6,411.4,890.3:TAP=110.1,731.4:TAP_IN_PAGEVIEW=1:PAGE_IN_VIEW=0.0,-161.1,595.3,680.8:TAP_IN_PAGE=1:TAP_PAGE_LOCAL=110.1,319.9:FIELD=35.7,303.1,184.5,336.8
+T086_DIAG_SHEET_STATE_TAP:SELECTION=THIS:SHEET=CLOSED:TEXT_INPUT=EMPTY:BARRIERS=1:FIELD_IN_CONTENT=1:PAGE_SUGGESTIONS=27:SURFACES=1:SURF0=IN1/ITEMS32/HASFIELD1/HIT:TARGET@35.7,303.1,184.5,336.8:HITPATH=RenderPointerListener>RenderSemanticsAnnotations>RenderSemanticsAnnotations>RenderSemanticsAnnotations>RenderSemanticsAnnotations>RenderTapRegionSurface:DEDUCED=GATE_STUCK_OPEN
 T086_VALUE_SAVED:TYPE=date:RUNES=10:OVERFLOW=0
 T086_DATE_CANONICAL:MATCH=1
+T086_DIAG_SHEET_GEOM_TAP:PAGE=1:TYPE=checkbox:VIEWPORT=411.4x317.7:MEDIA=411.4x914.3:IME_BOTTOM=0.0:SCALE=1.000:PAN=-145.5,-156.9:PAGEVIEW=0.0,572.6,411.4,890.3:TAP=205.7,731.4:TAP_IN_PAGEVIEW=1:PAGE_IN_VIEW=-145.5,-156.9,449.8,685.0:TAP_IN_PAGE=1:TAP_PAGE_LOCAL=351.2,315.7:FIELD=327.4,303.1,375.0,328.3
+T086_DIAG_SHEET_STATE_TAP:SELECTION=THIS:SHEET=CLOSED:TEXT_INPUT=EMPTY:BARRIERS=1:FIELD_IN_CONTENT=1:PAGE_SUGGESTIONS=27:SURFACES=1:SURF0=IN1/ITEMS32/HASFIELD1/HIT:TARGET@327.4,303.1,375.0,328.3:HITPATH=RenderPointerListener>RenderSemanticsAnnotations>RenderSemanticsAnnotations>RenderSemanticsAnnotations>RenderSemanticsAnnotations>RenderTapRegionSurface:DEDUCED=GATE_STUCK_OPEN
 T086_VALUE_SAVED:TYPE=checkbox:CHECKED=1
+T086_DIAG_SHEET_GEOM_TAP:PAGE=1:TYPE=date:VIEWPORT=411.4x317.7:MEDIA=411.4x914.3:IME_BOTTOM=0.0:SCALE=1.000:PAN=0.0,-161.1:PAGEVIEW=0.0,572.6,411.4,890.3:TAP=110.1,731.4:TAP_IN_PAGEVIEW=1:PAGE_IN_VIEW=0.0,-161.1,595.3,680.8:TAP_IN_PAGE=1:TAP_PAGE_LOCAL=110.1,319.9:FIELD=35.7,303.1,184.5,336.8
+T086_DIAG_SHEET_STATE_TAP:SELECTION=THIS:SHEET=CLOSED:TEXT_INPUT=EMPTY:BARRIERS=1:FIELD_IN_CONTENT=1:PAGE_SUGGESTIONS=27:SURFACES=1:SURF0=IN1/ITEMS32/HASFIELD1/HIT:TARGET@35.7,303.1,184.5,336.8:HITPATH=RenderPointerListener>RenderSemanticsAnnotations>RenderSemanticsAnnotations>RenderSemanticsAnnotations>RenderSemanticsAnnotations>RenderTapRegionSurface:DEDUCED=GATE_STUCK_OPEN
 T086_PAGE1_FILLED:FIELDS=5
 T086_T086_SCREENSHOT_PAGE1_VALUES
 T071A_DIAG_PAGE_RENDER_START:P=1:W=1563:H=2210
 T071A_DIAG_PAGE_RENDER_OK:P=1:W=1563:H=2210
 T086_PAGE_VISIBLE:PAGE=2
+T086_DIAG_SHEET_GEOM_TAP:PAGE=2:TYPE=text:VIEWPORT=411.4x317.7:MEDIA=411.4x914.3:IME_BOTTOM=0.0:SCALE=1.000:PAN=-183.9,-1048.9:PAGEVIEW=0.0,572.6,411.4,890.3:TAP=262.6,731.4:TAP_IN_PAGEVIEW=1:PAGE_IN_VIEW=-183.9,-199.0,411.4,642.9:TAP_IN_PAGE=1:TAP_PAGE_LOCAL=446.5,357.8:FIELD=327.4,336.8,565.5,378.9
+T086_DIAG_SHEET_STATE_TAP:SELECTION=OTHER:SHEET=CLOSED:TEXT_INPUT=EMPTY:BARRIERS=1:FIELD_IN_CONTENT=1:PAGE_SUGGESTIONS=51:SURFACES=1:SURF0=IN1/ITEMS55/HASFIELD1/HIT:SUGGESTION@56.5,345.6,539.3,363.6:HITPATH=RenderPointerListener>RenderSemanticsGestureHandler>RenderStack>RenderStack>RenderPointerListener>RenderStack:DEDUCED=OTHER_ITEM_ON_TOP
 ══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
 The following TestFailure was thrown running a test:
 tapping the text field did not open the value sheet (bounded wait 120s expired)
+DIAG_SHEET_GEOM_TIMEOUT:PAGE=2:TYPE=text:VIEWPORT=411.4x317.7:MEDIA=411.4x914.3:IME_BOTTOM=0.0:SCALE=1.000:PAN=-183.9,-1048.9:PAGEVIEW=0.0,572.6,411.4,890.3:TAP=262.6,731.4:TAP_IN_PAGEVIEW=1:PAGE_IN_VIEW=-183.9,-199.0,411.4,642.9:TAP_IN_PAGE=1:TAP_PAGE_LOCAL=446.5,357.8:FIELD=327.4,336.8,565.5,378.9
+DIAG_SHEET_STATE_TIMEOUT:SELECTION=OTHER:SHEET=CLOSED:TEXT_INPUT=EMPTY:BARRIERS=1:FIELD_IN_CONTENT=1:PAGE_SUGGESTIONS=51:SURFACES=1:SURF0=IN1/ITEMS55/HASFIELD1/HIT:SUGGESTION@56.5,345.6,539.3,363.6:HITPATH=RenderPointerListener>RenderSemanticsGestureHandler>RenderStack>RenderStack>RenderPointerListener>RenderStack:DEDUCED=OTHER_ITEM_ON_TOP
 
 When the exception was thrown, this was the stack:
 #0      fail (package:matcher/src/expect/expect.dart:187:31)
-#1      _pumpUntil (file:///home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t086/apps/feldexa_app/integration_test/android_fill_test.dart:169:3)
+#1      _pumpUntil (file:///home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t086/apps/feldexa_app/integration_test/android_fill_test.dart:179:3)
 <asynchronous suspension>
-#2      _openValueSheet (file:///home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t086/apps/feldexa_app/integration_test/android_fill_test.dart:344:3)
+#2      _openValueSheet (file:///home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t086/apps/feldexa_app/integration_test/android_fill_test.dart:532:3)
 <asynchronous suspension>
-#3      _fillField (file:///home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t086/apps/feldexa_app/integration_test/android_fill_test.dart:771:3)
+#3      _fillField (file:///home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t086/apps/feldexa_app/integration_test/android_fill_test.dart:966:3)
 <asynchronous suspension>
-#4      main.<anonymous closure> (file:///home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t086/apps/feldexa_app/integration_test/android_fill_test.dart:1055:5)
+#4      main.<anonymous closure> (file:///home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t086/apps/feldexa_app/integration_test/android_fill_test.dart:1250:5)
 <asynchronous suspension>
 #5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
 <asynchronous suspension>
@@ -128,12 +144,12 @@ When the exception was thrown, this was the stack:
 The test description was:
   two-page touch fill keeps every value and stays editable
 ════════════════════════════════════════════════════════════════════════════════════════════════════
-03:00 +0 -1: two-page touch fill keeps every value and stays editable [E]
+03:06 +0 -1: two-page touch fill keeps every value and stays editable [E]
   Test failed. See exception logs above.
   The test description was: two-page touch fill keeps every value and stays editable
-
-03:00 +0 -1: (tearDownAll)
-03:02 +0 -1: Some tests failed.
+  
+03:06 +0 -1: (tearDownAll)
+03:07 +0 -1: Some tests failed.
 
 Failing tests:
   /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t086/apps/feldexa_app/integration_test/android_fill_test.dart: two-page touch fill keeps every value and stays editable

@@ -1,0 +1,17 @@
+head=ad5ddac608e1d20e7e4afb77c20385eb80d6ca85
+tree=ec254f3414e7102824471fb5083eeafdf80fdbf0
+branch=xxammaxx/t086
+subject=test(T086): diagnose the page-2 tap seam
+status_porcelain
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill/apk-sha256.txt
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill/compute-lock.txt
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill/device-identity.txt
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill/git-identity.txt
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill/integration-android-t086.log
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill/markers-integration.txt
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill/screenshot-hashes.txt
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill/screenshots/overflow-warning.png
+ M specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill/screenshots/page1-values.png
+test_sha256=c3a25fc8c38f1eec7a1a34ff67b71ebfb4dc2326f1a9132f260bb90c427434dd
+driver_sha256=5a271fd9902b331865078456b51351eb7f63206e5c37c0b52f912aaa997a87f7
+flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git

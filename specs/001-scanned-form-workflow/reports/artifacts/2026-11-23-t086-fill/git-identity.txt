@@ -1,9 +1,0 @@
-head=a91ec0eddb0609d064abf20c7fb849cae900a325
-tree=4dabde5b2b21b04e6b73519c902e78f0d5725281
-branch=xxammaxx/t086
-subject=fix(T086): keep overflow sheet state and continue the journey
-status_porcelain_at_run_start=(clean; the driver commit-before-run gate reported: "commit-before-run gate passed")
-test_sha256=1da45b8023afa35f8125630af02e997aa6f9c8f7b5054675873990751191c511
-driver_sha256=5a271fd9902b331865078456b51351eb7f63206e5c37c0b52f912aaa997a87f7
-flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
-collected=after the aborted run (driver step 7 not reached); values unchanged between run start and collection except the untracked evidence directory

@@ -1,6 +1,6 @@
 probe=post-abort (the driver aborted in step 6 and never dumped logcat)
 command=adb -s emulator-5554 logcat -d -v threadtime
-lines=11957
+lines=4959
 t086_markers=0
 e_flutter_or_fatal=0
 note=The T086 journey markers are printed by the integration-test process through the host test harness, not by the app process, so the authoritative marker source is integration-android-t086.log and markers-integration.txt. The probe shows no Flutter engine exception and no app crash during the run.
