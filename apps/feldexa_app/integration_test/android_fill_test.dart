@@ -69,6 +69,14 @@ import 'package:feldexa_app/main.dart' as app;
 import 'package:feldexa_application/src/review/edit_field.dart' as edit;
 import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:feldexa_ports/feldexa_ports.dart';
+import 'package:feldexa_ui/feldexa_ui.dart'
+    show
+        FieldOverlayItem,
+        FieldOverlayProvenance,
+        FieldSelectionSurface,
+        hitTestFieldSelection;
+import 'package:flutter/gestures.dart'
+    show HitTestEntry, HitTestResult, HitTestTarget;
 import 'package:flutter/material.dart' hide PageView;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -157,6 +165,7 @@ Future<void> _pumpUntil(
   bool Function() condition, {
   required Duration timeout,
   required String reason,
+  String Function()? diagnosis,
 }) async {
   final DateTime deadline = DateTime.now().add(timeout);
   while (DateTime.now().isBefore(deadline)) {
@@ -166,7 +175,8 @@ Future<void> _pumpUntil(
       return;
     }
   }
-  fail('$reason (bounded wait ${timeout.inSeconds}s expired)');
+  final String detail = diagnosis == null ? '' : '\n${diagnosis()}';
+  fail('$reason (bounded wait ${timeout.inSeconds}s expired)$detail');
 }
 
 /// Waits for a terminal first-analysis state and fails fast on `analysis-failed`.
@@ -317,7 +327,10 @@ Future<void> _setScaleOnPoint(
 /// display point is inside the visible page rectangle. Centring first is the
 /// documented viewer seam (`PageViewController.setView`), not a geometry
 /// shortcut.
-Future<void> _centreAndTapField(
+///
+/// Returns the global point that was tapped so the caller can report the exact
+/// tap seam when the value sheet does not open.
+Future<Offset> _centreAndTapField(
   WidgetTester tester,
   EditorScreenState state,
   core.ConfirmedField field,
@@ -332,7 +345,173 @@ Future<void> _centreAndTapField(
     ),
     1,
   );
-  await tester.tapAt(_screenPoint(tester, state, field));
+  final Offset tapPoint = _screenPoint(tester, state, field);
+  await tester.tapAt(tapPoint);
+  return tapPoint;
+}
+
+String _diagNumber(double value) => value.toStringAsFixed(1);
+
+String _diagBox(double left, double top, double right, double bottom) =>
+    '${_diagNumber(left)},${_diagNumber(top)},'
+    '${_diagNumber(right)},${_diagNumber(bottom)}';
+
+String _diagFlag(bool value) => value ? '1' : '0';
+
+/// Content-free state of the value-sheet tap seam.
+///
+/// `_openValueSheet` once waited out its bound on page 2 with no sheet, no
+/// error, and no exception, so every silent path in that seam is made
+/// observable: viewport and page geometry, finder state, identity
+/// comparisons, and the overlay hit test the tap would resolve. Only numbers,
+/// counts, flags, and type/role names are emitted — never a label, entered
+/// value, id, path, or document content.
+List<String> _valueSheetTapDiagnosis(
+  WidgetTester tester,
+  EditorScreenState state,
+  core.ConfirmedField field,
+  Offset tapPoint,
+  String phase,
+) {
+  final PageViewController controller = state.viewController;
+  final Size? viewport = controller.viewportSize;
+  final Finder pageView = find.byKey(_editorPageViewKey);
+  final Rect pageViewRect = tester.getRect(pageView);
+  final MediaQueryData media = MediaQuery.of(tester.element(pageView));
+  final PageViewMapping mapping = controller.mappingFor(field.pageIndex);
+  final Rect pageInView = mapping.pageRectInViewport;
+  final Offset pageOrigin = pageViewRect.topLeft + pageInView.topLeft;
+  final Offset pageLocal = tapPoint - pageOrigin;
+  final core.RevisionContent? content = state.content;
+  final bool fieldInContent =
+      content != null &&
+      content.fields.any(
+        (core.ConfirmedField candidate) => candidate.id == field.id,
+      );
+  final int pageSuggestions = content == null
+      ? 0
+      : content.suggestions
+            .where(
+              (core.FieldSuggestion suggestion) =>
+                  suggestion.pageIndex == field.pageIndex &&
+                  suggestion.resolution == core.SuggestionResolution.unresolved,
+            )
+            .length;
+
+  final List<String> lines = <String>[
+    'DIAG_SHEET_GEOM_$phase:PAGE=${field.pageIndex + 1}:TYPE=${field.type.name}'
+        ':VIEWPORT=${_diagNumber(viewport!.width)}x${_diagNumber(viewport.height)}'
+        ':MEDIA=${_diagNumber(media.size.width)}x${_diagNumber(media.size.height)}'
+        ':IME_BOTTOM=${_diagNumber(media.viewInsets.bottom)}'
+        ':SCALE=${controller.scale.toStringAsFixed(3)}'
+        ':PAN=${_diagNumber(controller.pan.dx)},${_diagNumber(controller.pan.dy)}'
+        ':PAGEVIEW=${_diagBox(pageViewRect.left, pageViewRect.top, pageViewRect.right, pageViewRect.bottom)}'
+        ':TAP=${_diagNumber(tapPoint.dx)},${_diagNumber(tapPoint.dy)}'
+        ':TAP_IN_PAGEVIEW=${_diagFlag(pageViewRect.contains(tapPoint))}'
+        ':PAGE_IN_VIEW=${_diagBox(pageInView.left, pageInView.top, pageInView.right, pageInView.bottom)}'
+        ':TAP_IN_PAGE=${_diagFlag((pageOrigin & pageInView.size).contains(tapPoint))}'
+        ':TAP_PAGE_LOCAL=${_diagNumber(pageLocal.dx)},${_diagNumber(pageLocal.dy)}'
+        ':FIELD=${_diagBox(field.rect.left, field.rect.top, field.rect.right, field.rect.bottom)}',
+  ];
+
+  final Finder surfaceFinder = find.byType(FieldSelectionSurface);
+  final List<String> surfaces = <String>[];
+  for (int index = 0; index < surfaceFinder.evaluate().length; index++) {
+    final FieldSelectionSurface surface = tester.widget<FieldSelectionSurface>(
+      surfaceFinder.at(index),
+    );
+    final Rect surfaceRect = tester.getRect(surfaceFinder.at(index));
+    final List<FieldOverlayItem> items = surface.items.toList(growable: false);
+    final FieldOverlayItem? hit = hitTestFieldSelection(
+      items: items,
+      pageSize: surface.pageSize,
+      pageRect: surface.pageRect,
+      viewPoint: tapPoint - surfaceRect.topLeft,
+    );
+    final String outcome = hit == null
+        ? 'MISS'
+        : hit.id == field.id
+        ? 'TARGET@${_diagBox(hit.rect.left, hit.rect.top, hit.rect.right, hit.rect.bottom)}'
+        : hit.provenance == FieldOverlayProvenance.machineSuggestion
+        ? 'SUGGESTION@${_diagBox(hit.rect.left, hit.rect.top, hit.rect.right, hit.rect.bottom)}'
+        : 'FIELD@${_diagBox(hit.rect.left, hit.rect.top, hit.rect.right, hit.rect.bottom)}';
+    surfaces.add(
+      'SURF$index=IN${_diagFlag(surfaceRect.contains(tapPoint))}'
+      '/ITEMS${items.length}'
+      '/HASFIELD${_diagFlag(items.any((FieldOverlayItem item) => item.id == field.id))}'
+      '/HIT:$outcome',
+    );
+  }
+
+  final String selection = state.selection.selectedId == null
+      ? 'NONE'
+      : state.selection.selectedId == field.id
+      ? 'THIS'
+      : 'OTHER';
+  final bool sheetOpen = find.byKey(fieldValueSheetKey).evaluate().isNotEmpty;
+  final int barriers = find.byType(ModalBarrier).evaluate().length;
+  String deduced;
+  if (sheetOpen) {
+    deduced = 'SHEET_OPEN';
+  } else if (selection == 'THIS') {
+    deduced = fieldInContent ? 'GATE_STUCK_OPEN' : 'FIELD_NOT_IN_LIVE_CONTENT';
+  } else if (surfaces.any((String entry) => entry.contains('/HIT:TARGET'))) {
+    deduced = 'TARGET_HIT_NOT_SELECTED';
+  } else if (surfaces.any(
+    (String entry) =>
+        entry.contains('/HIT:SUGGESTION') || entry.contains('/HIT:FIELD'),
+  )) {
+    deduced = 'OTHER_ITEM_ON_TOP';
+  } else if (surfaces.any((String entry) => entry.contains('=IN1/'))) {
+    deduced = 'SURFACE_MISS';
+  } else {
+    deduced = 'NO_SURFACE_AT_POINT';
+  }
+  lines.add(
+    'DIAG_SHEET_STATE_$phase:SELECTION=$selection'
+    ':SHEET=${sheetOpen ? 'OPEN' : 'CLOSED'}'
+    ':TEXT_INPUT=${find.byKey(fieldTextControlInputKey).evaluate().isEmpty ? 'EMPTY' : 'FOUND'}'
+    ':BARRIERS=$barriers'
+    ':FIELD_IN_CONTENT=${_diagFlag(fieldInContent)}'
+    ':PAGE_SUGGESTIONS=$pageSuggestions'
+    ':SURFACES=${surfaces.length}'
+    ':${surfaces.join(':')}'
+    ':HITPATH=${_diagHitPath(tester, tapPoint)}'
+    ':DEDUCED=$deduced',
+  );
+  return lines;
+}
+
+/// Render-object types of the first entries the tap point resolves to.
+///
+/// The tap only opens a value sheet when it reaches the page's selection
+/// surface, so the top of the hit-test path separates a swallowed tap from a
+/// hit-test miss. Type names carry no document content.
+String _diagHitPath(WidgetTester tester, Offset tapPoint) {
+  final HitTestResult result = tester.hitTestOnBinding(tapPoint);
+  final List<String> types = <String>[];
+  for (final HitTestEntry<HitTestTarget> entry in result.path.take(6)) {
+    types.add(entry.target.runtimeType.toString());
+  }
+  return types.isEmpty ? 'EMPTY' : types.join('>');
+}
+
+/// [_valueSheetTapDiagnosis] that can never change the journey's outcome.
+///
+/// The dump is observation only, so a throw inside it must degrade to a note
+/// instead of turning a passing fill into a failure.
+List<String> _safeValueSheetTapDiagnosis(
+  WidgetTester tester,
+  EditorScreenState state,
+  core.ConfirmedField field,
+  Offset tapPoint,
+  String phase,
+) {
+  try {
+    return _valueSheetTapDiagnosis(tester, state, field, tapPoint, phase);
+  } catch (error) {
+    return <String>['DIAG_SHEET_UNAVAILABLE_$phase:ERROR=${error.runtimeType}'];
+  }
 }
 
 Future<void> _openValueSheet(
@@ -340,12 +519,28 @@ Future<void> _openValueSheet(
   EditorScreenState state,
   core.ConfirmedField field,
 ) async {
-  await _centreAndTapField(tester, state, field);
+  final Offset tapPoint = await _centreAndTapField(tester, state, field);
+  for (final String line in _safeValueSheetTapDiagnosis(
+    tester,
+    state,
+    field,
+    tapPoint,
+    'TAP',
+  )) {
+    _marker(line);
+  }
   await _pumpUntil(
     tester,
     () => find.byKey(fieldValueSheetKey).evaluate().isNotEmpty,
     timeout: const Duration(seconds: 120),
     reason: 'tapping the ${field.type.name} field did not open the value sheet',
+    diagnosis: () => _safeValueSheetTapDiagnosis(
+      tester,
+      state,
+      field,
+      tapPoint,
+      'TIMEOUT',
+    ).join('\n'),
   );
   expect(state.selection.selectedId, field.id);
 }
