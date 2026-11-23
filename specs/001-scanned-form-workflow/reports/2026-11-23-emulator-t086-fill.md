@@ -3,12 +3,12 @@
 | Field | Value |
 | --- | --- |
 | Evidence class | `EMULATOR` (host checks `NONE`; `DEVICE` `NOT_RUN`; `SIMULATED` `NOT_RUN`) |
-| Result | `PASS` for the run-4 EMULATOR journey (every step of the recorded journey completed; §7 lists the US4 scenarios this journey does not execute); `PARTIAL` for T086 as a whole, because `DEVICE`, TalkBack, stylus, and the visual/export halves are `NOT_RUN` and the acceptance row stays with the owner |
+| Result | `PASS` for the run-5 EMULATOR journey (run 4 also passed; run 5 used the derived markers) (every step of the recorded journey completed; §7 lists the US4 scenarios this journey does not execute); `PARTIAL` for T086 as a whole, because `DEVICE`, TalkBack, stylus, and the visual/export halves are `NOT_RUN` and the acceptance row stays with the owner |
 | Task / issue | `T086` / `#86` |
-| Date / timezone | `2026-11-23 17:49 Europe/Berlin` (run 4; runs 1-3 in the same afternoon) |
-| Revision | run-4 HEAD `69827d5c221ae10fd3840da9943bba9a3e478d51` (tree `a91d5700a118eed3a8ecde35d988b48705904831`, branch `<owner>/t086`), `git status --porcelain` empty at run start |
+| Date / timezone | `2026-11-23 18:50 Europe/Berlin` (run 5; runs 1-4 in the same afternoon) |
+| Revision | run-5 HEAD `71d63d5dddd26dd1582c2af35c4d0eb2e01e019e` (tree from `git-identity.txt`, branch `<owner>/t086-cleanup`), `git status --porcelain` empty at run start; run 4 ran `69827d5` and is kept below |
 | External attestation | none; the candidate SHA and this report's own bytes/hash are not asserted here |
-| Build identity | `de.feldexa.app` debug APK `apps/feldexa_app/build/app/outputs/flutter-apk/app-debug.apk`, 173624809 bytes, SHA-256 `1b6462932d0a2b190c3b3f5fba3695d60bec8fa47e750812115e8509ce67d610` |
+| Build identity | run 5: `de.feldexa.app` debug APK, 135314022 bytes, SHA-256 `beac871b0a28fe2d1d09c915630832ce3cc9e04a245697ba6db70a15ed2ed24a`; run 4 built 173624809 bytes, SHA-256 `1b6462932d0a2b190c3b3f5fba3695d60bec8fa47e750812115e8509ce67d610` |
 | Toolchain | Flutter 3.47.7 stable, Dart 3.13, AGP/Gradle 9.3.1 via the Flutter toolchain, JDK 17.0.20.1 |
 | Input | committed fixture `apps/feldexa_app/assets/fixtures/sf-001.pdf`, 5956 bytes, SHA-256 `22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038`, 2 pages |
 
@@ -349,7 +349,36 @@ the browser or a physical device.
 
 All paths are repository-relative; sizes and digests are of the committed bytes.
 
-### 9.1 Run 4 (the verification run this report binds to)
+### 9.1 Run 5 (the current verification run this report binds to)
+
+Written entirely by `tools/android/t086_drive_fill.sh`; host paths were rewritten on
+the way into this committed bundle (see `collection-note.txt`).
+
+| Artifact | Path | Bytes | SHA-256 |
+| --- | --- | ---: | --- |
+| Emulator run log | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/integration-android-t086.log` | 19868 | `d4bd7269ab875ff71cf0240ef440a5e8abdcade38d35fa442ced59628cc63e2b` |
+| Journey markers | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/markers-integration.txt` | 15226 | `c337a95b65f1df3934aae11485cdb7840fb06a9100520c90a6fb688bb0117bf8` |
+| Screenshot phase records | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/marker-sequence.txt` | 442 | `9c84cd24d849b6cfac73c8eb00279d0dc9df9240c254ac769cc8c30851ab255a` |
+| Screenshot digests | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/screenshot-hashes.txt` | 399 | `7b92514249794fe0889375e6cb86b9432434b1fe0241ca69fddad4cbe212770c` |
+| Run status | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/run-status.txt` | 32 | `7fd607f90d24581a4b9b797cff3d71e0f238dc52f3f869fd23b88a688a94f0b3` |
+| Device identity | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/device-identity.txt` | 300 | `2ac7e85ab159fbb83398cb9eeeb4301fb8613bda5b4133a7ad9e82ab3d36fa54` |
+| Device binding | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/device-binding.txt` | 202 | `844bed2e374c4bcfa531a32893e586a887aa307e29dd119d68f5636c33e98efd` |
+| Compute permit | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/compute-lock.txt` | 315 | `9682186e4c43adc2f1dd3db2aa954f5bd162f4780ea6be53fc072d3a6fbee3d6` |
+| Fixture identity | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/fixture-sha256.txt` | 327 | `b96ca888eb5169ed84f793c53e522d7981d513933ee121dcda2d534f3ee2dd33` |
+| APK identity | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/apk-sha256.txt` | 154 | `5fcc9c707f30de690cf06e1100564244dda2181f2a0666e935b551076c6a8e67` |
+| Git identity | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/git-identity.txt` | 450 | `04b81313caabc208d36d138e8b6b0309039f0f91604d5d0a5daa132fed0fdf6e` |
+| Privacy, source | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/privacy-source-check.txt` | 74 | `349ad38e994e846dbaaac218d4543d30c53d3c2748c73c4045b4b16cbfa07f91` |
+| Privacy, log | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/privacy-log-check.txt` | 80 | `08b97bb2972b873de14efa6d826023c6cf88d87105f62dc1e77006c2a171ea8a` |
+| Engine log | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/logcat-flutter.log` | 315 | `56dd9fb8fe2c5aad9241dbcedc2c3df1b7e353c50b4e7e96dec5fc033038baa3` |
+| Activity log | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/logcat-t086-markers.log` | 773 | `59bb8de81d9139e17a20299f09fb6940451aedace0bfd2ff3d0e686915906607` |
+| Host `flutter pub get --offline` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/host-flutter-pub-get.log` | 235 | `ca8a31e8d3a8e09e9613cc7cf03b3b074336ba53fcfd722c769ea6df66588675` |
+| Collection provenance | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/collection-note.txt` | 643 | `ed49cef8ccd9492093dacd8aed65bcceebae2cb4d9046d9e62d8d608edb60560` |
+| Screenshot `overflow-warning` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/screenshots/overflow-warning.png` | 210028 | `4e6f5bb40388ba1e84667b300be745835cbbe1fcdc1dd1047938c95f50fb3518` |
+| Screenshot `page1-values` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/screenshots/page1-values.png` | 191863 | `a8a2e1edd3be5bd596371f2a3da6ae2a0541693965ed571b6ed40e411b73363d` |
+| Screenshot `page2-signed` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/screenshots/page2-signed.png` | 177094 | `498b960b8bc242f9744738fb700355ffb2c35e6648fa7872628bd06ad5f55a45` |
+| Screenshot `page1-preserved` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/screenshots/page1-preserved.png` | 197121 | `3bf1213d63ee75786f9eb6c354ab77f4de023fa91391b7b5c28ca750f93dcd65` |
+
+### 9.2 Run 4 (the verification run this report binds to)
 
 Every file below was written by the driver in step 7 except `collection-note.txt`.
 
@@ -377,7 +406,7 @@ Every file below was written by the driver in step 7 except `collection-note.txt
 | Host `flutter pub get --offline` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill/host-flutter-pub-get.log` | 397 | `349e3d1082e7dfafb1e16ab71e5a3499ef4482e1eb38bea8538dd0d7122b8fd8` |
 | Collection provenance | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill/collection-note.txt` | 1692 | `9b9a3c94d89d83f8bbb0d0536c4ba4a945dd1123e36d639d7b475fd3006e1c48` |
 
-### 9.2 Run 3 (the diagnostic run, kept unchanged)
+### 9.3 Run 3 (the diagnostic run, kept unchanged)
 
 The driver aborted in step 6 of that run, so stage-1 files come from the driver and
 the stage-2 files were collected afterwards exactly as
@@ -404,7 +433,7 @@ the stage-2 files were collected afterwards exactly as
 | Host `flutter pub get --offline` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill/failed-run-3-diagnosis/host-flutter-pub-get.log` | 397 | `349e3d1082e7dfafb1e16ab71e5a3499ef4482e1eb38bea8538dd0d7122b8fd8` |
 | Collection provenance | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill/failed-run-3-diagnosis/collection-note.txt` | 1528 | `098a4fdac28fccfdf2f824831ab013a55a102e0a459b1f30f1f55cca773fe2e4` |
 
-### 9.3 Run 2 (the failure this report's repair was derived from, kept unchanged)
+### 9.4 Run 2 (the failure this report's repair was derived from, kept unchanged)
 
 | Artifact | Path | Bytes | SHA-256 |
 | --- | --- | ---: | --- |

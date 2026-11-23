@@ -1,0 +1,3 @@
+staging /data/local/tmp/t086-fixtures/sf-001.pdf sha256=22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038 size=5956
+host apps/feldexa_app/assets/fixtures/sf-001.pdf sha256=22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038
+pages=2 (the committed fixture is used unchanged; no damaged-page variant)
