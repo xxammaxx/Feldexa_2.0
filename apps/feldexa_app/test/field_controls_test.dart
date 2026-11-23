@@ -33,6 +33,7 @@ import 'dart:async';
 
 import 'package:feldexa_app/features/editor/field_value_sheet.dart';
 import 'package:feldexa_app/features/fill/checkbox_control.dart';
+import 'package:feldexa_app/features/fill/overflow_warning.dart';
 import 'package:feldexa_app/features/fill/signature_sheet.dart';
 import 'package:feldexa_app/features/fill/text_control.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
@@ -150,6 +151,14 @@ void main() {
       expect(saved.text, german);
       expect(saved.text.runes.length, german.runes.length);
       expect(saved.text, isNot(endsWith('…')));
+      // T086C: 251 runes do not fit a 100 × 20 pt field, so the value is stored
+      // with `overflow` and the FLD-001 warning keeps the sheet open; closing
+      // is the user's step and nothing was truncated.
+      expect(saved.overflow, isTrue);
+      expect(find.byKey(fieldOverflowWarningKey), findsOneWidget);
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+      await tester.tap(find.byKey(fieldValueCloseKey));
+      await tester.pumpAndSettle();
       expect(find.byKey(fieldValueSheetKey), findsNothing);
       expect(tester.takeException(), isNull);
     });
@@ -214,6 +223,12 @@ void main() {
       expect(saved.text, multiline);
       expect('\n'.allMatches(saved.text), hasLength(4));
       expect(saved.text.runes.length, multiline.runes.length);
+      // T086C: five lines do not fit a 100 × 20 pt field, so FLD-001 is shown
+      // and the sheet stays open with the complete text.
+      expect(saved.overflow, isTrue);
+      expect(find.byKey(fieldOverflowWarningKey), findsOneWidget);
+      await tester.tap(find.byKey(fieldValueCloseKey));
+      await tester.pumpAndSettle();
       expect(find.byKey(fieldValueSheetKey), findsNothing);
       expect(tester.takeException(), isNull);
     });

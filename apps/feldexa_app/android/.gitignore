@@ -2,6 +2,8 @@
 /.gradle
 /captures/
 /local.properties
+# Kotlin/Gradle build session state written by the toolchain (never committed).
+/.kotlin
 GeneratedPluginRegistrant.java
 .cxx/
 

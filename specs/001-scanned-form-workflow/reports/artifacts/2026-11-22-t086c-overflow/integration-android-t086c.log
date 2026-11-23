@@ -1,0 +1,86 @@
+00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0/t071-android-touch/apps/feldexa_app/integration_test/android_overflow_warning_test.dart
+Running Gradle task 'assembleDebug'...
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/home/xxammaxx/.gradle/wrapper/dists/gradle-9.3.1-all/9ot9r568e8zfvvd4mn8rbu1j0/gradle-9.3.1/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: Your app uses the following plugins that apply Kotlin Gradle Plugin (KGP): share_plus
+Future versions of Flutter will fail to build if your app uses plugins that apply KGP.
+
+Please check the changelogs of these plugins and upgrade to a version that supports Built-in Kotlin.
+If no such version exists, report the issue to the plugin. If necessary, here is a guide on filing
+an issue against a plugin: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers#report-incompatible-kotlin-gradle-plugin-usage-to-plugin-authors
+
+If you are a plugin author, please migrate your plugin to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
+Running Gradle task 'assembleDebug'...                             73,7s
+✓ Built build/app/outputs/flutter-apk/app-debug.apk
+Installing build/app/outputs/flutter-apk/app-debug.apk...        1.311ms
+00:00 +0: (setUpAll)
+T086C_FIXTURE_READY:BYTES=5956:MATCH=1
+T086C_DAMAGED_FIXTURE_READY:BYTES=5956:MATCH=1
+00:00 +0: a too-long entry shows FLD-001, keeps the value, and reopens
+T086C_START_LIST_READY
+T086C_IMPORT_ARMED
+T071A_DIAG_LOAD_START
+T071A_DIAG_RUNTIME_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_RUNTIME_PDFRX_READY
+T086C_EDITOR_READY
+T071A_DIAG_RUNTIME_LOAD_OK:PAGES=2:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_LOAD_OK:PAGES=2:BYTES=1:SUGGESTIONS=0
+T071A_DIAG_CONTENT_SET:PAGES=2:SUGGESTIONS=0:STRIP=2
+T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=1:SOURCE_BYTES=1:OCR=1
+T071A_DIAG_RASTER_START:P=0:SCALE=2.7777777777777777:FORMAT=gray8
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_INIT_START
+T071A_DIAG_VIEW_INIT_OK
+T071A_DIAG_VIEW_DOCUMENT_OPEN_OK:PAGES=2
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+T071A_DIAG_PAGE_RENDER_START:P=0:W=1080:H=1527
+T071A_DIAG_RASTER_OK:P=0:W=1654:H=2339
+T071A_DIAG_OCR_START:P=0
+T071A_DIAG_PAGE_RENDER_OK:P=0:W=1080:H=1527
+T071A_DIAG_OCR_OK:P=0:BLOCKS=25
+T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=28:UNCERTAIN=0
+T071A_DIAG_ANALYSIS_APPLIED:PAGES=2:SUGGESTIONS=28:UNCERTAIN=0
+T071A_DIAG_ANALYSIS_SAVE_START
+T071A_DIAG_ANALYSIS_SAVE_OK
+T071A_DIAG_ANALYSIS_STATE:ready
+T086C_ANALYSIS_READY:STATE=analysis-ready:PAGES=2:SUGGESTIONS=28
+T086C_MACHINE_FIELD_CONFIRMED:OVERLAY=1:W_MILLI=2500:H_MILLI=4250
+T071A_DIAG_PAGE_RENDER_START:P=0:W=1563:H=2210
+T071A_DIAG_PAGE_RENDER_OK:P=0:W=1563:H=2210
+T086C_SHEET_OPEN:OVERFLOW_BEFORE=0
+T086C_OVERFLOW_WARNING_VISIBLE:OVERFLOW=1:SHEET_OPEN=1:RUNES=215:ENTERED_RUNES=215:W_MILLI=2500:H_MILLI=4250
+T086C_VALUE_RETAINED:IN_CONTROL=1:RUNES=215
+T086C_SCREENSHOT_OVERFLOW_WARNING
+T086C_SHEET_CLOSED
+T086C_SCREENSHOT_OVERFLOW_CLOSED
+T071A_DIAG_LOAD_START
+T071A_DIAG_RUNTIME_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_RUNTIME_PDFRX_READY
+T071A_DIAG_RUNTIME_LOAD_OK:PAGES=2:BYTES=1:SUGGESTIONS=28
+T071A_DIAG_LOAD_OK:PAGES=2:BYTES=1:SUGGESTIONS=28
+T071A_DIAG_CONTENT_SET:PAGES=2:SUGGESTIONS=28:STRIP=2
+T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_INIT_START
+T071A_DIAG_VIEW_INIT_OK
+T071A_DIAG_VIEW_DOCUMENT_OPEN_OK:PAGES=2
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+T071A_DIAG_PAGE_RENDER_START:P=0:W=1080:H=1527
+T071A_DIAG_PAGE_RENDER_OK:P=0:W=1080:H=1527
+T071A_DIAG_PAGE_RENDER_START:P=0:W=1563:H=2210
+T071A_DIAG_PAGE_RENDER_OK:P=0:W=1563:H=2210
+T086C_OVERFLOW_REOPENED:OK:WARNING=1:RUNES=215:OVERFLOW=1
+T086C_SCREENSHOT_OVERFLOW_REOPENED
+T071A_DIAG_RUNTIME_LOAD_START
+T071A_DIAG_RUNTIME_PDFRX_READY
+T071A_DIAG_RUNTIME_LOAD_OK:PAGES=2:BYTES=1:SUGGESTIONS=28
+T086C_OVERFLOW_PERSISTED:STORED=1:RUNES=215:OVERFLOW=1:TRUNCATED=0
+T086C_CLEANUP_DONE
+00:35 +1: (tearDownAll)
+00:37 +1: All tests passed!
