@@ -38,6 +38,7 @@ import 'package:feldexa_app/features/editor/durability_status.dart';
 import 'package:feldexa_app/features/editor/editor_screen.dart';
 import 'package:feldexa_app/features/editor/field_value_sheet.dart';
 import 'package:feldexa_app/features/editor/suggestion_review_panel.dart';
+import 'package:feldexa_app/features/fill/overflow_warning.dart';
 import 'package:feldexa_app/features/fill/text_control.dart';
 import 'package:feldexa_app/features/start/stored_items.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
@@ -172,6 +173,10 @@ void _expectSheetVisibleAboveIme(WidgetTester tester, String value) {
 }
 
 Future<void> _closeValueSheet(WidgetTester tester) async {
+  // The FLD-001 warning card grows the sheet, so the close action can sit below
+  // the visible box until the scroll view is brought to it.
+  await tester.ensureVisible(find.byKey(fieldValueCloseKey));
+  await tester.pumpAndSettle();
   await tester.tap(find.byKey(fieldValueCloseKey));
   await _pumpUntil(
     tester,
@@ -369,6 +374,15 @@ Future<void> _openFieldFromOverview(WidgetTester tester, String fieldId) async {
 }
 
 /// Saves [value] in the open value sheet and waits for the verified commit.
+///
+/// The recognised rectangles of this fixture are far smaller than any entered
+/// value (the T086C run measured a 2.5 × 4.25 pt field), so the commit always
+/// sets `FieldValue.overflow` and `FieldValueSheet._save()` intentionally keeps
+/// the sheet on the field with the visible FLD-001 warning instead of popping
+/// (`contracts/editor-interactions.md` §5). The save is therefore verified
+/// through the committed value and the durable revision, and the sheet is
+/// closed explicitly. A commit that never becomes durable still fails here with
+/// the observed state instead of a bare timeout.
 Future<void> _saveValue(
   WidgetTester tester,
   EditorScreenState state,
@@ -379,21 +393,54 @@ Future<void> _saveValue(
   await tester.pumpAndSettle();
   _expectSheetVisibleAboveIme(tester, value);
   await tester.tap(find.byKey(fieldValueSaveKey));
-  await _pumpUntil(
-    tester,
-    () {
-      final core.FieldValue? saved = state.content?.values[fieldId];
-      return find.byKey(fieldValueSheetKey).evaluate().isEmpty &&
-          !state.reviewBusy &&
-          saved is core.TextValue &&
-          saved.text == value &&
-          state.durabilityStatus is core.SavedDurabilityStatus;
-    },
-    timeout: const Duration(minutes: 5),
-    reason: 'the entered value was not saved as a verified revision',
-  );
+
+  bool committed = false;
+  bool overflowed = false;
+  final DateTime deadline = DateTime.now().add(const Duration(minutes: 5));
+  while (DateTime.now().isBefore(deadline)) {
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await tester.pump();
+    final core.FieldValue? saved = state.content?.values[fieldId];
+    if (state.reviewBusy ||
+        saved is! core.TextValue ||
+        saved.text != value ||
+        state.durabilityStatus is! core.SavedDurabilityStatus) {
+      continue;
+    }
+    if (find.byKey(fieldValueSheetKey).evaluate().isEmpty) {
+      committed = true;
+      break;
+    }
+    if (find.byKey(fieldOverflowWarningKey).evaluate().isNotEmpty) {
+      overflowed = true;
+      committed = true;
+      break;
+    }
+  }
+  if (!committed) {
+    final core.FieldValue? saved = state.content?.values[fieldId];
+    fail(
+      'the entered value was not saved as a verified revision '
+      '(bounded wait 300s expired; '
+      'sheet_open=${find.byKey(fieldValueSheetKey).evaluate().isNotEmpty}; '
+      'review_busy=${state.reviewBusy}; '
+      'error_visible=${find.byKey(fieldValueErrorKey).evaluate().isNotEmpty}; '
+      'overflow_warning='
+      '${find.byKey(fieldOverflowWarningKey).evaluate().isNotEmpty}; '
+      'stored_kind=${saved.runtimeType}; '
+      'stored_runes=${saved is core.TextValue ? saved.text.runes.length : -1}; '
+      'durability=${state.durabilityStatus.runtimeType})',
+    );
+  }
+  if (overflowed) {
+    // The stored value is committed and durable; FLD-001 only keeps the sheet
+    // open. Record the state and return to the editor explicitly.
+    _marker('VALUE_OVERFLOW_WARNING:SHEET_OPEN=1');
+    await _closeValueSheet(tester);
+  }
   expect(find.byKey(durabilityStatusLabelKey), findsOneWidget);
-  _marker('VALUE_SAVED:CHARS=${value.length}');
+  expect(find.byKey(fieldValueErrorKey), findsNothing);
+  _marker('VALUE_SAVED:CHARS=${value.length}:OVERFLOW=${overflowed ? 1 : 0}');
 }
 
 void main() {
