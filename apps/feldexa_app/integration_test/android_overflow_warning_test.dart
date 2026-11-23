@@ -84,7 +84,7 @@ const Map<String, String> _screenshots = <String, String>{
   'overflow-reopened': 'SCREENSHOT_OVERFLOW_REOPENED',
 };
 
-/// The entered value: 176 runes of German text, far wider than any recognised
+/// The entered value: 215 runes of German text, far wider than any recognised
 /// strip on this page and never shortened by the app.
 const String _tooLongText =
     'Der vollständige eingegebene Text darf niemals gekürzt werden, auch dann '
