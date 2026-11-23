@@ -724,12 +724,13 @@ Future<void> _commitTextLike(
     field.type == core.FieldType.date ? _dateCanonical : value,
   );
 
-  // The complete draft is still in the control: nothing was truncated.
-  final TextField control = tester.widget<TextField>(
-    find.byKey(fieldTextControlInputKey),
-  );
-  expect(control.controller!.text, value);
   if (expectOverflow) {
+    // The FLD-001 commit keeps the sheet on the field with the complete draft,
+    // so the control still holds every rune: nothing was truncated.
+    final TextField control = tester.widget<TextField>(
+      find.byKey(fieldTextControlInputKey),
+    );
+    expect(control.controller!.text, value);
     await _pumpUntil(
       tester,
       () => find.byKey(fieldOverflowWarningKey).evaluate().isNotEmpty,
@@ -742,6 +743,9 @@ Future<void> _commitTextLike(
       'STORED_RUNES=${_storedText(stored).runes.length}:TRUNCATED=0',
     );
   } else {
+    // A save without FLD-001 pops the sheet on success
+    // (`FieldValueSheet._save`), so the committed draft is verified from the
+    // store above and again through the reopened control later in the journey.
     await _pumpUntil(
       tester,
       () => find.byKey(fieldValueSheetKey).evaluate().isEmpty,
