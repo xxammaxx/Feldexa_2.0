@@ -1,0 +1,7 @@
+head=ff74c627f395e0111eced4d884f548a113e30435
+tree=40d539a15e57835e421ea446549c14bd31b8ea63
+branch=xxammaxx/t086d
+subject=test(T086D): handle the committed FLD-001 stay-open state in the overview journey
+status_porcelain:
+ M apps/feldexa_app/android/gradlew.bat
+flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git

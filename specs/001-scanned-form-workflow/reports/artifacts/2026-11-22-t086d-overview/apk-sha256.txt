@@ -1,0 +1,3 @@
+path=/home/xxammaxx/Schreibtisch/Feldexa_2.0/t086b-analysis/apps/feldexa_app/build/app/outputs/flutter-apk/app-debug.apk
+sha256=cefcc21594fc1a060ffcf87703e2ebf5f5164830cbc95f4ffa326eb1b28c7e7a
+bytes=173559429
