@@ -56,10 +56,12 @@ REPO_POINTER_VARIABLES = frozenset(
 REPO_POINTER_PREFIXES = ("GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_")
 
 # The verdict must describe the repository, not the machine: a developer's
-# global ``* text=auto`` (core.attributesFile) would otherwise turn
-# attribute-free CRLF blobs into reported violations of a rule they never had.
-# GIT_ATTR_NOSYSTEM keeps a system-wide gitattributes file out of the same
-# verdict.
+# global ``* text=auto`` would otherwise turn attribute-free CRLF blobs into
+# reported violations of a rule they never had. Two sources have to be closed:
+# ``core.attributesFile`` from the Git configuration (removed through
+# GIT_CONFIG_GLOBAL plus an explicit ``core.attributesFile`` override, because
+# Git falls back to ``$XDG_CONFIG_HOME/git/attributes`` even when the config file
+# is empty) and the system-wide gitattributes file (GIT_ATTR_NOSYSTEM).
 def isolated_git_env() -> dict[str, str]:
     env = {
         key: value
@@ -70,6 +72,9 @@ def isolated_git_env() -> dict[str, str]:
     env["GIT_CONFIG_GLOBAL"] = os.devnull
     env["GIT_CONFIG_NOSYSTEM"] = "1"
     env["GIT_ATTR_NOSYSTEM"] = "1"
+    env["GIT_CONFIG_COUNT"] = "1"
+    env["GIT_CONFIG_KEY_0"] = "core.attributesFile"
+    env["GIT_CONFIG_VALUE_0"] = os.devnull
     return env
 
 

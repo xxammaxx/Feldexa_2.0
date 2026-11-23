@@ -12,7 +12,9 @@
 # gate INCOMPLETE (exit 3) unless --allow-absent is explicitly given. Missing
 # tooling is reported as UNAVAILABLE and makes the gate INCOMPLETE (exit 3)
 # unless --allow-unavailable is explicitly given. Neither escape hatch is
-# valid for the final acceptance gate T145.
+# valid for the final acceptance gate T145. The repository guard (check 8) is
+# the one deliberate exception: it is a repository contract, so a missing
+# interpreter or guard file is a FAIL and no escape hatch applies.
 #
 # Browser integration tests need the Flutter web driver: chromedriver must be
 # on PATH (or CHROMEDRIVER set) and apps/feldexa_app/test_driver/integration_test.dart
@@ -88,7 +90,8 @@ Checks:
      non-browser integration tests are reported as NOT RUN because they belong
      to the EMULATOR/DEVICE layer
   8. repository guard tests (python3 -m unittest discover in tools/repo), for
-     example the Git line-ending guard; a missing python3 is UNAVAILABLE
+     example the Git line-ending guard; they are mandatory, so a missing
+     python3 or a missing guard file fails the check instead of being skipped
 
 Evidence classes:
   SIMULATED  app browser/interaction and web integration tests only
