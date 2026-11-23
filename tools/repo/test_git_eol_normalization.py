@@ -3,9 +3,15 @@
 
 Cause and purpose: apps/feldexa_app/android/gradlew.bat was committed with raw
 CRLF bytes although .gitattributes normalizes ``*.bat`` to ``text eol=crlf``, so
-every fresh clone or worktree started permanently dirty; this test parses
-``git ls-files --eol`` and fails as soon as any text-normalized file stores CRLF
-in the index again.
+every fresh clone or worktree started permanently dirty. This test parses
+``git ls-files --eol`` and fails as soon as a normalized file stores CRLF in the
+index again.
+
+The index is the contract, because the index blob is what a clone reproduces.
+Two workspace values are legitimate and therefore not violations: ``none`` for a
+file without any EOL byte (for example a one-line ``.bat`` without a trailing
+newline) and ``-text`` for a file Git classifies as binary even though an
+attribute rule selected it.
 
 Run with:
     python3 -m unittest discover -s tools/repo -p 'test_*.py' -v
@@ -13,6 +19,7 @@ Run with:
 
 from __future__ import annotations
 
+import os
 import subprocess
 import unittest
 from dataclasses import dataclass
@@ -20,14 +27,34 @@ from pathlib import Path
 
 TEST_DIR = Path(__file__).resolve().parent
 
+NORMALIZED_EOLS = frozenset({"lf", "none"})
+NORMALIZED_EOL_ATTRIBUTES = frozenset({"crlf", "lf"})
+
+# The verdict must describe the repository, not the machine: a developer's
+# global ``* text=auto`` (core.attributesFile) would otherwise turn
+# attribute-free CRLF blobs into reported violations of a rule they never had.
+ISOLATED_GIT_ENV = {
+    **os.environ,
+    "GIT_CONFIG_GLOBAL": os.devnull,
+    "GIT_CONFIG_NOSYSTEM": "1",
+}
+
 
 def run_git(*args: str, cwd: Path) -> str:
-    completed = subprocess.run(
-        ["git", *args],
-        cwd=cwd,
-        capture_output=True,
-        check=True,
-    )
+    try:
+        completed = subprocess.run(
+            ["git", *args],
+            cwd=cwd,
+            capture_output=True,
+            check=True,
+            env=ISOLATED_GIT_ENV,
+        )
+    except (subprocess.CalledProcessError, OSError) as error:
+        stderr = getattr(error, "stderr", b"") or b""
+        detail = stderr.decode("utf-8", "replace").strip() or str(error)
+        raise AssertionError(
+            f"git {' '.join(args)} failed in {cwd}: {detail}"
+        ) from error
     return completed.stdout.decode("utf-8", "surrogateescape")
 
 
@@ -56,8 +83,24 @@ class TrackedFile:
         )
 
     def has_text_attribute(self) -> bool:
-        """True when Git applies text conversion, i.e. ``text`` is set or ``text=auto``."""
-        return self.attributes.get("text") not in (None, False)
+        """True when Git applies text conversion, i.e. ``text`` is set or ``text=auto``.
+
+        ``git ls-files --eol`` already reports the ``text`` attribute implied by
+        an ``eol`` rule; the explicit ``eol`` check only guards Git versions
+        that omit it.
+        """
+        return (
+            self.attributes.get("text") not in (None, False)
+            or self.attributes.get("eol") is not None
+        )
+
+    def is_binary(self) -> bool:
+        """True when Git refuses text conversion, i.e. the file is detected binary."""
+        return "-text" in (self.index_eol, self.worktree_eol)
+
+    def stores_normalized_index(self) -> bool:
+        """True when the index blob holds no CRLF, accepting an EOL-free file."""
+        return self.index_eol in NORMALIZED_EOLS
 
 
 def parse_attributes(field: str) -> dict[str, str | bool]:
@@ -113,36 +156,73 @@ class GitEolNormalizationTest(unittest.TestCase):
             f"git ls-files --eol returned no tracked files in {self.repo_root}",
         )
 
-    def test_eol_crlf_files_are_lf_in_index_and_crlf_in_worktree(self) -> None:
+    def test_eol_rule_files_store_lf_in_index(self) -> None:
+        eol_files = [
+            entry
+            for entry in self.tracked_files
+            if entry.attributes.get("eol") in NORMALIZED_EOL_ATTRIBUTES
+            and not entry.is_binary()
+        ]
+        self.assertTrue(
+            eol_files,
+            "no tracked file carries an eol=crlf or eol=lf rule, so this test "
+            "would silently pass; check .gitattributes",
+        )
+        violations = [
+            entry.describe()
+            for entry in eol_files
+            if not entry.stores_normalized_index()
+        ]
+        self.assertEqual(
+            [],
+            violations,
+            "files with an eol rule must be stored as LF in the index; run "
+            "'git add --renormalize <path>' for each offending file:\n"
+            + "\n".join(violations),
+        )
+
+    def test_eol_crlf_files_are_checked_out_with_crlf(self) -> None:
         crlf_files = [
-            entry for entry in self.tracked_files if entry.attributes.get("eol") == "crlf"
+            entry
+            for entry in self.tracked_files
+            if entry.attributes.get("eol") == "crlf"
+            and entry.index_eol != "none"
+            and not entry.is_binary()
         ]
         self.assertTrue(
             crlf_files,
-            "no tracked file carries the eol=crlf attribute, so this rule would "
+            "no tracked file carries the eol=crlf attribute, so this test would "
             "silently pass; check .gitattributes",
         )
         violations = [
             entry.describe()
             for entry in crlf_files
-            if entry.index_eol != "lf" or entry.worktree_eol != "crlf"
+            if entry.worktree_eol != "crlf"
         ]
         self.assertEqual(
             [],
             violations,
-            "files with eol=crlf must be stored as LF in the index and checked out "
-            "as CRLF; offending files:\n" + "\n".join(violations),
+            "files with eol=crlf must be checked out with CRLF line endings; a "
+            "different worktree state means the checkout conversion was never "
+            "applied - run 'git checkout -- <path>' for each offending file:\n"
+            + "\n".join(violations),
         )
 
     def test_text_files_store_lf_in_index(self) -> None:
-        text_files = [entry for entry in self.tracked_files if entry.has_text_attribute()]
+        text_files = [
+            entry
+            for entry in self.tracked_files
+            if entry.has_text_attribute() and not entry.is_binary()
+        ]
         self.assertTrue(
             text_files,
             "no tracked file carries the text attribute, so this rule would "
             "silently pass; check .gitattributes",
         )
         violations = [
-            entry.describe() for entry in text_files if entry.index_eol != "lf"
+            entry.describe()
+            for entry in text_files
+            if not entry.stores_normalized_index()
         ]
         self.assertEqual(
             [],
