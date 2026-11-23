@@ -1,0 +1,5 @@
+serial=emulator-5554
+emulator_serials=emulator-5554
+all_attached_transports=adb-RFCW80SMY4J-lidiWY._adb-tls-connect._tcp,emulator-5554
+addressed_serial=emulator-5554
+non_emulator_transports_addressed=none

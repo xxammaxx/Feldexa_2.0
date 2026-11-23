@@ -1,27 +1,27 @@
-collection=partial, two stages, both from the same run
-run_directory=/tmp/feldexa-t086-run.20261123T160541Z-b (kept unchanged)
+collection=complete, single stage, from the verification run the bundle binds to
+run_directory=/tmp/feldexa-t086-run.20261123T175000Z-d (kept unchanged)
+run_head=69827d5c221ae10fd3840da9943bba9a3e478d51 (docs(T086): keep the diagnostic emulator run beside the fill evidence)
+driver=tools/android/t086_drive_fill.sh, exit 0, "PASS (flutter test exit 0; cleanup marker observed; privacy checks PASS)"
 
-stage_1_from_driver (written before the abort):
-  compute-lock.txt
-  device-binding.txt
-  device-identity.txt
-  fixture-sha256.txt
-  host-flutter-pub-get.log
-  integration-android-t086.log
-  marker-sequence.txt
-  privacy-source-check.txt
-  screenshots/overflow-warning.png
-  screenshots/page1-values.png
+written_by_driver_step_7 (the run reached collection):
+  apk-sha256.txt compute-lock.txt device-binding.txt device-identity.txt
+  fixture-sha256.txt git-identity.txt host-flutter-pub-get.log
+  integration-android-t086.log logcat-flutter.log logcat-t086-markers.log
+  marker-sequence.txt markers-integration.txt privacy-log-check.txt
+  privacy-source-check.txt run-status.txt screenshot-hashes.txt
+  screenshots/overflow-warning.png screenshots/page1-values.png
+  screenshots/page2-signed.png screenshots/page1-preserved.png
 
-stage_2_collected_after_the_abort (driver step 7 not reached; the driver exits
-through fail() and therefore writes no step-7 files):
-  markers-integration.txt   <- grep -E '^T086_' integration-android-t086.log
-  screenshot-hashes.txt     <- sha256sum of the two captured screenshots
-  run-status.txt            <- from the driver exit and the flutter test exit
-  apk-sha256.txt            <- sha256sum of build/app/outputs/flutter-apk/app-debug.apk
-  git-identity.txt          <- git rev-parse HEAD / HEAD^{tree} / branch / subject / file hashes
-  privacy-log-check.txt     <- the same grep the driver would run on the integration log
-  logcat-probe.txt          <- post-abort adb logcat probe (no T086 marker expected)
+written_after_the_run:
+  collection-note.txt      <- this file
+  failed-run-3-diagnosis/  <- the preceding diagnostic run (head ad5ddac), kept
+                              unchanged with its own collection note; it is not a
+                              claim of this bundle
 
-stage_2_facts_are_reproducible from the run directory and the committed tree;
-nothing in stage 2 is a driver claim.
+hygiene: the driver's raw output keeps the trailing padding of `wm size` and
+`wm density` and Flutter's Gradle progress line. Those trailing spaces were
+stripped with `sed -e 's/[[:space:]]*$//'` over the bundle's text files so that
+`git diff --check` stays clean; no value changed, markers-integration.txt was
+regenerated with `grep -E '^T086_'` from the stripped log and is byte-identical
+to its marker lines, and every size and digest in the report is of the committed
+(stripped) bytes.
