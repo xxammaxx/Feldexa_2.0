@@ -205,6 +205,8 @@ trap 'on_signal TERM 143' TERM
 transport_summary() {
   local all="$1" emulators="$2"
   local all_count emulator_count
+  # "attached" means every transport adb lists, regardless of its state
+  # (unauthorized/offline devices still count as attached).
   all_count="$(printf '%s\n' "$all" | sed '/^$/d' | wc -l)"
   emulator_count="$(printf '%s\n' "$emulators" | sed '/^$/d' | wc -l)"
   log "all_attached_transports_count=$all_count"
@@ -257,7 +259,10 @@ collect_evidence() {
     privacy-log-check.txt \
     host-flutter-pub-get.log; do
     if [[ -f "$RUN_DIR/$file" ]]; then
-      cp "$RUN_DIR/$file" "$EVIDENCE_DIR/$file" ||
+      # The bundle is committed, so host paths are rewritten on the way in; the
+      # run directory keeps the verbatim log for diagnosis.
+      sed -e "s|$ROOT/||g" -e "s|$HOME/|~/|g" "$RUN_DIR/$file" \
+        >"$EVIDENCE_DIR/$file" ||
         fail "cannot write evidence file $file"
     fi
   done
@@ -291,6 +296,9 @@ LOCK_PATH="/tmp/orca-maintainer-heavy-$(id -u).lock"
 } >"$RUN_DIR/compute-lock.txt"
 
 # --- 1. Device identity without Orca ---------------------------------------
+# Every adb transport counts as attached, whatever its state; only the
+# emulator gate below needs the usable subset.
+ALL_TRANSPORTS="$("$ADB" devices | awk 'NR>1 && NF>=1 && $1 !~ /^(List|of|devices)$/ {print $1}')"
 ALL_DEVICES="$("$ADB" devices | awk 'NR>1 && NF>=2 && $2=="device" {print $1}')"
 EMULATOR_DEVICES="$(printf '%s\n' "$ALL_DEVICES" | grep -E '^emulator-[0-9]+$' || true)"
 [[ "$(printf '%s\n' "$EMULATOR_DEVICES" | sed '/^$/d' | wc -l)" -eq 1 ]] ||
@@ -315,7 +323,7 @@ QEMU="$(adb_shell getprop ro.kernel.qemu)"
 {
   log "serial=$SERIAL"
   log "emulator_serials=$(printf '%s\n' "$EMULATOR_DEVICES" | sed '/^$/d' | paste -sd, -)"
-  transport_summary "$ALL_DEVICES" "$EMULATOR_DEVICES"
+  transport_summary "$ALL_TRANSPORTS" "$EMULATOR_DEVICES"
   log "addressed_serial=$SERIAL"
   log "non_emulator_transports_addressed=none"
 } >"$RUN_DIR/device-binding.txt"
@@ -378,8 +386,8 @@ DEVICE_FIXTURE_SIZE="$(adb_shell stat -c %s "$STAGING/$FIXTURE")"
 } >"$RUN_DIR/fixture-sha256.txt"
 
 # --- 3. Privacy source check -------------------------------------------------
-if grep -nE '\b(HttpClient|HttpRequest|Socket|WebSocket|RawDatagramSocket|NetworkImage)\b|https?://' \
-  "$APP/$TEST_FILE" >"$RUN_DIR/privacy-source-check.txt" 2>&1; then
+if (cd "$APP" && grep -nE '\b(HttpClient|HttpRequest|Socket|WebSocket|RawDatagramSocket|NetworkImage)\b|https?://' \
+  "$TEST_FILE") >"$RUN_DIR/privacy-source-check.txt" 2>&1; then
   printf 'FAIL: network API reference found in %s\n' "$TEST_FILE" \
     >>"$RUN_DIR/privacy-source-check.txt"
   PRIVACY_PASS=0
@@ -416,7 +424,8 @@ adb_shell logcat -c >/dev/null ||
 mkdir -p "$RUN_DIR/screenshots" >/dev/null
 # A previous aborted run can leave acknowledgements behind. Remove them before
 # the test starts so no `_waitForDriver` can return on a stale ack.
-adb_shell rm -f "$STAGING"/ack-* >/dev/null
+adb_shell rm -f "$STAGING"/ack-* >/dev/null ||
+  fail "cannot clear stale screenshot acknowledgements in $STAGING"
 
 (
   cd "$APP" || exit 1
@@ -425,11 +434,13 @@ adb_shell rm -f "$STAGING"/ack-* >/dev/null
 ) >"$LOG" 2>&1 &
 TEST_PID=$!
 
-# The test harness prints the T086 markers into the current run log ($LOG). The
-# device logcat buffer is deliberately not consulted: it can still hold markers
-# of an earlier run, which would turn a failed run into a pass.
+# The test harness prints the T086 markers into the current run log ($LOG). A
+# device-side fallback is used only after the buffer was demonstrably cleared
+# above, so a marker from an earlier run can never satisfy a wait; it exists
+# because a block-buffered tool process may flush its stdout late.
 marker_present() {
-  grep -F "T086_$1" "$LOG" >/dev/null 2>&1
+  grep -F "T086_$1" "$LOG" >/dev/null 2>&1 && return 0
+  LC_ALL=C "$ADB" -s "$SERIAL" logcat -d 2>/dev/null | grep -F "T086_$1" >/dev/null 2>&1
 }
 
 wait_for_marker() {
