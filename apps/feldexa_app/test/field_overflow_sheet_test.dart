@@ -22,7 +22,7 @@
 //     checkbox (no clipable text) behave per the same rule.
 //
 // The measurement uses the bundled `assets/fonts/metrics.json` advance table
-// (`loadFieldTextMeasure`), so these expectations are the same on a host and on
+// (`initializeFieldTextMeasure`), so these expectations are the same on a host and on
 // a device and do not depend on a test font.
 
 @TestOn('vm')

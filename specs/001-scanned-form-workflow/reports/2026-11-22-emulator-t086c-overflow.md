@@ -7,8 +7,8 @@
 - **Host evidence class**: `NONE` (host-VM analyze, format, unit/widget tests)
 - **Emulator evidence class**: `EMULATOR` — **`PASS`**
 - **Overall result**: `PASS` for this task's own scope. T086 (two-page US4
-  acceptance) and T086D remain open and are not claimed; the T086C row stays
-  `[ ]`.
+  acceptance) and T086D remain open and are not claimed; the T086C row remained
+  `[ ]` at evidence time; the integration docs mark it `[x]` after review/merge.
 
 ## 0. Machine-first handoff
 
@@ -163,7 +163,7 @@ focused new/updated files             48/48 (16 + 11 + 21)
 ```
 
 Every heavy command ran under
-`python3 /home/xxammaxx/.agents/skills/orca-maintainer/scripts/compute_slot.py --wait -- …`.
+`<orca-maintainer-skill>/scripts/compute_slot.py --wait -- …` (absolute host paths redacted).
 
 ## 3. Emulator journey
 
@@ -259,6 +259,10 @@ only its evidence is committed.
 - The FLD-001 decision is a pure function of the field rectangle and the stored
   text under the export metrics. The journey proves it end to end on the device;
   the exact wrap arithmetic is covered by the host unit tests.
+
+**Evidence-strength caveat.** The confirmed field is 2.5 × 4.25 pt. Its height alone makes the entered text overflow, so this device run proves wiring, warning visibility, full-value retention, persistence and reopen. The width boundary is proven by the host tests using the bundled Noto Sans metrics; the device run is not a width-arithmetic acceptance.
+
+**Residual.** After shortening a draft below the limit, the warning for the last committed overflow remains visible until the next save; it describes the stored value.
 
 ## 4. Requirement mapping
 
