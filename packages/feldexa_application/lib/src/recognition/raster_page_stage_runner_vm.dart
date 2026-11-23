@@ -75,6 +75,9 @@ Future<RasterPageStageOutcome> runRasterPageStageOffIsolate(
   RasterPageStageWork work = runRasterPageStage,
   Duration deadline = defaultPageAnalysisDeadline,
 }) async {
+  // One port carries both the outcome and the spawn-level exit notification, so
+  // the exit listener is registered before the worker can exit and the two
+  // messages stay ordered per sender.
   final ReceivePort replies = ReceivePort();
   final Isolate worker;
   try {
@@ -93,24 +96,24 @@ Future<RasterPageStageOutcome> runRasterPageStageOffIsolate(
     );
   }
 
-  // Join channel: completes when the worker is gone, whatever ended it.
-  final RawReceivePort workerExit = RawReceivePort();
-  final Completer<void> joined = Completer<void>();
-  workerExit.handler = (Object? _) {
-    if (!joined.isCompleted) {
-      joined.complete();
-    }
-  };
-  worker.addOnExitListener(workerExit.sendPort);
-
+  final Completer<void> workerGone = Completer<void>();
   final Completer<Object?> terminal = Completer<Object?>();
   final StreamSubscription<Object?> subscription = replies.listen(
     (Object? message) {
-      if (!terminal.isCompleted) {
-        terminal.complete(message);
+      if (message is RasterPageStageOutcome) {
+        if (!terminal.isCompleted) {
+          terminal.complete(message);
+        }
+        return;
       }
-    },
-    onError: (Object _) {
+      if (message == null) {
+        // Spawn-level exit notification: the worker is gone.
+        if (!workerGone.isCompleted) {
+          workerGone.complete();
+        }
+        return;
+      }
+      // A fatal worker error: no outcome will follow.
       if (!terminal.isCompleted) {
         terminal.complete(null);
       }
@@ -140,13 +143,14 @@ Future<RasterPageStageOutcome> runRasterPageStageOffIsolate(
     );
   } finally {
     deadlineTimer.cancel();
-    await subscription.cancel();
-    replies.close();
-    if (!joined.isCompleted) {
+    if (!workerGone.isCompleted) {
       // The deadline path reaches this branch with the worker still busy.
       worker.kill(priority: Isolate.immediate);
     }
-    await joined.future;
-    workerExit.close();
+    // Join: the port stays open until the worker's exit notification arrived,
+    // so a killed worker leaves no zombie isolate behind.
+    await workerGone.future;
+    await subscription.cancel();
+    replies.close();
   }
 }
