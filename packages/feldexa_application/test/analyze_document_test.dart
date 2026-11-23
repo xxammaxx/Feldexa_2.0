@@ -31,6 +31,8 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:feldexa_application/src/recognition/analyze_document.dart';
+import 'package:feldexa_application/src/recognition/raster_page_stage_runner.dart'
+    show RecognitionExecution;
 import 'package:feldexa_core/feldexa_core.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:feldexa_recognition/src/geometry_detector.dart';
@@ -1034,6 +1036,59 @@ void main() {
       );
     },
     timeout: const Timeout(Duration(seconds: 30)),
+  );
+
+  test(
+    'the off-isolate stage returns the same projection as the inline stage',
+    () async {
+      final _Canvas overlapping = _Canvas()
+        ..fillRect(100, 200, 200, 202)
+        ..fillRect(100, 210, 200, 212);
+      final _FakeOcr ocr = _FakeOcr(
+        blocksByPage: <int, List<OcrBlock>>{
+          0: <OcrBlock>[
+            _ocrBlock(text: 'Betrag', rect: Rect.fromLTWH(35, 58, 30, 12)),
+          ],
+        },
+      );
+      DocumentAnalysisRequest build() => _request(
+        raster: _FakeRaster(<int, _RasterSpec>{
+          0: _underlinePage(),
+          1: _paddedRaster(_underlinePage(top: 100)),
+          2: _RasterSpec(bytes: overlapping.build()),
+        }),
+        ocr: ocr,
+        pages: <DocumentAnalysisPage>[_page(0), _page(1), _page(2)],
+      );
+
+      final DocumentAnalysisResult offIsolate = await AnalyzeDocument.run(
+        build(),
+        execution: RecognitionExecution.offIsolate,
+      );
+      final DocumentAnalysisResult inline = await AnalyzeDocument.run(
+        build(),
+        execution: RecognitionExecution.inline,
+      );
+
+      expect(offIsolate.pages, hasLength(inline.pages.length));
+      for (int index = 0; index < inline.pages.length; index++) {
+        // Timings are diagnostics and excluded from the projection, so the
+        // comparison is the canonical envelope plus the suggestion maps.
+        expect(
+          offIsolate.pages[index].suggestions,
+          inline.pages[index].suggestions,
+          reason: 'page $index suggestions differ between the modes',
+        );
+        expect(
+          offIsolate.pages[index].canonicalJson(),
+          inline.pages[index].canonicalJson(),
+          reason: 'page $index projection differs between the execution modes',
+        );
+      }
+      expect(inline.pages[0].suggestions, isNotEmpty);
+      expect(inline.pages[1].suggestions, isNotEmpty);
+      expect(inline.pages[2].suggestions, hasLength(2));
+    },
   );
 
   test('envelopes round-trip through the T057 validator', () async {
