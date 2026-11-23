@@ -4,13 +4,19 @@
 /// integration).
 ///
 /// Scope: this file is the application composition layer only. It renders one
-/// page through the existing `PageRasterPort`, analyses the 200 DPI grayscale
-/// raster with the existing `GeometryDetector` (T052), optionally runs the
-/// existing `OcrPort` (T056), types candidates with `TypeInference` (T053),
-/// scores them with `ConfidenceModel` (T054), builds the conflict graph with
-/// `ConflictDetector` (T055), and returns one validated `FieldSuggestionSet`
-/// (T057) per page. It adds no port, orchestrator, storage, detector, or UI,
-/// and it never persists anything.
+/// page through the existing `PageRasterPort`, optionally runs the existing
+/// `OcrPort` (T056), hands the tight grayscale bytes to the bytes-level
+/// geometry/typing stage (`raster_page_stage.dart`: T051/T052/T053/T054/T055),
+/// and returns one validated `FieldSuggestionSet` (T057) per page. It adds no
+/// port, orchestrator, storage, detector, or UI, and it never persists
+/// anything.
+///
+/// The stage runs off the calling isolate by default (T086B-R, issue #270):
+/// the synchronous detector is the work that used to block the UI isolate. The
+/// bytes-level entry and the worker runner are in `raster_page_stage.dart` and
+/// `raster_page_stage_runner.dart`; this file keeps rendering, OCR, the
+/// per-page envelope, and the page sequence, so the stage boundary contains no
+/// port and no platform code.
 ///
 /// Normative sources:
 ///  * `contracts/recognition-output.md` §1 (envelope), §2 (suggestion), §2.1
@@ -76,46 +82,21 @@ import 'dart:typed_data';
 
 import 'package:feldexa_core/feldexa_core.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
-import 'package:feldexa_recognition/src/confidence.dart';
-import 'package:feldexa_recognition/src/conflicts.dart';
 import 'package:feldexa_recognition/src/geometry_detector.dart';
 import 'package:feldexa_recognition/src/page_analysis.dart';
 import 'package:feldexa_recognition/src/raster.dart';
 import 'package:feldexa_recognition/src/suggestion_schema.dart';
-import 'package:feldexa_recognition/src/type_inference.dart';
+import 'package:feldexa_recognition/src/type_inference.dart'
+    show LabelObservation;
 
-/// The production geometry detection function, replaceable only for
-/// deterministic fault-injection tests of page failure isolation.
-///
-/// The default is [GeometryDetector.detect]. This is a test seam, not a new
-/// port or architecture: the production path always uses the T052 detector.
-typedef GeometryDetection = List<GeometryCandidate> Function(
-  RasterAnalysis analysis, {
-  required double pageWidthPt,
-  required double pageHeightPt,
-});
-
-/// Builds the 200 DPI analysis tables for one stripped raster.
-///
-/// The default is `RasterAnalysis.new`. This is a fault-injection seam used
-/// only to prove that a post-render analysis failure maps to `internal`; the
-/// production path always uses the T051 analysis.
-typedef RasterAnalysisBuilder = RasterAnalysis Function(GrayRaster raster);
-
-/// Fallback single-line median height when a page has no geometry candidate.
-///
-/// The value is inert on such a page because no candidate is typed. It keeps
-/// the median rule total instead of introducing a nullable branch.
-const double defaultSingleLineMedianHeightPt = 12.0;
+import 'raster_page_stage.dart';
+import 'raster_page_stage_runner.dart';
 
 /// Production OCR language hint (`contracts/ports.md` §2.3).
 const String _ocrLanguageHint = 'de';
 
 /// Comparison epsilon for page-boundary checks.
 const double _pageEpsilon = 1e-6;
-
-/// Minimum ordinal width of a suggestion id (`recognition-output.md` §2).
-const int _ordinalWidth = 4;
 
 /// UUID shape shared by the T050 envelope validator for `analysisRunId`.
 final RegExp _uuidPattern = RegExp(
@@ -126,34 +107,6 @@ final RegExp _uuidPattern = RegExp(
 final RegExp _uuidV4Pattern = RegExp(
   r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
 );
-
-/// The §3.2 type forced by a keyword lexicon entry.
-///
-/// Entries are the type-forcing keywords only. Neutral identity, address,
-/// bank, reference, and dialog keywords are intentionally absent: they supply
-/// evidence but do not state a type.
-const Map<String, String> _keywordForcedTypes = <String, String>{
-  // Date keywords.
-  'geburtsdatum': 'date',
-  'datum': 'date',
-  'jahr': 'date',
-  // Explicit numeric keywords.
-  'betrag': 'number',
-  'summe': 'number',
-  'iban': 'number',
-  'steuernummer': 'number',
-  // Numeric-looking text fields (§3.2 keeps leading zeros/formatting).
-  'plz': 'text',
-  'telefon': 'text',
-  // Date-guarded text fields (§3.2 never forces a fake date).
-  'monat': 'text',
-  'zeitraum': 'text',
-  'von': 'text',
-  'bis': 'text',
-  // Signature keywords.
-  'unterschrift': 'signature',
-  'datum/unterschrift': 'signature',
-};
 
 /// One page of one document analysis run.
 ///
@@ -323,11 +276,18 @@ abstract final class AnalyzeDocument {
   /// [geometryDetection] defaults to the production [GeometryDetector.detect]
   /// and [rasterAnalysis] defaults to `RasterAnalysis.new`; both exist only to
   /// inject a deterministic failure in isolation tests.
+  ///
+  /// [execution] selects how the bytes-level geometry/typing stage runs.
+  /// [RecognitionExecution.offIsolate] is the production mode and the default:
+  /// the synchronous T051/T052 work never runs on the calling isolate.
+  /// [RecognitionExecution.inline] runs the identical entry on the calling
+  /// isolate and is only for harnesses that cannot await a worker isolate.
   static Future<DocumentAnalysisResult> run(
     DocumentAnalysisRequest request, {
     PageCancellation? isCancelled,
     GeometryDetection geometryDetection = GeometryDetector.detect,
     RasterAnalysisBuilder rasterAnalysis = RasterAnalysis.new,
+    RecognitionExecution execution = RecognitionExecution.offIsolate,
   }) async {
     final List<DocumentAnalysisPage> ordered =
         List<DocumentAnalysisPage>.of(request.pages)..sort(
@@ -348,6 +308,7 @@ abstract final class AnalyzeDocument {
           page,
           geometryDetection,
           rasterAnalysis,
+          execution,
           clock,
         ),
       );
@@ -364,6 +325,7 @@ abstract final class AnalyzeDocument {
     DocumentAnalysisPage page,
     GeometryDetection geometryDetection,
     RasterAnalysisBuilder rasterAnalysis,
+    RecognitionExecution execution,
     Stopwatch clock,
   ) async {
     int rasterMs = 0;
@@ -381,94 +343,88 @@ abstract final class AnalyzeDocument {
           PageAnalysisFailure.rasterization,
         );
       }
-      final _RasterStage staged;
+      final _TightRaster tight;
       try {
-        staged = _analyzeRaster(rendered, rasterAnalysis);
+        tight = _tightRaster(rendered);
       } catch (_) {
-        // A successful render followed by a strip/analysis failure is an
-        // internal pipeline fault, not a rasterization or page-structure one.
+        // A successful render followed by a strip failure is an internal
+        // pipeline fault, not a rasterization or page-structure one.
         rasterMs = _elapsed(clock, rasterStart);
         throw PageAnalysisFailure.forCategory(PageAnalysisFailure.internal);
       }
       rasterMs = _elapsed(clock, rasterStart);
 
-      final int detectStart = clock.elapsedMilliseconds;
-      final List<GeometryCandidate> candidates;
-      try {
-        candidates = geometryDetection(
-          staged.analysis,
-          pageWidthPt: page.pageSizePt.width,
-          pageHeightPt: page.pageSizePt.height,
-        );
-      } on PageAnalysisFailure {
-        // Only an explicit detector signal may declare unsupported structure.
-        detectMs = _elapsed(clock, detectStart);
-        rethrow;
-      } catch (_) {
-        // T052 ArgumentErrors describe page/geometry preconditions (page size
-        // not representable, raster/page mismatch); they are internal here,
-        // never a diagnosed unreadable structure.
-        detectMs = _elapsed(clock, detectStart);
-        throw PageAnalysisFailure.forCategory(PageAnalysisFailure.internal);
-      }
-      final int geometryMs = _elapsed(clock, detectStart);
-
       final int ocrStart = clock.elapsedMilliseconds;
       final _OcrStage ocr = await _runOcr(
         port: request.ocrPort,
-        image: staged.ocrImage,
+        image: tight.ocrImage,
         page: page,
       );
       ocrMs = _elapsed(clock, ocrStart);
 
-      final int assemblyStart = clock.elapsedMilliseconds;
-      final List<_SuggestionDraft> drafts = <_SuggestionDraft>[];
+      final int detectStart = clock.elapsedMilliseconds;
+      final RasterPageStageTask task = RasterPageStageTask(
+        pageIndex: page.pageIndex,
+        pixels: tight.pixels,
+        width: rendered.width,
+        height: rendered.height,
+        pageWidthPt: page.pageSizePt.width,
+        pageHeightPt: page.pageSizePt.height,
+        labels: ocr.labels,
+        ocrUsed: ocr.ocrUsed,
+      );
+      RasterPageStageOutcome work(RasterPageStageTask stageTask) {
+        return runRasterPageStage(
+          stageTask,
+          geometryDetection: geometryDetection,
+          rasterAnalysis: rasterAnalysis,
+        );
+      }
+
+      final RasterPageStageOutcome outcome;
+      if (execution == RecognitionExecution.inline) {
+        outcome = work(task);
+      } else {
+        outcome = await runRasterPageStageOffIsolate(task, work: work);
+      }
+      if (outcome.isFailed) {
+        detectMs = _elapsed(clock, detectStart);
+        throw outcome.failure!;
+      }
+      final List<Map<String, Object?>> suggestions = outcome.suggestions;
+      partialSuggestionCount = suggestions.length;
+      final FieldSuggestionSet envelope;
       try {
-        _buildDrafts(
-          candidates: candidates,
-          labels: ocr.labels,
-          pageSizePt: page.pageSizePt,
-          ocrUsed: ocr.ocrUsed,
-          out: drafts,
-        );
-        partialSuggestionCount = drafts.length;
-        final List<Map<String, Object?>> suggestions = _materializeSuggestions(
-          drafts,
-          page.pageIndex,
-        );
-        final FieldSuggestionSet envelope = FieldSuggestionSet.fromJson(
-          <String, Object?>{
-            'schemaVersion': SuggestionSchema.version,
-            'analysisRunId': request.analysisRunId,
-            'pageIndex': page.pageIndex,
-            'pageSizePt': <String, Object?>{
-              'width': page.pageSizePt.width,
-              'height': page.pageSizePt.height,
-            },
-            'rotation': page.rotation,
-            'status': FieldSuggestionSet.statusComplete,
-            'pageUncertain': false,
-            'uncertaintyReason': null,
-            'failure': null,
-            'suggestions': suggestions,
-            'timings': <String, Object?>{
-              'rasterMs': rasterMs,
-              'ocrMs': ocrMs,
-              'detectMs': geometryMs + _elapsed(clock, assemblyStart),
-            },
-            'evidenceClass': request.evidenceClass,
+        envelope = FieldSuggestionSet.fromJson(<String, Object?>{
+          'schemaVersion': SuggestionSchema.version,
+          'analysisRunId': request.analysisRunId,
+          'pageIndex': page.pageIndex,
+          'pageSizePt': <String, Object?>{
+            'width': page.pageSizePt.width,
+            'height': page.pageSizePt.height,
           },
-        );
-        detectMs = geometryMs + _elapsed(clock, assemblyStart);
-        return envelope;
+          'rotation': page.rotation,
+          'status': FieldSuggestionSet.statusComplete,
+          'pageUncertain': false,
+          'uncertaintyReason': null,
+          'failure': null,
+          'suggestions': suggestions,
+          'timings': <String, Object?>{
+            'rasterMs': rasterMs,
+            'ocrMs': ocrMs,
+            'detectMs': _elapsed(clock, detectStart),
+          },
+          'evidenceClass': request.evidenceClass,
+        });
       } catch (_) {
-        partialSuggestionCount = drafts.length;
-        detectMs = geometryMs + _elapsed(clock, assemblyStart);
+        detectMs = _elapsed(clock, detectStart);
         throw PageAnalysisFailure.forCategory(
           PageAnalysisFailure.internal,
           suggestionCount: partialSuggestionCount,
         );
       }
+      detectMs = _elapsed(clock, detectStart);
+      return envelope;
     } on PageAnalysisFailure catch (failure) {
       return _failedEnvelope(
         request,
@@ -515,9 +471,7 @@ abstract final class AnalyzeDocument {
     return image;
   }
 
-  /// Strips row padding, builds the analysis tables, and supplies the tight
-  /// OCR image. Every failure here is a post-render internal failure
-  /// (`REC-002`), not a rasterization or page-structure failure.
+  /// Strips row padding and supplies the tight OCR image.
   ///
   /// A port image that is already tight is passed to OCR unchanged. Passing
   /// the same object preserves identity-keyed page-size lookups in the Android
@@ -525,44 +479,40 @@ abstract final class AnalyzeDocument {
   /// tight grayscale byte per pixel; the new object intentionally has no
   /// page-size entry, so the composed resolver fails closed instead of
   /// guessing a page size.
-  static _RasterStage _analyzeRaster(
-    RasterImage source,
-    RasterAnalysisBuilder rasterAnalysis,
-  ) {
-    final GrayRaster gray = _stripRowPadding(source);
-    final RasterAnalysis analysis = rasterAnalysis(gray);
-    final int tightBytesPerRow = source.width * source.format.bytesPerPixel;
+  ///
+  /// The returned pixels are the bytes-level input of the geometry/typing
+  /// stage; [RasterPageStageTask] copies them, so the OCR image keeps its own
+  /// buffer.
+  static _TightRaster _tightRaster(RasterImage source) {
+    final int width = source.width;
+    final int height = source.height;
+    final Uint8List pixels = Uint8List(width * height);
+    if (source.bytesPerRow == width) {
+      pixels.setRange(0, pixels.length, source.bytes);
+    } else {
+      for (int row = 0; row < height; row++) {
+        final int sourceOffset = row * source.bytesPerRow;
+        final int targetOffset = row * width;
+        pixels.setRange(
+          targetOffset,
+          targetOffset + width,
+          source.bytes,
+          sourceOffset,
+        );
+      }
+    }
+    final int tightBytesPerRow = width * source.format.bytesPerPixel;
     final RasterImage ocrImage = source.bytesPerRow == tightBytesPerRow
         ? source
         : RasterImage(
-            bytes: Uint8List.fromList(gray.pixels),
-            width: gray.width,
-            height: gray.height,
-            bytesPerRow: gray.width,
+            bytes: Uint8List.fromList(pixels),
+            width: width,
+            height: height,
+            bytesPerRow: width,
             format: RasterFormat.gray8,
             evidence: source.evidence,
           );
-    return _RasterStage(ocrImage, analysis);
-  }
-
-  static GrayRaster _stripRowPadding(RasterImage image) {
-    final int width = image.width;
-    final int height = image.height;
-    final Uint8List pixels = Uint8List(width * height);
-    if (image.bytesPerRow == width) {
-      pixels.setRange(0, pixels.length, image.bytes);
-    } else {
-      for (int row = 0; row < height; row++) {
-        final int source = row * image.bytesPerRow;
-        final int target = row * width;
-        pixels.setRange(target, target + width, image.bytes, source);
-      }
-    }
-    return GrayRaster.fromGrayBytes(
-      width: width,
-      height: height,
-      bytes: pixels,
-    );
+    return _TightRaster(pixels, ocrImage);
   }
 
   static Future<_OcrStage> _runOcr({
@@ -667,167 +617,6 @@ abstract final class AnalyzeDocument {
     return a.text.compareTo(b.text);
   }
 
-  static void _buildDrafts({
-    required List<GeometryCandidate> candidates,
-    required List<LabelObservation> labels,
-    required PageDisplaySize pageSizePt,
-    required bool ocrUsed,
-    required List<_SuggestionDraft> out,
-  }) {
-    if (candidates.isEmpty) {
-      return;
-    }
-    final double median = _singleLineMedianHeight(candidates);
-    int insertion = 0;
-    for (final GeometryCandidate candidate in candidates) {
-      final TypeInferenceResult inference = TypeInference.infer(
-        candidate: candidate,
-        labels: labels,
-        singleLineMedianHeightPt: median,
-        pageWidthPt: pageSizePt.width,
-        pageHeightPt: pageSizePt.height,
-      );
-      final List<String> cues = <String>{
-        ...candidate.cues,
-        ...inference.addedCues,
-      }.toList()..sort();
-      final List<CueFamilyAssignment> families =
-          CueFamilyAssignment.distinctFamilies(cues);
-      final ConfidenceAssessment confidence = ConfidenceModel.evaluate(
-        ConfidenceInputs(
-          supportingCueFamilies: families.length,
-          credibleKeywordMatchesInferredType: _keywordMatchesInferredType(
-            inference.addedCues,
-            inference.proposedType,
-          ),
-          geometryWithinTypicalBounds: false,
-          skewDegrees: 0,
-          contrast: Contrast.normal,
-          ocrUsed: ocrUsed,
-          twoIndependentOcrLinesAgree: false,
-        ),
-      );
-      out.add(
-        _SuggestionDraft(
-          rect: candidate.rect,
-          proposedType: inference.proposedType,
-          confidence: confidence.confidence,
-          uncertainty: confidence.uncertainty,
-          cueAgreement: families.length,
-          cues: List<String>.unmodifiable(cues),
-          labelText: inference.labelText,
-          ocrUsed: ocrUsed,
-          insertion: insertion,
-        ),
-      );
-      insertion++;
-    }
-    out.sort(_compareDrafts);
-  }
-
-  static double _singleLineMedianHeight(List<GeometryCandidate> candidates) {
-    if (candidates.isEmpty) {
-      return defaultSingleLineMedianHeightPt;
-    }
-    final List<double> heights = <double>[
-      for (final GeometryCandidate candidate in candidates)
-        candidate.rect.height,
-    ]..sort();
-    final int count = heights.length;
-    if (count.isOdd) {
-      return heights[count ~/ 2];
-    }
-    return (heights[count ~/ 2 - 1] + heights[count ~/ 2]) / 2;
-  }
-
-  static bool _keywordMatchesInferredType(
-    List<String> addedCues,
-    String proposedType,
-  ) {
-    for (final String cue in addedCues) {
-      if (!cue.startsWith('keyword_')) {
-        continue;
-      }
-      final String key = cue.substring('keyword_'.length);
-      if (_keywordForcedTypes[key] == proposedType) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  static List<Map<String, Object?>> _materializeSuggestions(
-    List<_SuggestionDraft> drafts,
-    int pageIndex,
-  ) {
-    final List<Map<String, Object?>> suggestions = <Map<String, Object?>>[];
-    final List<ConflictItem> conflictItems = <ConflictItem>[];
-    for (int index = 0; index < drafts.length; index++) {
-      final _SuggestionDraft draft = drafts[index];
-      final String id =
-          's_p${pageIndex}_'
-          '${(index + 1).toString().padLeft(_ordinalWidth, '0')}';
-      conflictItems.add(
-        ConflictItem(id: id, rect: draft.rect, type: draft.proposedType),
-      );
-      suggestions.add(<String, Object?>{
-        'id': id,
-        'pageIndex': pageIndex,
-        'rect': <String, Object?>{
-          'x': draft.rect.x,
-          'y': draft.rect.y,
-          'width': draft.rect.width,
-          'height': draft.rect.height,
-        },
-        'proposedType': draft.proposedType,
-        'confidence': draft.confidence,
-        'uncertainty': draft.uncertainty,
-        'labelText': draft.labelText,
-        'evidence': <String, Object?>{
-          'cues': draft.cues,
-          'cueAgreement': draft.cueAgreement,
-          'skewDegrees': 0.0,
-          'contrast': 'normal',
-          'ocrUsed': draft.ocrUsed,
-        },
-        'conflictsWith': const <String>[],
-        'resolution': 'unresolved',
-      });
-    }
-    if (suggestions.isEmpty) {
-      return suggestions;
-    }
-    final ConflictGraph graph = ConflictDetector.detect(conflictItems);
-    for (final Map<String, Object?> suggestion in suggestions) {
-      final String id = suggestion['id']! as String;
-      suggestion['conflictsWith'] = graph.conflictsWith[id]!;
-    }
-    return suggestions;
-  }
-
-  static int _compareDrafts(_SuggestionDraft a, _SuggestionDraft b) {
-    int result = _roundToEighth(a.rect.y).compareTo(_roundToEighth(b.rect.y));
-    if (result != 0) {
-      return result;
-    }
-    result = _roundToEighth(a.rect.x).compareTo(_roundToEighth(b.rect.x));
-    if (result != 0) {
-      return result;
-    }
-    result = _typeOrdinal(a.proposedType)
-        .compareTo(_typeOrdinal(b.proposedType));
-    if (result != 0) {
-      return result;
-    }
-    // §5.2 resolves remaining ties by stable insertion order from the scan.
-    return a.insertion.compareTo(b.insertion);
-  }
-
-  static int _typeOrdinal(String type) {
-    final int index = SuggestionSchema.proposedTypes.indexOf(type);
-    return index < 0 ? SuggestionSchema.proposedTypes.length : index;
-  }
-
   static double _roundToEighth(double value) => (value * 8).round() / 8;
 
   static int _elapsed(Stopwatch clock, int start) {
@@ -866,12 +655,16 @@ abstract final class AnalyzeDocument {
   }
 }
 
-/// Tight OCR pixels plus the padding-free analysis raster.
-final class _RasterStage {
-  _RasterStage(this.ocrImage, this.analysis);
+/// Tight grayscale pixels plus the OCR image for one rendered page.
+final class _TightRaster {
+  _TightRaster(this.pixels, this.ocrImage);
 
+  /// Row-major, one byte per pixel, `width * height` bytes, no padding.
+  final Uint8List pixels;
+
+  /// The tight image handed to OCR; identical to the port image when the port
+  /// already delivered a tight raster.
   final RasterImage ocrImage;
-  final RasterAnalysis analysis;
 }
 
 /// OCR labels plus whether OCR actually ran for the page.
@@ -880,31 +673,4 @@ final class _OcrStage {
 
   final List<LabelObservation> labels;
   final bool ocrUsed;
-}
-
-/// One typed, scored candidate before ids and conflicts are assigned.
-final class _SuggestionDraft {
-  _SuggestionDraft({
-    required this.rect,
-    required this.proposedType,
-    required this.confidence,
-    required this.uncertainty,
-    required this.cueAgreement,
-    required this.cues,
-    required this.labelText,
-    required this.ocrUsed,
-    required this.insertion,
-  });
-
-  final DisplayRect rect;
-  final String proposedType;
-  final double confidence;
-  final double uncertainty;
-  final int cueAgreement;
-  final List<String> cues;
-  final String? labelText;
-  final bool ocrUsed;
-
-  /// Zero-based detector order, used only as the final stable tie-break.
-  final int insertion;
 }

@@ -1,3 +1,5 @@
+// ignore_for_file: implementation_imports
+
 // Issue #217 Phase B1 fail-closed editor runtime for non-Android targets.
 //
 // Owner: `apps/feldexa_app/lib/features/editor/editor_runtime_unavailable.dart`
@@ -13,6 +15,8 @@
 // evidence claim is fabricated. This file is not an evidence claim of any
 // class.
 
+import 'package:feldexa_application/src/recognition/raster_page_stage_runner.dart'
+    show RecognitionExecution;
 import 'package:feldexa_ports/feldexa_ports.dart';
 
 import 'editor_runtime.dart';
@@ -44,6 +48,14 @@ final class _UnavailableEditorRuntime implements EditorRuntime {
 
   @override
   ClockPort get clock => _unavailable();
+
+  /// The browser build has no worker isolates and no productive editor; the
+  /// stage runner's browser variant runs the entry on the single web isolate.
+  /// The mode stays `offIsolate` so no composition claims an inline production
+  /// path.
+  @override
+  RecognitionExecution get recognitionExecution =>
+      RecognitionExecution.offIsolate;
 
   @override
   Future<LoadedDocument> loadDocument(String documentId) async =>

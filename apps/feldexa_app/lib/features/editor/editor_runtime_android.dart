@@ -1,3 +1,5 @@
+// ignore_for_file: implementation_imports
+
 // A private field cannot use an initializing formal with a public named
 // parameter; the explicit initializers in the private state constructor are
 // intentional.
@@ -34,6 +36,8 @@
 import 'dart:typed_data';
 
 import 'package:feldexa_adapters_android/feldexa_adapters_android.dart';
+import 'package:feldexa_application/src/recognition/raster_page_stage_runner.dart'
+    show RecognitionExecution;
 import 'package:feldexa_core/feldexa_core.dart' show PageGeometry;
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
@@ -218,6 +222,12 @@ final class _AndroidEditorRuntime implements EditorRuntime {
 
   @override
   ClockPort get clock => _clock;
+
+  /// The production Android composition runs the recognition stage in a worker
+  /// isolate, so the synchronous detector cannot block the UI isolate.
+  @override
+  RecognitionExecution get recognitionExecution =>
+      RecognitionExecution.offIsolate;
 
   @override
   Future<LoadedDocument> loadDocument(String documentId) async {
