@@ -1,0 +1,8 @@
+head=71d63d5dddd26dd1582c2af35c4d0eb2e01e019e
+tree=669adf1f1cee29f74325e216b01dc40dd452b0f3
+branch=xxammaxx/t086-cleanup
+subject=test(T086): derive the journey markers from real state (#292)
+status_porcelain:
+test_sha256=2c213436107f56a9c2a1849b40d16a28a96cb5d3f95b71f11eea3a68afa3f32e
+driver_sha256=bb7d4b7d84c0c2190a01f815b115df7c478638a7583f145648f4fca776961d40
+flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git

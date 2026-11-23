@@ -35,6 +35,9 @@
 # available emulator the script exits 2 with `EMULATOR NOT_RUN`; it never
 # rebinds or steals another worktree's emulator session.
 #
+# The driver fails closed: a failing `logcat -c`, a marker that only exists in a
+# previous run, and SIGINT/SIGTERM can never end as a pass.
+#
 # Test-only tooling: adds no production dependency and changes no app file.
 # Usage (repo root): tools/android/t086c_drive_overflow.sh
 set -uo pipefail
@@ -135,7 +138,19 @@ cleanup() {
     adb_shell settings put global stay_on_while_plugged_in "$ORIGINAL_STAY_ON" >/dev/null
   fi
 }
-trap cleanup EXIT INT TERM
+trap cleanup EXIT
+
+# SIGINT/SIGTERM must end the run: a handler that only cleans up would let the
+# driver continue with a half-started test and still report a result.
+on_signal() {
+  local signal="$1" code="$2"
+  trap - EXIT INT TERM
+  log "T086C DRIVER: received SIG$signal; cleaning up and aborting"
+  cleanup
+  exit "$code"
+}
+trap 'on_signal INT 130' INT
+trap 'on_signal TERM 143' TERM
 
 prepare_evidence_dir() {
   if [[ "$EVIDENCE_DIR" == "$RUN_DIR" ]]; then
@@ -348,11 +363,13 @@ fi
   fail "flutter pub get --offline failed; see host-flutter-pub-get.log"
 
 # --- 6. Start the integration test ------------------------------------------
-adb_shell logcat -c >/dev/null
+adb_shell logcat -c >/dev/null ||
+  fail "cannot clear the device logcat buffer; refusing to run with a stale marker window"
 mkdir -p "$RUN_DIR/screenshots" >/dev/null
 # A previous aborted run can leave acknowledgements behind. Remove them before
 # the test starts so no `_waitForDriver` can return on a stale ack.
-adb_shell rm -f "$STAGING"/ack-* >/dev/null
+adb_shell rm -f "$STAGING"/ack-* >/dev/null ||
+  fail "cannot clear stale screenshot acknowledgements in $STAGING"
 
 (
   cd "$APP" || exit 1
@@ -361,9 +378,13 @@ adb_shell rm -f "$STAGING"/ack-* >/dev/null
 ) >"$LOG" 2>&1 &
 TEST_PID=$!
 
+# The test harness prints the T086C markers into the current run log ($LOG). The
+# device logcat buffer is never consulted: the markers are emitted by the test
+# process, not by the app, so no committed logcat capture of any driver in this
+# repository contains one; a fallback would only add an unbounded adb roundtrip
+# per second to the wait loop and could still turn a stale marker into a pass.
 marker_present() {
-  grep -F "T086C_$1" "$LOG" >/dev/null 2>&1 && return 0
-  "$ADB" -s "$SERIAL" logcat -d 2>/dev/null | grep -F "T086C_$1" >/dev/null
+  grep -F "T086C_$1" "$LOG" >/dev/null 2>&1
 }
 
 wait_for_marker() {

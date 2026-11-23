@@ -1,0 +1,9 @@
+screenshot overflow-warning after T086_SCREENSHOT_OVERFLOW_WARNING
+screenshot ack overflow-warning
+screenshot page1-values after T086_SCREENSHOT_PAGE1_VALUES
+screenshot ack page1-values
+screenshot page2-signed after T086_SCREENSHOT_PAGE2_SIGNED
+screenshot ack page2-signed
+screenshot page1-preserved after T086_SCREENSHOT_PAGE1_PRESERVED
+screenshot ack page1-preserved
+PASS (flutter test exit 0; cleanup marker observed; privacy checks PASS)
