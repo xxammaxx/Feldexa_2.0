@@ -98,6 +98,14 @@ const String _ocrLanguageHint = 'de';
 /// Comparison epsilon for page-boundary checks.
 const double _pageEpsilon = 1e-6;
 
+/// Scanline stride of the cooperative cancellation checkpoints.
+///
+/// While one page converts its rendered raster to tight bytes, it consults
+/// [PageCancellation] once per stride instead of once per page. A page whose
+/// token flips while it is already running therefore stops at the next band
+/// rather than after the whole raster.
+const int _cancellationScanlineStride = 64;
+
 /// UUID shape shared by the T050 envelope validator for `analysisRunId`.
 final RegExp _uuidPattern = RegExp(
   r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
@@ -268,10 +276,21 @@ abstract final class AnalyzeDocument {
   ///
   /// Pages run sequentially in ascending page index order. One page's failure
   /// or cancellation never changes another page's outcome (FR-017/FR-018).
-  /// [isCancelled] is evaluated once per page before any work; matching pages
-  /// are omitted from [DocumentAnalysisResult.pages] and reported in
-  /// [DocumentAnalysisResult.cancelledPageIndexes], never as failed
-  /// (`recognition-output.md` §4).
+  ///
+  /// [isCancelled] is the page cancellation token. It is consulted at the page
+  /// boundary before any work, again after render and OCR before the expensive
+  /// geometry/typing stage is dispatched, and every
+  /// `_cancellationScanlineStride` scanlines while a page's raster is converted
+  /// to tight bytes. Matching pages are omitted from
+  /// [DocumentAnalysisResult.pages] and reported in
+  /// [DocumentAnalysisResult.cancelledPageIndexes], never as failed and never
+  /// with partial suggestions (`recognition-output.md` §4). A page already
+  /// holding an envelope when its token flips keeps that envelope: cancellation
+  /// removes work, it never rewrites a completed result.
+  ///
+  /// The token is a caller-side decision. It is not a message channel: a worker
+  /// isolate cannot observe it, so an off-isolate page run is bounded by the
+  /// per-page deadline instead of by these checkpoints.
   ///
   /// [geometryDetection] defaults to the production [GeometryDetector.detect]
   /// and [rasterAnalysis] defaults to `RasterAnalysis.new`; both exist only to
@@ -302,16 +321,23 @@ abstract final class AnalyzeDocument {
         cancelled.add(page.pageIndex);
         continue;
       }
-      pages.add(
-        await _analyzePage(
-          request,
-          page,
-          geometryDetection,
-          rasterAnalysis,
-          execution,
-          clock,
-        ),
-      );
+      try {
+        pages.add(
+          await _analyzePage(
+            request,
+            page,
+            isCancelled,
+            geometryDetection,
+            rasterAnalysis,
+            execution,
+            clock,
+          ),
+        );
+      } on _PageCancelled {
+        // The token flipped while this page was already running: the page
+        // produced no envelope and no partial suggestion, and stays pending.
+        cancelled.add(page.pageIndex);
+      }
     }
     return DocumentAnalysisResult._(
       analysisRunId: request.analysisRunId,
@@ -323,6 +349,7 @@ abstract final class AnalyzeDocument {
   static Future<FieldSuggestionSet> _analyzePage(
     DocumentAnalysisRequest request,
     DocumentAnalysisPage page,
+    PageCancellation? isCancelled,
     GeometryDetection geometryDetection,
     RasterAnalysisBuilder rasterAnalysis,
     RecognitionExecution execution,
@@ -345,7 +372,9 @@ abstract final class AnalyzeDocument {
       }
       final _TightRaster tight;
       try {
-        tight = _tightRaster(rendered);
+        tight = _tightRaster(rendered, isCancelled, page.pageIndex);
+      } on _PageCancelled {
+        rethrow;
       } catch (_) {
         // A successful render followed by a strip failure is an internal
         // pipeline fault, not a rasterization or page-structure one.
@@ -361,6 +390,12 @@ abstract final class AnalyzeDocument {
         page: page,
       );
       ocrMs = _elapsed(clock, ocrStart);
+
+      if (isCancelled != null && isCancelled(page.pageIndex)) {
+        // The page was cancelled during render or OCR; skipping the
+        // geometry/typing stage keeps the synchronous detector off this page.
+        throw const _PageCancelled();
+      }
 
       final int detectStart = clock.elapsedMilliseconds;
       final RasterPageStageTask task = RasterPageStageTask(
@@ -425,6 +460,8 @@ abstract final class AnalyzeDocument {
       }
       detectMs = _elapsed(clock, detectStart);
       return envelope;
+    } on _PageCancelled {
+      rethrow;
     } on PageAnalysisFailure catch (failure) {
       return _failedEnvelope(
         request,
@@ -483,21 +520,39 @@ abstract final class AnalyzeDocument {
   /// The returned pixels are the bytes-level input of the geometry/typing
   /// stage; [RasterPageStageTask] copies them, so the OCR image keeps its own
   /// buffer.
-  static _TightRaster _tightRaster(RasterImage source) {
+  ///
+  /// The scanline loop consults [isCancelled] once per
+  /// [_cancellationScanlineStride] rows and throws [_PageCancelled] between
+  /// bands, so a token that flips while this page is already running stops the
+  /// conversion instead of after the whole raster.
+  static _TightRaster _tightRaster(
+    RasterImage source,
+    PageCancellation? isCancelled,
+    int pageIndex,
+  ) {
     final int width = source.width;
     final int height = source.height;
     final Uint8List pixels = Uint8List(width * height);
-    if (source.bytesPerRow == width) {
-      pixels.setRange(0, pixels.length, source.bytes);
+    final Uint8List sourceBytes = source.bytes;
+    final int sourceStride = source.bytesPerRow;
+    if (isCancelled == null && sourceStride == width) {
+      // No token to observe and nothing to strip: one range copy.
+      pixels.setRange(0, pixels.length, sourceBytes);
     } else {
       for (int row = 0; row < height; row++) {
-        final int sourceOffset = row * source.bytesPerRow;
-        final int targetOffset = row * width;
+        if (row % _cancellationScanlineStride == 0 &&
+            isCancelled != null &&
+            isCancelled(pageIndex)) {
+          throw const _PageCancelled();
+        }
+        final int target = row * width;
+        // The source row offset is the padded stride; it equals the tight
+        // width for an already-tight raster.
         pixels.setRange(
-          targetOffset,
-          targetOffset + width,
-          source.bytes,
-          sourceOffset,
+          target,
+          target + width,
+          sourceBytes,
+          row * sourceStride,
         );
       }
     }
@@ -673,4 +728,13 @@ final class _OcrStage {
 
   final List<LabelObservation> labels;
   final bool ocrUsed;
+}
+
+/// Signals that the page cancellation token flipped while the page was running.
+///
+/// This is not a page failure: `run` records the page in
+/// [DocumentAnalysisResult.cancelledPageIndexes] and emits no envelope
+/// (`recognition-output.md` §4, REC-004).
+final class _PageCancelled implements Exception {
+  const _PageCancelled();
 }

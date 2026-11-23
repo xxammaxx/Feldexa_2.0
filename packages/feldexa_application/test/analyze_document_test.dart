@@ -109,9 +109,14 @@ final CapabilityDescriptor _ocrDescriptor = CapabilityDescriptor(
 );
 
 final class _FakeRaster implements PageRasterPort {
-  _FakeRaster(this.specs);
+  _FakeRaster(this.specs, {this.onRendered});
 
   final Map<int, _RasterSpec> specs;
+
+  /// Test hook fired after a page raster was produced, used to flip a page
+  /// cancellation token while a run is already in progress.
+  final void Function(int pageIndex)? onRendered;
+
   final List<RasterRequest> requests = <RasterRequest>[];
   final List<RasterImage> renderedImages = <RasterImage>[];
 
@@ -144,6 +149,7 @@ final class _FakeRaster implements PageRasterPort {
       ),
     );
     renderedImages.add(image);
+    onRendered?.call(request.pageIndex);
     return image;
   }
 
@@ -828,6 +834,117 @@ void main() {
       expect(
         raster.requests.map((RasterRequest request) => request.pageIndex),
         <int>[1],
+      );
+    },
+  );
+
+  test(
+    'a token flipped before page two leaves page one byte-identical and page '
+    'two unanalysed',
+    () async {
+      final DocumentAnalysisResult baseline = await AnalyzeDocument.run(
+        _request(
+          raster: _FakeRaster(<int, _RasterSpec>{
+            0: _underlinePage(),
+            1: _underlinePage(top: 100),
+          }),
+          pages: <DocumentAnalysisPage>[_page(0), _page(1)],
+        ),
+      );
+
+      // Page one requests the cancellation of page two while page one is
+      // already running, so the request arrives before page two starts.
+      final Set<int> cancelledPages = <int>{};
+      final _FakeRaster raster = _FakeRaster(
+        <int, _RasterSpec>{0: _underlinePage(), 1: _underlinePage(top: 100)},
+        onRendered: (int pageIndex) {
+          if (pageIndex == 0) {
+            cancelledPages.add(1);
+          }
+        },
+      );
+
+      final DocumentAnalysisResult result = await AnalyzeDocument.run(
+        _request(
+          raster: raster,
+          pages: <DocumentAnalysisPage>[_page(0), _page(1)],
+        ),
+        isCancelled: (int pageIndex) => cancelledPages.contains(pageIndex),
+      );
+
+      expect(result.cancelledPageIndexes, <int>[1]);
+      expect(result.pages, hasLength(1));
+      expect(
+        result.pages.single.canonicalJson(),
+        baseline.pages[0].canonicalJson(),
+      );
+      expect(
+        raster.requests.map((RasterRequest request) => request.pageIndex),
+        <int>[0],
+      );
+    },
+  );
+
+  test(
+    'a token flipped between scanline bands drops the page without an envelope '
+    'or partial suggestions',
+    () async {
+      final _FakeOcr ocr = _FakeOcr(
+        blocksByPage: <int, List<OcrBlock>>{
+          1: <OcrBlock>[
+            _ocrBlock(text: 'Betrag', rect: Rect.fromLTWH(10, 24, 22, 10)),
+          ],
+        },
+      );
+      final DocumentAnalysisResult baseline = await AnalyzeDocument.run(
+        _request(
+          raster: _FakeRaster(<int, _RasterSpec>{
+            0: _underlinePage(),
+            1: _underlinePage(top: 100),
+          }),
+          ocr: ocr,
+          pages: <DocumentAnalysisPage>[_page(0), _page(1)],
+        ),
+      );
+
+      // The token reports "keep going" on page 0's page-boundary checkpoint
+      // and on the first scanline band, and "cancelled" from the next band, so
+      // page 0 stops while its scanline copy is already running. Page 1 is
+      // never cancelled.
+      int pageZeroCheckpoints = 0;
+      final DocumentAnalysisResult result = await AnalyzeDocument.run(
+        _request(
+          raster: _FakeRaster(<int, _RasterSpec>{
+            0: _underlinePage(),
+            1: _underlinePage(top: 100),
+          }),
+          ocr: _FakeOcr(
+            blocksByPage: <int, List<OcrBlock>>{
+              1: <OcrBlock>[
+                _ocrBlock(text: 'Betrag', rect: Rect.fromLTWH(10, 24, 22, 10)),
+              ],
+            },
+          ),
+          pages: <DocumentAnalysisPage>[_page(0), _page(1)],
+        ),
+        isCancelled: (int pageIndex) {
+          if (pageIndex != 0) {
+            return false;
+          }
+          pageZeroCheckpoints++;
+          return pageZeroCheckpoints > 2;
+        },
+      );
+
+      expect(pageZeroCheckpoints, greaterThan(2));
+      expect(result.cancelledPageIndexes, <int>[0]);
+      expect(result.pages, hasLength(1));
+      expect(result.pages.single.pageIndex, 1);
+      expect(result.pages.single.isFailed, isFalse);
+      expect(result.pages.single.suggestions, isNotEmpty);
+      expect(
+        result.pages.single.canonicalJson(),
+        baseline.pages[1].canonicalJson(),
       );
     },
   );
