@@ -11,7 +11,13 @@ The index is the contract, because the index blob is what a clone reproduces.
 Two workspace values are legitimate and therefore not violations: ``none`` for a
 file without any EOL byte (for example a one-line ``.bat`` without a trailing
 newline) and ``-text`` for a file Git classifies as binary even though an
-attribute rule selected it.
+attribute rule selected it. An index assertion is decided by the index column
+alone: only ``i/-text`` makes an index blob binary, a ``w/-text`` worktree state
+does not excuse a CRLF blob in the index.
+
+Checkout ownership is not corrected for the run: on a checkout owned by another
+user Git refuses the commands (``safe.directory``) and the test fails loudly with
+that Git error instead of reporting an unverified index.
 
 Run with:
     python3 -m unittest discover -s tools/repo -p 'test_*.py' -v
@@ -30,14 +36,40 @@ TEST_DIR = Path(__file__).resolve().parent
 NORMALIZED_EOLS = frozenset({"lf", "none"})
 NORMALIZED_EOL_ATTRIBUTES = frozenset({"crlf", "lf"})
 
+# Variables that point Git at another repository, index, or attribute source.
+# They are inherited from whatever launched the tests, so they have to be
+# removed: with GIT_DIR or GIT_INDEX_FILE set the guard would inspect a
+# different repository and report a verdict about the wrong index.
+REPO_POINTER_VARIABLES = frozenset(
+    {
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_INDEX_FILE",
+        "GIT_COMMON_DIR",
+        "GIT_CONFIG_COUNT",
+    }
+)
+REPO_POINTER_PREFIXES = ("GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_")
+
 # The verdict must describe the repository, not the machine: a developer's
 # global ``* text=auto`` (core.attributesFile) would otherwise turn
 # attribute-free CRLF blobs into reported violations of a rule they never had.
-ISOLATED_GIT_ENV = {
-    **os.environ,
-    "GIT_CONFIG_GLOBAL": os.devnull,
-    "GIT_CONFIG_NOSYSTEM": "1",
-}
+# GIT_ATTR_NOSYSTEM keeps a system-wide gitattributes file out of the same
+# verdict.
+def isolated_git_env() -> dict[str, str]:
+    env = {
+        key: value
+        for key, value in os.environ.items()
+        if key not in REPO_POINTER_VARIABLES
+        and not key.startswith(REPO_POINTER_PREFIXES)
+    }
+    env["GIT_CONFIG_GLOBAL"] = os.devnull
+    env["GIT_CONFIG_NOSYSTEM"] = "1"
+    env["GIT_ATTR_NOSYSTEM"] = "1"
+    return env
+
+
+ISOLATED_GIT_ENV = isolated_git_env()
 
 
 def run_git(*args: str, cwd: Path) -> str:
@@ -94,8 +126,20 @@ class TrackedFile:
             or self.attributes.get("eol") is not None
         )
 
+    def is_binary_in_index(self) -> bool:
+        """True when the index blob is binary, so Git never converted it.
+
+        Only the index column decides an index assertion. A ``-text`` worktree
+        value must not excuse an index blob that stores CRLF.
+        """
+        return self.index_eol == "-text"
+
     def is_binary(self) -> bool:
-        """True when Git refuses text conversion, i.e. the file is detected binary."""
+        """True when Git refuses text conversion in the index or the worktree.
+
+        Only the checkout test uses this: a binary worktree copy cannot carry
+        the CRLF checkout conversion, so it is not a violation there.
+        """
         return "-text" in (self.index_eol, self.worktree_eol)
 
     def stores_normalized_index(self) -> bool:
@@ -161,7 +205,7 @@ class GitEolNormalizationTest(unittest.TestCase):
             entry
             for entry in self.tracked_files
             if entry.attributes.get("eol") in NORMALIZED_EOL_ATTRIBUTES
-            and not entry.is_binary()
+            and not entry.is_binary_in_index()
         ]
         self.assertTrue(
             eol_files,
@@ -212,7 +256,7 @@ class GitEolNormalizationTest(unittest.TestCase):
         text_files = [
             entry
             for entry in self.tracked_files
-            if entry.has_text_attribute() and not entry.is_binary()
+            if entry.has_text_attribute() and not entry.is_binary_in_index()
         ]
         self.assertTrue(
             text_files,

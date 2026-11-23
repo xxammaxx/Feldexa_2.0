@@ -3,9 +3,10 @@
 # Feldexa 2.0 local gate (T004).
 #
 # Purpose: run the mandatory analysis, formatting, shared-package, app
-# unit/widget, browser interaction, and browser integration checks locally
-# without a hosted CI service. Every executed check is fail-closed: a real
-# analyzer finding, formatter drift, or test failure exits non-zero.
+# unit/widget, browser interaction, and browser integration checks, plus the
+# repository guard tests under tools/repo, locally without a hosted CI service.
+# Every executed check is fail-closed: a real analyzer finding, formatter drift,
+# a failing repository guard, or a test failure exits non-zero.
 #
 # Planned layers that do not exist yet are reported as ABSENT and make the
 # gate INCOMPLETE (exit 3) unless --allow-absent is explicitly given. Missing
@@ -86,6 +87,8 @@ Checks:
      via flutter drive with chromedriver and test_driver/integration_test.dart;
      non-browser integration tests are reported as NOT RUN because they belong
      to the EMULATOR/DEVICE layer
+  8. repository guard tests (python3 -m unittest discover in tools/repo), for
+     example the Git line-ending guard; a missing python3 is UNAVAILABLE
 
 Evidence classes:
   SIMULATED  app browser/interaction and web integration tests only
@@ -294,6 +297,7 @@ fi
 
 CHROME_BIN=$(find_chrome || true)
 CHROMEDRIVER_BIN=$(find_chromedriver || true)
+PYTHON_BIN=$(command -v python3 2>/dev/null || true)
 INTEGRATION_DRIVER="$ROOT_DIR/apps/feldexa_app/test_driver/integration_test.dart"
 
 FLUTTER_FLAGS=(--no-version-check)
@@ -372,6 +376,20 @@ check_app_browser_tests() {
 
 BROWSER_INTEGRATION_FILES=()
 NON_BROWSER_INTEGRATION_COUNT=0
+
+check_repo_guard_tests() {
+  local pattern='test_*.py'
+  local -a guard_tests=(tools/repo/$pattern)
+  if [ ! -e "${guard_tests[0]}" ]; then
+    # Without a guard test the discovery run would pass with zero tests.
+    printf 'no repository guard test matching tools/repo/%s\n' "$pattern" >&2
+    return 1
+  fi
+  # PYTHONDONTWRITEBYTECODE keeps __pycache__ out of the working tree that the
+  # Android evidence scripts require to be clean.
+  PYTHONDONTWRITEBYTECODE=1 "$PYTHON_BIN" -m unittest discover \
+    -s tools/repo -p "$pattern" -v
+}
 
 collect_browser_integration_files() {
   local rel
@@ -500,6 +518,13 @@ fi
 
 if [ "$NON_BROWSER_INTEGRATION_COUNT" -gt 0 ]; then
   info "[NOT RUN] EMULATOR/DEVICE integration tests present: $NON_BROWSER_INTEGRATION_COUNT (not executed by this local gate)"
+fi
+
+if [ -n "$PYTHON_BIN" ]; then
+  run_check "repository guard tests (python3 unittest in tools/repo)" "none" \
+    "08-repo-guard" check_repo_guard_tests
+else
+  unavailable "repository guard tests (no python3 on PATH; the Git line-ending guard did not run)"
 fi
 
 info ""
