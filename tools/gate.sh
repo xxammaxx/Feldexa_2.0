@@ -3,15 +3,18 @@
 # Feldexa 2.0 local gate (T004).
 #
 # Purpose: run the mandatory analysis, formatting, shared-package, app
-# unit/widget, browser interaction, and browser integration checks locally
-# without a hosted CI service. Every executed check is fail-closed: a real
-# analyzer finding, formatter drift, or test failure exits non-zero.
+# unit/widget, browser interaction, and browser integration checks, plus the
+# repository guard tests under tools/repo, locally without a hosted CI service.
+# Every executed check is fail-closed: a real analyzer finding, formatter drift,
+# a failing repository guard, or a test failure exits non-zero.
 #
 # Planned layers that do not exist yet are reported as ABSENT and make the
 # gate INCOMPLETE (exit 3) unless --allow-absent is explicitly given. Missing
 # tooling is reported as UNAVAILABLE and makes the gate INCOMPLETE (exit 3)
 # unless --allow-unavailable is explicitly given. Neither escape hatch is
-# valid for the final acceptance gate T145.
+# valid for the final acceptance gate T145. The repository guard (check 8) is
+# the one deliberate exception: it is a repository contract, so a missing
+# interpreter or guard file is a FAIL and no escape hatch applies.
 #
 # Browser integration tests need the Flutter web driver: chromedriver must be
 # on PATH (or CHROMEDRIVER set) and apps/feldexa_app/test_driver/integration_test.dart
@@ -86,6 +89,9 @@ Checks:
      via flutter drive with chromedriver and test_driver/integration_test.dart;
      non-browser integration tests are reported as NOT RUN because they belong
      to the EMULATOR/DEVICE layer
+  8. repository guard tests (python3 -m unittest discover in tools/repo), for
+     example the Git line-ending guard; they are mandatory, so a missing
+     python3 or a missing guard file fails the check instead of being skipped
 
 Evidence classes:
   SIMULATED  app browser/interaction and web integration tests only
@@ -294,6 +300,7 @@ fi
 
 CHROME_BIN=$(find_chrome || true)
 CHROMEDRIVER_BIN=$(find_chromedriver || true)
+PYTHON_BIN=$(command -v python3 2>/dev/null || true)
 INTEGRATION_DRIVER="$ROOT_DIR/apps/feldexa_app/test_driver/integration_test.dart"
 
 FLUTTER_FLAGS=(--no-version-check)
@@ -372,6 +379,31 @@ check_app_browser_tests() {
 
 BROWSER_INTEGRATION_FILES=()
 NON_BROWSER_INTEGRATION_COUNT=0
+
+python3_required_for_guard() {
+  printf 'python3 is required for the repository guard tests\n' >&2
+  return 1
+}
+
+check_repo_guard_tests() {
+  local pattern='test_*.py'
+  local -a guard_tests=(tools/repo/$pattern)
+  if [ ! -e "${guard_tests[0]}" ]; then
+    # Without a guard test the discovery run would pass with zero tests.
+    printf 'no repository guard test matching tools/repo/%s\n' "$pattern" >&2
+    return 1
+  fi
+  # The line-ending guard is a repository contract, not an optional layer, so a
+  # renamed or deleted file must fail instead of being skipped by discovery.
+  if [ ! -f tools/repo/test_git_eol_normalization.py ]; then
+    printf 'tools/repo/test_git_eol_normalization.py is missing\n' >&2
+    return 1
+  fi
+  # PYTHONDONTWRITEBYTECODE keeps build artefacts (bytecode caches) out of the
+  # checkout; the Android evidence scripts check `git status` without --ignored.
+  PYTHONDONTWRITEBYTECODE=1 "$PYTHON_BIN" -m unittest discover \
+    -s tools/repo -p "$pattern" -v
+}
 
 collect_browser_integration_files() {
   local rel
@@ -500,6 +532,17 @@ fi
 
 if [ "$NON_BROWSER_INTEGRATION_COUNT" -gt 0 ]; then
   info "[NOT RUN] EMULATOR/DEVICE integration tests present: $NON_BROWSER_INTEGRATION_COUNT (not executed by this local gate)"
+fi
+
+# The guard is mandatory: a missing interpreter must fail the gate rather than
+# hide behind --allow-unavailable, which is the normal invocation on hosts
+# without Chrome.
+if [ -n "$PYTHON_BIN" ]; then
+  run_check "repository guard tests (python3 unittest in tools/repo)" "none" \
+    "08-repo-guard" check_repo_guard_tests
+else
+  run_check "repository guard tests (python3 unittest in tools/repo)" "none" \
+    "08-repo-guard-missing-python" python3_required_for_guard
 fi
 
 info ""

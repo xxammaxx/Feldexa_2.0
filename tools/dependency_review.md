@@ -31,7 +31,7 @@ T003 changes, and only these T003-scoped files:
 - `specs/001-scanned-form-workflow/tasks.md` — T003 checkbox.
 - T003 evidence reports under `specs/001-scanned-form-workflow/reports/`.
 
-No application source, feature task, contract, spec, plan, constitution, checklist or Gradle wrapper file was implemented or amended. No commit to the shared repository, push, merge or self-approval was performed; the exact T003 candidate is a local self-contained commit in `.dsh-git` and `.dsh-t003-candidate.bundle`. The pre-existing `apps/feldexa_app/android/gradlew.bat` line-ending issue was preserved; its diagnosis is in the evidence reports.
+No application source, feature task, contract, spec, plan, constitution, checklist or Gradle wrapper file was implemented or amended. No commit to the shared repository, push, merge or self-approval was performed; the exact T003 candidate is a local self-contained commit in `.dsh-git` and `.dsh-t003-candidate.bundle`. T003 left the then-existing `apps/feldexa_app/android/gradlew.bat` line-ending state untouched; that CRLF index blob was renormalised to LF later (PR #289), and the diagnosis is in the evidence reports.
 
 ## 2. Toolchain and verification method
 
@@ -360,7 +360,7 @@ Release merged manifest after the privacy overlay: `6129b31211489284e4d96d483056
 
 Release APK: `3a4c4b6d32fcf37404baea71beffe6836983835c1a3bdd8ccfef1bc5e6346cdc`, 57,015,925 bytes (Flutter reports 57.0 MB), three ABI payloads (arm64-v8a, armeabi-v7a, x86_64), unsigned (`DOES NOT VERIFY`). Release R8 rules: `76cab1040628705c1ee6e231ed1d772987c57364d8d39017f053d33df9629b0b` (`apps/feldexa_app/android/app/proguard-rules.pro`). After the fix `missing_rules.txt` is absent; no language dependency, keep rule or broad suppression was added. The release APK manifest passes `tools/android/check_release_manifest.sh`; only the signature-level `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` remains. The optional non-Latin ML Kit classes are referenced by the wrapper but not defined in the APK; the Latin ML Kit model assets/pipeline are present; R8 strips currently unused PDFBox/BC classes.
 
-Repository files changed by T003 (final hashes are in the BC evidence report; the pre-existing `gradlew.bat` is excluded and preserved):
+Repository files changed by T003 (final hashes are in the BC evidence report; the then-stale `gradlew.bat` line-ending state is not a T003 change and is excluded here):
 
 ```text
 apps/feldexa_app/pubspec.yaml
@@ -375,7 +375,7 @@ specs/001-scanned-form-workflow/reports/2026-11-12-t003-evidence.md
 specs/001-scanned-form-workflow/reports/2026-11-12-t003-bc-override-evidence.md
 ```
 
-The pre-existing `apps/feldexa_app/android/gradlew.bat` modification is not a T003 change; it remains byte-identical to the index and is diagnosed in the reports.
+The pre-existing `apps/feldexa_app/android/gradlew.bat` modification was not a T003 change; at the time of the review it was byte-identical to the then-current index and is diagnosed in the reports. That index blob has since been renormalised to LF (PR #289), so a fresh clone or worktree checks the file out as CRLF per the `eol=crlf` attribute and stays clean.
 
 ## Appendix C — Exact resolution
 

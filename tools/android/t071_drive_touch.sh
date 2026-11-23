@@ -37,8 +37,7 @@
 # `flutter` tag lines. The authoritative marker sequence is extracted from the
 # integration log into `markers-integration.txt`.
 #
-# The tree must be committed before the run: only the pre-existing
-# ` M apps/feldexa_app/android/gradlew.bat` line-ending change may be present.
+# The tree must be committed before the run: the working tree must be clean.
 #
 # Evidence class is EMULATOR only when step 1 passes. Without a worktree-bound
 # Orca allocation the script exits 2 with `EMULATOR NOT_RUN`; it never rebinds
@@ -354,18 +353,15 @@ PY
   not_run "Orca worktree session inventory is empty"
 
 # --- 1b. Commit-before-run gate ---------------------------------------------
-# Evidence is bound to a committed HEAD. The only tolerated dirty line is the
-# pre-existing gradlew.bat line-ending change, which must never be staged.
-ALLOWED_DIRTY_LINE=" M apps/feldexa_app/android/gradlew.bat"
-DIRTY_STATUS="$(git -C "$ROOT" status --porcelain)"
+# Evidence is bound to a committed HEAD: the working tree must be clean.
+DIRTY_STATUS="$(git -C "$ROOT" status --porcelain)" \
+  || fail "cannot read git status for $ROOT"
 if [[ -n "$DIRTY_STATUS" ]]; then
   while IFS= read -r dirty_line; do
-    if [[ "$dirty_line" != "$ALLOWED_DIRTY_LINE" ]]; then
-      fail "working tree is dirty; commit-before-run required (unexpected status line: $dirty_line)"
-    fi
+    fail "working tree is dirty; commit-before-run required (status line: $dirty_line)"
   done <<<"$DIRTY_STATUS"
 fi
-log "T071 DRIVER: commit-before-run gate passed (only the pre-existing gradlew.bat change may be present)"
+log "T071 DRIVER: commit-before-run gate passed (working tree must be clean)"
 
 prepare_evidence_dir
 log "T071 DRIVER: evidence directory $EVIDENCE_DIR"
