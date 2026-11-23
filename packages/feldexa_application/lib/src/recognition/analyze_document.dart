@@ -18,6 +18,11 @@
 /// per-page envelope, and the page sequence, so the stage boundary contains no
 /// port and no platform code.
 ///
+/// One page is bounded twice: the caller's page cancellation token is polled at
+/// the cheap checkpoints of the page work, and a page whose off-isolate stage
+/// overruns `defaultPageAnalysisDeadline` has its worker killed and joined and
+/// fails closed as `internal`/REC-002.
+///
 /// Normative sources:
 ///  * `contracts/recognition-output.md` §1 (envelope), §2 (suggestion), §2.1
 ///    (forbidden outputs), §3 (cues, typing, confidence), §4 (failure), §5
