@@ -33,6 +33,8 @@ import 'package:feldexa_app/features/editor/field_order.dart';
 import 'package:feldexa_app/features/editor/field_value_sheet.dart';
 import 'package:feldexa_app/features/editor/page_view.dart' as viewer;
 import 'package:feldexa_app/features/fill/checkbox_control.dart';
+import 'package:feldexa_app/features/fill/field_text_fit.dart';
+import 'package:feldexa_app/features/fill/overflow_warning.dart';
 import 'package:feldexa_app/features/fill/text_control.dart';
 import 'package:feldexa_app/features/start/import_runtime.dart';
 import 'package:feldexa_app/features/start/start_screen.dart';
@@ -473,6 +475,14 @@ Offset _screenPoint(
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  // T086C: the productive path reads the bundled Noto Sans advance table at
+  // startup; the host tests load the same table so the FLD-001 decision uses
+  // the real export metrics instead of a test font.
+  setUpAll(() async {
+    expect(await initializeFieldTextMeasure(), isTrue);
+  });
   testWidgets(
     'PageView overlay builder receives page, viewport rect, mapping',
     (tester) async {
@@ -719,6 +729,53 @@ void main() {
     );
     expect(find.byKey(durabilityStatusLabelKey), findsOneWidget);
   });
+
+  testWidgets(
+    'an overflowing value persists the FLD-001 flag and reopens in full',
+    (tester) async {
+      final _FakeStore store = _FakeStore(loaded: _loaded());
+      final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+      await _pumpEditor(tester, runtime: runtime);
+
+      final EditorScreenState state = _state(tester);
+      // 41 characters need roughly 250 pt at 12 pt; the field offers 97 pt.
+      const String tooLong = 'Erika Mustermann und Maximilian Mustermann';
+      await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(fieldTextControlInputKey), tooLong);
+      await tester.tap(find.byKey(fieldValueSaveKey));
+      await tester.pumpAndSettle();
+
+      // The warning is visible immediately after the commit and the sheet stays
+      // on the field; the complete value was persisted with the flag.
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+      expect(find.byKey(fieldOverflowWarningKey), findsOneWidget);
+      expect(store.saves, hasLength(1));
+      final core.TextValue stored =
+          store.saves.single.content.values[_fieldId]! as core.TextValue;
+      expect(stored.overflow, isTrue);
+      expect(stored.text, tooLong);
+      expect(state.content!.values[_fieldId], stored);
+
+      // Closing and reopening the stored field shows the same full text and the
+      // persisted warning state; no second revision is written.
+      await tester.tap(find.byKey(fieldValueCloseKey));
+      await tester.pumpAndSettle();
+      expect(find.byKey(fieldValueSheetKey), findsNothing);
+
+      await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
+      await tester.pumpAndSettle();
+      expect(find.byKey(fieldOverflowWarningKey), findsOneWidget);
+      expect(
+        tester
+            .widget<TextField>(find.byKey(fieldTextControlInputKey))
+            .controller!
+            .text,
+        tooLong,
+      );
+      expect(store.saves, hasLength(1));
+    },
+  );
 
   testWidgets('a failed save keeps the sheet open and claims no saved state', (
     tester,

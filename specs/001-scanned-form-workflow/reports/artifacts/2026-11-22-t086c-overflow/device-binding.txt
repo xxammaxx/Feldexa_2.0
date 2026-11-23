@@ -1,0 +1,8 @@
+serial=emulator-5554
+avd=T025_Pixel7_API35_KVM_20261115
+api=35
+device_inventory=orca emulator devices --json: isAvailable=true detail=emulator state=booted
+worktree_orca_sessions=0
+global_orca_sessions=0
+other_worktree_sessions_referencing_serial=0
+binding=explicit serial emulator-5554; never the physical device

@@ -82,13 +82,24 @@
 // invented. Sheet labels come from the committed German ARB; T086A adds no
 // catalog text, so the clear action reuses the existing discard wording.
 //
-// Overflow measurement is still not implemented: T084 is rendered only when the
-// caller already marked the stored value `overflow`, and the journey report
-// records layout measurement as `NOT_RUN`.
+// Overflow measurement (T086C)
+// ----------------------------
+// The sheet now measures every committed draft against the field display
+// region with T086C `fieldTextOverflows` (the export-plan §3.1 layout rules and
+// the bundled Noto Sans advance table), sets the existing
+// `FieldValue.overflow` flag from that answer, and keeps the complete text. An
+// overflowing commit keeps the sheet open so the existing T084
+// `FieldOverflowWarning` is read immediately after the commit; a stored
+// `overflow` value shows the same warning again when the field is reopened. A
+// second save of the already-committed overflowing draft writes no duplicate
+// revision. Measurement never truncates and never blocks a save: when the
+// bundled metrics cannot be read the value is stored unchanged and no warning
+// is fabricated.
 
 import 'dart:async';
 
 import 'package:feldexa_app/features/fill/checkbox_control.dart';
+import 'package:feldexa_app/features/fill/field_text_fit.dart';
 import 'package:feldexa_app/features/fill/overflow_warning.dart';
 import 'package:feldexa_app/features/fill/signature_sheet.dart';
 import 'package:feldexa_app/features/fill/text_control.dart';
@@ -268,6 +279,14 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
     debugLabel: 'field-value-non-text',
   );
 
+  /// The draft text of the last commit that reported an overflow, or null.
+  ///
+  /// Non-null means the stored value overflows its field: the warning stays
+  /// visible and the sheet no longer closes on save, so the FLD-001 sentences
+  /// are read immediately after the commit. Saving the same draft again is a
+  /// no-op instead of a duplicate revision.
+  String? _committedOverflowDraft;
+
   @override
   void initState() {
     super.initState();
@@ -331,8 +350,23 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
 
   DateTime get _draftEditedAt => widget.field.updatedAt;
 
-  core.FieldValue? _buildValue() {
+  core.FieldValue? _buildValue(TextAdvanceMeasure? measure) {
     final AppLocalizations l10n = AppLocalizations.of(context);
+    // The stored value carries the measured flag; the draft text is never
+    // shortened. A null measure (unreadable metrics asset) never fabricates a
+    // warning.
+    bool overflows(String text) {
+      if (measure == null) {
+        return false;
+      }
+      return fieldTextOverflows(
+        type: widget.field.type,
+        rect: widget.field.rect,
+        text: text,
+        measure: measure,
+      );
+    }
+
     switch (widget.field.type) {
       case core.FieldType.text:
         if (!_isTextWithinModelLimits(_text, multiline: false)) {
@@ -342,7 +376,7 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
         return core.TextValue(
           text: _text,
           lastEditedAt: _draftEditedAt,
-          overflow: widget.currentValue?.overflow ?? false,
+          overflow: overflows(_text),
         );
       case core.FieldType.multiline:
         if (!_isTextWithinModelLimits(_text, multiline: true)) {
@@ -352,7 +386,7 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
         return core.MultilineValue(
           text: _text,
           lastEditedAt: _draftEditedAt,
-          overflow: widget.currentValue?.overflow ?? false,
+          overflow: overflows(_text),
         );
       case core.FieldType.number:
         final String raw = _text.trim();
@@ -365,7 +399,7 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
           canonical: canonical,
           rawGerman: raw,
           lastEditedAt: _draftEditedAt,
-          overflow: widget.currentValue?.overflow ?? false,
+          overflow: overflows(raw),
         );
       case core.FieldType.date:
         final core.DateParseResult parsed = core.parseGermanDate(_text);
@@ -376,13 +410,14 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
         return core.DateValue(
           canonical: parsed.canonical!,
           lastEditedAt: _draftEditedAt,
-          overflow: widget.currentValue?.overflow ?? false,
+          overflow: overflows(_text.trim()),
         );
       case core.FieldType.checkbox:
+        // A checkbox draws a mark, not text: nothing can be clipped.
         return core.CheckboxValue(
           checked: _checked,
           lastEditedAt: _draftEditedAt,
-          overflow: widget.currentValue?.overflow ?? false,
+          overflow: false,
         );
       case core.FieldType.signature:
         return null;
@@ -437,10 +472,15 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
     if (_busy || _closing || widget.field.type == core.FieldType.signature) {
       return null;
     }
+    if (_committedOverflowDraft != null && _text == _committedOverflowDraft) {
+      // The overflowing draft already is the stored value: a second save must
+      // not write a duplicate revision.
+      return const FieldValueCommitResult.saved();
+    }
     setState(() {
       _error = null;
     });
-    final core.FieldValue? value = _buildValue();
+    final core.FieldValue? value = _buildValue(fieldTextMeasure);
     if (value == null) {
       if (mounted) {
         setState(() {});
@@ -470,6 +510,10 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
         _busy = false;
         _error = result.message;
       });
+    } else {
+      // Remember whether the stored value overflows its field: the warning is
+      // shown immediately and the sheet keeps the user on the field.
+      _committedOverflowDraft = value.overflow ? _text : null;
     }
     // On success the sheet stays busy until it pops, swaps fields, or hands
     // off to the order review. That keeps a focus-loss commit and the action
@@ -480,6 +524,15 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
   Future<void> _save() async {
     final FieldValueCommitResult? result = await _commitDraft();
     if (result == null || !result.isSaved || !mounted) {
+      return;
+    }
+    if (_committedOverflowDraft != null) {
+      // `editor-interactions.md` §5: the FLD-001 warning appears immediately
+      // after the commit, so an overflowing value stays on screen with the
+      // complete text instead of closing the sheet.
+      setState(() {
+        _busy = false;
+      });
       return;
     }
     Navigator.of(context).pop();
@@ -624,7 +677,9 @@ class _FieldValueSheetState extends State<FieldValueSheet> {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context);
     final bool signature = widget.field.type == core.FieldType.signature;
-    final bool overflow = widget.currentValue?.overflow ?? false;
+    final bool overflow =
+        _committedOverflowDraft != null ||
+        (widget.currentValue?.overflow ?? false);
     final MediaQueryData media = MediaQuery.of(context);
     final double insets = media.viewInsets.bottom;
     final double availableHeight =
