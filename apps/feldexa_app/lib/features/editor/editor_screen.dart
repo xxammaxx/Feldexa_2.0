@@ -1685,6 +1685,24 @@ class EditorScreenState extends State<EditorScreen> {
     );
     final Size pageSize = mapping.pageSize.contentSize;
     final Rect pageRect = Offset.zero & viewportRect.size;
+    // The selection surface gets its own item order: the confirmed fields come
+    // last, so the topmost hit in an overlap is the document datum and never a
+    // mere proposal (FR-031/FR-032; a T086 emulator run showed an unresolved
+    // candidate swallowing the tap on an overlapping field). The painted order
+    // stays [items], so the review styling and the semantics order are
+    // unchanged; a suggestion touched outside a confirmed field is still
+    // selected, and confirming or rejecting it stays on the suggestion/review
+    // list rather than on an overlapping tap area.
+    final List<FieldOverlayItem> hitItems = <FieldOverlayItem>[
+      ...items.where(
+        (FieldOverlayItem item) =>
+            item.provenance == FieldOverlayProvenance.machineSuggestion,
+      ),
+      ...items.where(
+        (FieldOverlayItem item) =>
+            item.provenance != FieldOverlayProvenance.machineSuggestion,
+      ),
+    ];
     final FieldGeometrySession? session = _geometrySession;
     final Rect? previewRect = session != null
         ? (_geometryPageIndex == pageIndex ? session.previewRect : null)
@@ -1704,7 +1722,7 @@ class EditorScreenState extends State<EditorScreen> {
             FieldOverlay(items: items, pageSize: pageSize, pageRect: pageRect),
           FieldSelectionSurface(
             controller: _selectionController,
-            items: items,
+            items: hitItems,
             pageSize: pageSize,
             pageRect: pageRect,
             onSelected: _handleOverlaySelection,
