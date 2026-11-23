@@ -5,7 +5,7 @@
 | Evidence class | `EMULATOR` (host checks `NONE`; `DEVICE` `NOT_RUN`; `SIMULATED` `NOT_RUN`) |
 | Result | `PASS` for the run-5 EMULATOR journey (run 4 also passed; run 5 used the derived markers) (every step of the recorded journey completed; §7 lists the US4 scenarios this journey does not execute); `PARTIAL` for T086 as a whole, because `DEVICE`, TalkBack, stylus, and the visual/export halves are `NOT_RUN` and the acceptance row stays with the owner |
 | Task / issue | `T086` / `#86` |
-| Date / timezone | `2026-11-23 18:50 Europe/Berlin` (run 5; runs 1-4 in the same afternoon) |
+| Date / timezone | `2026-11-23 22:06 Europe/Berlin` (run-5 admission; the journey ran `22:11`-`22:13` local). Runs 1-4 ran earlier the same day |
 | Revision | run-5 HEAD `71d63d5dddd26dd1582c2af35c4d0eb2e01e019e` (tree from `git-identity.txt`, branch `<owner>/t086-cleanup`), `git status --porcelain` empty at run start; run 4 ran `69827d5` and is kept below |
 | External attestation | none; the candidate SHA and this report's own bytes/hash are not asserted here |
 | Build identity | run 5: `de.feldexa.app` debug APK, 135314022 bytes, SHA-256 `beac871b0a28fe2d1d09c915630832ce3cc9e04a245697ba6db70a15ed2ed24a`; run 4 built 173624809 bytes, SHA-256 `1b6462932d0a2b190c3b3f5fba3695d60bec8fa47e750812115e8509ce67d610` |
@@ -19,7 +19,7 @@ the two-page `sf-001.pdf` journey in
 `apps/feldexa_app/integration_test/android_fill_test.dart`, driven by
 `tools/android/t086_drive_fill.sh`.
 
-It records four runs of that journey in one afternoon:
+It records five runs of that journey in one afternoon:
 
 | Run | HEAD | Outcome |
 | --- | --- | --- |
@@ -27,8 +27,10 @@ It records four runs of that journey in one afternoon:
 | 2 | `a91ec0e` | page 1 `PASS`, page 2 `FAIL` on the first tap with no sheet, no error, no exception |
 | 3 | `ad5ddac` | same failure, decisive `T086_DIAG_SHEET_*` diagnosis of the tap seam |
 | 4 | `69827d5` | `PASS`: both pages filled by touch, round trip, reopening, edit, and verified store read-back |
+| 5 | `71d63d5` | `PASS` with the derived markers, single-prefix screenshot markers and `DEDUCED=UNDECIDED` in the tap diagnostics |
 
-The run-4 result is the claim of this report. Runs 1-3 are kept because they are
+The run-5 result is the claim of this report; run 4 is the earlier verification run with the
+literal markers and stays alongside it. Runs 1-3 are kept because they are
 why the journey was blocked and why a production file changed at all. No claim is
 made beyond the emulator: `DEVICE`, TalkBack, stylus, visual/golden, export, and
 performance are `NOT_RUN`.
@@ -41,6 +43,7 @@ performance are `NOT_RUN`.
 | Run-2 HEAD | `a91ec0eddb0609d064abf20c7fb849cae900a325` (tree `4dabde5b2b21b04e6b73519c902e78f0d5725281`) |
 | Run-3 HEAD | `ad5ddac608e1d20e7e4afb77c20385eb80d6ca85` (tree `ec254f3414e7102824471fb5083eeafdf80fdbf0`), subject `test(T086): diagnose the page-2 tap seam` |
 | Run-4 HEAD | `69827d5c221ae10fd3840da9943bba9a3e478d51` (tree `a91d5700a118eed3a8ecde35d988b48705904831`), subject `docs(T086): keep the diagnostic emulator run beside the fill evidence` |
+| Run-5 HEAD | `71d63d5dddd26dd1582c2af35c4d0eb2e01e019e`, branch `<owner>/t086-cleanup`, subject `test(T086): derive the journey markers from real state (#292)` |
 | Commits of this task | `ad5ddac` diagnostic instrumentation, `c150f64` overlap host test (RED), `0b80ce6` overlap repair (GREEN), `69827d5` diagnostic evidence preserved |
 | Integration test at run 4 | SHA-256 `c3a25fc8c38f1eec7a1a34ff67b71ebfb4dc2326f1a9132f260bb90c427434dd` |
 | Driver at run 4 | SHA-256 `5a271fd9902b331865078456b51351eb7f63206e5c37c0b52f912aaa997a87f7` |
@@ -57,23 +60,28 @@ recognition, ARB, Gradle, or pubspec change.
 ## 3. Environment
 
 ```text
-EMULATOR: Pixel 7 API 35, run labels t086-fill-run3 (diagnosis) and t086-fill-run4 (verification);
+EMULATOR: Pixel 7 API 35, run labels as report shorthand: t086-fill-run3 (diagnosis),
+          t086-fill-run4 (previous verification) and t086-fill-run5 (verification). Only run 5 is
+          labelled on the device (`collection-note.txt`); runs 3 and 4 are identified by their run
+          directories `feldexa-t086-run.20261123T163500Z-c` and `…T175000Z-d`;
           serial emulator-5554, AVD T025_Pixel7_API35_KVM_20261115;
           system image google/sdk_gphone64_x86_64/emu64xa:15/AE3A.240806.043/12960925 userdebug;
           1080 x 2400 at 420 dpi; RAM 4014392 kB; qemu=1; boot_completed=1;
-          APK apps/feldexa_app/build/app/outputs/flutter-apk/app-debug.apk SHA-256 1b646293…;
+          run-5 APK apps/feldexa_app/build/app/outputs/flutter-apk/app-debug.apk
+          135314022 bytes SHA-256 beac871b…; run 4 built 173624809 bytes SHA-256 1b646293…;
           build mode debug, no flags; no physical device addressed
 ```
 
-The emulator for runs 3 and 4 was already running with a window, prepared by the
+The emulator for runs 3, 4 and 5 was already running with a window, prepared by the
 owner's environment; this task neither restarted, reset, nor stopped it
-(`adb emu kill` was never issued and the emulator is still running after run 4).
+(`adb emu kill` was never issued by this driver on any of these runs; the emulator kept
+running afterwards, as observed when the next run started).
 Every command addressed `-s emulator-5554`. The wirelessly attached Samsung S23
 transport (`adb-RFCW80SMY4J-…`) appears in `device-binding.txt` only as an
 attached transport and was never addressed
 (`non_emulator_transports_addressed=none`).
 
-Both runs executed inside the shared heavy-work permit:
+Runs 3, 4 and 5 executed inside the shared heavy-work permit:
 
 ```text
 python3 <orca-maintainer-skill>/scripts/compute_slot.py --wait -- \
@@ -83,8 +91,9 @@ python3 <orca-maintainer-skill>/scripts/compute_slot.py --wait -- \
 
 `compute-lock.txt` records `mode=shared-heavy-work-lock`, the lock path
 `<tmp>/orca-maintainer-heavy-<uid>.lock`, `orca_command_used=0`, and
-`admitted_at_utc=2026-11-23T16:45:16Z` for run 4. The permit settled with
-`exit_code: 0`.
+`admitted_at_utc` for each run (run 4 `2026-11-23T16:45:16Z`, run 5
+`2026-11-23T21:06:00Z`). The permit file records no exit code; the wrapper's own
+result is not part of the bundle.
 
 ## 4. Checks
 
@@ -95,7 +104,7 @@ python3 <orca-maintainer-skill>/scripts/compute_slot.py --wait -- \
 | 3 | `flutter test --no-pub test/editor_composition_test.dart` after the fix (`apps/feldexa_app`) | 0 | `+23: All tests passed!` (22 before the new test) |
 | 4 | same focused file at the RED step, with the test and without the fix (`apps/feldexa_app`) | 1 | `Expected: '11111111-1111-4111-8111-111111111111' / Actual: 's_p0_0002'` in `a confirmed field keeps its tap where an unresolved suggestion overlaps` |
 | 5 | `flutter test --no-pub` full app suite (`apps/feldexa_app`) | 0 | `+589: All tests passed!` |
-| 6 | `tools/android/t086_drive_fill.sh` inside `compute_slot.py --wait` (`<repo-root>`, run 4) | 0 | driver `PASS`, `flutter_test_exit=0`, `CLEANUP_DONE` observed, privacy 2/2 |
+| 6 | `tools/android/t086_drive_fill.sh` inside `compute_slot.py --wait` (`<repo-root>`, run 5; run 4 recorded identically) | 0 | driver `PASS`, `flutter_test_exit=0`, `CLEANUP_DONE` observed, privacy 2/2 |
 | 7 | `python3 tools/evaluation/check_evidence_docs.py --report specs/001-scanned-form-workflow/reports/2026-11-23-emulator-t086-fill.md` (`<repo-root>`) | 0 | validates the artifact rows and the report binding against the committed tree |
 
 Checks 1-5 are the host gates for the production change; checks 6-7 bind the
@@ -283,6 +292,26 @@ Screenshots captured: 4 of 4 phases, all distinct — `overflow-warning` 211058 
 end that the driver's `pm clear` forces. No `E/flutter` and no `FATAL EXCEPTION`
 appear in the run log or in logcat.
 
+### 5.5 Run 5 (`71d63d5`): the same journey with derived markers
+
+Run 5 repeats run 4's journey unchanged and only differs in what the test reports:
+
+```text
+T086_PAGE1_FILLED:FIELDS=5
+T086_PAGE2_FILLED:FIELDS=3
+T086_VALUES_SURVIVED_NAVIGATION:PAGE1=5:PAGE2=3
+T086_STORE_READBACK:SUMMARY:VALUES=7:SIGNATURE=1:DIGEST_MATCH=1:PNG=1:TRUNCATED=0
+T086_CLEANUP_DONE
+```
+
+Every count is computed from the revision content and printed *after* the `expect`
+that proves the same fact; the screenshot markers lost their doubled prefix
+(`T086_T086_SCREENSHOT_*` -> `T086_SCREENSHOT_*`), so the driver handshake matches
+an exact substring instead of a coincidence. The tap diagnostics report
+`DEDUCED=UNDECIDED` in the tap phase and keep the deduced verdict for the timeout
+dump only. `run-status.txt` records `result=PASS`, `flutter_test_exit=0`, and the
+four screenshots have distinct digests (see §9.1).
+
 ## 6. Performance
 
 No performance claim. Emulator timings are never a device claim.
@@ -337,7 +366,7 @@ No performance claim. Emulator timings are never a device claim.
 
 | Class | Result | Basis |
 | --- | --- | --- |
-| `EMULATOR` | `PASS` | Pixel 7 API 35 KVM emulator `emulator-5554`, run 4; runs 1-3 are the recorded failures that led to the repair |
+| `EMULATOR` | `PASS` | Pixel 7 API 35 KVM emulator `emulator-5554`, run 5 (run 4 passed identically); runs 1-3 are the recorded failures that led to the repair |
 | `DEVICE` | `NOT_RUN` | no physical device addressed; the wireless S23 transport was recorded only |
 | `SIMULATED` | `NOT_RUN` | not part of this task |
 
@@ -351,8 +380,8 @@ All paths are repository-relative; sizes and digests are of the committed bytes.
 
 ### 9.1 Run 5 (the current verification run this report binds to)
 
-Written entirely by `tools/android/t086_drive_fill.sh`; host paths were rewritten on
-the way into this committed bundle (see `collection-note.txt`).
+Written by `tools/android/t086_drive_fill.sh` except this note; host paths were rewritten
+on the way into this committed bundle (see `collection-note.txt`).
 
 | Artifact | Path | Bytes | SHA-256 |
 | --- | --- | ---: | --- |
@@ -372,13 +401,13 @@ the way into this committed bundle (see `collection-note.txt`).
 | Engine log | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/logcat-flutter.log` | 315 | `56dd9fb8fe2c5aad9241dbcedc2c3df1b7e353c50b4e7e96dec5fc033038baa3` |
 | Activity log | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/logcat-t086-markers.log` | 773 | `59bb8de81d9139e17a20299f09fb6940451aedace0bfd2ff3d0e686915906607` |
 | Host `flutter pub get --offline` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/host-flutter-pub-get.log` | 235 | `ca8a31e8d3a8e09e9613cc7cf03b3b074336ba53fcfd722c769ea6df66588675` |
-| Collection provenance | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/collection-note.txt` | 643 | `ed49cef8ccd9492093dacd8aed65bcceebae2cb4d9046d9e62d8d608edb60560` |
+| Collection provenance | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/collection-note.txt` | 692 | `b02c31c3b83cff2e229ccd31860f1138175937a24794b11f3d0ab3e68a2d0a0f` |
 | Screenshot `overflow-warning` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/screenshots/overflow-warning.png` | 210028 | `4e6f5bb40388ba1e84667b300be745835cbbe1fcdc1dd1047938c95f50fb3518` |
 | Screenshot `page1-values` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/screenshots/page1-values.png` | 191863 | `a8a2e1edd3be5bd596371f2a3da6ae2a0541693965ed571b6ed40e411b73363d` |
 | Screenshot `page2-signed` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/screenshots/page2-signed.png` | 177094 | `498b960b8bc242f9744738fb700355ffb2c35e6648fa7872628bd06ad5f55a45` |
 | Screenshot `page1-preserved` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-23-t086-fill-run5/screenshots/page1-preserved.png` | 197121 | `3bf1213d63ee75786f9eb6c354ab77f4de023fa91391b7b5c28ca750f93dcd65` |
 
-### 9.2 Run 4 (the verification run this report binds to)
+### 9.2 Run 4 (the previous verification run, kept unchanged)
 
 Every file below was written by the driver in step 7 except `collection-note.txt`.
 
@@ -471,7 +500,8 @@ the stripped log, and every size and digest above is of the committed bytes.
 
 ## 10. Reproducibility
 
-1. Start from HEAD `69827d5` (branch `<owner>/t086`) with a clean tree.
+1. Start from HEAD `71d63d5` (branch `<owner>/t086-cleanup`) with a clean tree.
+   Run 4 is reproducible from `69827d5` (branch `<owner>/t086`).
 2. Host gates (`apps/feldexa_app`): `dart format --output=none
    --set-exit-if-changed lib test integration_test`, `flutter analyze`,
    `flutter test --no-pub test/editor_composition_test.dart` (23/23), and
@@ -487,9 +517,10 @@ the stripped log, and every size and digest above is of the committed bytes.
 
 ## 11. External attestation
 
-None. This report records run-3 HEAD `ad5ddac` and run-4 HEAD `69827d5` with tree
-`a91d5700a118eed3a8ecde35d988b48705904831`; the evidence commit that adds this
-report cannot embed its own SHA.
+None. This report records run-3 HEAD `ad5ddac`, run-4 HEAD `69827d5` (tree
+`a91d5700a118eed3a8ecde35d988b48705904831`) and run-5 HEAD `71d63d5` (tree
+`669adf1f1cee29f74325e216b01dc40dd452b0f3`, integration test `2c213436…`, driver
+`bb7d4b7d…`); the evidence commit that adds this report cannot embed its own SHA.
 
 ## 12. Independent review (author leaves blank)
 

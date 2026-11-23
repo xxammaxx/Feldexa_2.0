@@ -1,7 +1,8 @@
 Collection provenance for run 5 (2026-11-23, Pi maintainer).
 
 Every file in this directory was written by `tools/android/t086_drive_fill.sh` itself
-(stage 1 and stage 2 in the same process); nothing was collected or copied afterwards.
+(stage 1 and stage 2 in the same process) except this note, which documents the collection;
+nothing was collected or copied afterwards.
 The driver rewrote host paths on the way into this bundle (`$ROOT/` dropped, a bare
 root mapped to `.`, `$HOME/` mapped to `~/`), so the committed bytes differ from the
 verbatim run-directory copies only by those substitutions.

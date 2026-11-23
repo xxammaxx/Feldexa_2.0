@@ -368,7 +368,8 @@ adb_shell logcat -c >/dev/null ||
 mkdir -p "$RUN_DIR/screenshots" >/dev/null
 # A previous aborted run can leave acknowledgements behind. Remove them before
 # the test starts so no `_waitForDriver` can return on a stale ack.
-adb_shell rm -f "$STAGING"/ack-* >/dev/null
+adb_shell rm -f "$STAGING"/ack-* >/dev/null ||
+  fail "cannot clear stale screenshot acknowledgements in $STAGING"
 
 (
   cd "$APP" || exit 1
