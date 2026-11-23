@@ -261,7 +261,7 @@ collect_evidence() {
     if [[ -f "$RUN_DIR/$file" ]]; then
       # The bundle is committed, so host paths are rewritten on the way in; the
       # run directory keeps the verbatim log for diagnosis.
-      sed -e "s|$ROOT/||g" -e "s|$HOME/|~/|g" "$RUN_DIR/$file" \
+      sed -e "s|$ROOT/||g" -e "s|$ROOT|.|g" -e "s|$HOME/|~/|g" "$RUN_DIR/$file" \
         >"$EVIDENCE_DIR/$file" ||
         fail "cannot write evidence file $file"
     fi
@@ -434,13 +434,13 @@ adb_shell rm -f "$STAGING"/ack-* >/dev/null ||
 ) >"$LOG" 2>&1 &
 TEST_PID=$!
 
-# The test harness prints the T086 markers into the current run log ($LOG). A
-# device-side fallback is used only after the buffer was demonstrably cleared
-# above, so a marker from an earlier run can never satisfy a wait; it exists
-# because a block-buffered tool process may flush its stdout late.
+# The test harness prints the T086 markers into the current run log ($LOG). The
+# device logcat buffer is never consulted: the markers are emitted by the test
+# process, not by the app, so no committed logcat capture of any driver in this
+# repository contains one; a fallback would only add an unbounded adb roundtrip
+# per second to the wait loop and could still turn a stale marker into a pass.
 marker_present() {
-  grep -F "T086_$1" "$LOG" >/dev/null 2>&1 && return 0
-  LC_ALL=C "$ADB" -s "$SERIAL" logcat -d 2>/dev/null | grep -F "T086_$1" >/dev/null 2>&1
+  grep -F "T086_$1" "$LOG" >/dev/null 2>&1
 }
 
 wait_for_marker() {
