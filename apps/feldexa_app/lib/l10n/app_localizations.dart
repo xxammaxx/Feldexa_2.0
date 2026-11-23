@@ -520,6 +520,18 @@ abstract class AppLocalizations {
   /// **'Inhalt passt nicht'**
   String get fieldCompletionIncompatible;
 
+  /// T086D document overview route: US4 scenario 8 / FR-041 per-field completion overview; separate route reachable from the editor without losing edits (contracts/editor-interactions.md §1 and §7).
+  ///
+  /// In de, this message translates to:
+  /// **'Dokumentübersicht'**
+  String get documentOverviewTitle;
+
+  /// T086D document overview action: return to the editor and continue filling; the overview never owns a value, so returning loses nothing (US4 scenario 8, FR-039).
+  ///
+  /// In de, this message translates to:
+  /// **'Weiter ausfüllen'**
+  String get documentOverviewContinue;
+
   /// contracts/error-catalog.de.md §3 SAVE-001: Storage full / quota exceeded.
   ///
   /// In de, this message translates to:

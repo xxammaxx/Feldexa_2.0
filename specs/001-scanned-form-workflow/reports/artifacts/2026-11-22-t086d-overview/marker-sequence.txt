@@ -1,0 +1,7 @@
+screenshot overview-partial after T086D_SCREENSHOT_OVERVIEW_PARTIAL
+screenshot ack overview-partial
+screenshot overview-continued after T086D_SCREENSHOT_OVERVIEW_CONTINUED
+screenshot ack overview-continued
+screenshot value-preserved after T086D_SCREENSHOT_VALUE_PRESERVED
+screenshot ack value-preserved
+PASS (flutter test exit 0; cleanup marker observed; privacy checks PASS)

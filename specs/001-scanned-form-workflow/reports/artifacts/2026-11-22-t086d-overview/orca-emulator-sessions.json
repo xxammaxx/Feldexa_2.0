@@ -1,0 +1,19 @@
+{
+  "id": "a1365ea4-2b34-46e9-8121-15565b03a6c6",
+  "ok": true,
+  "result": {
+    "sessions": [
+      {
+        "worktreeId": "5cfd8bbd-7af0-43a2-b81d-7e8d50eda284::/home/xxammaxx/Schreibtisch/Feldexa_2.0/t086b-analysis",
+        "backend": "android",
+        "deviceUdid": "emulator-5554",
+        "wsUrl": "",
+        "streamUrl": "scrcpy://emulator-5554",
+        "streamCodec": "h264"
+      }
+    ]
+  },
+  "_meta": {
+    "runtimeId": "6c073663-13db-438b-868d-0765e6daab30"
+  }
+}

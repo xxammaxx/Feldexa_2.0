@@ -91,6 +91,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:feldexa_app/features/editor/document_overview.dart';
 import 'package:feldexa_app/features/editor/durability_status.dart';
 import 'package:feldexa_app/features/editor/editor_runtime.dart';
 import 'package:feldexa_app/features/editor/field_order.dart';
@@ -126,6 +127,11 @@ const String editorAnalysisSkippedKey = 'analysis-skipped';
 
 /// Stable key for a content-free load/analysis/validation/save failure.
 const String editorAnalysisFailedKey = 'analysis-failed';
+
+/// Stable key for the T086D document overview action in the editor app bar.
+const ValueKey<String> editorOverviewActionKey = ValueKey<String>(
+  'editor-overview-action',
+);
 
 /// Maximum per-edge difference in PDF points when comparing page geometry.
 ///
@@ -1961,6 +1967,47 @@ class EditorScreenState extends State<EditorScreen> {
     }
   }
 
+  /// Opens the T086D document overview without leaving the editor state.
+  ///
+  /// The overview receives a read-only snapshot of the current field order and
+  /// durability status; the editor keeps every document, value, and pending
+  /// edit while the route is on top. A returned field id is resolved against
+  /// the live revision, selected, and opened for filling. „Weiter ausfüllen“
+  /// simply returns to the unchanged editor.
+  Future<void> _showDocumentOverview() async {
+    final core.RevisionContent? content = _content;
+    if (content == null) {
+      return;
+    }
+    final DocumentOverviewOutcome? outcome = await Navigator.of(context)
+        .push<DocumentOverviewOutcome>(
+          MaterialPageRoute<DocumentOverviewOutcome>(
+            builder: (BuildContext context) => DocumentOverviewScreen(
+              entries: fieldOrderEntries(content),
+              durabilityStatus: _durabilityStatus,
+              lastDurableAt: _lastDurableAt,
+            ),
+          ),
+        );
+    if (!mounted || outcome == null) {
+      return;
+    }
+    final String? fieldId = outcome.fieldId;
+    if (fieldId == null) {
+      return;
+    }
+    final core.RevisionContent? live = _content;
+    if (live == null) {
+      return;
+    }
+    final core.ConfirmedField? field = _fieldById(live, fieldId);
+    if (field == null) {
+      return;
+    }
+    _selectFieldInOrder(fieldId);
+    await _openFieldValueSheet(field);
+  }
+
   Future<void> _showPrivacyDisclosure() async {
     final AppLocalizations l10n = AppLocalizations.of(context);
     await showDialog<void>(
@@ -2069,6 +2116,16 @@ class EditorScreenState extends State<EditorScreen> {
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: <Widget>[
+          IconButton(
+            key: editorOverviewActionKey,
+            tooltip: l10n.documentOverviewTitle,
+            onPressed: _content == null
+                ? null
+                : () {
+                    unawaited(_showDocumentOverview());
+                  },
+            icon: const Icon(Icons.checklist_rtl),
+          ),
           IconButton(
             key: const ValueKey<String>('editor-field-order-action'),
             tooltip: l10n.fieldOrderTitle,

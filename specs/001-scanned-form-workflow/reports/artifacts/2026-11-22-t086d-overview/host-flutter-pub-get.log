@@ -1,0 +1,6 @@
+Resolving dependencies in `/home/xxammaxx/Schreibtisch/Feldexa_2.0/t086b-analysis`...
+Downloading packages...
+  win32 5.15.0 (6.4.0 available)
+Got dependencies in `/home/xxammaxx/Schreibtisch/Feldexa_2.0/t086b-analysis`!
+1 package has newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.

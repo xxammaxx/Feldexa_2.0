@@ -697,6 +697,21 @@ class FieldOrderReviewList extends StatelessWidget {
   }
 }
 
+/// The committed German label for one field type.
+///
+/// This is the single type-label mapping used by the field-order review and the
+/// T086D document overview; it authors no new string.
+String fieldTypeLabel(AppLocalizations l10n, core.FieldType type) {
+  return switch (type) {
+    core.FieldType.text => l10n.suggestionTypeText,
+    core.FieldType.number => l10n.suggestionTypeNumber,
+    core.FieldType.date => l10n.suggestionTypeDate,
+    core.FieldType.checkbox => l10n.suggestionTypeCheckbox,
+    core.FieldType.multiline => l10n.suggestionTypeMultiline,
+    core.FieldType.signature => l10n.suggestionTypeSignature,
+  };
+}
+
 /// One row of the [FieldOrderReviewList].
 class FieldOrderRow extends StatelessWidget {
   /// Creates one review row.
@@ -805,14 +820,7 @@ class FieldOrderRow extends StatelessWidget {
   }
 
   static String _typeLabel(AppLocalizations l10n, core.FieldType type) {
-    return switch (type) {
-      core.FieldType.text => l10n.suggestionTypeText,
-      core.FieldType.number => l10n.suggestionTypeNumber,
-      core.FieldType.date => l10n.suggestionTypeDate,
-      core.FieldType.checkbox => l10n.suggestionTypeCheckbox,
-      core.FieldType.multiline => l10n.suggestionTypeMultiline,
-      core.FieldType.signature => l10n.suggestionTypeSignature,
-    };
+    return fieldTypeLabel(l10n, type);
   }
 
   static String _provenanceLabel(
