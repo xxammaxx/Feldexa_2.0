@@ -215,6 +215,15 @@ void main() {
     // Page grouping keeps the two-page document readable.
     expect(find.text(_de.suggestionPage(1)), findsWidgets);
     expect(find.text(_de.suggestionPage(2)), findsWidgets);
+    // One visible completion label node per field, keyed for the screen.
+    expect(
+      find.byKey(
+        const ValueKey<String>(
+          '$documentOverviewCompletionKeyPrefix$_fieldOneId',
+        ),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets(

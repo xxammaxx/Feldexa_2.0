@@ -302,7 +302,7 @@ class _DocumentOverviewRow extends StatelessWidget {
                 _OverviewMeta(fieldTypeLabel(l10n, entry.type)),
                 _OverviewMeta(
                   completion,
-                  key: ValueKey<String>(
+                  textKey: ValueKey<String>(
                     '$documentOverviewCompletionKeyPrefix${entry.fieldId}',
                   ),
                 ),
@@ -317,16 +317,17 @@ class _DocumentOverviewRow extends StatelessWidget {
 
 /// One small meta label inside a row.
 class _OverviewMeta extends StatelessWidget {
-  const _OverviewMeta(this.text, {super.key});
+  const _OverviewMeta(this.text, {this.textKey});
 
   final String text;
+  final Key? textKey;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     return Text(
       text,
-      key: key,
+      key: textKey,
       style: theme.textTheme.bodySmall?.copyWith(
         color: theme.colorScheme.onSurfaceVariant,
       ),
