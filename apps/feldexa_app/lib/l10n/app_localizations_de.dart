@@ -277,6 +277,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get fieldCompletionIncompatible => 'Inhalt passt nicht';
 
   @override
+  String get documentOverviewTitle => 'Dokumentübersicht';
+
+  @override
+  String get documentOverviewContinue => 'Weiter ausfüllen';
+
+  @override
   String get save001 =>
       'Der Speicherplatz reicht nicht aus. Der letzte gespeicherte Stand ist erhalten; die neuesten Änderungen sind noch nicht dauerhaft gespeichert.';
 

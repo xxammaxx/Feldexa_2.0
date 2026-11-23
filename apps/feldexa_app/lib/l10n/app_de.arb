@@ -353,6 +353,14 @@
   "@fieldCompletionIncompatible": {
     "description": "T073 field-order review row: T085 completion state incompatible with preserved content that needs a user decision."
   },
+  "documentOverviewTitle": "Dokumentübersicht",
+  "@documentOverviewTitle": {
+    "description": "T086D document overview route: US4 scenario 8 / FR-041 per-field completion overview; separate route reachable from the editor without losing edits (contracts/editor-interactions.md §1 and §7)."
+  },
+  "documentOverviewContinue": "Weiter ausfüllen",
+  "@documentOverviewContinue": {
+    "description": "T086D document overview action: return to the editor and continue filling; the overview never owns a value, so returning loses nothing (US4 scenario 8, FR-039)."
+  },
   "save001": "Der Speicherplatz reicht nicht aus. Der letzte gespeicherte Stand ist erhalten; die neuesten Änderungen sind noch nicht dauerhaft gespeichert.",
   "@save001": {
     "description": "contracts/error-catalog.de.md §3 SAVE-001: Storage full / quota exceeded."

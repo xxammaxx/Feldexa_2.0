@@ -25,6 +25,7 @@ library;
 
 import 'dart:typed_data';
 
+import 'package:feldexa_app/features/editor/document_overview.dart';
 import 'package:feldexa_app/features/editor/durability_status.dart';
 import 'package:feldexa_app/features/editor/editor_runtime.dart';
 import 'package:feldexa_app/features/editor/editor_screen.dart';
@@ -1228,4 +1229,101 @@ void main() {
     expect(store.saves, isEmpty);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'the overview shows completion and continues a field without losing values',
+    (tester) async {
+      final _FakeStore store = _FakeStore(
+        loaded: _loaded(
+          content: _content(
+            withSecondField: true,
+            value: core.TextValue(text: 'Müller', lastEditedAt: _createdAt),
+          ),
+        ),
+      );
+      final _FakeEditorRuntime runtime = _FakeEditorRuntime(store);
+      await _pumpEditor(tester, runtime: runtime);
+      final EditorScreenState state = _state(tester);
+
+      // Editor -> document overview: one complete and one optional-empty field.
+      // T085 counts optional-empty as complete (`countsAsComplete`), so both
+      // fields are filled while their visible states stay distinct.
+      await tester.tap(find.byKey(editorOverviewActionKey));
+      await tester.pumpAndSettle();
+      expect(find.byKey(documentOverviewScreenKey), findsOneWidget);
+      expect(find.text(_de.fieldCount(2, 2)), findsOneWidget);
+      expect(find.text(_de.fieldCompletionComplete), findsOneWidget);
+      expect(find.text(_de.fieldCompletionOptionalEmpty), findsOneWidget);
+      expect(find.byKey(durabilityStatusLabelKey), findsOneWidget);
+
+      // Continue filling the selected field directly from the overview.
+      await tester.tap(
+        find.byKey(
+          const ValueKey<String>(
+            '$documentOverviewRowKeyPrefix$_secondFieldId',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+      await tester.enterText(find.byKey(fieldTextControlInputKey), 'Berlin');
+      await tester.tap(find.byKey(fieldValueSaveKey));
+      await tester.pumpAndSettle();
+
+      expect(store.saves, hasLength(1));
+      final core.FieldValue? second =
+          store.saves.single.content.values[_secondFieldId];
+      expect(second, isA<core.TextValue>());
+      expect((second! as core.TextValue).text, 'Berlin');
+      final core.FieldValue? first = state.content!.values[_fieldId];
+      expect(first, isA<core.TextValue>());
+      expect((first! as core.TextValue).text, 'Müller');
+
+      // Back in the overview both fields are complete and durable.
+      await tester.tap(find.byKey(editorOverviewActionKey));
+      await tester.pumpAndSettle();
+      expect(find.text(_de.fieldCount(2, 2)), findsOneWidget);
+      expect(find.text(_de.fieldCompletionComplete), findsNWidgets(2));
+      expect(find.text(_de.fieldCompletionOptionalEmpty), findsNothing);
+
+      // The previous value is preserved when the field is reopened.
+      await tester.tap(
+        find.byKey(
+          const ValueKey<String>('$documentOverviewRowKeyPrefix$_fieldId'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(fieldValueSheetKey), findsOneWidget);
+      expect(
+        tester
+            .widget<TextField>(find.byKey(fieldTextControlInputKey))
+            .controller!
+            .text,
+        'Müller',
+      );
+      await tester.tap(find.byKey(fieldValueCloseKey));
+      await tester.pumpAndSettle();
+
+      // „Weiter ausfüllen“ returns to the same editor and keeps the values.
+      await tester.tap(find.byKey(editorOverviewActionKey));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(documentOverviewContinueKey));
+      await tester.pumpAndSettle();
+      expect(find.byKey(documentOverviewScreenKey), findsNothing);
+      expect(
+        find.byKey(const ValueKey<String>('editor-screen')),
+        findsOneWidget,
+      );
+      expect(
+        (state.content!.values[_fieldId]! as core.TextValue).text,
+        'Müller',
+      );
+      expect(
+        (state.content!.values[_secondFieldId]! as core.TextValue).text,
+        'Berlin',
+      );
+      expect(state.durabilityStatus, isA<core.SavedDurabilityStatus>());
+      expect(tester.takeException(), isNull);
+    },
+  );
 }
