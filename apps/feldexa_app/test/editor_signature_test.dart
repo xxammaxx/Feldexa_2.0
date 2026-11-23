@@ -40,6 +40,8 @@ library;
 
 import 'dart:typed_data';
 
+import 'package:feldexa_application/src/recognition/raster_page_stage_runner.dart'
+    show RecognitionExecution;
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:feldexa_app/features/editor/editor_runtime.dart';
 import 'package:feldexa_app/features/editor/editor_screen.dart';
@@ -398,6 +400,12 @@ final class _FakeEditorRuntime implements EditorRuntime {
 
   @override
   ClockPort get clock => fakeClock;
+
+  // Test only: a widget-test fake-async zone never delivers a worker-isolate
+  // reply, so this fake runs the recognition stage inline. The production
+  // runtime resolves RecognitionExecution.offIsolate.
+  @override
+  RecognitionExecution get recognitionExecution => RecognitionExecution.inline;
 
   @override
   Future<LoadedDocument> loadDocument(String documentId) {

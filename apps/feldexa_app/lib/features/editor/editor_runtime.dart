@@ -1,3 +1,5 @@
+// ignore_for_file: implementation_imports
+
 // Issue #217 Phase B1 app-level editor runtime seam.
 //
 // Owner: `apps/feldexa_app/lib/features/editor/editor_runtime.dart` (Phase B1).
@@ -26,6 +28,8 @@
 // No implementation accepts or returns a file path, URI, display name, or
 // source bytes by path, and nothing in this seam logs document content.
 
+import 'package:feldexa_application/src/recognition/raster_page_stage_runner.dart'
+    show RecognitionExecution;
 import 'package:feldexa_ports/feldexa_ports.dart';
 
 import 'editor_runtime_unavailable.dart'
@@ -40,6 +44,14 @@ import 'editor_runtime_unavailable.dart'
 /// exposed for later review/save work but this seam's [loadDocument] and
 /// [saveRevision] are the editor's supported paths. [ids] supplies UUIDv4
 /// identities such as the analysis-run id.
+///
+/// [recognitionExecution] is the capability the analysis pipeline consumes to
+/// choose where the synchronous geometry/typing stage runs (T086B-R, issue
+/// #270). It is not a port: it describes the composition this seam already
+/// owns. Every production composition resolves
+/// [RecognitionExecution.offIsolate] so the detector can never block the UI
+/// isolate; only a test harness without worker-isolate delivery may resolve
+/// [RecognitionExecution.inline].
 ///
 /// Implementations are fail-closed: unavailable capabilities throw
 /// [UnsupportedOperationException] rather than fabricating data.
@@ -58,6 +70,12 @@ abstract interface class EditorRuntime {
 
   /// UTC wall clock used for review timestamps (Phase B2).
   ClockPort get clock;
+
+  /// Where the recognition pipeline runs the bytes-level geometry/typing
+  /// stage.
+  ///
+  /// Production compositions resolve [RecognitionExecution.offIsolate].
+  RecognitionExecution get recognitionExecution;
 
   /// Loads the current verified revision for [documentId].
   ///

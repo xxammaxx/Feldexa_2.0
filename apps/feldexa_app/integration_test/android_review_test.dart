@@ -86,6 +86,8 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:feldexa_application/src/recognition/raster_page_stage_runner.dart'
+    show RecognitionExecution;
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:feldexa_app/features/editor/durability_status.dart';
 import 'package:feldexa_app/features/editor/editor_runtime.dart';
@@ -242,6 +244,11 @@ final class _CountingEditorRuntime implements EditorRuntime {
 
   @override
   ClockPort get clock => _inner.clock;
+
+  /// The real Android composition: the recognition stage stays off the UI
+  /// isolate during this journey.
+  @override
+  RecognitionExecution get recognitionExecution => _inner.recognitionExecution;
 
   @override
   Future<LoadedDocument> loadDocument(String documentId) {

@@ -785,6 +785,7 @@ class EditorScreenState extends State<EditorScreen> {
           rasterPort: widget.runtime.raster,
           ocrPort: widget.runtime.ocr,
         ),
+        execution: widget.runtime.recognitionExecution,
       ).timeout(widget.analysisTimeout);
     } on TimeoutException {
       stopwatch.stop();

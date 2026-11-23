@@ -31,6 +31,8 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:feldexa_application/src/recognition/analyze_document.dart';
+import 'package:feldexa_application/src/recognition/raster_page_stage_runner.dart'
+    show RecognitionExecution;
 import 'package:feldexa_core/feldexa_core.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:feldexa_recognition/src/geometry_detector.dart';
@@ -109,9 +111,14 @@ final CapabilityDescriptor _ocrDescriptor = CapabilityDescriptor(
 );
 
 final class _FakeRaster implements PageRasterPort {
-  _FakeRaster(this.specs);
+  _FakeRaster(this.specs, {this.onRendered});
 
   final Map<int, _RasterSpec> specs;
+
+  /// Test hook fired after a page raster was produced, used to flip a page
+  /// cancellation token while a run is already in progress.
+  final void Function(int pageIndex)? onRendered;
+
   final List<RasterRequest> requests = <RasterRequest>[];
   final List<RasterImage> renderedImages = <RasterImage>[];
 
@@ -144,6 +151,7 @@ final class _FakeRaster implements PageRasterPort {
       ),
     );
     renderedImages.add(image);
+    onRendered?.call(request.pageIndex);
     return image;
   }
 
@@ -239,6 +247,21 @@ Map<String, Object?> _evidence(Map<String, Object?> suggestion) {
 
 Map<String, Object?> _rect(Map<String, Object?> suggestion) {
   return suggestion['rect']! as Map<String, Object?>;
+}
+
+/// Stalls the analysis of the fixture page whose ink sits at row 201.
+///
+/// Page 0 of the two-page fixtures is `_underlinePage()` (ink rows 200-201),
+/// page 1 is `_underlinePage(top: 100)` (ink rows 100-101), so the deadline
+/// tests can make exactly one page overrun without a production sleep.
+RasterAnalysis _stallsOnFirstFixturePage(GrayRaster raster) {
+  if (raster.isInkAt(150, 201)) {
+    final int spinUntil = DateTime.now().millisecondsSinceEpoch + 3000;
+    while (DateTime.now().millisecondsSinceEpoch < spinUntil) {
+      // Busy worker: the page can only be stopped by the deadline backstop.
+    }
+  }
+  return RasterAnalysis(raster);
 }
 
 void main() {
@@ -829,6 +852,242 @@ void main() {
         raster.requests.map((RasterRequest request) => request.pageIndex),
         <int>[1],
       );
+    },
+  );
+
+  test(
+    'a token flipped before page two leaves page one byte-identical and page '
+    'two unanalysed',
+    () async {
+      final DocumentAnalysisResult baseline = await AnalyzeDocument.run(
+        _request(
+          raster: _FakeRaster(<int, _RasterSpec>{
+            0: _underlinePage(),
+            1: _underlinePage(top: 100),
+          }),
+          pages: <DocumentAnalysisPage>[_page(0), _page(1)],
+        ),
+      );
+
+      // Page one requests the cancellation of page two while page one is
+      // already running, so the request arrives before page two starts.
+      final Set<int> cancelledPages = <int>{};
+      final _FakeRaster raster = _FakeRaster(
+        <int, _RasterSpec>{0: _underlinePage(), 1: _underlinePage(top: 100)},
+        onRendered: (int pageIndex) {
+          if (pageIndex == 0) {
+            cancelledPages.add(1);
+          }
+        },
+      );
+
+      final DocumentAnalysisResult result = await AnalyzeDocument.run(
+        _request(
+          raster: raster,
+          pages: <DocumentAnalysisPage>[_page(0), _page(1)],
+        ),
+        isCancelled: (int pageIndex) => cancelledPages.contains(pageIndex),
+      );
+
+      expect(result.cancelledPageIndexes, <int>[1]);
+      expect(result.pages, hasLength(1));
+      expect(
+        result.pages.single.canonicalJson(),
+        baseline.pages[0].canonicalJson(),
+      );
+      expect(
+        raster.requests.map((RasterRequest request) => request.pageIndex),
+        <int>[0],
+      );
+    },
+  );
+
+  test(
+    'a token flipped between scanline bands drops the page without an envelope '
+    'or partial suggestions',
+    () async {
+      final _FakeOcr ocr = _FakeOcr(
+        blocksByPage: <int, List<OcrBlock>>{
+          1: <OcrBlock>[
+            _ocrBlock(text: 'Betrag', rect: Rect.fromLTWH(10, 24, 22, 10)),
+          ],
+        },
+      );
+      final DocumentAnalysisResult baseline = await AnalyzeDocument.run(
+        _request(
+          raster: _FakeRaster(<int, _RasterSpec>{
+            0: _underlinePage(),
+            1: _underlinePage(top: 100),
+          }),
+          ocr: ocr,
+          pages: <DocumentAnalysisPage>[_page(0), _page(1)],
+        ),
+      );
+
+      // The token reports "keep going" on page 0's page-boundary checkpoint
+      // and on the first scanline band, and "cancelled" from the next band, so
+      // page 0 stops while its scanline copy is already running. Page 1 is
+      // never cancelled.
+      int pageZeroCheckpoints = 0;
+      final DocumentAnalysisResult result = await AnalyzeDocument.run(
+        _request(
+          raster: _FakeRaster(<int, _RasterSpec>{
+            0: _underlinePage(),
+            1: _underlinePage(top: 100),
+          }),
+          ocr: _FakeOcr(
+            blocksByPage: <int, List<OcrBlock>>{
+              1: <OcrBlock>[
+                _ocrBlock(text: 'Betrag', rect: Rect.fromLTWH(10, 24, 22, 10)),
+              ],
+            },
+          ),
+          pages: <DocumentAnalysisPage>[_page(0), _page(1)],
+        ),
+        isCancelled: (int pageIndex) {
+          if (pageIndex != 0) {
+            return false;
+          }
+          pageZeroCheckpoints++;
+          return pageZeroCheckpoints > 2;
+        },
+      );
+
+      expect(pageZeroCheckpoints, greaterThan(2));
+      expect(result.cancelledPageIndexes, <int>[0]);
+      expect(result.pages, hasLength(1));
+      expect(result.pages.single.pageIndex, 1);
+      expect(result.pages.single.isFailed, isFalse);
+      expect(result.pages.single.suggestions, isNotEmpty);
+      expect(
+        result.pages.single.canonicalJson(),
+        baseline.pages[1].canonicalJson(),
+      );
+    },
+  );
+
+  test(
+    'a page whose stage outlives the deadline fails closed while the next page '
+    'completes',
+    () async {
+      final DocumentAnalysisResult result = await AnalyzeDocument.run(
+        _request(
+          raster: _FakeRaster(<int, _RasterSpec>{
+            0: _underlinePage(),
+            1: _underlinePage(top: 100),
+          }),
+          pages: <DocumentAnalysisPage>[_page(0), _page(1)],
+        ),
+        rasterAnalysis: _stallsOnFirstFixturePage,
+        pageDeadline: const Duration(milliseconds: 150),
+      );
+
+      expect(result.timedOutPageIndexes, <int>[0]);
+      expect(result.cancelledPageIndexes, isEmpty);
+      expect(result.pages, hasLength(2));
+      expect(result.pages[0].pageIndex, 0);
+      expect(result.pages[0].isFailed, isTrue);
+      expect(result.pages[0].failure!.category, PageAnalysisFailure.internal);
+      expect(result.pages[0].failure!.messageKey, 'REC-002');
+      expect(result.pages[0].suggestions, isEmpty);
+      expect(result.pages[1].pageIndex, 1);
+      expect(result.pages[1].isFailed, isFalse);
+      expect(result.pages[1].suggestions, hasLength(1));
+    },
+    timeout: const Timeout(Duration(seconds: 30)),
+  );
+
+  test('a page inside the deadline reports no timeout', () async {
+    final DocumentAnalysisResult result = await AnalyzeDocument.run(
+      _request(raster: _FakeRaster(<int, _RasterSpec>{0: _underlinePage()})),
+      pageDeadline: const Duration(seconds: 30),
+    );
+
+    expect(result.timedOutPageIndexes, isEmpty);
+    expect(result.pages.single.isFailed, isFalse);
+  });
+
+  test(
+    'a timed-out page carries the ordinary internal failure envelope',
+    () async {
+      final DocumentAnalysisResult faulted = await AnalyzeDocument.run(
+        _request(
+          raster: _FakeRaster(<int, _RasterSpec>{0: _underlinePage()}),
+          ocr: null,
+        ),
+        rasterAnalysis: (GrayRaster raster) {
+          throw StateError('injected analysis fault');
+        },
+      );
+      final DocumentAnalysisResult timedOut = await AnalyzeDocument.run(
+        _request(raster: _FakeRaster(<int, _RasterSpec>{0: _underlinePage()})),
+        rasterAnalysis: _stallsOnFirstFixturePage,
+        pageDeadline: const Duration(milliseconds: 150),
+      );
+
+      expect(faulted.pages.single.isFailed, isTrue);
+      expect(faulted.timedOutPageIndexes, isEmpty);
+      expect(timedOut.timedOutPageIndexes, <int>[0]);
+      // The deadline adds no field to the page envelope: a timed-out page is
+      // byte-identical to any other internal failure of the same page.
+      expect(
+        timedOut.pages.single.canonicalJson(),
+        faulted.pages.single.canonicalJson(),
+      );
+    },
+    timeout: const Timeout(Duration(seconds: 30)),
+  );
+
+  test(
+    'the off-isolate stage returns the same projection as the inline stage',
+    () async {
+      final _Canvas overlapping = _Canvas()
+        ..fillRect(100, 200, 200, 202)
+        ..fillRect(100, 210, 200, 212);
+      final _FakeOcr ocr = _FakeOcr(
+        blocksByPage: <int, List<OcrBlock>>{
+          0: <OcrBlock>[
+            _ocrBlock(text: 'Betrag', rect: Rect.fromLTWH(35, 58, 30, 12)),
+          ],
+        },
+      );
+      DocumentAnalysisRequest build() => _request(
+        raster: _FakeRaster(<int, _RasterSpec>{
+          0: _underlinePage(),
+          1: _paddedRaster(_underlinePage(top: 100)),
+          2: _RasterSpec(bytes: overlapping.build()),
+        }),
+        ocr: ocr,
+        pages: <DocumentAnalysisPage>[_page(0), _page(1), _page(2)],
+      );
+
+      final DocumentAnalysisResult offIsolate = await AnalyzeDocument.run(
+        build(),
+        execution: RecognitionExecution.offIsolate,
+      );
+      final DocumentAnalysisResult inline = await AnalyzeDocument.run(
+        build(),
+        execution: RecognitionExecution.inline,
+      );
+
+      expect(offIsolate.pages, hasLength(inline.pages.length));
+      for (int index = 0; index < inline.pages.length; index++) {
+        // Timings are diagnostics and excluded from the projection, so the
+        // comparison is the canonical envelope plus the suggestion maps.
+        expect(
+          offIsolate.pages[index].suggestions,
+          inline.pages[index].suggestions,
+          reason: 'page $index suggestions differ between the modes',
+        );
+        expect(
+          offIsolate.pages[index].canonicalJson(),
+          inline.pages[index].canonicalJson(),
+          reason: 'page $index projection differs between the execution modes',
+        );
+      }
+      expect(inline.pages[0].suggestions, isNotEmpty);
+      expect(inline.pages[1].suggestions, isNotEmpty);
+      expect(inline.pages[2].suggestions, hasLength(2));
     },
   );
 

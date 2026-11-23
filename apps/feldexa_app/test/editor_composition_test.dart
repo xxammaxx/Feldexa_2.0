@@ -32,6 +32,8 @@ library;
 
 import 'dart:typed_data';
 
+import 'package:feldexa_application/src/recognition/raster_page_stage_runner.dart'
+    show RecognitionExecution;
 import 'package:feldexa_app/features/editor/document_overview.dart';
 import 'package:feldexa_app/features/editor/durability_status.dart';
 import 'package:feldexa_app/features/editor/editor_runtime.dart';
@@ -395,6 +397,12 @@ final class _FakeEditorRuntime implements EditorRuntime {
 
   @override
   ClockPort get clock => _FakeClock();
+
+  // Test only: a widget-test fake-async zone never delivers a worker-isolate
+  // reply, so this fake runs the recognition stage inline. The production
+  // runtime resolves RecognitionExecution.offIsolate.
+  @override
+  RecognitionExecution get recognitionExecution => RecognitionExecution.inline;
 
   bool disposed = false;
 
