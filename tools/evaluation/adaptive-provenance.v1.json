@@ -469,7 +469,7 @@
         {
           "path": "tools/evaluation/adaptive-policy.v1.md",
           "role": "policy prose for the allowed same-DPI variants",
-          "sha256": "78bf3eb1464a2b0e182eff4f13bd80e3a468e9a2ab25d1d8e63e085b979a3678"
+          "sha256": "d185cc899c07bd1530e232e4c9a7bf15bd99017d6c267136d175ebce8538dea7"
         }
       ],
       "note": "Declared here before the implementation exists, so T264C cannot introduce it as an independent line later. It is a photometric transform of `clean-200dpi`."
@@ -503,7 +503,7 @@
         {
           "path": "tools/evaluation/adaptive-policy.v1.md",
           "role": "policy prose for the allowed same-DPI variants",
-          "sha256": "78bf3eb1464a2b0e182eff4f13bd80e3a468e9a2ab25d1d8e63e085b979a3678"
+          "sha256": "d185cc899c07bd1530e232e4c9a7bf15bd99017d6c267136d175ebce8538dea7"
         }
       ],
       "note": "A geometric transform of the reference raster. It is deliberately not confused with `scan-200dpi-skew-3deg`, which is a separate Poppler capture and therefore a separate group."
