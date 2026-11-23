@@ -1,0 +1,553 @@
+{
+  "schemaVersion": 1,
+  "artifactId": "feldexa.adaptive-provenance",
+  "version": "1.0.0",
+  "status": "frozen-before-run",
+  "implementation": "BLOCKED",
+  "frozenAtUtc": "2026-11-22T00:00:00Z",
+  "frozenBy": "T264P (owner-approved issue #264, planning-review correction; hard prerequisite for T264C)",
+  "task": "T264P",
+  "relatedTasks": ["T264P", "T264C", "T264D", "T263"],
+  "issue": 264,
+  "feature": "001-scanned-form-workflow",
+  "userStory": "US2",
+  "evidenceClass": "NONE",
+  "purpose": "Freeze the provenance and correlation rule for every raster variant an adaptive second analysis may observe, before T264C exists. The file declares where each variant's pixels come from, which variants are correlated because they share one rendering, which variants are independent because they are separate renderings, and how many independent groups an agreement claim needs. No variant raster is produced or measured here.",
+  "document": {
+    "id": "reference-de",
+    "suiteId": "de-ocr-1.0.0",
+    "fixtureId": "sf-005",
+    "path": "tools/corpus/synthetic/sf-005.pdf",
+    "assetPath": "apps/feldexa_app/assets/fixtures/sf-005.pdf",
+    "sha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+    "sha256OriginPath": "tools/corpus/de-ocr/reference-de.ground-truth.json",
+    "pages": 2,
+    "synthetic": true,
+    "containsPersonalData": false,
+    "note": "Both the analytic fixture path and the corpus path carry byte-identical PDFs (same SHA-256). Every variant below is rendered from this one document, so every variant is glyph-correlated with every other variant of the same page."
+  },
+  "hashConvention": {
+    "algorithm": "sha256",
+    "encoding": "lowercase hex, no prefix",
+    "sourceDocumentSha256": "SHA-256 of the PDF bytes, declared by the ground truth and recomputed in `test_adaptive_provenance.py`.",
+    "sourceRasterSha256": "SHA-256 over the exact raster bytes the variant's rendering produced, before any degradation. Recorded at capture time; a raster that is not in the tree stays `PENDING_RUN`.",
+    "variantRasterSha256": "SHA-256 over the exact raster bytes delivered to the OCR port after the degradation chain. Recorded at capture time; a raster that is not in the tree stays `PENDING_RUN`.",
+    "failClosed": "A variant with `PENDING_RUN` hashes produces no evidence row and may not be counted in an agreement claim. Nothing here may be filled in from memory or from a re-render after the fact."
+  },
+  "sources": [
+    {
+      "id": "source-pdfium-200",
+      "kind": "production-render",
+      "pixelSourceId": "pdfium-200",
+      "renderer": "pdfrx/PDFium through the production Android raster port",
+      "captureDpi": 200,
+      "rasterDpi": 200,
+      "scaling": "1:1",
+      "rasterWidthPx": 1654,
+      "rasterHeightPx": 2339,
+      "evidenceClass": "EMULATOR",
+      "sourceDocumentSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+      "pageCount": 2
+    },
+    {
+      "id": "source-pdfium-150",
+      "kind": "production-render",
+      "pixelSourceId": "pdfium-150",
+      "renderer": "pdfrx/PDFium through the production Android raster port",
+      "captureDpi": 150,
+      "rasterDpi": 150,
+      "scaling": "1:1 at the capture resolution",
+      "rasterWidthPx": 1240,
+      "rasterHeightPx": 1754,
+      "evidenceClass": "EMULATOR",
+      "sourceDocumentSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+      "pageCount": 2
+    },
+    {
+      "id": "source-pdfium-300",
+      "kind": "production-render",
+      "pixelSourceId": "pdfium-300",
+      "renderer": "pdfrx/PDFium through the production Android raster port",
+      "captureDpi": 300,
+      "rasterDpi": 300,
+      "scaling": "1:1 at the capture resolution",
+      "rasterWidthPx": 2480,
+      "rasterHeightPx": 3508,
+      "evidenceClass": "EMULATOR",
+      "sourceDocumentSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+      "pageCount": 2
+    },
+    {
+      "id": "source-poppler-150",
+      "kind": "host-scan-capture",
+      "pixelSourceId": "poppler-150-upsampled",
+      "renderer": "Poppler through `tools/corpus/de-ocr/make_variants.py` (host scan simulation)",
+      "captureDpi": 150,
+      "rasterDpi": 200,
+      "scaling": "upsampled 150 -> 200 (bilinear) so the fixed 200 DPI analysis grid stays valid",
+      "rasterWidthPx": 1654,
+      "rasterHeightPx": 2339,
+      "evidenceClass": "EMULATOR_INJECTED_RASTER",
+      "sourceDocumentSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+      "pageCount": 2,
+      "note": "The delivered grid is 200 DPI but the pixel source is a 150 DPI capture. Sharing the analysis grid does not make this the same rendering as `source-poppler-200`."
+    },
+    {
+      "id": "source-poppler-200",
+      "kind": "host-scan-capture",
+      "pixelSourceId": "poppler-200",
+      "renderer": "Poppler through `tools/corpus/de-ocr/make_variants.py` (host scan simulation)",
+      "captureDpi": 200,
+      "rasterDpi": 200,
+      "scaling": "1:1",
+      "rasterWidthPx": 1654,
+      "rasterHeightPx": 2339,
+      "evidenceClass": "EMULATOR_INJECTED_RASTER",
+      "sourceDocumentSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+      "pageCount": 2,
+      "note": "One 200 DPI capture feeds all three degradations below, so the three degraded variants are one rendering and one correlation group."
+    }
+  ],
+  "correlationGroups": [
+    {
+      "id": "group-pdfium-200",
+      "sourceId": "source-pdfium-200",
+      "pixelSourceId": "pdfium-200",
+      "renderer": "pdfrx/PDFium (production raster port)",
+      "rasterDpi": 200,
+      "independent": true,
+      "representative": "clean-200dpi",
+      "members": ["clean-200dpi", "contrastStretch-200dpi", "deskew-200dpi"],
+      "note": "The reference group: the production 200 DPI raster plus the two v1 adaptive same-DPI variants. A photometric stretch or a deskew of that raster is the same pixels, so the three are one piece of evidence."
+    },
+    {
+      "id": "group-pdfium-150",
+      "sourceId": "source-pdfium-150",
+      "pixelSourceId": "pdfium-150",
+      "renderer": "pdfrx/PDFium (production raster port)",
+      "rasterDpi": 150,
+      "independent": true,
+      "representative": "clean-150dpi",
+      "members": ["clean-150dpi"],
+      "note": "A separate rendering at a different sampling rate; independent of the 200 DPI render but still the same document, so glyph claims still collapse."
+    },
+    {
+      "id": "group-pdfium-300",
+      "sourceId": "source-pdfium-300",
+      "pixelSourceId": "pdfium-300",
+      "renderer": "pdfrx/PDFium (production raster port)",
+      "rasterDpi": 300,
+      "independent": true,
+      "representative": "clean-300dpi",
+      "members": ["clean-300dpi"],
+      "note": "A separate rendering at a finer sampling rate; independent of `group-pdfium-200` at raster level only."
+    },
+    {
+      "id": "group-poppler-150",
+      "sourceId": "source-poppler-150",
+      "pixelSourceId": "poppler-150-upsampled",
+      "renderer": "Poppler host scan simulation, 150 DPI capture upsampled to the 200 DPI grid",
+      "rasterDpi": 200,
+      "independent": true,
+      "representative": "scan-150dpi-low-contrast",
+      "members": ["scan-150dpi-low-contrast"],
+      "note": "Distinct renderer and distinct capture resolution. It shares the 200 DPI delivery grid with `group-poppler-200` but not the pixel source, so the two groups are independent; the group itself holds one degradation only."
+    },
+    {
+      "id": "group-poppler-200",
+      "sourceId": "source-poppler-200",
+      "pixelSourceId": "poppler-200",
+      "renderer": "Poppler host scan simulation, 200 DPI capture",
+      "rasterDpi": 200,
+      "independent": true,
+      "representative": "scan-200dpi-shadow",
+      "members": [
+        "scan-200dpi-shadow",
+        "scan-200dpi-skew-3deg",
+        "scan-200dpi-jpeg-q35"
+      ],
+      "note": "Three degradations of one capture. They differ in the degradation chain, not in the rendering, so any two of them agree about the same pixels: one group, one slot. The representative is the first member in the producer's declaration order because the group has no undegraded member."
+    }
+  ],
+  "correlationRule": {
+    "rule": "Two image variants are correlated when they descend from the same rendering of a page: the same renderer, the same capture resolution, and the same source bytes. Degradations (contrast stretch, shadow, JPEG round trip, deskew, skew) transform one rendering and stay in its correlation group. Two renderings of the same document are separate groups at raster level, but they are still one document, so glyph and content claims never become independent that way.",
+    "policyRule": "Every adaptive variant derives from the same original page scan and is correlated evidence.",
+    "groupDefinition": "A `correlationGroup` is the set of variants whose pixels come from one rendering event. Membership is declared per variant and cross-checked against `correlationGroups[].members`; two groups may never share a `pixelSourceId`.",
+    "independentDefinition": "`independent: true` marks the declared representative of a correlation group: the variant whose raster is the rendering itself rather than a transformation of another declared variant. `false` marks every member whose pixels are derived from another declared variant in the same group. The flag never creates a second evidence slot for a group.",
+    "countingRule": "Observations are counted per correlation group, not per variant: `independentGroups = |{correlationGroup(v) : v selected}|`. Selecting three degradations of one capture yields one group; selecting the reference raster and its contrast stretch yields one group.",
+    "twoIndependentOcrLinesAgree": false,
+    "confidenceBonus": "forbidden",
+    "sameRenderingExamples": [
+      "clean-200dpi + contrastStretch-200dpi: same 200 DPI production raster, photometric transform only",
+      "clean-200dpi + deskew-200dpi: same 200 DPI production raster, geometric transform only",
+      "scan-200dpi-shadow + scan-200dpi-jpeg-q35: same Poppler 200 DPI capture, two degradations",
+      "scan-200dpi-skew-3deg + scan-200dpi-jpeg-q35: same Poppler 200 DPI capture, two degradations"
+    ],
+    "independentExamples": [
+      "clean-200dpi + clean-150dpi: two PDFium renderings, different sampling rate",
+      "clean-200dpi + scan-150dpi-low-contrast: production PDFium render versus host Poppler capture",
+      "scan-200dpi-shadow + scan-150dpi-low-contrast: different capture resolution despite the identical 200 DPI delivery grid"
+    ],
+    "glyphLevelCollapse": {
+      "appliesToAllVariants": true,
+      "independentGroupsPerDocument": 1,
+      "scope": "character, glyph, umlaut, currency, and content claims",
+      "rule": "Every variant in this file renders the same document, so a character that the font, the encoding, or the OCR model cannot produce fails in every variant. A special-character, umlaut, currency, or content claim therefore has exactly one independent group per document, and no combination of these variants may claim otherwise."
+    },
+    "failClosed": "If the derivation of a variant cannot be resolved to a declared source node or declared variant, the variant is dropped instead of being counted as independent."
+  },
+  "variants": [
+    {
+      "id": "clean-200dpi",
+      "documentId": "reference-de",
+      "families": ["dpi"],
+      "derivedFrom": "source-pdfium-200",
+      "correlationGroup": "group-pdfium-200",
+      "independent": true,
+      "rendering": {
+        "captureDpi": 200,
+        "rasterDpi": 200,
+        "scaling": "1:1",
+        "degradationChain": []
+      },
+      "hashBinding": {
+        "sourceDocumentSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+        "sourceRasterSha256": null,
+        "sourceRasterSha256Status": "PENDING_RUN",
+        "variantRasterSha256": null,
+        "variantRasterSha256Status": "PENDING_RUN"
+      },
+      "documents": [
+        {
+          "path": "tools/corpus/de-ocr/reference-de.ground-truth.json",
+          "role": "ground truth: variant entry, evidence class, and document identity",
+          "sha256": "b557323c346f9d8422b93706e75425a0dcc9b9de9bde7c887712a46803d23881"
+        },
+        {
+          "path": "specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-variants.json",
+          "role": "committed variant manifest (evidence)",
+          "sha256": "19b351b43f2cb33c1cc91d14fa5473f105662097bebe8f059239faf70078440c"
+        }
+      ],
+      "note": "Reference rendering of the group and of the whole document."
+    },
+    {
+      "id": "clean-150dpi",
+      "documentId": "reference-de",
+      "families": ["dpi", "scaling"],
+      "derivedFrom": "source-pdfium-150",
+      "correlationGroup": "group-pdfium-150",
+      "independent": true,
+      "rendering": {
+        "captureDpi": 150,
+        "rasterDpi": 150,
+        "scaling": "1:1 at the capture resolution",
+        "degradationChain": []
+      },
+      "hashBinding": {
+        "sourceDocumentSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+        "sourceRasterSha256": null,
+        "sourceRasterSha256Status": "PENDING_RUN",
+        "variantRasterSha256": null,
+        "variantRasterSha256Status": "PENDING_RUN"
+      },
+      "documents": [
+        {
+          "path": "tools/corpus/de-ocr/reference-de.ground-truth.json",
+          "role": "ground truth: variant entry, evidence class, and document identity",
+          "sha256": "b557323c346f9d8422b93706e75425a0dcc9b9de9bde7c887712a46803d23881"
+        },
+        {
+          "path": "specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-variants.json",
+          "role": "committed variant manifest (evidence)",
+          "sha256": "19b351b43f2cb33c1cc91d14fa5473f105662097bebe8f059239faf70078440c"
+        }
+      ],
+      "note": "A different sampling rate is a different rendering. The production analysis path still analyses its own fixed 200 DPI raster, so this variant qualifies the DPI effect on raw text only."
+    },
+    {
+      "id": "clean-300dpi",
+      "documentId": "reference-de",
+      "families": ["dpi", "scaling"],
+      "derivedFrom": "source-pdfium-300",
+      "correlationGroup": "group-pdfium-300",
+      "independent": true,
+      "rendering": {
+        "captureDpi": 300,
+        "rasterDpi": 300,
+        "scaling": "1:1 at the capture resolution",
+        "degradationChain": []
+      },
+      "hashBinding": {
+        "sourceDocumentSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+        "sourceRasterSha256": null,
+        "sourceRasterSha256Status": "PENDING_RUN",
+        "variantRasterSha256": null,
+        "variantRasterSha256Status": "PENDING_RUN"
+      },
+      "documents": [
+        {
+          "path": "tools/corpus/de-ocr/reference-de.ground-truth.json",
+          "role": "ground truth: variant entry, evidence class, and document identity",
+          "sha256": "b557323c346f9d8422b93706e75425a0dcc9b9de9bde7c887712a46803d23881"
+        },
+        {
+          "path": "specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-variants.json",
+          "role": "committed variant manifest (evidence)",
+          "sha256": "19b351b43f2cb33c1cc91d14fa5473f105662097bebe8f059239faf70078440c"
+        }
+      ],
+      "note": "A different sampling rate is a different rendering; raw-text claim only, same reason as `clean-150dpi`."
+    },
+    {
+      "id": "scan-150dpi-low-contrast",
+      "documentId": "reference-de",
+      "families": ["scaling", "lowContrast"],
+      "derivedFrom": "source-poppler-150",
+      "correlationGroup": "group-poppler-150",
+      "independent": true,
+      "rendering": {
+        "captureDpi": 150,
+        "rasterDpi": 200,
+        "scaling": "upsampled 150 -> 200 (bilinear) before the degradation",
+        "degradationChain": ["low-contrast: luminance compressed into [70, 200] and shifted"]
+      },
+      "hashBinding": {
+        "sourceDocumentSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+        "sourceRasterSha256": null,
+        "sourceRasterSha256Status": "PENDING_RUN",
+        "variantRasterSha256": null,
+        "variantRasterSha256Status": "PENDING_RUN"
+      },
+      "documents": [
+        {
+          "path": "tools/corpus/de-ocr/make_variants.py",
+          "role": "variant producer: capture resolution, upsampling, and the low-contrast degradation",
+          "sha256": "0b60074b0d84ca03aec210365d7f0b92d453f2b6bde0a2b6036d342b10a4eb8c"
+        },
+        {
+          "path": "tools/corpus/de-ocr/reference-de.ground-truth.json",
+          "role": "ground truth: variant entry, evidence class, and document identity",
+          "sha256": "b557323c346f9d8422b93706e75425a0dcc9b9de9bde7c887712a46803d23881"
+        },
+        {
+          "path": "specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-variants.json",
+          "role": "committed variant manifest (evidence)",
+          "sha256": "19b351b43f2cb33c1cc91d14fa5473f105662097bebe8f059239faf70078440c"
+        }
+      ],
+      "note": "The scaling trap: the delivered raster is 200 DPI like the reference, but the pixel source is a 150 DPI capture. Upsampling does not restore resolution and does not make it a second 200 DPI rendering; it is correlated with its capture, not with `group-poppler-200`."
+    },
+    {
+      "id": "scan-200dpi-shadow",
+      "documentId": "reference-de",
+      "families": ["shadow"],
+      "derivedFrom": "source-poppler-200",
+      "correlationGroup": "group-poppler-200",
+      "independent": true,
+      "rendering": {
+        "captureDpi": 200,
+        "rasterDpi": 200,
+        "scaling": "1:1",
+        "degradationChain": ["shadow: multiplicative gradient darkening the top-left corner"]
+      },
+      "hashBinding": {
+        "sourceDocumentSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+        "sourceRasterSha256": null,
+        "sourceRasterSha256Status": "PENDING_RUN",
+        "variantRasterSha256": null,
+        "variantRasterSha256Status": "PENDING_RUN"
+      },
+      "documents": [
+        {
+          "path": "tools/corpus/de-ocr/make_variants.py",
+          "role": "variant producer: the shadow degradation",
+          "sha256": "0b60074b0d84ca03aec210365d7f0b92d453f2b6bde0a2b6036d342b10a4eb8c"
+        },
+        {
+          "path": "specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-variants.json",
+          "role": "committed variant manifest (evidence)",
+          "sha256": "19b351b43f2cb33c1cc91d14fa5473f105662097bebe8f059239faf70078440c"
+        }
+      ],
+      "note": "Declared representative of `group-poppler-200` because it is the first member in the producer's `DEGRADED_VARIANTS` order and the group has no undegraded member. Representative status is bookkeeping only: the group still holds one slot."
+    },
+    {
+      "id": "scan-200dpi-skew-3deg",
+      "documentId": "reference-de",
+      "families": ["skew"],
+      "derivedFrom": "source-poppler-200",
+      "correlationGroup": "group-poppler-200",
+      "independent": false,
+      "rendering": {
+        "captureDpi": 200,
+        "rasterDpi": 200,
+        "scaling": "1:1",
+        "degradationChain": ["skew: content rotated by three degrees about the centre"]
+      },
+      "hashBinding": {
+        "sourceDocumentSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+        "sourceRasterSha256": null,
+        "sourceRasterSha256Status": "PENDING_RUN",
+        "variantRasterSha256": null,
+        "variantRasterSha256Status": "PENDING_RUN"
+      },
+      "documents": [
+        {
+          "path": "tools/corpus/de-ocr/make_variants.py",
+          "role": "variant producer: the skew degradation",
+          "sha256": "0b60074b0d84ca03aec210365d7f0b92d453f2b6bde0a2b6036d342b10a4eb8c"
+        },
+        {
+          "path": "specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-variants.json",
+          "role": "committed variant manifest (evidence)",
+          "sha256": "19b351b43f2cb33c1cc91d14fa5473f105662097bebe8f059239faf70078440c"
+        }
+      ],
+      "note": "Correlated with `scan-200dpi-shadow` and `scan-200dpi-jpeg-q35`: same capture, different degradation. An adaptive deskew of this raster is still this group."
+    },
+    {
+      "id": "scan-200dpi-jpeg-q35",
+      "documentId": "reference-de",
+      "families": ["jpegQuality"],
+      "derivedFrom": "source-poppler-200",
+      "correlationGroup": "group-poppler-200",
+      "independent": false,
+      "rendering": {
+        "captureDpi": 200,
+        "rasterDpi": 200,
+        "scaling": "1:1",
+        "degradationChain": ["jpeg-q35: JPEG round trip at quality 35"]
+      },
+      "hashBinding": {
+        "sourceDocumentSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+        "sourceRasterSha256": null,
+        "sourceRasterSha256Status": "PENDING_RUN",
+        "variantRasterSha256": null,
+        "variantRasterSha256Status": "PENDING_RUN"
+      },
+      "documents": [
+        {
+          "path": "tools/corpus/de-ocr/make_variants.py",
+          "role": "variant producer: the JPEG q35 degradation",
+          "sha256": "0b60074b0d84ca03aec210365d7f0b92d453f2b6bde0a2b6036d342b10a4eb8c"
+        },
+        {
+          "path": "specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/t263-variants.json",
+          "role": "committed variant manifest (evidence)",
+          "sha256": "19b351b43f2cb33c1cc91d14fa5473f105662097bebe8f059239faf70078440c"
+        }
+      ],
+      "note": "Correlated with the other two degradations of the same capture; a JPEG round trip is not a second scan."
+    },
+    {
+      "id": "contrastStretch-200dpi",
+      "documentId": "reference-de",
+      "families": ["lowContrast"],
+      "derivedFrom": "clean-200dpi",
+      "correlationGroup": "group-pdfium-200",
+      "independent": false,
+      "rendering": {
+        "captureDpi": 200,
+        "rasterDpi": 200,
+        "scaling": "1:1, same raster grid",
+        "degradationChain": ["contrastStretch: linear stretch from the measured 5th/95th percentiles to 0/255"]
+      },
+      "hashBinding": {
+        "sourceDocumentSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+        "sourceRasterSha256": null,
+        "sourceRasterSha256Status": "PENDING_RUN",
+        "variantRasterSha256": null,
+        "variantRasterSha256Status": "PENDING_RUN"
+      },
+      "documents": [
+        {
+          "path": "tools/evaluation/adaptive-policy.v1.json",
+          "role": "policy that allows this v1 same-DPI variant and bounds it",
+          "sha256": "eb940399ce1533aaa0a6dba4bba814b311a5041b06daeddc0f9866cacc40e073"
+        },
+        {
+          "path": "tools/evaluation/adaptive-policy.v1.md",
+          "role": "policy prose for the allowed same-DPI variants",
+          "sha256": "78bf3eb1464a2b0e182eff4f13bd80e3a468e9a2ab25d1d8e63e085b979a3678"
+        }
+      ],
+      "note": "Declared here before the implementation exists, so T264C cannot introduce it as an independent line later. It is a photometric transform of `clean-200dpi`."
+    },
+    {
+      "id": "deskew-200dpi",
+      "documentId": "reference-de",
+      "families": ["skew"],
+      "derivedFrom": "clean-200dpi",
+      "correlationGroup": "group-pdfium-200",
+      "independent": false,
+      "rendering": {
+        "captureDpi": 200,
+        "rasterDpi": 200,
+        "scaling": "1:1, same page extent",
+        "degradationChain": ["deskew: nearest-neighbour rotation at the caller-supplied angle"]
+      },
+      "hashBinding": {
+        "sourceDocumentSha256": "671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45",
+        "sourceRasterSha256": null,
+        "sourceRasterSha256Status": "PENDING_RUN",
+        "variantRasterSha256": null,
+        "variantRasterSha256Status": "PENDING_RUN"
+      },
+      "documents": [
+        {
+          "path": "tools/evaluation/adaptive-policy.v1.json",
+          "role": "policy that allows this v1 same-DPI variant and bounds it",
+          "sha256": "eb940399ce1533aaa0a6dba4bba814b311a5041b06daeddc0f9866cacc40e073"
+        },
+        {
+          "path": "tools/evaluation/adaptive-policy.v1.md",
+          "role": "policy prose for the allowed same-DPI variants",
+          "sha256": "78bf3eb1464a2b0e182eff4f13bd80e3a468e9a2ab25d1d8e63e085b979a3678"
+        }
+      ],
+      "note": "A geometric transform of the reference raster. It is deliberately not confused with `scan-200dpi-skew-3deg`, which is a separate Poppler capture and therefore a separate group."
+    }
+  ],
+  "excludedVariants": [
+    {
+      "id": "region-render-2x",
+      "families": ["scaling"],
+      "status": "EXCLUDED",
+      "reason": "The analysis contract is fixed at 200 DPI with an exact `RasterSize`, the raster port has no crop request, and the documented 4096 px cap silently downscales. A 2x region render would either change the analysis scale or silently lose resolution, so it is excluded from v1 and may not be added as an independent group without its own contract change and a measured pixel-identity proof.",
+      "policyRef": "tools/evaluation/adaptive-policy.v1.json renderStrategy.excluded"
+    }
+  ],
+  "decisionRule": {
+    "appliesTo": "T264C",
+    "minIndependentGroups": 2,
+    "maxObservationsPerCorrelationGroup": 1,
+    "twoIndependentOcrLinesAgree": false,
+    "correlatedVariantsHaveEqualWeight": false,
+    "counting": "independentGroups = number of distinct `correlationGroup` values in the selected observation set; the number of observations is never the evidence count",
+    "insufficientGroupsOutcome": "If the selected observations reach fewer than `minIndependentGroups` correlation groups, the result is correlation-limited: the pass reports one observation per group, does not raise `twoIndependentOcrLinesAgree`, does not apply the independent-OCR confidence bonus, and never auto-confirms. A repeated group cannot justify a further pass on its own.",
+    "forbiddenClaims": [
+      "twoIndependentOcrLinesAgree",
+      "independentOcrConfidenceBonus",
+      "autoConfirmFromCorrelatedAgreement"
+    ],
+    "hashGate": "A variant whose `variantRasterSha256` is `PENDING_RUN` (or whose `derivedFrom` does not resolve) produces no evidence row, so it can never contribute to `independentGroups`.",
+    "perDocumentCap": "All variants of one source document contribute at most one independent group to a glyph or content claim (`correlationRule.glyphLevelCollapse`).",
+    "unchanged": "This rule adds no trigger, threshold, bound, or acceptance value. `tools/evaluation/adaptive-policy.v1.json` stays byte-identical and is hash-bound below."
+  },
+  "policyArtifact": {
+    "path": "tools/evaluation/adaptive-policy.v1.json",
+    "version": "1.0.0",
+    "status": "frozen-before-run",
+    "sha256": "eb940399ce1533aaa0a6dba4bba814b311a5041b06daeddc0f9866cacc40e073",
+    "relationship": "Consumed, never edited. The policy owns the numeric triggers, hysteresis, pass/time/memory bounds, render strategy, and A/B/C acceptance thresholds; this file only declares where variant pixels come from and how their observations may be counted."
+  },
+  "notRun": [
+    "adaptive pass implementation (T264C)",
+    "cross-pass merge and `SuggestionSchema` bump (T264P contract work, still open)",
+    "A/B/C benchmark and correlated-group counting in code (T264D)",
+    "any variant raster hash or measurement (no raster bytes in the tree)",
+    "Android EMULATOR production-path evidence for the adaptive path",
+    "SC-001/SC-003/SC-004 claims: still owned by T142, T136, and T141"
+  ]
+}
