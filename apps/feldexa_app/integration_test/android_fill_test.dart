@@ -41,7 +41,9 @@
 //      store and verify nothing was truncated.
 //
 // Markers carry phase names and content-free counts only. No label, OCR text,
-// title, path, URI, entered value, asset id, or digest is printed.
+// title, path, URI, entered value, asset id, or digest is printed. Every marker
+// is printed after the `expect` that proves its fact, so a marker traces an
+// assertion and never replaces one.
 
 // The workspace `feldexa_application` package is consumed through its `src/`
 // path because the repository publishes no barrel file; T086 may not add an
@@ -105,12 +107,19 @@ const ValueKey<String> _pageStripNextKey = ValueKey<String>('page-strip-next');
 
 const MethodChannel _testHooks = MethodChannel('de.feldexa/test.import');
 
+/// The two phases of the value-sheet tap diagnosis.
+const String _tapPhase = 'TAP';
+const String _timeoutPhase = 'TIMEOUT';
+
 /// Screenshot handshake files the host driver creates after every capture.
+///
+/// The values are phase names without a prefix: `_marker` prepends `T086_`, so
+/// the printed marker and the driver's `T086_$name` search agree exactly.
 const Map<String, String> _screenshots = <String, String>{
-  'page1-values': 'T086_SCREENSHOT_PAGE1_VALUES',
-  'overflow-warning': 'T086_SCREENSHOT_OVERFLOW_WARNING',
-  'page2-signed': 'T086_SCREENSHOT_PAGE2_SIGNED',
-  'page1-preserved': 'T086_SCREENSHOT_PAGE1_PRESERVED',
+  'page1-values': 'SCREENSHOT_PAGE1_VALUES',
+  'overflow-warning': 'SCREENSHOT_OVERFLOW_WARNING',
+  'page2-signed': 'SCREENSHOT_PAGE2_SIGNED',
+  'page1-preserved': 'SCREENSHOT_PAGE1_PRESERVED',
 };
 
 /// Entered values; document content, never printed in a marker or log.
@@ -205,23 +214,44 @@ Future<void> _waitForAnalysisTerminal(
 }
 
 /// Waits for the host driver to capture the named screenshot.
+///
+/// A stale acknowledgement from an aborted run must never acknowledge this
+/// phase, so the wait deletes it first and then accepts only an ack written no
+/// earlier than the phase start. The freshness check also covers the case where
+/// the delete fails: the wait does not end on the leftover file.
 Future<void> _waitForDriver(String name) async {
   final File ack = File('$_fixtureRoot${Platform.pathSeparator}ack-$name');
+  final DateTime phaseStart = DateTime.now();
   try {
     if (ack.existsSync()) {
       ack.deleteSync();
     }
   } on FileSystemException {
-    // A read-only race cannot delete a stale file; the bounded wait below still
-    // fails instead of silently accepting an old acknowledgement.
+    // A concurrent read or a read-only staging directory can refuse the
+    // delete; [_acknowledgedAfter] still rejects the older file.
   }
   _marker(_screenshots[name]!);
-  final DateTime deadline = DateTime.now().add(const Duration(seconds: 180));
-  while (!ack.existsSync()) {
+  final DateTime deadline = phaseStart.add(const Duration(seconds: 180));
+  while (!_acknowledgedAfter(ack, phaseStart)) {
     if (DateTime.now().isAfter(deadline)) {
       fail('host driver did not acknowledge screenshot phase $name');
     }
     await Future<void>.delayed(const Duration(milliseconds: 200));
+  }
+}
+
+/// Whether [ack] is an acknowledgement written no earlier than [phaseStart].
+///
+/// The driver writes the ack on this same device after the screenshot, so the
+/// file's modification time and [phaseStart] share one clock. The threshold
+/// keeps one second of slack for a file system with a coarser modification-time
+/// granularity; a leftover ack from an aborted run is minutes older.
+bool _acknowledgedAfter(File ack, DateTime phaseStart) {
+  final DateTime threshold = phaseStart.subtract(const Duration(seconds: 1));
+  try {
+    return !ack.lastModifiedSync().isBefore(threshold);
+  } on FileSystemException {
+    return false;
   }
 }
 
@@ -366,6 +396,10 @@ String _diagFlag(bool value) => value ? '1' : '0';
 /// comparisons, and the overlay hit test the tap would resolve. Only numbers,
 /// counts, flags, and type/role names are emitted — never a label, entered
 /// value, id, path, or document content.
+///
+/// A deduction is only drawn for the `TIMEOUT` phase; the `TAP` phase reports
+/// `DEDUCED=UNDECIDED` because the sheet route is still being pushed when that
+/// dump is taken.
 List<String> _valueSheetTapDiagnosis(
   WidgetTester tester,
   EditorScreenState state,
@@ -450,23 +484,17 @@ List<String> _valueSheetTapDiagnosis(
       : 'OTHER';
   final bool sheetOpen = find.byKey(fieldValueSheetKey).evaluate().isNotEmpty;
   final int barriers = find.byType(ModalBarrier).evaluate().length;
-  String deduced;
-  if (sheetOpen) {
-    deduced = 'SHEET_OPEN';
-  } else if (selection == 'THIS') {
-    deduced = fieldInContent ? 'GATE_STUCK_OPEN' : 'FIELD_NOT_IN_LIVE_CONTENT';
-  } else if (surfaces.any((String entry) => entry.contains('/HIT:TARGET'))) {
-    deduced = 'TARGET_HIT_NOT_SELECTED';
-  } else if (surfaces.any(
-    (String entry) =>
-        entry.contains('/HIT:SUGGESTION') || entry.contains('/HIT:FIELD'),
-  )) {
-    deduced = 'OTHER_ITEM_ON_TOP';
-  } else if (surfaces.any((String entry) => entry.contains('=IN1/'))) {
-    deduced = 'SURFACE_MISS';
-  } else {
-    deduced = 'NO_SURFACE_AT_POINT';
-  }
+  // The TAP dump is taken right after the tap, while the sheet route is pushed
+  // asynchronously (`unawaited(_openFieldValueSheet(field))`), so it cannot
+  // decide whether the tap was swallowed. Only the TIMEOUT dump deduces.
+  final String deduced = phase == _timeoutPhase
+      ? _deduceTapOutcome(
+          sheetOpen: sheetOpen,
+          selection: selection,
+          fieldInContent: fieldInContent,
+          surfaces: surfaces,
+        )
+      : 'UNDECIDED';
   lines.add(
     'DIAG_SHEET_STATE_$phase:SELECTION=$selection'
     ':SHEET=${sheetOpen ? 'OPEN' : 'CLOSED'}'
@@ -494,6 +522,37 @@ String _diagHitPath(WidgetTester tester, Offset tapPoint) {
     types.add(entry.target.runtimeType.toString());
   }
   return types.isEmpty ? 'EMPTY' : types.join('>');
+}
+
+/// What the per-surface hit state proves once the value-sheet wait expired.
+///
+/// Only the `TIMEOUT` dump may draw this conclusion: the `TAP` dump observes
+/// the same state before the asynchronously pushed sheet route can settle.
+String _deduceTapOutcome({
+  required bool sheetOpen,
+  required String selection,
+  required bool fieldInContent,
+  required List<String> surfaces,
+}) {
+  if (sheetOpen) {
+    return 'SHEET_OPEN';
+  }
+  if (selection == 'THIS') {
+    return fieldInContent ? 'GATE_STUCK_OPEN' : 'FIELD_NOT_IN_LIVE_CONTENT';
+  }
+  if (surfaces.any((String entry) => entry.contains('/HIT:TARGET'))) {
+    return 'TARGET_HIT_NOT_SELECTED';
+  }
+  if (surfaces.any(
+    (String entry) =>
+        entry.contains('/HIT:SUGGESTION') || entry.contains('/HIT:FIELD'),
+  )) {
+    return 'OTHER_ITEM_ON_TOP';
+  }
+  if (surfaces.any((String entry) => entry.contains('=IN1/'))) {
+    return 'SURFACE_MISS';
+  }
+  return 'NO_SURFACE_AT_POINT';
 }
 
 /// [_valueSheetTapDiagnosis] that can never change the journey's outcome.
@@ -525,7 +584,7 @@ Future<void> _openValueSheet(
     state,
     field,
     tapPoint,
-    'TAP',
+    _tapPhase,
   )) {
     _marker(line);
   }
@@ -539,7 +598,7 @@ Future<void> _openValueSheet(
       state,
       field,
       tapPoint,
-      'TIMEOUT',
+      _timeoutPhase,
     ).join('\n'),
   );
   expect(state.selection.selectedId, field.id);
@@ -881,6 +940,17 @@ String _storedText(core.FieldValue? value) {
     return value.canonical;
   }
   fail('the field has no stored text value (${value.runtimeType})');
+}
+
+/// Confirmed fields on [pageIndex] that carry a stored value.
+int _filledFieldCount(core.RevisionContent content, int pageIndex) {
+  return content.fields
+      .where(
+        (core.ConfirmedField field) =>
+            field.pageIndex == pageIndex &&
+            content.values.containsKey(field.id),
+      )
+      .length;
 }
 
 /// Enters [value] in the open sheet and commits it as one verified revision.
@@ -1241,7 +1311,13 @@ void main() {
 
     // Screenshot: the real page-1 date sheet with its complete entered value.
     await _openValueSheet(tester, reopened, seeded[_SeededRole.date]!);
-    _marker('PAGE1_FILLED:FIELDS=5');
+    final int pageOneFilled = _filledFieldCount(reopened.content!, 0);
+    expect(
+      pageOneFilled,
+      5,
+      reason: 'page 1 must carry the machine field plus four seeded values',
+    );
+    _marker('PAGE1_FILLED:FIELDS=$pageOneFilled');
     await _waitForDriver('page1-values');
     await _closeValueSheet(tester);
 
@@ -1264,13 +1340,26 @@ void main() {
             as core.MultilineValue;
     expect(multilineValue.text, _multilineValue);
     expect(multilineValue.text.contains('\n'), isTrue);
-    _marker('MULTILINE_STORED:LINES=2:TRUNCATED=0');
+    final int multilineLines = multilineValue.text.split('\n').length;
+    expect(multilineLines, greaterThan(1));
+    final bool multilineTruncated =
+        multilineValue.text.runes.length < _multilineValue.runes.length;
+    _marker(
+      'MULTILINE_STORED:LINES=$multilineLines:'
+      'TRUNCATED=${_diagFlag(multilineTruncated)}',
+    );
 
     await _fillField(tester, reopened, seeded[_SeededRole.signature]!, '');
 
     // Screenshot: the reopened signature field on page 2 shows the signed state.
     await _openValueSheet(tester, reopened, seeded[_SeededRole.signature]!);
-    _marker('PAGE2_FILLED:FIELDS=3');
+    final int pageTwoFilled = _filledFieldCount(reopened.content!, 1);
+    expect(
+      pageTwoFilled,
+      3,
+      reason: 'page 2 must carry the text, multiline, and signature values',
+    );
+    _marker('PAGE2_FILLED:FIELDS=$pageTwoFilled');
     await _waitForDriver('page2-signed');
     await _closeValueSheet(tester);
 
@@ -1304,7 +1393,14 @@ void main() {
           .checked,
       isTrue,
     );
-    _marker('VALUES_SURVIVED_NAVIGATION:PAGE1=5:PAGE2=3');
+    final int survivedPageOne = _filledFieldCount(reopened.content!, 0);
+    final int survivedPageTwo = _filledFieldCount(reopened.content!, 1);
+    expect(survivedPageOne, 5, reason: 'every page-1 value must survive');
+    expect(survivedPageTwo, 3, reason: 'every page-2 value must survive');
+    _marker(
+      'VALUES_SURVIVED_NAVIGATION:PAGE1=$survivedPageOne:'
+      'PAGE2=$survivedPageTwo',
+    );
 
     // --- Every filled page-1 field is still editable ------------------------
     await _expectFieldEditableAndPreserved(
@@ -1441,8 +1537,36 @@ void main() {
           .signatureAssetId,
       storedMark.assetId,
     );
+    // A summary of what every assertion above proved: the counts and the
+    // truncation flag are read back from the stored revision, not printed as
+    // literals, and the two remaining flags are announced only after their
+    // asserting check.
+    final Map<String, String> enteredTexts = <String, String>{
+      machinePageOne.id: _overflowText,
+      seeded[_SeededRole.text]!.id: _editedTextValue,
+      seeded[_SeededRole.pageTwoText]!.id: _pageTwoTextValue,
+      seeded[_SeededRole.multiline]!.id: _multilineValue,
+    };
+    final int storedValues = content.values.values
+        .where((core.FieldValue value) => value is! core.SignatureValue)
+        .length;
+    final int storedSignatures = content.signatures.length;
+    final bool storedTruncated = enteredTexts.entries.any(
+      (MapEntry<String, String> entry) =>
+          _storedText(content.values[entry.key]).runes.length <
+          entry.value.runes.length,
+    );
+    expect(
+      storedValues,
+      7,
+      reason: 'every seeded and confirmed value must be stored',
+    );
+    expect(storedSignatures, 1);
+    expect(storedTruncated, isFalse, reason: 'no stored text may be shorter');
     _marker(
-      'STORE_READBACK:VALUES=7:SIGNATURE=1:DIGEST_MATCH=1:PNG=1:TRUNCATED=0',
+      'STORE_READBACK:SUMMARY:VALUES=$storedValues:'
+      'SIGNATURE=$storedSignatures:DIGEST_MATCH=1:PNG=1:'
+      'TRUNCATED=${_diagFlag(storedTruncated)}',
     );
     expect(machinePageTwo.pageIndex, 1);
     _marker('CLEANUP_DONE');

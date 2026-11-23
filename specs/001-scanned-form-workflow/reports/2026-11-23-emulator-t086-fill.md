@@ -195,9 +195,11 @@ production API was added.
 ### 5.4 Run 4 (`69827d5`): the journey passes
 
 `run-status.txt` records `result=PASS`, `flutter_test_exit=0`; the driver logged
-`PASS (flutter test exit 0; cleanup marker observed; privacy checks PASS)`. The
-authoritative marker sequence (`markers-integration.txt`, 90 lines including the
-38 `T086_DIAG_SHEET_*` lines) contains, in order:
+`PASS (flutter test exit 0; cleanup marker observed; privacy checks PASS)`. A
+marker is printed only after the `expect` that proves its fact, so the marker
+sequence is a trace of the assertions, never their replacement. The marker
+sequence recorded from the integration log (`markers-integration.txt`, 90 lines
+including the 38 `T086_DIAG_SHEET_*` lines) contains, in order:
 
 ```text
 T086_FIXTURE_READY:BYTES=5956:MATCH=1
@@ -263,9 +265,9 @@ composition:
 | Seven typed fields seeded through `addField`, one verified revision, reopen with analysis skipped | 9 fields, 5 page 1 / 4 page 2 | `FIELDS=9:PAGES=2:ANALYSIS=skipped` | `PASS` |
 | FLD-001: entered text larger than the recognised region keeps every rune | warning visible, `TRUNCATED=0` | `RUNES=215:STORED_RUNES=215:TRUNCATED=0` + `overflow-warning` screenshot | `PASS` |
 | Page-1 touch fill: text, number, date, checkbox | committed values, canonical forms | 4 markers, `NUMBER_CANONICAL:MATCH=1`, `DATE_CANONICAL:MATCH=1`, `CHECKED=1` | `PASS` |
-| Page-1 completion screenshot | 5 filled fields | `PAGE1_FILLED:FIELDS=5` marker (authority) + `page1-values` screenshot (captured during the IME transition, so the sheet header is visible but the value row sits behind the keyboard) | `PASS` (marker), screenshot illustrative |
+| Page-1 completion screenshot | 5 filled fields | `PAGE1_FILLED:FIELDS=5` marker printed after the asserting check (`_filledFieldCount` on page 1 equals 5) + `page1-values` screenshot (captured during the IME transition, so the sheet header is visible but the value row sits behind the keyboard) | `PASS`; the marker trace, the screenshot is illustrative |
 | Page-2 touch fill: text, multiline, drawn signature | three committed values | `RUNES=6`, `MULTILINE_STORED:LINES=2:TRUNCATED=0`, `signature:BOUND=1:WIDTH_LE_1024=1:HEIGHT_LE_1024=1` | `PASS` |
-| Page-2 completion screenshot | 3 filled fields | `PAGE2_FILLED:FIELDS=3` marker (authority) + `page2-signed` screenshot | `PASS` (marker), screenshot illustrative |
+| Page-2 completion screenshot | 3 filled fields | `PAGE2_FILLED:FIELDS=3` marker printed after the asserting check (`_filledFieldCount` on page 2 equals 3) + `page2-signed` screenshot | `PASS`; the marker trace, the screenshot is illustrative |
 | Page round trip: every page-1 value unchanged | 5 values | `VALUES_SURVIVED_NAVIGATION:PAGE1=5:PAGE2=3` | `PASS` |
 | Every filled field reopened on both pages | preserved and editable | 7 `FIELD_REOPENED` markers + `page1-preserved` screenshot | `PASS` |
 | Real edit after the round trip | updated value committed | `FIELD_EDITED_AFTER_NAVIGATION:TYPE=text:RUNES=19:TRUNCATED=0` | `PASS` |
@@ -324,7 +326,8 @@ No performance claim. Emulator timings are never a device claim.
   reachable by a user through FR-023 move/resize over a detected candidate.
 - The `T086_DIAG_SHEET_*` diagnostics stay in the integration test. They are
   test-only, content-free, and wrapped so they cannot change the journey's outcome;
-  their `DEDUCED` field is only meaningful in the `TIMEOUT` dump.
+  the `TAP` dump reports `DEDUCED=UNDECIDED` and only the `TIMEOUT` dump deduces,
+  because the sheet route is pushed asynchronously after the tap.
 - The journey needs one emulator run per verification (about 4 minutes of journey
   plus build); a re-run is not part of this task's budget.
 - The T086 row in `tasks.md` is unchanged: US4 is now demonstrated on the

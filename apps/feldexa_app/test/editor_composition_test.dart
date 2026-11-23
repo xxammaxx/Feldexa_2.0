@@ -19,6 +19,13 @@
 //     an unreadable entry;
 //   * 200 % text scale composes the editor and the value sheet without a
 //     RenderFlex overflow.
+//   * the overlap repair reorders the selection hit list only: the painted
+//     overlay order is asserted to stay unchanged.
+
+// The workspace `feldexa_ui` package is consumed through the workspace package
+// config; this task may not add an app `pubspec.yaml` dependency (same
+// documented situation as `editor_screen.dart` and `review_degraded_test.dart`).
+// ignore_for_file: depend_on_referenced_packages
 
 @TestOn('vm')
 library;
@@ -42,6 +49,7 @@ import 'package:feldexa_app/features/start/stored_items.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:feldexa_ports/feldexa_ports.dart';
+import 'package:feldexa_ui/feldexa_ui.dart' as ui;
 import 'package:flutter/material.dart' hide PageView;
 import 'package:flutter_test/flutter_test.dart';
 
@@ -650,6 +658,23 @@ void main() {
       await _pumpEditor(tester, runtime: runtime);
 
       final EditorScreenState state = _state(tester);
+
+      // The fix reorders the hit list only. The paint order must stay as
+      // `_overlayItemsForPage` builds it — confirmed fields first, unresolved
+      // candidates last (later items on top) — so the review styling and every
+      // recorded visual stay valid, and a later re-sort of that list fails here.
+      final ui.FieldOverlay overlay = tester.widget<ui.FieldOverlay>(
+        find.byType(ui.FieldOverlay),
+      );
+      expect(
+        overlay.items.map((ui.FieldOverlayItem item) => item.id).toList(),
+        <String>[_fieldId, 's_p0_0002'],
+      );
+      expect(
+        overlay.items.last.provenance,
+        ui.FieldOverlayProvenance.machineSuggestion,
+      );
+
       await tester.tapAt(_screenPoint(tester, state, _fieldRect()));
       await tester.pumpAndSettle();
 
