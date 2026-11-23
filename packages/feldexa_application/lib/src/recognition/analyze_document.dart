@@ -247,14 +247,25 @@ final class DocumentAnalysisRequest {
 ///
 /// [pages] contains exactly one terminal `FieldSuggestionSet` per
 /// non-cancelled page, sorted by page index. Cancelled pages are absent and
-/// listed in [cancelledPageIndexes]; the caller keeps them pending.
+/// listed in [cancelledPageIndexes]; the caller keeps them pending. Pages whose
+/// stage run outlived the per-page deadline keep their existing
+/// `internal`/REC-002 failure envelope in [pages] and are additionally listed
+/// in [timedOutPageIndexes].
+///
+/// The type carries no value equality. [timedOutPageIndexes] is therefore
+/// outside any `==`/`hashCode` by construction, exactly like the diagnostic
+/// timings inside an envelope: it reports how a page ended, it is not part of
+/// the page's canonical recognition output. Envelope comparison stays
+/// `FieldSuggestionSet.canonicalJson`.
 final class DocumentAnalysisResult {
   DocumentAnalysisResult._({
     required this.analysisRunId,
     required List<FieldSuggestionSet> pages,
     required List<int> cancelledPageIndexes,
+    required List<int> timedOutPageIndexes,
   }) : pages = List<FieldSuggestionSet>.unmodifiable(pages),
-       cancelledPageIndexes = List<int>.unmodifiable(cancelledPageIndexes);
+       cancelledPageIndexes = List<int>.unmodifiable(cancelledPageIndexes),
+       timedOutPageIndexes = List<int>.unmodifiable(timedOutPageIndexes);
 
   /// The run id shared by every envelope.
   final String analysisRunId;
@@ -264,6 +275,14 @@ final class DocumentAnalysisResult {
 
   /// Cancelled page indexes, sorted by page index.
   final List<int> cancelledPageIndexes;
+
+  /// Page indexes whose stage run hit the deadline, sorted by page index.
+  ///
+  /// Content-free by construction: it names pages, never pixels, labels, or
+  /// suggestion text. The matching envelope in [pages] carries the ordinary
+  /// `internal`/REC-002 failure, so a timed-out page looks like any other
+  /// internal page fault to a consumer that ignores this list.
+  final List<int> timedOutPageIndexes;
 
   /// Whether every page reached a terminal outcome.
   bool get isComplete => cancelledPageIndexes.isEmpty;
@@ -301,12 +320,21 @@ abstract final class AnalyzeDocument {
   /// the synchronous T051/T052 work never runs on the calling isolate.
   /// [RecognitionExecution.inline] runs the identical entry on the calling
   /// isolate and is only for harnesses that cannot await a worker isolate.
+  ///
+  /// [pageDeadline] bounds one page's off-isolate stage run. When it elapses,
+  /// the page's worker isolate is killed and joined, and the page receives its
+  /// existing `internal`/REC-002 envelope while
+  /// [DocumentAnalysisResult.timedOutPageIndexes] names it. Every page gets its
+  /// own full deadline, so one page cannot spend another page's budget. The
+  /// value is a fail-closed diagnostic bound and states nothing about SC-004,
+  /// about end-to-end performance, or about any documented analysis budget.
   static Future<DocumentAnalysisResult> run(
     DocumentAnalysisRequest request, {
     PageCancellation? isCancelled,
     GeometryDetection geometryDetection = GeometryDetector.detect,
     RasterAnalysisBuilder rasterAnalysis = RasterAnalysis.new,
     RecognitionExecution execution = RecognitionExecution.offIsolate,
+    Duration pageDeadline = defaultPageAnalysisDeadline,
   }) async {
     final List<DocumentAnalysisPage> ordered =
         List<DocumentAnalysisPage>.of(request.pages)..sort(
@@ -315,6 +343,7 @@ abstract final class AnalyzeDocument {
         );
     final List<FieldSuggestionSet> pages = <FieldSuggestionSet>[];
     final List<int> cancelled = <int>[];
+    final List<int> timedOut = <int>[];
     final Stopwatch clock = Stopwatch()..start();
     for (final DocumentAnalysisPage page in ordered) {
       if (isCancelled != null && isCancelled(page.pageIndex)) {
@@ -322,17 +351,21 @@ abstract final class AnalyzeDocument {
         continue;
       }
       try {
-        pages.add(
-          await _analyzePage(
-            request,
-            page,
-            isCancelled,
-            geometryDetection,
-            rasterAnalysis,
-            execution,
-            clock,
-          ),
-        );
+        final ({FieldSuggestionSet envelope, bool timedOut}) analyzed =
+            await _analyzePage(
+              request,
+              page,
+              isCancelled,
+              geometryDetection,
+              rasterAnalysis,
+              execution,
+              pageDeadline,
+              clock,
+            );
+        pages.add(analyzed.envelope);
+        if (analyzed.timedOut) {
+          timedOut.add(page.pageIndex);
+        }
       } on _PageCancelled {
         // The token flipped while this page was already running: the page
         // produced no envelope and no partial suggestion, and stays pending.
@@ -343,22 +376,25 @@ abstract final class AnalyzeDocument {
       analysisRunId: request.analysisRunId,
       pages: pages,
       cancelledPageIndexes: cancelled,
+      timedOutPageIndexes: timedOut,
     );
   }
 
-  static Future<FieldSuggestionSet> _analyzePage(
+  static Future<({FieldSuggestionSet envelope, bool timedOut})> _analyzePage(
     DocumentAnalysisRequest request,
     DocumentAnalysisPage page,
     PageCancellation? isCancelled,
     GeometryDetection geometryDetection,
     RasterAnalysisBuilder rasterAnalysis,
     RecognitionExecution execution,
+    Duration pageDeadline,
     Stopwatch clock,
   ) async {
     int rasterMs = 0;
     int ocrMs = 0;
     int detectMs = 0;
     int partialSuggestionCount = 0;
+    bool timedOut = false;
     try {
       final int rasterStart = clock.elapsedMilliseconds;
       final RasterImage rendered;
@@ -420,8 +456,13 @@ abstract final class AnalyzeDocument {
       if (execution == RecognitionExecution.inline) {
         outcome = work(task);
       } else {
-        outcome = await runRasterPageStageOffIsolate(task, work: work);
+        outcome = await runRasterPageStageOffIsolate(
+          task,
+          work: work,
+          deadline: pageDeadline,
+        );
       }
+      timedOut = outcome.timedOut;
       if (outcome.isFailed) {
         detectMs = _elapsed(clock, detectStart);
         throw outcome.failure!;
@@ -459,25 +500,31 @@ abstract final class AnalyzeDocument {
         );
       }
       detectMs = _elapsed(clock, detectStart);
-      return envelope;
+      return (envelope: envelope, timedOut: false);
     } on _PageCancelled {
       rethrow;
     } on PageAnalysisFailure catch (failure) {
-      return _failedEnvelope(
-        request,
-        page,
-        failure,
-        _timings(rasterMs: rasterMs, ocrMs: ocrMs, detectMs: detectMs),
+      return (
+        envelope: _failedEnvelope(
+          request,
+          page,
+          failure,
+          _timings(rasterMs: rasterMs, ocrMs: ocrMs, detectMs: detectMs),
+        ),
+        timedOut: timedOut,
       );
     } catch (_) {
-      return _failedEnvelope(
-        request,
-        page,
-        PageAnalysisFailure.forCategory(
-          PageAnalysisFailure.internal,
-          suggestionCount: partialSuggestionCount,
+      return (
+        envelope: _failedEnvelope(
+          request,
+          page,
+          PageAnalysisFailure.forCategory(
+            PageAnalysisFailure.internal,
+            suggestionCount: partialSuggestionCount,
+          ),
+          _timings(rasterMs: rasterMs, ocrMs: ocrMs, detectMs: detectMs),
         ),
-        _timings(rasterMs: rasterMs, ocrMs: ocrMs, detectMs: detectMs),
+        timedOut: timedOut,
       );
     }
   }

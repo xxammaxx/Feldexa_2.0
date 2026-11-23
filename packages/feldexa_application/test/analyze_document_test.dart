@@ -247,6 +247,21 @@ Map<String, Object?> _rect(Map<String, Object?> suggestion) {
   return suggestion['rect']! as Map<String, Object?>;
 }
 
+/// Stalls the analysis of the fixture page whose ink sits at row 201.
+///
+/// Page 0 of the two-page fixtures is `_underlinePage()` (ink rows 200-201),
+/// page 1 is `_underlinePage(top: 100)` (ink rows 100-101), so the deadline
+/// tests can make exactly one page overrun without a production sleep.
+RasterAnalysis _stallsOnFirstFixturePage(GrayRaster raster) {
+  if (raster.isInkAt(150, 201)) {
+    final int spinUntil = DateTime.now().millisecondsSinceEpoch + 3000;
+    while (DateTime.now().millisecondsSinceEpoch < spinUntil) {
+      // Busy worker: the page can only be stopped by the deadline backstop.
+    }
+  }
+  return RasterAnalysis(raster);
+}
+
 void main() {
   test(
     'an underline page with a Betrag label yields one typed suggestion',
@@ -947,6 +962,78 @@ void main() {
         baseline.pages[1].canonicalJson(),
       );
     },
+  );
+
+  test(
+    'a page whose stage outlives the deadline fails closed while the next page '
+    'completes',
+    () async {
+      final DocumentAnalysisResult result = await AnalyzeDocument.run(
+        _request(
+          raster: _FakeRaster(<int, _RasterSpec>{
+            0: _underlinePage(),
+            1: _underlinePage(top: 100),
+          }),
+          pages: <DocumentAnalysisPage>[_page(0), _page(1)],
+        ),
+        rasterAnalysis: _stallsOnFirstFixturePage,
+        pageDeadline: const Duration(milliseconds: 150),
+      );
+
+      expect(result.timedOutPageIndexes, <int>[0]);
+      expect(result.cancelledPageIndexes, isEmpty);
+      expect(result.pages, hasLength(2));
+      expect(result.pages[0].pageIndex, 0);
+      expect(result.pages[0].isFailed, isTrue);
+      expect(result.pages[0].failure!.category, PageAnalysisFailure.internal);
+      expect(result.pages[0].failure!.messageKey, 'REC-002');
+      expect(result.pages[0].suggestions, isEmpty);
+      expect(result.pages[1].pageIndex, 1);
+      expect(result.pages[1].isFailed, isFalse);
+      expect(result.pages[1].suggestions, hasLength(1));
+    },
+    timeout: const Timeout(Duration(seconds: 30)),
+  );
+
+  test('a page inside the deadline reports no timeout', () async {
+    final DocumentAnalysisResult result = await AnalyzeDocument.run(
+      _request(raster: _FakeRaster(<int, _RasterSpec>{0: _underlinePage()})),
+      pageDeadline: const Duration(seconds: 30),
+    );
+
+    expect(result.timedOutPageIndexes, isEmpty);
+    expect(result.pages.single.isFailed, isFalse);
+  });
+
+  test(
+    'a timed-out page carries the ordinary internal failure envelope',
+    () async {
+      final DocumentAnalysisResult faulted = await AnalyzeDocument.run(
+        _request(
+          raster: _FakeRaster(<int, _RasterSpec>{0: _underlinePage()}),
+          ocr: null,
+        ),
+        rasterAnalysis: (GrayRaster raster) {
+          throw StateError('injected analysis fault');
+        },
+      );
+      final DocumentAnalysisResult timedOut = await AnalyzeDocument.run(
+        _request(raster: _FakeRaster(<int, _RasterSpec>{0: _underlinePage()})),
+        rasterAnalysis: _stallsOnFirstFixturePage,
+        pageDeadline: const Duration(milliseconds: 150),
+      );
+
+      expect(faulted.pages.single.isFailed, isTrue);
+      expect(faulted.timedOutPageIndexes, isEmpty);
+      expect(timedOut.timedOutPageIndexes, <int>[0]);
+      // The deadline adds no field to the page envelope: a timed-out page is
+      // byte-identical to any other internal failure of the same page.
+      expect(
+        timedOut.pages.single.canonicalJson(),
+        faulted.pages.single.canonicalJson(),
+      );
+    },
+    timeout: const Timeout(Duration(seconds: 30)),
   );
 
   test('envelopes round-trip through the T057 validator', () async {

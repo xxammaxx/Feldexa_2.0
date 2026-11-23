@@ -15,6 +15,11 @@
 /// Every failure of the mechanism itself is reported as a content-free
 /// [PageAnalysisFailure.internal] outcome, so a spawn failure degrades to a
 /// failed page instead of an unhandled error or a silently completed one.
+///
+/// The stage entry is synchronous and cannot observe a caller-side token, so
+/// [deadline] is the backstop that bounds a page: when it elapses the worker is
+/// killed with [Isolate.immediate] and joined before this future completes, so
+/// no zombie isolate and no partial suggestion survives the page.
 library;
 
 import 'dart:async';
@@ -31,6 +36,11 @@ final class _RasterPageStageMessage {
   final RasterPageStageTask task;
   final RasterPageStageWork work;
   final SendPort reply;
+}
+
+/// Marks a stage run that outlived [defaultPageAnalysisDeadline].
+final class _DeadlineElapsed {
+  const _DeadlineElapsed();
 }
 
 /// Worker isolate entry point.
@@ -56,11 +66,14 @@ void _rasterPageStageWorker(_RasterPageStageMessage message) {
 ///
 /// [work] defaults to the production [runRasterPageStage]; a caller composes
 /// its own fault-injection seams into it, a test substitutes it to observe the
-/// worker. The worker isolate is always terminated before this future
-/// completes.
+/// worker. [deadline] bounds this one page's run; when it elapses the worker is
+/// killed immediately and joined, and the result is
+/// [RasterPageStageOutcome.timedOut]. The worker isolate is always terminated
+/// and joined before this future completes.
 Future<RasterPageStageOutcome> runRasterPageStageOffIsolate(
   RasterPageStageTask task, {
   RasterPageStageWork work = runRasterPageStage,
+  Duration deadline = defaultPageAnalysisDeadline,
 }) async {
   final ReceivePort replies = ReceivePort();
   final Isolate worker;
@@ -79,20 +92,61 @@ Future<RasterPageStageOutcome> runRasterPageStageOffIsolate(
       category: PageAnalysisFailure.internal,
     );
   }
+
+  // Join channel: completes when the worker is gone, whatever ended it.
+  final RawReceivePort workerExit = RawReceivePort();
+  final Completer<void> joined = Completer<void>();
+  workerExit.handler = (Object? _) {
+    if (!joined.isCompleted) {
+      joined.complete();
+    }
+  };
+  worker.addOnExitListener(workerExit.sendPort);
+
+  final Completer<Object?> terminal = Completer<Object?>();
+  final StreamSubscription<Object?> subscription = replies.listen(
+    (Object? message) {
+      if (!terminal.isCompleted) {
+        terminal.complete(message);
+      }
+    },
+    onError: (Object _) {
+      if (!terminal.isCompleted) {
+        terminal.complete(null);
+      }
+    },
+    onDone: () {
+      if (!terminal.isCompleted) {
+        terminal.complete(null);
+      }
+    },
+  );
+  final Timer deadlineTimer = Timer(deadline, () {
+    if (!terminal.isCompleted) {
+      terminal.complete(const _DeadlineElapsed());
+    }
+  });
+
   try {
-    final Object? message = await replies.first;
+    final Object? message = await terminal.future;
     if (message is RasterPageStageOutcome) {
       return message;
+    }
+    if (message is _DeadlineElapsed) {
+      return RasterPageStageOutcome.timedOut();
     }
     return RasterPageStageOutcome.failed(
       category: PageAnalysisFailure.internal,
     );
-  } catch (_) {
-    return RasterPageStageOutcome.failed(
-      category: PageAnalysisFailure.internal,
-    );
   } finally {
+    deadlineTimer.cancel();
+    await subscription.cancel();
     replies.close();
-    worker.kill(priority: Isolate.beforeNextEvent);
+    if (!joined.isCompleted) {
+      // The deadline path reaches this branch with the worker still busy.
+      worker.kill(priority: Isolate.immediate);
+    }
+    await joined.future;
+    workerExit.close();
   }
 }

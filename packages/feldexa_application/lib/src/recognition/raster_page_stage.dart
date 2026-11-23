@@ -65,6 +65,20 @@ typedef RasterAnalysisBuilder = RasterAnalysis Function(GrayRaster raster);
 /// the median rule total instead of introducing a nullable branch.
 const double defaultSingleLineMedianHeightPt = 12.0;
 
+/// Hard per-page bound on one page's off-isolate raster stage run.
+///
+/// This is a fail-closed diagnostic bound, not a performance statement: it
+/// says nothing about SC-004, about end-to-end latency, or about the analysis
+/// budget of a documented task. It is derived from the T086B-P measurement of
+/// roughly two seconds per page at the 200 DPI analysis scale with a factor of
+/// five, so a page that is merely slow still finishes and a page whose
+/// detector hangs cannot hold the whole run.
+///
+/// When the bound elapses, `AnalyzeDocument` kills the page's worker isolate,
+/// joins it, and turns the page into its existing `internal`/REC-002 failure
+/// (`recognition-output.md` §4). No other page is affected.
+const Duration defaultPageAnalysisDeadline = Duration(seconds: 10);
+
 /// Minimum ordinal width of a suggestion id (`recognition-output.md` §2).
 const int _ordinalWidth = 4;
 
@@ -186,6 +200,7 @@ final class RasterPageStageOutcome {
     required this.suggestions,
     required this.failureCategory,
     required this.discardedSuggestions,
+    required this.timedOut,
   });
 
   /// A complete outcome with the §5.2-ordered suggestion maps.
@@ -196,6 +211,7 @@ final class RasterPageStageOutcome {
       suggestions: List<Map<String, Object?>>.unmodifiable(suggestions),
       failureCategory: null,
       discardedSuggestions: 0,
+      timedOut: false,
     );
   }
 
@@ -210,7 +226,22 @@ final class RasterPageStageOutcome {
          suggestions: const <Map<String, Object?>>[],
          failureCategory: _checkedCategory(category),
          discardedSuggestions: discardedSuggestions,
+         timedOut: false,
        );
+
+  /// The `internal` failure of a page whose stage run outlived its deadline.
+  ///
+  /// The worker isolate was killed before this outcome exists, so no partial
+  /// work survives. The payload is the same content-free `internal`/REC-002
+  /// failure as any other stage fault; [timedOut] is what tells the caller that
+  /// the deadline, not the detector, ended the page.
+  RasterPageStageOutcome.timedOut()
+    : this._(
+        suggestions: const <Map<String, Object?>>[],
+        failureCategory: PageAnalysisFailure.internal,
+        discardedSuggestions: 0,
+        timedOut: true,
+      );
 
   /// Section 2 suggestion maps; empty for a failed outcome.
   final List<Map<String, Object?>> suggestions;
@@ -220,6 +251,9 @@ final class RasterPageStageOutcome {
 
   /// Number of partial suggestions discarded by the failure.
   final int discardedSuggestions;
+
+  /// Whether the per-page deadline, not the stage itself, ended this run.
+  final bool timedOut;
 
   /// Whether the stage produced no terminal suggestion set.
   bool get isFailed => failureCategory != null;
@@ -240,7 +274,7 @@ final class RasterPageStageOutcome {
   String toString() =>
       'RasterPageStageOutcome(failureCategory: $failureCategory, '
       'suggestions: ${suggestions.length}, '
-      'discardedSuggestions: $discardedSuggestions)';
+      'discardedSuggestions: $discardedSuggestions, timedOut: $timedOut)';
 }
 
 String _checkedCategory(String category) {
