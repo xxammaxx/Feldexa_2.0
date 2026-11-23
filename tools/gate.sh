@@ -377,6 +377,11 @@ check_app_browser_tests() {
 BROWSER_INTEGRATION_FILES=()
 NON_BROWSER_INTEGRATION_COUNT=0
 
+python3_required_for_guard() {
+  printf 'python3 is required for the repository guard tests\n' >&2
+  return 1
+}
+
 check_repo_guard_tests() {
   local pattern='test_*.py'
   local -a guard_tests=(tools/repo/$pattern)
@@ -385,8 +390,14 @@ check_repo_guard_tests() {
     printf 'no repository guard test matching tools/repo/%s\n' "$pattern" >&2
     return 1
   fi
-  # PYTHONDONTWRITEBYTECODE keeps __pycache__ out of the working tree that the
-  # Android evidence scripts require to be clean.
+  # The line-ending guard is a repository contract, not an optional layer, so a
+  # renamed or deleted file must fail instead of being skipped by discovery.
+  if [ ! -f tools/repo/test_git_eol_normalization.py ]; then
+    printf 'tools/repo/test_git_eol_normalization.py is missing\n' >&2
+    return 1
+  fi
+  # PYTHONDONTWRITEBYTECODE keeps build artefacts (bytecode caches) out of the
+  # checkout; the Android evidence scripts check `git status` without --ignored.
   PYTHONDONTWRITEBYTECODE=1 "$PYTHON_BIN" -m unittest discover \
     -s tools/repo -p "$pattern" -v
 }
@@ -520,11 +531,15 @@ if [ "$NON_BROWSER_INTEGRATION_COUNT" -gt 0 ]; then
   info "[NOT RUN] EMULATOR/DEVICE integration tests present: $NON_BROWSER_INTEGRATION_COUNT (not executed by this local gate)"
 fi
 
+# The guard is mandatory: a missing interpreter must fail the gate rather than
+# hide behind --allow-unavailable, which is the normal invocation on hosts
+# without Chrome.
 if [ -n "$PYTHON_BIN" ]; then
   run_check "repository guard tests (python3 unittest in tools/repo)" "none" \
     "08-repo-guard" check_repo_guard_tests
 else
-  unavailable "repository guard tests (no python3 on PATH; the Git line-ending guard did not run)"
+  run_check "repository guard tests (python3 unittest in tools/repo)" "none" \
+    "08-repo-guard-missing-python" python3_required_for_guard
 fi
 
 info ""

@@ -258,7 +258,8 @@ GLOBAL_SESSIONS="$(python3 -c 'import json,sys;d=json.load(open(sys.argv[1]));pr
 
 # --- 1b. Commit-before-run gate ---------------------------------------------
 # Evidence is bound to a committed HEAD: the working tree must be clean.
-DIRTY_STATUS="$(git -C "$ROOT" status --porcelain)"
+DIRTY_STATUS="$(git -C "$ROOT" status --porcelain)" \
+  || fail "cannot read git status for $ROOT"
 if [[ -n "$DIRTY_STATUS" ]]; then
   while IFS= read -r dirty_line; do
     fail "working tree is dirty; commit-before-run required (status line: $dirty_line)"

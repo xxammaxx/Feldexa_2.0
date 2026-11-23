@@ -19,6 +19,10 @@ Checkout ownership is not corrected for the run: on a checkout owned by another
 user Git refuses the commands (``safe.directory``) and the test fails loudly with
 that Git error instead of reporting an unverified index.
 
+Because the run is isolated from user and system configuration, a checkout
+that belongs to another UID is no longer excused by ``safe.directory``; such
+a checkout must be ``chown``-ed to the running user, or run as its owner.
+
 Run with:
     python3 -m unittest discover -s tools/repo -p 'test_*.py' -v
 """
