@@ -42,6 +42,12 @@
 # available emulator the script exits 2 with `EMULATOR NOT_RUN`; the physical
 # Samsung S23 is never addressed.
 #
+# The evidence metadata files are committed, so the driver records repo-relative
+# paths only (`apps/...` instead of `/home/...`) and describes the attached ADB
+# transports by class and count instead of repeating foreign device names. The
+# driver fails closed: a failing `logcat -c`, a marker that only exists in a
+# previous run, and SIGINT/SIGTERM can never end as a pass.
+#
 # Test-only tooling: adds no production dependency and changes no app file.
 # Usage (repo root): tools/android/t086_drive_fill.sh
 set -uo pipefail
@@ -82,6 +88,19 @@ fail() {
 not_run() {
   log "T086 EMULATOR NOT_RUN: $*"
   exit 2
+}
+
+# Evidence files are committed, so they never carry an absolute host path: repo
+# paths become `apps/...` and tool paths become `~/...`.
+host_relative() {
+  local path="$1"
+  if [[ "$path" == "$ROOT/"* ]]; then
+    printf '%s\n' "${path#"$ROOT"/}"
+  elif [[ "$path" == "$HOME/"* ]]; then
+    printf '~/%s\n' "${path#"$HOME"/}"
+  else
+    printf '%s\n' "$path"
+  fi
 }
 
 # --- 0. Shared heavy-work lock admission ------------------------------------
@@ -167,7 +186,33 @@ cleanup() {
     adb_shell settings put global stay_on_while_plugged_in "$ORIGINAL_STAY_ON" >/dev/null
   fi
 }
-trap cleanup EXIT INT TERM
+trap cleanup EXIT
+
+# SIGINT/SIGTERM must end the run: a handler that only cleans up would let the
+# driver continue with a half-started test and still report a result.
+on_signal() {
+  local signal="$1" code="$2"
+  trap - EXIT INT TERM
+  log "T086 DRIVER: received SIG$signal; cleaning up and aborting"
+  cleanup
+  exit "$code"
+}
+trap 'on_signal INT 130' INT
+trap 'on_signal TERM 143' TERM
+
+# Evidence must not repeat a foreign device identity, so the attached ADB
+# transports are counted by class rather than listed.
+transport_summary() {
+  local all="$1" emulators="$2"
+  local all_count emulator_count
+  # "attached" means every transport adb lists, regardless of its state
+  # (unauthorized/offline devices still count as attached).
+  all_count="$(printf '%s\n' "$all" | sed '/^$/d' | wc -l)"
+  emulator_count="$(printf '%s\n' "$emulators" | sed '/^$/d' | wc -l)"
+  log "all_attached_transports_count=$all_count"
+  log "emulator_transports=$emulator_count"
+  log "non_emulator_transports=$((all_count - emulator_count))"
+}
 
 prepare_evidence_dir() {
   if [[ "$EVIDENCE_DIR" == "$RUN_DIR" ]]; then
@@ -214,7 +259,10 @@ collect_evidence() {
     privacy-log-check.txt \
     host-flutter-pub-get.log; do
     if [[ -f "$RUN_DIR/$file" ]]; then
-      cp "$RUN_DIR/$file" "$EVIDENCE_DIR/$file" ||
+      # The bundle is committed, so host paths are rewritten on the way in; the
+      # run directory keeps the verbatim log for diagnosis.
+      sed -e "s|$ROOT/||g" -e "s|$ROOT|.|g" -e "s|$HOME/|~/|g" "$RUN_DIR/$file" \
+        >"$EVIDENCE_DIR/$file" ||
         fail "cannot write evidence file $file"
     fi
   done
@@ -240,7 +288,7 @@ fi
 LOCK_PATH="/tmp/orca-maintainer-heavy-$(id -u).lock"
 {
   log "mode=shared-heavy-work-lock"
-  log "require=python3 $COMPUTE_SLOT --wait <command>"
+  log "require=python3 $(host_relative "$COMPUTE_SLOT") --wait <command>"
   log "lock_path=$LOCK_PATH"
   log "inside_lock=1 (T086_COMPUTE_LOCK_HELD=1: the run is inside compute_slot.py's critical section)"
   log "orca_command_used=0"
@@ -248,6 +296,9 @@ LOCK_PATH="/tmp/orca-maintainer-heavy-$(id -u).lock"
 } >"$RUN_DIR/compute-lock.txt"
 
 # --- 1. Device identity without Orca ---------------------------------------
+# Every adb transport counts as attached, whatever its state; only the
+# emulator gate below needs the usable subset.
+ALL_TRANSPORTS="$("$ADB" devices | awk 'NR>1 && NF>=1 && $1 !~ /^(List|of|devices)$/ {print $1}')"
 ALL_DEVICES="$("$ADB" devices | awk 'NR>1 && NF>=2 && $2=="device" {print $1}')"
 EMULATOR_DEVICES="$(printf '%s\n' "$ALL_DEVICES" | grep -E '^emulator-[0-9]+$' || true)"
 [[ "$(printf '%s\n' "$EMULATOR_DEVICES" | sed '/^$/d' | wc -l)" -eq 1 ]] ||
@@ -272,7 +323,7 @@ QEMU="$(adb_shell getprop ro.kernel.qemu)"
 {
   log "serial=$SERIAL"
   log "emulator_serials=$(printf '%s\n' "$EMULATOR_DEVICES" | sed '/^$/d' | paste -sd, -)"
-  log "all_attached_transports=$(printf '%s\n' "$ALL_DEVICES" | sed '/^$/d' | paste -sd, -)"
+  transport_summary "$ALL_TRANSPORTS" "$EMULATOR_DEVICES"
   log "addressed_serial=$SERIAL"
   log "non_emulator_transports_addressed=none"
 } >"$RUN_DIR/device-binding.txt"
@@ -330,13 +381,13 @@ DEVICE_FIXTURE_SIZE="$(adb_shell stat -c %s "$STAGING/$FIXTURE")"
 
 {
   log "staging $STAGING/$FIXTURE sha256=$DEVICE_FIXTURE_SHA size=$DEVICE_FIXTURE_SIZE"
-  log "host $APP/assets/fixtures/$FIXTURE sha256=$HOST_FIXTURE_SHA"
+  log "host $(host_relative "$APP/assets/fixtures/$FIXTURE") sha256=$HOST_FIXTURE_SHA"
   log "pages=2 (the committed fixture is used unchanged; no damaged-page variant)"
 } >"$RUN_DIR/fixture-sha256.txt"
 
 # --- 3. Privacy source check -------------------------------------------------
-if grep -nE '\b(HttpClient|HttpRequest|Socket|WebSocket|RawDatagramSocket|NetworkImage)\b|https?://' \
-  "$APP/$TEST_FILE" >"$RUN_DIR/privacy-source-check.txt" 2>&1; then
+if (cd "$APP" && grep -nE '\b(HttpClient|HttpRequest|Socket|WebSocket|RawDatagramSocket|NetworkImage)\b|https?://' \
+  "$TEST_FILE") >"$RUN_DIR/privacy-source-check.txt" 2>&1; then
   printf 'FAIL: network API reference found in %s\n' "$TEST_FILE" \
     >>"$RUN_DIR/privacy-source-check.txt"
   PRIVACY_PASS=0
@@ -368,11 +419,13 @@ fi
   fail "flutter pub get --offline failed; see host-flutter-pub-get.log"
 
 # --- 6. Start the integration test ------------------------------------------
-adb_shell logcat -c >/dev/null
+adb_shell logcat -c >/dev/null ||
+  fail "cannot clear the device logcat buffer; refusing to run with a stale marker window"
 mkdir -p "$RUN_DIR/screenshots" >/dev/null
 # A previous aborted run can leave acknowledgements behind. Remove them before
 # the test starts so no `_waitForDriver` can return on a stale ack.
-adb_shell rm -f "$STAGING"/ack-* >/dev/null
+adb_shell rm -f "$STAGING"/ack-* >/dev/null ||
+  fail "cannot clear stale screenshot acknowledgements in $STAGING"
 
 (
   cd "$APP" || exit 1
@@ -381,9 +434,13 @@ adb_shell rm -f "$STAGING"/ack-* >/dev/null
 ) >"$LOG" 2>&1 &
 TEST_PID=$!
 
+# The test harness prints the T086 markers into the current run log ($LOG). The
+# device logcat buffer is never consulted: the markers are emitted by the test
+# process, not by the app, so no committed logcat capture of any driver in this
+# repository contains one; a fallback would only add an unbounded adb roundtrip
+# per second to the wait loop and could still turn a stale marker into a pass.
 marker_present() {
-  grep -F "T086_$1" "$LOG" >/dev/null 2>&1 && return 0
-  "$ADB" -s "$SERIAL" logcat -d 2>/dev/null | grep -F "T086_$1" >/dev/null
+  grep -F "T086_$1" "$LOG" >/dev/null 2>&1
 }
 
 wait_for_marker() {
@@ -444,7 +501,7 @@ TEST_EXIT=$?
 {
   for apk in "$APP"/build/app/outputs/flutter-apk/*.apk; do
     [[ -f "$apk" ]] || continue
-    log "path=$apk"
+    log "path=$(host_relative "$apk")"
     log "sha256=$(sha256sum "$apk" | awk '{print $1}')"
     log "bytes=$(stat -c %s "$apk")"
   done
