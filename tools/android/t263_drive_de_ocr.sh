@@ -32,6 +32,15 @@
 # evidence directory. A non-empty evidence directory is refused unless
 # `T263_REPLACE_EVIDENCE=1` is set, in which case it is backed up first.
 #
+# The driver fails closed. A gate failure ends with `EMULATOR NOT_RUN` (exit 2)
+# before any device command runs, so a physical handset can never be addressed; a
+# failing `logcat -c` is fatal; markers are read from the integration run log
+# only, never from the device logcat buffer; and SIGINT/SIGTERM abort with
+# 130/143 instead of continuing with a half-started test. The evidence metadata
+# files are committed, so the driver records repo-relative paths only
+# (`apps/...` instead of `/home/...`) and describes the attached ADB transports
+# by class and count instead of repeating foreign device names.
+#
 # Usage (repo root): tools/android/t263_drive_de_ocr.sh
 set -uo pipefail
 
@@ -148,7 +157,19 @@ cleanup() {
   adb_shell am force-stop "$APP_ID" >/dev/null
   rm -f "$RUN_DIR/logcat-full.txt"
 }
-trap cleanup EXIT INT TERM
+trap cleanup EXIT
+
+# SIGINT/SIGTERM must end the run: a handler that only cleans up would let the
+# driver continue with a half-started test and still report a result.
+on_signal() {
+  local signal="$1" code="$2"
+  trap - EXIT INT TERM
+  log "T263 DRIVER: received SIG$signal; cleaning up and aborting"
+  cleanup
+  exit "$code"
+}
+trap 'on_signal INT 130' INT
+trap 'on_signal TERM 143' TERM
 
 prepare_evidence_dir() {
   if [[ "$EVIDENCE_DIR" == "$RUN_DIR" ]]; then
@@ -199,7 +220,10 @@ collect_evidence() {
     t263-text-layer-report.json \
     commands.txt; do
     if [[ -f "$RUN_DIR/$file" ]]; then
-      cp "$RUN_DIR/$file" "$EVIDENCE_DIR/$file" ||
+      # The bundle is committed, so host paths are rewritten on the way in; the
+      # run directory keeps the verbatim log for diagnosis.
+      sed -e "s|$ROOT/||g" -e "s|$ROOT|.|g" -e "s|$HOME/|~/|g" "$RUN_DIR/$file" \
+        >"$EVIDENCE_DIR/$file" ||
         fail "cannot write evidence file $file"
     fi
   done
@@ -361,25 +385,26 @@ fi
   fail "flutter pub get --offline failed; see host-flutter-pub-get.log"
 
 # --- 6. Run the integration test -------------------------------------------
-adb_shell logcat -c >/dev/null
+adb_shell logcat -c >/dev/null ||
+  fail "cannot clear the device logcat buffer; refusing to run with a stale marker window"
 (
   cd "$APP" || exit 1
   exec "${FLUTTER_ENV[@]}" "$FLUTTER" test --no-pub "$TEST_FILE" -d "$SERIAL"
 ) >"$LOG" 2>&1 &
 TEST_PID=$!
 
+# The test harness prints the T263 markers into the current run log ($LOG). The
+# device logcat buffer is never consulted: `logcat-t263-markers.log` of every
+# committed T263 run is empty, so a fallback would only add an unbounded adb
+# roundtrip per poll and could still turn a stale marker into a pass.
 marker_present() {
-  grep -F "T263_$1" "$LOG" >/dev/null 2>&1 && return 0
-  "$ADB" -s "$SERIAL" logcat -d 2>/dev/null | grep -F "T263_$1" >/dev/null
+  grep -F "T263_$1" "$LOG" >/dev/null 2>&1
 }
 
-# Reads the value of a `T263_<key>=<value>` marker from the test log or logcat.
+# Reads the value of a `T263_<key>=<value>` marker from the run log.
 marker_value() {
   local key="$1" line
   line="$(grep -F "T263_$key=" "$LOG" 2>/dev/null | tail -1)"
-  if [[ -z "$line" ]]; then
-    line="$("$ADB" -s "$SERIAL" logcat -d 2>/dev/null | grep -F "T263_$key=" | tail -1 | tr -d '\r')"
-  fi
   printf '%s' "${line##*T263_$key=}"
 }
 
