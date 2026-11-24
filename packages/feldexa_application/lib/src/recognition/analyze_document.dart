@@ -75,7 +75,13 @@
 ///    page/geometry invariant, not a diagnosed unreadable structure.
 ///    Assembly failures are `internal`. An OCR failure is never a page
 ///    failure and only sets `ocrUsed = false`.
-///  * Cancellation is checked once per page before any work. A cancelled page
+///  * Cancellation is polled at every cheap checkpoint of a page, not once per
+///    page: at the page boundary before any work, again after render and OCR
+///    before the geometry/typing stage is dispatched, and every
+///    `_cancellationScanlineStride` scanlines while the rendered raster is
+///    converted to tight bytes. It cannot stop the stage itself: the token is a
+///    caller-side decision no worker isolate can observe, so an off-isolate page
+///    is bounded by `defaultPageAnalysisDeadline` instead. A cancelled page
 ///    produces no terminal envelope and is reported separately, never as
 ///    failed (contract §4).
 ///  * No label text, OCR text, file name, or path is logged. The use case has
@@ -570,8 +576,7 @@ abstract final class AnalyzeDocument {
   /// guessing a page size.
   ///
   /// The returned pixels are the bytes-level input of the geometry/typing
-  /// stage; [RasterPageStageTask] copies them, so the OCR image keeps its own
-  /// buffer.
+  /// stage, which takes ownership of them; the OCR image keeps its own buffer.
   ///
   /// The scanline loop consults [isCancelled] once per
   /// [_cancellationScanlineStride] rows and throws [_PageCancelled] between

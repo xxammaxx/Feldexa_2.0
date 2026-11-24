@@ -82,34 +82,6 @@ const Duration defaultPageAnalysisDeadline = Duration(seconds: 10);
 /// Minimum ordinal width of a suggestion id (`recognition-output.md` §2).
 const int _ordinalWidth = 4;
 
-/// The §3.2 type forced by a keyword lexicon entry.
-///
-/// Entries are the type-forcing keywords only. Neutral identity, address,
-/// bank, reference, and dialog keywords are intentionally absent: they supply
-/// evidence but do not state a type.
-const Map<String, String> _keywordForcedTypes = <String, String>{
-  // Date keywords.
-  'geburtsdatum': 'date',
-  'datum': 'date',
-  'jahr': 'date',
-  // Explicit numeric keywords.
-  'betrag': 'number',
-  'summe': 'number',
-  'iban': 'number',
-  'steuernummer': 'number',
-  // Numeric-looking text fields (§3.2 keeps leading zeros/formatting).
-  'plz': 'text',
-  'telefon': 'text',
-  // Date-guarded text fields (§3.2 never forces a fake date).
-  'monat': 'text',
-  'zeitraum': 'text',
-  'von': 'text',
-  'bis': 'text',
-  // Signature keywords.
-  'unterschrift': 'signature',
-  'datum/unterschrift': 'signature',
-};
-
 /// One bytes-level geometry/typing stage task.
 ///
 /// [pixels] is the tight, row-major, one-byte-per-pixel grayscale raster: its
@@ -118,26 +90,31 @@ const Map<String, String> _keywordForcedTypes = <String, String>{
 /// stage aligns against, [ocrUsed] is the §3.3 OCR availability signal, and
 /// [pageIndex] is the id prefix of the section 2 suggestion ids.
 ///
-/// The task is immutable and holds a copy of the pixel buffer, so a caller can
-/// reuse or discard its own buffer immediately.
+/// The task *is* the worker isolate message, so it takes ownership of [pixels]
+/// instead of duplicating them: the runner serializes the buffer for the worker
+/// anyway, and a defensive copy here would add a second full page raster to the
+/// calling isolate's peak for a buffer nobody reads again (SC-004 memory). A
+/// caller therefore hands over a buffer it does not use afterwards.
+///
+/// The stage analyses the raster with the documented `defaultInkThreshold` of
+/// the T051 analysis. A task carries no threshold override, so a caller cannot
+/// pass a value that nothing consumes.
 final class RasterPageStageTask {
-  /// Creates a task and copies [pixels].
+  /// Creates a task that takes ownership of [pixels].
   ///
   /// Throws a content-free [ArgumentError] for a negative page index, a
-  /// non-positive dimension, a buffer length that is not `width * height`, a
-  /// non-finite or non-positive page size, or an ink threshold outside
-  /// `0 ... 256`.
+  /// non-positive dimension, a buffer length that is not `width * height`, or a
+  /// non-finite or non-positive page size.
   RasterPageStageTask({
     required this.pageIndex,
-    required Uint8List pixels,
+    required this.pixels,
     required this.width,
     required this.height,
     required this.pageWidthPt,
     required this.pageHeightPt,
-    this.inkThreshold = defaultInkThreshold,
     this.labels = const <LabelObservation>[],
     this.ocrUsed = false,
-  }) : pixels = Uint8List.fromList(pixels) {
+  }) {
     if (pageIndex < 0) {
       throw ArgumentError('pageIndex must be non-negative.');
     }
@@ -155,15 +132,14 @@ final class RasterPageStageTask {
         pageHeightPt <= 0) {
       throw ArgumentError('page size must be finite and positive.');
     }
-    if (inkThreshold < 0 || inkThreshold > 256) {
-      throw ArgumentError('inkThreshold must be inside 0 ... 256.');
-    }
   }
 
   /// Zero-based page index used as the suggestion id prefix.
   final int pageIndex;
 
   /// Tight grayscale pixels, `width * height` bytes, no row padding.
+  ///
+  /// Owned by this task; the caller must not mutate or reuse the buffer.
   final Uint8List pixels;
 
   /// Raster width in pixels.
@@ -177,9 +153,6 @@ final class RasterPageStageTask {
 
   /// Page display height in points after rotation.
   final double pageHeightPt;
-
-  /// Luminance threshold below which a pixel counts as ink.
-  final int inkThreshold;
 
   /// OCR observations, already ordered by the §5.3 comparison.
   final List<LabelObservation> labels;
@@ -449,7 +422,7 @@ bool _keywordMatchesInferredType(List<String> addedCues, String proposedType) {
       continue;
     }
     final String key = cue.substring('keyword_'.length);
-    if (_keywordForcedTypes[key] == proposedType) {
+    if (TypeInference.forcedTypeForKey(key) == proposedType) {
       return true;
     }
   }

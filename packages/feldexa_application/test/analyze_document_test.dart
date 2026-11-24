@@ -228,6 +228,20 @@ _RasterSpec _paddedRaster(_RasterSpec base, {int padding = 4}) {
   return _RasterSpec(bytes: padded, bytesPerRow: stride);
 }
 
+/// Geometry and rule-set edge page for the execution-mode equality tests.
+///
+/// Four thin underlines: one plain, one wider than the 80 pt multiline bound,
+/// and one on each page edge. The matching labels cover the §3.2 keyword
+/// classes the plain fixtures do not reach.
+_RasterSpec _adversarialPage() {
+  final _Canvas canvas = _Canvas()
+    ..fillRect(100, 100, 200, 102)
+    ..fillRect(80, 200, 320, 202)
+    ..fillRect(0, 300, 100, 302)
+    ..fillRect(300, 380, 400, 382);
+  return _RasterSpec(bytes: canvas.build());
+}
+
 OcrBlock _ocrBlock({
   required String text,
   required Rect rect,
@@ -968,8 +982,17 @@ void main() {
 
   test(
     'a page whose stage outlives the deadline fails closed while the next page '
-    'completes',
+    'stays byte-identical to its baseline',
     () async {
+      final DocumentAnalysisResult baseline = await AnalyzeDocument.run(
+        _request(
+          raster: _FakeRaster(<int, _RasterSpec>{
+            0: _underlinePage(),
+            1: _underlinePage(top: 100),
+          }),
+          pages: <DocumentAnalysisPage>[_page(0), _page(1)],
+        ),
+      );
       final DocumentAnalysisResult result = await AnalyzeDocument.run(
         _request(
           raster: _FakeRaster(<int, _RasterSpec>{
@@ -993,6 +1016,14 @@ void main() {
       expect(result.pages[1].pageIndex, 1);
       expect(result.pages[1].isFailed, isFalse);
       expect(result.pages[1].suggestions, hasLength(1));
+      // The sibling page must not merely survive: killing and joining page
+      // 0's worker may not leave a trace in page 1's projection. Comparing
+      // against the same page analysed without a stalled neighbour catches a
+      // silent degradation that a suggestion count cannot see.
+      expect(
+        result.pages[1].canonicalJson(),
+        baseline.pages[1].canonicalJson(),
+      );
     },
     timeout: const Timeout(Duration(seconds: 30)),
   );
@@ -1090,6 +1121,64 @@ void main() {
       expect(inline.pages[2].suggestions, hasLength(2));
     },
   );
+
+  test('an adversarial geometry and rule-set page projects identically in both '
+      'execution modes', () async {
+    // One page that exercises rule-set and geometry edges the three fixtures
+    // above do not reach: a date word next to a date guard (suppression), an
+    // explicit numeric keyword, a numeric-formatting text keyword, the
+    // printed date mask, four credible labels on one page, and candidates on
+    // both page edges.
+    DocumentAnalysisRequest build() => _request(
+      raster: _FakeRaster(<int, _RasterSpec>{3: _adversarialPage()}),
+      ocr: _FakeOcr(
+        blocksByPage: <int, List<OcrBlock>>{
+          3: <OcrBlock>[
+            _ocrBlock(text: 'Monat Datum', rect: Rect.fromLTWH(10, 24, 22, 10)),
+            _ocrBlock(text: 'IBAN', rect: Rect.fromLTWH(10, 60, 22, 10)),
+            _ocrBlock(text: 'Plz', rect: Rect.fromLTWH(10, 96, 22, 10)),
+            _ocrBlock(text: 'TT.MM.JJJJ', rect: Rect.fromLTWH(80, 124, 22, 10)),
+          ],
+        },
+      ),
+      pages: <DocumentAnalysisPage>[_page(3)],
+    );
+
+    final DocumentAnalysisResult offIsolate = await AnalyzeDocument.run(
+      build(),
+      execution: RecognitionExecution.offIsolate,
+    );
+    final DocumentAnalysisResult inline = await AnalyzeDocument.run(
+      build(),
+      execution: RecognitionExecution.inline,
+    );
+
+    // The rule-set oracle: the §3.2 keyword classes as §3.2 documents them.
+    final List<Map<String, Object?>> suggestions =
+        inline.pages.single.suggestions;
+    expect(
+      suggestions
+          .map((Map<String, Object?> suggestion) => suggestion['proposedType'])
+          .toList(),
+      <String>['text', 'number', 'text', 'date'],
+    );
+    expect(
+      suggestions
+          .map((Map<String, Object?> suggestion) => suggestion['labelText'])
+          .toList(),
+      <String>['Monat Datum', 'IBAN', 'Plz', 'TT.MM.JJJJ'],
+    );
+    expect(
+      offIsolate.pages.single.suggestions,
+      suggestions,
+      reason: 'the worker isolate must return the same suggestion maps',
+    );
+    expect(
+      offIsolate.pages.single.canonicalJson(),
+      inline.pages.single.canonicalJson(),
+      reason: 'the adversarial page must project identically in both modes',
+    );
+  });
 
   test('envelopes round-trip through the T057 validator', () async {
     final DocumentAnalysisResult result = await AnalyzeDocument.run(
