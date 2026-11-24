@@ -28,6 +28,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/package_root.dart';
+
 Widget _host(Widget child, {double width = 360, double textScale = 1.0}) {
   return MaterialApp(
     builder: (BuildContext context, Widget? widget) {
@@ -375,7 +377,9 @@ void main() {
   });
 
   test('production source imports only the Flutter presentation framework', () {
-    final File file = File('lib/features/fill/checkbox_control.dart');
+    final File file = File(
+      '${packageRoot.path}/lib/features/fill/checkbox_control.dart',
+    );
     expect(file.existsSync(), isTrue);
 
     final String source = file.readAsStringSync();

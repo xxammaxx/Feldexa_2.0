@@ -7,6 +7,8 @@ import 'dart:io';
 import 'package:feldexa_app/l10n/app_localizations_de.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/package_root.dart';
+
 /// T029 German string contract (FR-090, SC-014; corrected
 /// `contracts/error-catalog.de.md`).
 ///
@@ -14,8 +16,8 @@ import 'package:flutter_test/flutter_test.dart';
 /// every user-facing code row, label, dialog, and accessibility template with
 /// the German ARB and the committed generated localization code. It produces no
 /// `SIMULATED`, `EMULATOR`, or `DEVICE` evidence.
-const String _catalogPath =
-    '../../specs/001-scanned-form-workflow/contracts/error-catalog.de.md';
+const String _catalogRelativePath =
+    'specs/001-scanned-form-workflow/contracts/error-catalog.de.md';
 const String _arbPath = 'lib/l10n/app_de.arb';
 const String _generatedPath = 'lib/l10n/app_localizations_de.dart';
 
@@ -232,7 +234,8 @@ String _catalogKey(String code, int occurrence) {
 }
 
 Map<String, dynamic> _readArb() {
-  return jsonDecode(File(_arbPath).readAsStringSync()) as Map<String, dynamic>;
+  return jsonDecode(File('${packageRoot.path}/$_arbPath').readAsStringSync())
+      as Map<String, dynamic>;
 }
 
 Iterable<String> _messageKeys(Map<String, dynamic> arb) {
@@ -293,7 +296,8 @@ void main() {
   late Map<String, dynamic> arb;
 
   setUpAll(() {
-    catalog = File(_catalogPath).readAsStringSync();
+    catalog = File('${repositoryRoot.path}/$_catalogRelativePath')
+        .readAsStringSync();
     arb = _readArb();
   });
 
@@ -473,7 +477,8 @@ void main() {
   });
 
   test('generated localization code exposes every ARB key', () {
-    final String generated = File(_generatedPath).readAsStringSync();
+    final String generated = File('${packageRoot.path}/$_generatedPath')
+        .readAsStringSync();
 
     for (final String key in _messageKeys(arb)) {
       final RegExp accessor = RegExp(

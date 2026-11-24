@@ -30,6 +30,8 @@ import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/package_root.dart';
+
 const String _documentTitle = 'Antrag 2026';
 const String _templateTitle = 'Vorlage Standard';
 
@@ -538,7 +540,9 @@ void main() {
   );
 
   test('production source is ASCII, German-free, and presentation-only', () {
-    final File file = File('lib/features/start/delete_item.dart');
+    final File file = File(
+      '${packageRoot.path}/lib/features/start/delete_item.dart',
+    );
     expect(file.existsSync(), isTrue);
 
     final String source = file.readAsStringSync();

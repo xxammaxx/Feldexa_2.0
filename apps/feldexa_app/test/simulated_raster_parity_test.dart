@@ -29,10 +29,10 @@ import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:feldexa_recognition/src/raster.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/package_root.dart';
+
 const String _sourceId = '00000000-0000-4000-8000-000000000062';
 const String _fixtureDirectory = 'apps/feldexa_app/assets/fixtures';
-
-late Directory _repositoryRoot;
 
 /// Builds a hash-verified SIMULATED fixture for [widthPt] × [heightPt].
 SimulatedFixture _fixture({
@@ -109,15 +109,6 @@ void _expectParity(RasterImage image, PageGeometry geometry) {
 }
 
 void main() {
-  setUpAll(() {
-    _repositoryRoot = Directory.current.parent.parent;
-    expect(
-      File('${_repositoryRoot.path}/pubspec.yaml').readAsStringSync(),
-      contains('feldexa_workspace'),
-      reason: 'test must run from apps/feldexa_app inside the monorepo',
-    );
-  });
-
   test(
     'A4 portrait SIMULATED raster matches RasterSize.fromDisplaySize',
     () async {
@@ -167,7 +158,7 @@ void main() {
     'committed sf-001 fixture raster matches RasterSize.fromDisplaySize',
     () async {
       final Map<String, Object?> catalog = (jsonDecode(
-        File('${_repositoryRoot.path}/$_fixtureDirectory/catalog.json')
+        File('${repositoryRoot.path}/$_fixtureDirectory/catalog.json')
             .readAsStringSync(),
       ) as Map<String, Object?>);
       final List<Object?> fixtures = catalog['fixtures'] as List<Object?>;
@@ -177,7 +168,7 @@ void main() {
       final List<Map<String, Object?>> pages =
           (descriptor['pages'] as List<Object?>).cast<Map<String, Object?>>();
       final Uint8List pdfBytes = File(
-        '${_repositoryRoot.path}/$_fixtureDirectory/sf-001.pdf',
+        '${repositoryRoot.path}/$_fixtureDirectory/sf-001.pdf',
       ).readAsBytesSync();
 
       final SimulatedFixture fixture = _fixture(

@@ -9,6 +9,8 @@ import 'package:feldexa_app/l10n/app_localizations_de.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/package_root.dart';
+
 /// T045 `IMP-007` wording consistency (FR-005; CHK028; CR-3).
 ///
 /// The catalog is the normative source. This host-VM test compares its
@@ -16,8 +18,8 @@ import 'package:flutter_test/flutter_test.dart';
 /// localization, and the message the T041 mapper presents for a
 /// `tooLarge` rejection. It produces no `SIMULATED`, `EMULATOR`, or `DEVICE`
 /// evidence.
-const String _catalogPath =
-    '../../specs/001-scanned-form-workflow/contracts/error-catalog.de.md';
+const String _catalogRelativePath =
+    'specs/001-scanned-form-workflow/contracts/error-catalog.de.md';
 const String _arbPath = 'lib/l10n/app_de.arb';
 
 /// Exact catalog text, quoted here so a silent catalog/ARB edit that omits
@@ -72,9 +74,11 @@ List<String> _cells(String line) {
 
 void main() {
   test('catalog, ARB, generated text, and mapper agree on IMP-007', () {
-    final String catalog = File(_catalogPath).readAsStringSync();
-    final Map<String, dynamic> arb =
-        jsonDecode(File(_arbPath).readAsStringSync()) as Map<String, dynamic>;
+    final String catalog = File('${repositoryRoot.path}/$_catalogRelativePath')
+        .readAsStringSync();
+    final Map<String, dynamic> arb = jsonDecode(
+      File('${packageRoot.path}/$_arbPath').readAsStringSync(),
+    ) as Map<String, dynamic>;
     final AppLocalizationsDe l10n = AppLocalizationsDe();
     final ImportErrorMapper mapper = ImportErrorMapper(l10n);
     final ({String message, String recovery}) row = _catalogImp007(catalog);

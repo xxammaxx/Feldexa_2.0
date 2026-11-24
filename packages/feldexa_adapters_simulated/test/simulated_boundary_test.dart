@@ -9,8 +9,9 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/package_root.dart';
+
 void main() {
-  final Directory packageRoot = Directory.current;
   final Directory lib = Directory('${packageRoot.path}/lib');
 
   List<File> dartFiles() {

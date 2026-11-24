@@ -11,6 +11,8 @@ import 'package:feldexa_core/feldexa_core.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/package_root.dart';
+
 /// T049 German import-message and error-semantics tests (FR-006–FR-008,
 /// FR-094).
 ///
@@ -35,8 +37,8 @@ import 'package:flutter_test/flutter_test.dart';
 ///
 /// The tests produce no `SIMULATED`, `EMULATOR`, or `DEVICE` evidence. No
 /// emulator, device, browser, Android build, or platform channel is used.
-const String _catalogPath =
-    '../../specs/001-scanned-form-workflow/contracts/error-catalog.de.md';
+const String _catalogRelativePath =
+    'specs/001-scanned-form-workflow/contracts/error-catalog.de.md';
 
 const String _documentId = '5f0c3a52-3a6a-4f0b-9c2d-1b7e4d8a6c01';
 const String _sourceId = '7b2d4c1e-5f3a-4b8c-8a9d-2e6f0c1b3d42';
@@ -565,7 +567,7 @@ void main() {
 
     test('pinned sentences are exactly the committed catalog rows', () {
       final Map<String, _CatalogRow> rows = _importCatalogRows(
-        File(_catalogPath).readAsStringSync(),
+        File('${repositoryRoot.path}/$_catalogRelativePath').readAsStringSync(),
       );
 
       for (final _FailureCase failureCase in _failureCases()) {

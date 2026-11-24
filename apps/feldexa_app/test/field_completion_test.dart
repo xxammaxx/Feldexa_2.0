@@ -25,6 +25,8 @@ import 'package:feldexa_app/features/editor/field_completion.dart';
 import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/package_root.dart';
+
 /// Fixed UTC commit timestamp; never the wall clock.
 final DateTime _editedAt = DateTime.utc(2026, 11, 20);
 
@@ -271,7 +273,9 @@ void main() {
 
   group('production source purity', () {
     test('imports only the core model and writes no user-facing text', () {
-      final File file = File('lib/features/editor/field_completion.dart');
+      final File file = File(
+        '${packageRoot.path}/lib/features/editor/field_completion.dart',
+      );
       expect(file.existsSync(), isTrue);
 
       final String source = file.readAsStringSync();
