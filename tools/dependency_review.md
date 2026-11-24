@@ -393,3 +393,74 @@ Root pubspec.lock entries: 99 (94 hosted + 5 SDK)
 ```
 
 The exact `pubspec.lock` and Gradle resolution are the reproducible authority. Any version change requires a new D-19 review and a fresh licence/advisory scan.
+
+## 10. Refresh 2026-11-24 — Technologie- und Abhängigkeitsaudit
+
+- **Basis**: integriertes `main` = `1d6afea0516a300c21442f6e2361e4c9ac2b795b` (nach PR #305).
+- **Werkzeug**: `technology-refresh` v1.0.0 unter Pi 1.6.0 / pi-maintainer v6.2.0.
+- **Datum / Abrufe**: 2026-11-24, 16:28–16:34 UTC. Quellen-Belege mit HTTP-Status und
+  SHA-256, Entscheidungen und Aufschübe:
+  `tools/dependency_review_refresh_2026-11-24.md` und die
+  maschinenlesbare Fassung `tools/dependency_review_refresh_2026-11-24.json`; OCR-Teil in
+  `tools/dependency_review_refresh_2026-11-24.md` §11.
+- **Status**: Audit vollständig, **kein** sicherheits- oder kompatibilitätsgetriebener
+  Update-Zwang. Dieses Kapitel ändert keine Pinne, keine Konstante und keinen Vertrag; es
+  dokumentiert Entscheidungen und Aufschübe nach D-19.
+
+### 10.1 Fähigkeiten der Recherche (getrennt belegt)
+
+| Fähigkeit | Status |
+| --- | --- |
+| Vollständiger HTTPS-Abruf offizieller Registries/APIs/Seiten | verfügbar, 24 Abrufe ausgeführt (SHA-256 belegt) |
+| Allgemeine Websuche / Discovery | **BLOCKED** — kein Suchwerkzeug in der Harness-Session (Kind `researcher`: nur `read`/`write`/`contact_supervisor`, Antwort `BLOCKED_NO_SEARCH`) |
+| Modellrouten | `deepseek/deepseek-flash` und `zai-coding-cn/glm-5.3-flash` durch echte Aufrufe verifiziert; `anthropic/claude-haiku-4-5` per `pi auth check` bereit |
+
+Nicht ermittelte Sekundärliteratur wird nicht als gesichtet ausgegeben.
+
+### 10.2 Ergebnis
+
+| Kategorie | Anzahl | Entscheidung |
+| --- | --- | --- |
+| Sicherheitsgetriebene Updates | 0 | — |
+| Kompatibilitätsgetriebene Updates | 0 | — |
+| Bewusst aufgeschoben (`DEFER`) | 11 | Tranchen U1–U5, siehe 10.3 |
+| Unverändert (`KEEP`) | 9 | `pdf`, `printing`, `intl`, `crypto`, Android-Platform 36, `pdfbox-android` 2.0.27.0, BouncyCastle 1.87 (drei Artefakte) |
+
+### 10.3 Aufschübe mit Begründung
+
+| Komponente | installiert | neueste stabil | neueste kompatibel | Grund des Aufschubs |
+| --- | --- | --- | --- | --- |
+| Flutter / Dart | 3.47.7 / 3.13.5 | 3.50.1 / 3.14.0 | 3.47.9 / 3.13.7 | SDK-Wechsel ist host-global (alle Projekte des Hosts) → Owner-Entscheidung |
+| Gradle | 9.3.1 | 9.9.2 | 9.9.2 | Build-Toolchain, kein Advisory, volle Verifikation nötig |
+| AGP | 9.1.0 | 9.5.2 | 9.5.2 | wie Gradle (nur Google Maven autoritativ) |
+| KGP | 2.4.0 | 2.4.21 | 2.4.21 | wie Gradle |
+| `pdfrx` | 2.12.0 | 3.1.0 | 3.0.0 | 3.1.0 verlangt Dart `^3.14.0`/Flutter `>=3.50.0` |
+| `flutter_riverpod` | 2.6.1 | 3.5.0 | 3.5.0 | Major-Migration |
+| `go_router` | 16.3.0 | 18.1.4 | 18.1.4 | zwei Major-Sprünge |
+| `share_plus` | 12.0.2 | 13.3.1 | 13.3.1 | Major-Migration |
+| `image` | 4.12.0 | 4.13.1 | 4.13.1 | Raster-Pfad der OCR-Kette; Baseline von T263/T264 bliebe nicht vergleichbar |
+| `google_mlkit_text_recognition` | 1.0.2 | 1.0.3 | 1.0.3 | Nähe zur offenen T263-ACCEPTANCE; Wrapper ist laut T056 zusätzlich ungenutzt (die App nutzt das AAR `text-recognition:16.0.1` direkt) — entfernen statt aktualisieren |
+
+### 10.4 Advisory-Lage (echte Abfragen, nicht behauptet)
+
+| Ziel | Umfang | Ergebnis |
+| --- | --- | --- |
+| OSV, Ökosystem Pub | 96 versionierte Koordinaten aus `pubspec.lock` | 0 Advisories |
+| OSV, Ökosystem Maven | BouncyCastle 1.87 (`bcprov`/`bcpkix`/`bcutil-jdk15to18`), `pdfbox-android` 2.0.27.0 | 0 Advisories |
+
+### 10.5 Zwei Fehlquellen (dokumentiert, weil sie sonst zu falschen Schlüssen führen)
+
+1. `https://api.github.com/repos/flutter/flutter/releases/latest` liefert `3.19.0-0.1.pre`
+   (2024-01-11) und ist **nicht** der aktuelle Flutter-stable-Stand. Autoritativ ist
+   `releases_linux.json` (`current_release.stable`).
+2. `repo1.maven.org` für `com.android.tools.build:gradle` zeigt nur 2.x; AGP ist auf
+   **Google Maven** (`dl.google.com/dl/android/maven2`) publiziert.
+
+### 10.6 Bedingungen
+
+- Kein Major-Upgrade ohne eigenen Migrationsplan, eigene Red-/Green-Regressionstests und
+  Emulator-Journey.
+- Die Tranchen U1–U5 bleiben unausgeführt, bis der Owner sie freigibt; `pubspec.lock`,
+  `pubspec.yaml`, `gradle-wrapper.properties` und `settings.gradle.kts` sind unverändert.
+- T263-ACCEPTANCE bleibt offen; es werden keine Erfolgsschwellen nachträglich gesenkt.
+- Allgemeine Websuche bleibt `BLOCKED`, bis die Harness ein Suchwerkzeug bereitstellt.
