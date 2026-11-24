@@ -217,7 +217,10 @@ final class TrueTypeFont {
           glyph = (codePoint + delta) & 0xFFFF;
         } else {
           final int address =
-              rangeOffsets + segment * 2 + rangeOffset + (codePoint - start) * 2;
+              rangeOffsets +
+              segment * 2 +
+              rangeOffset +
+              (codePoint - start) * 2;
           if (address + 2 > data.lengthInBytes) {
             continue;
           }
@@ -315,9 +318,7 @@ final class FontPdfPage {
     final double baseline = yTop + size * 0.8;
     final double pdfY = heightPt - baseline;
     final String hex = _glyphHex(drawingFont, text);
-    final String render = bold
-        ? '${_n(size / 30)} w 2 Tr'
-        : '0 Tr';
+    final String render = bold ? '${_n(size / 30)} w 2 Tr' : '0 Tr';
     _operations.add(
       '${_color(gray)} BT /F1 ${_n(size)} Tf $render '
       '1 0 0 1 ${_n(x)} ${_n(pdfY)} Tm <$hex> Tj ET',
@@ -407,8 +408,22 @@ final class EmbeddedFontPdf {
   /// Fixed document id, identical to the shared synthetic writer
   /// (`FELDEXAFIXTURE01`) so every synthetic fixture follows one convention.
   static const List<int> documentId = <int>[
-    0x46, 0x45, 0x4C, 0x44, 0x45, 0x58, 0x41, 0x46, 0x49, 0x58, 0x54, 0x55,
-    0x52, 0x45, 0x30, 0x31,
+    0x46,
+    0x45,
+    0x4C,
+    0x44,
+    0x45,
+    0x58,
+    0x41,
+    0x46,
+    0x49,
+    0x58,
+    0x54,
+    0x55,
+    0x52,
+    0x45,
+    0x30,
+    0x31,
   ];
 
   /// Builds the complete PDF bytes.
@@ -477,9 +492,7 @@ final class EmbeddedFontPdf {
       font.bytes,
       extra: ' /Length1 ${font.bytes.length}',
     );
-    objects[7] = _streamObject(
-      _toUnicodeCMap(sortedGlyphs, reverse),
-    );
+    objects[7] = _streamObject(_toUnicodeCMap(sortedGlyphs, reverse));
 
     for (int index = 0; index < pageCount; index++) {
       final FontPdfPage page = _pages[index];
@@ -596,12 +609,7 @@ String _utf16BeHex(int codePoint) {
   final int offset = codePoint - 0x10000;
   final int high = 0xD800 + (offset >> 10);
   final int low = 0xDC00 + (offset & 0x3FF);
-  return _hexUpper(<int>[
-    high >> 8,
-    high & 0xFF,
-    low >> 8,
-    low & 0xFF,
-  ]);
+  return _hexUpper(<int>[high >> 8, high & 0xFF, low >> 8, low & 0xFF]);
 }
 
 List<int> _ascii(String value) => latin1.encode(value);
