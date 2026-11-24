@@ -415,7 +415,7 @@
     "keeps": 8,
     "ownerDecisionsRequired": [
       "U1 Flutter-Patch 3.47.9",
-      "U2 image + transitive Renderpfla-Patches nach T263-ACCEPTANCE",
+      "U2 image + transitive Renderpfad-Patches nach T263-ACCEPTANCE",
       "U3 Gradle/AGP/KGP",
       "U4 pdfrx 3.x nach Flutter 3.50.1",
       "U5 Riverpod/GoRouter/share_plus Majors",
