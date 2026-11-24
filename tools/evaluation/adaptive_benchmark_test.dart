@@ -7,8 +7,9 @@
 // acceptance threshold out of `acceptanceThresholds` instead of duplicating one,
 // checks the declared corpus seam and its dev/holdout/undeclared partition, the
 // same-DPI contrast-stretch variant and its frozen pixel budget, the frozen
-// metric definitions, the holdout-once discipline, and one real A/B/C run over
-// the productive stages on a single declared dev page.
+// metric definitions, the holdout-once discipline both in-process and through the
+// CLI, the declared false-accept boundary, and one real A/B/C run over the
+// productive stages on a single declared dev page.
 //
 // Host-only tooling. No OCR engine, emulator, device, or SIMULATED/EMULATOR
 // evidence, and no SC claim.
@@ -516,6 +517,63 @@ void main() {
       );
     });
 
+    _check('rejects one false accept under a declared zero limit', () {
+      ModeMetrics modeMetrics(Mode mode, int falseAccepts) => ModeMetrics(
+        mode: mode,
+        pageCount: 1,
+        passes: 1,
+        expected: 2,
+        matched: 1,
+        observed: 2,
+        extra: 1,
+        missing: 1,
+        duplicateUnmatched: 0,
+        kindMatched: 1,
+        labelledExpected: 2,
+        labelsAgree: 1,
+        meanMatchedIou: 0.9,
+        reviewNeeded: 1,
+        autoConfirmed: 0,
+        falseAccepts: falseAccepts,
+        latencyMillis: <int>[100],
+      );
+      final RequiredOutcome clause = benchmark.requiredOutcomes.firstWhere(
+        (RequiredOutcome outcome) =>
+            outcome.text.toLowerCase().startsWith('false accepts'),
+      );
+      final RunMetrics runMetrics = RunMetrics(
+        peakVariantPixels: 1000,
+        peakResidentSetBytes: 1024,
+        variantRasterHashes: const <String, String>{},
+      );
+
+      _expect(
+        clause.evaluate(<Mode, ModeMetrics>{
+          Mode.a: modeMetrics(Mode.a, 0),
+          Mode.b: modeMetrics(Mode.b, 0),
+          Mode.c: modeMetrics(Mode.c, 0),
+        }, runMetrics).passed,
+        'zero false accepts must satisfy the declared clause: ${clause.text}',
+      );
+      // The declared limit is a hard boundary: a single false accept in any one
+      // mode fails the whole run.
+      for (final Mode mode in Mode.values) {
+        final OutcomeVerdict verdict = clause.evaluate(
+          <Mode, ModeMetrics>{
+            Mode.a: modeMetrics(Mode.a, 0),
+            Mode.b: modeMetrics(Mode.b, 0),
+            Mode.c: modeMetrics(Mode.c, 0),
+          }..[mode] = modeMetrics(mode, 1),
+          runMetrics,
+        );
+        _expect(
+          !verdict.passed,
+          'one false accept in ${mode.name} must fail the clause: '
+          '${verdict.detail}',
+        );
+      }
+    });
+
     _check('an unchanged C result is no gain and keeps the baseline', () {
       final Map<Mode, ModeMetrics> identical = <Mode, ModeMetrics>{
         Mode.a: _metrics(mode: Mode.a),
@@ -568,6 +626,72 @@ void main() {
           policySha256: _pinnedPolicySha256,
         ),
       );
+    });
+
+    _check('the CLI refuses before it analyses a page of a scored holdout', () {
+      final Directory scratch = Directory.systemTemp.createTempSync(
+        't264d-guard',
+      );
+      try {
+        final File ledger = File('${scratch.path}/ledger.json');
+        // Score the *current* policy, whatever its version, so this check pins
+        // the wiring and not the frozen SHA.
+        HoldoutLedger.read(File('${scratch.path}/none.json'))
+            .record(
+              policySha256: benchmark.policySha256,
+              runId: 'test',
+              atUtc: DateTime.utc(2026, 11, 24),
+            )
+            .write(ledger);
+        final List<int> ledgerBefore = ledger.readAsBytesSync();
+        final File output = File('${scratch.path}/again.json');
+        final String cli = File.fromUri(
+          File.fromUri(Platform.script).parent.uri
+              .resolve('adaptive_benchmark.dart'),
+        ).path;
+
+        final ProcessResult result = Process.runSync(
+          Platform.resolvedExecutable,
+          <String>[
+            'run',
+            cli,
+            '--output',
+            output.path,
+            '--score',
+            'holdout',
+            '--holdout-ledger',
+            ledger.path,
+          ],
+          workingDirectory: Directory.current.path,
+          stdoutEncoding: utf8,
+          stderrEncoding: utf8,
+        );
+
+        _expect(
+          result.exitCode == 4,
+          'the CLI must refuse with exit 4, got ${result.exitCode}: '
+          '${result.stdout}${result.stderr}',
+        );
+        _expect(
+          !output.existsSync(),
+          'a refused holdout scoring must write no run artifact',
+        );
+        _expect(
+          '${result.stdout}${result.stderr}'.contains(
+            'holdout was already scored',
+          ),
+          'the refusal must name the scored holdout: '
+          '${result.stdout}${result.stderr}',
+        );
+        _expect(
+          _sameBytes(ledgerBefore, ledger.readAsBytesSync()),
+          'a refused scoring must not touch the ledger',
+        );
+      } finally {
+        if (scratch.existsSync()) {
+          scratch.deleteSync(recursive: true);
+        }
+      }
     });
   });
 
@@ -718,6 +842,18 @@ void _expectClose(double actual, double expected, String message) {
   if ((actual - expected).abs() > 1e-9) {
     throw StateError('$message: $actual != $expected');
   }
+}
+
+bool _sameBytes(List<int> left, List<int> right) {
+  if (left.length != right.length) {
+    return false;
+  }
+  for (int index = 0; index < left.length; index++) {
+    if (left[index] != right[index]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 void _expectThrows<T extends Object>(void Function() body) {

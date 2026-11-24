@@ -3,7 +3,7 @@
 | Item | Value |
 | --- | --- |
 | Code | `tools/evaluation/adaptive_benchmark.dart` |
-| Test | `dart tools/evaluation/adaptive_benchmark_test.dart` (19 checks) |
+| Test | `dart tools/evaluation/adaptive_benchmark_test.dart` (21 checks) |
 | Corpora | `corpusAndHoldout.devPages` (6) and `.holdoutPages` (4) of the declared synthetic corpus `field-inventory-synthetic-v1` |
 | Consumes (read-only) | `tools/evaluation/adaptive-policy.v1.json` (`frozen-before-run`, `implementation: BLOCKED`), `tools/evaluation/adaptive-provenance.v1.json`, `tools/evaluation/adaptive_trigger.dart`, `tools/evaluation/field_inventory_baseline.dart` (`buildSyntheticCorpus`) |
 | Evidence class | `NONE` (host VM only) |
@@ -19,12 +19,17 @@ Three schedules over identical inputs:
 | C | targeted adaptive | only where `decideAdaptiveTrigger` returns `secondPass` |
 
 Every pass is the productive host pipeline over one page:
-`RasterAnalysis` -> `GeometryDetector.detect` -> `TypeInference.infer` ->
-`FieldInventoryBuilder` -> `StructureComparison` against the ground truth the
-corpus declares at draw time. The corpus, its rasters, and its ground truth come
-from `buildSyntheticCorpus()`; the benchmark never draws a corpus of its own. The
+`RasterAnalysis` -> `GeometryDetector.detect` -> `TypeInference.infer`, scored by
+`StructureComparison` against the ground truth the corpus declares at draw time.
+The comparison runs on the one-proposal-per-candidate set: the `baselineObserved`
+branch of the frozen T264A scorer, one `ObservedField` with
+`provenance: 'suggestion'` per `GeometryCandidate`. `FieldInventoryBuilder` is
+built as well, but it only feeds the trigger signals (`fieldCandidates`,
+`coverage.unlabelledFieldCandidates`); no inventory-derived value enters the
+metrics. The corpus, its rasters, and its ground truth come from
+`buildSyntheticCorpus()`; the benchmark never draws a corpus of its own. The
 frozen `PhotometricQuality` measurement of the photometric original supplies the
-trigger signals.
+low-contrast trigger signal.
 
 Pass 2 analyses a variant of the *same* page. `renderStrategy.allowed` declares
 exactly two transforms: a same-DPI contrast stretch and a deskew at a
@@ -52,7 +57,8 @@ decided yet, so no suggestion set and no evidence row is claimed.
 | missing / extra / duplicate | structure-comparison counts against the declared ground truth |
 | review rate | observed proposals that carry at least one comparison defect (extra, geometry mismatch, type mismatch, ambiguous, unlabelled, duplicate) / observed proposals |
 | false accepts | auto-confirmed proposals that are extra or type-mismatched. Nothing is auto-confirmed, so the count is 0 by construction; `wouldBeFalseAccepts` reports how many defects would have become false accepts with an auto-confirm step, so the zero is not vacuous |
-| latency p50 / p95 | nearest-rank over the per-page **total** analysis time: A pays pass 1, B pays both passes on every page, C pays pass 2 only where the trigger admitted it |
+| latency p50 / p95 | nearest-rank percentiles of the per-page **total analysis** time of the passes: A pays pass 1, B pays both passes on every page, C pays pass 2 only where the trigger admitted it. The variant render (`renderContrastStretch`) and the `PhotometricQuality` measurement happen between the passes and are **not** in the measured time; only B and C consume the variant. The frozen outcome prose says "median latency"; the measured and compared quantity is p50 |
+| variant raster hashes | `run.variantRasterHashes`: variant id -> SHA-256 of the **last scored page's** variant raster of that id. It is not a per-page binding; the per-page truth is `pages[].pass2.inputRasterSha256` |
 | peak resident set | `VmHWM` of the kernel per-process status counters of the measured `dart` process, plus `dart:io ProcessInfo.maxRss` verbatim |
 | passes | analysis passes the mode executed over the scored pages |
 

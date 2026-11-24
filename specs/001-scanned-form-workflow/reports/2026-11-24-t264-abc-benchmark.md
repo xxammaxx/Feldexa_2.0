@@ -6,7 +6,7 @@
 | Result | `PARTIAL` |
 | Task / issue | `T264` / `#264` |
 | Date / timezone | `2026-11-24 15:40 Europe/Berlin` |
-| Revision | base commit `2a0c4c5dfbaa931eb988ad1eb3b54f92c013872e`, branch `t264d`; tree `dirty` while the checks ran, holding exactly these files with these SHA-256 values, and the same bytes are committed at the HEAD of this correction: `tools/evaluation/adaptive_benchmark.dart` SHA-256 `566644d7a172089f9278c40929a73b08328b7abe199537ef052978563d0f3b73`; `tools/evaluation/adaptive_benchmark_test.dart` SHA-256 `c01bc9ea25bc64ce2b282f7e77983ae1b81571f7cf8bec7489ea49b3d4e4de4c`; `tools/evaluation/field_inventory_baseline.dart` SHA-256 `3154e8e73fe3710a28ea7d24b93e25b6fd39e8955e8171b0273a3e69c6cb8d0e` (additive read-only corpus seam, byte-neutral: see check 7); `tools/evaluation/adaptive-benchmark.md` SHA-256 `6d0f50d04729ecbe62bb3c939247f28044e3d1be73835c4f37f0a8c08f41ad90`; `specs/001-scanned-form-workflow/reports/README.md` SHA-256 `2c67a0a08ae452b4099ac7183994903f88683304722089767475bdd9e2f0dbfa`; `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t264d-abc-benchmark/dev.json` SHA-256 `c14ff67ce23622266cbc07f7ac313432a7506b0f0d89ef13ed027b344fc99407`; `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t264d-abc-benchmark/holdout.json` SHA-256 `ce9e8d357bc5a9b8431b64f169d717b5c84427d0dbde993b4207418175d2dc47`; `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t264d-abc-benchmark/holdout-ledger.json` SHA-256 `bdcc3f7690445a4ae066df8fd9fa18a7467bd08c9f926003fb339cf4b87f6a83`; candidate commit SHA and this report's hash are recorded in the external attestation |
+| Revision | base commit `2a0c4c5dfbaa931eb988ad1eb3b54f92c013872e`, branch `t264d`; tree `dirty` while the checks ran, holding exactly these files with these SHA-256 values, and the same bytes are committed at the HEAD of this correction: `tools/evaluation/adaptive_benchmark.dart` SHA-256 `566644d7a172089f9278c40929a73b08328b7abe199537ef052978563d0f3b73`; `tools/evaluation/adaptive_benchmark_test.dart` SHA-256 `4de36450a03fa1f6707abd301129b5bfa06f0fa23ea42ff4064f9b53c45f8a11`; `tools/evaluation/field_inventory_baseline.dart` SHA-256 `3154e8e73fe3710a28ea7d24b93e25b6fd39e8955e8171b0273a3e69c6cb8d0e` (additive read-only corpus seam, byte-neutral: see check 7); `tools/evaluation/adaptive-benchmark.md` SHA-256 `1cde612ca57fef655b578d8f5a52ef134dd3299018216f4c14c2851001ddaa39`; `specs/001-scanned-form-workflow/reports/README.md` SHA-256 `84d9aaa116e3bb3b8984243b2bcebbbf692ec9c2fa86e0340e4068c4a74cf6c6`; `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t264d-abc-benchmark/dev.json` SHA-256 `c14ff67ce23622266cbc07f7ac313432a7506b0f0d89ef13ed027b344fc99407`; `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t264d-abc-benchmark/holdout.json` SHA-256 `ce9e8d357bc5a9b8431b64f169d717b5c84427d0dbde993b4207418175d2dc47`; `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t264d-abc-benchmark/holdout-ledger.json` SHA-256 `bdcc3f7690445a4ae066df8fd9fa18a7467bd08c9f926003fb339cf4b87f6a83`; candidate commit SHA and this report's hash are recorded in the external attestation |
 | External attestation | Coordinator-held worker_done transport attestation for the T264D dispatch; it records the candidate commit, tree, and this report's byte size and SHA-256 after the report commit |
 | Build identity | No application build artifact. Host Dart CLI `dart run tools/evaluation/adaptive_benchmark.dart`; no APK, Gradle, Android, release, or Web build |
 | Toolchain | Flutter `3.47.7` stable (framework `abaf9c5237`), Dart `3.13.5`, Python `3.14.8`; Linux `7.2.7-1-cachyos` x86_64 host VM with KVM; no emulator, device, browser, OCR engine, PDF engine, Android SDK, or Gradle invoked |
@@ -24,10 +24,15 @@ PASS/FAIL verdict per frozen acceptance outcome.
   `decideAdaptiveTrigger` returns `secondPass`.
 
 Every pass is the productive host pipeline on one 200 DPI page:
-`RasterAnalysis` -> `GeometryDetector.detect` -> `TypeInference.infer` ->
-`FieldInventoryBuilder` -> `StructureComparison` against the ground truth
-declared at draw time. The frozen `PhotometricQuality` measurement of the
-photometric original supplies the trigger signals.
+`RasterAnalysis` -> `GeometryDetector.detect` -> `TypeInference.infer`, scored by
+`StructureComparison` against the ground truth declared at draw time. The
+comparison runs on the one-proposal-per-candidate set — the `baselineObserved`
+branch of the frozen T264A scorer, one `ObservedField` with
+`provenance: 'suggestion'` per `GeometryCandidate` — and not on the built
+inventory. `FieldInventoryBuilder` is built as well, but only its trigger signals
+are consumed (`fieldCandidates`, `coverage.unlabelledFieldCandidates`); no
+inventory-derived value enters the metrics. The frozen `PhotometricQuality`
+measurement of the photometric original supplies the low-contrast trigger signal.
 
 **Why the result is `PARTIAL`.** The host-layer deliverable is complete: the
 benchmark runs, the thresholds are read from the frozen policy, and the holdout
@@ -42,12 +47,14 @@ real-corpus qualification, and any SC-001/SC-003/SC-004 claim remain `NOT_RUN`.
 ## 2. Revision and build
 
 Base commit `2a0c4c5dfbaa931eb988ad1eb3b54f92c013872e` (origin/main after the
-T264C integration). T264D adds exactly three files and one report row:
+T264C integration). T264D changes exactly five files: three new evaluation files,
+one additive read-only change to an existing evaluation module, and one index row
+in the reports README:
 
 | File | Role |
 | --- | --- |
 | `tools/evaluation/adaptive_benchmark.dart` | the A/B/C benchmark and its CLI |
-| `tools/evaluation/adaptive_benchmark_test.dart` | 19-check host harness, RED at base before the implementation existed |
+| `tools/evaluation/adaptive_benchmark_test.dart` | 21-check host harness (19 at the first cut plus the CLI holdout-refusal wiring and the false-accept boundary), RED at base before the implementation existed |
 | `tools/evaluation/field_inventory_baseline.dart` | additive read-only corpus seam (`buildSyntheticCorpus`, `syntheticCorpusIdentity`, `hostMemoryMeasurement`); `_fixtureIdentity` now delegates to `syntheticCorpusIdentity` instead of duplicating the derivation |
 | `tools/evaluation/adaptive-benchmark.md` | method and artefact documentation |
 | `specs/001-scanned-form-workflow/reports/README.md` | one index row for this report |
@@ -88,7 +95,7 @@ run, not a performance claim.
 | 14 | rights-cleared real-form corpus (`not applicable`) | `-` | none | `ABSENT` |
 
 Key result lines. Check 1 `Formatted 3 files (0 changed)`; check 2
-`No issues found!`; check 3 `19 checks, 0 failure(s)`; check 4
+`No issues found!`; check 3 `21 checks, 0 failure(s)`; check 4
 `benchmark written: scoreSet=dev pages=6 passes(A/B/C)=6/12/12 outcomes=11/12
 PASS noGain=true`; check 5 `benchmark written: scoreSet=holdout pages=4
 passes(A/B/C)=4/8/7 outcomes=12/12 PASS noGain=true`; check 6
@@ -98,6 +105,11 @@ eb940399…` and no run file was written; check 7 both runs printed
 byte-identical snapshot `8095dcf3a01bfe4bf753f4a41319ed8e25a4d2060a646d387696765c12e19975`;
 check 9 `26 checks, 0 failure(s)`; check 10 `Checks passed: 13; failed: 1;
 unavailable: 1; absent planned layers: 1`.
+
+Check 3 was re-run on the corrected harness bytes of this revision and reports
+`21 checks, 0 failure(s)` with exit `0`; the two checks added by the correction
+are the CLI holdout-refusal wiring and the false-accept threshold boundary
+(§7).
 
 Check 6 is the holdout-once enforcement, not a second scoring: the ledger entry
 from check 5 makes the tool exit `4` before any page is analysed, so the frozen
@@ -127,8 +139,12 @@ Both scored sets use the same declarations: `devPages` (6 pages, 27 declared
 fields) for development and `holdoutPages` (4 pages, 6 declared fields) scored
 once. Two drawn pages — `numeric-variants` and `multiline-area` — are **not**
 declared in `corpusAndHoldout`: they are not scored, they never enter the gate
-arithmetic, and no result is claimed for them. Their absence is explicit in every
-artifact (`undeclaredReason`) and in the CLI output (`UNSCORED …`).
+arithmetic, and no result is claimed for them. Their absence is explicit in the
+CLI output (`UNSCORED …`) and in the partition test of the harness. Both
+artifacts contain only the scored pages: `PageRun.undeclaredReason` is never set
+by this benchmark, so no artifact carries an excluded-page block. Such a block
+would be an artifact-schema change and would need a new policy version and a new
+holdout run; both artifacts therefore stay byte-unchanged in this correction.
 
 Pass-2 variant: only `renderStrategy.allowed[contrastStretch]` is exercised
 (same raster grid, measured 5th/95th percentiles to 0/255). `deskew` cannot be
@@ -173,11 +189,11 @@ Dev (6 pages, 27 declared fields) — development diagnostics, not the gate:
 | peak variant pixels | 0 | 3868706 | 3868706 |
 
 `false accepts` is 0 in every mode because nothing is auto-confirmed: the
-benchmark proposes a comparison result and stops. The counter is derived from the
-measured auto-confirm count instead of being hardcoded, and
-`wouldBeFalseAccepts` (9 on dev, 3 on holdout) reports how many extra or
-type-mismatched proposals would have become false accepts with an auto-confirm
-step, so the zero is not vacuous.
+benchmark proposes a comparison result and stops. The counter is derived from
+`autoConfirmed`, which this benchmark never increments (nothing is auto-confirmed);
+`wouldBeFalseAccepts` (9 on dev, 3 on holdout) makes that zero non-vacuous by
+reporting how many extra or type-mismatched proposals would have become false
+accepts with an auto-confirm step.
 
 Peak resident set, measured once per run from the kernel counters:
 `VmHWM` `355500` KiB (`364032000` bytes) on the dev run and `339572` KiB
@@ -257,6 +273,19 @@ noise-sensitive ones: they are single-run host JIT measurements of one process,
 not a performance claim, and no warm-up or repetition is claimed. A later
 repetition would need its own report.
 
+What the numbers behind these outcomes actually are: the frozen outcome prose
+says *median latency*, while the measured quantity is the p50 of the per-page
+analysis time — the nearest-rank percentile the harness pins (`[10, 20, 30, 40]`
+→ p50 `20`), which for an even page count is not the arithmetic median. The
+per-page value is the sum of the pass `Stopwatch` intervals (`RasterAnalysis`,
+`GeometryDetector.detect`, `TypeInference.infer`, `FieldInventoryBuilder`,
+`StructureComparison`). The variant render (`renderContrastStretch`) and the
+`PhotometricQuality` measurement of the photometric original happen between the
+passes and are **not** in the measured time; the harness renders eagerly on every
+page, but only B and C consume the variant, so only they would have to pay it.
+The measured p50 is therefore a lower bound on what B and C cost, not their total
+run time; no number in §5 or §6 changes because of this definition.
+
 ## 6. Performance
 
 No performance claim. SC-004 remains owned by T136 and T141 on a named Android
@@ -267,8 +296,8 @@ Host diagnostics of the two scored runs, host JIT, one run each, no warm-up:
 | Diagnostic | Dev run | Holdout run |
 | --- | ---: | ---: |
 | Pages / passes (A/B/C) | 6 / 6/12/12 | 4 / 4/8/7 |
-| Latency p50 (ms) | 242 / 481 / 481 | 258 / 479 / 479 |
-| Latency p95 (ms) | 369 / 670 / 670 | 342 / 638 / 638 |
+| Latency p50 (ms), per-page analysis time | 242 / 481 / 481 | 258 / 479 / 479 |
+| Latency p95 (ms), per-page analysis time | 369 / 670 / 670 | 342 / 638 / 638 |
 | Kernel peak resident set (`VmHWM`) | `355500` KiB | `339572` KiB |
 | `dart:io ProcessInfo.maxRss` (bytes, verbatim) | `364032000` | `347721728` |
 | Largest variant raster (px) | `3868706` | `3868706` |
@@ -278,7 +307,10 @@ The corpus is synthetic and the run happens after JIT warm-up of the harness
 itself, so these values are diagnostics of this host run only — they are not a
 budget, not a bound, and not comparable to any device measurement. `VmHWM` is the
 peak resident set of the whole `dart` process including the JIT and the page
-rasters, not a product memory figure.
+rasters, not a product memory figure. The latency rows are the nearest-rank
+percentiles of the per-page **analysis** time only: the variant render and the
+`PhotometricQuality` measurement between the passes are excluded (§5.4), so B and
+C are measured cheaper than they run.
 
 ## 7. Limitations
 
@@ -321,14 +353,44 @@ rasters, not a product memory figure.
 - No Android, emulator, device, UI, editor, persistence, export, or accessibility
   evidence; no SC-001/SC-003 (T142) or SC-004 (T136/T141) claim.
 
+### Residual review notes (P2, not fixed)
+
+Two independent reviews of the first cut found these lower-severity gaps. They
+are recorded, not repaired and not hidden:
+
+- `isNoGain` compares six axes (recall, precision, type accuracy, mean matched
+  IoU, missing fields, extra fields). It does **not** look at review rate or
+  latency, so a C run that only improved those two would still be reported as
+  `noGain`.
+- The harness check "does not duplicate the frozen variant pixel budget" proves
+  that the *parsed* bound is used (`frozen` and `frozen + 1`); it does not prove
+  the absence of a copy-pasted `8000000` literal anywhere in the implementation.
+- The check "evaluates every declared outcome to one PASS/FAIL verdict" only
+  asserts that each clause yields a verdict with a non-empty detail. It pins no
+  asymmetric A/C fixture, so it cannot catch a clause that silently compares C
+  with C. The false-accept clause now has a boundary fixture of its own; the
+  other eleven clauses do not.
+- `run.variantRasterHashes` carries one hash per variant id — the last scored
+  page of that variant, not a per-page binding. The per-page truth is
+  `pages[].pass2.inputRasterSha256`.
+- `inputs.policy.path` is the absolute policy path of the checkout that ran the
+  tool, so an artifact byte-compare across hosts or worktrees always differs
+  there (§9 step 8).
+- The once-only holdout rule is enforced per ledger file. The rule is documented,
+  not mechanically bound to a single canonical ledger path, so a second run
+  against a fresh ledger path would score the holdout again. The committed
+  artifact uses the ledger under
+  `reports/artifacts/2026-11-24-t264d-abc-benchmark/`, and a second scoring must
+  name a new policy version.
+
 ## 8. Artifacts
 
 | Artifact | Path | Bytes | SHA-256 |
 | --- | --- | ---: | --- |
 | Benchmark | `tools/evaluation/adaptive_benchmark.dart` | 71128 | `566644d7a172089f9278c40929a73b08328b7abe199537ef052978563d0f3b73` |
-| Benchmark test | `tools/evaluation/adaptive_benchmark_test.dart` | 25963 | `c01bc9ea25bc64ce2b282f7e77983ae1b81571f7cf8bec7489ea49b3d4e4de4c` |
+| Benchmark test | `tools/evaluation/adaptive_benchmark_test.dart` | 30357 | `4de36450a03fa1f6707abd301129b5bfa06f0fa23ea42ff4064f9b53c45f8a11` |
 | Corpus seam host | `tools/evaluation/field_inventory_baseline.dart` | 72956 | `3154e8e73fe3710a28ea7d24b93e25b6fd39e8955e8171b0273a3e69c6cb8d0e` |
-| Method notes | `tools/evaluation/adaptive-benchmark.md` | 6140 | `6d0f50d04729ecbe62bb3c939247f28044e3d1be73835c4f37f0a8c08f41ad90` |
+| Method notes | `tools/evaluation/adaptive-benchmark.md` | 7032 | `1cde612ca57fef655b578d8f5a52ef134dd3299018216f4c14c2851001ddaa39` |
 | Frozen adaptive policy | `tools/evaluation/adaptive-policy.v1.json` | 7414 | `eb940399ce1533aaa0a6dba4bba814b311a5041b06daeddc0f9866cacc40e073` |
 | Frozen provenance | `tools/evaluation/adaptive-provenance.v1.json` | 27851 | `50af51a9eab0def559b1100b2d9b1b290062cc414008d3f13596f174d8146c72` |
 | Trigger decision | `tools/evaluation/adaptive_trigger.dart` | 36588 | `b9947766fbd8f22a8b334a9f231cb76c42162b278e150fdc234cb7e6f04bea7e` |
@@ -344,7 +406,7 @@ rasters, not a product memory figure.
 2. Run `flutter pub get --offline` at the repository root for workspace
    resolution; `pubspec.lock` stays unchanged.
 3. Put the Dart SDK on `PATH` (or use an explicit path).
-4. `dart tools/evaluation/adaptive_benchmark_test.dart` → `19 checks, 0
+4. `dart tools/evaluation/adaptive_benchmark_test.dart` → `21 checks, 0
    failure(s)`, exit `0`.
 5. `dart run tools/evaluation/adaptive_benchmark.dart --output dev.json --score
    dev` → exit `3` with `outcomes=11/12 PASS noGain=true` and the single `FAIL`
@@ -355,9 +417,16 @@ rasters, not a product memory figure.
 7. Repeat step 6 → exit `4`, no run written, no page analysed. Deleting the
    ledger entry is a holdout-tuning act and needs a new policy version.
 8. Compare the artifact `inputs.corpus.fixtureSha256` / `corpusSha256` /
-   `groundTruthSha256` with §Input; they depend only on the corpus definition and
-   are identical on any host. Artifact bytes differ per run only in
-   `generatedAtUtc`, latencies, and the measured memory values.
+   `groundTruthSha256` and `inputs.corpus.scoredPages` with §Input; they depend
+   only on the corpus definition and are identical on any host. Artifact bytes
+   differ per run in `generatedAtUtc`, in the latencies, in the measured memory
+   values, and in `inputs.policy.path`: that field is the absolute path of the
+   policy file beside the running script, so it is host- and worktree-dependent
+   (`…/run-tscn02hu/worktrees/t264d/tools/evaluation/adaptive-policy.v1.json` for
+   the committed artifacts here) even though the policy bytes and
+   `inputs.policy.sha256` are identical. An earlier version of this step claimed
+   artifact bytes differ *only* in `generatedAtUtc`, latencies and memory; that
+   claim is wrong and is corrected here.
 9. `bash tools/gate.sh --offline --allow-absent --allow-unavailable` reproduces
    the pre-existing `tools/corpus/*.dart` format `FAIL` (issue #302) plus 13
    passing checks; the T264D files introduce no new failure.
