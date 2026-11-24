@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Code | `tools/evaluation/adaptive_trigger.dart` |
-| Test | `dart tools/evaluation/adaptive_trigger_test.dart` (32 checks) |
+| Test | `dart tools/evaluation/adaptive_trigger_test.dart` (43 checks) |
 | Consumes | `tools/evaluation/adaptive-policy.v1.json` (`frozen-before-run`, `implementation: BLOCKED`) and `tools/evaluation/adaptive-provenance.v1.json` (`decisionRule`) |
 | Task / issue | T264C / [#264](https://github.com/xxammaxx/Feldexa_2.0/issues/264) |
 | Evidence class | `NONE` (host logic and host tests only) |
@@ -37,6 +37,13 @@ Hysteresis is stateful: `TriggerRequest.latched` carries the previous decision's
 `AdaptiveDecision.latched` forward, so a trigger inside the band neither enters
 nor drops out. An unlatched trigger enters only through the stricter enter
 value, a latched one releases only beyond the leave value.
+
+The harness proves that ownership per value: every compared threshold, both
+non-numeric entry flags, and the bounds the decision only carries are edited in a
+mutation copy in a system temp directory, and the changed verdict (or the
+rendered, propagated value) has to follow. A constant hardcoded in the code fails
+its check. Only the `implementation`, `status` and `pageFailureIsolation`
+strings stay value-pinned without such a copy.
 
 `runtimeSignals.skew.metric` is the absolute angle, so a caller reading of
 `-3°` is `3°` of skew and enters the trigger; the reason line reports

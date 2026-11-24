@@ -9,7 +9,9 @@
 // same-DPI contrast-stretch variant and its frozen pixel budget, the frozen
 // metric definitions, the holdout-once discipline both in-process and through the
 // CLI, the declared false-accept boundary, and one real A/B/C run over the
-// productive stages on a single declared dev page.
+// productive stages on a single declared dev page. Every test artifact is
+// written to a system temp directory and removed again, so a run leaves nothing
+// behind in this tree or in a foreign working directory.
 //
 // Host-only tooling. No OCR engine, emulator, device, or SIMULATED/EMULATOR
 // evidence, and no SC claim.
@@ -595,13 +597,7 @@ void main() {
 
   _group('holdout discipline', () {
     _check('refuses a second holdout scoring for the same policy', () {
-      final Directory scratch = Directory(
-        '.dart_tool/adaptive_benchmark_test/holdout-ledger',
-      );
-      if (scratch.existsSync()) {
-        scratch.deleteSync(recursive: true);
-      }
-      scratch.createSync(recursive: true);
+      final Directory scratch = _scratchDir('holdout-ledger');
       final File ledger = File('${scratch.path}/ledger.json');
       final HoldoutLedger empty = HoldoutLedger.read(ledger);
       _expect(
@@ -695,6 +691,34 @@ void main() {
     });
   });
 
+  _group('test hygiene', () {
+    _check('the scratch directory is removed again', () {
+      final File mutated = _mutatedPolicy('cleanup-probe', (
+        Map<String, Object?> policy,
+      ) {
+        _acceptance(policy)['noGainClaim'] = true;
+      });
+      final Directory scratch = _scratch();
+      _expect(
+        mutated.existsSync(),
+        'the mutated artifact exists while running',
+      );
+      _expect(
+        mutated.path.startsWith(Directory.systemTemp.path),
+        'the mutated artifact must live under ${Directory.systemTemp.path}: '
+        '${mutated.path}',
+      );
+      _expect(
+        !mutated.path.contains('.dart_tool/adaptive_benchmark_test'),
+        'no scratch directory under .dart_tool: ${mutated.path}',
+      );
+      _expect(scratch.existsSync(), 'the scratch root exists while running');
+      _deleteScratch();
+      _expect(!scratch.existsSync(), 'the scratch root is deleted: $scratch');
+      _expect(!mutated.existsSync(), 'its artifacts are gone: ${mutated.path}');
+    });
+  });
+
   _group('one declared dev page, end to end', () {
     _check('runs A/B/C over the productive stages on the same source', () {
       final List<SyntheticCorpusPage> corpus = buildSyntheticCorpus();
@@ -771,6 +795,7 @@ void main() {
     });
   });
 
+  _deleteScratch();
   stdout.writeln('\n$_checks checks, $_failures failure(s)');
   if (_failures > 0) {
     exitCode = 1;
@@ -874,19 +899,41 @@ Map<String, Object?> _acceptance(Map<String, Object?> policy) =>
 Map<String, Object?> _corpusAndHoldout(Map<String, Object?> policy) =>
     policy['corpusAndHoldout']! as Map<String, Object?>;
 
+/// Scratch root for the test artifact copies, created on first use under the
+/// system temp directory so a run from any working directory leaves nothing in
+/// the tree. [main] deletes it before it prints its summary.
+Directory? _scratchRoot;
+
+Directory _scratch() => _scratchRoot ??= Directory.systemTemp.createTempSync(
+  'adaptive_benchmark_test.',
+);
+
+/// The per-artifact directory inside the scratch root, recreated per call.
+Directory _scratchDir(String name) {
+  final Directory target = Directory('${_scratch().path}/$name');
+  if (target.existsSync()) {
+    target.deleteSync(recursive: true);
+  }
+  target.createSync(recursive: true);
+  return target;
+}
+
+/// Deletes the scratch root; the next [_scratch] call creates a fresh one.
+void _deleteScratch() {
+  final Directory? scratch = _scratchRoot;
+  _scratchRoot = null;
+  if (scratch != null && scratch.existsSync()) {
+    scratch.deleteSync(recursive: true);
+  }
+}
+
 /// Writes a mutated copy of both frozen artifacts so a load sees the change.
 File _mutatedPolicy(
   String name,
   void Function(Map<String, Object?> policy) mutate,
 ) {
   final Directory source = File.fromUri(Platform.script).parent;
-  final Directory target = Directory(
-    '.dart_tool/adaptive_benchmark_test/$name',
-  );
-  if (target.existsSync()) {
-    target.deleteSync(recursive: true);
-  }
-  target.createSync(recursive: true);
+  final Directory target = _scratchDir(name);
   File.fromUri(source.uri.resolve('adaptive-provenance.v1.json'))
       .copySync('${target.path}/adaptive-provenance.v1.json');
   final Map<String, Object?> policy = jsonDecode(
