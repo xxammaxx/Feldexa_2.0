@@ -411,7 +411,7 @@ The exact `pubspec.lock` and Gradle resolution are the reproducible authority. A
 
 | Fähigkeit | Status |
 | --- | --- |
-| Vollständiger HTTPS-Abruf offizieller Registries/APIs/Seiten | verfügbar, 24 Abrufe ausgeführt (SHA-256 belegt) |
+| Vollständiger HTTPS-Abruf offizieller Registries/APIs/Seiten | verfügbar, 30+ vollständige Abrufe ausgeführt (HTTP-Status + SHA-256 je Abruf belegt) |
 | Allgemeine Websuche / Discovery | **BLOCKED** — kein Suchwerkzeug in der Harness-Session (Kind `researcher`: nur `read`/`write`/`contact_supervisor`, Antwort `BLOCKED_NO_SEARCH`) |
 | Modellrouten | `deepseek/deepseek-flash` und `zai-coding-cn/glm-5.3-flash` durch echte Aufrufe verifiziert; `anthropic/claude-haiku-4-5` per `pi auth check` bereit |
 
@@ -423,8 +423,8 @@ Nicht ermittelte Sekundärliteratur wird nicht als gesichtet ausgegeben.
 | --- | --- | --- |
 | Sicherheitsgetriebene Updates | 0 | — |
 | Kompatibilitätsgetriebene Updates | 0 | — |
-| Bewusst aufgeschoben (`DEFER`) | 11 | Tranchen U1–U5, siehe 10.3 |
-| Unverändert (`KEEP`) | 9 | `pdf`, `printing`, `intl`, `crypto`, Android-Platform 36, `pdfbox-android` 2.0.27.0, BouncyCastle 1.87 (drei Artefakte) |
+| Bewusst aufgeschoben (`DEFER`) | 12 | Tranchen U1–U6, siehe 10.3 |
+| Unverändert (`KEEP`) | 8 | `pdf`, `printing`, `intl`, `crypto`, `pdfbox-android` 2.0.27.0, BouncyCastle 1.87 (drei Artefakte) |
 
 ### 10.3 Aufschübe mit Begründung
 
@@ -434,12 +434,13 @@ Nicht ermittelte Sekundärliteratur wird nicht als gesichtet ausgegeben.
 | Gradle | 9.3.1 | 9.9.2 | 9.9.2 | Build-Toolchain, kein Advisory, volle Verifikation nötig |
 | AGP | 9.1.0 | 9.5.2 | 9.5.2 | wie Gradle (nur Google Maven autoritativ) |
 | KGP | 2.4.0 | 2.4.21 | 2.4.21 | wie Gradle |
+| Android-Platform (`compileSdk`/`targetSdk`) | 36 | 37.0 | 37.0 | 36 ist eine bewusste T002-Pinnung; Target-Wechsel ist eine Verhaltensänderung (Tranche U6, Owner-Entscheidung) |
 | `pdfrx` | 2.12.0 | 3.1.0 | 3.0.0 | 3.1.0 verlangt Dart `^3.14.0`/Flutter `>=3.50.0` |
 | `flutter_riverpod` | 2.6.1 | 3.5.0 | 3.5.0 | Major-Migration |
 | `go_router` | 16.3.0 | 18.1.4 | 18.1.4 | zwei Major-Sprünge |
 | `share_plus` | 12.0.2 | 13.3.1 | 13.3.1 | Major-Migration |
 | `image` | 4.12.0 | 4.13.1 | 4.13.1 | Raster-Pfad der OCR-Kette; Baseline von T263/T264 bliebe nicht vergleichbar |
-| `google_mlkit_text_recognition` | 1.0.2 | 1.0.3 | 1.0.3 | Nähe zur offenen T263-ACCEPTANCE; Wrapper ist laut T056 zusätzlich ungenutzt (die App nutzt das AAR `text-recognition:16.0.1` direkt) — entfernen statt aktualisieren |
+| `google_mlkit_text_recognition` | 1.0.2 | 1.0.3 | 1.0.3 | Nähe zur offenen T263-ACCEPTANCE; der Wrapper ist laut T056 ungenutzt (nirgends importiert, die App nutzt das AAR `text-recognition:16.0.1` direkt) — **entfernen statt aktualisieren**, eigenes Aufräum-Issue |
 
 ### 10.4 Advisory-Lage (echte Abfragen, nicht behauptet)
 
@@ -460,7 +461,7 @@ Nicht ermittelte Sekundärliteratur wird nicht als gesichtet ausgegeben.
 
 - Kein Major-Upgrade ohne eigenen Migrationsplan, eigene Red-/Green-Regressionstests und
   Emulator-Journey.
-- Die Tranchen U1–U5 bleiben unausgeführt, bis der Owner sie freigibt; `pubspec.lock`,
+- Die Tranchen U1–U6 bleiben unausgeführt, bis der Owner sie freigibt; `pubspec.lock`,
   `pubspec.yaml`, `gradle-wrapper.properties` und `settings.gradle.kts` sind unverändert.
 - T263-ACCEPTANCE bleibt offen; es werden keine Erfolgsschwellen nachträglich gesenkt.
 - Allgemeine Websuche bleibt `BLOCKED`, bis die Harness ein Suchwerkzeug bereitstellt.

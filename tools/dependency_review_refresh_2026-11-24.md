@@ -45,7 +45,7 @@ gesichtet ausgegeben.
 | Gradle | 9.3.1 | 9.9.2 | 9.9.2 | DEFER | Build-Toolchain, kein Advisory, volle Verifikation nötig |
 | AGP | 9.1.0 | 9.5.2 | 9.5.2 | DEFER | dito |
 | KGP | 2.4.0 | 2.4.21 | 2.4.21 | DEFER | dito |
-| Android-Platform | 36 | 36 | 36 | KEEP | 37.x nur Preview (`-beta`/`DEV`) |
+| Android-Platform | 36 | **37.0** (stabil; zusätzlich 36.1, 37.1, 37.2) | 37.0 | DEFER | Korrektur nach Review: API 37.0 ist als stabile Platform im SDK-Repo veröffentlicht (leerer `<codename>`, `channel-0`); 36 ist eine bewusste T002-Pinnung, ein Target-Wechsel ist eine Verhaltensänderung mit eigener Owner-Entscheidung und vollständiger App-Verifikation |
 | `pdf` / `printing` / `intl` / `crypto` | 3.13.1 / 5.15.1 / 0.20.3 / 3.0.8 | identisch | identisch | KEEP | aktuell |
 | `image` | 4.12.0 | 4.13.1 | 4.13.1 | DEFER | Raster-Pfad der OCR-Kette; T263/T264-Baseline bliebe nicht vergleichbar |
 | `google_mlkit_text_recognition` | 1.0.2 | 1.0.3 | 1.0.3 | DEFER | Wrapper ist laut T056 ungenutzt (App nutzt das AAR direkt) → entfernen statt aktualisieren |
@@ -74,7 +74,7 @@ nicht zu ändern.
 - **Sicherheitsgetriebene Updates: 0. Kompatibilitätsgetriebene Updates: 0.**
 - **Umgesetzte Updates: 0** — es gibt in diesem Stand nichts, was ohne Evidenzverlust oder
   Owner-Entscheidung *notwendig* wäre.
-- **11 Aufschübe** (Tranchen U1–U5), **9 unveränderte Komponenten**.
+- **12 Aufschübe** (Tranchen U1–U6), **8 unveränderte Komponenten**.
 - Keine Pin-, Lockfile-, Gradle- oder SDK-Änderung; Specs, D-19, Constitution und alle
   bestehenden Nachweise bleiben unberührt.
 
@@ -83,10 +83,12 @@ nicht zu ändern.
 | Tranche | Inhalt | Bedingung |
 | --- | --- | --- |
 | U1 | Flutter 3.47.7 → 3.47.9 (Dart 3.13.7) | Owner-Freigabe; volles Gate + `flutter build apk --debug` + Emulator-E2E |
-| U2 | `image` 4.13.1, `google_mlkit_*` 1.0.3, transitive Patches | **erst nach** T263-ACCEPTANCE; Baselines neu einfrieren |
+| U2 | `image` 4.13.1 + transitive Patches auf Renderpfad | **erst nach** T263-ACCEPTANCE; Baselines neu einfrieren |
 | U3 | Gradle 9.9.2, AGP 9.5.2, KGP 2.4.21 | voller Gradle-Build, Release-Manifest-/APK-Prüfung, Emulator-Smoke |
 | U4 | `pdfrx` 3.x | nach Flutter 3.50.1; Render-/PDFium-Vergleich auf dem Emulator |
 | U5 | `flutter_riverpod` 3.x, `go_router` 18.x, `share_plus` 13.x | je eigener Migrationsplan mit Regressionstests |
+| U6 | `compileSdk`/`targetSdk` 36 → 37.0 | Owner-Entscheidung; vollständiges Gate, Release-Manifest-/APK-Prüfung, Emulator-Journey, Plattformverhalten |
+| — (eigenes Aufräum-Issue, kein Update) | `google_mlkit_text_recognition` **entfernen** statt aktualisieren | Wrapper wird nirgends importiert (Beleg: nur `apps/feldexa_app/pubspec.yaml`); Entfernen braucht Gate + Android-Build |
 
 ## 7. Zwei Fehlquellen (dokumentiert, weil sie sonst zu falschen Schlüssen führen)
 
@@ -220,3 +222,29 @@ derzeit **keinen `LAB_CANDIDATE`**, den Feldexa übernehmen könnte.
 Kotlin-Service-Schicht und das `text-recognition:16.0.1`-AAR direkt an. Ein Wrapper-Bump
 ändert daher nichts am Laufzeit-OCR — als eigenes Aufräum-Issue aber sinnvoll (entfernen
 statt aktualisieren). Das entwertet die Defer-Begründung in `AUDIT.md` nicht, präzisiert sie.
+
+## 12. Korrekturen nach unabhängigem Review (2026-11-24)
+
+Review A des Endkandidaten fand zwei P1-Punkte; beide sind hier korrigiert, nicht beschönigt:
+
+1. **Android-Platform war falsch eingestuft.** Behauptet war „37.x nur Preview" und damit
+   `KEEP`. Tatsächlich enthält `repository2-3.xml` die Pakete `platforms;android-37.0`,
+   `android-37.1`, `android-37.2` und `android-36.1` mit **leerem `<codename>`** und
+   `channelRef channel-0` — das sind stabile Veröffentlichungen, keine Preview-Builds (nur
+   `android-37.2-beta1..3` tragen `DEV`/`CinnamonBun` als Codename und sind Vorschau).
+   Die Zeile steht jetzt auf `DEFER` mit der korrekten neuesten stabilen Platform **37.0**
+   und der Begründung, dass `compileSdk`/`targetSdk` 36 eine bewusste T002-Pinnung ist
+   (Tranche U6).
+2. **Tranche U2 widersprach der KEEP/DEFER-Logik für den ML-Kit-Wrapper.** U2 führte
+   `google_mlkit_*` 1.0.3 als Update, während die Entscheidung zu Recht „entfernen statt
+   aktualisieren" lautet. U2 enthält jetzt nur noch `image` + renderpfad-relevante Patches;
+   das Entfernen des ungenutzten Wrappers ist als eigenes Aufräum-Issue ausgewiesen.
+
+Zählung nach der Korrektur: **12 DEFER** (U1–U6 + Wrapper-Entfernung als eigene Aufgabe),
+**8 KEEP**. Die Aussagen zu Advsiories, Toolchain-Versionen, Fehlquellen und OCR-Lab sind
+vom Review bestätigt worden.
+
+Weitere Review-Hinweise (P2, nicht blockierend) sind als „Offene Beobachtungen" in §8
+festgehalten: verbleibendes Restrisiko, dass in diesem Audit-Zyklus keine Release-Note-Prosa
+für Flutter 3.50.x und die Majors gelesen wurde (für KEEP/DEFER nicht erforderlich, für
+U4/U5 zwingend).

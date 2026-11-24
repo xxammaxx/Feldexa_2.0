@@ -180,9 +180,9 @@
       "latestCompatible": "1.0.3",
       "decision": "defer",
       "scope": "dart-direct",
-      "reason": "Engine-/Wrapper-Naehe zur offenen T263-ACCEPTANCE; Wrapper ist laut T056 ausserdem ungenutzt (App nutzt das AAR text-recognition:16.0.1 direkt) -> eher entfernen als aktualisieren",
+      "reason": "Naehe zur offenen T263-ACCEPTANCE; der Dart-Wrapper ist laut T056 ungenutzt (nirgends importiert, nur in pubspec.yaml deklariert; die App nutzt das AAR text-recognition:16.0.1 direkt) -> entfernen statt aktualisieren",
       "acceptance": "vor Merge je Tranche: Regressionstests + Emulator-Journey",
-      "nextAction": "eigenes Aufraeum-Issue",
+      "nextAction": "eigenes Aufraeum-Issue (kein Update)",
       "receipts": [
         {
           "url": "https://pub.dev/api/packages/google_mlkit_text_recognition",
@@ -320,13 +320,13 @@
     {
       "component": "android-platform",
       "installed": "36",
-      "latestStable": "36",
-      "latestCompatible": "36",
-      "decision": "keep",
+      "latestStable": "37.0",
+      "latestCompatible": "37.0",
+      "decision": "defer",
       "scope": "android-build",
-      "reason": "37.x ist nur Preview (beta/DEV) in repository2-3.xml",
-      "acceptance": "-",
-      "nextAction": "-",
+      "reason": "Korrektur nach Review: API 37.0 ist als stabile Platform im SDK-Repo veroeffentlicht (leerer <codename>, channel-0; nur 37.x-beta* sind Preview). compileSdk/targetSdk 36 ist eine bewusste T002-Pinnung; ein Target-Wechsel ist eine Verhaltensaenderung mit eigener Owner-Entscheidung.",
+      "acceptance": "volles gate + Release-Manifest-/APK-Pruefung + Emulator-Journey",
+      "nextAction": "Tranche U6",
       "receipts": [
         {
           "url": "https://dl.google.com/android/repository/repository2-3.xml",
@@ -411,14 +411,17 @@
   "outcome": {
     "forcedUpdates": 0,
     "implementedUpdates": 0,
-    "deferrals": 11,
-    "keeps": 9,
+    "deferrals": 12,
+    "keeps": 8,
     "ownerDecisionsRequired": [
-      "U1/U2 Flutter-SDK (3.47.9 patch vs 3.50.1 minor)",
-      "U3 Gradle/AGP/KGP-Tranche",
-      "U4 pdfrx 3.x nach Flutter 3.50",
+      "U1 Flutter-Patch 3.47.9",
+      "U2 image + transitive Renderpfla-Patches nach T263-ACCEPTANCE",
+      "U3 Gradle/AGP/KGP",
+      "U4 pdfrx 3.x nach Flutter 3.50.1",
       "U5 Riverpod/GoRouter/share_plus Majors",
-      "T263-ACCEPTANCE"
+      "U6 compileSdk/targetSdk 36 -> 37.0",
+      "T263-ACCEPTANCE",
+      "Entfernen des ungenutzten google_mlkit_text_recognition-Wrappers"
     ]
   },
   "notes": [
@@ -433,5 +436,21 @@
     "ocrLabAssessment": "tools/dependency_review_refresh_2026-11-24.md §11",
     "skillFinding": "compute_slot.py reports exit 143 for successful runs — pi-maintainer skill maintenance, not this repository"
   },
-  "recordBaseCommit": "e81060f84883612eed68f6f041306bc1db7157c5"
+  "recordBaseCommit": "e81060f84883612eed68f6f041306bc1db7157c5",
+  "corrections": [
+    {
+      "foundBy": "Review A (deepseek/deepseek-flash) on candidate 770452b",
+      "item": "android-platform",
+      "was": "KEEP mit Begruendung '37.x nur Preview'",
+      "now": "DEFER, neueste stabile Platform 37.0; Beleg: repository2-3.xml, leerer <codename> + channel-0 fuer platforms;android-37.0/37.1/37.2/36.1",
+      "class": "P1 (falsche Tatsachenbehauptung)"
+    },
+    {
+      "foundBy": "Review A (deepseek/deepseek-flash) on candidate 770452b",
+      "item": "tranche U2",
+      "was": "U2 enthielt google_mlkit_* 1.0.3 als Update, im Widerspruch zu 'entfernen statt aktualisieren'",
+      "now": "U2 nur image + Renderpfad-Patches; Wrapper-Entfernung als eigenes Aufraeum-Issue",
+      "class": "P1 (interner Widerspruch)"
+    }
+  ]
 }
