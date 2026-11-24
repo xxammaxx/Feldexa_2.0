@@ -623,7 +623,7 @@ AdaptiveDecision decideAdaptiveTrigger({
       'decisionRule.minIndependentGroups='
           '${policy.provenance.minIndependentGroups}: the offered evidence covers '
           '${evidence.independentGroups} independent correlation group(s) '
-          '(${evidence.groups.join(', ')}). A repeated group is not independent '
+          '(${evidence.groupsLabel}). A repeated group is not independent '
           'evidence, so the request is refused instead of counted '
           '(decisionRule.insufficientGroupsOutcome).',
     );
@@ -903,6 +903,10 @@ final class _EvidenceSet {
   final List<String> notes;
 
   int get independentGroups => groups.length;
+
+  /// The group list as rendered in a refusal: `none` when no group survived,
+  /// so `correlationLimited` never prints an empty pair of parentheses.
+  String get groupsLabel => groups.isEmpty ? 'none' : groups.join(', ');
 }
 
 _EvidenceSet _selectEvidence(
