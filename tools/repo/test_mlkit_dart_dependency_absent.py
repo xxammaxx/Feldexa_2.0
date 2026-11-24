@@ -16,7 +16,20 @@ a pubspec declaration and a Dart import.
 The name patterns accept both spellings in circulation - ``google_mlkit`` and
 ``google_ml_kit`` - because either one ships the same plugin (issue #321).
 A hyphenated variant needs no pattern work: pub rejects any package name that is
-not a valid Dart identifier, so ``google-mlkit`` can never resolve.
+not a valid Dart identifier, so ``google-mlkit`` can never resolve. A dependency
+key may be quoted - ``"google_ml_kit_text_recognition": 1.0.2`` - because pub's
+YAML parser accepts single and double quotes around a plain key, so the key
+pattern tolerates them (issue #323).
+
+Deliberate limits, so a future reader does not mistake them for regressions:
+
+* The explicit YAML key syntax (``? google_ml_kit_text_recognition``) is *not*
+  covered. No pubspec in the workspace uses it, and it does not survive a copy
+  of a real dependency block, so it stays documented-unhandled instead of
+  growing the pattern into a YAML parser (issue #323).
+* ``DART_MLKIT_IMPORT`` also matches a URI mentioned in a Dart comment or string
+  literal. That is intended fail-closed behaviour, not a missing filter: such a
+  mention is worth a look even when nothing imports it (issue #323 point 4).
 
 The scan is deliberately manifest- and source-driven instead of resolved through
 ``flutter pub deps`` so the guard needs no Flutter, Pub cache, or network. Paths
@@ -30,6 +43,7 @@ Run with:
 from __future__ import annotations
 
 import re
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -39,8 +53,10 @@ REPO_ROOT = TEST_DIR.parents[1]
 # ``ml_?kit`` covers ``google_mlkit`` and ``google_ml_kit`` alike.
 MLKIT_DART_PACKAGE = re.compile(r"^google_ml_?kit[a-z0-9_]*$")
 # A YAML key that declares a package dependency, for example
-# ``  google_ml_kit_text_recognition: 1.0.2``.
-PUBSPEC_DEPENDENCY_KEY = re.compile(r"^[\s-]*(?P<name>[A-Za-z0-9_]+)\s*:")
+# ``  google_ml_kit_text_recognition: 1.0.2`` or its quoted form
+# ``  "google_ml_kit_text_recognition": 1.0.2``. The explicit key syntax
+# ``? name`` is a documented limit, see the module docstring.
+PUBSPEC_DEPENDENCY_KEY = re.compile(r"^[\s-]*[\"']?(?P<name>[A-Za-z0-9_]+)[\"']?\s*:")
 # Any package: URI, so an import and an export are caught alike; ``ml_?kit``
 # covers ``package:google_mlkit*`` and ``package:google_ml_kit*``.
 DART_MLKIT_IMPORT = re.compile(r"""\bpackage:google_ml_?kit[a-z0-9_]*/""")
@@ -165,6 +181,48 @@ class MlKitDartDependencyAbsentTest(unittest.TestCase):
                 self.assertIsNone(
                     DART_MLKIT_IMPORT.search(f"import 'package:{name}/x.dart';")
                 )
+
+    def test_the_key_pattern_accepts_quoted_dependency_keys(self) -> None:
+        """Quoted keys count, an unrelated quoted key does not (issue #323)."""
+        for line, expected in (
+            ('  "google_ml_kit_text_recognition": 1.0.2',
+             "google_ml_kit_text_recognition"),
+            ("  'google_mlkit_text_recognition': 1.0.2",
+             "google_mlkit_text_recognition"),
+            ('  "google_mlkit": any', "google_mlkit"),
+            ("- 'google_ml_kit_text_recognition': 1.0.2 # quoted list item",
+             "google_ml_kit_text_recognition"),
+            ("  google_mlkit_text_recognition: 1.0.2",
+             "google_mlkit_text_recognition"),
+        ):
+            with self.subTest(line=line):
+                match = PUBSPEC_DEPENDENCY_KEY.match(yaml_value_without_comment(line))
+                self.assertIsNotNone(match)
+                self.assertEqual(expected, match.group("name"))
+        for line in (
+            '  "description": "a quoted non-dependency key"',
+            "  'flutter':",
+            '  "": empty',
+        ):
+            with self.subTest(line=line):
+                match = PUBSPEC_DEPENDENCY_KEY.match(yaml_value_without_comment(line))
+                self.assertTrue(
+                    match is None or not MLKIT_DART_PACKAGE.match(match.group("name")),
+                    f"{line!r} must not count as an ML Kit declaration",
+                )
+
+    def test_a_quoted_declaration_is_reported(self) -> None:
+        """The end-to-end scan names a quoted declaration by file (issue #323)."""
+        with tempfile.TemporaryDirectory() as directory:
+            pubspec = Path(directory) / "pubspec.yaml"
+            pubspec.write_text(
+                "name: probe\ndependencies:\n"
+                '  "google_ml_kit_text_recognition": 1.0.2\n',
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                ["google_ml_kit_text_recognition"], declared_mlkit_packages(pubspec)
+            )
 
 
 if __name__ == "__main__":

@@ -474,7 +474,7 @@
       "transitiveAlsoRemoved": [
         "google_mlkit_commons"
       ],
-      "supersedes": "components[google_mlkit_text_recognition]: decision 'defer' mit nextAction 'eigenes Aufraeum-Issue (kein Update)' ist erledigt",
+      "supersedes": "components[google_mlkit_text_recognition]: decision 'defer' mit nextAction 'eigenes Aufraeum-Issue (kein Update)' ist erledigt; outcome.ownerDecisionsRequired[]: Eintrag 'Entfernen des ungenutzten google_mlkit_text_recognition-Wrappers' ist ebenfalls erledigt (nur dieser Nachtrag gilt, die Originalstellen bleiben Auditstand)",
       "notRewritten": "components[], outcome{}, notes[] und corrections[] bleiben der Stand des Auditzeitpunkts (2026-11-24, Abrufe 16:28-16:34 UTC)",
       "outcomeAfterAmendment": {
         "deferrals": 11,
