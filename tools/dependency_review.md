@@ -470,3 +470,11 @@ Nicht ermittelte Sekundärliteratur wird nicht als gesichtet ausgegeben.
 Direktabhängigkeit **entfernt** (PR #320 → Merge `9f41095`); der Dart-Wrapper war ungenutzt,
 die native OCR läuft unverändert über `com.google.mlkit:text-recognition:16.0.1`. Die
 Tabellen in 10.2/10.3 bleiben der Stand des Auditzeitpunkts; offene Aufschübe damit 11.
+
+**Nachtrag 2026-11-24 (T321B):** Die acht `-dontwarn`-Regeln für die optionalen
+ML-Kit-Skript-Erkenner sind aus `apps/feldexa_app/android/app/proguard-rules.pro` **entfernt**
+(2026-11-24, Issue #321 Punkt 2). Die Inertheit ist differentiell belegt: R8-Fehlermenge und
+`build/app/outputs/mapping/release/missing_rules.txt` (sha256 `d24173e1…`) sind vor und nach der
+Entfernung identisch, und der Report enthält keinen `com.google.mlkit.*`-Eintrag. Der
+Release-Build bleibt rot wegen `com.gemalto.jp2.JP2Decoder` (vorbestehend, Issue #326, nicht Teil
+dieses Auftrags); die Aussagen in 8.1/8.2 und C-T003-12 bleiben Auditstand.
