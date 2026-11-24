@@ -1994,52 +1994,14 @@ Map<String, Object?> _snapshot(List<_PageResult> pages) {
 /// over the canonical corpus manifest (page geometry plus both per-page
 /// digests), and `groundTruthSha256` is the SHA-256 over the canonical declared
 /// ground truth. All three are reproducible from the corpus definition alone.
-Map<String, Object?> _fixtureIdentity(List<_PageResult> pages) {
-  final List<Map<String, Object?>> manifest = <Map<String, Object?>>[
-    for (final _PageResult page in pages)
-      <String, Object?>{
-        'id': page.spec.id,
-        'scenario': page.spec.scenario,
-        'widthPt': page.spec.widthPt,
-        'heightPt': page.spec.heightPt,
-        'rasterSha256': page.spec.rasterSha256,
-        'groundTruthSha256': page.spec.groundTruthSha256,
-      },
-  ];
-  return <String, Object?>{
-    'corpusId': _corpusId,
-    'pageCount': pages.length,
-    'fixtureSha256': _sha256Hex(
-      utf8.encode(
-        <String>[for (final _PageResult page in pages) page.spec.rasterSha256]
-            .join('\n'),
-      ),
-    ),
-    'corpusSha256': _sha256Hex(
-      utf8.encode(
-        _canonicalJson(<String, Object?>{
-          'corpusId': _corpusId,
-          'pages': manifest,
-        }),
-      ),
-    ),
-    'groundTruthSha256': _sha256Hex(
-      utf8.encode(
-        _canonicalJson(<String, Object?>{
-          'corpusId': _corpusId,
-          'pages': <Map<String, Object?>>[
-            for (final _PageResult page in pages)
-              <String, Object?>{
-                'id': page.spec.id,
-                'groundTruthSha256': page.spec.groundTruthSha256,
-                'fieldCount': page.spec.expected.length,
-              },
-          ],
-        }),
-      ),
-    ),
-  };
-}
+Map<String, Object?> _fixtureIdentity(List<_PageResult> pages) =>
+    <String, Object?>{
+      'corpusId': _corpusId,
+      'pageCount': pages.length,
+      ...syntheticCorpusIdentity(<SyntheticCorpusPage>[
+        for (final _PageResult page in pages) _publicPage(page.spec),
+      ]),
+    };
 
 /// One real host memory measurement, recorded as a diagnostic only.
 ///
@@ -2148,3 +2110,193 @@ String _requiredPath(String name, String? value) {
   }
   return value;
 }
+
+// ---------------------------------------------------------------------------
+// T264D read-only seam: the declared corpus and the host memory measurement
+// ---------------------------------------------------------------------------
+//
+// The A/B/C benchmark (T264D) has to score exactly the corpus this tool draws
+// and the ground truth it declares at draw time, on identical inputs. It reads
+// both through this seam instead of drawing a second corpus. The seam exposes
+// values only: it adds no drawing, no analysis stage, no hash input and no
+// threshold, and the golden snapshot of this tool is unchanged by it.
+
+/// One ground-truth field as declared at draw time.
+final class SyntheticGroundTruthField {
+  const SyntheticGroundTruthField({
+    required this.id,
+    required this.rect,
+    required this.kind,
+    required this.labelText,
+    required this.sectionId,
+  });
+
+  /// Stable declared field id.
+  final String id;
+
+  /// Declared display-space rectangle.
+  final DisplayRect rect;
+
+  /// Declared kind.
+  final FieldInventoryKind kind;
+
+  /// Declared label text, or `null` for an unlabelled field.
+  final String? labelText;
+
+  /// Declared evaluation section that contains the field centre.
+  final String sectionId;
+}
+
+/// One declared OCR label observation of a synthetic page.
+///
+/// No OCR engine ran: the labels are declared observations of the synthetic
+/// corpus.
+final class SyntheticCorpusLabel {
+  const SyntheticCorpusLabel({required this.text, required this.rect});
+
+  /// Declared label text.
+  final String text;
+
+  /// Declared display-space rectangle.
+  final DisplayRect rect;
+}
+
+/// One drawn corpus page with its declared ground truth.
+final class SyntheticCorpusPage {
+  const SyntheticCorpusPage({
+    required this.id,
+    required this.scenario,
+    required this.description,
+    required this.widthPt,
+    required this.heightPt,
+    required this.raster,
+    required this.rasterSha256,
+    required this.rasterWidthPx,
+    required this.rasterHeightPx,
+    required this.groundTruthSha256,
+    required this.fields,
+    required this.labels,
+  });
+
+  /// Stable page id.
+  final String id;
+
+  /// Declared scenario token.
+  final String scenario;
+
+  /// Human-readable scenario description.
+  final String description;
+
+  /// Page width in display points.
+  final double widthPt;
+
+  /// Page height in display points.
+  final double heightPt;
+
+  /// The drawn 200 DPI grayscale raster.
+  final GrayRaster raster;
+
+  /// SHA-256 of the drawn raster bytes.
+  final String rasterSha256;
+
+  final int rasterWidthPx;
+  final int rasterHeightPx;
+
+  /// SHA-256 of the declared ground truth of this page.
+  final String groundTruthSha256;
+
+  /// Declared ground-truth fields, in declaration order.
+  final List<SyntheticGroundTruthField> fields;
+
+  /// Declared label observations.
+  final List<SyntheticCorpusLabel> labels;
+}
+
+/// Draws and returns the declared corpus in declaration order.
+///
+/// The drawing is deterministic, so repeated calls produce identical rasters
+/// and identical identity hashes.
+List<SyntheticCorpusPage> buildSyntheticCorpus() => <SyntheticCorpusPage>[
+  for (final _PageSpec spec in _corpus()) _publicPage(spec),
+];
+
+/// The corpus identity hashes of [pages] (the same derivation the run report
+/// records).
+Map<String, String> syntheticCorpusIdentity(
+  List<SyntheticCorpusPage> pages,
+) => <String, String>{
+  'fixtureSha256': _sha256Hex(
+    utf8.encode(
+      <String>[for (final SyntheticCorpusPage page in pages) page.rasterSha256]
+          .join('\n'),
+    ),
+  ),
+  'corpusSha256': _sha256Hex(
+    utf8.encode(
+      _canonicalJson(<String, Object?>{
+        'corpusId': _corpusId,
+        'pages': <Map<String, Object?>>[
+          for (final SyntheticCorpusPage page in pages)
+            <String, Object?>{
+              'id': page.id,
+              'scenario': page.scenario,
+              'widthPt': page.widthPt,
+              'heightPt': page.heightPt,
+              'rasterSha256': page.rasterSha256,
+              'groundTruthSha256': page.groundTruthSha256,
+            },
+        ],
+      }),
+    ),
+  ),
+  'groundTruthSha256': _sha256Hex(
+    utf8.encode(
+      _canonicalJson(<String, Object?>{
+        'corpusId': _corpusId,
+        'pages': <Map<String, Object?>>[
+          for (final SyntheticCorpusPage page in pages)
+            <String, Object?>{
+              'id': page.id,
+              'groundTruthSha256': page.groundTruthSha256,
+              'fieldCount': page.fields.length,
+            },
+        ],
+      }),
+    ),
+  ),
+};
+
+/// The corpus id this tool draws and the benchmark scores.
+String get syntheticCorpusId => _corpusId;
+
+/// One real host memory measurement, in the shape the run report records it.
+///
+/// The values are diagnostics only: no performance claim, no evidence class.
+Map<String, Object?> hostMemoryMeasurement() => _memoryMeasurement();
+
+SyntheticCorpusPage _publicPage(_PageSpec spec) => SyntheticCorpusPage(
+  id: spec.id,
+  scenario: spec.scenario,
+  description: spec.description,
+  widthPt: spec.widthPt,
+  heightPt: spec.heightPt,
+  raster: spec.raster,
+  rasterSha256: spec.rasterSha256,
+  rasterWidthPx: spec.rasterWidthPx,
+  rasterHeightPx: spec.rasterHeightPx,
+  groundTruthSha256: spec.groundTruthSha256,
+  fields: <SyntheticGroundTruthField>[
+    for (final _Expected field in spec.expected)
+      SyntheticGroundTruthField(
+        id: field.id,
+        rect: field.rect,
+        kind: field.kind,
+        labelText: field.labelText,
+        sectionId: field.sectionId ?? 'unassigned',
+      ),
+  ],
+  labels: <SyntheticCorpusLabel>[
+    for (final _LabelSpec label in spec.labels)
+      SyntheticCorpusLabel(text: label.text, rect: label.rect),
+  ],
+);
