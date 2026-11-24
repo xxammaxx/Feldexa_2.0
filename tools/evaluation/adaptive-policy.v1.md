@@ -84,3 +84,29 @@ rights-cleared real authority form exists yet.
 
 `NOT_RUN`: adaptive implementation, schema/provenance change, A/B/C benchmark,
 Android `EMULATOR` production-path evidence, real-corpus qualification.
+
+## 8. Provenance reference (T264P)
+
+§5 states the independence rule in one sentence. The machine-readable form lives
+in `tools/evaluation/adaptive-provenance.v1.json` (prose:
+`tools/evaluation/adaptive-provenance.v1.md`, contract test:
+`tools/evaluation/test_adaptive_provenance.py`), frozen as `frozen-before-run`
+with `implementation: BLOCKED`.
+
+That file declares, per variant, `derivedFrom`, `correlationGroup`,
+`independent`, its document references, and its source/variant hash binding, and
+it fixes the counting rule T264C must apply (`minIndependentGroups = 2`, at most
+one observation per correlation group, glyph claims collapsed to one group per
+source document). It names five rendering groups: production PDFium at 200, 150,
+and 300 DPI, and two host Poppler captures, one 150 DPI upsampled to the 200 DPI
+grid and one 200 DPI capture shared by the shadow, skew, and JPEG q35
+degradations. `contrastStretch` and `deskew` are declared there as members of the
+200 DPI production group, so neither can ever be counted as a second independent
+line.
+
+Boundary: this policy changes no threshold, no runtime signal, no hysteresis
+point, no pass/time/memory bound, and no A/B/C acceptance value; the provenance
+file consumes the policy and is hash-bound to it, so a policy edit invalidates the
+provenance artifact instead of retuning it silently. Nothing in either file
+establishes an SC claim: SC-001 and SC-003 stay with T142, SC-004 with
+T136/T141.
