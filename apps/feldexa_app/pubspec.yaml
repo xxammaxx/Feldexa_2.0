@@ -58,8 +58,11 @@ dependencies:
   printing: 5.15.1
   # Android share sheet (BSD-3-Clause).
   share_plus: 12.0.2
-  # Bundled on-device ML Kit Latin OCR wrapper (MIT; Google model terms).
-  google_mlkit_text_recognition: 1.0.2
+  # T309: no Dart OCR plugin here. On-device Latin OCR is provided natively by
+  # `com.google.mlkit:text-recognition:16.0.1` (android/app/build.gradle.kts)
+  # through MlKitOcrService.kt; a wrapper plugin would add a second, unused
+  # recognizer copy. The guard tools/repo/test_mlkit_dart_dependency_absent.py
+  # keeps it out.
 
 dev_dependencies:
   flutter_test:
