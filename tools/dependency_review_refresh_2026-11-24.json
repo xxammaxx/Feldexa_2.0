@@ -459,5 +459,27 @@
       "now": "37.2 (neuestes Paket der API-37-Linie, extension-level 24)",
       "class": "P1 (Zwischenfassung war zu niedrig angesetzt)"
     }
+  ],
+  "amendments": [
+    {
+      "date": "2026-11-24",
+      "after": "T309 (Issue #309, PR #320)",
+      "subject": "google_mlkit_text_recognition",
+      "kind": "direct-dependency-removed",
+      "summary": "2026-11-24, Nachtrag nach T309: Direktabhaengigkeit entfernt, PR #320 -> Merge 9f41095, Dart-Wrapper ungenutzt, native OCR unveraendert ueber com.google.mlkit:text-recognition:16.0.1",
+      "pr": 320,
+      "mergeCommit": "9f41095",
+      "changeCommit": "e5cd4a3",
+      "nativeOcrUnchanged": "com.google.mlkit:text-recognition:16.0.1 in apps/feldexa_app/android/app/build.gradle.kts:61",
+      "transitiveAlsoRemoved": [
+        "google_mlkit_commons"
+      ],
+      "supersedes": "components[google_mlkit_text_recognition]: decision 'defer' mit nextAction 'eigenes Aufraeum-Issue (kein Update)' ist erledigt",
+      "notRewritten": "components[], outcome{}, notes[] und corrections[] bleiben der Stand des Auditzeitpunkts (2026-11-24, Abrufe 16:28-16:34 UTC)",
+      "outcomeAfterAmendment": {
+        "deferrals": 11,
+        "keeps": 8
+      }
+    }
   ]
 }

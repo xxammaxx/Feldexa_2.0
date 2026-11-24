@@ -465,3 +465,8 @@ Nicht ermittelte Sekundärliteratur wird nicht als gesichtet ausgegeben.
   `pubspec.yaml`, `gradle-wrapper.properties` und `settings.gradle.kts` sind unverändert.
 - T263-ACCEPTANCE bleibt offen; es werden keine Erfolgsschwellen nachträglich gesenkt.
 - Allgemeine Websuche bleibt `BLOCKED`, bis die Harness ein Suchwerkzeug bereitstellt.
+
+**Nachtrag 2026-11-24 (nach T309):** `google_mlkit_text_recognition` ist als
+Direktabhängigkeit **entfernt** (PR #320 → Merge `9f41095`); der Dart-Wrapper war ungenutzt,
+die native OCR läuft unverändert über `com.google.mlkit:text-recognition:16.0.1`. Die
+Tabellen in 10.2/10.3 bleiben der Stand des Auditzeitpunkts; offene Aufschübe damit 11.
