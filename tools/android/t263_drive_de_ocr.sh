@@ -2,11 +2,13 @@
 # T263 host driver: real EMULATOR German OCR qualification run (issue #263).
 #
 # What this script does, in order:
-#   1. verifies the exclusively allocated Pixel 7 API 35 AVD on the explicit
-#      serial `emulator-5554`, including the Orca device inventory. Other
-#      attached devices (for example a physical handset) are tolerated but
-#      never addressed: every adb device command is scoped with `-s` and the
-#      serial must be an emulator serial;
+#   1. binds the device from the ADB transport table, without any supervisor
+#      allocation: exactly one attached `emulator-<n>` transport, that transport
+#      equal to the requested serial, an emulator-only serial, the expected
+#      Pixel 7 API 35 AVD, and a completed boot. Other attached devices (for
+#      example a physical handset or a wireless transport) are counted but never
+#      addressed: every adb device command is scoped with `-s` and the serial
+#      must be an emulator serial;
 #   2. builds the T263 scan variants on the host (Poppler render plus the
 #      declared pixel degradations) and stages the additive `sf-005` reference
 #      PDF, its pre-annotated ground truth, and those rasters in an
@@ -38,7 +40,6 @@ EXPECTED_AVD="${T263_AVD:-T025_Pixel7_API35_KVM_20261115}"
 ADB="${T263_ADB:-$HOME/Android/Sdk/platform-tools/adb}"
 FLUTTER="${T263_FLUTTER:-$HOME/flutter/bin/flutter}"
 DART="${T263_DART:-$HOME/flutter/bin/dart}"
-ORCA="${T263_ORCA:-orca}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 APP="$ROOT/apps/feldexa_app"
 TEST_FILE="integration_test/android_de_ocr_test.dart"
@@ -66,8 +67,13 @@ TEST_PID=""
 TEST_EXIT=255
 CLEANED=0
 PRIVACY_PASS=0
+# Set only after the device gate has bound the serial. Device commands are
+# refused before that, so the cleanup trap can never address a serial the gate
+# did not validate (an unvalidated serial could be the physical handset).
+DEVICE_BOUND=0
 
 adb_shell() {
+  [[ "$DEVICE_BOUND" -eq 1 ]] || return 1
   "$ADB" -s "$SERIAL" shell "$@" 2>/dev/null | tr -d '\r'
 }
 
@@ -83,6 +89,40 @@ record() {
 fail() {
   log "T263 DRIVER: $*"
   exit 1
+}
+
+# An emulator gate failure is not a run failure: nothing was measured, so the
+# evidence class stays NOT_RUN.
+not_run() {
+  log "T263 EMULATOR NOT_RUN: $*"
+  exit 2
+}
+
+# Evidence files are committed, so they never carry an absolute host path: repo
+# paths become `apps/...` and tool paths become `~/...`.
+host_relative() {
+  local path="$1"
+  if [[ "$path" == "$ROOT/"* ]]; then
+    printf '%s\n' "${path#"$ROOT"/}"
+  elif [[ "$path" == "$HOME/"* ]]; then
+    printf '~/%s\n' "${path#"$HOME"/}"
+  else
+    printf '%s\n' "$path"
+  fi
+}
+
+# Evidence must not repeat a foreign device identity, so the attached ADB
+# transports are counted by class rather than listed.
+transport_summary() {
+  local all="$1" emulators="$2"
+  local all_count emulator_count
+  # "attached" means every transport adb lists, regardless of its state
+  # (unauthorized/offline devices still count as attached).
+  all_count="$(printf '%s\n' "$all" | sed '/^$/d' | wc -l)"
+  emulator_count="$(printf '%s\n' "$emulators" | sed '/^$/d' | wc -l)"
+  log "all_attached_transports_count=$all_count"
+  log "emulator_transports=$emulator_count"
+  log "non_emulator_transports=$((all_count - emulator_count))"
 }
 
 mkdir -p "$RUN_DIR" || {
@@ -141,11 +181,10 @@ collect_evidence() {
     integration-android-t263.log \
     marker-sequence.txt \
     device-identity.txt \
+    device-binding.txt \
     fixture-sha256.txt \
     apk-sha256.txt \
     git-identity.txt \
-    orca-emulator-devices.json \
-    orca-emulator-sessions.json \
     logcat-t263-markers.log \
     privacy-log-check.txt \
     privacy-source-check.txt \
@@ -196,56 +235,45 @@ done
   fail "suite verification failed; see host-suite-verify.log"
 
 # --- 2. Device identity and scoped target ----------------------------------
-# The host may carry more than one device (this project also has a physical
-# handset attached). The run is scoped to exactly one explicit emulator serial:
-# that serial must be attached and booted, no other device is ever addressed,
-# and a non-emulator serial is refused so the physical device can never be used.
-[[ "$SERIAL" == emulator-* ]] ||
-  fail "T263_SERIAL must be an emulator serial, got '$SERIAL' (physical devices are prohibited)"
-DEVICES="$("$ADB" devices | awk 'NR>1 && NF>=2 && $2=="device" {print $1}')"
-printf '%s\n' "$DEVICES" | sed '/^$/d' | grep -Fxq "$SERIAL" ||
-  fail "expected the booted emulator $SERIAL to be attached, got: ${DEVICES:-none}"
-TOLERATED="$(printf '%s\n' "$DEVICES" | sed '/^$/d' | grep -Fxv "$SERIAL" | tr '\n' ' ' || true)"
-if [[ -n "$TOLERATED" ]]; then
-  record "tolerated additional attached device(s), never addressed: $TOLERATED"
-fi
-record "target device serial=$SERIAL (all adb commands scoped with -s)"
+# No supervisor layer is asked for an allocation: the gate reads the ADB
+# transport table directly and fails closed in this order.
+#   1. count the emulator transports; exactly one is required;
+#   2. that emulator must be the requested serial;
+#   3. the requested serial must itself be an emulator serial, so a physical
+#      handset can never be addressed even when it is the only attached device.
+# Other attached devices (physical handset, wireless transport) are counted but
+# never addressed, because every adb device command is scoped with `-s $SERIAL`
+# and the serial passed the emulator check first.
+ADB_TABLE="$("$ADB" devices)"
+ALL_TRANSPORTS="$(printf '%s\n' "$ADB_TABLE" | awk 'NR>1 && NF>=1 && $1 !~ /^(List|of|devices)$/ {print $1}')"
+ALL_DEVICES="$(printf '%s\n' "$ADB_TABLE" | awk 'NR>1 && NF>=2 && $2=="device" {print $1}')"
+EMULATOR_DEVICES="$(printf '%s\n' "$ALL_DEVICES" | grep -E '^emulator-[0-9]+$' || true)"
+[[ "$(printf '%s\n' "$EMULATOR_DEVICES" | sed '/^$/d' | wc -l)" -eq 1 ]] ||
+  not_run "expected exactly one attached emulator, got: ${EMULATOR_DEVICES:-none}"
+[[ "$EMULATOR_DEVICES" == "$SERIAL" ]] ||
+  not_run "attached emulator is $EMULATOR_DEVICES, expected $SERIAL"
+[[ "$SERIAL" =~ ^emulator-[0-9]+$ ]] ||
+  not_run "refusing a non-emulator serial: $SERIAL (physical devices are prohibited)"
+# The serial is now proven to be the one attached emulator, so every later adb
+# command (including the cleanup trap) may address it.
+DEVICE_BOUND=1
 
 SDK="$(adb_shell getprop ro.build.version.sdk)"
-[[ "$SDK" == "35" ]] || fail "API 35 required, device reports sdk=$SDK"
+[[ "$SDK" == "35" ]] || not_run "API 35 required, device reports sdk=$SDK"
 AVD_NAME="$(adb_shell getprop ro.boot.qemu.avd_name)"
 [[ "$AVD_NAME" == "$EXPECTED_AVD" ]] ||
-  fail "AVD $EXPECTED_AVD required, device reports '$AVD_NAME'"
+  not_run "AVD $EXPECTED_AVD required, device reports '$AVD_NAME'"
 [[ "$(adb_shell getprop sys.boot_completed)" == "1" ]] ||
-  fail "device has not completed boot"
+  not_run "device has not completed boot"
+record "target device serial=$SERIAL (all adb commands scoped with -s)"
 
-if ! "$ORCA" emulator devices --json >"$RUN_DIR/orca-emulator-devices.json" 2>/dev/null; then
-  fail "orca emulator devices --json failed; no Orca allocation evidence"
-fi
-python3 - "$RUN_DIR/orca-emulator-devices.json" "$SERIAL" "$EXPECTED_AVD" <<'PY' ||
-import json
-import sys
-
-path, serial, avd = sys.argv[1], sys.argv[2], sys.argv[3]
-with open(path, encoding="utf-8") as handle:
-    payload = json.load(handle)
-devices = payload.get("result")
-if not isinstance(devices, list):
-    raise SystemExit("orca emulator devices result is not a list")
-matches = [device for device in devices if device.get("id") == serial]
-if len(matches) != 1:
-    raise SystemExit(f"expected exactly one Orca device for {serial}")
-device = matches[0]
-if device.get("name") != avd:
-    raise SystemExit(f"unexpected Orca device name {device.get('name')!r}")
-if str(device.get("apiLevel")) != "35":
-    raise SystemExit(f"unexpected Orca API level {device.get('apiLevel')!r}")
-if device.get("state") != "booted":
-    raise SystemExit(f"Orca device is not booted: {device.get('state')!r}")
-PY
-  fail "Orca device inventory does not confirm the exclusive AVD/serial/API 35"
-
-"$ORCA" emulator list --json >"$RUN_DIR/orca-emulator-sessions.json" 2>/dev/null || true
+{
+  log "serial=$SERIAL"
+  log "emulator_serials=$(printf '%s\n' "$EMULATOR_DEVICES" | sed '/^$/d' | paste -sd, -)"
+  transport_summary "$ALL_TRANSPORTS" "$EMULATOR_DEVICES"
+  log "addressed_serial=$SERIAL"
+  log "non_emulator_transports_addressed=none"
+} >"$RUN_DIR/device-binding.txt"
 
 {
   log "serial=$SERIAL"
@@ -476,7 +504,9 @@ record "text-layer control exit $TEXT_LAYER_EXIT"
 {
   for apk in "$APP"/build/app/outputs/flutter-apk/*.apk; do
     [[ -f "$apk" ]] || continue
-    sha256sum "$apk"
+    log "path=$(host_relative "$apk")"
+    log "sha256=$(sha256sum "$apk" | awk '{print $1}')"
+    log "bytes=$(stat -c %s "$apk")"
   done
 } >"$RUN_DIR/apk-sha256.txt"
 
