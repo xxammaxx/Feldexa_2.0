@@ -30,6 +30,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 /// Page corpus class from `corpusAndHoldout` in the frozen policy.
 ///
@@ -464,7 +465,8 @@ final class AdaptiveDecision {
   final List<String> reasons;
   final List<TriggerHit> triggers;
 
-  /// Signals that were supplied but have no frozen runtime rule.
+  /// Signals that were supplied but carry no frozen runtime rule, or that cannot
+  /// be evaluated below a frozen minimum.
   final List<SignalNote> ignoredSignals;
 
   /// Triggers latched after this decision; pass them to the next request for the
@@ -492,7 +494,341 @@ AdaptiveDecision decideAdaptiveTrigger({
   required AdaptivePolicy policy,
   required TriggerRequest request,
 }) {
-  throw UnimplementedError('T264C RED: trigger decision not implemented');
+  final PageSignals signals = request.signals;
+  final PassBounds limits = policy.bounds;
+  final AdaptiveBounds bounds = AdaptiveBounds(
+    maxPassesPerPage: limits.maxPassesPerPage,
+    passesCompleted: request.passesCompleted,
+    passesRemaining: math.max(
+      0,
+      limits.maxPassesPerPage - request.passesCompleted,
+    ),
+    maxElapsedMsPerPage: limits.maxElapsedMsPerPage,
+    maxVariantPixels: limits.maxVariantPixels,
+    maxConcurrentPasses: limits.maxConcurrentPasses,
+    maxVariantRastersInMemory: limits.maxVariantRastersInMemory,
+    pageFailureIsolation: limits.pageFailureIsolation,
+  );
+  final _EvidenceSet evidence = _selectEvidence(policy, request.evidence);
+  final List<SignalNote> ignored = <SignalNote>[
+    SignalNote(
+      signal: 'structureMismatch',
+      reason:
+          'runtimeSignals.structureMismatch.runtimeTrigger='
+          '${policy.structureMismatchIsRuntimeTrigger}: structure comparison is '
+          'evaluation-only (observed ${signals.structureMismatchFields} '
+          'mismatched field(s)); it never triggers a pass',
+    ),
+    SignalNote(
+      signal: 'detectorInstability',
+      reason:
+          'not declared in runtimeSignals: observed '
+          '${signals.detectorInstabilityEvents} instable candidate(s), recorded '
+          'only; the frozen policy has no threshold, so it never triggers and '
+          'no value is guessed',
+    ),
+  ];
+  final List<String> reasons = <String>[...evidence.notes];
+
+  AdaptiveDecision refuse(String code, String message) => AdaptiveDecision(
+    verdict: Verdict.rejected,
+    reasons: <String>[...reasons, '$code: $message'],
+    triggers: const <TriggerHit>[],
+    ignoredSignals: ignored,
+    latched: request.latched,
+    bounds: bounds,
+    selectedEvidence: evidence.selected,
+    droppedEvidence: evidence.dropped,
+    independentGroups: evidence.independentGroups,
+    rejection: Rejection(code: code, message: message),
+    secondPassFailureRule: limits.pageFailureIsolation,
+  );
+
+  if (request.mode == AdaptiveMode.production &&
+      policy.implementation == 'BLOCKED') {
+    return refuse(
+      'policyImplementationBlocked',
+      '${policy.artifactId} ${policy.version} is ${policy.status} with '
+          'implementation: BLOCKED, so no production adaptive pass is decided. '
+          'The page keeps its pass-1 result.',
+    );
+  }
+  if (signals.pageClass == PageClass.holdout && signals.holdoutAlreadyScored) {
+    return refuse(
+      'holdoutAlreadyScored',
+      'corpusAndHoldout.rule: holdoutPages are scored once, so a repeated '
+          'holdout scoring is refused; a holdout-driven change needs a new policy '
+          'version. Rule text: ${policy.holdoutRule}',
+    );
+  }
+  if (request.passesCompleted >= limits.maxPassesPerPage) {
+    reasons.add(
+      'passBudgetExhausted: passesCompleted=${request.passesCompleted} >= '
+      'bounds.maxPassesPerPage=${limits.maxPassesPerPage}; no further '
+      'escalation, the page keeps its current result',
+    );
+    return AdaptiveDecision(
+      verdict: Verdict.noSecondPass,
+      reasons: reasons,
+      triggers: const <TriggerHit>[],
+      ignoredSignals: ignored,
+      latched: request.latched,
+      bounds: bounds,
+      selectedEvidence: evidence.selected,
+      droppedEvidence: evidence.dropped,
+      independentGroups: evidence.independentGroups,
+      rejection: null,
+      secondPassFailureRule: limits.pageFailureIsolation,
+    );
+  }
+  if (request.evidence.isNotEmpty &&
+      evidence.independentGroups < policy.provenance.minIndependentGroups) {
+    return refuse(
+      'correlationLimited',
+      'decisionRule.minIndependentGroups='
+          '${policy.provenance.minIndependentGroups}: the offered evidence covers '
+          '${evidence.independentGroups} independent correlation group(s) '
+          '(${evidence.groups.join(', ')}). A repeated group is not independent '
+          'evidence, so the request is refused instead of counted '
+          '(decisionRule.insufficientGroupsOutcome).',
+    );
+  }
+
+  final List<TriggerHit> triggers = <TriggerHit>[];
+  final LowContrastRule lowContrast = policy.lowContrast;
+  final double spread = signals.contrastSpread;
+  final bool contrastLatched = request.latched.contains(Trigger.lowContrast);
+  if (contrastLatched && spread <= lowContrast.leaveAbove) {
+    triggers.add(
+      TriggerHit(
+        trigger: Trigger.lowContrast,
+        metric: 'contrastSpread (p95 - p05 luminance)',
+        policyPath: 'runtimeSignals.lowContrast.leaveAbove',
+        threshold: lowContrast.leaveAbove,
+        observed: spread,
+        heldByHysteresis: true,
+      ),
+    );
+    reasons.add(
+      'lowContrast: held latched, contrastSpread=${_num(spread)} <= '
+      'runtimeSignals.lowContrast.leaveAbove='
+      '${_num(lowContrast.leaveAbove)}',
+    );
+  } else if (!contrastLatched && spread < lowContrast.enterBelow) {
+    triggers.add(
+      TriggerHit(
+        trigger: Trigger.lowContrast,
+        metric: 'contrastSpread (p95 - p05 luminance)',
+        policyPath: 'runtimeSignals.lowContrast.enterBelow',
+        threshold: lowContrast.enterBelow,
+        observed: spread,
+        heldByHysteresis: false,
+      ),
+    );
+    reasons.add(
+      'lowContrast: contrastSpread=${_num(spread)} < '
+      'runtimeSignals.lowContrast.enterBelow='
+      '${_num(lowContrast.enterBelow)}',
+    );
+  } else if (contrastLatched) {
+    reasons.add(
+      'lowContrast: released, contrastSpread=${_num(spread)} > '
+      'runtimeSignals.lowContrast.leaveAbove='
+      '${_num(lowContrast.leaveAbove)}; it does not re-enter below '
+      'runtimeSignals.lowContrast.enterBelow='
+      '${_num(lowContrast.enterBelow)}',
+    );
+  } else {
+    reasons.add(
+      'lowContrast: not triggered, contrastSpread=${_num(spread)} >= '
+      'runtimeSignals.lowContrast.enterBelow='
+      '${_num(lowContrast.enterBelow)} (release only above '
+      'runtimeSignals.lowContrast.leaveAbove='
+      '${_num(lowContrast.leaveAbove)})',
+    );
+  }
+
+  final SkewRule skew = policy.skew;
+  final double? skewDegrees = signals.skewDegrees;
+  final bool skewLatched = request.latched.contains(Trigger.skew);
+  if (skewDegrees == null) {
+    ignored.add(
+      const SignalNote(
+        signal: 'skew',
+        reason:
+            'runtimeSignals.skew.metric is caller-supplied; the policy forbids '
+            'estimating it, so an absent angle is not triggered',
+      ),
+    );
+  } else if (skewLatched && skewDegrees >= skew.leaveBelow) {
+    triggers.add(
+      TriggerHit(
+        trigger: Trigger.skew,
+        metric: 'caller-supplied absolute skew in degrees',
+        policyPath: 'runtimeSignals.skew.leaveBelow',
+        threshold: skew.leaveBelow,
+        observed: skewDegrees,
+        heldByHysteresis: true,
+      ),
+    );
+    reasons.add(
+      'skew: held latched, ${_num(skewDegrees)} >= '
+      'runtimeSignals.skew.leaveBelow=${_num(skew.leaveBelow)}',
+    );
+  } else if (!skewLatched && skewDegrees > skew.enterAbove) {
+    triggers.add(
+      TriggerHit(
+        trigger: Trigger.skew,
+        metric: 'caller-supplied absolute skew in degrees',
+        policyPath: 'runtimeSignals.skew.enterAbove',
+        threshold: skew.enterAbove,
+        observed: skewDegrees,
+        heldByHysteresis: false,
+      ),
+    );
+    reasons.add(
+      'skew: ${_num(skewDegrees)} > runtimeSignals.skew.enterAbove='
+      '${_num(skew.enterAbove)}',
+    );
+  } else {
+    reasons.add(
+      'skew: not triggered, ${_num(skewDegrees)} outside '
+      'enterAbove=${_num(skew.enterAbove)} / '
+      'leaveBelow=${_num(skew.leaveBelow)} with latched=$skewLatched',
+    );
+  }
+
+  if (signals.ocrFailed == policy.ocrFailureEnters) {
+    triggers.add(
+      TriggerHit(
+        trigger: Trigger.ocrFailure,
+        metric: 'OCR port threw or produced zero usable label lines',
+        policyPath: 'runtimeSignals.ocrFailure.enterAt',
+        threshold: policy.ocrFailureEnters ? 1 : 0,
+        observed: 1,
+        heldByHysteresis: false,
+      ),
+    );
+    reasons.add(
+      'ocrFailure: OCR failed or produced no usable label line '
+      '(runtimeSignals.ocrFailure.enterAt=true)',
+    );
+  } else {
+    reasons.add(
+      'ocrFailure: not triggered, the OCR port produced usable label lines',
+    );
+  }
+
+  final MissingLabelRule missingLabel = policy.missingLabel;
+  if (signals.fieldCandidates < missingLabel.minimumFieldCandidates) {
+    ignored.add(
+      SignalNote(
+        signal: 'missingLabel',
+        reason:
+            'not evaluable: fieldCandidates=${signals.fieldCandidates} < '
+            'runtimeSignals.missingLabel.minimumFieldCandidates='
+            '${missingLabel.minimumFieldCandidates}, so the unlabelled fraction '
+            'is not computed and not guessed',
+      ),
+    );
+  } else {
+    final double unlabeledFraction =
+        signals.unlabeledCandidates / signals.fieldCandidates;
+    if (unlabeledFraction >= missingLabel.enterAtOrAbove) {
+      triggers.add(
+        TriggerHit(
+          trigger: Trigger.missingLabel,
+          metric: 'unlabelled field candidates / all field candidates',
+          policyPath: 'runtimeSignals.missingLabel.enterAtOrAbove',
+          threshold: missingLabel.enterAtOrAbove,
+          observed: unlabeledFraction,
+          heldByHysteresis: false,
+        ),
+      );
+      reasons.add(
+        'missingLabel: unlabelledFraction=${_num(unlabeledFraction)} >= '
+        'runtimeSignals.missingLabel.enterAtOrAbove='
+        '${_num(missingLabel.enterAtOrAbove)} '
+        '(${signals.unlabeledCandidates}/${signals.fieldCandidates})',
+      );
+    } else {
+      reasons.add(
+        'missingLabel: not triggered, unlabelledFraction='
+        '${_num(unlabeledFraction)} < '
+        'runtimeSignals.missingLabel.enterAtOrAbove='
+        '${_num(missingLabel.enterAtOrAbove)}',
+      );
+    }
+  }
+
+  final ConflictRule conflict = policy.conflict;
+  if (signals.conflictPairs >= conflict.enterAtOrAbove) {
+    triggers.add(
+      TriggerHit(
+        trigger: Trigger.conflict,
+        metric: 'conflict-graph pairs with IoU >= 0.5',
+        policyPath: 'runtimeSignals.conflict.enterAtOrAbove',
+        threshold: conflict.enterAtOrAbove,
+        observed: signals.conflictPairs.toDouble(),
+        heldByHysteresis: false,
+      ),
+    );
+    reasons.add(
+      'conflict: conflictPairs=${signals.conflictPairs} >= '
+      'runtimeSignals.conflict.enterAtOrAbove='
+      '${_num(conflict.enterAtOrAbove)}',
+    );
+  } else {
+    reasons.add(
+      'conflict: not triggered, conflictPairs=${signals.conflictPairs} < '
+      'runtimeSignals.conflict.enterAtOrAbove='
+      '${_num(conflict.enterAtOrAbove)}',
+    );
+  }
+
+  final Set<Trigger> latched = <Trigger>{
+    for (final TriggerHit hit in triggers) hit.trigger,
+  };
+  if (triggers.isEmpty) {
+    reasons.add(
+      'noSecondPass: no frozen runtime trigger fired, so the page stays at its '
+      'pass-1 result',
+    );
+    return AdaptiveDecision(
+      verdict: Verdict.noSecondPass,
+      reasons: reasons,
+      triggers: triggers,
+      ignoredSignals: ignored,
+      latched: latched,
+      bounds: bounds,
+      selectedEvidence: evidence.selected,
+      droppedEvidence: evidence.dropped,
+      independentGroups: evidence.independentGroups,
+      rejection: null,
+      secondPassFailureRule: limits.pageFailureIsolation,
+    );
+  }
+  reasons.add(
+    'secondPass: ${triggers.length} frozen runtime trigger(s) fired '
+    '(${triggers.map((TriggerHit hit) => hit.trigger.name).join(', ')}); '
+    'passesRemaining=${bounds.passesRemaining}, '
+    'maxElapsedMsPerPage=${limits.maxElapsedMsPerPage}, '
+    'maxVariantPixels=${limits.maxVariantPixels}. A failed second pass returns '
+    'the pass-1 result.',
+  );
+  return AdaptiveDecision(
+    verdict: Verdict.secondPass,
+    reasons: reasons,
+    triggers: triggers,
+    ignoredSignals: ignored,
+    latched: latched,
+    bounds: bounds,
+    selectedEvidence: evidence.selected,
+    droppedEvidence: evidence.dropped,
+    independentGroups: evidence.independentGroups,
+    rejection: null,
+    secondPassFailureRule: limits.pageFailureIsolation,
+  );
 }
 
 /// Picks the effective result of a second pass.
@@ -504,8 +840,75 @@ T resolveSecondPassOutcome<T>({
   required T? pass2,
   required bool pass2Failed,
 }) {
-  throw UnimplementedError('T264C RED: second-pass fallback not implemented');
+  if (pass2Failed || pass2 == null) {
+    return pass1;
+  }
+  return pass2;
 }
+
+/// The evidence set after the provenance `hashGate` and the per-group cap.
+final class _EvidenceSet {
+  _EvidenceSet({
+    required this.selected,
+    required this.dropped,
+    required this.groups,
+    required this.notes,
+  });
+
+  final List<VariantObservation> selected;
+  final List<VariantObservation> dropped;
+  final List<String> groups;
+  final List<String> notes;
+
+  int get independentGroups => groups.length;
+}
+
+_EvidenceSet _selectEvidence(
+  AdaptivePolicy policy,
+  List<VariantObservation> observations,
+) {
+  final List<VariantObservation> selected = <VariantObservation>[];
+  final List<VariantObservation> dropped = <VariantObservation>[];
+  final List<String> groups = <String>[];
+  final List<String> notes = <String>[];
+  final Map<String, int> perGroup = <String, int>{};
+  for (final VariantObservation observation in observations) {
+    if (!observation.rasterHashRecorded) {
+      dropped.add(observation);
+      notes.add(
+        'evidence.hashGate: ${observation.variantId} has '
+        'variantRasterSha256Status PENDING_RUN and produces no evidence row '
+        '(decisionRule.hashGate)',
+      );
+      continue;
+    }
+    final int seen = perGroup[observation.correlationGroup] ?? 0;
+    if (seen >= policy.provenance.maxObservationsPerCorrelationGroup) {
+      dropped.add(observation);
+      notes.add(
+        'evidence.groupCap: ${observation.variantId} repeats correlationGroup '
+        '${observation.correlationGroup}; '
+        'decisionRule.maxObservationsPerCorrelationGroup='
+        '${policy.provenance.maxObservationsPerCorrelationGroup} keeps one '
+        'observation per group',
+      );
+      continue;
+    }
+    perGroup[observation.correlationGroup] = seen + 1;
+    selected.add(observation);
+    if (!groups.contains(observation.correlationGroup)) {
+      groups.add(observation.correlationGroup);
+    }
+  }
+  return _EvidenceSet(
+    selected: selected,
+    dropped: dropped,
+    groups: groups,
+    notes: notes,
+  );
+}
+
+String _num(double value) => value.toString();
 
 Map<String, Object?> _decodeObject(File file, String label) {
   final String text;
