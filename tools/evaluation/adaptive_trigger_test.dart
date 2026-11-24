@@ -11,13 +11,21 @@
 // pending variant hash, excluded, undeclared or misgrouped variant, undeclared
 // correlation group) refuses the decision instead of guessing.
 //
-// Both frozen artifacts are byte-pinned by SHA-256 below. The compared
-// thresholds that the mutation copies exercise (`lowContrast.enterBelow`,
-// `skew.enterAbove` and the `ocrFailure` flag) are proven to come from the file
-// rather than from this harness; the remaining compared values are only
-// value-pinned, so a hardcoded constant there would still survive. The mutation
-// copies are written to a system temp directory and removed again, so a run
-// leaves no artifact behind, in this tree or in a foreign working directory.
+// Both frozen artifacts are byte-pinned by SHA-256 below. Every compared
+// threshold is proven to come from the file rather than from this harness:
+// `lowContrast.enterBelow` / `leaveAbove` / `hysteresisPoints`, `skew.enterAbove`
+// / `leaveBelow`, `missingLabel.enterAtOrAbove` / `minimumFieldCandidates`,
+// `conflict.enterAtOrAbove`, `bounds.maxPassesPerPage` and
+// `decisionRule.minIndependentGroups` / `maxObservationsPerCorrelationGroup`
+// are each edited in a mutation copy, and the harness asserts the changed
+// verdict. The `ocrFailure` and `structureMismatch` flags and the four bounds
+// the decision only carries (`maxElapsedMsPerPage`, `maxVariantPixels`,
+// `maxConcurrentPasses`, `maxVariantRastersInMemory`) are proven the same way,
+// by their rendered or propagated value. Only the `implementation`, `status` and
+// `pageFailureIsolation` strings stay value-pinned without a mutation copy. The
+// mutation copies are written to a system temp directory and removed again, so
+// a run leaves no artifact behind, in this tree or in a foreign working
+// directory.
 //
 // Host-only tooling. No raster, OCR, emulator, device, or measurement, and no
 // SIMULATED/EMULATOR/DEVICE evidence.
@@ -172,6 +180,322 @@ void main() {
         );
       },
     );
+  });
+
+  _group('file-driven thresholds', () {
+    _check('reads lowContrast.leaveAbove from the file', () {
+      // Frozen: enterBelow 96, leaveAbove 112, hysteresisPoints 16. The band stays
+      // consistent (leaveAbove - enterBelow == hysteresisPoints), so only the
+      // loaded release value moves.
+      final File mutated = _mutatedPolicy('leave-above-100', (
+        Map<String, Object?> policy,
+      ) {
+        _lowContrast(policy)['leaveAbove'] = 100;
+        _lowContrast(policy)['hysteresisPoints'] = 4;
+      });
+      final AdaptivePolicy narrowed = AdaptivePolicy.load(mutated);
+      _expect(narrowed.lowContrast.leaveAbove == 100, 'mutated leaveAbove');
+      final AdaptiveDecision decision = decideAdaptiveTrigger(
+        policy: narrowed,
+        request: TriggerRequest(
+          signals: _signals(p95Luminance: 125),
+          latched: const <Trigger>{Trigger.lowContrast},
+        ),
+      );
+      _expect(
+        decision.verdict == Verdict.noSecondPass,
+        'a latched spread 105 must be released against a mutated leaveAbove '
+        '100, so a hardcoded 112 would hold it latched here',
+      );
+      _expect(decision.latched.isEmpty, 'nothing stays latched');
+    });
+
+    _check('reads lowContrast.hysteresisPoints from the file', () {
+      final File mutated = _mutatedPolicy('hysteresis-0', (
+        Map<String, Object?> policy,
+      ) {
+        _lowContrast(policy)['leaveAbove'] = 96;
+        _lowContrast(policy)['hysteresisPoints'] = 0;
+      });
+      final AdaptivePolicy flatBand = AdaptivePolicy.load(mutated);
+      _expect(
+        flatBand.lowContrast.hysteresisPoints == 0,
+        'mutated hysteresisPoints',
+      );
+      _expect(
+        flatBand.lowContrast.leaveAbove == 96,
+        'a band closed at enterBelow is consistent, so a hardcoded 16 in the '
+        'band check would reject this file',
+      );
+    });
+
+    _check('reads skew.leaveBelow from the file', () {
+      final File mutated = _mutatedPolicy('skew-leave-below-1-5', (
+        Map<String, Object?> policy,
+      ) {
+        final Map<String, Object?> skew = _runtimeSignal(policy, 'skew');
+        skew['enterAbove'] = 2.0;
+        skew['leaveBelow'] = 1.5;
+      });
+      final AdaptivePolicy widerSkew = AdaptivePolicy.load(mutated);
+      _expect(widerSkew.skew.leaveBelow == 1.5, 'mutated skew leaveBelow');
+      final AdaptiveDecision decision = decideAdaptiveTrigger(
+        policy: widerSkew,
+        request: TriggerRequest(
+          signals: _signals(skewDegrees: 1),
+          latched: const <Trigger>{Trigger.skew},
+        ),
+      );
+      _expect(
+        decision.verdict == Verdict.noSecondPass,
+        'a latched 1 degree skew must be released below a mutated leaveBelow '
+        '1.5, so a hardcoded 0.25 would hold it latched here',
+      );
+    });
+
+    _check('reads missingLabel.enterAtOrAbove from the file', () {
+      final File mutated = _mutatedPolicy('missing-label-0-9', (
+        Map<String, Object?> policy,
+      ) {
+        _runtimeSignal(policy, 'missingLabel')['enterAtOrAbove'] = 0.9;
+      });
+      final AdaptivePolicy raised = AdaptivePolicy.load(mutated);
+      _expect(
+        raised.missingLabel.enterAtOrAbove == 0.9,
+        'mutated missingLabel enterAtOrAbove',
+      );
+      final AdaptiveDecision decision = decideAdaptiveTrigger(
+        policy: raised,
+        request: TriggerRequest(signals: _signals(unlabeledCandidates: 3)),
+      );
+      _expect(
+        decision.verdict == Verdict.noSecondPass,
+        'an unlabelled fraction of 3/6 must not enter against a mutated '
+        'threshold 0.9, so a hardcoded 0.5 would enter here',
+      );
+      _expect(decision.triggers.isEmpty, 'no trigger');
+    });
+
+    _check('reads missingLabel.minimumFieldCandidates from the file', () {
+      final File mutated = _mutatedPolicy('minimum-candidates-2', (
+        Map<String, Object?> policy,
+      ) {
+        _runtimeSignal(policy, 'missingLabel')['minimumFieldCandidates'] = 2;
+      });
+      final AdaptivePolicy lowered = AdaptivePolicy.load(mutated);
+      _expect(
+        lowered.missingLabel.minimumFieldCandidates == 2,
+        'mutated minimumFieldCandidates',
+      );
+      final AdaptiveDecision decision = decideAdaptiveTrigger(
+        policy: lowered,
+        request: TriggerRequest(
+          signals: _signals(fieldCandidates: 2, unlabeledCandidates: 2),
+        ),
+      );
+      _expect(
+        decision.verdict == Verdict.secondPass && decision.triggers.length == 1,
+        '2 of 2 candidates must be evaluable against a mutated minimum 2, so a '
+        'hardcoded 3 would report them as not evaluable: '
+        '${decision.ignoredSignals.map((SignalNote note) => note.reason)}',
+      );
+      _expect(
+        decision.triggers.single.trigger == Trigger.missingLabel,
+        'trigger',
+      );
+    });
+
+    _check('reads conflict.enterAtOrAbove from the file', () {
+      final File mutated = _mutatedPolicy('conflict-3', (
+        Map<String, Object?> policy,
+      ) {
+        _runtimeSignal(policy, 'conflict')['enterAtOrAbove'] = 3;
+      });
+      final AdaptivePolicy raised = AdaptivePolicy.load(mutated);
+      _expect(
+        raised.conflict.enterAtOrAbove == 3,
+        'mutated conflict enterAtOrAbove',
+      );
+      final AdaptiveDecision decision = decideAdaptiveTrigger(
+        policy: raised,
+        request: TriggerRequest(signals: _signals(conflictPairs: 2)),
+      );
+      _expect(
+        decision.verdict == Verdict.noSecondPass,
+        'two conflict pairs must not enter against a mutated threshold 3, so a '
+        'hardcoded 1 would enter here',
+      );
+    });
+
+    _check('reads bounds.maxPassesPerPage from the file', () {
+      final File mutated = _mutatedPolicy('max-passes-1', (
+        Map<String, Object?> policy,
+      ) {
+        _bounds(policy)['maxPassesPerPage'] = 1;
+      });
+      final AdaptivePolicy onePass = AdaptivePolicy.load(mutated);
+      _expect(onePass.bounds.maxPassesPerPage == 1, 'mutated maxPassesPerPage');
+      final AdaptiveDecision decision = decideAdaptiveTrigger(
+        policy: onePass,
+        request: TriggerRequest(
+          signals: _signals(p95Luminance: 110),
+          passesCompleted: 1,
+        ),
+      );
+      _expect(
+        decision.verdict == Verdict.noSecondPass,
+        'a completed pass must exhaust a mutated maxPassesPerPage 1, so a '
+        'hardcoded 2 would still escalate here',
+      );
+      _expect(
+        _hasReason(decision, 'bounds.maxPassesPerPage=1'),
+        'the budget reason must render the loaded bound: ${decision.reasons}',
+      );
+    });
+
+    _check('reads provenance.minIndependentGroups from the file', () {
+      // Only `decisionRule` moves here: the policy artifact stays as frozen.
+      final File mutated = _mutatedPolicy(
+        'min-independent-groups-3',
+        (Map<String, Object?> policy) {},
+        mutateProvenance: (Map<String, Object?> provenance) {
+          _decisionRule(provenance)['minIndependentGroups'] = 3;
+        },
+      );
+      final AdaptivePolicy raised = AdaptivePolicy.load(mutated);
+      _expect(
+        raised.provenance.minIndependentGroups == 3,
+        'mutated minIndependentGroups',
+      );
+      final AdaptiveDecision decision = decideAdaptiveTrigger(
+        policy: raised,
+        request: TriggerRequest(
+          signals: _signals(p95Luminance: 110),
+          evidence: const <VariantObservation>[
+            VariantObservation(
+              variantId: 'clean-200dpi',
+              correlationGroup: 'group-pdfium-200',
+              rasterHashRecorded: true,
+            ),
+            VariantObservation(
+              variantId: 'clean-150dpi',
+              correlationGroup: 'group-pdfium-150',
+              rasterHashRecorded: true,
+            ),
+          ],
+        ),
+      );
+      _expect(
+        decision.rejection?.code == 'correlationLimited',
+        'two independent groups must be refused against a mutated rule 3, so a '
+        'hardcoded 2 would admit them: ${decision.rejection?.message}',
+      );
+      _expect(
+        decision.rejection?.message.contains('minIndependentGroups=3') ?? false,
+        'the refusal must render the loaded rule: '
+        '${decision.rejection?.message}',
+      );
+    });
+
+    _check('reads provenance.maxObservationsPerCorrelationGroup from the file', () {
+      final File mutated = _mutatedPolicy(
+        'max-observations-2',
+        (Map<String, Object?> policy) {},
+        mutateProvenance: (Map<String, Object?> provenance) {
+          _decisionRule(provenance)['maxObservationsPerCorrelationGroup'] = 2;
+        },
+      );
+      final AdaptivePolicy widened = AdaptivePolicy.load(mutated);
+      _expect(
+        widened.provenance.maxObservationsPerCorrelationGroup == 2,
+        'mutated maxObservationsPerCorrelationGroup',
+      );
+      final AdaptiveDecision decision = decideAdaptiveTrigger(
+        policy: widened,
+        request: TriggerRequest(
+          signals: _signals(p95Luminance: 110),
+          evidence: const <VariantObservation>[
+            VariantObservation(
+              variantId: 'clean-200dpi',
+              correlationGroup: 'group-pdfium-200',
+              rasterHashRecorded: true,
+            ),
+            VariantObservation(
+              variantId: 'contrastStretch-200dpi',
+              correlationGroup: 'group-pdfium-200',
+              rasterHashRecorded: true,
+            ),
+          ],
+        ),
+      );
+      _expect(
+        decision.droppedEvidence.isEmpty,
+        'a mutated cap of 2 must keep both members of one group, so a '
+        'hardcoded 1 would drop the second: '
+        '${decision.droppedEvidence.map((VariantObservation observation) => observation.variantId)}',
+      );
+      _expect(decision.selectedEvidence.length == 2, 'two observations kept');
+      _expect(
+        decision.independentGroups == 1,
+        'the cap moves, the group count does not',
+      );
+    });
+
+    _check('reads the structureMismatch flag from the file', () {
+      final File mutated = _mutatedPolicy('structure-mismatch-trigger', (
+        Map<String, Object?> policy,
+      ) {
+        _runtimeSignal(policy, 'structureMismatch')['runtimeTrigger'] = true;
+      });
+      final AdaptivePolicy flagged = AdaptivePolicy.load(mutated);
+      _expect(flagged.structureMismatchIsRuntimeTrigger, 'mutated flag');
+      final AdaptiveDecision decision = decideAdaptiveTrigger(
+        policy: flagged,
+        request: TriggerRequest(signals: _signals(structureMismatchFields: 2)),
+      );
+      _expect(
+        decision.ignoredSignals.any(
+          (SignalNote note) =>
+              note.signal == 'structureMismatch' &&
+              note.reason.contains('runtimeTrigger=true'),
+        ),
+        'the note must render the loaded flag, so a hardcoded false is caught: '
+        '${decision.ignoredSignals.map((SignalNote note) => note.reason)}',
+      );
+    });
+
+    _check('reads the bounds it only carries from the file', () {
+      final File mutated = _mutatedPolicy('other-bounds', (
+        Map<String, Object?> policy,
+      ) {
+        final Map<String, Object?> bounds = _bounds(policy);
+        bounds['maxElapsedMsPerPage'] = 9000;
+        bounds['maxVariantPixels'] = 1000000;
+        bounds['maxConcurrentPasses'] = 2;
+        bounds['maxVariantRastersInMemory'] = 3;
+      });
+      final AdaptiveDecision decision = decideAdaptiveTrigger(
+        policy: AdaptivePolicy.load(mutated),
+        request: TriggerRequest(signals: _signals(p95Luminance: 110)),
+      );
+      _expect(
+        decision.bounds.maxElapsedMsPerPage == 9000,
+        'maxElapsedMsPerPage ${decision.bounds.maxElapsedMsPerPage}',
+      );
+      _expect(
+        decision.bounds.maxVariantPixels == 1000000,
+        'maxVariantPixels ${decision.bounds.maxVariantPixels}',
+      );
+      _expect(
+        decision.bounds.maxConcurrentPasses == 2,
+        'maxConcurrentPasses ${decision.bounds.maxConcurrentPasses}',
+      );
+      _expect(
+        decision.bounds.maxVariantRastersInMemory == 3,
+        'maxVariantRastersInMemory '
+        '${decision.bounds.maxVariantRastersInMemory}',
+      );
+    });
   });
 
   _group('trigger thresholds', () {
@@ -862,9 +1186,18 @@ AdaptiveDecision _decide(
 bool _hasReason(AdaptiveDecision decision, String needle) =>
     decision.reasons.any((String reason) => reason.contains(needle));
 
-Map<String, Object?> _lowContrast(Map<String, Object?> policy) =>
-    (policy['runtimeSignals']! as Map<String, Object?>)['lowContrast']!
+Map<String, Object?> _runtimeSignal(Map<String, Object?> policy, String name) =>
+    (policy['runtimeSignals']! as Map<String, Object?>)[name]!
         as Map<String, Object?>;
+
+Map<String, Object?> _lowContrast(Map<String, Object?> policy) =>
+    _runtimeSignal(policy, 'lowContrast');
+
+Map<String, Object?> _bounds(Map<String, Object?> policy) =>
+    policy['bounds']! as Map<String, Object?>;
+
+Map<String, Object?> _decisionRule(Map<String, Object?> provenance) =>
+    provenance['decisionRule']! as Map<String, Object?>;
 
 /// Scratch root for the mutated artifact copies, created on first use under the
 /// system temp directory so a run from any working directory leaves nothing in
@@ -895,10 +1228,14 @@ void _deleteScratch() {
 }
 
 /// Writes a mutated copy of both frozen artifacts so a load sees the change.
+///
+/// [mutateProvenance] edits the provenance copy in the same pass, for the
+/// `decisionRule` values `adaptive_trigger.dart` compares.
 File _mutatedPolicy(
   String name,
-  void Function(Map<String, Object?> policy) mutate,
-) {
+  void Function(Map<String, Object?> policy) mutate, {
+  void Function(Map<String, Object?> provenance)? mutateProvenance,
+}) {
   final Directory source = File.fromUri(Platform.script).parent;
   final Directory target = _scratchDir(name);
   _copyArtifact(source, target, 'adaptive-provenance.v1.json');
@@ -910,6 +1247,15 @@ File _mutatedPolicy(
   mutate(policy);
   final File mutated = File('${target.path}/adaptive-policy.v1.json');
   mutated.writeAsStringSync(jsonEncode(policy));
+  if (mutateProvenance != null) {
+    final File provenanceCopy = File(
+      '${target.path}/adaptive-provenance.v1.json',
+    );
+    final Map<String, Object?> provenance =
+        jsonDecode(provenanceCopy.readAsStringSync()) as Map<String, Object?>;
+    mutateProvenance(provenance);
+    provenanceCopy.writeAsStringSync(jsonEncode(provenance));
+  }
   return mutated;
 }
 

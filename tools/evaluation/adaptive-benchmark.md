@@ -3,7 +3,7 @@
 | Item | Value |
 | --- | --- |
 | Code | `tools/evaluation/adaptive_benchmark.dart` |
-| Test | `dart tools/evaluation/adaptive_benchmark_test.dart` (21 checks) |
+| Test | `dart tools/evaluation/adaptive_benchmark_test.dart` (22 checks) |
 | Corpora | `corpusAndHoldout.devPages` (6) and `.holdoutPages` (4) of the declared synthetic corpus `field-inventory-synthetic-v1` |
 | Consumes (read-only) | `tools/evaluation/adaptive-policy.v1.json` (`frozen-before-run`, `implementation: BLOCKED`), `tools/evaluation/adaptive-provenance.v1.json`, `tools/evaluation/adaptive_trigger.dart`, `tools/evaluation/field_inventory_baseline.dart` (`buildSyntheticCorpus`) |
 | Evidence class | `NONE` (host VM only) |
@@ -95,6 +95,10 @@ dart run tools/evaluation/adaptive_benchmark.dart --output holdout.json \
 Exit codes: `0` run written and every declared outcome PASS, `1` I/O or internal
 failure, `2` usage error, `3` run written but at least one declared outcome FAIL,
 `4` holdout refused because this policy already had its single holdout scoring.
+
+The test writes its mutated artifact copies and its holdout ledger to a system
+temp directory and removes them again before the summary, so a run leaves
+nothing behind in the tree or in a foreign working directory.
 
 ## What it does not do
 
