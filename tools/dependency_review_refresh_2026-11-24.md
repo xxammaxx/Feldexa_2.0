@@ -249,3 +249,18 @@ vom Review bestätigt worden.
 Das verbleibende Restrisiko steht in §8 („Nicht durchgeführt"): in diesem Audit-Zyklus wurde
 keine Release-Note-Prosa für Flutter 3.50.x und die Majors gelesen — für KEEP/DEFER nicht
 erforderlich, für U4/U5 zwingend nachzuholen.
+
+## 13. Nachtrag 2026-11-24 (nach T309 / PR #320) — Direktabhängigkeit entfernt
+
+§2–§12 bleiben der Stand des Auditzeitpunkts und werden **nicht** rückwirkend umgeschrieben.
+Nachgetragen wird ausschließlich die danach eingetretene Änderung:
+
+**2026-11-24, Nachtrag nach T309:** `google_mlkit_text_recognition` ist als
+Direktabhängigkeit **entfernt** (Commit `e5cd4a3`, PR #320 → Merge `9f41095`); der
+Dart-Wrapper war ungenutzt, die native OCR läuft **unverändert** über
+`com.google.mlkit:text-recognition:16.0.1`
+(`apps/feldexa_app/android/app/build.gradle.kts:61`). Damit entfällt die Wrapper-Zeile in §3
+(„DEFER / entfernen statt aktualisieren") und der zugehörige Aufschub in §6/§10;
+`google_mlkit_commons` verlässt den aufgelösten Graphen mit. Neue Zählung: **11 offene
+Aufschübe** (vorher 12), **8 KEEP** unverändert. Kein Pin, keine Schwelle und kein Vertrag
+ändern sich dadurch.
