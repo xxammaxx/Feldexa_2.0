@@ -8,12 +8,13 @@
 // threshold requests a pass with the frozen reason, the hysteresis band does not
 // flip-flop, the pass/time/memory bounds and the pass-1 fallback are explicit,
 // and a provenance rule (holdout, `minIndependentGroups`, correlated variants,
-// pending variant hash, undeclared variant or correlation group) refuses the
-// decision instead of guessing.
+// pending variant hash, excluded, undeclared or misgrouped variant, undeclared
+// correlation group) refuses the decision instead of guessing.
 //
-// The pinned values below are the contract: editing
-// `tools/evaluation/adaptive-policy.v1.json` or
-// `tools/evaluation/adaptive-provenance.v1.json` makes this harness fail.
+// Both frozen artifacts are byte-pinned by SHA-256 below, and every compared
+// threshold is proven to come from the file rather than from this harness: the
+// mutation copies are written to a system temp directory and removed again, so a
+// run leaves no artifact behind, in this tree or in a foreign working directory.
 //
 // Host-only tooling. No raster, OCR, emulator, device, or measurement, and no
 // SIMULATED/EMULATOR/DEVICE evidence.
@@ -32,10 +33,21 @@ int _failures = 0;
 const String _pinnedPolicySha256 =
     'eb940399ce1533aaa0a6dba4bba814b311a5041b06daeddc0f9866cacc40e073';
 
+/// SHA-256 of `tools/evaluation/adaptive-provenance.v1.json` itself.
+///
+/// The consumed `decisionRule` values and variant mappings above are
+/// value-pinned; this pin makes the whole artifact byte-pinned, so a note or
+/// reason edit fails the harness as well.
+const String _pinnedProvenanceSha256 =
+    '50af51a9eab0def559b1100b2d9b1b290062cc414008d3f13596f174d8146c72';
+
 void main() {
   final Directory directory = File.fromUri(Platform.script).parent;
   final File policyFile = File.fromUri(
     directory.uri.resolve('adaptive-policy.v1.json'),
+  );
+  final File provenanceFile = File.fromUri(
+    directory.uri.resolve('adaptive-provenance.v1.json'),
   );
   final AdaptivePolicy policy;
   try {
@@ -93,6 +105,14 @@ void main() {
       );
     });
 
+    _check('pins the frozen provenance bytes', () {
+      final String digest = sha256Hex(provenanceFile.readAsBytesSync());
+      _expect(
+        digest == _pinnedProvenanceSha256,
+        'the frozen provenance drifted: $digest != $_pinnedProvenanceSha256',
+      );
+    });
+
     _check('rejects an inconsistent hysteresis band', () {
       final File mutated = _mutatedPolicy('bad-hysteresis', (
         Map<String, Object?> policy,
@@ -123,6 +143,29 @@ void main() {
           decision.verdict == Verdict.noSecondPass,
           'contrastSpread 90 must not trigger against a mutated enterBelow 60, '
           'so a hardcoded 96 would enter here',
+        );
+
+        // The same proof for a second threshold: the skew band is read from the
+        // file too, so a hardcoded enterAbove is caught here.
+        final File mutatedBand = _mutatedPolicy('skew-band-2-0', (
+          Map<String, Object?> policy,
+        ) {
+          final Map<String, Object?> skew =
+              (policy['runtimeSignals']! as Map<String, Object?>)['skew']!
+                  as Map<String, Object?>;
+          skew['enterAbove'] = 2.0;
+          skew['leaveBelow'] = 1.5;
+        });
+        final AdaptivePolicy widenedSkew = AdaptivePolicy.load(mutatedBand);
+        _expect(widenedSkew.skew.enterAbove == 2.0, 'mutated skew enterAbove');
+        final AdaptiveDecision skewDecision = decideAdaptiveTrigger(
+          policy: widenedSkew,
+          request: TriggerRequest(signals: _signals(skewDegrees: 1)),
+        );
+        _expect(
+          skewDecision.verdict == Verdict.noSecondPass,
+          'a 1 degree skew must not trigger against a mutated enterAbove 2.0, '
+          'so a hardcoded 0.5 would enter here',
         );
       },
     );
@@ -323,6 +366,31 @@ void main() {
         'skew 0.2 releases below leaveBelow 0.25',
       );
     });
+
+    _check('a latched negative skew is held as its absolute angle', () {
+      final AdaptiveDecision held = _decide(
+        _signals(skewDegrees: -0.3),
+        latched: const <Trigger>{Trigger.skew},
+      );
+      _expect(held.verdict == Verdict.secondPass, 'verdict');
+      _expect(held.triggers.length == 1, 'exactly one trigger');
+      final TriggerHit hit = held.triggers.single;
+      _expect(hit.trigger == Trigger.skew, 'trigger');
+      _expect(
+        hit.policyPath == 'runtimeSignals.skew.leaveBelow',
+        'the hold is measured against leaveBelow: ${hit.policyPath}',
+      );
+      _expect(
+        hit.observed == 0.3,
+        'the leave branch compares the absolute angle too, so -0.3 is 0.3: '
+        '${hit.observed}',
+      );
+      _expect(hit.heldByHysteresis, 'held by hysteresis');
+      _expect(
+        _hasReason(held, 'skew: held latched, |skewDegrees|=0.3 >='),
+        'the reason must report the absolute value: ${held.reasons}',
+      );
+    });
   });
 
   _group('bounds', () {
@@ -507,6 +575,33 @@ void main() {
       );
     });
 
+    _check('a correlation-limited refusal without a group renders none', () {
+      final AdaptiveDecision decision = _decide(
+        _signals(p95Luminance: 110),
+        evidence: const <VariantObservation>[
+          VariantObservation(
+            variantId: 'clean-200dpi',
+            correlationGroup: 'group-pdfium-200',
+          ),
+          VariantObservation(
+            variantId: 'clean-150dpi',
+            correlationGroup: 'group-pdfium-150',
+          ),
+        ],
+      );
+      _expect(decision.rejection?.code == 'correlationLimited', 'code');
+      _expect(decision.independentGroups == 0, 'no independent group');
+      final String message = decision.rejection?.message ?? '';
+      _expect(
+        message.contains('covers 0 independent correlation group(s) (none)'),
+        'an empty group list must render as none: $message',
+      );
+      _expect(
+        !message.contains('()'),
+        'no empty pair of parentheses in the refusal: $message',
+      );
+    });
+
     _check('an undeclared variant is dropped, not counted', () {
       final AdaptiveDecision decision = _decide(
         _signals(p95Luminance: 110),
@@ -536,6 +631,41 @@ void main() {
         _hasReason(decision, 'failClosed'),
         'the refusal must name correlationRule.failClosed: '
         '${decision.reasons}',
+      );
+    });
+
+    _check('an excluded variant is dropped with its own note', () {
+      final AdaptiveDecision decision = _decide(
+        _signals(p95Luminance: 110),
+        evidence: const <VariantObservation>[
+          // region-render-2x is declared in excludedVariants[] and in no
+          // variants[], so only the exclusion gate can explain this drop.
+          VariantObservation(
+            variantId: 'region-render-2x',
+            correlationGroup: 'group-pdfium-200',
+            rasterHashRecorded: true,
+          ),
+          VariantObservation(
+            variantId: 'clean-150dpi',
+            correlationGroup: 'group-pdfium-150',
+            rasterHashRecorded: true,
+          ),
+        ],
+      );
+      _expect(decision.verdict == Verdict.rejected, 'verdict');
+      _expect(decision.rejection?.code == 'correlationLimited', 'code');
+      _expect(decision.independentGroups == 1, 'one declared group only');
+      _expect(
+        decision.droppedEvidence.single.variantId == 'region-render-2x',
+        'the excluded variant is dropped: '
+        '${decision.droppedEvidence.map((VariantObservation o) => o.variantId)}',
+      );
+      _expect(
+        _hasReason(
+          decision,
+          'region-render-2x is declared in excludedVariants',
+        ),
+        'the drop must name excludedVariants[]: ${decision.reasons}',
       );
     });
 
@@ -630,6 +760,48 @@ void main() {
     });
   });
 
+  _group('test hygiene', () {
+    _check('mutation artifacts live in a system temp directory', () {
+      final File mutated = _mutatedPolicy('cwd-probe', (
+        Map<String, Object?> policy,
+      ) {
+        _lowContrast(policy)['leaveAbove'] = 100;
+      });
+      _expect(
+        mutated.path.startsWith(Directory.systemTemp.path),
+        'the mutated artifact must live under ${Directory.systemTemp.path}: '
+        '${mutated.path}',
+      );
+      _expect(
+        !mutated.path.contains('.dart_tool/adaptive_trigger_test'),
+        'no scratch directory in the tree: ${mutated.path}',
+      );
+      _expect(
+        !mutated.path.startsWith(Directory.current.path),
+        'the mutated artifact must not be written under the caller CWD: '
+        '${mutated.path}',
+      );
+    });
+
+    _check('the scratch directory is removed again', () {
+      final File mutated = _mutatedPolicy('cleanup-probe', (
+        Map<String, Object?> policy,
+      ) {
+        _lowContrast(policy)['leaveAbove'] = 100;
+      });
+      final Directory scratch = Directory(_scratch().path);
+      _expect(
+        mutated.existsSync(),
+        'the mutated artifact exists while running',
+      );
+      _expect(scratch.existsSync(), 'the scratch root exists while running');
+      _deleteScratch();
+      _expect(!scratch.existsSync(), 'the scratch root is deleted: $scratch');
+      _expect(!mutated.existsSync(), 'its artifacts are gone: ${mutated.path}');
+    });
+  });
+
+  _deleteScratch();
   stdout.writeln('\n$_checks checks, $_failures failure(s)');
   if (_failures > 0) {
     exitCode = 1;
@@ -691,17 +863,41 @@ Map<String, Object?> _lowContrast(Map<String, Object?> policy) =>
     (policy['runtimeSignals']! as Map<String, Object?>)['lowContrast']!
         as Map<String, Object?>;
 
+/// Scratch root for the mutated artifact copies, created on first use under the
+/// system temp directory so a run from any working directory leaves nothing in
+/// the tree. [main] deletes it before it prints its summary.
+Directory? _scratchRoot;
+
+Directory _scratch() => _scratchRoot ??= Directory.systemTemp.createTempSync(
+  'adaptive_trigger_test.',
+);
+
+/// The per-mutation directory inside the scratch root, recreated per call.
+Directory _scratchDir(String name) {
+  final Directory target = Directory('${_scratch().path}/$name');
+  if (target.existsSync()) {
+    target.deleteSync(recursive: true);
+  }
+  target.createSync(recursive: true);
+  return target;
+}
+
+/// Deletes the scratch root; the next [_mutatedPolicy] call creates a fresh one.
+void _deleteScratch() {
+  final Directory? scratch = _scratchRoot;
+  _scratchRoot = null;
+  if (scratch != null && scratch.existsSync()) {
+    scratch.deleteSync(recursive: true);
+  }
+}
+
 /// Writes a mutated copy of both frozen artifacts so a load sees the change.
 File _mutatedPolicy(
   String name,
   void Function(Map<String, Object?> policy) mutate,
 ) {
   final Directory source = File.fromUri(Platform.script).parent;
-  final Directory target = Directory('.dart_tool/adaptive_trigger_test/$name');
-  if (target.existsSync()) {
-    target.deleteSync(recursive: true);
-  }
-  target.createSync(recursive: true);
+  final Directory target = _scratchDir(name);
   _copyArtifact(source, target, 'adaptive-provenance.v1.json');
 
   final Map<String, Object?> policy = jsonDecode(

@@ -3,7 +3,7 @@
 | Field | Value |
 | --- | --- |
 | Code | `tools/evaluation/adaptive_trigger.dart` |
-| Test | `dart tools/evaluation/adaptive_trigger_test.dart` (26 checks) |
+| Test | `dart tools/evaluation/adaptive_trigger_test.dart` (32 checks) |
 | Consumes | `tools/evaluation/adaptive-policy.v1.json` (`frozen-before-run`, `implementation: BLOCKED`) and `tools/evaluation/adaptive-provenance.v1.json` (`decisionRule`) |
 | Task / issue | T264C / [#264](https://github.com/xxammaxx/Feldexa_2.0/issues/264) |
 | Evidence class | `NONE` (host logic and host tests only) |
@@ -22,7 +22,8 @@ failed or absent second pass returns the pass-1 result unchanged.
 
 ## 2. Triggers and thresholds — owned by the policy file
 
-No number is written twice. The values are parsed from `adaptive-policy.v1.json`:
+No compared threshold is duplicated. The values are parsed from
+`adaptive-policy.v1.json`:
 
 | Trigger | Frozen value | Path |
 | --- | --- | --- |
@@ -54,8 +55,8 @@ limit gets `noSecondPass` with reason `passBudgetExhausted`), `4000 ms` per page
 
 `maxConcurrentPasses` and `maxVariantRastersInMemory` are read, validated, and
 returned per decision like every other bound, but nothing in this slice enforces
-them: there is no pipeline here. They become effective only in the T264D
-pipeline; until then they are declared limits, not a measured guarantee.
+them: there is no pipeline here. Only the T264D pipeline wiring can make them
+enforceable; until then they are declared limits, not a measured guarantee.
 
 ## 4. Refused instead of guessed
 
@@ -67,6 +68,8 @@ pipeline; until then they are declared limits, not a measured guarantee.
 * `correlationLimited` — offered evidence covers fewer than
   `decisionRule.minIndependentGroups` (2) correlation groups. A repeated group
   keeps one observation, and the observation count is never the evidence count.
+  With the fail-closed hash default this includes the empty case, which renders
+  `(none)` instead of an empty group list.
 
 Evidence is admitted only from a declared, captured variant. Three gates run in
 this order, and each one drops the observation instead of counting it:
@@ -86,12 +89,27 @@ resolve to a declared variant or declared variant group is dropped, never
 counted as an independent group. Together they keep a fabricated or retagged
 variant from lifting `correlationLimited` on its own.
 
+`decisionRule.insufficientGroupsOutcome` is read as a refusal in T264C. The
+frozen text describes the outcome of a correlation-limited pass that still runs
+(one observation per group, no `twoIndependentOcrLinesAgree`, no independent-OCR
+confidence bonus, no auto-confirm); this slice stops one step earlier and
+returns `Verdict.rejected` with code `correlationLimited`, attaching the frozen
+rule text in the reason. That reading is a T264C interpretation; the frozen
+wording is unchanged.
+
+Holdout classification is caller-declared, not derived: `PageSignals.pageClass`
+and `PageSignals.holdoutAlreadyScored` are what the caller asserts, while the
+loaded `corpusAndHoldout.devPages`/`holdoutPages` are unused by this slice.
+Mapping a page id onto that split — and with it a holdout refusal the caller
+cannot bypass — is a T264D point.
+
 ## 5. What this slice does not do
 
 No UI, no pipeline wiring, no raster or OCR work, no variant rendering, no
 measurement, no A/B/C benchmark. It writes no evidence row and claims no
 `SIMULATED`/`EMULATOR`/`DEVICE` class. Nothing here changes
 `adaptive-policy.v1.json` or `adaptive-provenance.v1.json`; both stay byte
-identical and a policy edit fails the pinned test. SC-001/SC-003/SC-004 remain
-owned by T142/T136/T141, and the adaptive second pass stays `BLOCKED` until the
-`SuggestionSchema` provenance decision (T264P) is settled.
+identical, and an edit to either artifact fails its SHA-256 pin in the harness.
+SC-001/SC-003/SC-004 remain owned by T142/T136/T141, and the adaptive second
+pass stays `BLOCKED` until the `SuggestionSchema` provenance decision (T264P) is
+settled.
