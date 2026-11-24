@@ -47,7 +47,7 @@ real-corpus qualification, and any SC-001/SC-003/SC-004 claim remain `NOT_RUN`.
 ## 2. Revision and build
 
 Base commit `2a0c4c5dfbaa931eb988ad1eb3b54f92c013872e` (origin/main after the
-T264C integration). T264D changes exactly five files: three new evaluation files,
+T264C integration). T264D changes exactly nine files: five code/doc files plus the three run artifacts and this report: three new evaluation files,
 one additive read-only change to an existing evaluation module, and one index row
 in the reports README:
 
@@ -89,7 +89,7 @@ run, not a performance claim.
 | 8 | `python3 -m unittest tools/evaluation/test_field_inventory_baseline.py` (`repository root`, Dart on `PATH`) | `1` | console only (not retained) | `FAIL` |
 | 9 | `dart tools/evaluation/adaptive_trigger_test.dart` (`repository root`) | `0` | console only (not retained) | `PASS` |
 | 10 | `bash tools/gate.sh --offline --allow-absent --allow-unavailable` (`repository root`) | `1` | console only (not retained) | `PARTIAL` |
-| 11 | `dart tools/evaluation/validate_report.dart specs/001-scanned-form-workflow/reports/2026-11-24-t264d-abc-benchmark.md` (`repository root`) | `0` | console only (not retained) | `PASS` |
+| 11 | `dart tools/evaluation/validate_report.dart specs/001-scanned-form-workflow/reports/2026-11-24-t264-abc-benchmark.md` (`repository root`) | `0` | console only (not retained) | `PASS` |
 | 12 | `git diff --check` (`repository root`) | `0` | console only (not retained) | `PASS` |
 | 13 | Android `EMULATOR` production-path A/B/C journey (`not applicable`) | `-` | none | `UNAVAILABLE` |
 | 14 | rights-cleared real-form corpus (`not applicable`) | `-` | none | `ABSENT` |
