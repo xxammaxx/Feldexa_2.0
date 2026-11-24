@@ -158,16 +158,18 @@ const Duration editorLoadTimeout = Duration(seconds: 30);
 
 /// Bound on the single editor `AnalyzeDocument.run` call.
 ///
-/// The use case already isolates per-page failures. This overall bound exists
-/// only because a platform port can stop answering after the protected load
-/// succeeded; it turns that unsatisfiable wait into the visible, content-free
+/// The use case already isolates per-page failures and runs the geometry/typing
+/// stage off the UI isolate under its own per-page deadline, so no detector
+/// scan of a page blocks this isolate. This overall bound exists only because a
+/// platform port can stop answering after the protected load succeeded; it
+/// turns that unsatisfiable wait into the visible, content-free
 /// `analysis-failed` state. It is a diagnostic fail-closed guard, not a
 /// performance or retry policy.
 ///
-/// The bound covers asynchronous port waits only. It cannot preempt
-/// synchronous CPU-bound work on the UI isolate, such as a recognition
-/// detector that blocks while scanning page geometry; recognition performance
-/// is outside T071A scope.
+/// The bound covers asynchronous port waits. It cannot preempt synchronous
+/// CPU-bound work on the calling isolate, but recognition is no longer such
+/// work: rendering and OCR stay asynchronous ports, and the stage's CPU work
+/// and its bound live on the worker isolate.
 const Duration editorAnalysisTimeout = Duration(minutes: 5);
 
 /// Content-free integration diagnostic marker for the T071A editor path.

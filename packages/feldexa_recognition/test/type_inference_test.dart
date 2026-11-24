@@ -121,6 +121,17 @@ void main() {
         ...neutral,
       }, SuggestionSchema.keywordLexiconV1.toSet());
 
+      // The same truth is published per key, so a caller (the §3.3 keyword
+      // bonus of the bytes-level stage) reads it instead of restating it.
+      for (final String key in SuggestionSchema.keywordLexiconV1) {
+        expect(
+          TypeInference.forcedTypeForKey(key),
+          forcedType[key],
+          reason: 'published class of "$key"',
+        );
+      }
+      expect(TypeInference.forcedTypeForKey('not-a-lexicon-key'), isNull);
+
       // The checkbox geometry would win for neutral keywords, proving that a
       // matching typed keyword really forced date/number/text/signature.
       final GeometryCandidate checkbox = _candidate(

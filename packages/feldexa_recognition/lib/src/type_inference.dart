@@ -190,6 +190,10 @@ enum _KeywordClass {
 }
 
 /// The documented §3.2 classification of all 36 lexicon entries.
+///
+/// This table is the one keyword→type truth. [TypeInference.infer] resolves the
+/// label precedence from it and [TypeInference.forcedTypeForKey] publishes the
+/// per-key projection of it, so a caller never restates the classes.
 const Map<String, _KeywordClass> _keywordClasses = <String, _KeywordClass>{
   // Date keywords.
   'geburtsdatum': _KeywordClass.date,
@@ -318,8 +322,37 @@ final class TypeInferenceResult {
 /// The class is stateless and has no I/O. See the library documentation for
 /// the proximity rule, total tie-break order, lexicon classes, and §3.2
 /// precedence.
+///
+/// [forcedTypeForKey] publishes the keyword→type half of those classes, so a
+/// caller that rewards a keyword cue for matching an inferred type reads this
+/// class instead of restating the table.
 final class TypeInference {
   const TypeInference._();
+
+  /// The §3.2 type that keyword lexicon entry [key] forces, or null.
+  ///
+  /// Null means the entry is neutral (it supplies evidence but states no type)
+  /// or does not belong to lexicon v1. The answer is read from the same table
+  /// that [infer] classifies labels with, so the per-key answer and the label
+  /// precedence cannot drift apart. A caller that scores the §3.3 "credible
+  /// keyword matches the inferred type" bonus must use this accessor instead
+  /// of keeping its own copy of the lexicon classes.
+  static String? forcedTypeForKey(String key) {
+    switch (_keywordClasses[key]) {
+      case _KeywordClass.date:
+        return 'date';
+      case _KeywordClass.number:
+        return 'number';
+      case _KeywordClass.textNumeric:
+      case _KeywordClass.textDateGuard:
+        return 'text';
+      case _KeywordClass.signature:
+        return 'signature';
+      case _KeywordClass.neutral:
+      case null:
+        return null;
+    }
+  }
 
   /// Derives the proposed type, label text, and added cues for [candidate].
   ///
