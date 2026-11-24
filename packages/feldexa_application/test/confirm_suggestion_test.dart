@@ -21,6 +21,8 @@ import 'package:feldexa_application/src/review/confirm_suggestion.dart';
 import 'package:feldexa_core/feldexa_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/package_root.dart';
+
 const String _sha256 =
     'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
@@ -1514,7 +1516,9 @@ void main() {
     });
 
     test('the command library has no I/O, clock, or id-randomness path', () {
-      final File library = File('lib/src/review/confirm_suggestion.dart');
+      final File library = File(
+        '${packageRoot.path}/lib/src/review/confirm_suggestion.dart',
+      );
       expect(library.existsSync(), isTrue);
       final String source = library.readAsStringSync();
 

@@ -31,6 +31,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/package_root.dart';
+
 /// Narrow bounded width used to force wrapping at 200 % text scale.
 const double _narrowWidth = 280;
 
@@ -573,7 +575,9 @@ void main() {
   );
 
   test('production source stays presentation-only', () {
-    final File file = File('lib/features/editor/durability_status.dart');
+    final File file = File(
+      '${packageRoot.path}/lib/features/editor/durability_status.dart',
+    );
     expect(file.existsSync(), isTrue);
 
     final String source = file.readAsStringSync();

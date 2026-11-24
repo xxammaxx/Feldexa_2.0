@@ -21,6 +21,8 @@ import 'package:feldexa_recognition/src/page_analysis.dart';
 import 'package:feldexa_recognition/src/suggestion_schema.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/package_root.dart';
+
 const String _runId = '8f14e45f-ceea-467f-a2a0-1f2c3d4e5f60';
 const String _otherRunId = '11111111-2222-3333-4444-555555555555';
 const String _secretLabel = 'Patient Meier';
@@ -1321,7 +1323,9 @@ void main() {
 
   group('scope boundaries', () {
     test('the module imports only the shared suggestion validator', () {
-      final File source = File('lib/src/page_analysis.dart');
+      final File source = File(
+        '${packageRoot.path}/lib/src/page_analysis.dart',
+      );
       expect(source.existsSync(), isTrue);
       final String text = source.readAsStringSync();
       final List<String> imports = RegExp(
@@ -1348,7 +1352,8 @@ void main() {
     });
 
     test('the recognition package declares no core dependency', () {
-      final String pubspec = File('pubspec.yaml').readAsStringSync();
+      final String pubspec = File('${packageRoot.path}/pubspec.yaml')
+          .readAsStringSync();
       expect(pubspec, isNot(contains('feldexa_core')));
       expect(pubspec, isNot(contains('feldexa_ports')));
       expect(pubspec, isNot(contains('feldexa_application')));

@@ -28,6 +28,8 @@ import 'package:feldexa_app/features/fill/text_control.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/package_root.dart';
+
 Widget _host(Widget child, {double width = 360, double textScale = 1.0}) {
   return MaterialApp(
     builder: (BuildContext context, Widget? widget) {
@@ -566,7 +568,9 @@ void main() {
   });
 
   test('production source imports no ARB, editor, or persistence module', () {
-    final File file = File('lib/features/fill/text_control.dart');
+    final File file = File(
+      '${packageRoot.path}/lib/features/fill/text_control.dart',
+    );
     expect(file.existsSync(), isTrue);
 
     final String source = file.readAsStringSync();

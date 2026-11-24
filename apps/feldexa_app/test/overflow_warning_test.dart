@@ -32,8 +32,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-const String _catalogPath =
-    '../../specs/001-scanned-form-workflow/contracts/error-catalog.de.md';
+import 'support/package_root.dart';
+
+const String _catalogRelativePath =
+    'specs/001-scanned-form-workflow/contracts/error-catalog.de.md';
 const String _arbPath = 'lib/l10n/app_de.arb';
 
 /// Narrow bounded width used to force wrapping at 200 % text scale.
@@ -186,9 +188,11 @@ void main() {
   );
 
   test('FLD-001 and EXP-001 rows agree with the ARB and stop export', () {
-    final String catalog = File(_catalogPath).readAsStringSync();
-    final Map<String, dynamic> arb =
-        jsonDecode(File(_arbPath).readAsStringSync()) as Map<String, dynamic>;
+    final String catalog = File('${repositoryRoot.path}/$_catalogRelativePath')
+        .readAsStringSync();
+    final Map<String, dynamic> arb = jsonDecode(
+      File('${packageRoot.path}/$_arbPath').readAsStringSync(),
+    ) as Map<String, dynamic>;
 
     final ({String message, String recovery}) fld = _catalogRow(
       catalog,
@@ -318,7 +322,9 @@ void main() {
   });
 
   test('production source stays presentation-only', () {
-    final File file = File('lib/features/fill/overflow_warning.dart');
+    final File file = File(
+      '${packageRoot.path}/lib/features/fill/overflow_warning.dart',
+    );
     expect(file.existsSync(), isTrue);
 
     final String source = file.readAsStringSync();

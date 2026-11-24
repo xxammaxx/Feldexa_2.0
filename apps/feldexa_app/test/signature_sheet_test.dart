@@ -31,6 +31,8 @@ import 'package:feldexa_app/features/fill/signature_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/package_root.dart';
+
 const String _title = 'Synthetic signature title';
 const String _clearLabel = 'Synthetic clear ink';
 const String _undoLabel = 'Synthetic undo stroke';
@@ -447,7 +449,9 @@ void main() {
   });
 
   test('production source imports only the Flutter presentation framework', () {
-    final File file = File('lib/features/fill/signature_sheet.dart');
+    final File file = File(
+      '${packageRoot.path}/lib/features/fill/signature_sheet.dart',
+    );
     expect(file.existsSync(), isTrue);
 
     final String source = file.readAsStringSync();

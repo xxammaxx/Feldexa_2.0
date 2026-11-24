@@ -32,6 +32,8 @@ import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/package_root.dart';
+
 /// Narrow bounded width used to force wrapping at 200 % text scale.
 const double _narrowWidth = 280;
 
@@ -864,7 +866,9 @@ void main() {
   });
 
   test('production source stays presentation-only with authorized imports', () {
-    final File file = File('lib/features/start/stored_items.dart');
+    final File file = File(
+      '${packageRoot.path}/lib/features/start/stored_items.dart',
+    );
     expect(file.existsSync(), isTrue);
 
     final String source = file.readAsStringSync();

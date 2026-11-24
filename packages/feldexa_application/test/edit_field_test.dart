@@ -22,6 +22,8 @@ import 'package:feldexa_application/src/review/edit_field.dart';
 import 'package:feldexa_core/feldexa_core.dart' hide reclassifyField;
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/package_root.dart';
+
 const String _sha256 =
     'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
 
@@ -2063,7 +2065,9 @@ void main() {
     });
 
     test('the command library has no I/O, clock, or id-randomness path', () {
-      final File library = File('lib/src/review/edit_field.dart');
+      final File library = File(
+        '${packageRoot.path}/lib/src/review/edit_field.dart',
+      );
       expect(library.existsSync(), isTrue);
       final String source = library.readAsStringSync();
 

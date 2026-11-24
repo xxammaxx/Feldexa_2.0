@@ -23,6 +23,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/package_root.dart';
 import 'support/sha256_reference.dart';
 
 const String _canonicalFixtureDirectory = 'apps/feldexa_app/assets/fixtures';
@@ -49,7 +50,6 @@ late Map<String, dynamic> _catalog;
 late List<Map<String, dynamic>> _fixtures;
 late Map<String, Map<String, dynamic>> _ocr;
 late Map<String, Uint8List> _pdfBytes;
-late Directory _repositoryRoot;
 
 Map<String, dynamic> _map(Object? value) {
   return (value as Map<Object?, Object?>).cast<String, dynamic>();
@@ -60,15 +60,14 @@ List<dynamic> _list(Object? value) {
 }
 
 Uint8List _readBytes(String repositoryRelativePath) {
-  return File('${_repositoryRoot.path}/$repositoryRelativePath')
+  return File('${repositoryRoot.path}/$repositoryRelativePath')
       .readAsBytesSync();
 }
 
 Map<String, dynamic> _readJson(String repositoryRelativePath) {
   return _map(
     jsonDecode(
-      File('${_repositoryRoot.path}/$repositoryRelativePath')
-          .readAsStringSync(),
+      File('${repositoryRoot.path}/$repositoryRelativePath').readAsStringSync(),
     ),
   );
 }
@@ -113,8 +112,6 @@ bool _insideManifestRect(Map<String, dynamic> rect, Map<String, dynamic> page) {
 int _roundEighth(double value) => (value * 8).round();
 
 void main() {
-  _repositoryRoot = Directory.current.parent.parent;
-
   // Test registration happens synchronously before `setUpAll`. Read the
   // canonical catalogue from the checkout to declare one test per fixture.
   _catalog = _readJson('$_canonicalFixtureDirectory/catalog.json');
@@ -124,9 +121,9 @@ void main() {
 
   setUpAll(() async {
     expect(
-      File('${_repositoryRoot.path}/pubspec.yaml').readAsStringSync(),
+      File('${repositoryRoot.path}/pubspec.yaml').readAsStringSync(),
       contains('feldexa_workspace'),
-      reason: 'test must run from apps/feldexa_app inside the monorepo',
+      reason: 'the checkout above apps/feldexa_app must be the workspace',
     );
 
     _ocr = <String, Map<String, dynamic>>{};
@@ -449,7 +446,7 @@ void main() {
 
   group('dev-only delivery policy', () {
     test('pubspec declares fonts but never fixture assets', () {
-      final String pubspec = File('${_repositoryRoot.path}/$_pubspecPath')
+      final String pubspec = File('${repositoryRoot.path}/$_pubspecPath')
           .readAsStringSync();
       expect(
         RegExp(
@@ -468,7 +465,7 @@ void main() {
       );
 
       final Directory androidAssets = Directory(
-        '${_repositoryRoot.path}/apps/feldexa_app/android/app/src/main/assets',
+        '${repositoryRoot.path}/apps/feldexa_app/android/app/src/main/assets',
       );
       if (androidAssets.existsSync()) {
         expect(
@@ -485,10 +482,10 @@ void main() {
 
     test('canonical and Web fixture trees are byte-identical', () {
       final Directory canonical = Directory(
-        '${_repositoryRoot.path}/$_canonicalFixtureDirectory',
+        '${repositoryRoot.path}/$_canonicalFixtureDirectory',
       );
       final Directory web = Directory(
-        '${_repositoryRoot.path}/$_webFixtureDirectory',
+        '${repositoryRoot.path}/$_webFixtureDirectory',
       );
       expect(canonical.existsSync(), isTrue);
       expect(web.existsSync(), isTrue);
@@ -533,7 +530,7 @@ void main() {
       for (final Map<String, dynamic> fixture in _fixtures) {
         final String webPath = fixture['webPath'] as String;
         expect(webPath, startsWith('apps/feldexa_app/web/fixtures/'));
-        expect(File('${_repositoryRoot.path}/$webPath').existsSync(), isTrue);
+        expect(File('${repositoryRoot.path}/$webPath').existsSync(), isTrue);
       }
     });
   });
