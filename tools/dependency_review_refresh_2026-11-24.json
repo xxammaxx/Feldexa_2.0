@@ -1,0 +1,463 @@
+{
+  "schemaVersion": 1,
+  "kind": "dependency-refresh-audit",
+  "repo": "xxammaxx/Feldexa_2.0",
+  "baseCommit": "1d6afea0516a300c21442f6e2361e4c9ac2b795b",
+  "auditDate": "2026-11-24",
+  "auditUtcRange": [
+    "2026-11-24T16:28:57Z",
+    "2026-11-24T16:33:44Z"
+  ],
+  "tool": {
+    "name": "technology-refresh",
+    "version": "1.0.0",
+    "host": "pi 1.6.0"
+  },
+  "capabilities": {
+    "fullHttpsRetrieval": {
+      "status": "AVAILABLE",
+      "evidence": "30+ vollstaendige Abrufe, 21 davon in der Quellentabelle des Records mit SHA-256 aufgelistet"
+    },
+    "generalWebSearch": {
+      "status": "BLOCKED",
+      "evidence": "researcher-Kind 6d611adc: nur read/write/contact_supervisor -> BLOCKED_NO_SEARCH"
+    },
+    "modelRoutes": {
+      "deepseek/deepseek-flash": "VERIFIED (echter Aufruf)",
+      "zai-coding-cn/glm-5.3-flash": "VERIFIED (echter Aufruf)",
+      "anthropic/claude-haiku-4-5": "READY (auth check, kein Aufruf)"
+    },
+    "maestroMcp": {
+      "status": "CONNECTED_EXECUTED",
+      "evidence": "list_devices -> emulator-5554"
+    }
+  },
+  "advisories": {
+    "pub": {
+      "queried": 96,
+      "found": 0,
+      "receipt": {
+        "url": "https://api.osv.dev/v1/querybatch",
+        "retrievedUtc": "2026-11-24T16:30Z",
+        "sha256": "6fca6e58061f8620ecd526cf3beeec6782a6aa7635028bdc642eef9057074cd4"
+      }
+    },
+    "maven": {
+      "queried": 4,
+      "found": 0,
+      "receipt": {
+        "url": "https://api.osv.dev/v1/querybatch",
+        "retrievedUtc": "2026-11-24T16:31Z",
+        "sha256": "8ad79079fd9aff33d25ee88b444368b384a64132b6ece63aa4ddc82909110ab6"
+      }
+    }
+  },
+  "components": [
+    {
+      "component": "flutter-sdk",
+      "installed": "3.47.7",
+      "latestStable": "3.50.1",
+      "latestCompatible": "3.47.9",
+      "decision": "defer",
+      "scope": "host-global",
+      "reason": "Patch-Linie 3.47.9 (Dart 3.13.7) waere kompatibel; 3.50.1 zieht Dart 3.14.0 nach sich und ist Voraussetzung fuer pdfrx 3.1.0. SDK-Wechsel ist host-global (betrifft alle Projekte des Hosts) und braucht Owner-Freigabe.",
+      "acceptance": "voller tools/gate.sh + flutter build apk --debug + Emulator-E2E",
+      "nextAction": "Owner-Entscheidung U1/U2",
+      "receipts": [
+        {
+          "url": "https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json",
+          "retrievedUtc": "2026-11-24T16:30:16Z",
+          "sha256": "d148d115bcb472f7eab4890695af2cb28023ebabad23b1559248d11abce96ad7"
+        }
+      ]
+    },
+    {
+      "component": "dart-sdk",
+      "installed": "3.13.5",
+      "latestStable": "3.14.0",
+      "latestCompatible": "3.13.7",
+      "decision": "defer",
+      "scope": "host-global",
+      "reason": "an die Flutter-SDK-Entscheidung gekoppelt",
+      "acceptance": "dito Flutter-Tranche",
+      "nextAction": "mit U1/U2",
+      "receipts": []
+    },
+    {
+      "component": "flutter_riverpod",
+      "installed": "2.6.1",
+      "latestStable": "3.5.0",
+      "latestCompatible": "3.5.0",
+      "decision": "defer",
+      "scope": "dart-direct",
+      "reason": "Major-Sprung mit eigener Migrationsentscheidung; kein Advisory-Zwang",
+      "acceptance": "vor Merge je Tranche: Regressionstests + Emulator-Journey",
+      "nextAction": "U5 mit Migrationsplan",
+      "receipts": [
+        {
+          "url": "https://pub.dev/api/packages/flutter_riverpod",
+          "retrievedUtc": "2026-11-24T16:30:17Z",
+          "sha256": "b21a4c1625b0495a6da58e1760592900c0c65e74d0c331491b81785a3cd9455d"
+        }
+      ]
+    },
+    {
+      "component": "go_router",
+      "installed": "16.3.0",
+      "latestStable": "18.1.4",
+      "latestCompatible": "18.1.4",
+      "decision": "defer",
+      "scope": "dart-direct",
+      "reason": "Major-Sprung mit eigener Migrationsentscheidung; kein Advisory-Zwang",
+      "acceptance": "vor Merge je Tranche: Regressionstests + Emulator-Journey",
+      "nextAction": "U5 mit Migrationsplan",
+      "receipts": [
+        {
+          "url": "https://pub.dev/api/packages/go_router",
+          "retrievedUtc": "2026-11-24T16:30:17Z",
+          "sha256": "db7b6fb03363e9580902127acb539f38719eaae01e5cd11512fb9d8b8447eef2"
+        }
+      ]
+    },
+    {
+      "component": "share_plus",
+      "installed": "12.0.2",
+      "latestStable": "13.3.1",
+      "latestCompatible": "13.3.1",
+      "decision": "defer",
+      "scope": "dart-direct",
+      "reason": "Major-Sprung mit eigener Migrationsentscheidung; kein Advisory-Zwang",
+      "acceptance": "vor Merge je Tranche: Regressionstests + Emulator-Journey",
+      "nextAction": "U5 mit Migrationsplan",
+      "receipts": [
+        {
+          "url": "https://pub.dev/api/packages/share_plus",
+          "retrievedUtc": "2026-11-24T16:30:17Z",
+          "sha256": "f701feabbbc367e76464a730e61973b10b5fe982f94a366821cd58d6c8ed77d9"
+        }
+      ]
+    },
+    {
+      "component": "pdfrx",
+      "installed": "2.12.0",
+      "latestStable": "3.1.0",
+      "latestCompatible": "3.0.0",
+      "decision": "defer",
+      "scope": "dart-direct",
+      "reason": "3.1.0 verlangt Dart ^3.14.0 und Flutter >=3.50.0; haengt an der Flutter-Tranche",
+      "acceptance": "vor Merge je Tranche: Regressionstests + Emulator-Journey",
+      "nextAction": "U4 nach Flutter 3.50.1",
+      "receipts": [
+        {
+          "url": "https://pub.dev/api/packages/pdfrx",
+          "retrievedUtc": "2026-11-24T16:30:17Z",
+          "sha256": "bd9e2e15145535328f45f360b3c30aa3ef1b7c98cf0b9ebfbd71a64c11a0b5dc"
+        }
+      ]
+    },
+    {
+      "component": "image",
+      "installed": "4.12.0",
+      "latestStable": "4.13.1",
+      "latestCompatible": "4.13.1",
+      "decision": "defer",
+      "scope": "dart-direct",
+      "reason": "Raster-Pfad der OCR-Kette; Upgraden wuerde T263/T264-Baselines und eingefrorene Schwellen nicht mehr byte-/ergebnisgleich halten",
+      "acceptance": "vor Merge je Tranche: Regressionstests + Emulator-Journey",
+      "nextAction": "nach T263-ACCEPTANCE (U2)",
+      "receipts": [
+        {
+          "url": "https://pub.dev/api/packages/image",
+          "retrievedUtc": "2026-11-24T16:30:17Z",
+          "sha256": "dd7d8fb0815d788194eb55366bbdccada5e607c05b0768b847f5a97974dab82b"
+        }
+      ]
+    },
+    {
+      "component": "google_mlkit_text_recognition",
+      "installed": "1.0.2",
+      "latestStable": "1.0.3",
+      "latestCompatible": "1.0.3",
+      "decision": "defer",
+      "scope": "dart-direct",
+      "reason": "Naehe zur offenen T263-ACCEPTANCE; der Dart-Wrapper ist laut T056 ungenutzt (nirgends importiert, nur in pubspec.yaml deklariert; die App nutzt das AAR text-recognition:16.0.1 direkt) -> entfernen statt aktualisieren",
+      "acceptance": "vor Merge je Tranche: Regressionstests + Emulator-Journey",
+      "nextAction": "eigenes Aufraeum-Issue (kein Update)",
+      "receipts": [
+        {
+          "url": "https://pub.dev/api/packages/google_mlkit_text_recognition",
+          "retrievedUtc": "2026-11-24T16:30:17Z",
+          "sha256": "94fdb9ba48d60f3d669dce8bfb03ab9c3104fab18adf26f3befc9b037f50db4a"
+        }
+      ]
+    },
+    {
+      "component": "pdf",
+      "installed": "3.13.1",
+      "latestStable": "3.13.1",
+      "latestCompatible": "3.13.1",
+      "decision": "keep",
+      "scope": "dart-direct",
+      "reason": "installiert == neueste Version",
+      "acceptance": "vor Merge je Tranche: Regressionstests + Emulator-Journey",
+      "nextAction": "-",
+      "receipts": [
+        {
+          "url": "https://pub.dev/api/packages/pdf",
+          "retrievedUtc": "2026-11-24T16:30:17Z",
+          "sha256": "c8757cdb1a5c078acf67adb4d959f1935a4d47fd7343e64fb1dfef18cfb1fe84"
+        }
+      ]
+    },
+    {
+      "component": "printing",
+      "installed": "5.15.1",
+      "latestStable": "5.15.1",
+      "latestCompatible": "5.15.1",
+      "decision": "keep",
+      "scope": "dart-direct",
+      "reason": "installiert == neueste Version",
+      "acceptance": "vor Merge je Tranche: Regressionstests + Emulator-Journey",
+      "nextAction": "-",
+      "receipts": [
+        {
+          "url": "https://pub.dev/api/packages/printing",
+          "retrievedUtc": "2026-11-24T16:30:17Z",
+          "sha256": "74daf564d85bc666ff21336cab2455d88e5c6fcd81cad68a9550daef21862eaa"
+        }
+      ]
+    },
+    {
+      "component": "intl",
+      "installed": "0.20.3",
+      "latestStable": "0.20.3",
+      "latestCompatible": "0.20.3",
+      "decision": "keep",
+      "scope": "dart-direct",
+      "reason": "installiert == neueste Version",
+      "acceptance": "vor Merge je Tranche: Regressionstests + Emulator-Journey",
+      "nextAction": "-",
+      "receipts": [
+        {
+          "url": "https://pub.dev/api/packages/intl",
+          "retrievedUtc": "2026-11-24T16:30:17Z",
+          "sha256": "4fd4dbd3bce96c8b976b6e9962423018bf24699063a7825b07903b47d4a11091"
+        }
+      ]
+    },
+    {
+      "component": "crypto",
+      "installed": "3.0.8",
+      "latestStable": "3.0.8",
+      "latestCompatible": "3.0.8",
+      "decision": "keep",
+      "scope": "dart-direct",
+      "reason": "installiert == neueste Version",
+      "acceptance": "vor Merge je Tranche: Regressionstests + Emulator-Journey",
+      "nextAction": "-",
+      "receipts": [
+        {
+          "url": "https://pub.dev/api/packages/crypto",
+          "retrievedUtc": "2026-11-24T16:30:17Z",
+          "sha256": "97799206d0a711723478194fa2f966202c423403d4b2d5cae038443d34c6ac70"
+        }
+      ]
+    },
+    {
+      "component": "gradle",
+      "installed": "9.3.1",
+      "latestStable": "9.9.2",
+      "latestCompatible": "9.9.2",
+      "decision": "defer",
+      "scope": "android-build",
+      "reason": "Build-Toolchain; kein Advisory; volle Verifikation (Build, Release-Manifest, Emulator-Smoke) noetig",
+      "acceptance": "voller Gradle-Build + tools/android/check_release_manifest.sh + Emulator-Smoke",
+      "nextAction": "U3",
+      "receipts": [
+        {
+          "url": "https://services.gradle.org/versions/current",
+          "retrievedUtc": "2026-11-24T16:31:25Z",
+          "sha256": "317993f21f397031c2b666a24ed0b55773f82a6c1ad4a1b51295d515db37b922"
+        }
+      ]
+    },
+    {
+      "component": "agp",
+      "installed": "9.1.0",
+      "latestStable": "9.5.2",
+      "latestCompatible": "9.5.2",
+      "decision": "defer",
+      "scope": "android-build",
+      "reason": "nur Google Maven ist autoritativ; Einordnung in U3",
+      "acceptance": "wie Gradle",
+      "nextAction": "U3",
+      "receipts": [
+        {
+          "url": "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/maven-metadata.xml",
+          "retrievedUtc": "2026-11-24T16:31:31Z",
+          "sha256": "c72c9590ccdf7d9ce426c163bf45e0d39e40ab4d15d7822c0298a12e1f96694e"
+        }
+      ]
+    },
+    {
+      "component": "kotlin-gradle-plugin",
+      "installed": "2.4.0",
+      "latestStable": "2.4.21",
+      "latestCompatible": "2.4.21",
+      "decision": "defer",
+      "scope": "android-build",
+      "reason": "Einordnung in U3",
+      "acceptance": "wie Gradle",
+      "nextAction": "U3",
+      "receipts": [
+        {
+          "url": "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin/maven-metadata.xml",
+          "retrievedUtc": "2026-11-24T16:31:26Z",
+          "sha256": "204d2a1383449e6e38858b2700fbb5184a8f6d0a58b2dd0b5eea024183feca89"
+        }
+      ]
+    },
+    {
+      "component": "android-platform",
+      "installed": "36",
+      "latestStable": "37.2",
+      "latestCompatible": "37.2",
+      "decision": "defer",
+      "scope": "android-build",
+      "reason": "Korrektur nach Review: die API-37-Linie ist als stabile Platform veroeffentlicht (leerer <codename>, channelRef channel-0, base-extension true); neuestes Paket ist platforms;android-37.2 mit <api-level>37.2</api-level> und extension-level 24. compileSdk/targetSdk 36 ist eine bewusste T002-Pinnung; ein Target-Wechsel ist eine Verhaltensaenderung mit eigener Owner-Entscheidung.",
+      "acceptance": "volles gate + Release-Manifest-/APK-Pruefung + Emulator-Journey",
+      "nextAction": "Tranche U6",
+      "receipts": [
+        {
+          "url": "https://dl.google.com/android/repository/repository2-3.xml",
+          "retrievedUtc": "2026-11-24T16:31:26Z",
+          "sha256": "035ec4b3f1d7304cf0b073fca3960d8a4a382c6f7efe2142ff8d5f42753373e4"
+        }
+      ]
+    },
+    {
+      "component": "pdfbox-android",
+      "installed": "2.0.27.0",
+      "latestStable": "2.0.27.0",
+      "latestCompatible": "2.0.27.0",
+      "decision": "keep",
+      "scope": "android-native",
+      "reason": "neueste Veroeffentlichung, OSV-clean",
+      "acceptance": "-",
+      "nextAction": "-",
+      "receipts": [
+        {
+          "url": "https://search.maven.org/solrsearch/select?q=g:%22com.tom-roush%22+AND+a:%22pdfbox-android%22&core=gav&rows=8&wt=json",
+          "retrievedUtc": "2026-11-24T16:31:08Z",
+          "sha256": "abcb55acc721fe77b64fa30f58edb0257bffabd46f21619faf6de972eade1ee3"
+        }
+      ]
+    },
+    {
+      "component": "org.bouncycastle:bcprov-jdk15to18",
+      "installed": "1.87",
+      "latestStable": "1.87",
+      "latestCompatible": "1.87",
+      "decision": "keep",
+      "scope": "android-native",
+      "reason": "neueste Version dieser Linie, OSV-clean (Override gegen pdfbox-android 1.72)",
+      "acceptance": "-",
+      "nextAction": "-",
+      "receipts": [
+        {
+          "url": "https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15to18/maven-metadata.xml",
+          "retrievedUtc": "2026-11-24T16:31:17Z",
+          "sha256": "cf480c6810f21c47ae1c5def95533480397eca10bf2c3c278aa1994d6dfa47db"
+        }
+      ]
+    },
+    {
+      "component": "org.bouncycastle:bcpkix-jdk15to18",
+      "installed": "1.87",
+      "latestStable": "1.87",
+      "latestCompatible": "1.87",
+      "decision": "keep",
+      "scope": "android-native",
+      "reason": "neueste Version dieser Linie, OSV-clean (Override gegen pdfbox-android 1.72)",
+      "acceptance": "-",
+      "nextAction": "-",
+      "receipts": [
+        {
+          "url": "https://repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk15to18/maven-metadata.xml",
+          "retrievedUtc": "2026-11-24T16:31:17Z",
+          "sha256": "cae3b11069f131d1df6e5fd8ce6f26ec536c6b28756ebb7613b2eebdd8b02628"
+        }
+      ]
+    },
+    {
+      "component": "org.bouncycastle:bcutil-jdk15to18",
+      "installed": "1.87",
+      "latestStable": "1.87",
+      "latestCompatible": "1.87",
+      "decision": "keep",
+      "scope": "android-native",
+      "reason": "neueste Version dieser Linie, OSV-clean (Override gegen pdfbox-android 1.72)",
+      "acceptance": "-",
+      "nextAction": "-",
+      "receipts": [
+        {
+          "url": "https://repo1.maven.org/maven2/org/bouncycastle/bcutil-jdk15to18/maven-metadata.xml",
+          "retrievedUtc": "2026-11-24T16:31:17Z",
+          "sha256": "dfb32174c3a105757c5815ebd3946c933f50738fd07cb37aecf47e4b8b475f68"
+        }
+      ]
+    }
+  ],
+  "outcome": {
+    "forcedUpdates": 0,
+    "implementedUpdates": 0,
+    "deferrals": 12,
+    "keeps": 8,
+    "ownerDecisionsRequired": [
+      "U1 Flutter-Patch 3.47.9",
+      "U2 image + transitive Renderpfad-Patches nach T263-ACCEPTANCE",
+      "U3 Gradle/AGP/KGP",
+      "U4 pdfrx 3.x nach Flutter 3.50.1",
+      "U5 Riverpod/GoRouter/share_plus Majors",
+      "U6 compileSdk/targetSdk 36 -> 37.2",
+      "T263-ACCEPTANCE",
+      "Entfernen des ungenutzten google_mlkit_text_recognition-Wrappers"
+    ]
+  },
+  "notes": [
+    "flutter/flutter GitHub releases/latest ist NICHT autoritativ (lieferte 3.19.0-0.1.pre von 2024); autoritativ ist releases_linux.json.",
+    "AGP liegt auf Google Maven, nicht auf repo1.maven.org.",
+    "google_mlkit_text_recognition (Dart-Wrapper) ist ungenutzt; die App nutzt das AAR text-recognition:16.0.1 direkt."
+  ],
+  "evidence": {
+    "record": "tools/dependency_review_refresh_2026-11-24.md",
+    "decisionLog": "tools/dependency_review.md §10",
+    "machineReadable": "tools/dependency_review_refresh_2026-11-24.json",
+    "ocrLabAssessment": "tools/dependency_review_refresh_2026-11-24.md §11",
+    "skillFinding": "compute_slot.py reports exit 143 for successful runs — pi-maintainer skill maintenance, not this repository"
+  },
+  "recordBaseCommit": "e81060f84883612eed68f6f041306bc1db7157c5",
+  "corrections": [
+    {
+      "foundBy": "Review A (deepseek/deepseek-flash) on candidate 770452b",
+      "item": "android-platform",
+      "was": "KEEP mit Begruendung '37.x nur Preview'",
+      "now": "DEFER, neueste stabile Platform 37.2 (<api-level>37.2</api-level>, extension-level 24); Beleg: repository2-3.xml, leerer <codename> + channel-0 fuer platforms;android-37.0/37.1/37.2",
+      "class": "P1 (falsche Tatsachenbehauptung)"
+    },
+    {
+      "foundBy": "Review A (deepseek/deepseek-flash) on candidate 770452b",
+      "item": "tranche U2",
+      "was": "U2 enthielt google_mlkit_* 1.0.3 als Update, im Widerspruch zu 'entfernen statt aktualisieren'",
+      "now": "U2 nur image + Renderpfad-Patches; Wrapper-Entfernung als eigenes Aufraeum-Issue",
+      "class": "P1 (interner Widerspruch)"
+    },
+    {
+      "foundBy": "Delta Review A (deepseek/deepseek-flash) on candidate aecbb32",
+      "item": "android-platform latest stable version",
+      "was": "37.0",
+      "now": "37.2 (neuestes Paket der API-37-Linie, extension-level 24)",
+      "class": "P1 (Zwischenfassung war zu niedrig angesetzt)"
+    }
+  ]
+}
