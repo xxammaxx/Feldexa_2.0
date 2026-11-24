@@ -9,15 +9,15 @@ This record changes no pin, no threshold and no contract.
 - **Basis**: integriertes `main` = `1d6afea0516a300c21442f6e2361e4c9ac2b795b` (nach PR #305)
 - **Werkzeug**: `technology-refresh` v1.0.0 unter Pi 1.6.0 / pi-maintainer v6.2.0
 - **Auditzeitpunkt**: 2026-11-24, Abrufe 16:28–16:34 UTC
-- **Maschinenlesbare Fassung**: `2026-11-24-dependency-refresh.json`
+- **Maschinenlesbare Fassung**: `tools/dependency_review_refresh_2026-11-24.json`
 - **Beschluss-Lage**: siehe `tools/dependency_review.md` §10 (D-19-Gate bleibt unverändert gültig)
-- **OCR-Teil**: `2026-11-24-ocr-lab-t263.md`
+- **OCR-Teil**: §11 dieses Records
 
 ## 1. Fähigkeitsstand (getrennt belegt, keine Behauptung)
 
 | Fähigkeit | Status |
 | --- | --- |
-| Vollständiger HTTPS-Abruf offizieller Registries/APIs/Seiten | **verfügbar**, 30+ vollständige Abrufe mit HTTP-Status und SHA-256 |
+| Vollständiger HTTPS-Abruf offizieller Registries/APIs/Seiten | **verfügbar**, 30+ vollständige Abrufe inkl. HTTP-Status und SHA-256; 21 davon sind in §9 tabelliert |
 | Allgemeine Websuche / Discovery | **BLOCKED** — im ausführenden Harness existiert kein Suchwerkzeug; ein Research-Kind mit nur `read`/`write`/`contact_supervisor` antwortete `BLOCKED_NO_SEARCH` und lieferte bewusst keine Quellen aus dem Modellgedächtnis |
 | Echte Modellaufrufe | `deepseek/deepseek-flash` und `zai-coding-cn/glm-5.3-flash` durch tatsächliche Aufrufe verifiziert; `anthropic/claude-haiku-4-5` per Auth-Check bereit |
 
@@ -153,7 +153,7 @@ verlangt), `share_plus` 12.0.2 (13.3.1). `pdf`, `printing`, `intl`, `crypto`: ak
 Quelle: `https://github.com/xxammaxx/mindloop-ocr-lab`, gelesen über die GitHub-API und
 `raw.githubusercontent.com`. Abrufe: 2026-11-24, 16:33–16:34 UTC (GitHub-API und `raw.githubusercontent.com`).
 
-## 1. Gepinnter Stand
+### 1. Gepinnter Stand
 
 | Feld | Wert |
 | --- | --- |
@@ -165,7 +165,7 @@ Quelle: `https://github.com/xxammaxx/mindloop-ocr-lab`, gelesen über die GitHub
 | Feldexa-Pfad im Lab | `feldexa-gray-bitmap` (gray8→ARGB, `max_source_side` 2400) |
 | Feldexa-Kohorte | `fixtures/feldexa/` — byte-identische `sf-001`–`sf-004` aus Feldexa-Commit `be606263…`, 13 Seiten, 63 deklarierte Feldlabels |
 
-## 2. Was die vertrauenswürdigen Ledgers tatsächlich sagen
+### 2. Was die vertrauenswürdigen Ledgers tatsächlich sagen
 
 Nur Kontexte auf `main` zählen als Lab-Beleg. Die **zwei neuesten** ML-Kit-Läufe
 (2026-11-24 15:46Z = `failure`, 16:00Z = `success`) liefen auf **`research/region-crop-retry`**,
@@ -187,7 +187,7 @@ der Fusion-Pass fügt also nichts hinzu, was die Baseline-Hits erhält.
 einziger** mit einem verwertbaren, verlustfreien Gewinn auf dem Feldexa-Pfad. Es gibt
 derzeit **keinen `LAB_CANDIDATE`**, den Feldexa übernehmen könnte.
 
-## 3. Einordnung nach `technology-refresh` §Optional OCR lab source
+### 3. Einordnung nach `technology-refresh` §Optional OCR lab source
 
 - `LAB_CANDIDATE` = Hypothese, **nie** App-Akzeptanz. Hier gibt es nicht einmal eine Hypothese,
   also auch nichts zu reproduzieren.
@@ -199,7 +199,7 @@ derzeit **keinen `LAB_CANDIDATE`**, den Feldexa übernehmen könnte.
 - Keine privaten Scans, kein privater Code und keine Produktionsausgabe liegen im öffentlichen
   Lab; Roh-OCR-Text bleibt ephemer.
 
-## 4. Konsequenz für T263-ACCEPTANCE
+### 4. Konsequenz für T263-ACCEPTANCE
 
 1. Die Lab-Beleglage **stützt** die bisherige Diagnose: für den gebündelten ML-Kit-16.0.1-Pfad
    ist mit den untersuchten Vorverarbeitungs-/Fusionsvarianten kein verlustfreier Gewinn
@@ -215,7 +215,7 @@ derzeit **keinen `LAB_CANDIDATE`**, den Feldexa übernehmen könnte.
    gepinntem Lab-Commit, nicht eine weitere Lab-Variantenrunde ohne neue Hypothese (Katalog
    ist endlich; README: „Add new hypotheses through a reviewed change").
 
-## 5. Nebenbefund (nicht in diesem Zyklus umgesetzt)
+### 5. Nebenbefund (nicht in diesem Zyklus umgesetzt)
 
 `google_mlkit_text_recognition` (Dart-Wrapper 1.0.2) ist laut T056-Abschlussnotiz in
 `tasks.md` ein **vorbestehend ungenutztes Plugin**: die App spricht die native
@@ -241,7 +241,7 @@ Review A des Endkandidaten fand zwei P1-Punkte; beide sind hier korrigiert, nich
    das Entfernen des ungenutzten Wrappers ist als eigenes Aufräum-Issue ausgewiesen.
 
 Zählung nach der Korrektur: **12 DEFER** (U1–U6 + Wrapper-Entfernung als eigene Aufgabe),
-**8 KEEP**. Die Aussagen zu Advsiories, Toolchain-Versionen, Fehlquellen und OCR-Lab sind
+**8 KEEP**. Die Aussagen zu Advisories, Toolchain-Versionen, Fehlquellen und OCR-Lab sind
 vom Review bestätigt worden.
 
 Weitere Review-Hinweise (P2, nicht blockierend) sind als „Offene Beobachtungen" in §8

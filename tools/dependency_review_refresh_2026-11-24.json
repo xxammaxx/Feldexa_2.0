@@ -16,7 +16,7 @@
   "capabilities": {
     "fullHttpsRetrieval": {
       "status": "AVAILABLE",
-      "evidence": "24+ vollstaendige Abrufe, SHA-256 in sources/RECEIPTS.md"
+      "evidence": "30+ vollstaendige Abrufe, 21 davon in der Quellentabelle des Records mit SHA-256 aufgelistet"
     },
     "generalWebSearch": {
       "status": "BLOCKED",
