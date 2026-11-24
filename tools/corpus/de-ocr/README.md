@@ -85,6 +85,45 @@ dart run tools/metrics/de_ocr_qualification.dart \
 tools/android/t263_drive_de_ocr.sh
 ```
 
+## Device binding and the `NOT_RUN` gate
+
+`tools/android/t263_drive_de_ocr.sh` binds the device from the ADB transport
+table: no supervisor layer is asked for an allocation and no allocation file is
+read, so a run is reproducible on any host with a booted AVD. The gate fails
+closed, in this order:
+
+1. `adb devices` is read once into the transport table; every listed transport
+   counts as attached, whatever its state.
+2. Exactly one attached transport must match `^emulator-[0-9]+$`.
+3. That emulator must equal the requested serial (`T263_SERIAL`, default
+   `emulator-5554`).
+4. The requested serial itself must match `^emulator-[0-9]+$`. The project
+   handset is attached over WLAN and is reserved for the release acceptance, so
+   it must never be addressed — not even when it is the only attached device.
+   No device command runs before this check, and `adb_shell` refuses to run until
+   the gate has bound the serial, which also covers the cleanup trap.
+5. AVD (`ro.boot.qemu.avd_name`), API level (`ro.build.version.sdk`, 35) and a
+   completed boot (`sys.boot_completed`) are then verified.
+
+A gate failure prints `T263 EMULATOR NOT_RUN: <reason>` and exits `2`. That is
+not a measurement failure: no evidence class is produced and no run file is
+written. A passing gate records two committed files — `device-binding.txt`
+(transport counts by class, `addressed_serial`,
+`non_emulator_transports_addressed=none`) and `device-identity.txt` (serial, AVD,
+API, ABI, fingerprint, `boot_completed`, `qemu`, screen and memory). Both are
+committed evidence, so they carry counts instead of transport names and no
+absolute host path.
+
+Dry-probing the gate needs no emulator. Point `T263_ADB` at a stub that answers
+`devices` from a prepared table and `T263_RUN_DIR`/`T263_EVIDENCE_DIR` at
+throwaway directories, then run the driver. The cases that must end in
+`NOT_RUN` are: two emulators, one emulator with a foreign serial, a physical
+serial (`adb-RFCW80SMY4J-…`), and an emulator plus a wireless transport while the
+physical serial is requested. One emulator plus a wireless transport with the
+emulator requested must pass the gate and record
+`all_attached_transports_count=2`, `emulator_transports=1`,
+`non_emulator_transports=1`.
+
 Only synthetic, rights-cleared content is used. No private form, personal data,
 or third-party form content is included, and the generated documents carry a
 visible synthetic marker on every page.
