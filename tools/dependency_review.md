@@ -434,7 +434,7 @@ Nicht ermittelte Sekundärliteratur wird nicht als gesichtet ausgegeben.
 | Gradle | 9.3.1 | 9.9.2 | 9.9.2 | Build-Toolchain, kein Advisory, volle Verifikation nötig |
 | AGP | 9.1.0 | 9.5.2 | 9.5.2 | wie Gradle (nur Google Maven autoritativ) |
 | KGP | 2.4.0 | 2.4.21 | 2.4.21 | wie Gradle |
-| Android-Platform (`compileSdk`/`targetSdk`) | 36 | 37.0 | 37.0 | 36 ist eine bewusste T002-Pinnung; Target-Wechsel ist eine Verhaltensänderung (Tranche U6, Owner-Entscheidung) |
+| Android-Platform (`compileSdk`/`targetSdk`) | 36 | 37.2 | 37.2 | 36 ist eine bewusste T002-Pinnung; Target-Wechsel ist eine Verhaltensänderung (Tranche U6, Owner-Entscheidung) |
 | `pdfrx` | 2.12.0 | 3.1.0 | 3.0.0 | 3.1.0 verlangt Dart `^3.14.0`/Flutter `>=3.50.0` |
 | `flutter_riverpod` | 2.6.1 | 3.5.0 | 3.5.0 | Major-Migration |
 | `go_router` | 16.3.0 | 18.1.4 | 18.1.4 | zwei Major-Sprünge |

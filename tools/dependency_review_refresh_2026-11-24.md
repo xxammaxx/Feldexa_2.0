@@ -45,7 +45,7 @@ gesichtet ausgegeben.
 | Gradle | 9.3.1 | 9.9.2 | 9.9.2 | DEFER | Build-Toolchain, kein Advisory, volle Verifikation nötig |
 | AGP | 9.1.0 | 9.5.2 | 9.5.2 | DEFER | dito |
 | KGP | 2.4.0 | 2.4.21 | 2.4.21 | DEFER | dito |
-| Android-Platform | 36 | **37.0** (stabil; zusätzlich 36.1, 37.1, 37.2) | 37.0 | DEFER | Korrektur nach Review: API 37.0 ist als stabile Platform im SDK-Repo veröffentlicht (leerer `<codename>`, `channel-0`); 36 ist eine bewusste T002-Pinnung, ein Target-Wechsel ist eine Verhaltensänderung mit eigener Owner-Entscheidung und vollständiger App-Verifikation |
+| Android-Platform | 36 | **37.2** (`<api-level>37.2`, extension-level 24; Linie 37.0/37.1/37.2) | 37.2 | DEFER | Korrektur nach Review: die API-37-Linie ist als stabile Platform veröffentlicht (leerer `<codename>`, `channelRef channel-0`); neuestes Paket ist `platforms;android-37.2`. 36 ist eine bewusste T002-Pinnung, ein Target-Wechsel ist eine Verhaltensänderung mit eigener Owner-Entscheidung und vollständiger App-Verifikation |
 | `pdf` / `printing` / `intl` / `crypto` | 3.13.1 / 5.15.1 / 0.20.3 / 3.0.8 | identisch | identisch | KEEP | aktuell |
 | `image` | 4.12.0 | 4.13.1 | 4.13.1 | DEFER | Raster-Pfad der OCR-Kette; T263/T264-Baseline bliebe nicht vergleichbar |
 | `google_mlkit_text_recognition` | 1.0.2 | 1.0.3 | 1.0.3 | DEFER | Wrapper ist laut T056 ungenutzt (App nutzt das AAR direkt) → entfernen statt aktualisieren |
@@ -87,7 +87,7 @@ nicht zu ändern.
 | U3 | Gradle 9.9.2, AGP 9.5.2, KGP 2.4.21 | voller Gradle-Build, Release-Manifest-/APK-Prüfung, Emulator-Smoke |
 | U4 | `pdfrx` 3.x | nach Flutter 3.50.1; Render-/PDFium-Vergleich auf dem Emulator |
 | U5 | `flutter_riverpod` 3.x, `go_router` 18.x, `share_plus` 13.x | je eigener Migrationsplan mit Regressionstests |
-| U6 | `compileSdk`/`targetSdk` 36 → 37.0 | Owner-Entscheidung; vollständiges Gate, Release-Manifest-/APK-Prüfung, Emulator-Journey, Plattformverhalten |
+| U6 | `compileSdk`/`targetSdk` 36 → 37.2 | Owner-Entscheidung; vollständiges Gate, Release-Manifest-/APK-Prüfung, Emulator-Journey, Plattformverhalten |
 | — (eigenes Aufräum-Issue, kein Update) | `google_mlkit_text_recognition` **entfernen** statt aktualisieren | Wrapper wird nirgends importiert (Beleg: nur `apps/feldexa_app/pubspec.yaml`); Entfernen braucht Gate + Android-Build |
 
 ## 7. Zwei Fehlquellen (dokumentiert, weil sie sonst zu falschen Schlüssen führen)
@@ -232,9 +232,11 @@ Review A des Endkandidaten fand zwei P1-Punkte; beide sind hier korrigiert, nich
    `android-37.1`, `android-37.2` und `android-36.1` mit **leerem `<codename>`** und
    `channelRef channel-0` — das sind stabile Veröffentlichungen, keine Preview-Builds (nur
    `android-37.2-beta1..3` tragen `DEV`/`CinnamonBun` als Codename und sind Vorschau).
-   Die Zeile steht jetzt auf `DEFER` mit der korrekten neuesten stabilen Platform **37.0**
-   und der Begründung, dass `compileSdk`/`targetSdk` 36 eine bewusste T002-Pinnung ist
-   (Tranche U6).
+   Die Zeile steht jetzt auf `DEFER` mit der korrekten neuesten stabilen Platform **37.2**
+   (`<api-level>37.2</api-level>`, extension-level 24, `base-extension` true, `channel-0`);
+   37.2 ist das neueste Paket der API-37-Linie, nicht 37.0 — auch diese Zwischenfassung war
+   noch zu niedrig angesetzt und ist hier korrigiert. Begründung: `compileSdk`/`targetSdk` 36
+   ist eine bewusste T002-Pinnung (Tranche U6).
 2. **Tranche U2 widersprach der KEEP/DEFER-Logik für den ML-Kit-Wrapper.** U2 führte
    `google_mlkit_*` 1.0.3 als Update, während die Entscheidung zu Recht „entfernen statt
    aktualisieren" lautet. U2 enthält jetzt nur noch `image` + renderpfad-relevante Patches;

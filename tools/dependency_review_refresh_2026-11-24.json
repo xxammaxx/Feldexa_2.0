@@ -320,11 +320,11 @@
     {
       "component": "android-platform",
       "installed": "36",
-      "latestStable": "37.0",
-      "latestCompatible": "37.0",
+      "latestStable": "37.2",
+      "latestCompatible": "37.2",
       "decision": "defer",
       "scope": "android-build",
-      "reason": "Korrektur nach Review: API 37.0 ist als stabile Platform im SDK-Repo veroeffentlicht (leerer <codename>, channel-0; nur 37.x-beta* sind Preview). compileSdk/targetSdk 36 ist eine bewusste T002-Pinnung; ein Target-Wechsel ist eine Verhaltensaenderung mit eigener Owner-Entscheidung.",
+      "reason": "Korrektur nach Review: die API-37-Linie ist als stabile Platform veroeffentlicht (leerer <codename>, channelRef channel-0, base-extension true); neuestes Paket ist platforms;android-37.2 mit <api-level>37.2</api-level> und extension-level 24. compileSdk/targetSdk 36 ist eine bewusste T002-Pinnung; ein Target-Wechsel ist eine Verhaltensaenderung mit eigener Owner-Entscheidung.",
       "acceptance": "volles gate + Release-Manifest-/APK-Pruefung + Emulator-Journey",
       "nextAction": "Tranche U6",
       "receipts": [
@@ -419,7 +419,7 @@
       "U3 Gradle/AGP/KGP",
       "U4 pdfrx 3.x nach Flutter 3.50.1",
       "U5 Riverpod/GoRouter/share_plus Majors",
-      "U6 compileSdk/targetSdk 36 -> 37.0",
+      "U6 compileSdk/targetSdk 36 -> 37.2",
       "T263-ACCEPTANCE",
       "Entfernen des ungenutzten google_mlkit_text_recognition-Wrappers"
     ]
@@ -442,7 +442,7 @@
       "foundBy": "Review A (deepseek/deepseek-flash) on candidate 770452b",
       "item": "android-platform",
       "was": "KEEP mit Begruendung '37.x nur Preview'",
-      "now": "DEFER, neueste stabile Platform 37.0; Beleg: repository2-3.xml, leerer <codename> + channel-0 fuer platforms;android-37.0/37.1/37.2/36.1",
+      "now": "DEFER, neueste stabile Platform 37.2 (<api-level>37.2</api-level>, extension-level 24); Beleg: repository2-3.xml, leerer <codename> + channel-0 fuer platforms;android-37.0/37.1/37.2",
       "class": "P1 (falsche Tatsachenbehauptung)"
     },
     {
@@ -451,6 +451,13 @@
       "was": "U2 enthielt google_mlkit_* 1.0.3 als Update, im Widerspruch zu 'entfernen statt aktualisieren'",
       "now": "U2 nur image + Renderpfad-Patches; Wrapper-Entfernung als eigenes Aufraeum-Issue",
       "class": "P1 (interner Widerspruch)"
+    },
+    {
+      "foundBy": "Delta Review A (deepseek/deepseek-flash) on candidate aecbb32",
+      "item": "android-platform latest stable version",
+      "was": "37.0",
+      "now": "37.2 (neuestes Paket der API-37-Linie, extension-level 24)",
+      "class": "P1 (Zwischenfassung war zu niedrig angesetzt)"
     }
   ]
 }
