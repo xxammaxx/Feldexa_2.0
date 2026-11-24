@@ -8,7 +8,8 @@
 // threshold requests a pass with the frozen reason, the hysteresis band does not
 // flip-flop, the pass/time/memory bounds and the pass-1 fallback are explicit,
 // and a provenance rule (holdout, `minIndependentGroups`, correlated variants,
-// pending variant hash) refuses the decision instead of guessing.
+// pending variant hash, undeclared variant or correlation group) refuses the
+// decision instead of guessing.
 //
 // The pinned values below are the contract: editing
 // `tools/evaluation/adaptive-policy.v1.json` or
@@ -116,11 +117,12 @@ void main() {
         _expect(relaxed.lowContrast.enterBelow == 60, 'mutated enterBelow');
         final AdaptiveDecision decision = decideAdaptiveTrigger(
           policy: relaxed,
-          request: TriggerRequest(signals: _signals(p95Luminance: 140)),
+          request: TriggerRequest(signals: _signals(p95Luminance: 110)),
         );
         _expect(
           decision.verdict == Verdict.noSecondPass,
-          'contrastSpread 90 must not trigger against a mutated enterBelow 60',
+          'contrastSpread 90 must not trigger against a mutated enterBelow 60, '
+          'so a hardcoded 96 would enter here',
         );
       },
     );
@@ -180,6 +182,61 @@ void main() {
         _decide(_signals(conflictPairs: 1)).triggers.single.trigger ==
             Trigger.conflict,
         'one conflict pair',
+      );
+    });
+
+    _check('a negative skew enters as its absolute angle', () {
+      final AdaptiveDecision decision = _decide(_signals(skewDegrees: -3));
+      _expect(decision.verdict == Verdict.secondPass, 'verdict');
+      _expect(decision.triggers.length == 1, 'exactly one trigger');
+      final TriggerHit hit = decision.triggers.single;
+      _expect(hit.trigger == Trigger.skew, 'trigger');
+      _expect(
+        hit.policyPath == 'runtimeSignals.skew.enterAbove',
+        'the entry is measured against enterAbove: ${hit.policyPath}',
+      );
+      _expect(
+        hit.observed == 3,
+        'runtimeSignals.skew.metric is the absolute angle, so -3 is 3: '
+        '${hit.observed}',
+      );
+      _expect(
+        _hasReason(decision, '|skewDegrees|=3.0 > '),
+        'the reason must report the absolute value: ${decision.reasons}',
+      );
+    });
+
+    _check('a disabled ocrFailure entry fires in neither direction', () {
+      final File mutated = _mutatedPolicy('ocr-failure-disabled', (
+        Map<String, Object?> policy,
+      ) {
+        final Map<String, Object?> runtimeSignals =
+            policy['runtimeSignals']! as Map<String, Object?>;
+        final Map<String, Object?> ocrFailure =
+            runtimeSignals['ocrFailure']! as Map<String, Object?>;
+        ocrFailure['enterAt'] = false;
+      });
+      final AdaptivePolicy disabled = AdaptivePolicy.load(mutated);
+      final AdaptiveDecision failed = decideAdaptiveTrigger(
+        policy: disabled,
+        request: TriggerRequest(signals: _signals(ocrFailed: true)),
+      );
+      _expect(failed.verdict == Verdict.noSecondPass, 'verdict');
+      _expect(
+        failed.triggers.isEmpty,
+        'enterAt=false must not enter on a failed OCR port',
+      );
+      _expect(
+        _hasReason(failed, 'runtimeSignals.ocrFailure.enterAt=false'),
+        'the reason must render the loaded value: ${failed.reasons}',
+      );
+      final AdaptiveDecision succeeded = decideAdaptiveTrigger(
+        policy: disabled,
+        request: TriggerRequest(signals: _signals()),
+      );
+      _expect(
+        succeeded.triggers.isEmpty,
+        'enterAt=false must not enter on a successful OCR port either',
       );
     });
 
@@ -333,13 +390,17 @@ void main() {
       final AdaptiveDecision decision = _decide(
         _signals(p95Luminance: 110),
         evidence: const <VariantObservation>[
+          // rasterHashRecorded: true is the post-capture state, not the current
+          // tree (every variant hash is still PENDING_RUN there).
           VariantObservation(
             variantId: 'clean-200dpi',
             correlationGroup: 'group-pdfium-200',
+            rasterHashRecorded: true,
           ),
           VariantObservation(
             variantId: 'contrastStretch-200dpi',
             correlationGroup: 'group-pdfium-200',
+            rasterHashRecorded: true,
           ),
         ],
       );
@@ -362,13 +423,19 @@ void main() {
       final AdaptiveDecision decision = _decide(
         _signals(p95Luminance: 110),
         evidence: const <VariantObservation>[
+          // rasterHashRecorded: true is the post-capture state, not the current
+          // tree (every variant hash is still PENDING_RUN there). The
+          // correlation groups are the ones declared in
+          // adaptive-provenance.v1.json.
           VariantObservation(
             variantId: 'clean-200dpi',
             correlationGroup: 'group-pdfium-200',
+            rasterHashRecorded: true,
           ),
           VariantObservation(
             variantId: 'clean-150dpi',
             correlationGroup: 'group-pdfium-150',
+            rasterHashRecorded: true,
           ),
         ],
       );
@@ -386,6 +453,7 @@ void main() {
           VariantObservation(
             variantId: 'clean-200dpi',
             correlationGroup: 'group-pdfium-200',
+            rasterHashRecorded: true,
           ),
           VariantObservation(
             variantId: 'scan-150dpi-low-contrast',
@@ -402,6 +470,105 @@ void main() {
       _expect(
         _hasReason(decision, 'hashGate'),
         'the hash gate must be named: ${decision.reasons}',
+      );
+    });
+
+    _check('the hash gate defaults to fail-closed', () {
+      // rasterHashRecorded is not asserted here, so both declared variants stay
+      // PENDING_RUN and carry no evidence row.
+      final AdaptiveDecision decision = _decide(
+        _signals(p95Luminance: 110),
+        evidence: const <VariantObservation>[
+          VariantObservation(
+            variantId: 'clean-200dpi',
+            correlationGroup: 'group-pdfium-200',
+          ),
+          VariantObservation(
+            variantId: 'clean-150dpi',
+            correlationGroup: 'group-pdfium-150',
+          ),
+        ],
+      );
+      _expect(decision.verdict == Verdict.rejected, 'verdict');
+      _expect(decision.rejection?.code == 'correlationLimited', 'code');
+      _expect(decision.independentGroups == 0, 'no independent group');
+      _expect(decision.selectedEvidence.isEmpty, 'no observation selected');
+      _expect(
+        decision.droppedEvidence.length == 2,
+        'both observations dropped',
+      );
+      _expect(
+        _hasReason(decision, 'hashGate'),
+        'the default must name the hash gate: ${decision.reasons}',
+      );
+      _expect(
+        _hasReason(decision, 'minIndependentGroups=2'),
+        'the refusal must name the frozen rule: ${decision.reasons}',
+      );
+    });
+
+    _check('an undeclared variant is dropped, not counted', () {
+      final AdaptiveDecision decision = _decide(
+        _signals(p95Luminance: 110),
+        evidence: const <VariantObservation>[
+          VariantObservation(
+            variantId: 'made-up-200dpi',
+            correlationGroup: 'group-pdfium-200',
+            rasterHashRecorded: true,
+          ),
+          VariantObservation(
+            variantId: 'clean-150dpi',
+            correlationGroup: 'group-pdfium-150',
+            rasterHashRecorded: true,
+          ),
+        ],
+      );
+      _expect(decision.verdict == Verdict.rejected, 'verdict');
+      _expect(decision.rejection?.code == 'correlationLimited', 'code');
+      _expect(decision.independentGroups == 1, 'one declared group only');
+      _expect(decision.selectedEvidence.length == 1, 'one observation kept');
+      _expect(
+        decision.droppedEvidence.single.variantId == 'made-up-200dpi',
+        'the undeclared variant is dropped: '
+        '${decision.droppedEvidence.map((VariantObservation o) => o.variantId)}',
+      );
+      _expect(
+        _hasReason(decision, 'failClosed'),
+        'the refusal must name correlationRule.failClosed: '
+        '${decision.reasons}',
+      );
+    });
+
+    _check('a group contradicting the declaration is dropped, not counted', () {
+      final AdaptiveDecision decision = _decide(
+        _signals(p95Luminance: 110),
+        evidence: const <VariantObservation>[
+          // clean-200dpi is declared in group-pdfium-200, not group-pdfium-150.
+          VariantObservation(
+            variantId: 'clean-200dpi',
+            correlationGroup: 'group-pdfium-150',
+            rasterHashRecorded: true,
+          ),
+          VariantObservation(
+            variantId: 'clean-150dpi',
+            correlationGroup: 'group-pdfium-150',
+            rasterHashRecorded: true,
+          ),
+        ],
+      );
+      _expect(decision.verdict == Verdict.rejected, 'verdict');
+      _expect(decision.rejection?.code == 'correlationLimited', 'code');
+      _expect(decision.independentGroups == 1, 'one declared group only');
+      _expect(decision.selectedEvidence.length == 1, 'one observation kept');
+      _expect(
+        decision.droppedEvidence.single.variantId == 'clean-200dpi',
+        'the contradicting observation is dropped: '
+        '${decision.droppedEvidence.map((VariantObservation o) => o.variantId)}',
+      );
+      _expect(
+        _hasReason(decision, 'failClosed'),
+        'the refusal must name correlationRule.failClosed: '
+        '${decision.reasons}',
       );
     });
   });

@@ -8,7 +8,11 @@
 //    that file; this module holds no numeric duplicate and retunes nothing.
 //  * `tools/evaluation/adaptive-provenance.v1.json` — `decisionRule`
 //    (`minIndependentGroups`, `maxObservationsPerCorrelationGroup`, forbidden
-//    claims) and `correlationGroups`.
+//    claims), the declared variant -> correlation-group mapping
+//    (`variants[].id` / `variants[].correlationGroup`), and the
+//    `excludedVariants[].id` list. An observation whose variant is undeclared,
+//    excluded, or claims a group other than its declared one is dropped
+//    (`correlationRule.failClosed`) instead of counted as independent.
 //
 // What this module decides. Given one page's measured signal set it answers
 // whether a second analysis pass is permitted, which trigger fired against which
@@ -153,6 +157,8 @@ final class AdaptivePolicy {
     required this.structureMismatchIsRuntimeTrigger,
     required this.bounds,
     required this.provenance,
+    required this.variantGroups,
+    required this.excludedVariants,
     required this.devPages,
     required this.holdoutPages,
     required this.holdoutRule,
@@ -170,6 +176,15 @@ final class AdaptivePolicy {
   final bool structureMismatchIsRuntimeTrigger;
   final PassBounds bounds;
   final ProvenanceRule provenance;
+
+  /// Declared variant id -> declared `correlationGroup` (`variants[]` of the
+  /// provenance artifact). A variant id outside this map has no declared
+  /// derivation and carries no usable evidence.
+  final Map<String, String> variantGroups;
+
+  /// `excludedVariants[].id`: declared as out of scope, never evidence.
+  final Set<String> excludedVariants;
+
   final List<String> devPages;
   final List<String> holdoutPages;
   final String holdoutRule;
@@ -212,6 +227,21 @@ final class AdaptivePolicy {
     final Map<String, Object?> bounds = _map(document, 'bounds');
     final Map<String, Object?> corpus = _map(document, 'corpusAndHoldout');
     final Map<String, Object?> decisionRule = _map(provenance, 'decisionRule');
+
+    final Map<String, String> variantGroups = <String, String>{
+      for (final Map<String, Object?> variant in _objectList(
+        provenance,
+        'variants',
+      ))
+        _string(variant, 'id'): _string(variant, 'correlationGroup'),
+    };
+    final Set<String> excludedVariants = <String>{
+      for (final Map<String, Object?> variant in _objectList(
+        provenance,
+        'excludedVariants',
+      ))
+        _string(variant, 'id'),
+    };
 
     final LowContrastRule lowContrastRule = LowContrastRule(
       enterBelow: _double(lowContrast, 'enterBelow'),
@@ -283,6 +313,8 @@ final class AdaptivePolicy {
         ),
         forbiddenClaims: _stringList(decisionRule, 'forbiddenClaims'),
       ),
+      variantGroups: variantGroups,
+      excludedVariants: excludedVariants,
       devPages: _stringList(corpus, 'devPages'),
       holdoutPages: _stringList(corpus, 'holdoutPages'),
       holdoutRule: _string(corpus, 'rule'),
@@ -336,13 +368,16 @@ final class PageSignals {
 
 /// One adaptive variant observation offered as corroborating evidence.
 ///
-/// [rasterHashRecorded] mirrors the provenance `hashGate`: a variant whose
-/// `variantRasterSha256` is still `PENDING_RUN` produces no evidence row.
+/// [rasterHashRecorded] mirrors the provenance `hashGate`: only a variant whose
+/// `variantRasterSha256` was captured produces an evidence row. It defaults to
+/// `false`, so the caller has to assert the captured hash explicitly with
+/// `rasterHashRecorded: true`; every other observation is treated as
+/// `PENDING_RUN` and carries no evidence row.
 final class VariantObservation {
   const VariantObservation({
     required this.variantId,
     required this.correlationGroup,
-    this.rasterHashRecorded = true,
+    this.rasterHashRecorded = false,
   });
 
   final String variantId;
@@ -649,9 +684,9 @@ AdaptiveDecision decideAdaptiveTrigger({
   }
 
   final SkewRule skew = policy.skew;
-  final double? skewDegrees = signals.skewDegrees;
+  final double? measuredSkew = signals.skewDegrees;
   final bool skewLatched = request.latched.contains(Trigger.skew);
-  if (skewDegrees == null) {
+  if (measuredSkew == null) {
     ignored.add(
       const SignalNote(
         signal: 'skew',
@@ -660,45 +695,50 @@ AdaptiveDecision decideAdaptiveTrigger({
             'estimating it, so an absent angle is not triggered',
       ),
     );
-  } else if (skewLatched && skewDegrees >= skew.leaveBelow) {
-    triggers.add(
-      TriggerHit(
-        trigger: Trigger.skew,
-        metric: 'caller-supplied absolute skew in degrees',
-        policyPath: 'runtimeSignals.skew.leaveBelow',
-        threshold: skew.leaveBelow,
-        observed: skewDegrees,
-        heldByHysteresis: true,
-      ),
-    );
-    reasons.add(
-      'skew: held latched, ${_num(skewDegrees)} >= '
-      'runtimeSignals.skew.leaveBelow=${_num(skew.leaveBelow)}',
-    );
-  } else if (!skewLatched && skewDegrees > skew.enterAbove) {
-    triggers.add(
-      TriggerHit(
-        trigger: Trigger.skew,
-        metric: 'caller-supplied absolute skew in degrees',
-        policyPath: 'runtimeSignals.skew.enterAbove',
-        threshold: skew.enterAbove,
-        observed: skewDegrees,
-        heldByHysteresis: false,
-      ),
-    );
-    reasons.add(
-      'skew: ${_num(skewDegrees)} > runtimeSignals.skew.enterAbove='
-      '${_num(skew.enterAbove)}',
-    );
   } else {
-    reasons.add(
-      'skew: not triggered, ${_num(skewDegrees)} outside '
-      'enterAbove=${_num(skew.enterAbove)} / '
-      'leaveBelow=${_num(skew.leaveBelow)} with latched=$skewLatched',
-    );
+    // runtimeSignals.skew.metric is the absolute angle, so a reading of -3°
+    // is 3° of skew and is compared as such.
+    final double skewDegrees = measuredSkew.abs();
+    if (skewLatched && skewDegrees >= skew.leaveBelow) {
+      triggers.add(
+        TriggerHit(
+          trigger: Trigger.skew,
+          metric: 'caller-supplied absolute skew in degrees',
+          policyPath: 'runtimeSignals.skew.leaveBelow',
+          threshold: skew.leaveBelow,
+          observed: skewDegrees,
+          heldByHysteresis: true,
+        ),
+      );
+      reasons.add(
+        'skew: held latched, |skewDegrees|=${_num(skewDegrees)} >= '
+        'runtimeSignals.skew.leaveBelow=${_num(skew.leaveBelow)}',
+      );
+    } else if (!skewLatched && skewDegrees > skew.enterAbove) {
+      triggers.add(
+        TriggerHit(
+          trigger: Trigger.skew,
+          metric: 'caller-supplied absolute skew in degrees',
+          policyPath: 'runtimeSignals.skew.enterAbove',
+          threshold: skew.enterAbove,
+          observed: skewDegrees,
+          heldByHysteresis: false,
+        ),
+      );
+      reasons.add(
+        'skew: |skewDegrees|=${_num(skewDegrees)} > '
+        'runtimeSignals.skew.enterAbove=${_num(skew.enterAbove)}',
+      );
+    } else {
+      reasons.add(
+        'skew: not triggered, |skewDegrees|=${_num(skewDegrees)} outside '
+        'enterAbove=${_num(skew.enterAbove)} / '
+        'leaveBelow=${_num(skew.leaveBelow)} with latched=$skewLatched',
+      );
+    }
   }
 
-  if (signals.ocrFailed == policy.ocrFailureEnters) {
+  if (policy.ocrFailureEnters && signals.ocrFailed) {
     triggers.add(
       TriggerHit(
         trigger: Trigger.ocrFailure,
@@ -711,11 +751,12 @@ AdaptiveDecision decideAdaptiveTrigger({
     );
     reasons.add(
       'ocrFailure: OCR failed or produced no usable label line '
-      '(runtimeSignals.ocrFailure.enterAt=true)',
+      '(runtimeSignals.ocrFailure.enterAt=${policy.ocrFailureEnters})',
     );
   } else {
     reasons.add(
-      'ocrFailure: not triggered, the OCR port produced usable label lines',
+      'ocrFailure: not triggered, ocrFailed=${signals.ocrFailed} against '
+      'runtimeSignals.ocrFailure.enterAt=${policy.ocrFailureEnters}',
     );
   }
 
@@ -846,7 +887,8 @@ T resolveSecondPassOutcome<T>({
   return pass2;
 }
 
-/// The evidence set after the provenance `hashGate` and the per-group cap.
+/// The evidence set after the provenance `hashGate`, the `correlationRule`
+/// declaration check, and the per-group cap.
 final class _EvidenceSet {
   _EvidenceSet({
     required this.selected,
@@ -873,6 +915,36 @@ _EvidenceSet _selectEvidence(
   final List<String> notes = <String>[];
   final Map<String, int> perGroup = <String, int>{};
   for (final VariantObservation observation in observations) {
+    if (policy.excludedVariants.contains(observation.variantId)) {
+      dropped.add(observation);
+      notes.add(
+        'evidence.failClosed: ${observation.variantId} is declared in '
+        'excludedVariants and produces no evidence row; it is dropped instead '
+        'of counted as independent (correlationRule.failClosed)',
+      );
+      continue;
+    }
+    final String? declaredGroup = policy.variantGroups[observation.variantId];
+    if (declaredGroup == null) {
+      dropped.add(observation);
+      notes.add(
+        'evidence.failClosed: ${observation.variantId} is not a declared '
+        'variant of adaptive-provenance.v1.json, so its derivation cannot be '
+        'resolved; it is dropped instead of counted as independent '
+        '(correlationRule.failClosed)',
+      );
+      continue;
+    }
+    if (declaredGroup != observation.correlationGroup) {
+      dropped.add(observation);
+      notes.add(
+        'evidence.failClosed: ${observation.variantId} is declared in '
+        'correlationGroup $declaredGroup but the observation claims '
+        '${observation.correlationGroup}; it is dropped instead of counted as '
+        'independent (correlationRule.failClosed)',
+      );
+      continue;
+    }
     if (!observation.rasterHashRecorded) {
       dropped.add(observation);
       notes.add(
@@ -982,5 +1054,19 @@ List<String> _stringList(Map<String, Object?> node, String key) {
         entry
       else
         throw AdaptivePolicyException('$key contains a non-string entry'),
+  ];
+}
+
+List<Map<String, Object?>> _objectList(Map<String, Object?> node, String key) {
+  final Object? value = node[key];
+  if (value is! List<Object?>) {
+    throw AdaptivePolicyException('$key is missing or not a JSON array');
+  }
+  return <Map<String, Object?>>[
+    for (final Object? entry in value)
+      if (entry is Map<String, Object?>)
+        entry
+      else
+        throw AdaptivePolicyException('$key contains a non-object entry'),
   ];
 }
