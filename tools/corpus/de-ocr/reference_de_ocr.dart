@@ -481,12 +481,7 @@ final class DeOcrReferenceSuite {
       type: 'text',
       yTop: 402,
     );
-    second.field(
-      id: 'p1-vorname',
-      label: 'Vorname',
-      type: 'text',
-      yTop: 438,
-    );
+    second.field(id: 'p1-vorname', label: 'Vorname', type: 'text', yTop: 438);
     second.field(
       id: 'p1-geburtsdatum',
       label: 'Geburtsdatum',
@@ -509,11 +504,7 @@ final class DeOcrReferenceSuite {
       xPt: 190,
       yPt: 648,
     );
-    second.signature(
-      id: 'p1-unterschrift',
-      label: 'Unterschrift',
-      yTop: 682,
-    );
+    second.signature(id: 'p1-unterschrift', label: 'Unterschrift', yTop: 682);
     second.line(
       'Beispiel: Müller-Gräber, Äußere Straße 12, 8 m²',
       yTop: 750,
@@ -536,13 +527,7 @@ final class DeOcrReferenceSuite {
     required String title,
     required String subtitle,
   }) {
-    page.line(
-      'MUSTERSTADT',
-      yTop: 32,
-      size: 9,
-      role: 'heading',
-      bold: true,
-    );
+    page.line('MUSTERSTADT', yTop: 32, size: 9, role: 'heading', bold: true);
     page.line(
       'Musteramt für Bürgerdienste',
       yTop: 44,
@@ -762,8 +747,7 @@ final class DeOcrReferenceSuite {
         },
       },
       'variants': <Object>[
-        for (final Map<String, Object?> variant in variantBaselines)
-          variant,
+        for (final Map<String, Object?> variant in variantBaselines) variant,
       ],
       'pages': <Object>[
         for (int index = 0; index < pageCount; index++)
@@ -841,7 +825,8 @@ const List<Map<String, Object?>> variantBaselines = <Map<String, Object?>>[
   },
   <String, Object?>{
     'id': 'scan-200dpi-skew-3deg',
-    'description': '200 DPI scan rotated by three degrees about the page '
+    'description':
+        '200 DPI scan rotated by three degrees about the page '
         'centre on a white background.',
     'evidenceClass': 'EMULATOR_INJECTED_RASTER',
     'requiresExactCriticalLines': false,
@@ -851,7 +836,8 @@ const List<Map<String, Object?>> variantBaselines = <Map<String, Object?>>[
   },
   <String, Object?>{
     'id': 'scan-200dpi-jpeg-q35',
-    'description': '200 DPI scan compressed as a low-quality JPEG and decoded '
+    'description':
+        '200 DPI scan compressed as a low-quality JPEG and decoded '
         'back to gray8.',
     'evidenceClass': 'EMULATOR_INJECTED_RASTER',
     'requiresExactCriticalLines': false,
@@ -916,7 +902,8 @@ final class _PageBuilder {
   final List<GtLine> lines = <GtLine>[];
   final List<GtField> fields = <GtField>[];
 
-  String _nextId() => 'p$pageIndex-l${(lines.length + 1).toString().padLeft(2, '0')}';
+  String _nextId() =>
+      'p$pageIndex-l${(lines.length + 1).toString().padLeft(2, '0')}';
 
   double line(
     String text, {
@@ -997,7 +984,13 @@ final class _PageBuilder {
       ),
     );
     if (hint != null) {
-      line(hint, yTop: yTop + 5, size: 7, role: 'hint', xPt: fieldX + width + 7);
+      line(
+        hint,
+        yTop: yTop + 5,
+        size: 7,
+        role: 'hint',
+        xPt: fieldX + width + 7,
+      );
     }
   }
 
@@ -1011,7 +1004,14 @@ final class _PageBuilder {
     double height = 66,
   }) {
     final String labelId = _nextId();
-    line(label, yTop: yTop + 2, size: 10, role: 'label', xPt: labelX, fieldId: id);
+    line(
+      label,
+      yTop: yTop + 2,
+      size: 10,
+      role: 'label',
+      xPt: labelX,
+      fieldId: id,
+    );
     page.rect(fieldX, yTop, width, height);
     fields.add(
       GtField(
@@ -1069,7 +1069,14 @@ final class _PageBuilder {
     double lineWidth = 300,
   }) {
     final String labelId = _nextId();
-    line(label, yTop: yTop + 2, size: 10, role: 'label', xPt: labelX, fieldId: id);
+    line(
+      label,
+      yTop: yTop + 2,
+      size: 10,
+      role: 'label',
+      xPt: labelX,
+      fieldId: id,
+    );
     page.line(lineX, yTop + 30, lineX + lineWidth, yTop + 30, width: 0.7);
     fields.add(
       GtField(
@@ -1113,7 +1120,5 @@ final class _PageBuilder {
 
 /// UTF-8 encoding helper shared with the generator.
 List<int> utf8Bytes(Object? value) {
-  return utf8.encode(
-    const JsonEncoder.withIndent('  ').convert(value),
-  );
+  return utf8.encode(const JsonEncoder.withIndent('  ').convert(value));
 }

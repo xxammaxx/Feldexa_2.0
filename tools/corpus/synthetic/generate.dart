@@ -199,9 +199,8 @@ _Outputs _buildOutputs(Directory root) {
   // The bytes come from the embedded-font writer because base-14/WinAnsi has
   // no glyph for U+1E9E (ẞ); see ../de-ocr/ttf_embed.dart.
   final de_ttf.TrueTypeFont embeddedFont = _loadEmbeddedFont(root);
-  final de_ocr.DeOcrReferenceSuite germanSuite = de_ocr.DeOcrReferenceSuite.build(
-    embeddedFont,
-  );
+  final de_ocr.DeOcrReferenceSuite germanSuite =
+      de_ocr.DeOcrReferenceSuite.build(embeddedFont);
   final Uint8List germanPdf = germanSuite.pdfBytes();
   final String germanSha256 = sha256Hex(germanPdf);
   final Map<String, Object?> germanGroundTruth = germanSuite.groundTruthJson(
