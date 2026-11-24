@@ -11,10 +11,13 @@
 // pending variant hash, excluded, undeclared or misgrouped variant, undeclared
 // correlation group) refuses the decision instead of guessing.
 //
-// Both frozen artifacts are byte-pinned by SHA-256 below, and every compared
-// threshold is proven to come from the file rather than from this harness: the
-// mutation copies are written to a system temp directory and removed again, so a
-// run leaves no artifact behind, in this tree or in a foreign working directory.
+// Both frozen artifacts are byte-pinned by SHA-256 below. The compared
+// thresholds that the mutation copies exercise (`lowContrast.enterBelow`,
+// `skew.enterAbove` and the `ocrFailure` flag) are proven to come from the file
+// rather than from this harness; the remaining compared values are only
+// value-pinned, so a hardcoded constant there would still survive. The mutation
+// copies are written to a system temp directory and removed again, so a run
+// leaves no artifact behind, in this tree or in a foreign working directory.
 //
 // Host-only tooling. No raster, OCR, emulator, device, or measurement, and no
 // SIMULATED/EMULATOR/DEVICE evidence.
