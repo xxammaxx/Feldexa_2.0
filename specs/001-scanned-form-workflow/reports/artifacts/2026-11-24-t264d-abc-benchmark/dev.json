@@ -1,0 +1,1149 @@
+{
+  "schemaVersion": 1,
+  "task": "T264D",
+  "issue": 264,
+  "evidenceClass": "NONE",
+  "generatedAtUtc": "2026-11-24T14:40:31.581905Z",
+  "scoreSet": "dev",
+  "conditions": {
+    "runtime": "host VM",
+    "dart": "3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on \"linux_x64\"",
+    "analysisDpi": 200,
+    "ocrEngine": null,
+    "ocrEngineNote": "No OCR engine ran: the label observations are the declared SIMULATED labels of the synthetic corpus.",
+    "claim": "host-only A/B/C evaluation; no Android, emulator, device, OCR-engine, real-form, or performance claim",
+    "evidenceClass": "NONE",
+    "notRun": [
+      "Android EMULATOR production-path evidence",
+      "real-corpus qualification",
+      "real-form evidence",
+      "SC-001/SC-003 (T142) and SC-004 (T136/T141)",
+      "cross-pass suggestion merge (needs the T264P provenance decision)",
+      "deskew variant (the corpus declares no caller-supplied skew angle)"
+    ]
+  },
+  "inputs": {
+    "policy": {
+      "path": "/home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t264d/tools/evaluation/adaptive-policy.v1.json",
+      "sha256": "eb940399ce1533aaa0a6dba4bba814b311a5041b06daeddc0f9866cacc40e073",
+      "version": "1.0.0",
+      "status": "frozen-before-run",
+      "implementation": "BLOCKED"
+    },
+    "corpus": {
+      "corpusId": "field-inventory-synthetic-v1",
+      "declaredCorpusId": "field-inventory-synthetic-v1",
+      "generator": "tools/evaluation/field_inventory_baseline.dart",
+      "golden": "tools/evaluation/goldens/field-inventory-baseline.v1.json",
+      "pageCount": 12,
+      "fixtureSha256": "0100e19f2967ba4437ff6649974f766987a1bf3eb22bf033b99f766ddd18d16c",
+      "corpusSha256": "c595b7ea7321d081926c277449419921f8b3622fabbd0cc08ee5e40077461f60",
+      "groundTruthSha256": "7cfedb615aef3a0326ae2401ca5c5be3e5a3bc650be96f4818c5abcd2dd0cbfe",
+      "scoredPages": [
+        {
+          "id": "clean-text",
+          "pageClass": "dev",
+          "sourceRasterSha256": "2e4ee66e2a43d31745eb9cc9eac7069758dc63d9ddafd79f016a2a99d93be2ef",
+          "declaredFields": 5
+        },
+        {
+          "id": "numeric-formats",
+          "pageClass": "dev",
+          "sourceRasterSha256": "4596d176fce922970b309a2a087224b21ef8baeb35177e6db8ef0ac57f47aad6",
+          "declaredFields": 8
+        },
+        {
+          "id": "checkbox-row",
+          "pageClass": "dev",
+          "sourceRasterSha256": "e4eb7c0308990b00dee64465a0789f0a7537b977826bb03e84fd04eea34dd6a9",
+          "declaredFields": 4
+        },
+        {
+          "id": "missing-checkbox",
+          "pageClass": "dev",
+          "sourceRasterSha256": "e843c79ad17a81caafda7bce9fff9cc879cb42f6ccf224da07a8965d830d22db",
+          "declaredFields": 4
+        },
+        {
+          "id": "duplicate-checkbox",
+          "pageClass": "dev",
+          "sourceRasterSha256": "ffd7d67ed6e222c59d3750e27f9e3acb6c3b609281a000b669b6de6720e87238",
+          "declaredFields": 1
+        },
+        {
+          "id": "table",
+          "pageClass": "dev",
+          "sourceRasterSha256": "80252f21f1f08877cddca48ef6d4934d6bdd850c484eac99eb3a19a6111f338f",
+          "declaredFields": 5
+        }
+      ]
+    },
+    "sameInputs": true,
+    "comparisonModes": [
+      "A: single pass",
+      "B: full second pass",
+      "C: targeted adaptive"
+    ]
+  },
+  "run": {
+    "peakResidentSetBytes": 364032000,
+    "memory": {
+      "note": "host diagnostics only, no performance claim, excluded from the golden snapshot; processInfoMaxRss is the dart:io value in bytes and agrees with the kernel peak on this host",
+      "unit": "linux kernel per-process status counters VmHWM and VmRSS (kibibytes)",
+      "kernelPeakResidentKb": 355500,
+      "kernelResidentKb": 330532,
+      "processInfoMaxRss": 364032000,
+      "peakResidentSetBytes": 364032000
+    },
+    "peakVariantPixels": 3868706,
+    "variantRasterHashes": {
+      "contrastStretch": "80252f21f1f08877cddca48ef6d4934d6bdd850c484eac99eb3a19a6111f338f"
+    },
+    "variantBudgetPixels": 8000000
+  },
+  "modes": {
+    "a": {
+      "mode": "a",
+      "pageCount": 6,
+      "passes": 6,
+      "expected": 27,
+      "matched": 26,
+      "observed": 35,
+      "extra": 4,
+      "missing": 1,
+      "duplicate": 6,
+      "duplicateUnmatched": 5,
+      "kindMatched": 21,
+      "labelledExpected": 12,
+      "labelsAgree": 12,
+      "typeMismatched": 5,
+      "reviewNeeded": 15,
+      "autoConfirmed": 0,
+      "falseAccepts": 0,
+      "wouldBeFalseAccepts": 9,
+      "precision": 0.742857,
+      "recall": 0.962963,
+      "f1": 0.83871,
+      "typeAccuracy": 0.807692,
+      "labelAccuracy": 1.0,
+      "reviewRate": 0.428571,
+      "meanMatchedIou": 0.964018,
+      "latencyMs": {
+        "p50": 242,
+        "p95": 369,
+        "perPage": [
+          369,
+          245,
+          241,
+          237,
+          242,
+          243
+        ]
+      },
+      "peakVariantPixels": 0
+    },
+    "b": {
+      "mode": "b",
+      "pageCount": 6,
+      "passes": 12,
+      "expected": 27,
+      "matched": 26,
+      "observed": 35,
+      "extra": 4,
+      "missing": 1,
+      "duplicate": 6,
+      "duplicateUnmatched": 5,
+      "kindMatched": 21,
+      "labelledExpected": 12,
+      "labelsAgree": 12,
+      "typeMismatched": 5,
+      "reviewNeeded": 15,
+      "autoConfirmed": 0,
+      "falseAccepts": 0,
+      "wouldBeFalseAccepts": 9,
+      "precision": 0.742857,
+      "recall": 0.962963,
+      "f1": 0.83871,
+      "typeAccuracy": 0.807692,
+      "labelAccuracy": 1.0,
+      "reviewRate": 0.428571,
+      "meanMatchedIou": 0.964018,
+      "latencyMs": {
+        "p50": 481,
+        "p95": 670,
+        "perPage": [
+          670,
+          486,
+          481,
+          477,
+          481,
+          483
+        ]
+      },
+      "peakVariantPixels": 3868706
+    },
+    "c": {
+      "mode": "c",
+      "pageCount": 6,
+      "passes": 12,
+      "expected": 27,
+      "matched": 26,
+      "observed": 35,
+      "extra": 4,
+      "missing": 1,
+      "duplicate": 6,
+      "duplicateUnmatched": 5,
+      "kindMatched": 21,
+      "labelledExpected": 12,
+      "labelsAgree": 12,
+      "typeMismatched": 5,
+      "reviewNeeded": 15,
+      "autoConfirmed": 0,
+      "falseAccepts": 0,
+      "wouldBeFalseAccepts": 9,
+      "precision": 0.742857,
+      "recall": 0.962963,
+      "f1": 0.83871,
+      "typeAccuracy": 0.807692,
+      "labelAccuracy": 1.0,
+      "reviewRate": 0.428571,
+      "meanMatchedIou": 0.964018,
+      "latencyMs": {
+        "p50": 481,
+        "p95": 670,
+        "perPage": [
+          670,
+          486,
+          481,
+          477,
+          481,
+          483
+        ]
+      },
+      "peakVariantPixels": 3868706
+    }
+  },
+  "pages": [
+    {
+      "id": "clean-text",
+      "pageClass": "dev",
+      "scored": true,
+      "declaredFields": 5,
+      "photometric": {
+        "p05Luminance": 255,
+        "p95Luminance": 255,
+        "contrastSpread": 0,
+        "inkDensity": 0.005933
+      },
+      "decision": {
+        "verdict": "secondPass",
+        "triggers": [
+          "lowContrast"
+        ],
+        "triggersAgainst": [
+          {
+            "trigger": "lowContrast",
+            "policyPath": "runtimeSignals.lowContrast.enterBelow",
+            "threshold": 96.0,
+            "observed": 0.0,
+            "heldByHysteresis": false
+          }
+        ],
+        "reasons": [
+          "lowContrast: contrastSpread=0.0 < runtimeSignals.lowContrast.enterBelow=96.0",
+          "ocrFailure: not triggered, ocrFailed=false against runtimeSignals.ocrFailure.enterAt=true",
+          "missingLabel: not triggered, unlabelledFraction=0.2 < runtimeSignals.missingLabel.enterAtOrAbove=0.5",
+          "conflict: not triggered, conflictPairs=0 < runtimeSignals.conflict.enterAtOrAbove=1.0",
+          "secondPass: 1 frozen runtime trigger(s) fired (lowContrast); passesRemaining=1, maxElapsedMsPerPage=4000, maxVariantPixels=8000000. A failed second pass returns the pass-1 result."
+        ],
+        "ignoredSignals": [
+          {
+            "signal": "structureMismatch",
+            "reason": "runtimeSignals.structureMismatch.runtimeTrigger=false: structure comparison is evaluation-only (observed 0 mismatched field(s)); it never triggers a pass"
+          },
+          {
+            "signal": "detectorInstability",
+            "reason": "not declared in runtimeSignals: observed 0 instable candidate(s), recorded only; the frozen policy has no threshold, so it never triggers and no value is guessed"
+          },
+          {
+            "signal": "skew",
+            "reason": "runtimeSignals.skew.metric is caller-supplied; the policy forbids estimating it, so an absent angle is not triggered"
+          }
+        ],
+        "bounds": {
+          "maxPassesPerPage": 2,
+          "passesCompleted": 1,
+          "passesRemaining": 1,
+          "maxElapsedMsPerPage": 4000,
+          "maxVariantPixels": 8000000
+        },
+        "rejection": null
+      },
+      "secondPassApplied": true,
+      "variantIdentity": true,
+      "pass1": {
+        "passNumber": 1,
+        "variantId": "original",
+        "sourceRasterSha256": "2e4ee66e2a43d31745eb9cc9eac7069758dc63d9ddafd79f016a2a99d93be2ef",
+        "inputRasterSha256": "2e4ee66e2a43d31745eb9cc9eac7069758dc63d9ddafd79f016a2a99d93be2ef",
+        "observed": 5,
+        "fieldCandidates": 5,
+        "unlabelledCandidates": 1,
+        "conflictPairs": 0,
+        "metrics": {
+          "expected": 5,
+          "observed": 5,
+          "matched": 5,
+          "extra": 0,
+          "missing": 0,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 5,
+          "labelledExpected": 4,
+          "labelsAgree": 4,
+          "typeMismatched": 0,
+          "reviewNeeded": 0,
+          "autoConfirmed": 0,
+          "falseAccepts": 0,
+          "wouldBeFalseAccepts": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0,
+          "reviewRate": 0.0,
+          "meanMatchedIou": 0.955011
+        },
+        "elapsedMs": 369,
+        "variantPixels": 0
+      },
+      "pass2": {
+        "passNumber": 2,
+        "variantId": "contrastStretch",
+        "sourceRasterSha256": "2e4ee66e2a43d31745eb9cc9eac7069758dc63d9ddafd79f016a2a99d93be2ef",
+        "inputRasterSha256": "2e4ee66e2a43d31745eb9cc9eac7069758dc63d9ddafd79f016a2a99d93be2ef",
+        "observed": 5,
+        "fieldCandidates": 5,
+        "unlabelledCandidates": 1,
+        "conflictPairs": 0,
+        "metrics": {
+          "expected": 5,
+          "observed": 5,
+          "matched": 5,
+          "extra": 0,
+          "missing": 0,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 5,
+          "labelledExpected": 4,
+          "labelsAgree": 4,
+          "typeMismatched": 0,
+          "reviewNeeded": 0,
+          "autoConfirmed": 0,
+          "falseAccepts": 0,
+          "wouldBeFalseAccepts": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0,
+          "reviewRate": 0.0,
+          "meanMatchedIou": 0.955011
+        },
+        "elapsedMs": 301,
+        "variantPixels": 3868706
+      }
+    },
+    {
+      "id": "numeric-formats",
+      "pageClass": "dev",
+      "scored": true,
+      "declaredFields": 8,
+      "photometric": {
+        "p05Luminance": 255,
+        "p95Luminance": 255,
+        "contrastSpread": 0,
+        "inkDensity": 0.002095
+      },
+      "decision": {
+        "verdict": "secondPass",
+        "triggers": [
+          "lowContrast"
+        ],
+        "triggersAgainst": [
+          {
+            "trigger": "lowContrast",
+            "policyPath": "runtimeSignals.lowContrast.enterBelow",
+            "threshold": 96.0,
+            "observed": 0.0,
+            "heldByHysteresis": false
+          }
+        ],
+        "reasons": [
+          "lowContrast: contrastSpread=0.0 < runtimeSignals.lowContrast.enterBelow=96.0",
+          "ocrFailure: not triggered, ocrFailed=false against runtimeSignals.ocrFailure.enterAt=true",
+          "missingLabel: not triggered, unlabelledFraction=0.0 < runtimeSignals.missingLabel.enterAtOrAbove=0.5",
+          "conflict: not triggered, conflictPairs=0 < runtimeSignals.conflict.enterAtOrAbove=1.0",
+          "secondPass: 1 frozen runtime trigger(s) fired (lowContrast); passesRemaining=1, maxElapsedMsPerPage=4000, maxVariantPixels=8000000. A failed second pass returns the pass-1 result."
+        ],
+        "ignoredSignals": [
+          {
+            "signal": "structureMismatch",
+            "reason": "runtimeSignals.structureMismatch.runtimeTrigger=false: structure comparison is evaluation-only (observed 0 mismatched field(s)); it never triggers a pass"
+          },
+          {
+            "signal": "detectorInstability",
+            "reason": "not declared in runtimeSignals: observed 0 instable candidate(s), recorded only; the frozen policy has no threshold, so it never triggers and no value is guessed"
+          },
+          {
+            "signal": "skew",
+            "reason": "runtimeSignals.skew.metric is caller-supplied; the policy forbids estimating it, so an absent angle is not triggered"
+          }
+        ],
+        "bounds": {
+          "maxPassesPerPage": 2,
+          "passesCompleted": 1,
+          "passesRemaining": 1,
+          "maxElapsedMsPerPage": 4000,
+          "maxVariantPixels": 8000000
+        },
+        "rejection": null
+      },
+      "secondPassApplied": true,
+      "variantIdentity": true,
+      "pass1": {
+        "passNumber": 1,
+        "variantId": "original",
+        "sourceRasterSha256": "4596d176fce922970b309a2a087224b21ef8baeb35177e6db8ef0ac57f47aad6",
+        "inputRasterSha256": "4596d176fce922970b309a2a087224b21ef8baeb35177e6db8ef0ac57f47aad6",
+        "observed": 8,
+        "fieldCandidates": 8,
+        "unlabelledCandidates": 0,
+        "conflictPairs": 0,
+        "metrics": {
+          "expected": 8,
+          "observed": 8,
+          "matched": 8,
+          "extra": 0,
+          "missing": 0,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 8,
+          "labelledExpected": 8,
+          "labelsAgree": 8,
+          "typeMismatched": 0,
+          "reviewNeeded": 0,
+          "autoConfirmed": 0,
+          "falseAccepts": 0,
+          "wouldBeFalseAccepts": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0,
+          "reviewRate": 0.0,
+          "meanMatchedIou": 0.985234
+        },
+        "elapsedMs": 245,
+        "variantPixels": 0
+      },
+      "pass2": {
+        "passNumber": 2,
+        "variantId": "contrastStretch",
+        "sourceRasterSha256": "4596d176fce922970b309a2a087224b21ef8baeb35177e6db8ef0ac57f47aad6",
+        "inputRasterSha256": "4596d176fce922970b309a2a087224b21ef8baeb35177e6db8ef0ac57f47aad6",
+        "observed": 8,
+        "fieldCandidates": 8,
+        "unlabelledCandidates": 0,
+        "conflictPairs": 0,
+        "metrics": {
+          "expected": 8,
+          "observed": 8,
+          "matched": 8,
+          "extra": 0,
+          "missing": 0,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 8,
+          "labelledExpected": 8,
+          "labelsAgree": 8,
+          "typeMismatched": 0,
+          "reviewNeeded": 0,
+          "autoConfirmed": 0,
+          "falseAccepts": 0,
+          "wouldBeFalseAccepts": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0,
+          "reviewRate": 0.0,
+          "meanMatchedIou": 0.985234
+        },
+        "elapsedMs": 241,
+        "variantPixels": 3868706
+      }
+    },
+    {
+      "id": "checkbox-row",
+      "pageClass": "dev",
+      "scored": true,
+      "declaredFields": 4,
+      "photometric": {
+        "p05Luminance": 255,
+        "p95Luminance": 255,
+        "contrastSpread": 0,
+        "inkDensity": 0.000239
+      },
+      "decision": {
+        "verdict": "secondPass",
+        "triggers": [
+          "lowContrast",
+          "ocrFailure",
+          "missingLabel",
+          "conflict"
+        ],
+        "triggersAgainst": [
+          {
+            "trigger": "lowContrast",
+            "policyPath": "runtimeSignals.lowContrast.enterBelow",
+            "threshold": 96.0,
+            "observed": 0.0,
+            "heldByHysteresis": false
+          },
+          {
+            "trigger": "ocrFailure",
+            "policyPath": "runtimeSignals.ocrFailure.enterAt",
+            "threshold": 1.0,
+            "observed": 1.0,
+            "heldByHysteresis": false
+          },
+          {
+            "trigger": "missingLabel",
+            "policyPath": "runtimeSignals.missingLabel.enterAtOrAbove",
+            "threshold": 0.5,
+            "observed": 1.0,
+            "heldByHysteresis": false
+          },
+          {
+            "trigger": "conflict",
+            "policyPath": "runtimeSignals.conflict.enterAtOrAbove",
+            "threshold": 1.0,
+            "observed": 8.0,
+            "heldByHysteresis": false
+          }
+        ],
+        "reasons": [
+          "lowContrast: contrastSpread=0.0 < runtimeSignals.lowContrast.enterBelow=96.0",
+          "ocrFailure: OCR failed or produced no usable label line (runtimeSignals.ocrFailure.enterAt=true)",
+          "missingLabel: unlabelledFraction=1.0 >= runtimeSignals.missingLabel.enterAtOrAbove=0.5 (10/10)",
+          "conflict: conflictPairs=8 >= runtimeSignals.conflict.enterAtOrAbove=1.0",
+          "secondPass: 4 frozen runtime trigger(s) fired (lowContrast, ocrFailure, missingLabel, conflict); passesRemaining=1, maxElapsedMsPerPage=4000, maxVariantPixels=8000000. A failed second pass returns the pass-1 result."
+        ],
+        "ignoredSignals": [
+          {
+            "signal": "structureMismatch",
+            "reason": "runtimeSignals.structureMismatch.runtimeTrigger=false: structure comparison is evaluation-only (observed 2 mismatched field(s)); it never triggers a pass"
+          },
+          {
+            "signal": "detectorInstability",
+            "reason": "not declared in runtimeSignals: observed 0 instable candidate(s), recorded only; the frozen policy has no threshold, so it never triggers and no value is guessed"
+          },
+          {
+            "signal": "skew",
+            "reason": "runtimeSignals.skew.metric is caller-supplied; the policy forbids estimating it, so an absent angle is not triggered"
+          }
+        ],
+        "bounds": {
+          "maxPassesPerPage": 2,
+          "passesCompleted": 1,
+          "passesRemaining": 1,
+          "maxElapsedMsPerPage": 4000,
+          "maxVariantPixels": 8000000
+        },
+        "rejection": null
+      },
+      "secondPassApplied": true,
+      "variantIdentity": true,
+      "pass1": {
+        "passNumber": 1,
+        "variantId": "original",
+        "sourceRasterSha256": "e4eb7c0308990b00dee64465a0789f0a7537b977826bb03e84fd04eea34dd6a9",
+        "inputRasterSha256": "e4eb7c0308990b00dee64465a0789f0a7537b977826bb03e84fd04eea34dd6a9",
+        "observed": 10,
+        "fieldCandidates": 10,
+        "unlabelledCandidates": 10,
+        "conflictPairs": 8,
+        "metrics": {
+          "expected": 4,
+          "observed": 10,
+          "matched": 4,
+          "extra": 2,
+          "missing": 0,
+          "duplicate": 5,
+          "duplicateUnmatched": 4,
+          "kindMatched": 4,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "typeMismatched": 0,
+          "reviewNeeded": 7,
+          "autoConfirmed": 0,
+          "falseAccepts": 0,
+          "wouldBeFalseAccepts": 2,
+          "precision": 0.4,
+          "recall": 1.0,
+          "f1": 0.571429,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0,
+          "reviewRate": 0.7,
+          "meanMatchedIou": 0.940195
+        },
+        "elapsedMs": 241,
+        "variantPixels": 0
+      },
+      "pass2": {
+        "passNumber": 2,
+        "variantId": "contrastStretch",
+        "sourceRasterSha256": "e4eb7c0308990b00dee64465a0789f0a7537b977826bb03e84fd04eea34dd6a9",
+        "inputRasterSha256": "e4eb7c0308990b00dee64465a0789f0a7537b977826bb03e84fd04eea34dd6a9",
+        "observed": 10,
+        "fieldCandidates": 10,
+        "unlabelledCandidates": 10,
+        "conflictPairs": 8,
+        "metrics": {
+          "expected": 4,
+          "observed": 10,
+          "matched": 4,
+          "extra": 2,
+          "missing": 0,
+          "duplicate": 5,
+          "duplicateUnmatched": 4,
+          "kindMatched": 4,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "typeMismatched": 0,
+          "reviewNeeded": 7,
+          "autoConfirmed": 0,
+          "falseAccepts": 0,
+          "wouldBeFalseAccepts": 2,
+          "precision": 0.4,
+          "recall": 1.0,
+          "f1": 0.571429,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0,
+          "reviewRate": 0.7,
+          "meanMatchedIou": 0.940195
+        },
+        "elapsedMs": 240,
+        "variantPixels": 3868706
+      }
+    },
+    {
+      "id": "missing-checkbox",
+      "pageClass": "dev",
+      "scored": true,
+      "declaredFields": 4,
+      "photometric": {
+        "p05Luminance": 255,
+        "p95Luminance": 255,
+        "contrastSpread": 0,
+        "inkDensity": 0.000179
+      },
+      "decision": {
+        "verdict": "secondPass",
+        "triggers": [
+          "lowContrast",
+          "ocrFailure",
+          "missingLabel"
+        ],
+        "triggersAgainst": [
+          {
+            "trigger": "lowContrast",
+            "policyPath": "runtimeSignals.lowContrast.enterBelow",
+            "threshold": 96.0,
+            "observed": 0.0,
+            "heldByHysteresis": false
+          },
+          {
+            "trigger": "ocrFailure",
+            "policyPath": "runtimeSignals.ocrFailure.enterAt",
+            "threshold": 1.0,
+            "observed": 1.0,
+            "heldByHysteresis": false
+          },
+          {
+            "trigger": "missingLabel",
+            "policyPath": "runtimeSignals.missingLabel.enterAtOrAbove",
+            "threshold": 0.5,
+            "observed": 1.0,
+            "heldByHysteresis": false
+          }
+        ],
+        "reasons": [
+          "lowContrast: contrastSpread=0.0 < runtimeSignals.lowContrast.enterBelow=96.0",
+          "ocrFailure: OCR failed or produced no usable label line (runtimeSignals.ocrFailure.enterAt=true)",
+          "missingLabel: unlabelledFraction=1.0 >= runtimeSignals.missingLabel.enterAtOrAbove=0.5 (3/3)",
+          "conflict: not triggered, conflictPairs=0 < runtimeSignals.conflict.enterAtOrAbove=1.0",
+          "secondPass: 3 frozen runtime trigger(s) fired (lowContrast, ocrFailure, missingLabel); passesRemaining=1, maxElapsedMsPerPage=4000, maxVariantPixels=8000000. A failed second pass returns the pass-1 result."
+        ],
+        "ignoredSignals": [
+          {
+            "signal": "structureMismatch",
+            "reason": "runtimeSignals.structureMismatch.runtimeTrigger=false: structure comparison is evaluation-only (observed 1 mismatched field(s)); it never triggers a pass"
+          },
+          {
+            "signal": "detectorInstability",
+            "reason": "not declared in runtimeSignals: observed 0 instable candidate(s), recorded only; the frozen policy has no threshold, so it never triggers and no value is guessed"
+          },
+          {
+            "signal": "skew",
+            "reason": "runtimeSignals.skew.metric is caller-supplied; the policy forbids estimating it, so an absent angle is not triggered"
+          }
+        ],
+        "bounds": {
+          "maxPassesPerPage": 2,
+          "passesCompleted": 1,
+          "passesRemaining": 1,
+          "maxElapsedMsPerPage": 4000,
+          "maxVariantPixels": 8000000
+        },
+        "rejection": null
+      },
+      "secondPassApplied": true,
+      "variantIdentity": true,
+      "pass1": {
+        "passNumber": 1,
+        "variantId": "original",
+        "sourceRasterSha256": "e843c79ad17a81caafda7bce9fff9cc879cb42f6ccf224da07a8965d830d22db",
+        "inputRasterSha256": "e843c79ad17a81caafda7bce9fff9cc879cb42f6ccf224da07a8965d830d22db",
+        "observed": 3,
+        "fieldCandidates": 3,
+        "unlabelledCandidates": 3,
+        "conflictPairs": 0,
+        "metrics": {
+          "expected": 4,
+          "observed": 3,
+          "matched": 3,
+          "extra": 0,
+          "missing": 1,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 3,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "typeMismatched": 0,
+          "reviewNeeded": 0,
+          "autoConfirmed": 0,
+          "falseAccepts": 0,
+          "wouldBeFalseAccepts": 0,
+          "precision": 1.0,
+          "recall": 0.75,
+          "f1": 0.857143,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0,
+          "reviewRate": 0.0,
+          "meanMatchedIou": 0.94146
+        },
+        "elapsedMs": 237,
+        "variantPixels": 0
+      },
+      "pass2": {
+        "passNumber": 2,
+        "variantId": "contrastStretch",
+        "sourceRasterSha256": "e843c79ad17a81caafda7bce9fff9cc879cb42f6ccf224da07a8965d830d22db",
+        "inputRasterSha256": "e843c79ad17a81caafda7bce9fff9cc879cb42f6ccf224da07a8965d830d22db",
+        "observed": 3,
+        "fieldCandidates": 3,
+        "unlabelledCandidates": 3,
+        "conflictPairs": 0,
+        "metrics": {
+          "expected": 4,
+          "observed": 3,
+          "matched": 3,
+          "extra": 0,
+          "missing": 1,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 3,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "typeMismatched": 0,
+          "reviewNeeded": 0,
+          "autoConfirmed": 0,
+          "falseAccepts": 0,
+          "wouldBeFalseAccepts": 0,
+          "precision": 1.0,
+          "recall": 0.75,
+          "f1": 0.857143,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0,
+          "reviewRate": 0.0,
+          "meanMatchedIou": 0.94146
+        },
+        "elapsedMs": 240,
+        "variantPixels": 3868706
+      }
+    },
+    {
+      "id": "duplicate-checkbox",
+      "pageClass": "dev",
+      "scored": true,
+      "declaredFields": 1,
+      "photometric": {
+        "p05Luminance": 255,
+        "p95Luminance": 255,
+        "contrastSpread": 0,
+        "inkDensity": 0.000195
+      },
+      "decision": {
+        "verdict": "secondPass",
+        "triggers": [
+          "lowContrast",
+          "ocrFailure",
+          "conflict"
+        ],
+        "triggersAgainst": [
+          {
+            "trigger": "lowContrast",
+            "policyPath": "runtimeSignals.lowContrast.enterBelow",
+            "threshold": 96.0,
+            "observed": 0.0,
+            "heldByHysteresis": false
+          },
+          {
+            "trigger": "ocrFailure",
+            "policyPath": "runtimeSignals.ocrFailure.enterAt",
+            "threshold": 1.0,
+            "observed": 1.0,
+            "heldByHysteresis": false
+          },
+          {
+            "trigger": "conflict",
+            "policyPath": "runtimeSignals.conflict.enterAtOrAbove",
+            "threshold": 1.0,
+            "observed": 1.0,
+            "heldByHysteresis": false
+          }
+        ],
+        "reasons": [
+          "lowContrast: contrastSpread=0.0 < runtimeSignals.lowContrast.enterBelow=96.0",
+          "ocrFailure: OCR failed or produced no usable label line (runtimeSignals.ocrFailure.enterAt=true)",
+          "conflict: conflictPairs=1 >= runtimeSignals.conflict.enterAtOrAbove=1.0",
+          "secondPass: 3 frozen runtime trigger(s) fired (lowContrast, ocrFailure, conflict); passesRemaining=1, maxElapsedMsPerPage=4000, maxVariantPixels=8000000. A failed second pass returns the pass-1 result."
+        ],
+        "ignoredSignals": [
+          {
+            "signal": "structureMismatch",
+            "reason": "runtimeSignals.structureMismatch.runtimeTrigger=false: structure comparison is evaluation-only (observed 0 mismatched field(s)); it never triggers a pass"
+          },
+          {
+            "signal": "detectorInstability",
+            "reason": "not declared in runtimeSignals: observed 0 instable candidate(s), recorded only; the frozen policy has no threshold, so it never triggers and no value is guessed"
+          },
+          {
+            "signal": "skew",
+            "reason": "runtimeSignals.skew.metric is caller-supplied; the policy forbids estimating it, so an absent angle is not triggered"
+          },
+          {
+            "signal": "missingLabel",
+            "reason": "not evaluable: fieldCandidates=2 < runtimeSignals.missingLabel.minimumFieldCandidates=3, so the unlabelled fraction is not computed and not guessed"
+          }
+        ],
+        "bounds": {
+          "maxPassesPerPage": 2,
+          "passesCompleted": 1,
+          "passesRemaining": 1,
+          "maxElapsedMsPerPage": 4000,
+          "maxVariantPixels": 8000000
+        },
+        "rejection": null
+      },
+      "secondPassApplied": true,
+      "variantIdentity": true,
+      "pass1": {
+        "passNumber": 1,
+        "variantId": "original",
+        "sourceRasterSha256": "ffd7d67ed6e222c59d3750e27f9e3acb6c3b609281a000b669b6de6720e87238",
+        "inputRasterSha256": "ffd7d67ed6e222c59d3750e27f9e3acb6c3b609281a000b669b6de6720e87238",
+        "observed": 2,
+        "fieldCandidates": 2,
+        "unlabelledCandidates": 2,
+        "conflictPairs": 1,
+        "metrics": {
+          "expected": 1,
+          "observed": 2,
+          "matched": 1,
+          "extra": 0,
+          "missing": 0,
+          "duplicate": 1,
+          "duplicateUnmatched": 1,
+          "kindMatched": 1,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "typeMismatched": 0,
+          "reviewNeeded": 1,
+          "autoConfirmed": 0,
+          "falseAccepts": 0,
+          "wouldBeFalseAccepts": 0,
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.666667,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0,
+          "reviewRate": 0.5,
+          "meanMatchedIou": 0.933064
+        },
+        "elapsedMs": 242,
+        "variantPixels": 0
+      },
+      "pass2": {
+        "passNumber": 2,
+        "variantId": "contrastStretch",
+        "sourceRasterSha256": "ffd7d67ed6e222c59d3750e27f9e3acb6c3b609281a000b669b6de6720e87238",
+        "inputRasterSha256": "ffd7d67ed6e222c59d3750e27f9e3acb6c3b609281a000b669b6de6720e87238",
+        "observed": 2,
+        "fieldCandidates": 2,
+        "unlabelledCandidates": 2,
+        "conflictPairs": 1,
+        "metrics": {
+          "expected": 1,
+          "observed": 2,
+          "matched": 1,
+          "extra": 0,
+          "missing": 0,
+          "duplicate": 1,
+          "duplicateUnmatched": 1,
+          "kindMatched": 1,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "typeMismatched": 0,
+          "reviewNeeded": 1,
+          "autoConfirmed": 0,
+          "falseAccepts": 0,
+          "wouldBeFalseAccepts": 0,
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.666667,
+          "typeAccuracy": 1.0,
+          "labelAccuracy": 1.0,
+          "reviewRate": 0.5,
+          "meanMatchedIou": 0.933064
+        },
+        "elapsedMs": 239,
+        "variantPixels": 3868706
+      }
+    },
+    {
+      "id": "table",
+      "pageClass": "dev",
+      "scored": true,
+      "declaredFields": 5,
+      "photometric": {
+        "p05Luminance": 255,
+        "p95Luminance": 255,
+        "contrastSpread": 0,
+        "inkDensity": 0.005342
+      },
+      "decision": {
+        "verdict": "secondPass",
+        "triggers": [
+          "lowContrast",
+          "ocrFailure",
+          "missingLabel"
+        ],
+        "triggersAgainst": [
+          {
+            "trigger": "lowContrast",
+            "policyPath": "runtimeSignals.lowContrast.enterBelow",
+            "threshold": 96.0,
+            "observed": 0.0,
+            "heldByHysteresis": false
+          },
+          {
+            "trigger": "ocrFailure",
+            "policyPath": "runtimeSignals.ocrFailure.enterAt",
+            "threshold": 1.0,
+            "observed": 1.0,
+            "heldByHysteresis": false
+          },
+          {
+            "trigger": "missingLabel",
+            "policyPath": "runtimeSignals.missingLabel.enterAtOrAbove",
+            "threshold": 0.5,
+            "observed": 1.0,
+            "heldByHysteresis": false
+          }
+        ],
+        "reasons": [
+          "lowContrast: contrastSpread=0.0 < runtimeSignals.lowContrast.enterBelow=96.0",
+          "ocrFailure: OCR failed or produced no usable label line (runtimeSignals.ocrFailure.enterAt=true)",
+          "missingLabel: unlabelledFraction=1.0 >= runtimeSignals.missingLabel.enterAtOrAbove=0.5 (6/6)",
+          "conflict: not triggered, conflictPairs=0 < runtimeSignals.conflict.enterAtOrAbove=1.0",
+          "secondPass: 3 frozen runtime trigger(s) fired (lowContrast, ocrFailure, missingLabel); passesRemaining=1, maxElapsedMsPerPage=4000, maxVariantPixels=8000000. A failed second pass returns the pass-1 result."
+        ],
+        "ignoredSignals": [
+          {
+            "signal": "structureMismatch",
+            "reason": "runtimeSignals.structureMismatch.runtimeTrigger=false: structure comparison is evaluation-only (observed 2 mismatched field(s)); it never triggers a pass"
+          },
+          {
+            "signal": "detectorInstability",
+            "reason": "not declared in runtimeSignals: observed 0 instable candidate(s), recorded only; the frozen policy has no threshold, so it never triggers and no value is guessed"
+          },
+          {
+            "signal": "skew",
+            "reason": "runtimeSignals.skew.metric is caller-supplied; the policy forbids estimating it, so an absent angle is not triggered"
+          }
+        ],
+        "bounds": {
+          "maxPassesPerPage": 2,
+          "passesCompleted": 1,
+          "passesRemaining": 1,
+          "maxElapsedMsPerPage": 4000,
+          "maxVariantPixels": 8000000
+        },
+        "rejection": null
+      },
+      "secondPassApplied": true,
+      "variantIdentity": true,
+      "pass1": {
+        "passNumber": 1,
+        "variantId": "original",
+        "sourceRasterSha256": "80252f21f1f08877cddca48ef6d4934d6bdd850c484eac99eb3a19a6111f338f",
+        "inputRasterSha256": "80252f21f1f08877cddca48ef6d4934d6bdd850c484eac99eb3a19a6111f338f",
+        "observed": 7,
+        "fieldCandidates": 6,
+        "unlabelledCandidates": 6,
+        "conflictPairs": 0,
+        "metrics": {
+          "expected": 5,
+          "observed": 7,
+          "matched": 5,
+          "extra": 2,
+          "missing": 0,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 0,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "typeMismatched": 5,
+          "reviewNeeded": 7,
+          "autoConfirmed": 0,
+          "falseAccepts": 0,
+          "wouldBeFalseAccepts": 7,
+          "precision": 0.714286,
+          "recall": 1.0,
+          "f1": 0.833333,
+          "typeAccuracy": 0.0,
+          "labelAccuracy": 1.0,
+          "reviewRate": 1.0,
+          "meanMatchedIou": 0.977866
+        },
+        "elapsedMs": 243,
+        "variantPixels": 0
+      },
+      "pass2": {
+        "passNumber": 2,
+        "variantId": "contrastStretch",
+        "sourceRasterSha256": "80252f21f1f08877cddca48ef6d4934d6bdd850c484eac99eb3a19a6111f338f",
+        "inputRasterSha256": "80252f21f1f08877cddca48ef6d4934d6bdd850c484eac99eb3a19a6111f338f",
+        "observed": 7,
+        "fieldCandidates": 6,
+        "unlabelledCandidates": 6,
+        "conflictPairs": 0,
+        "metrics": {
+          "expected": 5,
+          "observed": 7,
+          "matched": 5,
+          "extra": 2,
+          "missing": 0,
+          "duplicate": 0,
+          "duplicateUnmatched": 0,
+          "kindMatched": 0,
+          "labelledExpected": 0,
+          "labelsAgree": 0,
+          "typeMismatched": 5,
+          "reviewNeeded": 7,
+          "autoConfirmed": 0,
+          "falseAccepts": 0,
+          "wouldBeFalseAccepts": 7,
+          "precision": 0.714286,
+          "recall": 1.0,
+          "f1": 0.833333,
+          "typeAccuracy": 0.0,
+          "labelAccuracy": 1.0,
+          "reviewRate": 1.0,
+          "meanMatchedIou": 0.977866
+        },
+        "elapsedMs": 240,
+        "variantPixels": 3868706
+      }
+    }
+  ],
+  "outcomes": [
+    {
+      "text": "field recall(C) >= field recall(A)",
+      "passed": true,
+      "detail": "measured field recall(C)=0.9629629629629629 >= field recall(A)=0.9629629629629629"
+    },
+    {
+      "text": "field precision(C) >= field precision(A)",
+      "passed": true,
+      "detail": "measured field precision(C)=0.7428571428571429 >= field precision(A)=0.7428571428571429"
+    },
+    {
+      "text": "type accuracy(C) >= type accuracy(A)",
+      "passed": true,
+      "detail": "measured type accuracy(C)=0.8076923076923077 >= type accuracy(A)=0.8076923076923077"
+    },
+    {
+      "text": "mean matched IoU(C) >= mean matched IoU(A)",
+      "passed": true,
+      "detail": "measured mean matched IoU(C)=0.9640184680322142 >= mean matched IoU(A)=0.9640184680322142"
+    },
+    {
+      "text": "missing fields(C) <= missing fields(A)",
+      "passed": true,
+      "detail": "measured missing fields(C)=1 <= missing fields(A)=1"
+    },
+    {
+      "text": "extra fields(C) <= extra fields(A)",
+      "passed": true,
+      "detail": "measured extra fields(C)=4 <= extra fields(A)=4"
+    },
+    {
+      "text": "review rate(C) <= review rate(A) + 0.05",
+      "passed": true,
+      "detail": "measured review rate(C)=0.42857142857142855 <= review rate(A) + 0.05=0.47857142857142854"
+    },
+    {
+      "text": "passes(C) < passes(B)",
+      "passed": false,
+      "detail": "measured passes(C)=12 < passes(B)=12"
+    },
+    {
+      "text": "median latency(C) <= 2.0 * median latency(A)",
+      "passed": true,
+      "detail": "measured median latency(C)=481 <= 2 * median latency(A)=484"
+    },
+    {
+      "text": "median latency(C) <= median latency(B)",
+      "passed": true,
+      "detail": "measured median latency(C)=481 <= median latency(B)=481"
+    },
+    {
+      "text": "peak variant pixels <= 8000000",
+      "passed": true,
+      "detail": "measured peak variant pixels=3868706 <= 8000000"
+    },
+    {
+      "text": "false accepts: zero extra or type-mismatched proposals may be auto-confirmed; nothing is auto-confirmed, so the reported false-accept count must be 0",
+      "passed": true,
+      "detail": "declared limit 0; a: falseAccepts=0 (autoConfirmed=0, wouldBeFalseAccepts=9), b: falseAccepts=0 (autoConfirmed=0, wouldBeFalseAccepts=9), c: falseAccepts=0 (autoConfirmed=0, wouldBeFalseAccepts=9)"
+    }
+  ],
+  "noGain": {
+    "applies": true,
+    "claim": "If no mode C outcome is strictly better than mode A, the conservative baseline stays and the report must say so. No existing SC gate is lowered by this policy."
+  }
+}

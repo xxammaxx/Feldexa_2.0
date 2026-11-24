@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "task": "T264D",
+  "rule": "corpusAndHoldout.rule: holdoutPages are scored once at the end; a holdout-driven change requires a new policy version and a new scored run",
+  "holdoutScorings": [
+    {
+      "policySha256": "eb940399ce1533aaa0a6dba4bba814b311a5041b06daeddc0f9866cacc40e073",
+      "runId": "specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t264d-abc-benchmark/holdout.json",
+      "scoredAtUtc": "2026-11-24T14:40:40.575021Z",
+      "scorings": [
+        "holdoutPages scored once"
+      ]
+    }
+  ]
+}
