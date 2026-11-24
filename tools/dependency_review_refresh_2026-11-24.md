@@ -259,8 +259,10 @@ Nachgetragen wird ausschließlich die danach eingetretene Änderung:
 Direktabhängigkeit **entfernt** (Commit `e5cd4a3`, PR #320 → Merge `9f41095`); der
 Dart-Wrapper war ungenutzt, die native OCR läuft **unverändert** über
 `com.google.mlkit:text-recognition:16.0.1`
-(`apps/feldexa_app/android/app/build.gradle.kts:61`). Damit entfällt die Wrapper-Zeile in §3
-(„DEFER / entfernen statt aktualisieren") und der zugehörige Aufschub in §6/§10;
+(`apps/feldexa_app/android/app/build.gradle.kts:61`). Damit **gilt** die Wrapper-Zeile in §3
+(„DEFER / entfernen statt aktualisieren") **nicht mehr** (die Zeile bleibt als Auditstand
+stehen); analog **gilt** der zugehörige Aufschub in §6 (und die Abweichungsliste in §10)
+**nicht mehr** (beide bleiben als Auditstand stehen);
 `google_mlkit_commons` verlässt den aufgelösten Graphen mit. Neue Zählung: **11 offene
 Aufschübe** (vorher 12), **8 KEEP** unverändert. Kein Pin, keine Schwelle und kein Vertrag
 ändern sich dadurch.
