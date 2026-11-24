@@ -246,7 +246,6 @@ Zählung nach der Korrektur: **12 DEFER** (U1–U6 + Wrapper-Entfernung als eige
 **8 KEEP**. Die Aussagen zu Advisories, Toolchain-Versionen, Fehlquellen und OCR-Lab sind
 vom Review bestätigt worden.
 
-Weitere Review-Hinweise (P2, nicht blockierend) sind als „Offene Beobachtungen" in §8
-festgehalten: verbleibendes Restrisiko, dass in diesem Audit-Zyklus keine Release-Note-Prosa
-für Flutter 3.50.x und die Majors gelesen wurde (für KEEP/DEFER nicht erforderlich, für
-U4/U5 zwingend).
+Das verbleibende Restrisiko steht in §8 („Nicht durchgeführt"): in diesem Audit-Zyklus wurde
+keine Release-Note-Prosa für Flutter 3.50.x und die Majors gelesen — für KEEP/DEFER nicht
+erforderlich, für U4/U5 zwingend nachzuholen.
