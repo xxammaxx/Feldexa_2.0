@@ -25,7 +25,11 @@
 // `pageFailureIsolation` strings stay value-pinned without a mutation copy. The
 // mutation copies are written to a system temp directory and removed again, so
 // a run leaves no artifact behind, in this tree or in a foreign working
-// directory.
+// directory. The harness is CWD-independent: it stays green from the repository
+// root, from the system temp root itself (`cd /tmp && dart run …`) and from any
+// other working directory, so the scratch location is proven against
+// `Directory.systemTemp` and against the harness tree, never against
+// `Directory.current`.
 //
 // Host-only tooling. No raster, OCR, emulator, device, or measurement, and no
 // SIMULATED/EMULATOR/DEVICE evidence.
@@ -53,12 +57,11 @@ const String _pinnedProvenanceSha256 =
     '50af51a9eab0def559b1100b2d9b1b290062cc414008d3f13596f174d8146c72';
 
 void main() {
-  final Directory directory = File.fromUri(Platform.script).parent;
   final File policyFile = File.fromUri(
-    directory.uri.resolve('adaptive-policy.v1.json'),
+    _harnessDir.uri.resolve('adaptive-policy.v1.json'),
   );
   final File provenanceFile = File.fromUri(
-    directory.uri.resolve('adaptive-provenance.v1.json'),
+    _harnessDir.uri.resolve('adaptive-provenance.v1.json'),
   );
   final AdaptivePolicy policy;
   try {
@@ -1095,6 +1098,8 @@ void main() {
         _lowContrast(policy)['leaveAbove'] = 100;
       });
       _expect(
+        // Compared without an added separator: `Directory.systemTemp.path` keeps
+        // a trailing one when `TMPDIR` has it (`TMPDIR=/tmp//`).
         mutated.path.startsWith(Directory.systemTemp.path),
         'the mutated artifact must live under ${Directory.systemTemp.path}: '
         '${mutated.path}',
@@ -1104,8 +1109,8 @@ void main() {
         'no scratch directory in the tree: ${mutated.path}',
       );
       _expect(
-        !mutated.path.startsWith(Directory.current.path),
-        'the mutated artifact must not be written under the caller CWD: '
+        !mutated.path.startsWith('${_harnessDir.path}/'),
+        'the mutated artifact must not be written into the harness tree: '
         '${mutated.path}',
       );
     });
@@ -1199,6 +1204,10 @@ Map<String, Object?> _bounds(Map<String, Object?> policy) =>
 Map<String, Object?> _decisionRule(Map<String, Object?> provenance) =>
     provenance['decisionRule']! as Map<String, Object?>;
 
+/// The `tools/evaluation` directory holding this harness and both frozen
+/// artifacts; a mutation copy must never be written here.
+Directory get _harnessDir => File.fromUri(Platform.script).parent;
+
 /// Scratch root for the mutated artifact copies, created on first use under the
 /// system temp directory so a run from any working directory leaves nothing in
 /// the tree. [main] deletes it before it prints its summary.
@@ -1236,7 +1245,7 @@ File _mutatedPolicy(
   void Function(Map<String, Object?> policy) mutate, {
   void Function(Map<String, Object?> provenance)? mutateProvenance,
 }) {
-  final Directory source = File.fromUri(Platform.script).parent;
+  final Directory source = _harnessDir;
   final Directory target = _scratchDir(name);
   _copyArtifact(source, target, 'adaptive-provenance.v1.json');
 
