@@ -188,6 +188,56 @@ class AdaptiveProvenanceSchemaTest(unittest.TestCase):
                 source["sourceDocumentSha256"], artifact["document"]["sha256"]
             )
 
+    def test_group_membership_agrees_with_the_declared_source(self):
+        """A group may only hold variants of exactly its own source.
+
+        Without this pin a consistent false edit stays green: moving a variant
+        into another group, or promoting an excluded rendering into an
+        independent group, would satisfy every other assertion while silently
+        breaking the frozen contract that T264C consumes.
+        """
+        artifact = self.artifact
+        groups = {group["id"]: group for group in artifact["correlationGroups"]}
+        sources = {source["id"] for source in artifact["sources"]}
+        variants = {variant["id"]: variant for variant in artifact["variants"]}
+        for variant in artifact["variants"]:
+            group = groups[variant["correlationGroup"]]
+            self.assertIn(
+                group["sourceId"],
+                sources,
+                f"{variant['id']}: group source must resolve to a declared source",
+            )
+            derived_from = variant["derivedFrom"]
+            if derived_from in sources:
+                self.assertEqual(
+                    group["sourceId"],
+                    derived_from,
+                    f"{variant['id']}: a variant derived from a source must sit in that "
+                    "source's group",
+                )
+            else:
+                self.assertIn(
+                    derived_from,
+                    variants,
+                    f"{variant['id']}: derivedFrom must be a source or a variant",
+                )
+                self.assertEqual(
+                    group["id"],
+                    variants[derived_from]["correlationGroup"],
+                    f"{variant['id']}: a variant derived from another variant must stay in "
+                    "that variant's correlation group",
+                )
+        self.assertEqual(
+            len(groups),
+            5,
+            "the frozen contract declares exactly five correlation groups",
+        )
+        self.assertEqual(
+            [entry["id"] for entry in artifact["excludedVariants"]],
+            ["region-render-2x"],
+            "the excluded rendering must stay excluded; it is not independent evidence",
+        )
+
     def test_every_required_variant_family_is_covered(self):
         families = {
             family for variant in self.artifact["variants"] for family in variant["families"]
