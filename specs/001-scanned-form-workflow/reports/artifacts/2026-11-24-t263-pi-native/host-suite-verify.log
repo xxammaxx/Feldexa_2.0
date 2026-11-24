@@ -1,0 +1,4 @@
+T263 suite de-ocr-1.0.0 (sf-005): PASS
+fixture sha256 671dd6b8b30cd46910e1bab5e0c7a69cfbb5d22efe0000520a25108f38e08e45
+text layer PASS
+OK fixture pin, font coverage, ground-truth structure, and text-layer code points verified

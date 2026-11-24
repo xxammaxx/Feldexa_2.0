@@ -502,6 +502,158 @@ own.
 | `host-dart-label-direction-red.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/host-dart-label-direction-red.log` | 7229 | `c78cf04b2f81d62e03ddee361ee684e88e32dadf14f9914c37dacaca1a6c88b1` |
 | `host-dart-label-direction-green.log` | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-22-t263-emulator-c3/host-dart-label-direction-green.log` | 5875 | `4ec0c71009b98c6a444a76008233be3998c8f79ed09ab503c60b92090ff70037` |
 
+### 5.10 2026-11-24 — Pi-native emulator run (device gate bound by ADB identity)
+
+Re-measurement of the same seven pre-declared variants with the converted
+driver, which no longer asks a supervisor layer for an allocation: the gate
+counts the attached ADB transports, requires exactly one emulator and that it is
+`emulator-5554`, and refuses a non-emulator serial even when it is the only
+attached device. Nothing else changed — same fixture, same ground truth, same
+variant manifest, same thresholds.
+
+| Field | Value |
+| --- | --- |
+| Evidence class | `EMULATOR` (harness executed on device); `DEVICE` remains `NOT_RUN` |
+| Run result | `FAIL` — the reference variant `clean-200dpi` is FAIL; no variant verdict changed against §5.9 |
+| Date / timezone | `2026-11-24 10:09–10:19 Europe/Berlin` (`t263-report.json` `generatedAtUtc` `2026-11-24T09:19:24Z`) |
+| Revision | HEAD `839976328d0a9917e625103ce64d14c659e046ad` (merge of PR #299, `xxammaxx/t263-pi-native`), tree `979954be00e3b7419c8af23cc4650e42deb3ea6e`; working tree clean at run time (`status_porcelain` empty) |
+| Driver | `tools/android/t263_drive_de_ocr.sh`, 24336 B, SHA-256 `ee19b199e29946661e76e0d5a21e0da96154b4b8eee438ba4b92d92b254591b7`; `bash -n` PASS, `grep -c -i orca` = 0 |
+| Build identity | debug APK `app-debug.apk`, 134722762 B, SHA-256 `31feac8963eb86d41d3bbe7badc28c91d0fb9dcc5ffccded5710f1c039f49087` |
+| Toolchain | Flutter `3.47.7` stable, Dart `3.13.5`; Poppler `pdftoppm 26.10.0`; ImageMagick `7.1.2-34` |
+| Run directory | `/tmp/feldexa-t263-run.jTFuPL` (driver default `mktemp`, ephemeral, not committed) |
+| Evidence directory | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native` |
+
+**Device binding.** The driver wrote both metadata files instead of the earlier
+`orca-emulator-*.json` inventories. `device-binding.txt` (202 B) records
+`serial=emulator-5554`, `emulator_serials=emulator-5554`,
+`all_attached_transports_count=1`, `emulator_transports=1`,
+`non_emulator_transports=0`, `addressed_serial=emulator-5554`,
+`non_emulator_transports_addressed=none`. `device-identity.txt` (300 B) holds
+the identity excerpt below. Neither file contains an ADB transport name outside
+the emulator serial and neither contains a host path (scan for transport
+prefixes `adb-`/`emulator-` and for `/home/`, `~/`: no match beyond the
+emulator serial).
+
+```
+serial=emulator-5554
+avd=T025_Pixel7_API35_KVM_20261115
+fingerprint=google/sdk_gphone64_x86_64/emu64xa:15/AE3A.240806.043/12960925:userdebug/dev-keys
+android_release=15
+sdk=35
+abi=x86_64
+boot_completed=1
+qemu=1
+wm_size=Physical size: 1080x2400
+wm_density=Physical density: 420
+mem_total_kb=4014392
+```
+
+**Checks.** `dart run tools/corpus/synthetic/generate.dart --check` 0 (PASS),
+`bash tools/corpus/de-ocr/verify.sh` 0 (PASS), driver 0
+(`T263 DRIVER: PASS (flutter test exit 0; privacy checks PASS; metrics exit 1;
+text-layer exit 1)`), `flutter test --no-pub
+integration_test/android_de_ocr_test.dart -d emulator-5554` 0 (02:37,
+`All tests passed!`), scorer
+`de_ocr_qualification.dart --require-device-evidence` exit 1 (reference variant
+FAIL, as pre-declared), text-layer control exit 1 (control itself
+`TEXT_LAYER: PASS CER 0.00%`, every variant `NOT_RUN`), privacy log and source
+checks PASS. Markers observed in order: `FIXTURE_VERIFIED`, `VARIANTS_DONE`,
+`RUN_FILES_WRITTEN`, `LABEL_TAKEOVER_STORE_VERIFIED`, `CLEANUP_DONE`.
+
+**Variant verdicts, before (§5.9 / authoritative c4) → after (this run).**
+
+| Variant | Class | CER % | Special recall % | Label acc. % | Unresolved labels | Result before → after |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| `clean-200dpi` (reference) | `EMULATOR` | 2.33 → 2.33 | 93.27 → 93.27 | 76.92 → 76.92 | 1 → 1 | FAIL → **FAIL** |
+| `clean-150dpi` | `EMULATOR` | 2.21 → 2.21 | 93.27 → 93.27 | 76.92 → 76.92 | 1 → 1 | PASS → PASS |
+| `clean-300dpi` | `EMULATOR` | 2.27 → 2.27 | 92.31 → 92.31 | 76.92 → 76.92 | 1 → 1 | PASS → PASS |
+| `scan-150dpi-low-contrast` | `EMULATOR_INJECTED_RASTER` | 2.21 → 2.21 | 96.15 → 96.15 | 92.31 → 92.31 | 1 → 1 | PASS → PASS |
+| `scan-200dpi-shadow` | `EMULATOR_INJECTED_RASTER` | 2.63 → 2.63 | 92.31 → 92.31 | 92.31 → 92.31 | 1 → 1 | PASS → PASS |
+| `scan-200dpi-skew-3deg` (frame-correct) | `EMULATOR_INJECTED_RASTER` | 2.33 → 2.33 | 92.31 → 92.31 | 100.00 → 100.00 | 0 → 0 | PASS → PASS |
+| `scan-200dpi-jpeg-q35` | `EMULATOR_INJECTED_RASTER` | 2.27 → 2.27 | 93.27 → 93.27 | 92.31 → 92.31 | 1 → 1 | PASS → PASS |
+
+**No variant verdict changed, and no measured value changed.** The new
+`t263-report.md` is byte-identical to the authoritative c4 report (12327 B,
+SHA-256 `46c10989e4825a299be825e669d162601db7fd4e06f976ad49dc420465aa0d2d`).
+`t263-report.json` differs from c4 in exactly 24 paths, all non-metric: two
+`generatedAtUtc` timestamps, the two run-file `path` values (this run's private
+temporary directory instead of the c3 evidence directory) and 20 per-variant
+`timings` entries. Every association, CER, special-character, field, label, type
+and status value is identical, so this run is a reproduction of c4 on the
+converted driver rather than a new measurement claim. `t263-variants.json`
+(SHA-256 `19b351b43f2cb33c1cc91d14fa5473f105662097bebe8f059239faf70078440c`),
+`fixture-sha256.txt` (SHA-256
+`ccafa20140f8d65b59d9211cdac94dd7fe9797df72b9741f19fdb591887bfcf3`) and the
+host/suite verification logs are unchanged against c3, i.e. fixture, ground
+truth and variant definitions were the same bytes.
+
+**`EMULATOR` versus `NOT_RUN`, kept apart.** Executed and reported here: the
+seven `EMULATOR` / `EMULATOR_INJECTED_RASTER` variants, the label-takeover store
+round trip, and the PDF text-layer control run (control only, not device
+evidence). Not executed by this run and still `NOT_RUN`: `DEVICE` acceptance on
+the physical handset, TalkBack/accessibility, the browser suites,
+character-faithful PDF export, and any `corpus-1.0.0` /
+`metric-definition.v1` claim. No PASS claim is made for `clean-200dpi`: it stays
+FAIL at CER 2.33 % against the unchanged 2.00 % ceiling, special recall 93.27 %
+against the unchanged 100 % floor, 5 critical lines not exactly recognised
+(9/14 exact) and label accuracy 76.92 %. Those are the bundled-ML-Kit Latin
+model limits recorded in §5.9 (`ß`/`ẞ`→`B`, `m³`→`m²`, `§`→`S`, ASCII-folded
+punctuation); thresholds, ground truth and expected texts were not touched.
+
+**Environment intervention (host only).** The compute permit was blocked by a
+leftover from an earlier session: PID 497127, `bash
+tools/android/t263_drive_de_ocr.sh` started `2026-11-24 00:16:05` in the
+superseded worktree `run-tscn02hu/worktrees/t263`, had been waiting 9 h 54 m in
+`do_wait` on its single child PID 497235, the `orca emulator devices --json`
+client of the pre-conversion driver, itself stuck in `ppoll`. That run had not
+reached staging, so it held no device state; it held only
+`/tmp/orca-maintainer-heavy-<uid>.lock`. With explicit approval the process
+group was verified to contain exactly those two PIDs and then terminated with
+`kill -TERM -497127`; it exited within one second, so no `SIGKILL` was needed
+and `pgrep -g 497127` was empty afterwards. The emulator was not restarted,
+stopped, reset or reconfigured, the Orca daemon was not touched, and no
+non-emulator ADB transport was addressed at any point.
+
+One further host-side note about the permit itself, because it affects how the
+exit code reads. The `compute_slot.py` wrapper adopts orphaned descendants, so
+the Gradle daemon left behind by this run's `flutter test` build kept the
+wrapper in its settlement loop after the driver had already exited. That daemon
+(PID 541778, `java`, own session) was terminated with `SIGTERM` once the
+evidence was written and committed; it exited immediately and the wrapper then
+reported `{"compute_slot": "SETTLED", "exit_code": 143,
+"launcher_exit_code": 0, "adopted_failures": [143]}`, after which the lock was
+free. The driver's own exit code was **0** (`T263 DRIVER: PASS`); the 143 is the
+wrapper's settlement accounting for the terminated build daemon, not a driver
+or test failure. No product process, emulator or Orca process was affected.
+
+**Artifacts of this run** (repository-relative, byte sizes and SHA-256 at this
+revision; this report's own row is omitted).
+
+| Artifact | Path | Bytes | SHA-256 |
+| --- | --- | ---: | --- |
+| Device binding | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/device-binding.txt` | 202 | `85318112266c9d24986f0beed1bf6df9d3ef04ed866faf21b92da1d5a5a3723b` |
+| Device identity | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/device-identity.txt` | 300 | `2ac7e85ab159fbb83398cb9eeeb4301fb8613bda5b4133a7ad9e82ab3d36fa54` |
+| Git identity of the run | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/git-identity.txt` | 441 | `a4587187f39916b057863a54ff280ee2e4dcafcad6e1c247a78d7e6da7996ca0` |
+| APK SHA-256 | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/apk-sha256.txt` | 154 | `a350be9ac91f29765fbe7998c3cd39c035767f0a2fe68dcd0ad1869cd101d8b4` |
+| Fixture and ground-truth SHA-256 | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/fixture-sha256.txt` | 541 | `ccafa20140f8d65b59d9211cdac94dd7fe9797df72b9741f19fdb591887bfcf3` |
+| Variant manifest | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/t263-variants.json` | 3144 | `19b351b43f2cb33c1cc91d14fa5473f105662097bebe8f059239faf70078440c` |
+| EMULATOR run file | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/t263-run-emulator.json` | 175099 | `85d88faeb6252763af14252e1291d2636e9b5af63faf8ad51e10e4a0014e354f` |
+| EMULATOR_INJECTED_RASTER run file | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/t263-run-injected.json` | 340591 | `5bcffee580b63045fd8c2fc17f0a4b6e63c54612ee1084017d9766c6d0756f7b` |
+| Scorer report (JSON) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/t263-report.json` | 100889 | `5944151c35281e593bf33c9826027a23200b3bc8bce4aab359dde84a59c58778` |
+| Scorer report (Markdown, byte-identical to c4) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/t263-report.md` | 12327 | `46c10989e4825a299be825e669d162601db7fd4e06f976ad49dc420465aa0d2d` |
+| Scorer console log | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/metrics-emulator.log` | 714 | `28410cd390071d339efd9c435f3979dd2b53a2e8cca80a318f2360a74d28695c` |
+| Text-layer control run | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/t263-text-layer-run.json` | 13269 | `72c0449871436a180773dbde2d4b6e1cac04a9a400c5220ae16f0f1a30d4441c` |
+| Text-layer control report | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/t263-text-layer-report.json` | 5685 | `3137aad783f159ec2d1bf8374ca59ef921337bfc11c591c214f3bca0466d51bc` |
+| Text-layer control console log | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/metrics-text-layer.log` | 591 | `3c2bc0f1595548be75a9409c9f16d2294ee58a857c04b5e1e279e5e70d13bebb` |
+| Integration test log (content-free markers) | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/integration-android-t263.log` | 3265 | `1f4923139f749118b99a5e7e014ed4f6e4682cda9df85c3b6426663cc49d4760` |
+| Driver marker sequence | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/marker-sequence.txt` | 427 | `b7fcf8569dd7639d64af7724dc7caee446e3c2d9ddbdc1584f4f9fcc6e269628` |
+| Privacy log check | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/privacy-log-check.txt` | 74 | `daba805507b9e32ec490084c17e86af3dbd25754b09eacd32b72e326ba9e9132` |
+| Privacy source check | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/privacy-source-check.txt` | 76 | `ca1d33e83fe69020e1888df08302f88f23fa745ac3cdbc63c127cc2ab6731dac` |
+| Generator check log | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/host-generate-check.log` | 134 | `dfd059599c8a93aec3b01de0af34e632f43391882593863d6a057470b3af7b0b` |
+| Suite verification log | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/host-suite-verify.log` | 226 | `b25939279a28f58c7d2a541bcff8461e99a5de4e75d9a29e80ca514d6a910146` |
+| Executed command list | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/commands.txt` | 679 | `94f840d57aecb6a3df11dff879b36407daa8b8e4f4be73e4e92fda471bde5606` |
+| Logcat marker dump | `specs/001-scanned-form-workflow/reports/artifacts/2026-11-24-t263-pi-native/logcat-t263-markers.log` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
+
 ## 6. Performance
 
 No performance claim.

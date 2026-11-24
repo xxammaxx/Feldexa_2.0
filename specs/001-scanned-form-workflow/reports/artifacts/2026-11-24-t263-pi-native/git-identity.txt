@@ -1,0 +1,8 @@
+head=839976328d0a9917e625103ce64d14c659e046ad
+tree=979954be00e3b7419c8af23cc4650e42deb3ea6e
+branch=xxammaxx/t263-measure
+status_porcelain:
+flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
+dart=Dart SDK version: 3.13.5 (stable) (Tue Sep 29 01:00:52 2026 -0700) on "linux_x64"
+pdftoppm=pdftoppm version 26.10.0
+magick=Version: ImageMagick 7.1.2-34 Q16-HDRI x86_64 c5d4ca8a0:20261014 https://imagemagick.org

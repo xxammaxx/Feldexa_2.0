@@ -1,0 +1,1 @@
+PASS: no recognized document text or fixture label in the integration log

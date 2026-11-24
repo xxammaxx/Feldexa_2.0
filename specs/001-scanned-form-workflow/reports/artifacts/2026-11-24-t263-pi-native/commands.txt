@@ -1,0 +1,7 @@
+dart run tools/corpus/synthetic/generate.dart --check
+bash tools/corpus/de-ocr/verify.sh
+python3 tools/corpus/de-ocr/make_variants.py --pdf apps/feldexa_app/assets/fixtures/sf-005.pdf --output <run>/variants
+flutter test --no-pub integration_test/android_de_ocr_test.dart -d emulator-5554
+dart run tools/metrics/de_ocr_qualification.dart --run <emulator> --run <injected> --output <report> --require-device-evidence
+python3 tools/metrics/build_text_layer_run.py --pdf apps/feldexa_app/assets/fixtures/sf-005.pdf --ground-truth tools/corpus/de-ocr/reference-de.ground-truth.json --output <run>
+dart run tools/metrics/de_ocr_qualification.dart --run <text-layer> --output <report>
