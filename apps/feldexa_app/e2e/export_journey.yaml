@@ -22,14 +22,20 @@
 # export is the part that proves a second artifact is produced from the
 # reopened document.
 #
-# Not covered, and deliberately not faked: a *filled* value. The fixture's
-# first suggestion that this flow confirms rejects even a single character with
-# `FLD-001` (observed), so entering a value there would block the export with
-# `EXP-001`. Whether the rectangle itself is wrong for this fixture is *not*
-# judged here; see the verification report, which records the observation and
-# leaves the rectangle unmeasured. The flow therefore asserts the confirmed,
-# not yet filled state of that field. A value-bearing leg is journaled as an
-# open point in
+# Which field the flow confirms is *named*, never positional. Earlier versions
+# confirmed the queue's first row; issue #340 removed exactly that candidate
+# (`s_p0_0001`, a 2,875 × 3,875 pt glyph interior in the header band that could
+# not hold a value), so "first row" silently became a different field while the
+# reopen assertion still expected the old one. The flow now brings the review
+# row of the fixture-declared field „Familienname“ (`fixtures.dart`,
+# `p0-familienname`, a real text field) into view and confirms that row only.
+#
+# Not covered, and deliberately not faked: a *filled* value. The flow asserts the
+# confirmed, not yet filled state of the named field before and after the
+# reload. The `FLD-001` observation of the earlier version belonged to the
+# glyph-interior candidate that #340 now filters out; filling a value and the
+# field geometry of the remaining candidates are *not* judged here. A
+# value-bearing leg is journaled as an open point in
 # `reports/release/reviews/2026-11-25-worker-report-export-evidence.md`.
 #
 # Every app selector is a visible German app string or the localized tooltip of
@@ -91,9 +97,24 @@ appId: de.feldexa.app
 - extendedWaitUntil:
     visible: "Übernehmen"
     timeout: 30000
+# The queue is a nested, height-capped scrollable, so a screen-level scroll does
+# not reach it. The single gesture is anchored at the first row's page meta — a
+# visible target inside the list, no screen coordinates — and the wait below is
+# the gate that it actually brought the named row into view.
+- swipe:
+    from:
+      text: "Seite 1"
+      index: 0
+    direction: UP
+- extendedWaitUntil:
+    visible: "Familienname"
+    timeout: 15000
+# Confirm that named row only: the selector is the row's own „Übernehmen“, i.e.
+# the action below its label, not the queue's first row.
 - tapOn:
     text: "Übernehmen"
-    index: 0
+    below:
+      text: "Familienname"
 # Autosave of the confirmation: the review action is reversible, and the
 # durability label carries the durable timestamp of the save.
 - extendedWaitUntil:
@@ -154,16 +175,16 @@ appId: de.feldexa.app
 - takeScreenshot: 07-start-list-after-export
 - tapOn:
     text: "(?s).*sf-001.*"
-# Same accessibility label as before the export: the confirmed provenance and
-# the (still empty) value survived the reload, and no unresolved proposal is
-# shown in its place. The label is the page overlay's own announcement, not a
-# content dump.
+# Same accessibility label as before the export: the row's label, the confirmed
+# provenance and the (still empty) value survived the reload, and no unresolved
+# proposal is shown in its place. The label is the page overlay's own
+# announcement of that one named field, not a content dump.
 - extendedWaitUntil:
-    visible: "Feld MUSTERSTADT, Typ Text, Seite 1, leer, bestätigt"
+    visible: "Feld Familienname, Typ Text, Seite 1, leer, bestätigt"
     timeout: 180000
 - takeScreenshot: 08-reopened-document
 # Second export of the reopened document: same app-bar action, same pre-export
-# sheet (the fixture's 79 unresolved suggestions stay unreviewed), new
+# sheet (the fixture's remaining unresolved suggestions stay unreviewed), new
 # artifact, same preview contract.
 - tapOn: "PDF exportieren"
 - extendedWaitUntil:

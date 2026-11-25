@@ -71,6 +71,35 @@ RasterPageStageOutcome _runWithLabel(String text) {
   return runRasterPageStage(_task(labels: <LabelObservation>[_label(text)]));
 }
 
+/// A closed box whose interior is [interiorPx] px square at (100, 100).
+///
+/// The 2 px stroke is the detector's maximum ruling-line thickness, so the
+/// outline is a box and the interior is the candidate rect — the geometry of a
+/// glyph counter inside printed text when [interiorPx] is small.
+Uint8List _boxBytes(int interiorPx) {
+  final Uint8List bytes = Uint8List(_rasterBytes)
+    ..fillRange(0, _rasterBytes, 0xFF);
+  const int stroke = 2;
+  final int left = 100;
+  final int top = 100;
+  final int right = left + interiorPx + 2 * stroke;
+  final int bottom = top + interiorPx + 2 * stroke;
+
+  void fill(int x0, int y0, int x1, int y1) {
+    for (int y = y0; y < y1; y++) {
+      for (int x = x0; x < x1; x++) {
+        bytes[y * _rasterWidth + x] = 0;
+      }
+    }
+  }
+
+  fill(left, top, right, top + stroke);
+  fill(left, bottom - stroke, right, bottom);
+  fill(left, top, left + stroke, bottom);
+  fill(right - stroke, top, right, bottom);
+  return bytes;
+}
+
 void main() {
   test('the stage analyses with the documented default ink threshold', () {
     final Uint8List pixels = _underlineBytes();
@@ -157,5 +186,43 @@ void main() {
             'keyword→type truth forces the inferred type',
       );
     }
+  });
+
+  group('value-fit admission (issue #340)', () {
+    test('a glyph-counter box interior is not offered as a field', () {
+      // 10 px interior = 3.6 pt, below the 4 pt `small_square` floor and the
+      // model minimum. The shipped fixture sf-001 reports exactly this shape
+      // as its first suggestion (2.875 x 3.875 pt, inside the printed header
+      // label `MUSTERSTADT`); confirming it produced a field that rejected
+      // every character with `FLD-001` and blocked the export.
+      final RasterPageStageOutcome outcome = runRasterPageStage(
+        _task(pixels: _boxBytes(10)),
+      );
+
+      expect(outcome.isFailed, isFalse);
+      expect(
+        outcome.suggestions,
+        isEmpty,
+        reason:
+            'a 3.6 pt box interior is a printed glyph counter, not a field '
+            'that can hold a value',
+      );
+    });
+
+    test('a checkbox above the model minimum is still offered', () {
+      // 26 px interior = 9.36 pt, the size of the real checkbox fields in
+      // sf-001. The admission rule must not remove them.
+      final RasterPageStageOutcome outcome = runRasterPageStage(
+        _task(pixels: _boxBytes(26)),
+      );
+
+      expect(outcome.isFailed, isFalse);
+      final Map<String, Object?> suggestion = outcome.suggestions.single;
+      expect(suggestion['proposedType'], 'checkbox');
+      final Map<String, Object?> rect =
+          suggestion['rect']! as Map<String, Object?>;
+      expect(rect['width'], closeTo(9.375, 0.13));
+      expect(rect['height'], closeTo(9.375, 0.13));
+    });
   });
 }
