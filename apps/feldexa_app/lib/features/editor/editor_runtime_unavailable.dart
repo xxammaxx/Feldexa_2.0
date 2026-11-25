@@ -22,6 +22,7 @@ import 'package:feldexa_application/src/recognition/raster_page_stage_runner.dar
     show RecognitionExecution;
 import 'package:feldexa_ports/feldexa_ports.dart';
 
+import '../export/export_progress.dart';
 import 'editor_runtime.dart';
 
 /// Builds the fail-closed non-Android editor runtime.
@@ -54,6 +55,13 @@ final class _UnavailableEditorRuntime implements EditorRuntime {
 
   @override
   PdfExportPort get export => _unavailable();
+
+  /// Reports no progress and cancels nothing instead of throwing: the export
+  /// surface of `§10` point 3 must stay renderable, and this runtime has no
+  /// operation to cancel anyway (its export port fails closed first).
+  @override
+  ExportOperationControl get exportOperation =>
+      const UnavailableExportOperationControl();
 
   @override
   DeliveryPort get delivery => _unavailable();

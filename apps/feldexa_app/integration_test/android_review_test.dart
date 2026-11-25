@@ -95,6 +95,7 @@ import 'package:feldexa_app/features/editor/editor_screen.dart';
 import 'package:feldexa_app/features/editor/field_value_sheet.dart';
 import 'package:feldexa_app/features/editor/page_view.dart';
 import 'package:feldexa_app/features/editor/suggestion_review_panel.dart';
+import 'package:feldexa_app/features/export/export_progress.dart';
 import 'package:feldexa_app/features/start/import_runtime.dart';
 import 'package:feldexa_app/features/start/stored_items.dart';
 import 'package:feldexa_app/main.dart' show FeldexaApp;
@@ -247,6 +248,9 @@ final class _CountingEditorRuntime implements EditorRuntime {
 
   @override
   PdfExportPort get export => _inner.export;
+
+  @override
+  ExportOperationControl get exportOperation => _inner.exportOperation;
 
   @override
   DeliveryPort get delivery => _inner.delivery;

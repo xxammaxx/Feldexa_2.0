@@ -35,6 +35,7 @@ import 'package:feldexa_application/src/recognition/raster_page_stage_runner.dar
     show RecognitionExecution;
 import 'package:feldexa_ports/feldexa_ports.dart';
 
+import '../export/export_progress.dart';
 import 'editor_runtime_unavailable.dart'
     if (dart.library.io) 'editor_runtime_android.dart'
     if (dart.library.js_interop) 'editor_runtime_unavailable.dart'
@@ -106,6 +107,17 @@ abstract interface class EditorRuntime {
 
   /// Plan validation and flattened PDF export (`contracts/ports.md` §2.5).
   PdfExportPort get export;
+
+  /// Progress phases and the cancel action of the running export
+  /// (`contracts/editor-interactions.md` §10 point 3).
+  ///
+  /// This is not a port: the Android composition adapts the existing
+  /// `export.progress` events and the existing `cancel.operation` call of
+  /// `contracts/platform-channel.md` §6/§9 of the same channel onto it. A
+  /// composition without a cancellable export resolves
+  /// [UnavailableExportOperationControl], which reports no progress and cancels
+  /// nothing.
+  ExportOperationControl get exportOperation;
 
   /// Save, share, and print hand-off (`contracts/ports.md` §2.6).
   DeliveryPort get delivery;

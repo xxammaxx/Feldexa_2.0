@@ -13,12 +13,19 @@
 // instead of this stub.
 
 import 'package:feldexa_app/features/editor/editor_runtime.dart';
+import 'package:feldexa_app/features/export/export_progress.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
 
 /// Fail-closed `export`, `delivery`, and `setSensitiveRoute` members.
 mixin FakeEditorRuntimeExportStub implements EditorRuntime {
   @override
   PdfExportPort get export => throw UnsupportedOperationException();
+
+  /// Reports no progress and cancels nothing: a host test has no export
+  /// operation to observe or cancel.
+  @override
+  ExportOperationControl get exportOperation =>
+      const UnavailableExportOperationControl();
 
   @override
   DeliveryPort get delivery => throw UnsupportedOperationException();

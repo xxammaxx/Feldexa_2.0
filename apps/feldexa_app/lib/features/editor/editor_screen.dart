@@ -106,6 +106,7 @@ import 'package:feldexa_app/features/editor/page_view.dart';
 import 'package:feldexa_app/features/editor/suggestion_review_panel.dart';
 import 'package:feldexa_app/features/export/export_controller.dart';
 import 'package:feldexa_app/features/export/export_preview.dart';
+import 'package:feldexa_app/features/export/export_progress.dart';
 import 'package:feldexa_app/features/fill/signature_png.dart';
 import 'package:feldexa_app/features/fill/signature_sheet.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
@@ -145,6 +146,16 @@ const ValueKey<String> editorExportActionKey = ValueKey<String>(
   'editor-export-action',
 );
 
+/// Stable key of the export progress surface of `§10` point 3.
+const ValueKey<String> editorExportProgressKey = ValueKey<String>(
+  'editor-export-progress',
+);
+
+/// Stable key of the cancel action on that progress surface.
+const ValueKey<String> editorExportProgressCancelKey = ValueKey<String>(
+  'editor-export-progress-cancel',
+);
+
 /// What the pre-export sheet of `contracts/editor-interactions.md` §10 returns.
 ///
 /// §10 point 2 requires a way from a blocking warning to the field that causes
@@ -159,6 +170,23 @@ enum ExportPreflightOutcome {
 
   /// The user asked to jump to the first blocking field (§10 point 2).
   goToFields,
+}
+
+/// What the progress surface of `§10` point 3 returns when it closes.
+final class ExportProgressOutcome {
+  const ExportProgressOutcome({required this.attempt, required this.cancelled});
+
+  /// The terminal outcome of the run.
+  final ExportAttempt attempt;
+
+  /// Whether the platform claimed a cancellation of this run.
+  ///
+  /// A claimed cancellation is decided by the terminal result, not by the
+  /// cancel reply: `ExportAttemptFailed('PLT-004')` is the clean case, and a
+  /// render that won the race still reports success here. The editor therefore
+  /// shows no message and no preview for a cancelled run, and discards an
+  /// artifact that appeared anyway.
+  final bool cancelled;
 }
 
 /// Stable key of the content-free marker that records "this route is not
@@ -2224,10 +2252,40 @@ class EditorScreenState extends State<EditorScreen> {
           // The sheet showed the blocking catalog text; nothing starts.
           return;
         case ExportPreparationReady ready:
-          final ExportAttempt attempt = await controller.run(ready);
+          // `§10` point 3: the run happens on a progress surface that shows the
+          // reported phase and offers the cancel action. The surface owns the
+          // run, so its lifetime and the run's are one; see
+          // [_ExportProgressDialog].
+          if (!mounted) {
+            return;
+          }
+          final ExportProgressOutcome? outcome =
+              await showDialog<ExportProgressOutcome>(
+                context: context,
+                barrierDismissible: false,
+                builder: (BuildContext dialogContext) =>
+                    _exportProgress(controller, ready),
+              );
+          if (outcome == null) {
+            // The progress surface was torn down with the route; it discarded
+            // a produced artifact itself, because nothing could present it.
+            return;
+          }
+          final ExportAttempt attempt = outcome.attempt;
           if (!mounted) {
             // The route is gone, so no preview can own the artifact. Discarding
             // it here is the only deletion path left (§10 point 6).
+            if (attempt is ExportAttemptSucceeded) {
+              await _discardArtifact(attempt.artifact.id);
+            }
+            return;
+          }
+          if (outcome.cancelled) {
+            // §10 point 3 and `platform-channel.md` §9: cancellation publishes
+            // the developer-only `PLT-004` and cleans the staged files, so it
+            // is neither an error nor a preview. A render that won the race
+            // with the cancellation still reports success and is discarded
+            // here instead of being shown.
             if (attempt is ExportAttemptSucceeded) {
               await _discardArtifact(attempt.artifact.id);
             }
@@ -2309,6 +2367,24 @@ class EditorScreenState extends State<EditorScreen> {
       await _openFieldValueSheet(field);
       return;
     }
+  }
+
+  /// The progress surface of `contracts/editor-interactions.md` §10 point 3.
+  ///
+  /// It carries the reported phase as a text, the best-effort fraction as a
+  /// bar, and the one cancel action that issues `cancel.operation` (§9). No
+  /// page, field, value, path, or artifact id is shown; the phase texts are
+  /// committed ARB strings and nothing is composed here.
+  Widget _exportProgress(
+    ExportController controller,
+    ExportPreparationReady preparation,
+  ) {
+    return _ExportProgressDialog(
+      controller: controller,
+      preparation: preparation,
+      operation: widget.runtime.exportOperation,
+      discardArtifact: _discardArtifact,
+    );
   }
 
   /// The pre-export sheet with the blocking warnings or the OD-1 information.
@@ -2751,4 +2827,158 @@ class _Imp006Warning extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The export progress surface with the cancel action of `§10` point 3.
+///
+/// The surface owns the run: it starts [ExportController.run] once in
+/// `initState`, relays the content-free `export.progress` steps of the session,
+/// and closes itself with the terminal [ExportProgressOutcome]. That keeps the
+/// dialog, the subscription, and the run on one lifetime, so no route can
+/// outlive the other. Back is not a way out (`canPop: false`): leaving the
+/// surface would abandon a terminal result nobody could present, and the
+/// artifact would have no owner.
+///
+/// A cancel that the platform does not claim (`false`, §9) changes nothing:
+/// the run keeps going and the surface keeps showing it. A thrown cancel is
+/// treated the same way, because the catalog has no sentence for it and a
+/// claimed cancellation must never be invented.
+class _ExportProgressDialog extends StatefulWidget {
+  const _ExportProgressDialog({
+    required this.controller,
+    required this.preparation,
+    required this.operation,
+    required this.discardArtifact,
+  });
+
+  final ExportController controller;
+  final ExportPreparationReady preparation;
+  final ExportOperationControl operation;
+
+  /// Deletes an artifact that this surface cannot hand on. It is the editor's
+  /// own disposal path, so both routes share one deletion policy (§10 point 6).
+  final Future<void> Function(String artifactId) discardArtifact;
+
+  @override
+  State<_ExportProgressDialog> createState() => _ExportProgressDialogState();
+}
+
+class _ExportProgressDialogState extends State<_ExportProgressDialog> {
+  StreamSubscription<ExportProgress>? _subscription;
+  ExportProgress? _progress;
+  bool _cancelInFlight = false;
+  bool _cancelled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Progress is best-effort (§8.1): a stream error is not an export error and
+    // never replaces the terminal result.
+    _subscription = widget.operation.progress.listen(
+      _onProgress,
+      onError: (Object _) {},
+    );
+    unawaited(_run());
+  }
+
+  @override
+  void dispose() {
+    unawaited(_subscription?.cancel());
+    super.dispose();
+  }
+
+  void _onProgress(ExportProgress step) {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _progress = step;
+    });
+  }
+
+  Future<void> _run() async {
+    final ExportAttempt attempt = await widget.controller.run(
+      widget.preparation,
+    );
+    if (!mounted) {
+      // The route is gone, so nothing can present or delete the artifact; this
+      // surface is then the only owner left and discards it.
+      if (attempt is ExportAttemptSucceeded) {
+        await widget.discardArtifact(attempt.artifact.id);
+      }
+      return;
+    }
+    Navigator.of(context)
+        .pop(ExportProgressOutcome(attempt: attempt, cancelled: _cancelled));
+  }
+
+  Future<void> _cancel() async {
+    if (_cancelInFlight) {
+      return;
+    }
+    setState(() {
+      _cancelInFlight = true;
+    });
+    bool claimed;
+    try {
+      claimed = await widget.operation.cancel();
+    } catch (_) {
+      claimed = false;
+    }
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _cancelInFlight = false;
+      _cancelled = claimed;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    final ExportProgress? step = _progress;
+    return PopScope(
+      canPop: false,
+      child: AlertDialog(
+        key: editorExportProgressKey,
+        title: Text(l10n.exportProgressTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            if (step != null) ...<Widget>[
+              Text(exportProgressPhaseText(l10n, step.phase)),
+              const SizedBox(height: 12),
+            ],
+            LinearProgressIndicator(value: step?.fraction),
+          ],
+        ),
+        actions: <Widget>[
+          TextButton(
+            key: editorExportProgressCancelKey,
+            onPressed: _cancelInFlight
+                ? null
+                : () {
+                    unawaited(_cancel());
+                  },
+            child: Text(l10n.exportProgressCancelAction),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The German text of one export phase (`platform-channel.md` §6).
+///
+/// Every sentence is a committed ARB key; the phase tokens themselves stay
+/// machine identifiers and are never rendered.
+String exportProgressPhaseText(AppLocalizations l10n, ExportPhase phase) {
+  return switch (phase) {
+    ExportPhase.importing => l10n.exportProgressImporting,
+    ExportPhase.drawing => l10n.exportProgressDrawing,
+    ExportPhase.verifying => l10n.exportProgressVerifying,
+    ExportPhase.finalizing => l10n.exportProgressFinalizing,
+  };
 }

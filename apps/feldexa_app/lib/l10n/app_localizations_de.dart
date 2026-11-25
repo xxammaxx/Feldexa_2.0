@@ -472,6 +472,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get exportPreflightGoToFields => 'Zu den Feldern';
 
   @override
+  String get exportProgressTitle => 'PDF wird erstellt';
+
+  @override
+  String get exportProgressImporting => 'Original wird gelesen';
+
+  @override
+  String get exportProgressDrawing => 'Seiten werden gezeichnet';
+
+  @override
+  String get exportProgressVerifying => 'PDF-Datei wird geprüft';
+
+  @override
+  String get exportProgressFinalizing => 'PDF-Datei wird abgeschlossen';
+
+  @override
+  String get exportProgressCancelAction => 'Abbrechen';
+
+  @override
   String get tpl001 =>
       'Eine Vorlage kann nicht erstellt werden, weil noch keine Felder bestätigt sind oder die Originalseiten nicht lesbar sind.';
 

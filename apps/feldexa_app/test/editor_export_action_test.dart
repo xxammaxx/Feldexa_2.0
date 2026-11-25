@@ -23,9 +23,10 @@ import 'package:feldexa_app/features/editor/document_overview.dart'
 import 'package:feldexa_app/features/editor/editor_runtime.dart';
 import 'package:feldexa_app/features/editor/editor_screen.dart';
 import 'package:feldexa_app/features/editor/field_value_sheet.dart'
-    show fieldValueCloseKey, fieldValueSaveKey;
+    show fieldValueSaveKey;
 import 'package:feldexa_app/features/editor/page_view.dart' as viewer;
 import 'package:feldexa_app/features/export/export_preview.dart';
+import 'package:feldexa_app/features/export/export_progress.dart';
 import 'package:feldexa_app/features/fill/text_control.dart'
     show fieldTextControlInputKey;
 import 'package:feldexa_app/l10n/app_localizations.dart';
@@ -261,7 +262,11 @@ final class _FakeExportPort implements PdfExportPort {
   Object? validateError;
   Object? exportError;
 
-  /// Holds [export] open, so a test can dispose the editor mid-flight.
+  /// Holds [validate] open, so a test can cancel before a render id exists.
+  Completer<void>? validateGate;
+
+  /// Holds [export] open, so a test can dispose the editor mid-flight, read the
+  /// progress surface, or cancel a running render.
   Completer<void>? exportGate;
 
   @override
@@ -270,6 +275,10 @@ final class _FakeExportPort implements PdfExportPort {
   @override
   Future<ExportValidationResult> validate(ExportPlan plan) async {
     validated.add(plan);
+    final Completer<void>? gate = validateGate;
+    if (gate != null) {
+      await gate.future;
+    }
     final Object? failure = validateError;
     if (failure != null) {
       throw failure;
@@ -329,6 +338,35 @@ final class _FakeExportPort implements PdfExportPort {
   }
 }
 
+final class _FakeExportOperationControl implements ExportOperationControl {
+  _FakeExportOperationControl();
+
+  final StreamController<ExportProgress> _steps =
+      StreamController<ExportProgress>.broadcast();
+
+  /// Every cancel request that reached the control.
+  final List<void> cancellations = <void>[];
+
+  /// The answer of [cancel]; a test sets it to model a claimed cancellation.
+  bool claimed = true;
+
+  @override
+  Stream<ExportProgress> get progress => _steps.stream;
+
+  /// Emits one content-free step of the running export.
+  void report(ExportPhase phase, double fraction) {
+    _steps.add(ExportProgress(phase: phase, fraction: fraction));
+  }
+
+  @override
+  Future<bool> cancel() async {
+    cancellations.add(null);
+    return claimed;
+  }
+
+  Future<void> close() => _steps.close();
+}
+
 final class _FakeDeliveryPort implements DeliveryPort {
   final List<DeliveryAction> actions = <DeliveryAction>[];
 
@@ -356,6 +394,8 @@ final class _FakeRuntime implements EditorRuntime {
   final _FakeStore fakeStore;
   final _FakeExportPort exportPort;
   final _FakeDeliveryPort deliveryPort = _FakeDeliveryPort();
+  final _FakeExportOperationControl operationControl =
+      _FakeExportOperationControl();
   final List<SensitiveRoute> routes = <SensitiveRoute>[];
   bool disposed = false;
 
@@ -364,6 +404,9 @@ final class _FakeRuntime implements EditorRuntime {
 
   @override
   PdfExportPort get export => exportPort;
+
+  @override
+  ExportOperationControl get exportOperation => operationControl;
 
   @override
   DeliveryPort get delivery => deliveryPort;
@@ -410,6 +453,18 @@ final class _FakeRuntime implements EditorRuntime {
   dynamic noSuchMethod(Invocation invocation) {
     throw UnsupportedOperationException();
   }
+}
+
+/// The terminal `PLT-004` of a claimed cancellation (`platform-channel.md` §9).
+final class _CancelledExportException extends FeldexaException {
+  _CancelledExportException()
+    : super(
+        code: 'PLT-004',
+        messageKey: 'PLT-004',
+        message: 'platform.cancelled',
+        retryable: true,
+        severity: ErrorSeverity.info,
+      );
 }
 
 final class _FakePageRenderer implements viewer.PageViewRenderer {
@@ -758,6 +813,157 @@ void main() {
 
     expect(exportPort.exported, hasLength(2));
     expect(find.byKey(exportPreviewRouteKey), findsOneWidget);
+  });
+
+  testWidgets('the progress surface shows the reported export phases', (
+    WidgetTester tester,
+  ) async {
+    final _FakeExportPort exportPort = _FakeExportPort()
+      ..exportGate = Completer<void>();
+    final _FakeRuntime runtime = _FakeRuntime(
+      fakeStore: _FakeStore(loaded: _loaded()),
+      exportPort: exportPort,
+    );
+    await _pumpEditor(tester, runtime);
+
+    final AppLocalizations l10n = AppLocalizations.of(
+      tester.element(find.byType(Scaffold).first),
+    );
+
+    await tester.tap(find.byKey(editorExportActionKey));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('export-preflight-start')),
+    );
+    await tester.pump();
+
+    // `§10` point 3: the surface exists while the render runs and offers the
+    // cancel action; no phase text is invented before the first event.
+    expect(find.byKey(editorExportProgressKey), findsOneWidget);
+    expect(find.byKey(editorExportProgressCancelKey), findsOneWidget);
+    expect(find.text(l10n.exportProgressImporting), findsNothing);
+
+    runtime.operationControl.report(ExportPhase.importing, 0.0);
+    await tester.pump();
+    expect(find.text(l10n.exportProgressImporting), findsOneWidget);
+
+    runtime.operationControl.report(ExportPhase.drawing, 0.4);
+    await tester.pump();
+    expect(find.text(l10n.exportProgressImporting), findsNothing);
+    expect(find.text(l10n.exportProgressDrawing), findsOneWidget);
+
+    runtime.operationControl.report(ExportPhase.verifying, 0.85);
+    await tester.pump();
+    expect(find.text(l10n.exportProgressVerifying), findsOneWidget);
+
+    runtime.operationControl.report(ExportPhase.finalizing, 0.95);
+    await tester.pump();
+    expect(find.text(l10n.exportProgressFinalizing), findsOneWidget);
+
+    exportPort.exportGate!.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(editorExportProgressKey), findsNothing);
+    expect(find.byKey(exportPreviewRouteKey), findsOneWidget);
+  });
+
+  testWidgets('the cancel action cancels the running export once and shows no '
+      'error', (WidgetTester tester) async {
+    final _FakeExportPort exportPort = _FakeExportPort()
+      ..exportGate = Completer<void>();
+    final _FakeRuntime runtime = _FakeRuntime(
+      fakeStore: _FakeStore(loaded: _loaded()),
+      exportPort: exportPort,
+    );
+    await _pumpEditor(tester, runtime);
+
+    final AppLocalizations l10n = AppLocalizations.of(
+      tester.element(find.byType(Scaffold).first),
+    );
+
+    await tester.tap(find.byKey(editorExportActionKey));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('export-preflight-start')),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(editorExportProgressCancelKey));
+    await tester.pump();
+    expect(runtime.operationControl.cancellations, hasLength(1));
+
+    // The platform's terminal answer of a claimed cancellation is `PLT-004`
+    // (`platform-channel.md` §9); the native side leaves no artifact.
+    exportPort.exportError = _CancelledExportException();
+    exportPort.exportGate!.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(editorExportProgressKey), findsNothing);
+    expect(find.text(l10n.exp002), findsNothing);
+    expect(find.text(l10n.actionRetry), findsNothing);
+    expect(find.byKey(exportPreviewRouteKey), findsNothing);
+    expect(exportPort.deleted, isEmpty);
+    expect(_exportButton(tester).onPressed, isNotNull);
+  });
+
+  testWidgets('a render that finished after a claimed cancellation is '
+      'discarded, not previewed', (WidgetTester tester) async {
+    final _FakeExportPort exportPort = _FakeExportPort()
+      ..exportGate = Completer<void>();
+    final _FakeRuntime runtime = _FakeRuntime(
+      fakeStore: _FakeStore(loaded: _loaded()),
+      exportPort: exportPort,
+    );
+    await _pumpEditor(tester, runtime);
+
+    await tester.tap(find.byKey(editorExportActionKey));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('export-preflight-start')),
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(editorExportProgressCancelKey));
+    await tester.pump();
+    expect(runtime.operationControl.cancellations, hasLength(1));
+
+    // The render won the race with the cancellation and reports a verified
+    // artifact. It must not reach the preview.
+    exportPort.exportGate!.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(exportPreviewRouteKey), findsNothing);
+    expect(exportPort.deleted, <String>[_artifactId]);
+  });
+
+  testWidgets('a cancel before the render starts is refused and the export '
+      'still completes', (WidgetTester tester) async {
+    final _FakeExportPort exportPort = _FakeExportPort()
+      ..validateGate = Completer<void>();
+    final _FakeRuntime runtime = _FakeRuntime(
+      fakeStore: _FakeStore(loaded: _loaded()),
+      exportPort: exportPort,
+    );
+    runtime.operationControl.claimed = false;
+    await _pumpEditor(tester, runtime);
+
+    await tester.tap(find.byKey(editorExportActionKey));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('export-preflight-start')),
+    );
+    await tester.pump();
+
+    // No `export.render` id exists yet, so the platform answers `false` (§9).
+    await tester.tap(find.byKey(editorExportProgressCancelKey));
+    await tester.pump();
+    expect(runtime.operationControl.cancellations, hasLength(1));
+    expect(find.byKey(editorExportProgressKey), findsOneWidget);
+
+    exportPort.validateGate!.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(exportPreviewRouteKey), findsOneWidget);
+    expect(exportPort.deleted, isEmpty);
   });
 
   testWidgets('an artifact of an export whose editor was disposed is deleted', (

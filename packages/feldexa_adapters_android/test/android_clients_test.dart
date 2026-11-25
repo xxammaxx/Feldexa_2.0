@@ -268,6 +268,136 @@ void main() {
     await results.close();
   });
 
+  test('export progress relays the running operation and cancel uses its id', () async {
+    final StreamController<Object?> results = StreamController<Object?>();
+    final StreamController<Object?> events = StreamController<Object?>();
+    final AndroidOperationClient operations = AndroidOperationClient(
+      channel: channel,
+      results: results.stream,
+    );
+    handler = (MethodCall methodCall) {
+      if (methodCall.method == 'cancel.operation') {
+        return _envelope(<String, Object?>{'cancelled': true});
+      }
+      return _start(_operationId);
+    };
+    final AndroidPdfExportClient client = AndroidPdfExportClient(
+      channel: channel,
+      operations: operations,
+      events: events.stream,
+    );
+
+    // Before the start reply the id does not exist, so nothing is cancelled and
+    // no `cancel.operation` call is issued (§9).
+    expect(await client.cancelActiveOperation(), isFalse);
+    expect(
+      calls.map((MethodCall call) => call.method),
+      isNot(contains('cancel.operation')),
+    );
+
+    final List<AndroidExportProgress> steps = <AndroidExportProgress>[];
+    final StreamSubscription<AndroidExportProgress> subscription = client
+        .progress
+        .listen(steps.add);
+
+    final Future<ExportResult> exporting = client.export(
+      ExportRequest(
+        documentId: _documentId,
+        revisionId: _revisionId,
+        plan: _plan(),
+      ),
+    );
+    await Future<void>.delayed(Duration.zero);
+
+    // A foreign operation, an unknown phase, a missing fraction, and the
+    // `operation.progress` alias are all ignored; only the running export's
+    // own content-free step is relayed.
+    events.add(<String, Object?>{
+      'event': 'export.progress',
+      'operationId': '123e4567-e89b-42d3-a456-426614174099',
+      'phase': 'drawing',
+      'fraction': 0.2,
+    });
+    events.add(<String, Object?>{
+      'event': 'export.progress',
+      'operationId': _operationId,
+      'phase': 'painting',
+      'fraction': 0.2,
+    });
+    events.add(<String, Object?>{
+      'event': 'export.progress',
+      'operationId': _operationId,
+      'phase': 'importing',
+    });
+    events.add(<String, Object?>{
+      'event': 'operation.progress',
+      'operationId': _operationId,
+      'kind': 'export',
+      'phase': 'importing',
+      'fraction': 0.1,
+    });
+    events.add(<String, Object?>{
+      'event': 'export.progress',
+      'operationId': _operationId,
+      'phase': 'drawing',
+      'fraction': 0.4,
+    });
+    await Future<void>.delayed(Duration.zero);
+
+    expect(
+      steps.map((AndroidExportProgress step) => step.phase),
+      <AndroidExportPhase>[AndroidExportPhase.drawing],
+    );
+    expect(steps.single.fraction, 0.4);
+
+    // The cancel of a running export carries exactly that operation id.
+    expect(await client.cancelActiveOperation(), isTrue);
+    final MethodCall cancel = calls.lastWhere(
+      (MethodCall call) => call.method == 'cancel.operation',
+    );
+    expect(
+      (cancel.arguments as Map<Object?, Object?>)['operationId'],
+      _operationId,
+    );
+    expect(
+      calls.where((MethodCall call) => call.method == 'cancel.operation'),
+      hasLength(1),
+    );
+
+    // The claimed cancellation is terminal `PLT-004`; after it the id is gone,
+    // so no further cancel is possible and no further step is relayed.
+    results.add(<String, Object?>{
+      'schemaVersion': 1,
+      'event': 'operation.result',
+      'operationId': _operationId,
+      'ok': false,
+      'error': <String, Object?>{'code': 'PLT-004', 'message': null},
+    });
+    await expectLater(
+      exporting,
+      throwsA(isA<AndroidOperationCancelledException>()),
+    );
+    await Future<void>.delayed(Duration.zero);
+    expect(await client.cancelActiveOperation(), isFalse);
+    events.add(<String, Object?>{
+      'event': 'export.progress',
+      'operationId': _operationId,
+      'phase': 'verifying',
+      'fraction': 0.85,
+    });
+    await Future<void>.delayed(Duration.zero);
+    expect(steps, hasLength(1));
+    expect(
+      calls.where((MethodCall call) => call.method == 'cancel.operation'),
+      hasLength(1),
+    );
+
+    await subscription.cancel();
+    await operations.dispose();
+    await results.close();
+    await events.close();
+  });
+
   test(
     'delivery maps cancellation and never claims a completed save',
     () async {

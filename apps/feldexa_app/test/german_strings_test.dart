@@ -90,6 +90,18 @@ const Set<String> _nonCodeArbKeys = <String>{
   // page label of the listed warnings reuses the existing one-based
   // `suggestionPage` („Seite {page}“) instead of adding a second wording.
   'exportPreflightGoToFields',
+  // Issue #334 §10 point 3 (progress phases + cancel action). The catalog has
+  // no row for a phase label or for the cancel action; these keys carry the
+  // four `export.progress` phase tokens of `contracts/platform-channel.md` §6
+  // (importing/drawing/verifying/finalizing), the surface heading, and the
+  // standard German cancel label. The section-8 "Export action" rows keep
+  // `exportAction`/`exportCloseAction`; nothing here renames them.
+  'exportProgressTitle',
+  'exportProgressImporting',
+  'exportProgressDrawing',
+  'exportProgressVerifying',
+  'exportProgressFinalizing',
+  'exportProgressCancelAction',
   'fieldCount',
   'fillAction',
   'importAction',

@@ -48,6 +48,7 @@ import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:pdfrx/pdfrx.dart';
 
+import '../export/export_progress.dart';
 import 'editor_runtime.dart';
 
 /// Content-free integration diagnostic marker for the T071A editor runtime.
@@ -105,12 +106,18 @@ EditorRuntime createAndroidEditorRuntime({
       return size;
     },
   );
+  // One client for the export port and for its progress/cancel seam: the
+  // operation id of `export.render` exists only on the client that started it.
+  final AndroidPdfExportClient export = AndroidPdfExportClient(
+    operations: operations,
+  );
   return _AndroidEditorRuntime(
     operations: operations,
     store: store,
     raster: kDebugMode ? _DiagnosticRasterPort(raster) : raster,
     ocr: kDebugMode ? _DiagnosticOcrPort(ocr) : ocr,
-    export: AndroidPdfExportClient(operations: operations),
+    export: export,
+    exportOperation: _AndroidExportOperationControl(export),
     delivery: AndroidDeliveryClient(),
     ids: AndroidIdClient(),
     clock: const AndroidClockClient(),
@@ -193,6 +200,7 @@ final class _AndroidEditorRuntime implements EditorRuntime {
     required PageRasterPort raster,
     required OcrPort ocr,
     required PdfExportPort export,
+    required ExportOperationControl exportOperation,
     required DeliveryPort delivery,
     required AndroidIdClient ids,
     required AndroidClockClient clock,
@@ -203,6 +211,7 @@ final class _AndroidEditorRuntime implements EditorRuntime {
        _raster = raster,
        _ocr = ocr,
        _export = export,
+       _exportOperation = exportOperation,
        _delivery = delivery,
        _ids = ids,
        _clock = clock,
@@ -214,6 +223,7 @@ final class _AndroidEditorRuntime implements EditorRuntime {
   final PageRasterPort _raster;
   final OcrPort _ocr;
   final PdfExportPort _export;
+  final ExportOperationControl _exportOperation;
   final DeliveryPort _delivery;
   final AndroidIdClient _ids;
   final AndroidClockClient _clock;
@@ -242,6 +252,9 @@ final class _AndroidEditorRuntime implements EditorRuntime {
 
   @override
   PdfExportPort get export => _export;
+
+  @override
+  ExportOperationControl get exportOperation => _exportOperation;
 
   @override
   DeliveryPort get delivery => _delivery;
@@ -347,4 +360,36 @@ final class _AndroidEditorRuntime implements EditorRuntime {
 
   @override
   String toString() => 'EditorRuntime.android';
+}
+
+/// Adapts the Android export client onto the app's export progress seam.
+///
+/// `contracts/editor-interactions.md` §10 point 3 needs the phase texts and a
+/// cancel action; the client already owns both halves on the existing channel
+/// (`export.progress` of §6/§8.1 and `cancel.operation` of §9). This adapter
+/// only translates the adapter-local phase enum into the app enum, so no
+/// platform type and no second channel reaches the editor.
+final class _AndroidExportOperationControl implements ExportOperationControl {
+  const _AndroidExportOperationControl(this._client);
+
+  final AndroidPdfExportClient _client;
+
+  @override
+  Stream<ExportProgress> get progress => _client.progress
+      .map(_toExportProgress)
+      .where((ExportProgress? step) => step != null)
+      .cast<ExportProgress>();
+
+  @override
+  Future<bool> cancel() => _client.cancelActiveOperation();
+
+  ExportProgress? _toExportProgress(AndroidExportProgress step) {
+    final ExportPhase phase = switch (step.phase) {
+      AndroidExportPhase.importing => ExportPhase.importing,
+      AndroidExportPhase.drawing => ExportPhase.drawing,
+      AndroidExportPhase.verifying => ExportPhase.verifying,
+      AndroidExportPhase.finalizing => ExportPhase.finalizing,
+    };
+    return ExportProgress(phase: phase, fraction: step.fraction);
+  }
 }
