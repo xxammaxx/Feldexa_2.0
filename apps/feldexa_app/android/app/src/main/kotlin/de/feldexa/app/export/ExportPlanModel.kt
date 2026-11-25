@@ -62,6 +62,32 @@ data class ExportCtm(
             closeEnough(d, other.d, tolerance) &&
             closeEnough(e, other.e, tolerance) &&
             closeEnough(f, other.f, tolerance)
+
+    /**
+     * Maps a display-space rectangle into PDF user space
+     * (`coordinates-and-geometry.md` §5): `u = a·x + c·y + e`, `v = b·x + d·y + f`.
+     *
+     * All four corners are mapped and reduced to their bounding box; the four
+     * supported matrices are axis-aligned, so that box is the mapped rectangle
+     * itself. The artifact verifier uses this to prove that a drawn op stays on
+     * its page without trusting the plan's `pdfRect`.
+     */
+    fun map(rect: ExportRect): ExportRect {
+        val corners = listOf(
+            mapPoint(rect.x, rect.y),
+            mapPoint(rect.right, rect.y),
+            mapPoint(rect.x, rect.bottom),
+            mapPoint(rect.right, rect.bottom),
+        )
+        val minU = corners.minOf { it.first }
+        val minV = corners.minOf { it.second }
+        val maxU = corners.maxOf { it.first }
+        val maxV = corners.maxOf { it.second }
+        return ExportRect(x = minU, y = minV, width = maxU - minU, height = maxV - minV)
+    }
+
+    private fun mapPoint(x: Double, y: Double): Pair<Double, Double> =
+        Pair(a * x + c * y + e, b * x + d * y + f)
 }
 
 /**
@@ -95,7 +121,10 @@ data class ExportPageGeometry(
         return when (rotation) {
             0 -> ExportCtm(a = 1.0, b = 0.0, c = 0.0, d = -1.0, e = cx0, f = cy1)
             90 -> ExportCtm(a = 0.0, b = 1.0, c = 1.0, d = 0.0, e = cx0, f = cy0)
-            180 -> ExportCtm(a = -1.0, b = 0.0, c = 0.0, d = -1.0, e = cx1, f = cy0)
+            // §2's display→PDF formula for 180 is `v = cy0 + dy`, i.e. `d = +1`.
+            // The §5 table row printed with `d = -1` would map the display box
+            // below the crop box instead of onto it; §2 is normative.
+            180 -> ExportCtm(a = -1.0, b = 0.0, c = 0.0, d = 1.0, e = cx1, f = cy0)
             270 -> ExportCtm(a = 0.0, b = -1.0, c = -1.0, d = 0.0, e = cx1, f = cy1)
             else -> throw IllegalArgumentException("unsupported rotation")
         }
@@ -184,6 +213,16 @@ data class ExportPlan(
     val pages: List<ExportPlanPage>,
     val opCount: Int,
 )
+
+/**
+ * `EXP-006` names a page by its 0-based index (`platform-channel.md` §7), so a
+ * document whose page count disagrees with [plan] is reported at the first
+ * index the two disagree about: the first planned page the document does not
+ * have, or the first document page the plan does not cover. `plan.pageCount`
+ * itself is one past the last planned index and must not be used as one.
+ */
+internal fun firstUncopiablePageIndex(plan: ExportPlan, documentPageCount: Int): Int =
+    minOf(documentPageCount, plan.pageCount).coerceAtLeast(0)
 
 /**
  * Strict reader for the plan JSON that arrives as `{ "plan": {...} }`.

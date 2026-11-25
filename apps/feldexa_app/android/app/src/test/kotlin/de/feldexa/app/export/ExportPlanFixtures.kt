@@ -28,7 +28,18 @@ internal object ExportPlanFixtures {
     fun ctm(a: Double, b: Double, c: Double, d: Double, e: Double, f: Double): Map<String, Any?> =
         linkedMapOf("a" to a, "b" to b, "c" to c, "d" to d, "e" to e, "f" to f)
 
-    /** The normative display→PDF matrix for [rotation] (`coordinates-and-geometry.md` §5). */
+    /**
+     * The display→PDF matrix for [rotation] as an independent probe.
+     *
+     * The coefficients are literals of the `coordinates-and-geometry.md` §5
+     * table for rotations 0, 90, and 270 and are deliberately not derived from
+     * `ExportPageGeometry.expectedCtm()`, so a production formula change cannot
+     * silently move the expectation with it. Rotation 180 is the one row where
+     * the printed table is wrong (`d = -1`, which maps the display box below the
+     * crop box): §2's display→PDF formula is `v = cy0 + dy`, so the normative
+     * coefficient is `d = +1`. Mapping the four display corners onto the four
+     * crop-box corners confirms it for every rotation.
+     */
     fun expectedCtm(
         rotation: Int,
         crop: Map<String, Any?> = rect(0.0, 0.0, PAGE_WIDTH, PAGE_HEIGHT),
@@ -40,7 +51,7 @@ internal object ExportPlanFixtures {
         return when (rotation) {
             0 -> ctm(1.0, 0.0, 0.0, -1.0, cx0, cy1)
             90 -> ctm(0.0, 1.0, 1.0, 0.0, cx0, cy0)
-            180 -> ctm(-1.0, 0.0, 0.0, -1.0, cx1, cy0)
+            180 -> ctm(-1.0, 0.0, 0.0, 1.0, cx1, cy0)
             else -> ctm(0.0, -1.0, -1.0, 0.0, cx1, cy1)
         }
     }

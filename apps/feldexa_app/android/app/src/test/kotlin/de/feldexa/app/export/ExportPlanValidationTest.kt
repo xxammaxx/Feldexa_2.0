@@ -33,15 +33,39 @@ class ExportPlanValidationTest {
     }
 
     @Test
-    fun ctmThatIsNotTheNormativeMatrixBlocksWithExp003() {
+    fun ctmThatIsNotTheNormativeMatrixIsAPayloadFailure() {
         val page = ExportPlanFixtures.page(
             ops = listOf(ExportPlanFixtures.textOp()),
             ctm = ExportPlanFixtures.ctm(1.0, 0.0, 0.0, 1.0, 0.0, 0.0),
         )
         val findings = ExportPlanValidator.findings(parse(page), metrics)
-        assertEquals(listOf("EXP-003"), findings.map { it.code })
+        assertEquals(listOf(ExportPlanValidator.CTM_MISMATCH_CODE), findings.map { it.code })
         assertEquals("ctm_mismatch", findings.single().reason)
-        assertEquals("EXP-003", exportPlanFailure(findings)?.code)
+        // `EXP-003` is "field outside the page"; a wrong matrix is a plan defect
+        // and must not be reported as a document problem the user can fix.
+        val failure = exportPlanFailure(findings)
+        assertEquals("PLT-003", failure?.code)
+        assertEquals("invalidPayload", failure?.details()?.get("category"))
+        assertNull(failure?.details()?.get("pageIndex"))
+    }
+
+    @Test
+    fun ctmMismatchWinsOverALaterGeometryFinding() {
+        val page = ExportPlanFixtures.page(
+            ops = listOf(
+                ExportPlanFixtures.checkboxOp(
+                    rect = ExportPlanFixtures.rect(590.0, 830.0, 20.0, 20.0),
+                    pdfRect = ExportPlanFixtures.rect(590.0, 0.0, 20.0, 20.0),
+                ),
+            ),
+            ctm = ExportPlanFixtures.ctm(1.0, 0.0, 0.0, 1.0, 0.0, 0.0),
+        )
+        val findings = ExportPlanValidator.findings(parse(page), metrics)
+        assertEquals(
+            listOf(ExportPlanValidator.CTM_MISMATCH_CODE, "EXP-003"),
+            findings.map { it.code },
+        )
+        assertEquals("PLT-003", exportPlanFailure(findings)?.code)
     }
 
     @Test

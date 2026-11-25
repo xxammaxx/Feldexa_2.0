@@ -442,13 +442,15 @@ class MainActivity : FlutterActivity() {
             startActivity(chooser)
         }
 
-        override fun printArtifact(file: File, jobName: String): Boolean {
+        override fun printArtifact(file: File, jobName: String, pageCount: Int): Boolean {
             val printManager = getSystemService(PrintManager::class.java) ?: return false
             // No page size is forced: each page keeps its own geometry, and the
-            // system print UI is the authority on the job.
+            // system print UI is the authority on the job. The page count comes
+            // from the verified artifact record, so `onLayout` (main thread)
+            // never parses the PDF (`platform-channel.md` §11).
             printManager.print(
                 jobName,
-                PdfArtifactPrintAdapter(file),
+                PdfArtifactPrintAdapter(file, pageCount),
                 PrintAttributes.Builder().build(),
             )
             return true

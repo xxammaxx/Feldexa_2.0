@@ -7,7 +7,6 @@ import android.print.PageRange
 import android.print.PrintAttributes
 import android.print.PrintDocumentAdapter
 import android.print.PrintDocumentInfo
-import com.tom_roush.pdfbox.pdmodel.PDDocument
 import java.io.File
 import java.io.IOException
 
@@ -18,12 +17,19 @@ import java.io.IOException
  * (`contracts/export-plan.md` §6 "Printability"), so the adapter hands those
  * bytes to the print service unchanged. It deliberately does **not** rebuild
  * the document through `PrintedPdfDocument`: that would rasterise the pages in
- * the app and make the printed result disagree with the verified artifact. The
- * document is short-lived: it is read once for the page count and once for the
- * write, and nothing is rendered here.
+ * the app and make the printed result disagree with the verified artifact.
+ *
+ * `platform-channel.md` §11 forbids PDF parsing on the UI thread, and
+ * `onLayout` runs there. The page count therefore arrives as the verified
+ * `pageCount` of the artifact record (`ExportArtifactStore.ArtifactRecord`) and
+ * `onLayout` performs **no** file I/O at all — it only uses the artifact's file
+ * name, which is a string. Reading the bytes is left to `onWrite`, which the
+ * framework calls on a background thread.
  */
 class PdfArtifactPrintAdapter(
     private val file: File,
+    /** Verified page count of the artifact record; never parsed here. */
+    private val pageCount: Int,
 ) : PrintDocumentAdapter() {
 
     override fun onLayout(
@@ -35,12 +41,6 @@ class PdfArtifactPrintAdapter(
     ) {
         if (cancellationSignal?.isCanceled == true) {
             callback.onLayoutCancelled()
-            return
-        }
-        val pageCount = try {
-            PDDocument.load(file).use { document -> document.numberOfPages }
-        } catch (failure: IOException) {
-            callback.onLayoutFailed(null)
             return
         }
         if (pageCount < 1) {

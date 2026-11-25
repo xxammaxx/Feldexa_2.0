@@ -11,10 +11,11 @@ import de.feldexa.app.PlatformFailure
  * no text may overflow, and every code point must exist in the bundled font.
  * It never re-wraps, re-sizes, or re-positions anything (FR-037/FR-038).
  *
- * Every finding is a *blocking* code from §4, so `export.validate` reports a
- * non-empty result as the catalog code rather than as a non-blocking warning.
- * The whole object is plain JVM Kotlin; the font knowledge arrives through
- * [ExportFontMetrics] so the checks are testable without PDFBox.
+ * Every finding blocks the export. A geometry or glyph finding is reported as
+ * its catalog code (§4) rather than as a non-blocking warning; a `ctm_mismatch`
+ * is reported as the payload code [CTM_MISMATCH_CODE] because the plan, not the
+ * document, is wrong. The whole object is plain JVM Kotlin; the font knowledge
+ * arrives through [ExportFontMetrics] so the checks are testable without PDFBox.
  */
 object ExportPlanValidator {
     /** `coordinates-and-geometry.md` §6: rects may overshoot the page by 0.5 pt. */
@@ -22,6 +23,16 @@ object ExportPlanValidator {
 
     /** `export-plan.md` §3.1: 1.5 pt padding on all sides. */
     const val TEXT_PADDING_PT = 1.5
+
+    /**
+     * Code of the `ctm_mismatch` finding.
+     *
+     * `EXP-003` means "a field lies outside the page" (`error-catalog.de.md` §4),
+     * which is a document problem the user can fix by moving the field. A matrix
+     * that is not the one the stored geometry implies is a plan/version defect
+     * instead, so it is a `PLT-003` invalid-payload failure (§10 of the catalog).
+     */
+    const val CTM_MISMATCH_CODE = "PLT-003"
 
     fun findings(plan: ExportPlan, metrics: ExportFontMetrics): List<ExportValidationFinding> {
         val findings = mutableListOf<ExportValidationFinding>()
@@ -38,7 +49,7 @@ object ExportPlanValidator {
     ) {
         if (!page.geometry.expectedCtm().matches(page.ctm)) {
             findings += ExportValidationFinding(
-                code = "EXP-003",
+                code = CTM_MISMATCH_CODE,
                 reason = "ctm_mismatch",
                 pageIndex = page.index,
                 fieldId = null,
@@ -117,11 +128,21 @@ interface ExportFontMetrics {
 /**
  * Maps the first blocking finding to its catalog failure (`export-plan.md` §4).
  *
+ * A `ctm_mismatch` is a payload defect, not a catalog block: the plan's matrix
+ * does not match the geometry it was derived from, so the plan itself is
+ * invalid (`PLT-003`) and the applier never reaches the document. Its
+ * `pageIndex` is not carried because the defect can affect every page.
+ *
  * `fieldCount` counts the affected fields of the same code so the blocking
  * dialog can say "N Felder" without the applier naming a label or a value.
  */
 fun exportPlanFailure(findings: List<ExportValidationFinding>): PlatformFailure? {
     val first = findings.firstOrNull() ?: return null
+    if (first.code == ExportPlanValidator.CTM_MISMATCH_CODE) {
+        // `platform.valueOutOfRange` is the allowlisted key for a plan value the
+        // contract does not permit; it carries no coordinate and no content.
+        return PlatformFailure.invalidPayload("platform.valueOutOfRange")
+    }
     val affected = findings.count { it.code == first.code }
     return exportFailure(first.code, first.pageIndex, affected)
 }

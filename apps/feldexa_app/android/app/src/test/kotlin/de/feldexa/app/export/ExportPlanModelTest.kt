@@ -65,6 +65,117 @@ class ExportPlanModelTest {
     }
 
     @Test
+    fun mapsADisplayRectangleIntoPdfUserSpaceThroughTheCtm() {
+        // Rotation 0 with no crop offset: x stays, y is mirrored about the top.
+        val upright = ExportCtm(a = 1.0, b = 0.0, c = 0.0, d = -1.0, e = 0.0, f = 841.89)
+        val mappedUpright = upright.map(ExportRect(x = 10.0, y = 20.0, width = 30.0, height = 40.0))
+        assertEquals(10.0, mappedUpright.x, 0.0001)
+        assertEquals(781.89, mappedUpright.y, 0.0001)
+        assertEquals(30.0, mappedUpright.width, 0.0001)
+        assertEquals(40.0, mappedUpright.height, 0.0001)
+
+        // Rotation 90 swaps both axes, so width and height swap as well.
+        val quarterTurn = ExportCtm(a = 0.0, b = 1.0, c = 1.0, d = 0.0, e = 0.0, f = 0.0)
+        val mappedQuarterTurn = quarterTurn.map(ExportRect(x = 10.0, y = 20.0, width = 30.0, height = 40.0))
+        assertEquals(20.0, mappedQuarterTurn.x, 0.0001)
+        assertEquals(10.0, mappedQuarterTurn.y, 0.0001)
+        assertEquals(40.0, mappedQuarterTurn.width, 0.0001)
+        assertEquals(30.0, mappedQuarterTurn.height, 0.0001)
+    }
+
+    @Test
+    fun mapsTheFourDisplayCornersOntoTheFourCropBoxCorners() {
+        // `coordinates-and-geometry.md` §5 verifies each matrix by "mapping the
+        // four display-box corners back to the PDF box corners". This is the
+        // check that catches a row pointing the wrong way, which is why the
+        // production formula and the fixture carry it independently.
+        val crop = ExportRect(x = 10.0, y = 20.0, width = 500.0, height = 700.0)
+        val width = 500.0
+        val height = 700.0
+
+        // Display top-left, top-right, bottom-left, bottom-right.
+        assertCorners(
+            0,
+            ExportPageGeometry(crop, crop, 0),
+            listOf(
+                corner(0.0, 0.0, 10.0, 720.0),
+                corner(width, 0.0, 510.0, 720.0),
+                corner(0.0, height, 10.0, 20.0),
+                corner(width, height, 510.0, 20.0),
+            ),
+        )
+        // 90 and 270 swap the display extents: 700 pt across, 500 pt down.
+        assertCorners(
+            90,
+            ExportPageGeometry(crop, crop, 90),
+            listOf(
+                corner(0.0, 0.0, 10.0, 20.0),
+                corner(height, 0.0, 10.0, 720.0),
+                corner(0.0, width, 510.0, 20.0),
+                corner(height, width, 510.0, 720.0),
+            ),
+        )
+        assertCorners(
+            180,
+            ExportPageGeometry(crop, crop, 180),
+            listOf(
+                corner(0.0, 0.0, 510.0, 20.0),
+                corner(width, 0.0, 10.0, 20.0),
+                corner(0.0, height, 510.0, 720.0),
+                corner(width, height, 10.0, 720.0),
+            ),
+        )
+        assertCorners(
+            270,
+            ExportPageGeometry(crop, crop, 270),
+            listOf(
+                corner(0.0, 0.0, 510.0, 720.0),
+                corner(height, 0.0, 510.0, 20.0),
+                corner(0.0, width, 10.0, 720.0),
+                corner(height, width, 10.0, 20.0),
+            ),
+        )
+    }
+
+    @Test
+    fun namesTheZeroBasedIndexOfTheFirstPageThatCannotBeCopied() {
+        val plan = ExportPlanParser.parse(
+            ExportPlanFixtures.plan(
+                pages = listOf(
+                    ExportPlanFixtures.page(index = 0),
+                    ExportPlanFixtures.page(index = 1),
+                    ExportPlanFixtures.page(index = 2),
+                ),
+            ),
+        )
+        // The document has only pages 0 and 1: page 2 is the first one missing.
+        assertEquals(2, firstUncopiablePageIndex(plan, documentPageCount = 2))
+        // The document has a fourth page the plan does not cover: index 3.
+        assertEquals(3, firstUncopiablePageIndex(plan, documentPageCount = 4))
+    }
+
+    private fun assertCorners(
+        rotation: Int,
+        geometry: ExportPageGeometry,
+        expected: List<Pair<Pair<Double, Double>, Pair<Double, Double>>>,
+    ) {
+        val ctm = geometry.expectedCtm()
+        for ((display, pdf) in expected) {
+            val mapped = ctm.map(ExportRect(display.first, display.second, 0.0, 0.0))
+            assertEquals("rotation $rotation u", pdf.first, mapped.x, 0.01)
+            assertEquals("rotation $rotation v", pdf.second, mapped.y, 0.01)
+        }
+    }
+
+    private fun corner(
+        displayX: Double,
+        displayY: Double,
+        u: Double,
+        v: Double,
+    ): Pair<Pair<Double, Double>, Pair<Double, Double>> =
+        Pair(Pair(displayX, displayY), Pair(u, v))
+
+    @Test
     fun rejectsPageCountThatDoesNotMatchThePageList() {
         val failure = assertThrows(PlatformFailure::class.java) {
             ExportPlanParser.parse(ExportPlanFixtures.plan(pageCount = 2))

@@ -61,11 +61,17 @@ import java.util.UUID
  *     content-free XMP provenance record;
  *  7. write `cacheDir/feldexa_exports/<artifactId>.pdf.tmp`;
  *  8. reopen and verify page count, boxes, rotation, no interactive fields,
- *     extracted text (including German characters), overlay bounds, and the
- *     unchanged source hash;
+ *     extracted text (including German characters), the overlay bounds against
+ *     the artifact's own page box, and that every planned glyph is encodable by
+ *     the fonts the artifact references;
  *  9. atomically rename to `<artifactId>.pdf`;
- * 10. on any failure delete the temp file and fail with `EXP-002` — a failed
- *     export never leaves a `.pdf` behind and never touches the source.
+ * 10. on any failure delete the temp file and the renamed file and fail with
+ *     `EXP-002` — a failed export never leaves a `.pdf` behind and never
+ *     touches the source.
+ *
+ * The stored source is proven unchanged exactly once, before the first write,
+ * by comparing its SHA-256 with `plan.sourceSha256` (FR-073); the applier only
+ * ever reads those bytes.
  *
  * Content rules: no failure carries a value, label, field id, path, or URI, and
  * this class performs no logging. Only the explicitly requested
@@ -161,14 +167,17 @@ class PdfExportService(
             writeDocument(plan, source, temporaryFile, context)
 
             report(context, PHASE_VERIFYING, 0.85)
-            val verification = verifyArtifact(temporaryFile, plan, source)
+            val verification = verifyArtifact(temporaryFile, plan)
 
             // The last cancellation checkpoint precedes the rename, so a
             // cancelled run cannot leave a final artifact behind (§9).
             context.checkCancelled()
             report(context, PHASE_FINALIZING, 0.95)
             renameAtomically(temporaryFile, finalFile)
-            published = true
+            // A cancellation that lands between the rename and the publication
+            // must not publish either; the `finally` below removes the renamed
+            // file because `published` is still false.
+            context.checkCancelled()
             val byteSize = finalFile.length()
             if (byteSize < 1L) throw exportFailure("EXP-002")
             val sha256 = sha256Hex(finalFile)
@@ -181,6 +190,9 @@ class PdfExportService(
                     pageCount = plan.pageCount,
                 ),
             )
+            // Only a published artifact is kept: everything before this point
+            // fails or cancels without leaving a document behind.
+            published = true
             return linkedMapOf(
                 "artifactId" to artifactId,
                 "pageCount" to plan.pageCount,
@@ -202,8 +214,11 @@ class PdfExportService(
             throw exportFailure("EXP-002")
         } finally {
             if (!published) {
-                // §5.10 / §6: a failed or cancelled run leaves no artifact.
+                // §5.10 / §6 "Artifact isolation": a failed or cancelled run
+                // leaves neither the temp file nor a file that already passed
+                // the atomic rename behind.
                 runCatching { temporaryFile.delete() }
+                runCatching { finalFile.delete() }
             }
         }
     }
@@ -218,7 +233,10 @@ class PdfExportService(
         PDDocument.load(source).use { sourceDocument ->
             if (sourceDocument.isEncrypted) throw exportFailure("EXP-005")
             if (sourceDocument.numberOfPages != plan.pageCount) {
-                throw exportFailure("EXP-006", pageIndex = plan.pageCount)
+                throw exportFailure(
+                    "EXP-006",
+                    pageIndex = firstUncopiablePageIndex(plan, sourceDocument.numberOfPages),
+                )
             }
             flattenSourceAcroForm(sourceDocument)
             report(context, PHASE_IMPORTING, 0.1)
@@ -228,7 +246,10 @@ class PdfExportService(
                 // re-rendering; the stored source bytes are never modified.
                 PDFMergerUtility().appendDocument(output, sourceDocument)
                 if (output.numberOfPages != plan.pageCount) {
-                    throw exportFailure("EXP-006", pageIndex = plan.pageCount)
+                    throw exportFailure(
+                        "EXP-006",
+                        pageIndex = firstUncopiablePageIndex(plan, output.numberOfPages),
+                    )
                 }
 
                 // §5 step 3.
@@ -478,11 +499,20 @@ class PdfExportService(
      * Reopens the temp artifact and proves every §6 invariant that the applier
      * itself can check. Any failed check is `EXP-002`: an artifact that is not
      * verifiably correct is never returned.
+     *
+     * Every flag of the returned record is decided on the reopened document: the
+     * overlay bounds are computed from the artifact's own page box and the plan
+     * matrix, and the glyph check runs against the fonts the artifact page
+     * references. Nothing here is a restatement of the plan.
+     *
+     * The stored source is checked once, before any write, against
+     * `plan.sourceSha256` (`render`); the applier only ever reads those bytes, so
+     * a second hash of the same in-memory array would verify nothing about the
+     * artifact.
      */
     private fun verifyArtifact(
         temporaryFile: File,
         plan: ExportPlan,
-        source: ByteArray,
     ): Map<String, Any?> {
         PDDocument.load(temporaryFile).use { document ->
             if (document.numberOfPages != plan.pageCount) throw exportFailure("EXP-002")
@@ -491,6 +521,8 @@ class PdfExportService(
                 assertBox(target.mediaBox, page.geometry.mediaBox)
                 assertBox(target.cropBox ?: target.mediaBox, page.geometry.cropBox)
                 if (target.rotation != page.geometry.rotation) throw exportFailure("EXP-002")
+                assertOverlayBounds(target.cropBox ?: target.mediaBox, page)
+                assertPlannedGlyphsEmbedded(target, page)
             }
 
             val acroForm = document.documentCatalog?.acroForm
@@ -501,8 +533,6 @@ class PdfExportService(
 
             assertPlannedTextExtracted(document, plan)
             assertMetadata(document, plan)
-            // FR-073: the stored source is read-only for the applier.
-            if (sha256Hex(source) != plan.sourceSha256) throw exportFailure("EXP-005")
         }
         return linkedMapOf(
             "pageCountMatches" to true,
@@ -512,6 +542,67 @@ class PdfExportService(
             "overlayBoundsWithinPage" to true,
             "checkedAt" to nowIso(),
         )
+    }
+
+    /**
+     * §5 step 8: every op rectangle of a page must lie inside the page box the
+     * artifact carries (`export-plan.md` §6). The display rect is mapped through
+     * the plan matrix into the artifact's own CropBox; the plan's `pdfRect` is
+     * not trusted here, and the tolerance is the plan's 0.01 pt.
+     */
+    private fun assertOverlayBounds(actualPageBox: PDRectangle?, page: ExportPlanPage) {
+        val box = actualPageBox ?: throw exportFailure("EXP-002")
+        val pageBox = ExportRect(
+            x = box.lowerLeftX.toDouble(),
+            y = box.lowerLeftY.toDouble(),
+            width = box.width.toDouble(),
+            height = box.height.toDouble(),
+        )
+        for (op in page.ops) {
+            if (!page.ctm.map(op.rect).isInside(pageBox, ExportPlanParser.GEOMETRY_TOLERANCE_PT)) {
+                throw exportFailure("EXP-002")
+            }
+        }
+    }
+
+    /**
+     * §5 step 8 / §6 "Text content": every planned line must be encodable by an
+     * embedded font that the artifact page actually references. A glyph missing
+     * from the embedded subset fails here instead of being silently substituted.
+     */
+    private fun assertPlannedGlyphsEmbedded(target: PDPage, page: ExportPlanPage) {
+        val lines = page.ops
+            .filterIsInstance<ExportTextOp>()
+            .flatMap { it.lines }
+            .filter { it.isNotEmpty() }
+        if (lines.isEmpty()) return
+        val resources = target.resources ?: throw exportFailure("EXP-002")
+        val fonts = mutableListOf<PDFont>()
+        for (name in resources.fontNames) {
+            val font = try {
+                resources.getFont(name)
+            } catch (failure: IOException) {
+                throw exportFailure("EXP-002")
+            } ?: throw exportFailure("EXP-002")
+            if (font.isEmbedded) fonts += font
+        }
+        if (fonts.isEmpty()) throw exportFailure("EXP-002")
+        for (line in lines) {
+            if (fonts.none { canEncode(it, line) }) throw exportFailure("EXP-002")
+        }
+    }
+
+    /** True when the artifact's font can encode every code point of [line]. */
+    private fun canEncode(font: PDFont, line: String): Boolean = try {
+        font.encode(line)
+        true
+    } catch (failure: IOException) {
+        false
+    } catch (failure: IllegalArgumentException) {
+        // PDFBox reports a code point without a glyph exactly this way.
+        false
+    } catch (failure: UnsupportedOperationException) {
+        false
     }
 
     private fun assertBox(actual: PDRectangle?, expected: ExportRect) {

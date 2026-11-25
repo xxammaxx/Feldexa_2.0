@@ -154,7 +154,13 @@ class DeliveryService(
         return linkedMapOf("completed" to true, "cancelled" to false)
     }
 
-    /** System print UI (§7); no artifact is rasterised by the app itself. */
+    /**
+     * System print UI (§7); no artifact is rasterised by the app itself.
+     *
+     * The verified `pageCount` of the record is handed to the host so the print
+     * adapter can lay the document out without parsing it on the UI thread
+     * (`platform-channel.md` §11).
+     */
     private fun print(request: PlatformRequest): Map<String, Any?> {
         val artifactId = requireArtifactId(request.string("artifactId"))
         val jobName = request.string("jobName")
@@ -169,7 +175,7 @@ class DeliveryService(
             throw artifactNotFound()
         }
         val started = try {
-            host.printArtifact(record.file, jobName)
+            host.printArtifact(record.file, jobName, record.pageCount)
         } catch (failure: SecurityException) {
             throw deliveryUnavailable()
         } catch (failure: Exception) {
@@ -257,6 +263,10 @@ interface DeliveryHost {
     /** Shares the artifact through a temporary `FileProvider` read grant. */
     fun shareArtifact(file: File, mimeType: String)
 
-    /** Opens the system print UI for the artifact; false when no print service answers. */
-    fun printArtifact(file: File, jobName: String): Boolean
+    /**
+     * Opens the system print UI for the artifact; false when no print service
+     * answers. [pageCount] is the artifact record's verified page count, so the
+     * print adapter never has to parse the document on the UI thread.
+     */
+    fun printArtifact(file: File, jobName: String, pageCount: Int): Boolean
 }
