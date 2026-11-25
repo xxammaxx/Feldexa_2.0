@@ -588,7 +588,8 @@ Weitere Stellen im Präsens, die keine Pinnung behaupten (ebenso nur eingeordnet
   sind die Zahlen so zu lesen: direct 10 → 9 (−1), hosted 94 → 92 (−2), Graph 110 → 108 (−2),
   Lockfile 99 → 97 (−2), MIT 19 → 17 (−2), weil sowohl der Wrapper als auch `google_mlkit_commons`
   MIT sind (Appendix A, Zeilen 268/269). Die „eight direct hosted application dependencies" der
-  Zeile 244 werden entsprechend zu sieben (acht hosted Direkteinträge neben den zwei SDK-Einträgen).
+  Zeile 244 werden entsprechend zu sieben (sieben hosted Direkteinträge neben den zwei SDK-Einträgen,
+  zusammen neun direkte Abhängigkeiten).
   Nachgemessen wurde in T332 nicht (kein `flutter pub get`, kein `pub deps`); die Zahlen bleiben als
   Auditstand stehen.
 
