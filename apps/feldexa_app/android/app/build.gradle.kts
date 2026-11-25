@@ -50,8 +50,8 @@ kotlin {
     }
 }
 
-// T003: Android-native PDF engine pin. T039/T143 consume this; no current
-// application code calls PDFBox yet.
+// T003: Android-native PDF engine pin. T039/T143 consume this; application code
+// loads PDFBox in `pdf/PdfPreflight.kt` (T039) and `import/ImportService.kt` (T040).
 dependencies {
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
 

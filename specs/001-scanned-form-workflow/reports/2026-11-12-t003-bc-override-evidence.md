@@ -216,3 +216,17 @@ Result: **success after 526.2 s**; `✓ Built build/app/outputs/flutter-apk/app-
 - The release APK is built and its manifest is clean, but it is unsigned; production signing remains an owner-supplied release step (C-T003-9).
 - C-T003-12 is resolved for the current wrapper: the exactly eight AGP-generated `-dontwarn` rules are in `apps/feldexa_app/android/app/proguard-rules.pro`, and `missing_rules.txt` is absent. Keep the rules in sync if the wrapper changes; add a non-Latin implementation dependency only if that script is actually needed.
 - No push, merge, tag, PR, issue edit/close or self-approval was performed. The local candidate commit exists only in `.dsh-git` and `.dsh-t003-candidate.bundle`. Gate 7 independent review, gate 8 integration and gate 9 convergence remain outside T003.
+
+## 10. Nachtrag 2026-11-25 (T331) — Auditstand dieses Records
+
+Dieser Record ist der **Auditstand 2026-11-12** und wird nicht rückwirkend umgeschrieben. Die acht
+`-dontwarn`-Regeln für die optionalen nicht-lateinischen ML-Kit-Skript-Erkenner sind mit T321B
+(Issue #321 Punkt 2, PR #327) aus `apps/feldexa_app/android/app/proguard-rules.pro` **entfernt**;
+der Datei-Hash `76cab104…` in der Tabelle in §6 und die Aussagen in §9 (C-T003-12) beschreiben
+damit nur den Stand dieses Records. Der aktuelle Stand steht in `tools/dependency_review.md` §10
+(Nachtrag 2026-11-24 T321B und Nachtrag 2026-11-25 T326). Datei-Hashes in §6 bleiben unverändert
+zitiert, weil sie den damals eingefrorenen Kandidaten belegen.
+
+Gewählt wurde der datierte Nachtrag statt einer stillen Umschreibung, weil die §§6 und 9 als
+Beweismittel eines eingefrorenen Kandidaten (`.dsh-t003-candidate.bundle`) zitierbar bleiben
+müssen — ein nachträglich geänderter Record würde die Hash-Kette des Kandidaten ungültig machen.
