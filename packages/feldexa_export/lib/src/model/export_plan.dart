@@ -850,7 +850,7 @@ final class ExportCtm extends JsonObject {
     return switch (geometry.rotation) {
       0 => ExportCtm(a: 1, b: 0, c: 0, d: -1, e: cx0, f: cy1),
       90 => ExportCtm(a: 0, b: 1, c: 1, d: 0, e: cx0, f: cy0),
-      180 => ExportCtm(a: -1, b: 0, c: 0, d: -1, e: cx1, f: cy0),
+      180 => ExportCtm(a: -1, b: 0, c: 0, d: 1, e: cx1, f: cy0),
       270 => ExportCtm(a: 0, b: -1, c: -1, d: 0, e: cx1, f: cy1),
       _ => throw StateError('unreachable rotation ${geometry.rotation}'),
     };

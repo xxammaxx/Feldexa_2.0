@@ -146,10 +146,11 @@ Rules:
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | 1 | 0 | 0 | −1 | cx0 | cy1 | x right, y down |
 | 90 | 0 | 1 | 1 | 0 | cx0 | cy0 | x right, y down |
-| 180 | −1 | 0 | 0 | −1 | cx1 | cy0 | x right, y down |
+| 180 | −1 | 0 | 0 | +1 | cx1 | cy0 | x right, y down |
 | 270 | 0 | −1 | −1 | 0 | cx1 | cy1 | x right, y down |
 
   where `u = a·x + c·y + e` and `v = b·x + d·y + f`. Each matrix is verified by mapping the four display-box corners back to the PDF box corners, and by a golden render on each rotation.
+  The 180° row is the §2 mapping `u = cx1 − dx`, `v = cy0 + dy`, so it carries `d = +1`: that is what its own corner check yields, and a negative `d` would mirror the display box off the page instead of onto it.
 - Text baselines are computed in display space (top padding + ascender) and drawn under the same CTM; glyphs are never mirrored or rotated relative to the editor view.
 - The export plan also carries `pdfRect` per op (the display rect mapped by §2) for artifact verification. `pdfRect` is a verification value only; drawing uses display coordinates plus the CTM.
 - Signature images are drawn upright in display space under the CTM. A signature captured while the page was displayed rotated is therefore already in display orientation and needs no additional rotation.
