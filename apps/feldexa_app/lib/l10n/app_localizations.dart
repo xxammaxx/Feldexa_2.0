@@ -772,6 +772,84 @@ abstract class AppLocalizations {
   /// **'Vorschau der erzeugten PDF-Datei'**
   String get previewFooter;
 
+  /// Issue #334 export preview: page count of the verified artifact. contracts/editor-interactions.md §10 point 4 requires the preview to show the produced artifact.
+  ///
+  /// In de, this message translates to:
+  /// **'Seiten: {count}'**
+  String exportPreviewPageCount(int count);
+
+  /// Issue #334 export preview: byte size of the verified artifact, formatted with a German decimal comma.
+  ///
+  /// In de, this message translates to:
+  /// **'Dateigröße: {size}'**
+  String exportPreviewFileSize(String size);
+
+  /// contracts/editor-interactions.md §10 point 4: preview action `Speichern`.
+  ///
+  /// In de, this message translates to:
+  /// **'Speichern'**
+  String get exportPreviewSaveAction;
+
+  /// contracts/editor-interactions.md §10 point 4: preview action `Teilen`.
+  ///
+  /// In de, this message translates to:
+  /// **'Teilen'**
+  String get exportPreviewShareAction;
+
+  /// contracts/editor-interactions.md §10 point 4: preview action `Drucken`.
+  ///
+  /// In de, this message translates to:
+  /// **'Drucken'**
+  String get exportPreviewPrintAction;
+
+  /// contracts/editor-interactions.md §10 point 4: closing action of the export preview and of the pre-export sheet.
+  ///
+  /// In de, this message translates to:
+  /// **'Schließen'**
+  String get exportCloseAction;
+
+  /// contracts/editor-interactions.md §10 point 2: the action that jumps from a blocking export warning to the first blocking field; the catalog names the label verbatim.
+  ///
+  /// In de, this message translates to:
+  /// **'Zu den Feldern'**
+  String get exportPreflightGoToFields;
+
+  /// Issue #334 §10 point 3: heading of the export progress surface. It names only the product (a PDF, §10 points 1 and 4) and never a file name, path, title, or value.
+  ///
+  /// In de, this message translates to:
+  /// **'PDF wird erstellt'**
+  String get exportProgressTitle;
+
+  /// Issue #334 §10 point 3, phase `importing` of contracts/platform-channel.md §6: the stored source PDF is read and checked against the plan hash. The catalog has no row for a phase label; the wording names the phase meaning of §6 only.
+  ///
+  /// In de, this message translates to:
+  /// **'Original wird gelesen'**
+  String get exportProgressImporting;
+
+  /// Issue #334 §10 point 3, phase `drawing` of contracts/platform-channel.md §6: every page is copied and receives its overlay operations. Content-free: no page count, field, or value.
+  ///
+  /// In de, this message translates to:
+  /// **'Seiten werden gezeichnet'**
+  String get exportProgressDrawing;
+
+  /// Issue #334 §10 point 3, phase `verifying` of contracts/platform-channel.md §6 and export-plan.md §5 step 5: the written artifact is verified before anything is published. Uses the catalog's own verb „geprüft“ (§4 export success).
+  ///
+  /// In de, this message translates to:
+  /// **'PDF-Datei wird geprüft'**
+  String get exportProgressVerifying;
+
+  /// Issue #334 §10 point 3, phase `finalizing` of contracts/platform-channel.md §6: the verified artifact is renamed into place and published.
+  ///
+  /// In de, this message translates to:
+  /// **'PDF-Datei wird abgeschlossen'**
+  String get exportProgressFinalizing;
+
+  /// Issue #334 §10 point 3: the cancel action of the export progress surface. The catalog has no row for it; the label is the standard German cancel label, and cancellation publishes the developer-only PLT-004 of contracts/platform-channel.md §9, which has no user-facing text.
+  ///
+  /// In de, this message translates to:
+  /// **'Abbrechen'**
+  String get exportProgressCancelAction;
+
   /// contracts/error-catalog.de.md §5 TPL-001: Template creation impossible (no confirmed fields or source unreadable).
   ///
   /// In de, this message translates to:

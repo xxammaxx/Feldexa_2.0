@@ -5,6 +5,8 @@
 //
 // T148 integrated US1 editor route: viewer, page strip, and page state.
 // Issue #217 Phase B1 adds the first analysis run and revision persistence.
+// Issue #334 adds the export action, the pre-export information, and the
+// `FLAG_SECURE` route protection of the same session.
 //
 // Owner: `apps/feldexa_app/lib/features/editor/editor_screen.dart` (T148,
 // Phase B1).
@@ -14,12 +16,14 @@
 //     FR-003, FR-010, FR-014, FR-017, FR-018, FR-019, FR-020, FR-021, and
 //     FR-024;
 //   * `contracts/editor-interactions.md` §1 (app bar, page strip, viewport
-//     order) and §6 (all pages with analysis state and unreadable markers,
-//     tapping a page scrolls to it);
+//     order), §6 (all pages with analysis state and unreadable markers, tapping
+//     a page scrolls to it), and §10 (the export flow: preflight information,
+//     blocking warnings, the preview route);
 //   * `contracts/recognition-output.md` §1 (envelope), §4 (failure contract),
 //     §6 (symmetric conflicts), and §7 (persisted suggestions/provenance);
 //   * `contracts/platform-channel.md` §3 (page failures are a successful
-//     partial import; the initial revision and metadata are already committed);
+//     partial import; the initial revision and metadata are already committed)
+//     and §11 point 7 (`platform.sensitiveRoute` on the editor/export route);
 //   * `data-model.md` §3.3 (page analysis state), §3.4 (`FieldSuggestion`),
 //     §3.12 (`RevisionContent`), and §3.16 (`FieldSuggestionSet`);
 //   * constitution Principles II, III, V, VI, VIII, and X.
@@ -100,6 +104,9 @@ import 'package:feldexa_app/features/editor/page_state.dart';
 import 'package:feldexa_app/features/editor/page_strip.dart';
 import 'package:feldexa_app/features/editor/page_view.dart';
 import 'package:feldexa_app/features/editor/suggestion_review_panel.dart';
+import 'package:feldexa_app/features/export/export_controller.dart';
+import 'package:feldexa_app/features/export/export_preview.dart';
+import 'package:feldexa_app/features/export/export_progress.dart';
 import 'package:feldexa_app/features/fill/signature_png.dart';
 import 'package:feldexa_app/features/fill/signature_sheet.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
@@ -113,6 +120,7 @@ import 'package:feldexa_application/src/review/confirm_suggestion.dart'
 import 'package:feldexa_application/src/review/edit_field.dart' as edit;
 import 'package:feldexa_application/src/review/set_value.dart' as set_value;
 import 'package:feldexa_core/feldexa_core.dart' as core;
+import 'package:feldexa_export/feldexa_export.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:feldexa_recognition/src/page_analysis.dart' as recognition;
 import 'package:feldexa_ui/feldexa_ui.dart';
@@ -132,6 +140,62 @@ const String editorAnalysisFailedKey = 'analysis-failed';
 const ValueKey<String> editorOverviewActionKey = ValueKey<String>(
   'editor-overview-action',
 );
+
+/// Stable key for the Issue #334 export action in the editor app bar.
+const ValueKey<String> editorExportActionKey = ValueKey<String>(
+  'editor-export-action',
+);
+
+/// Stable key of the export progress surface of `§10` point 3.
+const ValueKey<String> editorExportProgressKey = ValueKey<String>(
+  'editor-export-progress',
+);
+
+/// Stable key of the cancel action on that progress surface.
+const ValueKey<String> editorExportProgressCancelKey = ValueKey<String>(
+  'editor-export-progress-cancel',
+);
+
+/// What the pre-export sheet of `contracts/editor-interactions.md` §10 returns.
+///
+/// §10 point 2 requires a way from a blocking warning to the field that causes
+/// it, so the sheet distinguishes "start the export" from "show me the fields"
+/// instead of a plain yes/no.
+enum ExportPreflightOutcome {
+  /// The user dismissed the sheet; nothing starts.
+  close,
+
+  /// The user started the export of the ready plan.
+  start,
+
+  /// The user asked to jump to the first blocking field (§10 point 2).
+  goToFields,
+}
+
+/// What the progress surface of `§10` point 3 returns when it closes.
+final class ExportProgressOutcome {
+  const ExportProgressOutcome({required this.attempt, required this.cancelled});
+
+  /// The terminal outcome of the run.
+  final ExportAttempt attempt;
+
+  /// Whether the platform claimed a cancellation of this run.
+  ///
+  /// A claimed cancellation is decided by the terminal result, not by the
+  /// cancel reply: `ExportAttemptFailed('PLT-004')` is the clean case, and a
+  /// render that won the race still reports success here. The editor therefore
+  /// shows no message and no preview for a cancelled run, and discards an
+  /// artifact that appeared anyway.
+  final bool cancelled;
+}
+
+/// Stable key of the content-free marker that records "this route is not
+/// protected against screenshots".
+///
+/// The marker carries no text: the catalog has no German sentence for a failed
+/// `platform.sensitiveRoute`, and the editor must neither block nor claim a
+/// protection it does not have (`contracts/platform-channel.md` §11 point 7).
+const String editorSensitiveRouteUnprotectedKey = 'sensitive-route-unprotected';
 
 /// Maximum per-edge difference in PDF points when comparing page geometry.
 ///
@@ -405,6 +469,7 @@ class EditorScreen extends StatefulWidget {
     required this.sourceBytes,
     required this.runtime,
     this.rendererFactory = openPdfrxPageRenderer,
+    this.exportFontMetricsLoader = loadExportFontMetrics,
     this.loadTimeout = editorLoadTimeout,
     this.analysisTimeout = editorAnalysisTimeout,
     super.key,
@@ -421,6 +486,13 @@ class EditorScreen extends StatefulWidget {
 
   /// Opens the viewer renderer for the resolved bytes.
   final PageViewRendererFactory rendererFactory;
+
+  /// Loads the bundled export font table.
+  ///
+  /// Production reads the committed `assets/fonts/metrics.json` through the
+  /// asset bundle; a host test injects the same table synchronously because a
+  /// widget-test fake-async zone never completes a bundle read.
+  final Future<ExportFontMetrics> Function() exportFontMetricsLoader;
 
   /// Bound on the single revision/source load; tests may shorten it.
   final Duration loadTimeout;
@@ -464,6 +536,12 @@ class EditorScreenState extends State<EditorScreen> {
   DateTime? _lastDurableAt;
   Set<int> _uncertainPages = const <int>{};
   bool _valueSheetOpen = false;
+  ExportController? _exporter;
+  bool _exportBusy = false;
+
+  /// Read-back state of `FLAG_SECURE`: `null` while unknown or pending, `true`
+  /// only when the platform confirmed the flag.
+  bool? _sensitiveRouteProtected;
 
   /// The loaded or analyzed revision snapshot, or null when loading failed.
   core.RevisionContent? get content => _content;
@@ -516,6 +594,7 @@ class EditorScreenState extends State<EditorScreen> {
     _stripController = PageStripController(viewer: _viewerController);
     _stripPages = _buildStripPagesFromSource();
     _selectionController = FieldSelectionController();
+    unawaited(_applySensitiveRoute(SensitiveRoute.editor));
     unawaited(_loadAndAnalyze());
   }
 
@@ -2029,6 +2108,419 @@ class EditorScreenState extends State<EditorScreen> {
     await _openFieldValueSheet(field);
   }
 
+  /// Whether the current document state may be exported.
+  ///
+  /// A durable revision must exist (the plan identifies what it exports), the
+  /// snapshot must be the verified load, and the first analysis pass must have
+  /// finished — `ready` or `skipped`, never `failed` or still pending. A save
+  /// or export already in flight disables the action instead of queueing a
+  /// second one.
+  bool get _exportAvailable {
+    return _content != null &&
+        _loadedDocument != null &&
+        _headRevisionId != null &&
+        (_analysisStateKey == editorAnalysisReadyKey ||
+            _analysisStateKey == editorAnalysisSkippedKey) &&
+        !_exportBusy &&
+        !_reviewBusy;
+  }
+
+  /// The session exporter, created once with the bundled font table.
+  Future<ExportController> _sessionExporter() async {
+    final ExportController? existing = _exporter;
+    if (existing != null) {
+      return existing;
+    }
+    final ExportController created = ExportController(
+      exportPort: widget.runtime.export,
+      clock: widget.runtime.clock,
+      metrics: await widget.exportFontMetricsLoader(),
+      evidenceClass: editorEvidenceClass(),
+    );
+    return _exporter = created;
+  }
+
+  /// Applies or clears the screenshot protection of the current route.
+  ///
+  /// The chosen fail-safe variant (`contracts/platform-channel.md` §11 point
+  /// 7): the editor never blocks on this call and never claims protection it
+  /// does not have. A thrown or `false` result leaves the editor fully usable
+  /// and records the content-free [editorSensitiveRouteUnprotectedKey] state;
+  /// only a `true` read-back counts as protected.
+  Future<void> _applySensitiveRoute(SensitiveRoute route) async {
+    bool applied;
+    try {
+      applied = await widget.runtime.setSensitiveRoute(route);
+    } catch (_) {
+      applied = false;
+    }
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _sensitiveRouteProtected = applied;
+    });
+  }
+
+  /// Leaves the editor route: clears the protection, then disposes the runtime.
+  ///
+  /// The order is deliberate. Clearing the flag first keeps the flag honest
+  /// after the document is gone; disposing last keeps the one teardown path of
+  /// this screen.
+  Future<void> _releaseSession() async {
+    await _applySensitiveRoute(SensitiveRoute.none);
+    await widget.runtime.dispose();
+  }
+
+  /// Runs the export flow of `contracts/editor-interactions.md` §10.
+  ///
+  /// 1. The plan is built from the **live** revision (`_content` and
+  ///    `_headRevisionId`, not the snapshot of the load): every confirm,
+  ///    reject, value, and geometry commit replaces those, so exporting the
+  ///    load would export an older state.
+  /// 2. A blocking preflight or layout warning shows its German catalog text,
+  ///    the page of each affected field, and the jump to the first one
+  ///    (§10 point 2); nothing starts.
+  /// 3. Otherwise the pre-export information is shown: the empty-field count
+  ///    and the unresolved-suggestion count. Neither blocks; the
+  ///    unresolved-suggestion sentence is the **provisional** OD-1 policy of
+  ///    `contracts/export-plan.md` §3.4 and is not a settled export rule.
+  /// 4. The user starts the export; the port validates and renders, and only a
+  ///    verified artifact opens the preview. A failure offers „Erneut
+  ///    versuchen“ with the same action (§10 point 5).
+  ///
+  /// Every message is an ARB sentence from the catalog; no path, URI, value,
+  /// or OCR text is rendered or logged here.
+  Future<void> _startExport() async {
+    final LoadedDocument? loaded = _loadedDocument;
+    final core.RevisionContent? content = _content;
+    final String? revisionId = _headRevisionId;
+    if (loaded == null ||
+        content == null ||
+        revisionId == null ||
+        _exportBusy) {
+      return;
+    }
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    setState(() {
+      _exportBusy = true;
+    });
+    try {
+      final ExportController controller;
+      try {
+        controller = await _sessionExporter();
+      } catch (_) {
+        _showReviewMessage(l10n.exp002, retryExport: true);
+        return;
+      }
+      if (!mounted) {
+        return;
+      }
+      final ExportPreparation preparation;
+      try {
+        preparation = controller.prepare(
+          loaded,
+          content: content,
+          revisionId: revisionId,
+        );
+      } catch (_) {
+        _showReviewMessage(l10n.exp002, retryExport: true);
+        return;
+      }
+      final ExportPreflightOutcome? outcome =
+          await showModalBottomSheet<ExportPreflightOutcome>(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            builder: (BuildContext sheetContext) =>
+                _exportPreflightSheet(sheetContext, preparation),
+          );
+      if (!mounted) {
+        return;
+      }
+      switch (outcome) {
+        case null || ExportPreflightOutcome.close:
+          return;
+        case ExportPreflightOutcome.goToFields:
+          await _jumpToFirstBlockingField(preparation);
+          return;
+        case ExportPreflightOutcome.start:
+          break;
+      }
+      switch (preparation) {
+        case ExportPreparationBlocked():
+          // The sheet showed the blocking catalog text; nothing starts.
+          return;
+        case ExportPreparationReady ready:
+          // `§10` point 3: the run happens on a progress surface that shows the
+          // reported phase and offers the cancel action. The surface owns the
+          // run, so its lifetime and the run's are one; see
+          // [_ExportProgressDialog].
+          if (!mounted) {
+            return;
+          }
+          final ExportProgressOutcome? outcome =
+              await showDialog<ExportProgressOutcome>(
+                context: context,
+                barrierDismissible: false,
+                builder: (BuildContext dialogContext) =>
+                    _exportProgress(controller, ready),
+              );
+          if (outcome == null) {
+            // The progress surface was torn down with the route; it discarded
+            // a produced artifact itself, because nothing could present it.
+            return;
+          }
+          final ExportAttempt attempt = outcome.attempt;
+          if (!mounted) {
+            // The route is gone, so no preview can own the artifact. Discarding
+            // it here is the only deletion path left (§10 point 6).
+            if (attempt is ExportAttemptSucceeded) {
+              await _discardArtifact(attempt.artifact.id);
+            }
+            return;
+          }
+          if (outcome.cancelled) {
+            // §10 point 3 and `platform-channel.md` §9: cancellation publishes
+            // the developer-only `PLT-004` and cleans the staged files, so it
+            // is neither an error nor a preview. A render that won the race
+            // with the cancellation still reports success and is discarded
+            // here instead of being shown.
+            if (attempt is ExportAttemptSucceeded) {
+              await _discardArtifact(attempt.artifact.id);
+            }
+            return;
+          }
+          switch (attempt) {
+            case ExportAttemptSucceeded(:final ExportArtifact artifact):
+              await Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  builder: (BuildContext context) => ExportPreviewScreen(
+                    runtime: widget.runtime,
+                    artifact: artifact,
+                  ),
+                ),
+              );
+            case ExportAttemptBlocked(:final ExportValidation validation):
+              final List<ExportFailureText> texts = exportBlockedTexts(
+                l10n,
+                validation,
+              );
+              if (texts.isNotEmpty) {
+                _showReviewMessage(texts.first.message);
+              }
+            case ExportAttemptFailed(:final String code):
+              final ExportFailureText? text = exportFailureCodeText(l10n, code);
+              if (text != null) {
+                _showReviewMessage(text.message, retryExport: true);
+              }
+          }
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _exportBusy = false;
+        });
+      }
+    }
+  }
+
+  /// Deletes one ephemeral artifact without letting a failure escape.
+  ///
+  /// This is the disposal path of a running export: the preview route never
+  /// opened, so nothing else would delete the file. The failure is swallowed
+  /// because there is no route left to report it on and no user data is at
+  /// stake — the file stays in the app's private cache.
+  Future<void> _discardArtifact(String artifactId) async {
+    try {
+      await widget.runtime.export.deleteArtifact(artifactId);
+    } catch (_) {
+      // Best effort only; the id and the cause are never logged.
+    }
+  }
+
+  /// Selects the first blocking field and opens it for filling.
+  ///
+  /// `contracts/editor-interactions.md` §10 point 2 requires the jump from a
+  /// blocking warning to the field that causes it. The field is resolved in the
+  /// live revision, so a warning about a field that no longer exists simply
+  /// moves on to the next one.
+  Future<void> _jumpToFirstBlockingField(ExportPreparation preparation) async {
+    if (preparation is! ExportPreparationBlocked) {
+      return;
+    }
+    final ExportValidation validation = preparation.validation;
+    final core.RevisionContent? live = _content;
+    if (live == null) {
+      return;
+    }
+    for (final ExportValidationWarning warning in validation.warnings) {
+      final String? fieldId = warning.fieldId;
+      if (fieldId == null) {
+        continue;
+      }
+      final core.ConfirmedField? field = _fieldById(live, fieldId);
+      if (field == null) {
+        continue;
+      }
+      _selectFieldInOrder(field.id);
+      await _openFieldValueSheet(field);
+      return;
+    }
+  }
+
+  /// The progress surface of `contracts/editor-interactions.md` §10 point 3.
+  ///
+  /// It carries the reported phase as a text, the best-effort fraction as a
+  /// bar, and the one cancel action that issues `cancel.operation` (§9). No
+  /// page, field, value, path, or artifact id is shown; the phase texts are
+  /// committed ARB strings and nothing is composed here.
+  Widget _exportProgress(
+    ExportController controller,
+    ExportPreparationReady preparation,
+  ) {
+    return _ExportProgressDialog(
+      controller: controller,
+      preparation: preparation,
+      operation: widget.runtime.exportOperation,
+      discardArtifact: _discardArtifact,
+    );
+  }
+
+  /// The pre-export sheet with the blocking warnings or the OD-1 information.
+  ///
+  /// The start action exists only for a ready plan: a blocked snapshot can be
+  /// inspected, never started. A blocked snapshot instead offers the §10 point
+  /// 2 jump to the first blocking field. Every label is a committed ARB string;
+  /// the page labels reuse the existing one-based `Seite {page}` key, so no new
+  /// user text is introduced here.
+  Widget _exportPreflightSheet(
+    BuildContext sheetContext,
+    ExportPreparation preparation,
+  ) {
+    final AppLocalizations l10n = AppLocalizations.of(sheetContext);
+    final ThemeData theme = Theme.of(sheetContext);
+    final core.RevisionContent? live = _content;
+    final List<Widget> body = <Widget>[];
+    bool ready = false;
+    bool jumpable = false;
+    switch (preparation) {
+      case ExportPreparationReady(:final ExportPlanInfo info):
+        ready = true;
+        if (info.emptyFieldCount > 0) {
+          body.add(Text(l10n.preExportEmptyFields(info.emptyFieldCount)));
+        }
+        if (info.unresolvedSuggestionCount > 0) {
+          // Provisional OD-1 policy (`contracts/export-plan.md` §3.4): the
+          // unreviewed suggestions are excluded from the plan and do not
+          // block.
+          body.add(
+            Text(
+              l10n.preExportUnreviewedSuggestions(
+                info.unresolvedSuggestionCount,
+              ),
+            ),
+          );
+        }
+      case ExportPreparationBlocked(:final ExportValidation validation):
+        for (final ExportFailureText text in exportBlockedTexts(
+          l10n,
+          validation,
+        )) {
+          body.add(Text(text.message));
+          final String? recovery = text.recovery;
+          if (recovery != null) {
+            body.add(Text(recovery, style: theme.textTheme.bodySmall));
+          }
+        }
+        for (final ExportValidationWarning warning in validation.warnings) {
+          final int? page = _warningFieldPage(live, warning);
+          if (page == null) {
+            // A page-level warning (`EXP-006`) already names its page in the
+            // catalog sentence above; only field-scoped warnings list here.
+            continue;
+          }
+          jumpable = true;
+          final String? label = warning.fieldLabel;
+          body.add(
+            Row(
+              children: <Widget>[
+                if (label != null) Expanded(child: Text(label)),
+                Text(
+                  l10n.suggestionPage(page),
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ),
+          );
+        }
+    }
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Text(l10n.exportAction, style: theme.textTheme.titleMedium),
+            const SizedBox(height: 8),
+            for (final Widget widget in body) ...<Widget>[
+              widget,
+              const SizedBox(height: 8),
+            ],
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                if (jumpable)
+                  TextButton(
+                    key: const ValueKey<String>('export-preflight-fields'),
+                    onPressed: () =>
+                        Navigator.of(sheetContext)
+                            .pop(ExportPreflightOutcome.goToFields),
+                    child: Text(l10n.exportPreflightGoToFields),
+                  ),
+                TextButton(
+                  key: const ValueKey<String>('export-preflight-close'),
+                  onPressed: () =>
+                      Navigator.of(sheetContext)
+                          .pop(ExportPreflightOutcome.close),
+                  child: Text(l10n.exportCloseAction),
+                ),
+                if (ready)
+                  FilledButton(
+                    key: const ValueKey<String>('export-preflight-start'),
+                    onPressed: () =>
+                        Navigator.of(sheetContext)
+                            .pop(ExportPreflightOutcome.start),
+                    child: Text(l10n.exportAction),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// The one-based page of the field a blocking warning names, or null when the
+  /// warning is not about a field of the live revision.
+  ///
+  /// The page is read from the live document (`fields[fieldId].pageIndex + 1`),
+  /// because the field is what the jump selects; the warning's own page index is
+  /// not used, so a stale warning cannot label a page the document no longer
+  /// has.
+  int? _warningFieldPage(
+    core.RevisionContent? content,
+    ExportValidationWarning warning,
+  ) {
+    final String? fieldId = warning.fieldId;
+    if (content == null || fieldId == null) {
+      return null;
+    }
+    final core.ConfirmedField? field = _fieldById(content, fieldId);
+    return field == null ? null : field.pageIndex + 1;
+  }
+
   Future<void> _showPrivacyDisclosure() async {
     final AppLocalizations l10n = AppLocalizations.of(context);
     await showDialog<void>(
@@ -2049,13 +2541,28 @@ class EditorScreenState extends State<EditorScreen> {
     );
   }
 
-  void _showReviewMessage(String message) {
+  void _showReviewMessage(String message, {bool retryExport = false}) {
     if (!mounted) {
       return;
     }
+    final AppLocalizations l10n = AppLocalizations.of(context);
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          // §10 point 5: a failed export offers „Erneut versuchen“, which runs
+          // the same export action again; no separate retry state exists.
+          action: retryExport
+              ? SnackBarAction(
+                  label: l10n.actionRetry,
+                  onPressed: () {
+                    unawaited(_startExport());
+                  },
+                )
+              : null,
+        ),
+      );
   }
 
   void _completeSourceBytes(Uint8List? bytes) {
@@ -2117,7 +2624,7 @@ class EditorScreenState extends State<EditorScreen> {
     _selectionController.dispose();
     _stripController.dispose();
     _viewerController.dispose();
-    unawaited(widget.runtime.dispose());
+    unawaited(_releaseSession());
     super.dispose();
   }
 
@@ -2137,6 +2644,16 @@ class EditorScreenState extends State<EditorScreen> {
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: <Widget>[
+          IconButton(
+            key: editorExportActionKey,
+            tooltip: l10n.exportAction,
+            onPressed: _exportAvailable
+                ? () {
+                    unawaited(_startExport());
+                  }
+                : null,
+            icon: const Icon(Icons.picture_as_pdf_outlined),
+          ),
           IconButton(
             key: editorOverviewActionKey,
             tooltip: l10n.documentOverviewTitle,
@@ -2185,6 +2702,10 @@ class EditorScreenState extends State<EditorScreen> {
           children: <Widget>[
             if (_analysisStateKey != null)
               SizedBox.shrink(key: ValueKey<String>(_analysisStateKey!)),
+            if (_sensitiveRouteProtected == false)
+              SizedBox.shrink(
+                key: const ValueKey<String>(editorSensitiveRouteUnprotectedKey),
+              ),
             PageStrip(controller: _stripController, pages: _stripPages),
             // The page strip stays fixed under the app bar. The warning and
             // review panel are header content: with an open IME (or at 200 %
@@ -2306,4 +2827,158 @@ class _Imp006Warning extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The export progress surface with the cancel action of `§10` point 3.
+///
+/// The surface owns the run: it starts [ExportController.run] once in
+/// `initState`, relays the content-free `export.progress` steps of the session,
+/// and closes itself with the terminal [ExportProgressOutcome]. That keeps the
+/// dialog, the subscription, and the run on one lifetime, so no route can
+/// outlive the other. Back is not a way out (`canPop: false`): leaving the
+/// surface would abandon a terminal result nobody could present, and the
+/// artifact would have no owner.
+///
+/// A cancel that the platform does not claim (`false`, §9) changes nothing:
+/// the run keeps going and the surface keeps showing it. A thrown cancel is
+/// treated the same way, because the catalog has no sentence for it and a
+/// claimed cancellation must never be invented.
+class _ExportProgressDialog extends StatefulWidget {
+  const _ExportProgressDialog({
+    required this.controller,
+    required this.preparation,
+    required this.operation,
+    required this.discardArtifact,
+  });
+
+  final ExportController controller;
+  final ExportPreparationReady preparation;
+  final ExportOperationControl operation;
+
+  /// Deletes an artifact that this surface cannot hand on. It is the editor's
+  /// own disposal path, so both routes share one deletion policy (§10 point 6).
+  final Future<void> Function(String artifactId) discardArtifact;
+
+  @override
+  State<_ExportProgressDialog> createState() => _ExportProgressDialogState();
+}
+
+class _ExportProgressDialogState extends State<_ExportProgressDialog> {
+  StreamSubscription<ExportProgress>? _subscription;
+  ExportProgress? _progress;
+  bool _cancelInFlight = false;
+  bool _cancelled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Progress is best-effort (§8.1): a stream error is not an export error and
+    // never replaces the terminal result.
+    _subscription = widget.operation.progress.listen(
+      _onProgress,
+      onError: (Object _) {},
+    );
+    unawaited(_run());
+  }
+
+  @override
+  void dispose() {
+    unawaited(_subscription?.cancel());
+    super.dispose();
+  }
+
+  void _onProgress(ExportProgress step) {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _progress = step;
+    });
+  }
+
+  Future<void> _run() async {
+    final ExportAttempt attempt = await widget.controller.run(
+      widget.preparation,
+    );
+    if (!mounted) {
+      // The route is gone, so nothing can present or delete the artifact; this
+      // surface is then the only owner left and discards it.
+      if (attempt is ExportAttemptSucceeded) {
+        await widget.discardArtifact(attempt.artifact.id);
+      }
+      return;
+    }
+    Navigator.of(context)
+        .pop(ExportProgressOutcome(attempt: attempt, cancelled: _cancelled));
+  }
+
+  Future<void> _cancel() async {
+    if (_cancelInFlight) {
+      return;
+    }
+    setState(() {
+      _cancelInFlight = true;
+    });
+    bool claimed;
+    try {
+      claimed = await widget.operation.cancel();
+    } catch (_) {
+      claimed = false;
+    }
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _cancelInFlight = false;
+      _cancelled = claimed;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    final ExportProgress? step = _progress;
+    return PopScope(
+      canPop: false,
+      child: AlertDialog(
+        key: editorExportProgressKey,
+        title: Text(l10n.exportProgressTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            if (step != null) ...<Widget>[
+              Text(exportProgressPhaseText(l10n, step.phase)),
+              const SizedBox(height: 12),
+            ],
+            LinearProgressIndicator(value: step?.fraction),
+          ],
+        ),
+        actions: <Widget>[
+          TextButton(
+            key: editorExportProgressCancelKey,
+            onPressed: _cancelInFlight
+                ? null
+                : () {
+                    unawaited(_cancel());
+                  },
+            child: Text(l10n.exportProgressCancelAction),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The German text of one export phase (`platform-channel.md` §6).
+///
+/// Every sentence is a committed ARB key; the phase tokens themselves stay
+/// machine identifiers and are never rendered.
+String exportProgressPhaseText(AppLocalizations l10n, ExportPhase phase) {
+  return switch (phase) {
+    ExportPhase.importing => l10n.exportProgressImporting,
+    ExportPhase.drawing => l10n.exportProgressDrawing,
+    ExportPhase.verifying => l10n.exportProgressVerifying,
+    ExportPhase.finalizing => l10n.exportProgressFinalizing,
+  };
 }

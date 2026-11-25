@@ -6,9 +6,9 @@
 //
 // Normative sources:
 //   * `specs/001-scanned-form-workflow/contracts/platform-channel.md` §2.2,
-//     §3, §4, and §5;
-//   * `specs/001-scanned-form-workflow/contracts/ports.md` §2.2, §2.3, and
-//     §2.4;
+//     §3, §4, §5, §6, §7, and §11 point 7;
+//   * `specs/001-scanned-form-workflow/contracts/ports.md` §2.2, §2.3, §2.4,
+//     §2.5, and §2.6;
 //   * `specs/001-scanned-form-workflow/spec.md` FR-014, FR-017, FR-018,
 //     FR-019, and FR-020;
 //   * constitution Principles II, III, VI, VIII, and X.
@@ -16,8 +16,11 @@
 // This is the editor's single platform-capability seam. It exposes the existing
 // raster, OCR, secure-store, and id ports plus the two editor operations that
 // must go through the same composed adapter set: loading the current revision
-// and saving a new revision. It adds no second runtime, store, orchestrator,
-// contract, or platform channel.
+// and saving a new revision. The export flow adds the existing
+// `PdfExportPort`/`DeliveryPort` and the `platform.sensitiveRoute` capability of
+// §11 point 7; the export preview is reached from the editor session, so it
+// reads the same composed adapters instead of composing a second set. It adds
+// no second runtime, store, orchestrator, contract, or platform channel.
 //
 // The Android implementation is selected only on `dart.library.io` targets and
 // composes the existing T027 thin clients. Every other target receives the
@@ -32,10 +35,35 @@ import 'package:feldexa_application/src/recognition/raster_page_stage_runner.dar
     show RecognitionExecution;
 import 'package:feldexa_ports/feldexa_ports.dart';
 
+import '../export/export_progress.dart';
 import 'editor_runtime_unavailable.dart'
     if (dart.library.io) 'editor_runtime_android.dart'
     if (dart.library.js_interop) 'editor_runtime_unavailable.dart'
     as platform;
+
+/// The document routes that must block screenshots and Recents thumbnails
+/// (`contracts/platform-channel.md` §11 point 7).
+///
+/// The wire values are the exact `route` payload tokens of
+/// `platform.sensitiveRoute`; [none] clears the protection.
+enum SensitiveRoute {
+  /// The editor route with a decrypted document on screen.
+  editor('editor'),
+
+  /// The export preview route showing a produced PDF.
+  export('export'),
+
+  /// No sensitive document route is visible; the platform flag is cleared.
+  none('none');
+
+  const SensitiveRoute(this.wireName);
+
+  /// Stable channel token.
+  final String wireName;
+
+  /// The protection state this route requires.
+  bool get requiresProtection => this != SensitiveRoute.none;
+}
 
 /// The platform capabilities the editor composition needs.
 ///
@@ -76,6 +104,37 @@ abstract interface class EditorRuntime {
   ///
   /// Production compositions resolve [RecognitionExecution.offIsolate].
   RecognitionExecution get recognitionExecution;
+
+  /// Plan validation and flattened PDF export (`contracts/ports.md` §2.5).
+  PdfExportPort get export;
+
+  /// Progress phases and the cancel action of the running export
+  /// (`contracts/editor-interactions.md` §10 point 3).
+  ///
+  /// This is not a port: the Android composition adapts the existing
+  /// `export.progress` events and the existing `cancel.operation` call of
+  /// `contracts/platform-channel.md` §6/§9 of the same channel onto it. A
+  /// composition without a cancellable export resolves
+  /// [UnavailableExportOperationControl], which reports no progress and cancels
+  /// nothing.
+  ExportOperationControl get exportOperation;
+
+  /// Save, share, and print hand-off (`contracts/ports.md` §2.6).
+  DeliveryPort get delivery;
+
+  /// Applies or clears the screenshot/screen-recording protection for the
+  /// current document route (`contracts/platform-channel.md` §11 point 7).
+  ///
+  /// Returns the protection state the platform reports after the request:
+  /// `true` only when the window demonstrably carries `FLAG_SECURE`. The
+  /// implementation never returns `true` for a request it could not apply, so
+  /// a caller can distinguish "protected" from "not protected" instead of
+  /// assuming protection.
+  ///
+  /// A fail-closed runtime throws [UnsupportedOperationException]; a rejected
+  /// channel request throws a `FeldexaException`. Both mean *not protected*:
+  /// a caller keeps the editor usable and must never claim protection.
+  Future<bool> setSensitiveRoute(SensitiveRoute route);
 
   /// Loads the current verified revision for [documentId].
   ///

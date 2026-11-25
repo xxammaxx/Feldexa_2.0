@@ -72,6 +72,36 @@ const Set<String> _nonCodeArbKeys = <String>{
   'emptyTemplates',
   'exportAction',
   'exportSuccess',
+  // Issue #334 export-preview surface. The error catalog has no coded row for
+  // a preview page/size summary or for the four preview actions; the wording
+  // is the one `contracts/editor-interactions.md` §10 point 4 names
+  // („Speichern“, „Teilen“, „Drucken“, „Schließen“) and the brief's requirement
+  // that the preview shows the produced artifact's page count and size.
+  'exportPreviewPageCount',
+  'exportPreviewFileSize',
+  'exportPreviewSaveAction',
+  'exportPreviewShareAction',
+  'exportPreviewPrintAction',
+  'exportCloseAction',
+  // Issue #334 review fix (§10 point 2): the jump from a blocking export
+  // warning to the first blocking field. `contracts/editor-interactions.md`
+  // §10 point 2 names the label verbatim („Zu den Feldern“) but the catalog has
+  // no coded row for it; the key exists only for that contract sentence. The
+  // page label of the listed warnings reuses the existing one-based
+  // `suggestionPage` („Seite {page}“) instead of adding a second wording.
+  'exportPreflightGoToFields',
+  // Issue #334 §10 point 3 (progress phases + cancel action). The catalog has
+  // no row for a phase label or for the cancel action; these keys carry the
+  // four `export.progress` phase tokens of `contracts/platform-channel.md` §6
+  // (importing/drawing/verifying/finalizing), the surface heading, and the
+  // standard German cancel label. The section-8 "Export action" rows keep
+  // `exportAction`/`exportCloseAction`; nothing here renames them.
+  'exportProgressTitle',
+  'exportProgressImporting',
+  'exportProgressDrawing',
+  'exportProgressVerifying',
+  'exportProgressFinalizing',
+  'exportProgressCancelAction',
   'fieldCount',
   'fillAction',
   'importAction',

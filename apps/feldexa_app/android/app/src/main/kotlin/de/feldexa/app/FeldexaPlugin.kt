@@ -75,6 +75,9 @@ class FeldexaPlugin internal constructor(
                 events = publisher,
                 results = results,
                 limits = limits,
+                // §11 point 7: the activity owns the window; without one the
+                // route is reported as not protected.
+                sensitiveRoute = { activity as? SensitiveRouteHost },
             )
             facade = created
 
@@ -981,6 +984,34 @@ class PlatformServiceRegistry {
 }
 
 /**
+ * Applies the editor/export screenshot protection of
+ * `contracts/platform-channel.md` §11 point 7.
+ *
+ * Implemented by the activity-bound host (`MainActivity`), which owns the
+ * window; the facade only forwards the validated route token and never touches
+ * window or activity state itself. `apply` must be main-thread safe and returns
+ * the read-back `FLAG_SECURE` state: `false` means the route is *not* protected
+ * and is reported to Dart unchanged.
+ */
+fun interface SensitiveRouteHost {
+    fun apply(route: String): Boolean
+
+    companion object {
+        /** Wire token that clears the protection (§11 point 7). */
+        const val ROUTE_NONE: String = "none"
+
+        /** Wire token of the editor route. */
+        const val ROUTE_EDITOR: String = "editor"
+
+        /** Wire token of the export preview route. */
+        const val ROUTE_EXPORT: String = "export"
+
+        /** Every accepted route token, in contract order. */
+        val ROUTES: Set<String> = setOf(ROUTE_EDITOR, ROUTE_EXPORT, ROUTE_NONE)
+    }
+}
+
+/**
  * The reusable channel core: payload validation, envelope, threading,
  * cancellation, duration, and error mapping. [FeldexaPlugin] is the thin
  * Flutter/Android adapter around this class.
@@ -991,6 +1022,11 @@ class PlatformChannelFacade(
     val events: PlatformEventPublisher = PlatformEventPublisher(mainPoster),
     val results: PlatformResultPublisher = PlatformResultPublisher(mainPoster),
     private val executor: BackgroundExecutor = BoundedBackgroundExecutor(),
+    /**
+     * Resolves the activity-bound sensitive-route host, or null when the
+     * engine has no activity. A null host is answered as "not protected".
+     */
+    private val sensitiveRoute: () -> SensitiveRouteHost? = { null },
     /**
      * Dedicated cancellation paths. They intentionally bypass the keyed serial
      * executor: the running operation holds its key, so a cancel queued behind
@@ -1025,6 +1061,26 @@ class PlatformChannelFacade(
             throw error
         } catch (unexpected: Exception) {
             reply.error(PlatformFailure.internal().withDuration(elapsedSince(startedAt)))
+            return
+        }
+
+        if (method == "platform.sensitiveRoute") {
+            // `contracts/platform-channel.md` §11 point 7: apply or clear
+            // FLAG_SECURE for the current document route. The activity-bound
+            // host owns the window and is main-thread safe; this handler only
+            // forwards the already validated token and reports the read-back
+            // state. A missing host or a thrown failure is answered as
+            // "not protected" instead of claiming a protection that does not
+            // exist.
+            val route = request.payload["route"] as String
+            val secure = try {
+                sensitiveRoute()?.apply(route) ?: false
+            } catch (error: Exception) {
+                false
+            }
+            reply.success(
+                successEnvelope(linkedMapOf("route" to route, "secure" to secure)),
+            )
             return
         }
 
@@ -2276,6 +2332,10 @@ private class MethodCatalog(private val limits: ChannelLimits) {
             listOf(UuidRule("artifactId"), StringRule("jobName", 200)),
         ),
         MethodSpec("cancel.operation", listOf(UuidRule("operationId"))),
+        MethodSpec(
+            "platform.sensitiveRoute",
+            listOf(EnumRule("route", SensitiveRouteHost.ROUTES)),
+        ),
     ).associateBy { it.name }
 
     fun specFor(method: String): MethodSpec? = specs[method]

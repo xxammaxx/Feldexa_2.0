@@ -5,15 +5,18 @@ import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.os.Bundle
+import android.os.Looper
 import android.print.PrintAttributes
 import android.print.PrintManager
 import android.provider.OpenableColumns
+import android.view.WindowManager
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.ActivityResultRegistry
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.content.FileProvider
+import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import de.feldexa.app.delivery.DeliveryHost
 import de.feldexa.app.delivery.DeliveryService
 import de.feldexa.app.delivery.PdfArtifactPrintAdapter
@@ -45,6 +48,10 @@ import io.flutter.embedding.engine.FlutterEngine
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * T024: hosts the single [FeldexaPlugin] facade.
@@ -94,8 +101,13 @@ import java.io.OutputStream
  * the flows, the byte copy, and the verification live in `DeliveryService`. The
  * session artifacts live in `cacheDir/feldexa_exports/` — the only path the
  * `FileProvider` exposes (`contracts/platform-channel.md` §11 point 8).
+ *
+ * Issue #334 / §11 point 7: this class is the [SensitiveRouteHost] of
+ * `platform.sensitiveRoute`. It owns the window and therefore the only place
+ * that may add or clear `FLAG_SECURE`; the flag is mutated on the main thread
+ * and read back before it is reported.
  */
-class MainActivity : FlutterActivity() {
+class MainActivity : FlutterActivity(), SensitiveRouteHost {
 
     companion object {
         /** `contracts/storage-format.md` §1. */
@@ -122,6 +134,13 @@ class MainActivity : FlutterActivity() {
 
         /** Authority of the `FileProvider` declared in the manifest. */
         private const val FILE_PROVIDER_AUTHORITY_SUFFIX = ".feldexa.exports"
+
+        /**
+         * Bound on the off-main handshake of [apply]. A slow or blocked UI
+         * thread must not hang the channel; the answer is then "not
+         * protected".
+         */
+        private const val SENSITIVE_ROUTE_TIMEOUT_SECONDS = 2L
     }
 
     private var feldexaPlugin: FeldexaPlugin? = null
@@ -189,6 +208,13 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        // pdfbox-android reads its predefined CMaps and glyph lists from the APK
+        // assets (`assets/com/tom_roush/fontbox/resources/…`). Without this
+        // init the first `PDType0Font.load` fails with an `IOException` from
+        // `CMapParser.getExternalCMap`, which the export answers as the
+        // content-free `PLT-001` internal failure. It is idempotent and runs
+        // before any service is registered, so no PDFBox call can precede it.
+        PDFBoxResourceLoader.init(applicationContext)
         val plugin = FeldexaPlugin()
         feldexaPlugin = plugin
         flutterEngine.plugins.add(plugin)
@@ -460,6 +486,61 @@ class MainActivity : FlutterActivity() {
     override fun onResume() {
         super.onResume()
         feldexaPlugin?.onHostLifecycle(HostLifecycle.RESUMED)
+    }
+
+    // ------------------------------------------------------------------
+    // §11 point 7 screenshot protection
+    // ------------------------------------------------------------------
+
+    /**
+     * Applies or clears `FLAG_SECURE` for `route` and returns the read-back
+     * state.
+     *
+     * The token is already validated by the facade's method catalog. The flag
+     * is mutated only on the main thread: an on-main caller applies it inline,
+     * every other caller is handed to the UI thread with a bounded wait. A
+     * missing window, a timeout, or an interrupt answers `false` — the route is
+     * then reported as not protected, which is the honest state and never a
+     * claim about a flag that was not set.
+     */
+    override fun apply(route: String): Boolean {
+        val secure = route != SensitiveRouteHost.ROUTE_NONE
+        val applyFlag = {
+            val current = window
+            if (current == null) {
+                false
+            } else {
+                if (secure) {
+                    current.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                } else {
+                    current.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                }
+                // Read back instead of assuming: the flag is the claim.
+                (current.attributes.flags and WindowManager.LayoutParams.FLAG_SECURE) != 0
+            }
+        }
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            return applyFlag()
+        }
+        val applied = AtomicReference(false)
+        val done = AtomicBoolean(false)
+        val latch = CountDownLatch(1)
+        runOnUiThread {
+            if (done.compareAndSet(false, true)) {
+                applied.set(applyFlag())
+                latch.countDown()
+            }
+        }
+        return try {
+            if (latch.await(SENSITIVE_ROUTE_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                applied.get()
+            } else {
+                false
+            }
+        } catch (interrupted: InterruptedException) {
+            Thread.currentThread().interrupt()
+            false
+        }
     }
 
     override fun onPause() {

@@ -55,6 +55,8 @@ import 'package:feldexa_ui/feldexa_ui.dart' as ui;
 import 'package:flutter/material.dart' hide PageView;
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/editor_runtime_export_stub.dart';
+
 const String _documentId = '5f0c3a52-3a6a-4f0b-9c2d-1b7e4d8a6c01';
 const String _sourceId = '7b2d4c1e-5f3a-4b8c-8a9d-2e6f0c1b3d42';
 const String _revisionId = '9a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d';
@@ -378,7 +380,9 @@ final class _FakeClock implements ClockPort {
   DateTime nowUtc() => _savedAt;
 }
 
-final class _FakeEditorRuntime implements EditorRuntime {
+final class _FakeEditorRuntime
+    with FakeEditorRuntimeExportStub
+    implements EditorRuntime {
   _FakeEditorRuntime(this.fakeStore);
 
   final _FakeStore fakeStore;

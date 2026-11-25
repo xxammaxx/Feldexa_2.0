@@ -9,16 +9,20 @@
 //
 // The app's Web surface is a development surface, not a production editor
 // target. Loading or saving a revision therefore fails closed with the typed
-// `UnsupportedOperationException`. The editor keeps the already-imported
-// viewer available through its separate source-bytes closure and exposes only
-// a content-free internal state; no document, suggestion, revision, or
-// evidence claim is fabricated. This file is not an evidence claim of any
-// class.
+// `UnsupportedOperationException`. The export/delivery ports and the
+// `platform.sensitiveRoute` capability fail closed the same way: this runtime
+// cannot produce a verified artifact, cannot hand one to the platform, and must
+// never report a screenshot protection it did not apply. The editor keeps the
+// already-imported viewer available through its separate source-bytes closure
+// and exposes only a content-free internal state; no document, suggestion,
+// revision, or evidence claim is fabricated. This file is not an evidence claim
+// of any class.
 
 import 'package:feldexa_application/src/recognition/raster_page_stage_runner.dart'
     show RecognitionExecution;
 import 'package:feldexa_ports/feldexa_ports.dart';
 
+import '../export/export_progress.dart';
 import 'editor_runtime.dart';
 
 /// Builds the fail-closed non-Android editor runtime.
@@ -48,6 +52,25 @@ final class _UnavailableEditorRuntime implements EditorRuntime {
 
   @override
   ClockPort get clock => _unavailable();
+
+  @override
+  PdfExportPort get export => _unavailable();
+
+  /// Reports no progress and cancels nothing instead of throwing: the export
+  /// surface of `§10` point 3 must stay renderable, and this runtime has no
+  /// operation to cancel anyway (its export port fails closed first).
+  @override
+  ExportOperationControl get exportOperation =>
+      const UnavailableExportOperationControl();
+
+  @override
+  DeliveryPort get delivery => _unavailable();
+
+  /// Fail-closed by design: there is no window to protect on this target, so
+  /// the runtime reports "not protected" by throwing instead of returning
+  /// `false` or, worse, `true`.
+  @override
+  Future<bool> setSensitiveRoute(SensitiveRoute route) async => _unavailable();
 
   /// The browser build has no worker isolates and no productive editor; the
   /// stage runner's browser variant runs the entry on the single web isolate.
