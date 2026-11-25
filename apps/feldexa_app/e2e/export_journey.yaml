@@ -1,0 +1,111 @@
+# Issue #334 export journey — Maestro CLI gate evidence (PR #338 §10).
+#
+# Normative sources:
+#   * `specs/001-scanned-form-workflow/contracts/editor-interactions.md` §10 —
+#     export action, pre-export sheet, progress with cancel, preview with
+#     „Schließen“;
+#   * `reports/release/EMULATOR-PRECHECK.md` — the emulator baseline this flow
+#     reproduces (import → analysis → autosave → review → export).
+#
+# The flow drives the real user path: the app's own „PDF importieren“ action
+# opens the system `ACTION_OPEN_DOCUMENT` picker, and the flow selects the
+# synthetic fixture `sf-001.pdf` from `/sdcard/Download`. The debug-only
+# `de.feldexa/test.import` hook is deliberately not used.
+#
+# Every selector is a visible German app string or the localized tooltip of an
+# app-bar action — never a coordinate. Every wait is an `extendedWaitUntil`
+# with an explicit timeout; the flow contains no fixed `sleep`.
+#
+# Run from the directory that should receive the screenshots:
+#   maestro --device emulator-5554 test <absolute>/export_journey.yaml
+#
+# KNOWN BLOCKER (PR #338, step 3a, 2026-11-25):
+# The export leg does NOT reach the preview on `emulator-5554`. Tapping the
+# start action closes the pre-export sheet and the editor then shows the
+# content-free `EXP-002` sentence „Der Export ist fehlgeschlagen…“ with
+# „Erneut versuchen“; no progress surface appears and no artifact is written
+# (`cache/feldexa_exports/` stays empty). It reproduces without any confirmed
+# field, so it is independent of the review leg. The two steps marked
+# `TODO(PR #338 export blocker)` therefore assert the *current, honest*
+# terminal state instead of the preview; they must be replaced by the preview
+# assertions (`Vorschau der erzeugten PDF-Datei`, `Seiten: 2`, „Schließen“)
+# once the export path is fixed. See
+# `reports/release/reviews/2026-11-25-fix-report-pr338-step3a.md`.
+#
+# Evidence note: the editor, the pre-export sheet, and the export route carry
+# `FLAG_SECURE` (`contracts/platform-channel.md` §11 point 7), so every
+# screenshot taken inside them is a black frame. Only `01-start` („Meine
+# Dokumente“) has visual content; the editor and export legs are evidenced by
+# the assertions below and by the hierarchy dumps of the failed runs.
+appId: de.feldexa.app
+---
+- launchApp:
+    # `clearState: true` starts at „Meine Dokumente“ without stored documents,
+    # so the import is the only route into the editor and the run does not
+    # depend on what an earlier run left behind.
+    clearState: true
+- extendedWaitUntil:
+    visible: "Meine Dokumente"
+    timeout: 60000
+- takeScreenshot: 01-start
+- tapOn: "PDF importieren"
+# System document picker: open the roots drawer and select Downloads.
+- extendedWaitUntil:
+    visible: "Show roots"
+    timeout: 30000
+- tapOn: "Show roots"
+# The drawer is a separate hierarchy; wait for its header before the item tap.
+- extendedWaitUntil:
+    visible: "Open from"
+    timeout: 15000
+- tapOn: "Downloads"
+- extendedWaitUntil:
+    visible: "sf-001.pdf"
+    timeout: 15000
+- tapOn: "sf-001.pdf"
+# Editor: the two-page fixture is analysed, then the review panel appears.
+- extendedWaitUntil:
+    visible: "Seite 1 von 2, Analyse abgeschlossen"
+    timeout: 180000
+- takeScreenshot: 02-editor-analysis-complete
+# The review panel of every unresolved suggestion carries one „Übernehmen“ row
+# action; the panel header itself is a multi-line accessibility node.
+- extendedWaitUntil:
+    visible: "Übernehmen"
+    timeout: 30000
+- tapOn:
+    text: "Übernehmen"
+    index: 0
+# Autosave of the confirmation: the review action is reversible, and the
+# durability label carries the durable timestamp of the save.
+- extendedWaitUntil:
+    visible: "Rückgängig"
+    timeout: 30000
+- extendedWaitUntil:
+    visible: ".*Gespeichert um .*"
+    timeout: 60000
+- takeScreenshot: 03-autosave-after-confirm
+# Export action of the app bar (localized tooltip).
+- tapOn: "PDF exportieren"
+# Pre-export information (empty fields, unreviewed suggestions) does not block.
+- extendedWaitUntil:
+    visible: ".*sind noch nicht geprüft.*"
+    timeout: 30000
+- takeScreenshot: 04-pre-export-sheet
+- tapOn:
+    # Index 1 is the start button; index 0 is the sheet title of the same name.
+    text: "PDF exportieren"
+    index: 1
+# TODO(PR #338 export blocker): replace this block with
+#   - extendedWaitUntil: {visible: "PDF wird erstellt", timeout: 30000}
+#   - extendedWaitUntil: {visible: "Vorschau der erzeugten PDF-Datei", timeout: 180000}
+#   - extendedWaitUntil: {visible: "Seiten: 2", timeout: 30000}
+#   - takeScreenshot: export-preview
+#   - tapOn: "Schließen"
+# once the export path reaches the preview on the emulator. Until then the
+# current terminal state is asserted, not hidden.
+- extendedWaitUntil:
+    visible: ".*Der Export ist fehlgeschlagen.*"
+    timeout: 60000
+- assertVisible: "Erneut versuchen"
+- takeScreenshot: 05-export-blocked-exp002
