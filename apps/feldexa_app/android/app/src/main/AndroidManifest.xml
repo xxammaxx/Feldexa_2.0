@@ -33,6 +33,28 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!--
+          T107: the only content provider this app declares.
+
+          `contracts/platform-channel.md` §7/§11 point 8: `delivery.share` hands
+          out a temporary `FLAG_GRANT_READ_URI_PERMISSION` URI for a session
+          export artifact, and the provider exposes nothing but
+          `cacheDir/feldexa_exports/` (see `res/xml/file_paths.xml`).
+          `androidx.core.content.FileProvider` comes from `androidx.core`, which
+          the app already compiles against (`ActivityOptionsCompat` in
+          MainActivity); this adds no dependency. `${applicationId}.feldexa.exports`
+          is the authority `DeliveryService`'s host wiring uses via
+          `packageName + ".feldexa.exports"`.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.feldexa.exports"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

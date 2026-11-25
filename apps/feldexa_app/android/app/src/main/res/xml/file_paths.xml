@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  T107 FileProvider paths.
+
+  `contracts/platform-channel.md` §11 point 8: FileProvider paths are limited to
+  `cacheDir/feldexa_exports/`; no `filesDir` path and no root path is shared.
+  The exported artifacts of the current session are the only files a share
+  intent may reference, and they live exactly there
+  (`ExportArtifactStore.DIRECTORY_NAME`).
+-->
+<paths>
+    <cache-path
+        name="feldexa_exports"
+        path="feldexa_exports/" />
+</paths>
