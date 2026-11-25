@@ -136,7 +136,7 @@ Every op carries `provenance` (`machine | user | template`) so recognition prove
 | `lineHeightPt` | `1.2 × fontSizePt`, rounded to 0.01 |
 | `baselineFromTopPt` | `1.5 + 0.8 × fontSizePt` (approx. ascender), ≤ rect.height |
 | `color` | `#000000` only in v1 |
-| `lines` | non-empty; single-line has exactly one entry; no trailing spaces; `\n` materialized into entries |
+| `lines` | non-empty; single-line has exactly one entry; no trailing spaces; `\n` materialized into entries as specified in §3.1 (a trailing blank paragraph adds no entry) |
 | `overflow` | must be `false`; if true the plan is not produced and export is blocked (`EXP-001`) |
 
 **checkbox**
@@ -178,6 +178,7 @@ Every op carries `provenance` (`machine | user | template`) so recognition prove
   - explicit `\n` starts a new line;
   - greedy word wrap at spaces; a single word longer than the line is not broken — it overflows and blocks;
   - no hyphenation, no auto-shrink, no truncation, no ellipsis;
+  - a trailing blank paragraph (a closing `\n`, or trailing whitespace-only paragraphs) produces no line; an interior blank paragraph stays a line;
   - overflow when `lines.length × lineHeightPt > available height`.
 - Trailing spaces at line ends are removed for rendering; interior spaces are preserved. This changes no visible content and is recorded as `trimmedTrailingSpaceCount` in info.
 - German characters (`ä ö ü ß € „ “ ’ –`) are measured with the bundled metrics; glyphs missing from Noto Sans cause a blocking `EXP-004` (font coverage) rather than a substitute glyph.
