@@ -112,6 +112,7 @@ class FeldexaPluginTest {
             "delivery.share" to mapOf("artifactId" to artifactId, "mimeType" to "application/pdf"),
             "delivery.print" to mapOf("artifactId" to artifactId, "jobName" to "Feldexa Dokument"),
             "cancel.operation" to mapOf("operationId" to operationId),
+            "platform.sensitiveRoute" to mapOf("route" to "editor"),
         )
 
         val failures = mutableListOf<String>()
@@ -126,6 +127,82 @@ class FeldexaPluginTest {
             }
         }
         assertTrue(failures.joinToString(), failures.isEmpty())
+    }
+
+    // ---- §11 point 7 sensitive-route protection -----------------------------
+
+    @Test
+    fun sensitiveRouteReportsTheReadBackStateOfTheHost() {
+        val seen = mutableListOf<String>()
+        val facade = newFacade(
+            sensitiveRoute = {
+                SensitiveRouteHost { route ->
+                    seen += route
+                    route != SensitiveRouteHost.ROUTE_NONE
+                }
+            },
+        )
+
+        val editorReply = RecordingReply()
+        facade.handle(
+            "platform.sensitiveRoute",
+            mapOf("schemaVersion" to 1, "route" to "editor"),
+            editorReply,
+        )
+        assertEquals(
+            mapOf("route" to "editor", "secure" to true),
+            (editorReply.successValue as Map<*, *>)["data"],
+        )
+
+        val clearedReply = RecordingReply()
+        facade.handle(
+            "platform.sensitiveRoute",
+            mapOf("schemaVersion" to 1, "route" to "none"),
+            clearedReply,
+        )
+        assertEquals(
+            mapOf("route" to "none", "secure" to false),
+            (clearedReply.successValue as Map<*, *>)["data"],
+        )
+        assertEquals(listOf("editor", "none"), seen)
+    }
+
+    @Test
+    fun sensitiveRouteWithoutAHostReportsNotProtected() {
+        val facade = newFacade()
+        val reply = RecordingReply()
+
+        facade.handle(
+            "platform.sensitiveRoute",
+            mapOf("schemaVersion" to 1, "route" to "export"),
+            reply,
+        )
+
+        assertNull(reply.failure)
+        assertEquals(false, ((reply.successValue as Map<*, *>)["data"] as Map<*, *>)["secure"])
+    }
+
+    @Test
+    fun sensitiveRouteRejectsAnUnknownRouteBeforeApplyingIt() {
+        var calls = 0
+        val facade = newFacade(
+            sensitiveRoute = {
+                SensitiveRouteHost {
+                    calls++
+                    true
+                }
+            },
+        )
+        val reply = RecordingReply()
+
+        facade.handle(
+            "platform.sensitiveRoute",
+            mapOf("schemaVersion" to 1, "route" to "settings"),
+            reply,
+        )
+
+        assertFailure(reply, "PLT-003")
+        assertEquals(0, calls)
     }
 
     @Test
@@ -2027,6 +2104,7 @@ class FeldexaPluginTest {
         limits: ChannelLimits = ChannelLimits(),
         operationIdFactory: () -> String = { UUID.randomUUID().toString() },
         clock: () -> Long = { 0L },
+        sensitiveRoute: () -> SensitiveRouteHost? = { null },
     ): PlatformChannelFacade {
         val services = PlatformServiceRegistry()
         if (servicePrefix != null) services.register(servicePrefix, service)
@@ -2039,6 +2117,7 @@ class FeldexaPluginTest {
             limits = limits,
             operationIdFactory = operationIdFactory,
             clock = clock,
+            sensitiveRoute = sensitiveRoute,
         )
     }
 

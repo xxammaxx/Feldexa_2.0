@@ -447,6 +447,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get previewFooter => 'Vorschau der erzeugten PDF-Datei';
 
   @override
+  String exportPreviewPageCount(int count) {
+    return 'Seiten: $count';
+  }
+
+  @override
+  String exportPreviewFileSize(String size) {
+    return 'Dateigröße: $size';
+  }
+
+  @override
+  String get exportPreviewSaveAction => 'Speichern';
+
+  @override
+  String get exportPreviewShareAction => 'Teilen';
+
+  @override
+  String get exportPreviewPrintAction => 'Drucken';
+
+  @override
+  String get exportCloseAction => 'Schließen';
+
+  @override
   String get tpl001 =>
       'Eine Vorlage kann nicht erstellt werden, weil noch keine Felder bestätigt sind oder die Originalseiten nicht lesbar sind.';
 

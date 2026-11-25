@@ -772,6 +772,42 @@ abstract class AppLocalizations {
   /// **'Vorschau der erzeugten PDF-Datei'**
   String get previewFooter;
 
+  /// Issue #334 export preview: page count of the verified artifact. contracts/editor-interactions.md §10 point 4 requires the preview to show the produced artifact.
+  ///
+  /// In de, this message translates to:
+  /// **'Seiten: {count}'**
+  String exportPreviewPageCount(int count);
+
+  /// Issue #334 export preview: byte size of the verified artifact, formatted with a German decimal comma.
+  ///
+  /// In de, this message translates to:
+  /// **'Dateigröße: {size}'**
+  String exportPreviewFileSize(String size);
+
+  /// contracts/editor-interactions.md §10 point 4: preview action `Speichern`.
+  ///
+  /// In de, this message translates to:
+  /// **'Speichern'**
+  String get exportPreviewSaveAction;
+
+  /// contracts/editor-interactions.md §10 point 4: preview action `Teilen`.
+  ///
+  /// In de, this message translates to:
+  /// **'Teilen'**
+  String get exportPreviewShareAction;
+
+  /// contracts/editor-interactions.md §10 point 4: preview action `Drucken`.
+  ///
+  /// In de, this message translates to:
+  /// **'Drucken'**
+  String get exportPreviewPrintAction;
+
+  /// contracts/editor-interactions.md §10 point 4: closing action of the export preview and of the pre-export sheet.
+  ///
+  /// In de, this message translates to:
+  /// **'Schließen'**
+  String get exportCloseAction;
+
   /// contracts/error-catalog.de.md §5 TPL-001: Template creation impossible (no confirmed fields or source unreadable).
   ///
   /// In de, this message translates to:

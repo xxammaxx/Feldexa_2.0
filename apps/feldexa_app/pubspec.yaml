@@ -33,6 +33,12 @@ dependencies:
   # `lib/` may import it without a `depend_on_referenced_packages` violation.
   feldexa_core:
     path: ../../packages/feldexa_core
+  # Issue #334 export UI: the editor/export route builds the canonical plan and
+  # consumes the plan/validation/artifact models directly. This is the
+  # workspace path of the already-resolved `feldexa_export` package that
+  # `feldexa_ports` consumes; no third-party dependency is added.
+  feldexa_export:
+    path: ../../packages/feldexa_export
   # Issue #217 Phase B1: the editor invokes the Phase A analysis use case and
   # consumes the T057 per-page envelope directly. No orchestrator, store, or
   # second runtime is added.

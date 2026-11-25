@@ -21,7 +21,11 @@
 //   * `AndroidOcrClient` receives the same `RasterImage` object when the Phase A
 //     pipeline has a tight raster, so its page-size resolver can use
 //     `AndroidPdfrxRasterClient.pageSizeOf(image)` identity;
-//   * `AndroidIdClient` supplies the analysis-run UUIDv4.
+//   * `AndroidIdClient` supplies the analysis-run UUIDv4;
+//   * `AndroidPdfExportClient`/`AndroidDeliveryClient` are the export and
+//     delivery ports of the same session, sharing this operation client;
+//   * `platform.sensitiveRoute` (contract §11 point 7) sets or clears
+//     `FLAG_SECURE` on the host window.
 //
 // Source bytes are resolved only from the in-memory cache populated by
 // `loadDocument`. Before a document is loaded, or for any other source id, the
@@ -41,6 +45,7 @@ import 'package:feldexa_application/src/recognition/raster_page_stage_runner.dar
 import 'package:feldexa_core/feldexa_core.dart' show PageGeometry;
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
+import 'package:flutter/services.dart' show MethodChannel;
 import 'package:pdfrx/pdfrx.dart';
 
 import 'editor_runtime.dart';
@@ -105,6 +110,8 @@ EditorRuntime createAndroidEditorRuntime({
     store: store,
     raster: kDebugMode ? _DiagnosticRasterPort(raster) : raster,
     ocr: kDebugMode ? _DiagnosticOcrPort(ocr) : ocr,
+    export: AndroidPdfExportClient(operations: operations),
+    delivery: AndroidDeliveryClient(),
     ids: AndroidIdClient(),
     clock: const AndroidClockClient(),
     sourceBytes: sourceBytes,
@@ -185,6 +192,8 @@ final class _AndroidEditorRuntime implements EditorRuntime {
     required AndroidStoreClient store,
     required PageRasterPort raster,
     required OcrPort ocr,
+    required PdfExportPort export,
+    required DeliveryPort delivery,
     required AndroidIdClient ids,
     required AndroidClockClient clock,
     required Map<String, Uint8List> sourceBytes,
@@ -193,6 +202,8 @@ final class _AndroidEditorRuntime implements EditorRuntime {
        _store = store,
        _raster = raster,
        _ocr = ocr,
+       _export = export,
+       _delivery = delivery,
        _ids = ids,
        _clock = clock,
        _sourceBytes = sourceBytes,
@@ -202,11 +213,17 @@ final class _AndroidEditorRuntime implements EditorRuntime {
   final AndroidStoreClient _store;
   final PageRasterPort _raster;
   final OcrPort _ocr;
+  final PdfExportPort _export;
+  final DeliveryPort _delivery;
   final AndroidIdClient _ids;
   final AndroidClockClient _clock;
   final Map<String, Uint8List> _sourceBytes;
   final bool _ownsOperations;
   bool _disposed = false;
+
+  static const MethodChannel _sensitiveRouteChannel = MethodChannel(
+    'de.feldexa/platform',
+  );
 
   @override
   PageRasterPort get raster => _raster;
@@ -222,6 +239,36 @@ final class _AndroidEditorRuntime implements EditorRuntime {
 
   @override
   ClockPort get clock => _clock;
+
+  @override
+  PdfExportPort get export => _export;
+
+  @override
+  DeliveryPort get delivery => _delivery;
+
+  /// Sets or clears `FLAG_SECURE` through the existing platform channel.
+  ///
+  /// The native side applies the flag on the main thread and answers with the
+  /// flag state it read back; this method returns that answer unchanged. A
+  /// reply without a boolean `secure` field is a malformed contract answer and
+  /// throws [FormatException], so an unknown state is never reported as
+  /// "protected".
+  @override
+  Future<bool> setSensitiveRoute(SensitiveRoute route) async {
+    _ensureOpen();
+    final Map<String, Object?> data = androidEnvelopeData(
+      await _sensitiveRouteChannel.invokeMethod<Object?>(
+        'platform.sensitiveRoute',
+        <String, Object?>{'schemaVersion': 1, 'route': route.wireName},
+      ),
+      method: 'platform.sensitiveRoute',
+    );
+    final Object? secure = data['secure'];
+    if (secure is! bool) {
+      throw const FormatException('Invalid platform.sensitiveRoute reply');
+    }
+    return secure;
+  }
 
   /// The production Android composition runs the recognition stage in a worker
   /// isolate, so the synchronous detector cannot block the UI isolate.

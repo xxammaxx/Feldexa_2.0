@@ -564,6 +564,40 @@
   "@previewFooter": {
     "description": "§4 preview footer of the in-app export preview."
   },
+  "exportPreviewPageCount": "Seiten: {count}",
+  "@exportPreviewPageCount": {
+    "description": "Issue #334 export preview: page count of the verified artifact. contracts/editor-interactions.md §10 point 4 requires the preview to show the produced artifact.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportPreviewFileSize": "Dateigröße: {size}",
+  "@exportPreviewFileSize": {
+    "description": "Issue #334 export preview: byte size of the verified artifact, formatted with a German decimal comma.",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "exportPreviewSaveAction": "Speichern",
+  "@exportPreviewSaveAction": {
+    "description": "contracts/editor-interactions.md §10 point 4: preview action `Speichern`."
+  },
+  "exportPreviewShareAction": "Teilen",
+  "@exportPreviewShareAction": {
+    "description": "contracts/editor-interactions.md §10 point 4: preview action `Teilen`."
+  },
+  "exportPreviewPrintAction": "Drucken",
+  "@exportPreviewPrintAction": {
+    "description": "contracts/editor-interactions.md §10 point 4: preview action `Drucken`."
+  },
+  "exportCloseAction": "Schließen",
+  "@exportCloseAction": {
+    "description": "contracts/editor-interactions.md §10 point 4: closing action of the export preview and of the pre-export sheet."
+  },
   "tpl001": "Eine Vorlage kann nicht erstellt werden, weil noch keine Felder bestätigt sind oder die Originalseiten nicht lesbar sind.",
   "@tpl001": {
     "description": "contracts/error-catalog.de.md §5 TPL-001: Template creation impossible (no confirmed fields or source unreadable)."

@@ -406,6 +406,20 @@ Every string that becomes a UI label is capped (title 200, field label 120, `lab
 5. Do not expose a generic "read any file" or "write any path" method; the channel surface is closed.
 6. The release manifest omits `INTERNET`; the debug manifest may add it for Flutter tooling only.
 7. `MainActivity` sets `FLAG_SECURE` on the editor/export routes to block screenshots and recents thumbnails of sensitive documents. This must be verified on the emulator (no thumbnail content in Recents).
+
+   **Method.** `platform.sensitiveRoute` on `de.feldexa/platform`; synchronous (`§1`), so the reply is the terminal result.
+
+   | Method | Request | Response |
+   | --- | --- | --- |
+   | `platform.sensitiveRoute` | `{ "schemaVersion": 1, "route": "editor"\|"export"\|"none" }` | `{ "route": "editor", "secure": true }` |
+
+   **Semantics.** `editor` and `export` set `WindowManager.LayoutParams.FLAG_SECURE` on the host window; `none` clears it. The call is idempotent: repeating a route is not an error and never toggles the flag. The response echoes the validated `route` and reports `secure` as the **read-back** flag state of the window, never an assumption — `secure: false` means the route is not protected. Routes: the editor route sets `editor`, the export preview sets `export`, returning from the preview sets `editor` again, and leaving the editor sets `none`.
+
+   **Threading.** The window flag is mutated only on the main thread. A call that arrives on the main thread is applied inline; any other caller is handed to the main thread with a bounded wait (2 s). The reply is not sent before the flag is applied or the wait expires.
+
+   **Errors.** An unknown `route` token, a missing `route`, or an unknown field is `PLT-003` before anything is applied. A missing window, an expired main-thread wait, an interrupted wait, or a throwing host is **not** an error: the reply is a success envelope with `secure: false`. A missing host (engine without activity) is answered the same way.
+
+   **Dart caller.** A failed `platform.sensitiveRoute` must neither block the editor nor be read as protection: the caller keeps the editor usable, treats a throw or `secure: false` as *not protected*, and records that content-free state. No Dart caller logs a route, a window state, or a failure text.
 8. `FileProvider` paths are limited to `cacheDir/feldexa_exports/`; no `filesDir` or root path is shared.
 
 ---

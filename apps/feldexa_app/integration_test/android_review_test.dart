@@ -245,6 +245,16 @@ final class _CountingEditorRuntime implements EditorRuntime {
   @override
   ClockPort get clock => _inner.clock;
 
+  @override
+  PdfExportPort get export => _inner.export;
+
+  @override
+  DeliveryPort get delivery => _inner.delivery;
+
+  @override
+  Future<bool> setSensitiveRoute(SensitiveRoute route) =>
+      _inner.setSensitiveRoute(route);
+
   /// The real Android composition: the recognition stage stays off the UI
   /// isolate during this journey.
   @override

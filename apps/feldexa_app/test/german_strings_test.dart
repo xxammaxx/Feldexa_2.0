@@ -72,6 +72,17 @@ const Set<String> _nonCodeArbKeys = <String>{
   'emptyTemplates',
   'exportAction',
   'exportSuccess',
+  // Issue #334 export-preview surface. The error catalog has no coded row for
+  // a preview page/size summary or for the four preview actions; the wording
+  // is the one `contracts/editor-interactions.md` §10 point 4 names
+  // („Speichern“, „Teilen“, „Drucken“, „Schließen“) and the brief's requirement
+  // that the preview shows the produced artifact's page count and size.
+  'exportPreviewPageCount',
+  'exportPreviewFileSize',
+  'exportPreviewSaveAction',
+  'exportPreviewShareAction',
+  'exportPreviewPrintAction',
+  'exportCloseAction',
   'fieldCount',
   'fillAction',
   'importAction',
