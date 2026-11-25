@@ -530,7 +530,8 @@ JPXDecode-gefilterten Stream durch die Rejection-Kategorie führt, existiert nic
 der Pfad nur transitiv über die `IOException`-Klassifikation in `PdfPreflight.kt`
 (`classifyLoadFailure`, Zeile 213) und deren Host-JVM-Tests (`PdfPreflightTest.kt`, ohne
 Android-Laufzeit). Technisch wäre ein Host-JVM-Test möglich — PDFBox-Android läuft dort, und der
-optionale Codec `com.gemalto.jp2.JP2Decoder` ist auf dem Host-JVM ebenso abwesend wie im
-Release-APK. Nicht umgesetzt, weil der Nachweis einen Gradle-Testlauf (`:app:test…`) verlangt und
+optionale Codec `com.gemalto.jp2.JP2Decoder` ist im App-Classpath nicht deklariert (deshalb meldet
+R8 ihn als fehlende Klasse, deshalb die `-dontwarn`-Zeile), also im Host-JVM-Test genauso abwesend
+wie im Release-APK. Nicht umgesetzt, weil der Nachweis einen Gradle-Testlauf (`:app:test…`) verlangt und
 T331 Gradle-Builds ausschließt; ein ungeprüfter Test wäre eine unbelegte Behauptung. Die Lücke
 bleibt offen, bis ein Lauf mit Gradle-Erlaubnis sie schließt.
