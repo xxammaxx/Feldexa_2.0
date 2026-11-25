@@ -64,14 +64,21 @@ import java.util.UUID
  *     extracted text (including German characters), the overlay bounds against
  *     the artifact's own page box, and that every planned glyph is encodable by
  *     the fonts the artifact references;
- *  9. atomically rename to `<artifactId>.pdf`;
+ *  9. atomically rename to `<artifactId>.pdf`, then read the stored source
+ *     again through the content port and require its SHA-256 to still equal
+ *     `plan.sourceSha256` (§5 step 8, "source untouched") before anything is
+ *     published;
  * 10. on any failure delete the temp file and the renamed file and fail with
- *     `EXP-002` — a failed export never leaves a `.pdf` behind and never
- *     touches the source.
+ *     `EXP-002`. The deletion is attempted, not guaranteed: a delete that fails
+ *     is not retried, and no later sweep claims the leftover file. The source
+ *     is never touched.
  *
- * The stored source is proven unchanged exactly once, before the first write,
- * by comparing its SHA-256 with `plan.sourceSha256` (FR-073); the applier only
- * ever reads those bytes.
+ * The stored source is proven unchanged twice (FR-073, §5 step 8), before the
+ * first write and again after the artifact has been written and renamed, each
+ * time by hashing the bytes the content port returns and comparing them with
+ * `plan.sourceSha256`. The post-write check re-reads the stored source; it is
+ * deliberately not a second hash of the in-memory array, which would only
+ * restate the pre-write result.
  *
  * Content rules: no failure carries a value, label, field id, path, or URI, and
  * this class performs no logging. Only the explicitly requested
@@ -178,6 +185,8 @@ class PdfExportService(
             // must not publish either; the `finally` below removes the renamed
             // file because `published` is still false.
             context.checkCancelled()
+            // §5 step 8: the stored source must still hash to `plan.sourceSha256`.
+            assertStoredSourceUnchanged(plan)
             val byteSize = finalFile.length()
             if (byteSize < 1L) throw exportFailure("EXP-002")
             val sha256 = sha256Hex(finalFile)
@@ -215,8 +224,9 @@ class PdfExportService(
         } finally {
             if (!published) {
                 // §5.10 / §6 "Artifact isolation": a failed or cancelled run
-                // leaves neither the temp file nor a file that already passed
-                // the atomic rename behind.
+                // must leave neither the temp file nor a file that already
+                // passed the atomic rename behind. Both deletes are attempted
+                // here; a delete that fails is not retried.
                 runCatching { temporaryFile.delete() }
                 runCatching { finalFile.delete() }
             }
@@ -491,6 +501,22 @@ class PdfExportService(
         }
     }
 
+    /**
+     * §5 step 8 / §5 table "Source integrity": the stored source is read again
+     * after the artifact has been written and renamed, and its SHA-256 must
+     * still equal `plan.sourceSha256`.
+     *
+     * What is proven is the re-read stored state, i.e. the bytes the content
+     * port returns now — not the bytes this render already held, whose hash was
+     * checked before the first write. A mismatch means the store no longer
+     * returns the planned source, so the export fails with `EXP-005` before
+     * anything is published; the `finally` in `render` then removes the renamed
+     * file. Nothing here writes to the source.
+     */
+    private fun assertStoredSourceUnchanged(plan: ExportPlan) {
+        if (sha256Hex(readSource(plan)) != plan.sourceSha256) throw exportFailure("EXP-005")
+    }
+
     // ------------------------------------------------------------------
     // Verification (§5 step 8, §6)
     // ------------------------------------------------------------------
@@ -505,10 +531,11 @@ class PdfExportService(
      * matrix, and the glyph check runs against the fonts the artifact page
      * references. Nothing here is a restatement of the plan.
      *
-     * The stored source is checked once, before any write, against
-     * `plan.sourceSha256` (`render`); the applier only ever reads those bytes, so
-     * a second hash of the same in-memory array would verify nothing about the
-     * artifact.
+     * The stored source is checked before any write and once more after the
+     * write and rename (`render`, `assertStoredSourceUnchanged`) against
+     * `plan.sourceSha256`. The second check re-reads the stored source instead
+     * of hashing the in-memory array again, which would only restate the first
+     * result.
      */
     private fun verifyArtifact(
         temporaryFile: File,

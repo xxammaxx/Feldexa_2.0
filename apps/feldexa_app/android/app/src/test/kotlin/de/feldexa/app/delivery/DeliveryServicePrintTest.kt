@@ -25,9 +25,10 @@ import org.junit.rules.TemporaryFolder
  *
  * `contracts/platform-channel.md` §11 forbids PDF parsing on the UI thread, and
  * `onLayout` runs there, so the adapter must not reopen the document to learn
- * its page count. These are host-JVM tests of the wiring; the framework adapter
- * itself needs an Android runtime and stays covered by the print instrumentation
- * path.
+ * its page count. These are host-JVM tests of the wiring; the framework
+ * adapter itself needs an Android runtime, so it has **no** automated coverage
+ * today — T110 (`integration_test/print_test.dart`) is the test that will cover
+ * it, and it is still open.
  */
 class DeliveryServicePrintTest {
 

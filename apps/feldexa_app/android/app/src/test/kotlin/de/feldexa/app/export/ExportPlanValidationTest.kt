@@ -69,6 +69,24 @@ class ExportPlanValidationTest {
     }
 
     @Test
+    fun fixtureRotation180LiteralMatchesTheProductionCtm() {
+        // The fixture's 180° matrix is a literal (`d = +1`) and is deliberately
+        // not derived from `ExportPageGeometry.expectedCtm()`, so it cannot move
+        // with a production formula change. Parsing that page must produce no
+        // findings, which is what ties the two implementations together.
+        val page = ExportPlanFixtures.page(
+            rotation = 180,
+            ops = listOf(
+                ExportPlanFixtures.textOp(),
+                ExportPlanFixtures.checkboxOp(),
+                ExportPlanFixtures.imageOp(),
+            ),
+        )
+        assertEquals(180, page.getValue("rotation"))
+        assertTrue(ExportPlanValidator.findings(parse(page), metrics).isEmpty())
+    }
+
+    @Test
     fun ctmWithinThePointZeroOneToleranceIsAccepted() {
         val expected = ExportPlanFixtures.expectedCtm(0)
         val page = ExportPlanFixtures.page(
