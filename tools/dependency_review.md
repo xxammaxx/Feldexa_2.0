@@ -508,3 +508,29 @@ Größenvergleich like-for-like: die 57 015 925 Bytes aus 8.1 (Zeile 204, Ein-AB
 (`specs/001-scanned-form-workflow/reports/2026-11-12-t009-evidence.md:240`). Gegen diesen Wert
 sind 105 919 363 Bytes **+9,6 %**, also keine Verdopplung und kein Bruch des Release-Budgets
 von 120 MB.
+
+**Nachtrag 2026-11-25 (T331):** Drei Präzisierungen zu den Nachträgen oben; die Altzeilen
+bleiben unverändert. Erstens: Die Zustandsbeschreibungen in §2 (Zeile 28, `proguard-rules.pro`
+mit „exact scoped `-dontwarn` rules") und der Appendix-Hash `76cab104…` (Zeile 361) sind durch
+T321B/PR #327 überholt; gültig ist der T321B-Nachtrag oben. Zweitens: Der Hash `d24173e1…`
+(Zeilen 477 und 485) stammt aus dem **Kandidatenlauf** T321B und ist Builder-Attestierung, keine
+Logmessung — `missing_rules.txt` wird pro R8-Lauf überschrieben, im Log steht keine
+Hash-Berechnung. Belastbar ist der Fehlertext: Der Diagnoselauf auf `0e0cf2b` zeigt dieselbe
+Meldung `Missing class com.gemalto.jp2.JP2Decoder (referenced from: … JPXFilter.readJPX …)`
+(`reports/t326/t326-causal-build.log:49-50`), also Fehlertextgleichheit statt Hash-Gleichheit.
+Drittens: `--target-platform android-x64` beschränkt nur die **Flutter-eigenen** Artefakte; die
+`abiFilters` bleiben die drei Plattformen aus `PLATFORM_ABI_LIST` (`FlutterPlugin.kt:591-598`,
+`FlutterPluginConstants.kt:60`), die Third-Party-Nativlibs (ML Kit, PDFium) wurden daher in
+beiden Builds für drei ABIs gepackt. Die Formulierung „three ABI payloads" in 8.2/8.3 (Zeilen
+216 und 361) beschreibt diese Payloads und ist als Auditstand 2026-11-12 eingeordnet; der
+Like-for-like-Vergleich oben stützt sich auf zwei Full-Fat-Builds und ist davon nicht berührt.
+
+**Bewusste Lücke (T331, 2026-11-25): JPX-Fehlerpfad `NOT_RUN`.** Ein Test, der einen
+JPXDecode-gefilterten Stream durch die Rejection-Kategorie führt, existiert nicht; abgedeckt ist
+der Pfad nur transitiv über die `IOException`-Klassifikation in `PdfPreflight.kt`
+(`classifyLoadFailure`, Zeile 213) und deren Host-JVM-Tests (`PdfPreflightTest.kt`, ohne
+Android-Laufzeit). Technisch wäre ein Host-JVM-Test möglich — PDFBox-Android läuft dort, und der
+optionale Codec `com.gemalto.jp2.JP2Decoder` ist auf dem Host-JVM ebenso abwesend wie im
+Release-APK. Nicht umgesetzt, weil der Nachweis einen Gradle-Testlauf (`:app:test…`) verlangt und
+T331 Gradle-Builds ausschließt; ein ungeprüfter Test wäre eine unbelegte Behauptung. Die Lücke
+bleibt offen, bis ein Lauf mit Gradle-Erlaubnis sie schließt.

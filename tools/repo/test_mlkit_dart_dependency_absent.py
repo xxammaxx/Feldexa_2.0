@@ -30,6 +30,11 @@ Deliberate limits, so a future reader does not mistake them for regressions:
 * ``DART_MLKIT_IMPORT`` also matches a URI mentioned in a Dart comment or string
   literal. That is intended fail-closed behaviour, not a missing filter: such a
   mention is worth a look even when nothing imports it (issue #323 point 4).
+* The quote tolerance of the key pattern also accepts one-sided quotes and a
+  space before the colon (``"name: 1.0.2``, ``"name" : 1.0.2``), which is not
+  valid YAML. That is fail-closed on purpose: the looser key pattern can only
+  over-report a declaration, never hide one, and keeping it quote-agnostic is
+  cheaper than parsing YAML (issue #325 point 2).
 
 The scan is deliberately manifest- and source-driven instead of resolved through
 ``flutter pub deps`` so the guard needs no Flutter, Pub cache, or network. Paths
@@ -55,7 +60,9 @@ MLKIT_DART_PACKAGE = re.compile(r"^google_ml_?kit[a-z0-9_]*$")
 # A YAML key that declares a package dependency, for example
 # ``  google_ml_kit_text_recognition: 1.0.2`` or its quoted form
 # ``  "google_ml_kit_text_recognition": 1.0.2``. The explicit key syntax
-# ``? name`` is a documented limit, see the module docstring.
+# ``? name`` is a documented limit, see the module docstring. One-sided quotes
+# and a space before the colon are tolerated on purpose (fail-closed, see the
+# module docstring).
 PUBSPEC_DEPENDENCY_KEY = re.compile(r"^[\s-]*[\"']?(?P<name>[A-Za-z0-9_]+)[\"']?\s*:")
 # Any package: URI, so an import and an export are caught alike; ``ml_?kit``
 # covers ``package:google_mlkit*`` and ``package:google_ml_kit*``.
@@ -192,27 +199,39 @@ class MlKitDartDependencyAbsentTest(unittest.TestCase):
             ('  "google_mlkit": any', "google_mlkit"),
             ("- 'google_ml_kit_text_recognition': 1.0.2 # quoted list item",
              "google_ml_kit_text_recognition"),
+            ('- "google_mlkit_text_recognition": 1.0.2',
+             "google_mlkit_text_recognition"),
             ("  google_mlkit_text_recognition: 1.0.2",
+             "google_mlkit_text_recognition"),
+            ('  "google_mlkit_text_recognition" : 1.0.2',
              "google_mlkit_text_recognition"),
         ):
             with self.subTest(line=line):
                 match = PUBSPEC_DEPENDENCY_KEY.match(yaml_value_without_comment(line))
                 self.assertIsNotNone(match)
                 self.assertEqual(expected, match.group("name"))
-        for line in (
-            '  "description": "a quoted non-dependency key"',
-            "  'flutter':",
-            '  "": empty',
+        # An unrelated quoted key still matches the key pattern; the package
+        # pattern is what has to reject it (issue #325 point 3).
+        for line, name in (
+            ('  "description": "a quoted non-dependency key"', "description"),
+            ("  'flutter':", "flutter"),
         ):
             with self.subTest(line=line):
                 match = PUBSPEC_DEPENDENCY_KEY.match(yaml_value_without_comment(line))
-                self.assertTrue(
-                    match is None or not MLKIT_DART_PACKAGE.match(match.group("name")),
+                self.assertIsNotNone(match, f"{line!r} must still read as a YAML key")
+                self.assertEqual(name, match.group("name"))
+                self.assertIsNone(
+                    MLKIT_DART_PACKAGE.match(match.group("name")),
                     f"{line!r} must not count as an ML Kit declaration",
                 )
+        # An empty quoted key is not a dependency key at all.
+        with self.subTest(line='  "": empty'):
+            self.assertIsNone(
+                PUBSPEC_DEPENDENCY_KEY.match(yaml_value_without_comment('  "": empty'))
+            )
 
     def test_a_quoted_declaration_is_reported(self) -> None:
-        """The end-to-end scan names a quoted declaration by file (issue #323)."""
+        """The file-reading scan picks up a quoted declaration (issue #323)."""
         with tempfile.TemporaryDirectory() as directory:
             pubspec = Path(directory) / "pubspec.yaml"
             pubspec.write_text(
