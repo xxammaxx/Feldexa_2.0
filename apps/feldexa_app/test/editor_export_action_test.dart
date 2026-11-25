@@ -18,10 +18,16 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:feldexa_app/features/editor/document_overview.dart'
+    show documentOverviewRowKeyPrefix;
 import 'package:feldexa_app/features/editor/editor_runtime.dart';
 import 'package:feldexa_app/features/editor/editor_screen.dart';
+import 'package:feldexa_app/features/editor/field_value_sheet.dart'
+    show fieldValueCloseKey, fieldValueSaveKey;
 import 'package:feldexa_app/features/editor/page_view.dart' as viewer;
 import 'package:feldexa_app/features/export/export_preview.dart';
+import 'package:feldexa_app/features/fill/text_control.dart'
+    show fieldTextControlInputKey;
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:feldexa_export/feldexa_export.dart';
@@ -33,6 +39,8 @@ const String _documentId = '5f0c3a52-3a6a-4f0b-9c2d-1b7e4d8a6c01';
 const String _sourceId = '7b2d4c1e-5f3a-4b8c-8a9d-2e6f0c1b3d42';
 const String _revisionId = '9a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d';
 const String _artifactId = '0a1b2c3d-4e5f-4a6b-8c7d-8e9f0a1b2c3d';
+const String _savedRevisionId = '1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e';
+const String _confirmedFieldId = '00000000-0000-4000-8000-000000000101';
 const String _fieldId = '00000000-0000-4000-8000-000000000001';
 const String _noteFieldId = '00000000-0000-4000-8000-000000000002';
 final String _sha256 = List<String>.filled(64, 'a').join();
@@ -231,7 +239,7 @@ final class _FakeClock implements ClockPort {
 }
 
 final class _FakeIds implements IdPort {
-  int _next = 0;
+  int _next = 100;
 
   @override
   CapabilityDescriptor get descriptor => _idsDescriptor;
@@ -249,8 +257,12 @@ final class _FakeIds implements IdPort {
 final class _FakeExportPort implements PdfExportPort {
   final List<ExportPlan> validated = <ExportPlan>[];
   final List<ExportRequest> exported = <ExportRequest>[];
+  final List<String> deleted = <String>[];
   Object? validateError;
   Object? exportError;
+
+  /// Holds [export] open, so a test can dispose the editor mid-flight.
+  Completer<void>? exportGate;
 
   @override
   CapabilityDescriptor get descriptor => _exportDescriptor;
@@ -274,6 +286,10 @@ final class _FakeExportPort implements PdfExportPort {
   @override
   Future<ExportResult> export(ExportRequest request) async {
     exported.add(request);
+    final Completer<void>? gate = exportGate;
+    if (gate != null) {
+      await gate.future;
+    }
     final Object? failure = exportError;
     if (failure != null) {
       throw failure;
@@ -308,7 +324,9 @@ final class _FakeExportPort implements PdfExportPort {
   }
 
   @override
-  Future<void> deleteArtifact(String artifactId) async {}
+  Future<void> deleteArtifact(String artifactId) async {
+    deleted.add(artifactId);
+  }
 }
 
 final class _FakeDeliveryPort implements DeliveryPort {
@@ -354,9 +372,21 @@ final class _FakeRuntime implements EditorRuntime {
   Future<LoadedDocument> loadDocument(String documentId) =>
       fakeStore.loadDocument(documentId);
 
+  /// Every accepted revision; a confirm/reject or value edit lands here.
+  final List<SaveRevisionRequest> savedRevisions = <SaveRevisionRequest>[];
+
   @override
   Future<StoredMeta> saveRevision(SaveRevisionRequest request) async {
-    throw UnsupportedOperationException();
+    savedRevisions.add(request);
+    return StoredMeta(
+      id: _documentId,
+      kind: StoreKind.document,
+      title: 'Antrag',
+      createdAt: _at,
+      updatedAt: _at,
+      latestRevisionId: _savedRevisionId,
+      lastDurableAt: _at,
+    );
   }
 
   @override
@@ -601,5 +631,168 @@ void main() {
     expect(runtime.exportPort.exported, isEmpty);
     expect(find.byKey(exportPreviewRouteKey), findsNothing);
     expect(_exportButton(tester).onPressed, isNotNull);
+  });
+
+  testWidgets(
+    'the plan is built from the live revision, not from the loaded snapshot',
+    (WidgetTester tester) async {
+      // The load carries the pre-edit snapshot: two confirmed fields, one filled
+      // value, one unreviewed suggestion. Confirming that suggestion and then
+      // filling the new field changes `_content` and `_headRevisionId` only.
+      final _FakeRuntime runtime = _FakeRuntime(
+        fakeStore: _FakeStore(
+          loaded: _loaded(content: _content(withSuggestion: true)),
+        ),
+      );
+      await _pumpEditor(tester, runtime);
+
+      final AppLocalizations l10n = AppLocalizations.of(
+        tester.element(find.byType(Scaffold).first),
+      );
+
+      // Confirm the unreviewed suggestion: this commits a new revision.
+      await tester.tap(find.text(l10n.suggestionConfirmAction).first);
+      await tester.pumpAndSettle();
+      expect(runtime.savedRevisions, hasLength(1));
+      expect(runtime.savedRevisions.single.expectedHead, _revisionId);
+
+      // Fill the newly confirmed field through the document overview, which is
+      // the existing path from a field list to its value sheet.
+      await tester.tap(find.byKey(editorOverviewActionKey));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(
+          const ValueKey<String>(
+            '$documentOverviewRowKeyPrefix$_confirmedFieldId',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(fieldTextControlInputKey), 'Live-Wert');
+      await tester.tap(find.byKey(fieldValueSaveKey));
+      await tester.pumpAndSettle();
+      expect(runtime.savedRevisions, hasLength(2));
+
+      await tester.tap(find.byKey(editorExportActionKey));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const ValueKey<String>('export-preflight-start')),
+      );
+      await tester.pumpAndSettle();
+
+      final ExportPlan plan = runtime.exportPort.validated.single;
+      // The export identifies and renders the live revision.
+      expect(plan.revisionId, _savedRevisionId);
+      expect(runtime.exportPort.exported.single.revisionId, _savedRevisionId);
+      expect(<String>[
+        for (final ExportPage page in plan.pages)
+          for (final ExportOp op in page.ops) op.fieldId,
+      ], contains(_confirmedFieldId));
+    },
+  );
+
+  testWidgets('a blocking plan lists the field page and jumps to the field', (
+    WidgetTester tester,
+  ) async {
+    final _FakeRuntime runtime = _FakeRuntime(
+      fakeStore: _FakeStore(
+        loaded: _loaded(content: _content(overflowing: true)),
+      ),
+    );
+    await _pumpEditor(tester, runtime);
+
+    await tester.tap(find.byKey(editorExportActionKey));
+    await tester.pumpAndSettle();
+
+    final AppLocalizations l10n = AppLocalizations.of(
+      tester.element(find.byType(Scaffold).first),
+    );
+    // The blocking field is named with its one-based page (§10 point 2).
+    expect(find.text(l10n.suggestionPage(1)), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('export-preflight-fields')),
+    );
+    await tester.pumpAndSettle();
+
+    // The jump opens exactly the blocking field for filling.
+    expect(
+      find.byKey(const ValueKey<String>('field-value-sheet-$_fieldId')),
+      findsOneWidget,
+    );
+    expect(runtime.exportPort.validated, isEmpty);
+  });
+
+  testWidgets('a failed export offers "Erneut versuchen" and exports again', (
+    WidgetTester tester,
+  ) async {
+    final _FakeExportPort exportPort = _FakeExportPort()
+      ..exportError = ExportFailedException();
+    final _FakeRuntime runtime = _FakeRuntime(
+      fakeStore: _FakeStore(loaded: _loaded()),
+      exportPort: exportPort,
+    );
+    await _pumpEditor(tester, runtime);
+
+    final AppLocalizations l10n = AppLocalizations.of(
+      tester.element(find.byType(Scaffold).first),
+    );
+
+    await tester.tap(find.byKey(editorExportActionKey));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('export-preflight-start')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.exp002), findsOneWidget);
+    expect(exportPort.exported, hasLength(1));
+
+    // The retry action runs the same export action again.
+    exportPort.exportError = null;
+    await tester.tap(find.text(l10n.actionRetry));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('export-preflight-start')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(exportPort.exported, hasLength(2));
+    expect(find.byKey(exportPreviewRouteKey), findsOneWidget);
+  });
+
+  testWidgets('an artifact of an export whose editor was disposed is deleted', (
+    WidgetTester tester,
+  ) async {
+    final _FakeExportPort exportPort = _FakeExportPort()
+      ..exportGate = Completer<void>();
+    final _FakeRuntime runtime = _FakeRuntime(
+      fakeStore: _FakeStore(loaded: _loaded()),
+      exportPort: exportPort,
+    );
+    await _pumpEditor(tester, runtime);
+
+    await tester.tap(find.byKey(editorExportActionKey));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey<String>('export-preflight-start')),
+    );
+    await tester.pump();
+    expect(exportPort.exported, hasLength(1));
+
+    // The route is disposed while the port is still rendering.
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('de'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: const <Locale>[Locale('de')],
+        home: const Scaffold(body: SizedBox.shrink()),
+      ),
+    );
+    exportPort.exportGate!.complete();
+    await tester.pumpAndSettle();
+
+    // No preview can own the artifact, so the editor deletes it exactly once.
+    expect(exportPort.deleted, <String>[_artifactId]);
+    expect(find.byKey(exportPreviewRouteKey), findsNothing);
   });
 }

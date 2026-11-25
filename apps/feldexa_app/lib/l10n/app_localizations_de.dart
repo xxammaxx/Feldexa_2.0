@@ -469,6 +469,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get exportCloseAction => 'Schließen';
 
   @override
+  String get exportPreflightGoToFields => 'Zu den Feldern';
+
+  @override
   String get tpl001 =>
       'Eine Vorlage kann nicht erstellt werden, weil noch keine Felder bestätigt sind oder die Originalseiten nicht lesbar sind.';
 

@@ -83,6 +83,13 @@ const Set<String> _nonCodeArbKeys = <String>{
   'exportPreviewShareAction',
   'exportPreviewPrintAction',
   'exportCloseAction',
+  // Issue #334 review fix (§10 point 2): the jump from a blocking export
+  // warning to the first blocking field. `contracts/editor-interactions.md`
+  // §10 point 2 names the label verbatim („Zu den Feldern“) but the catalog has
+  // no coded row for it; the key exists only for that contract sentence. The
+  // page label of the listed warnings reuses the existing one-based
+  // `suggestionPage` („Seite {page}“) instead of adding a second wording.
+  'exportPreflightGoToFields',
   'fieldCount',
   'fillAction',
   'importAction',

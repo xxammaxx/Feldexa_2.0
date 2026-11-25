@@ -145,6 +145,22 @@ const ValueKey<String> editorExportActionKey = ValueKey<String>(
   'editor-export-action',
 );
 
+/// What the pre-export sheet of `contracts/editor-interactions.md` §10 returns.
+///
+/// §10 point 2 requires a way from a blocking warning to the field that causes
+/// it, so the sheet distinguishes "start the export" from "show me the fields"
+/// instead of a plain yes/no.
+enum ExportPreflightOutcome {
+  /// The user dismissed the sheet; nothing starts.
+  close,
+
+  /// The user started the export of the ready plan.
+  start,
+
+  /// The user asked to jump to the first blocking field (§10 point 2).
+  goToFields,
+}
+
 /// Stable key of the content-free marker that records "this route is not
 /// protected against screenshots".
 ///
@@ -2130,20 +2146,31 @@ class EditorScreenState extends State<EditorScreen> {
 
   /// Runs the export flow of `contracts/editor-interactions.md` §10.
   ///
-  /// 1. The plan is built from the verified snapshot; a blocking preflight or
-  ///    layout warning shows its German catalog text and starts nothing.
-  /// 2. Otherwise the pre-export information is shown: the empty-field count
+  /// 1. The plan is built from the **live** revision (`_content` and
+  ///    `_headRevisionId`, not the snapshot of the load): every confirm,
+  ///    reject, value, and geometry commit replaces those, so exporting the
+  ///    load would export an older state.
+  /// 2. A blocking preflight or layout warning shows its German catalog text,
+  ///    the page of each affected field, and the jump to the first one
+  ///    (§10 point 2); nothing starts.
+  /// 3. Otherwise the pre-export information is shown: the empty-field count
   ///    and the unresolved-suggestion count. Neither blocks; the
   ///    unresolved-suggestion sentence is the **provisional** OD-1 policy of
   ///    `contracts/export-plan.md` §3.4 and is not a settled export rule.
-  /// 3. The user starts the export; the port validates and renders, and only a
-  ///    verified artifact opens the preview.
+  /// 4. The user starts the export; the port validates and renders, and only a
+  ///    verified artifact opens the preview. A failure offers „Erneut
+  ///    versuchen“ with the same action (§10 point 5).
   ///
   /// Every message is an ARB sentence from the catalog; no path, URI, value,
   /// or OCR text is rendered or logged here.
   Future<void> _startExport() async {
     final LoadedDocument? loaded = _loadedDocument;
-    if (loaded == null || _exportBusy) {
+    final core.RevisionContent? content = _content;
+    final String? revisionId = _headRevisionId;
+    if (loaded == null ||
+        content == null ||
+        revisionId == null ||
+        _exportBusy) {
       return;
     }
     final AppLocalizations l10n = AppLocalizations.of(context);
@@ -2155,7 +2182,7 @@ class EditorScreenState extends State<EditorScreen> {
       try {
         controller = await _sessionExporter();
       } catch (_) {
-        _showReviewMessage(l10n.exp002);
+        _showReviewMessage(l10n.exp002, retryExport: true);
         return;
       }
       if (!mounted) {
@@ -2163,20 +2190,34 @@ class EditorScreenState extends State<EditorScreen> {
       }
       final ExportPreparation preparation;
       try {
-        preparation = controller.prepare(loaded);
+        preparation = controller.prepare(
+          loaded,
+          content: content,
+          revisionId: revisionId,
+        );
       } catch (_) {
-        _showReviewMessage(l10n.exp002);
+        _showReviewMessage(l10n.exp002, retryExport: true);
         return;
       }
-      final bool? start = await showModalBottomSheet<bool>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        builder: (BuildContext sheetContext) =>
-            _exportPreflightSheet(sheetContext, preparation),
-      );
-      if (start != true || !mounted) {
+      final ExportPreflightOutcome? outcome =
+          await showModalBottomSheet<ExportPreflightOutcome>(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            builder: (BuildContext sheetContext) =>
+                _exportPreflightSheet(sheetContext, preparation),
+          );
+      if (!mounted) {
         return;
+      }
+      switch (outcome) {
+        case null || ExportPreflightOutcome.close:
+          return;
+        case ExportPreflightOutcome.goToFields:
+          await _jumpToFirstBlockingField(preparation);
+          return;
+        case ExportPreflightOutcome.start:
+          break;
       }
       switch (preparation) {
         case ExportPreparationBlocked():
@@ -2185,6 +2226,11 @@ class EditorScreenState extends State<EditorScreen> {
         case ExportPreparationReady ready:
           final ExportAttempt attempt = await controller.run(ready);
           if (!mounted) {
+            // The route is gone, so no preview can own the artifact. Discarding
+            // it here is the only deletion path left (§10 point 6).
+            if (attempt is ExportAttemptSucceeded) {
+              await _discardArtifact(attempt.artifact.id);
+            }
             return;
           }
           switch (attempt) {
@@ -2208,7 +2254,7 @@ class EditorScreenState extends State<EditorScreen> {
             case ExportAttemptFailed(:final String code):
               final ExportFailureText? text = exportFailureCodeText(l10n, code);
               if (text != null) {
-                _showReviewMessage(text.message);
+                _showReviewMessage(text.message, retryExport: true);
               }
           }
       }
@@ -2221,19 +2267,67 @@ class EditorScreenState extends State<EditorScreen> {
     }
   }
 
+  /// Deletes one ephemeral artifact without letting a failure escape.
+  ///
+  /// This is the disposal path of a running export: the preview route never
+  /// opened, so nothing else would delete the file. The failure is swallowed
+  /// because there is no route left to report it on and no user data is at
+  /// stake — the file stays in the app's private cache.
+  Future<void> _discardArtifact(String artifactId) async {
+    try {
+      await widget.runtime.export.deleteArtifact(artifactId);
+    } catch (_) {
+      // Best effort only; the id and the cause are never logged.
+    }
+  }
+
+  /// Selects the first blocking field and opens it for filling.
+  ///
+  /// `contracts/editor-interactions.md` §10 point 2 requires the jump from a
+  /// blocking warning to the field that causes it. The field is resolved in the
+  /// live revision, so a warning about a field that no longer exists simply
+  /// moves on to the next one.
+  Future<void> _jumpToFirstBlockingField(ExportPreparation preparation) async {
+    if (preparation is! ExportPreparationBlocked) {
+      return;
+    }
+    final ExportValidation validation = preparation.validation;
+    final core.RevisionContent? live = _content;
+    if (live == null) {
+      return;
+    }
+    for (final ExportValidationWarning warning in validation.warnings) {
+      final String? fieldId = warning.fieldId;
+      if (fieldId == null) {
+        continue;
+      }
+      final core.ConfirmedField? field = _fieldById(live, fieldId);
+      if (field == null) {
+        continue;
+      }
+      _selectFieldInOrder(field.id);
+      await _openFieldValueSheet(field);
+      return;
+    }
+  }
+
   /// The pre-export sheet with the blocking warnings or the OD-1 information.
   ///
   /// The start action exists only for a ready plan: a blocked snapshot can be
-  /// inspected and closed, never started. Both actions are committed ARB
-  /// labels; the sheet adds no wording of its own.
+  /// inspected, never started. A blocked snapshot instead offers the §10 point
+  /// 2 jump to the first blocking field. Every label is a committed ARB string;
+  /// the page labels reuse the existing one-based `Seite {page}` key, so no new
+  /// user text is introduced here.
   Widget _exportPreflightSheet(
     BuildContext sheetContext,
     ExportPreparation preparation,
   ) {
     final AppLocalizations l10n = AppLocalizations.of(sheetContext);
     final ThemeData theme = Theme.of(sheetContext);
+    final core.RevisionContent? live = _content;
     final List<Widget> body = <Widget>[];
     bool ready = false;
+    bool jumpable = false;
     switch (preparation) {
       case ExportPreparationReady(:final ExportPlanInfo info):
         ready = true;
@@ -2263,6 +2357,27 @@ class EditorScreenState extends State<EditorScreen> {
             body.add(Text(recovery, style: theme.textTheme.bodySmall));
           }
         }
+        for (final ExportValidationWarning warning in validation.warnings) {
+          final int? page = _warningFieldPage(live, warning);
+          if (page == null) {
+            // A page-level warning (`EXP-006`) already names its page in the
+            // catalog sentence above; only field-scoped warnings list here.
+            continue;
+          }
+          jumpable = true;
+          final String? label = warning.fieldLabel;
+          body.add(
+            Row(
+              children: <Widget>[
+                if (label != null) Expanded(child: Text(label)),
+                Text(
+                  l10n.suggestionPage(page),
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ),
+          );
+        }
     }
     return SafeArea(
       child: Padding(
@@ -2280,15 +2395,27 @@ class EditorScreenState extends State<EditorScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
+                if (jumpable)
+                  TextButton(
+                    key: const ValueKey<String>('export-preflight-fields'),
+                    onPressed: () =>
+                        Navigator.of(sheetContext)
+                            .pop(ExportPreflightOutcome.goToFields),
+                    child: Text(l10n.exportPreflightGoToFields),
+                  ),
                 TextButton(
                   key: const ValueKey<String>('export-preflight-close'),
-                  onPressed: () => Navigator.of(sheetContext).pop(false),
+                  onPressed: () =>
+                      Navigator.of(sheetContext)
+                          .pop(ExportPreflightOutcome.close),
                   child: Text(l10n.exportCloseAction),
                 ),
                 if (ready)
                   FilledButton(
                     key: const ValueKey<String>('export-preflight-start'),
-                    onPressed: () => Navigator.of(sheetContext).pop(true),
+                    onPressed: () =>
+                        Navigator.of(sheetContext)
+                            .pop(ExportPreflightOutcome.start),
                     child: Text(l10n.exportAction),
                   ),
               ],
@@ -2297,6 +2424,25 @@ class EditorScreenState extends State<EditorScreen> {
         ),
       ),
     );
+  }
+
+  /// The one-based page of the field a blocking warning names, or null when the
+  /// warning is not about a field of the live revision.
+  ///
+  /// The page is read from the live document (`fields[fieldId].pageIndex + 1`),
+  /// because the field is what the jump selects; the warning's own page index is
+  /// not used, so a stale warning cannot label a page the document no longer
+  /// has.
+  int? _warningFieldPage(
+    core.RevisionContent? content,
+    ExportValidationWarning warning,
+  ) {
+    final String? fieldId = warning.fieldId;
+    if (content == null || fieldId == null) {
+      return null;
+    }
+    final core.ConfirmedField? field = _fieldById(content, fieldId);
+    return field == null ? null : field.pageIndex + 1;
   }
 
   Future<void> _showPrivacyDisclosure() async {
@@ -2319,13 +2465,28 @@ class EditorScreenState extends State<EditorScreen> {
     );
   }
 
-  void _showReviewMessage(String message) {
+  void _showReviewMessage(String message, {bool retryExport = false}) {
     if (!mounted) {
       return;
     }
+    final AppLocalizations l10n = AppLocalizations.of(context);
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          // §10 point 5: a failed export offers „Erneut versuchen“, which runs
+          // the same export action again; no separate retry state exists.
+          action: retryExport
+              ? SnackBarAction(
+                  label: l10n.actionRetry,
+                  onPressed: () {
+                    unawaited(_startExport());
+                  },
+                )
+              : null,
+        ),
+      );
   }
 
   void _completeSourceBytes(Uint8List? bytes) {

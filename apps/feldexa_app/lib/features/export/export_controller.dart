@@ -137,32 +137,50 @@ final class ExportController {
 
   final ExportPlanBuilder _builder;
 
-  /// Builds the plan for [loaded]; no port is called.
+  /// Builds the plan for the exported revision; no port is called.
+  ///
+  /// [content] and [revisionId] are the **live** revision of the editor: every
+  /// field, value, signature, and suggestion commit replaces them, while the
+  /// [LoadedDocument] of the load keeps the snapshot the editor opened with.
+  /// The caller therefore passes its current `_content`/`_headRevisionId`; omit
+  /// both only when the load is still the current revision (tests, and the
+  /// first export before any edit). Without them the plan would describe the
+  /// load instead of what the user is looking at, which is the defect this
+  /// parameter pair closes.
   ///
   /// Returns [ExportPreparationBlocked] for every blocking preflight or layout
   /// warning (FR-068): an overflowing, unplaceable, or unrenderable value is
   /// never silently shrunk, truncated, or omitted.
   ///
-  /// Throws [StateError] when the snapshot carries no durable revision id or no
-  /// source hash, because the plan cannot identify what it exports then. Both
-  /// values are store-verified, so the failure is a programming error in the
-  /// caller, not user data.
-  ExportPreparation prepare(LoadedDocument loaded) {
-    final String? revisionId = loaded.meta.latestRevisionId;
-    if (revisionId == null) {
+  /// Throws [StateError] when the exported revision has no durable revision id
+  /// or the load carries no source hash, because the plan cannot identify what
+  /// it exports then. Both values are store-verified, so the failure is a
+  /// programming error in the caller, not user data.
+  ExportPreparation prepare(
+    LoadedDocument loaded, {
+    core.RevisionContent? content,
+    String? revisionId,
+  }) {
+    final core.RevisionContent revision = content ?? loaded.content;
+    final String? headRevisionId = revisionId ?? loaded.meta.latestRevisionId;
+    if (headRevisionId == null) {
       throw StateError('the export requires a durable revision');
     }
-    final core.Document document = _exportDocument(loaded, revisionId);
+    final core.Document document = _exportDocument(
+      loaded,
+      revision,
+      headRevisionId,
+    );
     final ExportPlanBuildResult built = _builder.build(
       document: document,
       pageGeometries: <core.PageGeometry>[
-        for (final core.Page page in loaded.content.pages) page.geometry,
+        for (final core.Page page in revision.pages) page.geometry,
       ],
-      values: loaded.content.values,
-      signatures: loaded.content.signatures,
+      values: revision.values,
+      signatures: revision.signatures,
       evidenceClass: evidenceClass,
       sourceSha256: loaded.meta.source.sha256,
-      revisionId: revisionId,
+      revisionId: headRevisionId,
       validatedAt: clock.nowUtc().toUtc(),
     );
     if (built case ExportPlanBuildSuccess(:final ExportPlan plan)) {
@@ -203,20 +221,30 @@ final class ExportController {
     } on FormatException {
       // A malformed channel answer is a broken export, not a produced file.
       return const ExportAttemptFailed('EXP-002');
+    } catch (_) {
+      // The channel translation in `feldexa_adapters_android` maps only the
+      // codes it knows; `EXP-003/004/005/006`, `PLT-003`, and unknown codes
+      // arrive as a raw `PlatformException`, and `PLT-001`/`PLT-002` as a
+      // `SecurityException` or `UnsupportedOperationException`. None of them
+      // may escape as an unhandled async error: every one of them means no
+      // valid PDF file was created, which is exactly `EXP-002`.
+      return const ExportAttemptFailed('EXP-002');
     }
   }
 
   /// Builds the transient `core.Document` the shared export stages consume.
   ///
   /// Field provenance, so every value here is traceable:
-  ///   * `id`, `title`, `createdAt`, `updatedAt`, and `source` come from the
-  ///     store-verified `DocumentMeta` of the load;
+  ///   * `id`, `title`, `createdAt`, `updatedAt`, `source`, and `lastDurableAt`
+  ///     come from the store-verified `DocumentMeta` of the load — the document
+  ///     identity and the protected source do not change per revision;
   ///   * `pages`, `suggestions`, `fields`, `fieldOrder`, `values`,
-  ///     `signatures`, `verification`, and `templateOrigin` are the verified
-  ///     `RevisionContent` of the same load, unchanged and unfiltered;
+  ///     `signatures`, `verification`, and `templateOrigin` are [content], the
+  ///     live store-verified `RevisionContent` (`loaded.content` only while no
+  ///     edit has replaced it), unchanged and unfiltered;
   ///   * `lastDurable` is *not* part of a revision snapshot
   ///     (`RevisionContent.fromDocument` excludes the durable head), so it is
-  ///     reconstructed from the store values `latestRevisionId` and
+  ///     reconstructed from the store values [revisionId] and
   ///     `lastDurableAt`. Its `sha256` is filled with the verified
   ///     **source** hash: the revision hash is not exposed by the store port,
   ///     and no export stage reads this field.
@@ -227,9 +255,12 @@ final class ExportController {
   /// never be persisted, serialized, or logged, and it is passed only to the
   /// plan builder. Replacing this reconstruction with an export-side snapshot
   /// constructor is tracked as a follow-up.
-  core.Document _exportDocument(LoadedDocument loaded, String revisionId) {
+  core.Document _exportDocument(
+    LoadedDocument loaded,
+    core.RevisionContent content,
+    String revisionId,
+  ) {
     final core.DocumentMeta meta = loaded.meta;
-    final core.RevisionContent content = loaded.content;
     return core.Document(
       id: meta.id,
       title: meta.title,

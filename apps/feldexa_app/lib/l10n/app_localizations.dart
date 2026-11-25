@@ -808,6 +808,12 @@ abstract class AppLocalizations {
   /// **'Schließen'**
   String get exportCloseAction;
 
+  /// contracts/editor-interactions.md §10 point 2: the action that jumps from a blocking export warning to the first blocking field; the catalog names the label verbatim.
+  ///
+  /// In de, this message translates to:
+  /// **'Zu den Feldern'**
+  String get exportPreflightGoToFields;
+
   /// contracts/error-catalog.de.md §5 TPL-001: Template creation impossible (no confirmed fields or source unreadable).
   ///
   /// In de, this message translates to:

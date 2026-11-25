@@ -598,6 +598,10 @@
   "@exportCloseAction": {
     "description": "contracts/editor-interactions.md §10 point 4: closing action of the export preview and of the pre-export sheet."
   },
+  "exportPreflightGoToFields": "Zu den Feldern",
+  "@exportPreflightGoToFields": {
+    "description": "contracts/editor-interactions.md §10 point 2: the action that jumps from a blocking export warning to the first blocking field; the catalog names the label verbatim."
+  },
   "tpl001": "Eine Vorlage kann nicht erstellt werden, weil noch keine Felder bestätigt sind oder die Originalseiten nicht lesbar sind.",
   "@tpl001": {
     "description": "contracts/error-catalog.de.md §5 TPL-001: Template creation impossible (no confirmed fields or source unreadable)."

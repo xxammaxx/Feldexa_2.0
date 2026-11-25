@@ -13,8 +13,6 @@
 @TestOn('vm')
 library;
 
-import 'dart:typed_data';
-
 import 'package:feldexa_app/features/export/export_controller.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_core/feldexa_core.dart' as core;
@@ -261,6 +259,50 @@ void main() {
     expect(plan.info.unresolvedSuggestionCount, 0);
   });
 
+  test('prepare builds the plan from the live revision, not from the load', () {
+    final ExportController controller = controllerFor(_FakeExportPort());
+    const String liveRevisionId = '1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e';
+    // The load carries no confirmed field and no suggestion: it is the snapshot
+    // the editor opened with.
+    final LoadedDocument loaded = _loaded(
+      content: _content(
+        fields: const <core.ConfirmedField>[],
+        values: const <String, core.FieldValue>{},
+      ),
+    );
+    // The live revision has the confirmed field and an unreviewed suggestion.
+    final core.RevisionContent live = _content(
+      suggestions: <core.FieldSuggestion>[
+        core.FieldSuggestion(
+          id: 's_p0_0001',
+          pageIndex: 0,
+          rect: core.Rect.fromLTWH(40, 120, 120, 14),
+          proposedType: core.FieldType.text,
+          confidence: 0.5,
+          labelText: null,
+          evidence: core.SuggestionEvidence(
+            cues: const <core.SuggestionCue>[core.SuggestionCue.underline],
+            ocrUsed: false,
+          ),
+        ),
+      ],
+    );
+
+    final ExportPreparation preparation = controller.prepare(
+      loaded,
+      content: live,
+      revisionId: liveRevisionId,
+    );
+
+    expect(preparation, isA<ExportPreparationReady>());
+    final ExportPlan plan = (preparation as ExportPreparationReady).plan;
+    // The plan identifies and describes the live revision, not the load.
+    expect(plan.revisionId, liveRevisionId);
+    expect(plan.pages.single.ops.single.fieldId, _fieldId);
+    expect(plan.info.emptyFieldCount, 0);
+    expect(plan.info.unresolvedSuggestionCount, 1);
+  });
+
   test('prepare reports the pre-export information of empty and unreviewed '
       'content without blocking it', () {
     final ExportController controller = controllerFor(_FakeExportPort());
@@ -407,6 +449,45 @@ void main() {
 
     expect((attempt as ExportAttemptFailed).code, 'EXP-002');
     expect(port.exported, isEmpty);
+  });
+
+  test(
+    'an unmapped platform error is reported as EXP-002, never thrown',
+    () async {
+      // `feldexa_adapters_android` rethrows codes it does not translate
+      // (`EXP-003`), so an unhandled `PlatformException` would otherwise escape
+      // this method as an uncaught async error.
+      final _FakeExportPort port = _FakeExportPort(
+        validateError: PlatformException(code: 'EXP-003'),
+      );
+      final ExportController controller = controllerFor(port);
+      final ExportPreparationReady ready =
+          controller.prepare(_loaded()) as ExportPreparationReady;
+
+      final ExportAttempt attempt = await controller.run(ready);
+
+      expect(attempt, isA<ExportAttemptFailed>());
+      expect((attempt as ExportAttemptFailed).code, 'EXP-002');
+      expect(port.exported, isEmpty);
+    },
+  );
+
+  test('a security rejection of the port keeps its own code', () async {
+    // `SecurityException` is a portable `FeldexaException` (`PLT-002`), so it is
+    // classified before the last-resort catch and keeps the catalog code; the
+    // sheet maps that developer-only code to the generic EXP-002 sentence.
+    final _FakeExportPort port = _FakeExportPort(
+      validateError: SecurityException(),
+    );
+    final ExportController controller = controllerFor(port);
+    final ExportPreparationReady ready =
+        controller.prepare(_loaded()) as ExportPreparationReady;
+
+    final ExportAttempt attempt = await controller.run(ready);
+
+    expect(attempt, isA<ExportAttemptFailed>());
+    expect((attempt as ExportAttemptFailed).code, 'PLT-002');
+    expect(exportFailureCodeText(l10n, 'PLT-002')!.message, l10n.exp002);
   });
 
   test('blocking texts use the catalog sentences and their placeholders', () {
