@@ -23,15 +23,20 @@
 # reopened document.
 #
 # Not covered, and deliberately not faked: a *filled* value. The fixture's
-# first suggestion that this flow confirms carries a field rectangle that no
-# text fits (`FLD-001` for a single character), so entering a value there would
-# block the export with `EXP-001`. The flow therefore asserts the confirmed,
+# first suggestion that this flow confirms rejects even a single character with
+# `FLD-001` (observed), so entering a value there would block the export with
+# `EXP-001`. Whether the rectangle itself is wrong for this fixture is *not*
+# judged here; see the verification report, which records the observation and
+# leaves the rectangle unmeasured. The flow therefore asserts the confirmed,
 # not yet filled state of that field. A value-bearing leg is journaled as an
 # open point in
 # `reports/release/reviews/2026-11-25-worker-report-export-evidence.md`.
 #
-# Every selector is a visible German app string or the localized tooltip of an
-# app-bar action — never a coordinate. Every wait is an `extendedWaitUntil`
+# Every app selector is a visible German app string or the localized tooltip of
+# an app-bar action — never a coordinate. The SAF picker is a *system* surface
+# and is addressed by its en-locale labels (`Show roots`, `Open from`,
+# `Downloads`), so the flow is tied to an english system locale; on a German
+# system the picker steps must be re-recorded. Every wait is an `extendedWaitUntil`
 # with an explicit timeout; the flow contains no fixed `sleep`.
 #
 # Run from the directory that should receive the screenshots:
@@ -47,7 +52,7 @@
 # Evidence note: the editor, the pre-export sheet, and the export route carry
 # `FLAG_SECURE` (`contracts/platform-channel.md` §11 point 7), so every
 # screenshot taken inside them is a black frame. Only `01-start` and
-# `10-start-list-after-export` („Meine Dokumente“) have visual content; the
+# `07-start-list-after-export` („Meine Dokumente“) have visual content; the
 # editor and export legs are evidenced by the assertions below and by the
 # hierarchy dumps of the runs.
 appId: de.feldexa.app

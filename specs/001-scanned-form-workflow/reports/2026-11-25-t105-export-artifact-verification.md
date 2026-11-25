@@ -5,7 +5,8 @@
 **Device**: emulator only — `emulator-5554` (AVD `T025_Pixel7_API35_KVM_20261115`,
 API 35, x86_64). No physical device was addressed, `adb kill-server` was never
 run, and the emulator was not restarted.
-**Scope**: E2 of the release brief
+**Scope**: E2 of the release brief — **belegt mit Einschränkung** (no filled value was
+exported; see §7 for the observed `FLD-001`)
 (`reports/release/TASK-BRIEF-export-evidence.md`). No product code changed; the
 only tracked change besides this note is
 `apps/feldexa_app/e2e/export_journey.yaml`.
