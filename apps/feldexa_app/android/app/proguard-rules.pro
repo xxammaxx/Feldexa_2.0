@@ -19,7 +19,7 @@
 # `com.gemalto.jp2.JP2Decoder` belongs to JP2Android, an optional codec that
 # `com.tom-roush:pdfbox-android:2.0.27.0` never declares and that is absent from
 # this build's dependency graph. The reference becomes reachable as soon as the
-# app really uses PDFBox (T039 preflight, T040 decryption): pdfbox's
+# app really uses PDFBox (T039 preflight / T040 import): pdfbox's
 # `FilterFactory` constructor instantiates `JPXFilter` unconditionally, so R8
 # sees `JPXFilter.readJPX` and its `com.gemalto.jp2.JP2Decoder` reference.
 #
@@ -30,7 +30,7 @@
 # crash. Feldexa never decodes images from PDFs either: the app's PDFBox use is
 # structural (`COSDictionary`/`COSName`/`PDDocument`/`PDPage`/`PDRectangle`,
 # memory-only buffers, `InvalidPasswordException`), with no `PDFRenderer`,
-# `PDFImageXObject` or text stripper. A JPXDecode stream never reaches
-# `FilterFactory`, and if it ever did, the absent codec fails exactly as it does
-# without this rule. No class is added to or kept out of the APK.
+# `PDFImageXObject` or text stripper. No JPXDecode-filtered stream is ever
+# decoded; if one were, the absent codec fails exactly as it does without this
+# rule. No class is added to or kept out of the APK.
 -dontwarn com.gemalto.jp2.JP2Decoder

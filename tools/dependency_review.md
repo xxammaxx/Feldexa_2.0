@@ -494,3 +494,17 @@ in `apps/feldexa_app/android/app/proguard-rules.pro`. Sie ist verhaltensneutral,
 JP2Android, keine Versionsänderung, keine Schwellenänderung. Die Aussagen in 8.1/8.2 und
 C-T003-12 bleiben Auditstand (2026-11-12); `com.google.mlkit:text-recognition:16.0.1` bleibt
 unverändert.
+
+**Build-Beleg zu T326 (nachgetragen 2026-11-25):** `flutter build apk --release` ist mit der
+Regel grün (Gradle `assembleRelease` 102,5 s; erster Lauf 372,4 s): `app-release.apk`
+**105 919 363 Bytes**, drei ABIs (arm64-v8a, armeabi-v7a, x86_64), sha256
+`6820a29032db64285545df23d07d4a803f01ccdd68e27e84a25b5460cfe9a39a`;
+`build/app/outputs/mapping/release/missing_rules.txt` ist danach **abwesend**, und
+`tools/android/check_release_manifest.sh` meldet PASS im Manifest- und im APK-Modus
+(Kandidaten-Commit `5a30772…`; der nachgelagerte Kommentar-Commit baut byte-identisch).
+Größenvergleich like-for-like: die 57 015 925 Bytes aus 8.1 (Zeile 204, Ein-ABI-Build mit
+`--target-platform android-x64`) sind nicht vergleichbar; der am selben Tag ohne
+`--target-platform` gebaute Build lag bei 96 640 287 Bytes
+(`specs/001-scanned-form-workflow/reports/2026-11-12-t009-evidence.md:240`). Gegen diesen Wert
+sind 105 919 363 Bytes **+9,6 %**, also keine Verdopplung und kein Bruch des Release-Budgets
+von 120 MB.
