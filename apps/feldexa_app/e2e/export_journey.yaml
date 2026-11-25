@@ -19,24 +19,18 @@
 # Run from the directory that should receive the screenshots:
 #   maestro --device emulator-5554 test <absolute>/export_journey.yaml
 #
-# KNOWN BLOCKER (PR #338, step 3a, 2026-11-25):
-# The export leg does NOT reach the preview on `emulator-5554`. Tapping the
-# start action closes the pre-export sheet and the editor then shows the
-# content-free `EXP-002` sentence „Der Export ist fehlgeschlagen…“ with
-# „Erneut versuchen“; no progress surface appears and no artifact is written
-# (`cache/feldexa_exports/` stays empty). It reproduces without any confirmed
-# field, so it is independent of the review leg. The two steps marked
-# `TODO(PR #338 export blocker)` therefore assert the *current, honest*
-# terminal state instead of the preview; they must be replaced by the preview
-# assertions (`Vorschau der erzeugten PDF-Datei`, `Seiten: 2`, „Schließen“)
-# once the export path is fixed. See
-# `reports/release/reviews/2026-11-25-fix-report-pr338-step3a.md`.
+# The export leg was blocked until 2026-11-25: every export answered the
+# content-free `EXP-002` sentence because pdfbox-android could not read its
+# predefined CMaps from the APK assets (`CMapParser.getExternalCMap` threw an
+# `IOException`, reported as the internal `PLT-001`). `MainActivity` now calls
+# `PDFBoxResourceLoader.init` before any service is registered
+# (`reports/release/reviews/2026-11-25-debug-report-export-failure.md`).
 #
 # Evidence note: the editor, the pre-export sheet, and the export route carry
 # `FLAG_SECURE` (`contracts/platform-channel.md` §11 point 7), so every
 # screenshot taken inside them is a black frame. Only `01-start` („Meine
 # Dokumente“) has visual content; the editor and export legs are evidenced by
-# the assertions below and by the hierarchy dumps of the failed runs.
+# the assertions below and by the hierarchy dumps of the runs.
 appId: de.feldexa.app
 ---
 - launchApp:
@@ -96,16 +90,23 @@ appId: de.feldexa.app
     # Index 1 is the start button; index 0 is the sheet title of the same name.
     text: "PDF exportieren"
     index: 1
-# TODO(PR #338 export blocker): replace this block with
-#   - extendedWaitUntil: {visible: "PDF wird erstellt", timeout: 30000}
-#   - extendedWaitUntil: {visible: "Vorschau der erzeugten PDF-Datei", timeout: 180000}
-#   - extendedWaitUntil: {visible: "Seiten: 2", timeout: 30000}
-#   - takeScreenshot: export-preview
-#   - tapOn: "Schließen"
-# once the export path reaches the preview on the emulator. Until then the
-# current terminal state is asserted, not hidden.
+# Export progress and preview (`contracts/editor-interactions.md` §10 point 3).
+# The progress surface is best-effort: a two-page fixture can finish before the
+# first phase is painted, so its title is asserted `optional` and never gates
+# the run. The preview is the real gate: the footer, the page count of the
+# exported artifact, and the „Schließen“ action.
+- assertVisible:
+    text: "PDF wird erstellt"
+    optional: true
 - extendedWaitUntil:
-    visible: ".*Der Export ist fehlgeschlagen.*"
-    timeout: 60000
-- assertVisible: "Erneut versuchen"
-- takeScreenshot: 05-export-blocked-exp002
+    visible: "Vorschau der erzeugten PDF-Datei"
+    timeout: 180000
+- extendedWaitUntil:
+    visible: "Seiten: 2"
+    timeout: 30000
+- takeScreenshot: 05-export-preview
+- tapOn: "Schließen"
+- extendedWaitUntil:
+    visible: "PDF exportieren"
+    timeout: 30000
+- takeScreenshot: 06-after-preview-close

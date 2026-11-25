@@ -16,6 +16,7 @@ import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.content.FileProvider
+import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import de.feldexa.app.delivery.DeliveryHost
 import de.feldexa.app.delivery.DeliveryService
 import de.feldexa.app.delivery.PdfArtifactPrintAdapter
@@ -207,6 +208,13 @@ class MainActivity : FlutterActivity(), SensitiveRouteHost {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        // pdfbox-android reads its predefined CMaps and glyph lists from the APK
+        // assets (`assets/com/tom_roush/fontbox/resources/…`). Without this
+        // init the first `PDType0Font.load` fails with an `IOException` from
+        // `CMapParser.getExternalCMap`, which the export answers as the
+        // content-free `PLT-001` internal failure. It is idempotent and runs
+        // before any service is registered, so no PDFBox call can precede it.
+        PDFBoxResourceLoader.init(applicationContext)
         val plugin = FeldexaPlugin()
         feldexaPlugin = plugin
         flutterEngine.plugins.add(plugin)
