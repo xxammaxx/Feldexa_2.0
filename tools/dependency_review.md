@@ -545,7 +545,10 @@ T309/PR #320 (Merge `9f41095`, Commit `e5cd4a3`) entfernt, die native OCR läuft
 `google_mlkit_commons` ist mit entfallen, weil der Wrapper sein einziger abhängiger Bestandteil war
 (Commit-Nachricht `e5cd4a3`). Heute deklariert keine `pubspec.yaml` des Workspace ein
 `google_mlkit*`-Paket und keine Dart-Datei importiert `package:google_mlkit*`; der Guard
-`tools/repo/test_mlkit_dart_dependency_absent.py` hält das fest (T332: 6 Tests grün).
+`tools/repo/test_mlkit_dart_dependency_absent.py` hält das fest: die Guard-Datei enthält sechs
+Testmethoden (Einzellauf `python3 -m unittest tools/repo/test_mlkit_dart_dependency_absent.py`:
+6 Tests grün), der Discovery-Lauf über das ganze Verzeichnis
+(`python3 -m unittest discover -s tools/repo -p 'test_*.py'`) meldet 10 Tests grün.
 
 Betroffene Stellen, jeweils unverändert gelassen:
 
@@ -556,7 +559,7 @@ Betroffene Stellen, jeweils unverändert gelassen:
   überholten Graph.
 - Zeile 388 — Appendix C „Direct Dart pins": nennt `google_mlkit_text_recognition 1.0.2` als
   Pinnung.
-- Zeile 208 — §8.2, `pub outdated`: zählt ihn zu den aktuellen Direkteinträgen.
+- Zeile 208 — §8.1, `pub outdated`: zählt ihn zu den aktuellen Direkteinträgen.
 - Zeile 443 — §10.3, Spalte „installiert" = `1.0.2`: listet ihn als installiert; die Entscheidung
   derselben Zeile („**entfernen statt aktualisieren**") ist mit T309 vollzogen, und der
   Aufschubstand des T309-Nachtrags („offene Aufschübe damit 11") ist damit überholt.
@@ -576,13 +579,18 @@ Weitere Stellen im Präsens, die keine Pinnung behaupten (ebenso nur eingeordnet
 - Zeilen 143/144 nennen die Wrapper-Nebenbedingungen (`Dart ^3.12.0`, `Flutter >=3.44.0`) als
   Herkunft der effektiven Grenzen. Die effektiven Grenzen (`apps/feldexa_app/pubspec.yaml:8-9`:
   `sdk: ^3.13.0`, `flutter: ">=3.47.0 <4.0.0"`) setzt `pdfrx`; sie sind unverändert.
-- Zeilen 76, 99 und 244 geben Zählungen und Graphgrößen des Auflösungslaufs wieder, der den Wrapper
+- Zeilen 77, 99 und 244 geben Zählungen und Graphgrößen des Auflösungslaufs wieder, der den Wrapper
   enthielt („10 direct dependencies, 94 hosted packages … 110 graph entries; 99 lockfile entries",
   „19 MIT, 67 BSD-3-Clause, 8 Apache-2.0", „eight direct hosted application dependencies"). Nach der
   Commit-Nachricht `e5cd4a3` („`google_mlkit_text_recognition` and its only dependent
-  `google_mlkit_commons` leave the graph; nothing else re-resolved") liegen die direkten, hosted-,
-  Graph- und Lockfile-Werte um eins und die MIT-Zahl um zwei zu hoch. Nachgemessen wurde in T332
-  nicht (kein `flutter pub get`, kein `pub deps`); die Zahlen bleiben als Auditstand stehen.
+  `google_mlkit_commons` leave the graph; nothing else re-resolved") verlassen **zwei** hosted Pakete
+  den Graphen: der direkte Wrapper-Eintrag und `google_mlkit_commons`, das allein er hielt. Damit
+  sind die Zahlen so zu lesen: direct 10 → 9 (−1), hosted 94 → 92 (−2), Graph 110 → 108 (−2),
+  Lockfile 99 → 97 (−2), MIT 19 → 17 (−2), weil sowohl der Wrapper als auch `google_mlkit_commons`
+  MIT sind (Appendix A, Zeilen 268/269). Die „eight direct hosted application dependencies" der
+  Zeile 244 werden entsprechend zu sieben (acht hosted Direkteinträge neben den zwei SDK-Einträgen).
+  Nachgemessen wurde in T332 nicht (kein `flutter pub get`, kein `pub deps`); die Zahlen bleiben als
+  Auditstand stehen.
 
 Zeile 156 (§7.1, OSV-Lauf) braucht keine Einordnung: sie ist auf den 2026-11-12 datiert, und an
 diesem Tag war der Wrapper deklariert (`0e0cf2b:apps/feldexa_app/pubspec.yaml:62`).
