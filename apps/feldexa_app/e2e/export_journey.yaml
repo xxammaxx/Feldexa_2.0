@@ -4,6 +4,9 @@
 #   * `specs/001-scanned-form-workflow/contracts/editor-interactions.md` §10 —
 #     export action, pre-export sheet, progress with cancel, preview with
 #     „Schließen“;
+#   * `specs/001-scanned-form-workflow/contracts/editor-interactions.md` §7 —
+#     the review action „Übernehmen“ and the field overlay that announces the
+#     confirmed field state after a reload;
 #   * `reports/release/EMULATOR-PRECHECK.md` — the emulator baseline this flow
 #     reproduces (import → analysis → autosave → review → export).
 #
@@ -12,8 +15,28 @@
 # synthetic fixture `sf-001.pdf` from `/sdcard/Download`. The debug-only
 # `de.feldexa/test.import` hook is deliberately not used.
 #
-# Every selector is a visible German app string or the localized tooltip of an
-# app-bar action — never a coordinate. Every wait is an `extendedWaitUntil`
+# The flow covers the full journey twice over the same document: confirm a
+# suggestion, export, close the preview, leave the editor, reopen the stored
+# document, re-assert the confirmed field state, and export again. The reopen
+# leg (E4) is the part that proves the journey survives a reload; the second
+# export is the part that proves a second artifact is produced from the
+# reopened document.
+#
+# Not covered, and deliberately not faked: a *filled* value. The fixture's
+# first suggestion that this flow confirms rejects even a single character with
+# `FLD-001` (observed), so entering a value there would block the export with
+# `EXP-001`. Whether the rectangle itself is wrong for this fixture is *not*
+# judged here; see the verification report, which records the observation and
+# leaves the rectangle unmeasured. The flow therefore asserts the confirmed,
+# not yet filled state of that field. A value-bearing leg is journaled as an
+# open point in
+# `reports/release/reviews/2026-11-25-worker-report-export-evidence.md`.
+#
+# Every app selector is a visible German app string or the localized tooltip of
+# an app-bar action — never a coordinate. The SAF picker is a *system* surface
+# and is addressed by its en-locale labels (`Show roots`, `Open from`,
+# `Downloads`), so the flow is tied to an english system locale; on a German
+# system the picker steps must be re-recorded. Every wait is an `extendedWaitUntil`
 # with an explicit timeout; the flow contains no fixed `sleep`.
 #
 # Run from the directory that should receive the screenshots:
@@ -28,9 +51,10 @@
 #
 # Evidence note: the editor, the pre-export sheet, and the export route carry
 # `FLAG_SECURE` (`contracts/platform-channel.md` §11 point 7), so every
-# screenshot taken inside them is a black frame. Only `01-start` („Meine
-# Dokumente“) has visual content; the editor and export legs are evidenced by
-# the assertions below and by the hierarchy dumps of the runs.
+# screenshot taken inside them is a black frame. Only `01-start` and
+# `07-start-list-after-export` („Meine Dokumente“) have visual content; the
+# editor and export legs are evidenced by the assertions below and by the
+# hierarchy dumps of the runs.
 appId: de.feldexa.app
 ---
 - launchApp:
@@ -110,3 +134,53 @@ appId: de.feldexa.app
     visible: "PDF exportieren"
     timeout: 30000
 - takeScreenshot: 06-after-preview-close
+# Reopen leg (E4): leave the editor back to „Meine Dokumente“, open the same
+# stored document again, and assert that the confirmed field state from the
+# review action above is still there. The editor route is a plain
+# `MaterialPageRoute`, so the system back action is the app's own way out; the
+# start list re-reads the store when the editor returns
+# (`start_screen.dart` `_openEditor`).
+- back
+- extendedWaitUntil:
+    visible: "Meine Dokumente"
+    timeout: 30000
+- extendedWaitUntil:
+    # The stored title is the file name without its extension (`import` module,
+    # `titleFrom`), and the list row is one merged accessibility node with the
+    # title, the last-edited date, and the stored status, hence the `(?s)`
+    # dot-all pattern.
+    visible: "(?s).*sf-001.*"
+    timeout: 30000
+- takeScreenshot: 07-start-list-after-export
+- tapOn:
+    text: "(?s).*sf-001.*"
+# Same accessibility label as before the export: the confirmed provenance and
+# the (still empty) value survived the reload, and no unresolved proposal is
+# shown in its place. The label is the page overlay's own announcement, not a
+# content dump.
+- extendedWaitUntil:
+    visible: "Feld MUSTERSTADT, Typ Text, Seite 1, leer, bestätigt"
+    timeout: 180000
+- takeScreenshot: 08-reopened-document
+# Second export of the reopened document: same app-bar action, same pre-export
+# sheet (the fixture's 79 unresolved suggestions stay unreviewed), new
+# artifact, same preview contract.
+- tapOn: "PDF exportieren"
+- extendedWaitUntil:
+    visible: ".*sind noch nicht geprüft.*"
+    timeout: 30000
+- tapOn:
+    text: "PDF exportieren"
+    index: 1
+- extendedWaitUntil:
+    visible: "Vorschau der erzeugten PDF-Datei"
+    timeout: 180000
+- extendedWaitUntil:
+    visible: "Seiten: 2"
+    timeout: 30000
+- takeScreenshot: 09-second-export-preview
+- tapOn: "Schließen"
+- extendedWaitUntil:
+    visible: "PDF exportieren"
+    timeout: 30000
+- takeScreenshot: 10-after-second-preview-close
