@@ -35,6 +35,7 @@ import 'dart:typed_data';
 
 import 'package:feldexa_recognition/src/confidence.dart';
 import 'package:feldexa_recognition/src/conflicts.dart';
+import 'package:feldexa_recognition/src/fillable_geometry.dart';
 import 'package:feldexa_recognition/src/geometry_detector.dart';
 import 'package:feldexa_recognition/src/page_analysis.dart';
 import 'package:feldexa_recognition/src/raster.dart';
@@ -344,6 +345,15 @@ RasterPageStageOutcome runRasterPageStage(
   }
 }
 
+/// Suggestion assembly over the raw detector candidates.
+///
+/// A typed candidate becomes at most one suggestion: a candidate whose
+/// rectangle cannot hold a value of its proposed type is not offered at all
+/// (`fillable_geometry.dart`, issue #340 — a glyph counter inside printed text
+/// became a field that rejected every character). The admission rule drops the candidate only from the suggestion list; the
+/// detector output, the geometry, the confidence model, and the conflict graph
+/// are unchanged, and a candidate that is admitted keeps the exact rect the
+/// detector reported.
 void _buildDrafts({
   required List<GeometryCandidate> candidates,
   required List<LabelObservation> labels,
@@ -357,6 +367,7 @@ void _buildDrafts({
   final double median = _singleLineMedianHeight(candidates);
   int insertion = 0;
   for (final GeometryCandidate candidate in candidates) {
+    final int detectorOrder = insertion++;
     final TypeInferenceResult inference = TypeInference.infer(
       candidate: candidate,
       labels: labels,
@@ -364,6 +375,12 @@ void _buildDrafts({
       pageWidthPt: pageSizePt.width,
       pageHeightPt: pageSizePt.height,
     );
+    if (!admitsValueOfType(
+      rect: candidate.rect,
+      proposedType: inference.proposedType,
+    )) {
+      continue;
+    }
     final List<String> cues = <String>{
       ...candidate.cues,
       ...inference.addedCues,
@@ -394,10 +411,9 @@ void _buildDrafts({
         cues: List<String>.unmodifiable(cues),
         labelText: inference.labelText,
         ocrUsed: ocrUsed,
-        insertion: insertion,
+        insertion: detectorOrder,
       ),
     );
-    insertion++;
   }
   out.sort(_compareDrafts);
 }
