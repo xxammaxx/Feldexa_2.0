@@ -478,3 +478,33 @@ ML-Kit-Skript-Erkenner sind aus `apps/feldexa_app/android/app/proguard-rules.pro
 Entfernung identisch, und der Report enthält keinen `com.google.mlkit.*`-Eintrag. Der
 Release-Build bleibt rot wegen `com.gemalto.jp2.JP2Decoder` (vorbestehend, Issue #326, nicht Teil
 dieses Auftrags); die Aussagen in 8.1/8.2 und C-T003-12 bleiben Auditstand.
+
+**Nachtrag 2026-11-25 (T326, Issue #326):** Der rote Release-Build ist behoben. Ursache ist
+**nicht** die Wrapper-Entfernung T309, sondern die inzwischen echte PDFBox-Nutzung: ein
+Vergleichsbuild auf `0e0cf2b` (= `9f41095^1`, Stand vor PR #320) scheitert mit demselben
+R8-Fehler und derselben `missing_rules.txt` (sha256 `d24173e1…`), der Defekt ist also älter.
+`com.tom-roush:pdfbox-android:2.0.27.0` deklariert den optionalen JP2-Codec nie; pdfbox'
+`FilterFactory`-Konstruktor instanziiert `JPXFilter` unbedingt, wodurch
+`JPXFilter.readJPX` → `com.gemalto.jp2.JP2Decoder` erreichbar wird, sobald `PDDocument`
+geladen wird (T039/T040). Maßnahme: eine AGP-generierte `-dontwarn com.gemalto.jp2.JP2Decoder`
+in `apps/feldexa_app/android/app/proguard-rules.pro`. Sie ist verhaltensneutral, weil
+`readJPX` den Codec per `Class.forName` prüft und ohne ihn die definierte
+`MissingImageReaderException` wirft, und weil Feldexa PDF-Bilder nie dekodiert (nur
+`COS*`/`PDDocument`/`PDPage`/`PDRectangle`/`RandomAccessRead`). Kein `implementation` für
+JP2Android, keine Versionsänderung, keine Schwellenänderung. Die Aussagen in 8.1/8.2 und
+C-T003-12 bleiben Auditstand (2026-11-12); `com.google.mlkit:text-recognition:16.0.1` bleibt
+unverändert.
+
+**Build-Beleg zu T326 (nachgetragen 2026-11-25):** `flutter build apk --release` ist mit der
+Regel grün (Gradle `assembleRelease` 102,5 s; erster Lauf 372,4 s): `app-release.apk`
+**105 919 363 Bytes**, drei ABIs (arm64-v8a, armeabi-v7a, x86_64), sha256
+`6820a29032db64285545df23d07d4a803f01ccdd68e27e84a25b5460cfe9a39a`;
+`build/app/outputs/mapping/release/missing_rules.txt` ist danach **abwesend**, und
+`tools/android/check_release_manifest.sh` meldet PASS im Manifest- und im APK-Modus
+(Kandidaten-Commit `5a30772…`; der nachgelagerte Kommentar-Commit baut byte-identisch).
+Größenvergleich like-for-like: die 57 015 925 Bytes aus 8.1 (Zeile 204, Ein-ABI-Build mit
+`--target-platform android-x64`) sind nicht vergleichbar; der am selben Tag ohne
+`--target-platform` gebaute Build lag bei 96 640 287 Bytes
+(`specs/001-scanned-form-workflow/reports/2026-11-12-t009-evidence.md:240`). Gegen diesen Wert
+sind 105 919 363 Bytes **+9,6 %**, also keine Verdopplung und kein Bruch des Release-Budgets
+von 120 MB.
