@@ -1,0 +1,11 @@
+# artifact sizes and hashes
+-rw-r--r-- 1 xxammaxx xxammaxx 7265 25. Nov 19:15 eed3bbeb-c9f8-448a-9074-52ed48fbea76.pdf
+e644ddebcd9fcb49e425c90e60b0977329c4d008082a8c156114b88be81e9678  eed3bbeb-c9f8-448a-9074-52ed48fbea76.pdf
+36a4df0c0a58f1c46feb3e43e6454bbe  eed3bbeb-c9f8-448a-9074-52ed48fbea76.pdf
+--- source
+22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038  /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/export-evidence/tools/corpus/synthetic/sf-001.pdf
+--- rendered pages (150 dpi)
+b279d225cb1b8e50ca8b9fe6ccc008f8a1294e39224aa0af129256130f1af26c  render/src-1.png
+b279d225cb1b8e50ca8b9fe6ccc008f8a1294e39224aa0af129256130f1af26c  render/art-1.png
+b9d6e23e15d9b69203419ff1a0f3694df33742bf27c053c1e7b633b57013c904  render/src-2.png
+b9d6e23e15d9b69203419ff1a0f3694df33742bf27c053c1e7b633b57013c904  render/art-2.png
