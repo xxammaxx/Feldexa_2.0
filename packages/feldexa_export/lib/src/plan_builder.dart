@@ -101,6 +101,14 @@ final class ExportPlanBuilder {
     required DateTime validatedAt,
   }) {
     final List<PageGeometry> pages = pageGeometries.toList(growable: false);
+    // The plan is built for the document's own confirmed content. A different
+    // map here would silently drop or invent entered values in the artifact
+    // (FR-038), so anything but the document's own content fails closed.
+    _requireDocumentContent(
+      document: document,
+      values: values,
+      signatures: signatures,
+    );
     final ExportPreflightResult preflight = const ExportPreflight().run(
       document: document,
       pageGeometries: pages,
@@ -176,5 +184,31 @@ final class ExportPlanBuilder {
       plan: plan,
       trimmedTrailingSpaceCount: trimmedTrailingSpaceCount,
     );
+  }
+}
+
+/// Refuses snapshot content that is not the document's own content.
+void _requireDocumentContent({
+  required Document document,
+  required Map<String, FieldValue> values,
+  required Map<String, SignatureMark> signatures,
+}) {
+  bool sameFieldValues =
+      values.length == document.values.length &&
+      values.entries.every(
+        (MapEntry<String, FieldValue> entry) =>
+            document.values[entry.key] == entry.value,
+      );
+  if (!sameFieldValues) {
+    throw ArgumentError('values must be the document snapshot values');
+  }
+  bool sameSignatures =
+      signatures.length == document.signatures.length &&
+      signatures.entries.every(
+        (MapEntry<String, SignatureMark> entry) =>
+            document.signatures[entry.key] == entry.value,
+      );
+  if (!sameSignatures) {
+    throw ArgumentError('signatures must be the document snapshot signatures');
   }
 }

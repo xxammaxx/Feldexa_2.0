@@ -544,6 +544,16 @@ final class ExportLayout {
         lines.add('');
         continue;
       }
+      final _TrimmedText trimmedParagraph = _trimTrailingWhitespace(paragraph);
+      if (trimmedParagraph.text.isEmpty) {
+        // A paragraph that is only whitespace is an explicit line the user
+        // wrote, not an empty paragraph. §3.1 materializes every `\n` into its
+        // own entry; dropping it would shift later lines up and undercount the
+        // height check, so a real overflow could pass.
+        trimmedTrailingSpaceCount += trimmedParagraph.removedCount;
+        lines.add('');
+        continue;
+      }
       int start = 0;
       while (start < runes.length) {
         double width = 0;

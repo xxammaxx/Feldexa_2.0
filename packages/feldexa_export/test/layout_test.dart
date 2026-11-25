@@ -333,6 +333,34 @@ void main() {
   });
 
   group('multiline layout', () {
+    test('keeps a whitespace-only paragraph as its own empty line', () {
+      // §3.1: every explicit `\n` starts a new line and trailing spaces are
+      // trimmed without changing visible content. A paragraph of spaces is a
+      // deliberate blank line, not a paragraph to drop: dropping it would shift
+      // the following lines up and undercount the height check.
+      final ExportFieldLayout blank = _layout.layoutField(
+        field: confirmedField(
+          id: uuid(38),
+          type: FieldType.multiline,
+          rect: Rect.fromLTWH(20, 20, 400, 100),
+        ),
+        geometry: a4(),
+        value: multilineValue('eins\n   \nzwei'),
+      );
+      expect((blank.op! as ExportTextOp).lines, <String>['eins', '', 'zwei']);
+
+      final ExportFieldLayout empty = _layout.layoutField(
+        field: confirmedField(
+          id: uuid(39),
+          type: FieldType.multiline,
+          rect: Rect.fromLTWH(20, 20, 400, 100),
+        ),
+        geometry: a4(),
+        value: multilineValue('eins\n\nzwei'),
+      );
+      expect((empty.op! as ExportTextOp).lines, <String>['eins', '', 'zwei']);
+    });
+
     test('materializes explicit line breaks in order', () {
       final ExportFieldLayout result = _layout.layoutField(
         field: confirmedField(

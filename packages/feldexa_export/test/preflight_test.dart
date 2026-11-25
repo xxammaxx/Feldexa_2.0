@@ -74,6 +74,31 @@ void main() {
     });
   });
 
+  group('empty-field counting (§3.4)', () {
+    test('an unset checkbox is a decided state, not an empty field', () {
+      // §3.2 draws nothing for an unchecked box and §3.4 says a checkbox is
+      // never empty. A checkbox with no stored value must therefore not
+      // inflate the "N Felder sind noch leer" hint.
+      final ConfirmedField withoutValue = confirmedField(
+        id: uuid(14),
+        type: FieldType.checkbox,
+        rect: Rect.fromLTWH(40, 40, 10, 10),
+      );
+      final Document document = buildDocument(
+        fields: <ConfirmedField>[withoutValue],
+      );
+      final ExportPreflightResult result = const ExportPreflight().run(
+        document: document,
+        pageGeometries: <PageGeometry>[a4()],
+        values: document.values,
+        signatures: document.signatures,
+        validatedAt: at(),
+      );
+      expect(result.validation.isValid, isTrue);
+      expect(result.emptyFieldCount, 0);
+    });
+  });
+
   group('unresolved suggestions (provisional, OD-1)', () {
     test('are excluded and counted without blocking', () {
       final ConfirmedField field = confirmedField(
@@ -150,7 +175,55 @@ void main() {
         signatures: document.signatures,
         validatedAt: at(),
       );
+      // a4 is 595.28 pt wide, so 595.5 is an overshoot of 0.22 pt: this case
+      // does not pin the boundary itself.
       expect(result.validation.isValid, isTrue);
+    });
+
+    test('pins the 0.5 pt boundary (0.49 passes, 0.51 blocks)', () {
+      // The document page is larger than the exported page, so the field is
+      // valid in the document and only the export-time overshoot is measured.
+      final PageGeometry documentPage = PageGeometry(
+        mediaBox: Rect.fromLTWH(0, 0, 700, 900),
+      );
+      final ConfirmedField insideLimit = confirmedField(
+        id: uuid(32),
+        type: FieldType.text,
+        rect: Rect.fromLTWH(400, 100, 195.77, 20),
+      );
+      final Document passingDocument = buildDocument(
+        fields: <ConfirmedField>[insideLimit],
+        pageGeometry: documentPage,
+      );
+      final ExportPreflightResult passing = const ExportPreflight().run(
+        document: passingDocument,
+        pageGeometries: <PageGeometry>[a4()],
+        values: passingDocument.values,
+        signatures: passingDocument.signatures,
+        validatedAt: at(),
+      );
+      // 595.77 - 595.28 = 0.49 pt overshoot: inside the 0.5 pt tolerance.
+      expect(passing.validation.isValid, isTrue);
+
+      final ConfirmedField outsideLimit = confirmedField(
+        id: uuid(33),
+        type: FieldType.text,
+        rect: Rect.fromLTWH(400, 100, 195.79, 20),
+      );
+      final Document blockedDocument = buildDocument(
+        fields: <ConfirmedField>[outsideLimit],
+        pageGeometry: documentPage,
+      );
+      final ExportPreflightResult blocked = const ExportPreflight().run(
+        document: blockedDocument,
+        pageGeometries: <PageGeometry>[a4()],
+        values: blockedDocument.values,
+        signatures: blockedDocument.signatures,
+        validatedAt: at(),
+      );
+      // 595.79 - 595.28 = 0.51 pt overshoot: beyond the tolerance.
+      expect(blocked.isBlocking, isTrue);
+      expect(blocked.validation.warnings.single.code, 'EXP-003');
     });
   });
 

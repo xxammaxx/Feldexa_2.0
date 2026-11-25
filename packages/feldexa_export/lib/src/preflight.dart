@@ -143,7 +143,7 @@ final class ExportPreflight {
           signatureMark: signatureMark,
         ),
       );
-      if (_isEmpty(value)) {
+      if (_isEmpty(field, value)) {
         emptyFieldCount++;
       }
       warnings.addAll(
@@ -230,8 +230,13 @@ final class ExportPreflight {
 /// Whether a confirmed field carries no renderable content (§3.4).
 ///
 /// An empty field never blocks export; the count is shown before export. A
-/// checkbox is never empty: unchecked is a decided state, not missing content.
-bool _isEmpty(FieldValue? value) {
+/// checkbox is never empty: unchecked is a decided state, not missing content,
+/// and an unset checkbox value renders no mark (§3.2). A signature field only
+/// has content once a mark exists.
+bool _isEmpty(ConfirmedField field, FieldValue? value) {
+  if (field.type == FieldType.checkbox) {
+    return false;
+  }
   return switch (value) {
     null => true,
     TextValue() => value.text.trim().isEmpty,

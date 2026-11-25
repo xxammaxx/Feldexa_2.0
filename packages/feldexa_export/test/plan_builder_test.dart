@@ -492,5 +492,32 @@ void main() {
         throwsArgumentError,
       );
     });
+
+    test('refuses content that is not the document snapshot content', () {
+      // Handing in a different value map would silently drop entered values
+      // from the artifact (FR-038).
+      final ConfirmedField field = confirmedField(
+        id: uuid(93),
+        type: FieldType.text,
+        rect: Rect.fromLTWH(40, 40, 300, 20),
+      );
+      final Document document = buildDocument(
+        fields: <ConfirmedField>[field],
+        values: <String, FieldValue>{field.id: textValue('Straße 42')},
+      );
+      expect(
+        () => _builder.build(
+          document: document,
+          pageGeometries: <PageGeometry>[a4()],
+          values: const <String, FieldValue>{},
+          signatures: document.signatures,
+          evidenceClass: 'emulator',
+          sourceSha256: sourceSha256,
+          revisionId: uuid(94),
+          validatedAt: at(),
+        ),
+        throwsArgumentError,
+      );
+    });
   });
 }
