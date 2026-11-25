@@ -536,3 +536,62 @@ R8 ihn als fehlende Klasse, deshalb die `-dontwarn`-Zeile), also im Host-JVM-Tes
 wie im Release-APK. Nicht umgesetzt, weil der Nachweis einen Gradle-Testlauf (`:app:test…`) verlangt und
 T331 Gradle-Builds ausschließt; ein ungeprüfter Test wäre eine unbelegte Behauptung. Die Lücke
 bleibt offen, bis ein Lauf mit Gradle-Erlaubnis sie schließt.
+
+**Nachtrag 2026-11-25 (T332, Issue #332):** Mehrere Altzeilen dieser Datei führen
+`google_mlkit_text_recognition` weiterhin als **aktuelle** Direktabhängigkeit. Das ist der Stand des
+Audits vom 2026-11-12, nicht der heutige. Gültig ist der T309-Nachtrag oben: der Wrapper ist mit
+T309/PR #320 (Merge `9f41095`, Commit `e5cd4a3`) entfernt, die native OCR läuft unverändert über
+`com.google.mlkit:text-recognition:16.0.1` (`apps/feldexa_app/android/app/build.gradle.kts:61`), und
+`google_mlkit_commons` ist mit entfallen, weil der Wrapper sein einziger abhängiger Bestandteil war
+(Commit-Nachricht `e5cd4a3`). Heute deklariert keine `pubspec.yaml` des Workspace ein
+`google_mlkit*`-Paket und keine Dart-Datei importiert `package:google_mlkit*`; der Guard
+`tools/repo/test_mlkit_dart_dependency_absent.py` hält das fest: die Guard-Datei enthält sechs
+Testmethoden (Einzellauf `python3 -m unittest tools/repo/test_mlkit_dart_dependency_absent.py`:
+6 Tests grün), der Discovery-Lauf über das ganze Verzeichnis
+(`python3 -m unittest discover -s tools/repo -p 'test_*.py'`) meldet 10 Tests grün.
+
+Betroffene Stellen, jeweils unverändert gelassen:
+
+- Zeile 74 — §3.1, Abschnitt „exact pins in `apps/feldexa_app/pubspec.yaml`", Verdict „Accepted
+  with C-T003-1": führt den Wrapper als gültige Pinnung der App.
+- Zeile 269 — Appendix A, Spalte `Direct` = `yes`: führt ihn als direkte Anwendungsabhängigkeit des
+  aufgelösten Graphen; Zeile 268 (`google_mlkit_commons`, `Direct` leer) gehört zu demselben
+  überholten Graph.
+- Zeile 388 — Appendix C „Direct Dart pins": nennt `google_mlkit_text_recognition 1.0.2` als
+  Pinnung.
+- Zeile 208 — §8.1, `pub outdated`: zählt ihn zu den aktuellen Direkteinträgen.
+- Zeile 443 — §10.3, Spalte „installiert" = `1.0.2`: listet ihn als installiert; die Entscheidung
+  derselben Zeile („**entfernen statt aktualisieren**") ist mit T309 vollzogen, und der
+  Aufschubstand des T309-Nachtrags („offene Aufschübe damit 11") ist damit überholt.
+
+Zeile 244 trägt keinen `google_mlkit`-Bezeichner; sie ist die Einleitung von Appendix A („Direct"
+marks the eight direct hosted application dependencies"). Das Delta-Review nennt die Zeilen 74, 244
+und 269; die dritte tatsächliche Pin-Stelle ist Zeile 388, und die Zählung in Zeile 244 ist eine
+vierte betroffene Stelle.
+
+Weitere Stellen im Präsens, die keine Pinnung behaupten (ebenso nur eingeordnet):
+
+- Zeilen 74, 104 und 183 nennen die MIT-Lizenz des Wrappers. Für die verbleibende native OCR gilt
+  unverändert ML Kit Terms of Service; die MIT-Attribution entfällt zusammen mit dem Paket.
+- Zeile 84 nennt als Belegquelle „Wrapper's `android/build.gradle`". Diese Quelle existiert nicht
+  mehr; die Aussage selbst (AAR `16.0.1`, Modell-Assets im AAR) trägt die Direktdeklaration in
+  `apps/feldexa_app/android/app/build.gradle.kts:61`.
+- Zeilen 143/144 nennen die Wrapper-Nebenbedingungen (`Dart ^3.12.0`, `Flutter >=3.44.0`) als
+  Herkunft der effektiven Grenzen. Die effektiven Grenzen (`apps/feldexa_app/pubspec.yaml:8-9`:
+  `sdk: ^3.13.0`, `flutter: ">=3.47.0 <4.0.0"`) setzt `pdfrx`; sie sind unverändert.
+- Zeilen 77, 99 und 244 geben Zählungen und Graphgrößen des Auflösungslaufs wieder, der den Wrapper
+  enthielt („10 direct dependencies, 94 hosted packages … 110 graph entries; 99 lockfile entries",
+  „19 MIT, 67 BSD-3-Clause, 8 Apache-2.0", „eight direct hosted application dependencies"). Nach der
+  Commit-Nachricht `e5cd4a3` („`google_mlkit_text_recognition` and its only dependent
+  `google_mlkit_commons` leave the graph; nothing else re-resolved") verlassen **zwei** hosted Pakete
+  den Graphen: der direkte Wrapper-Eintrag und `google_mlkit_commons`, das allein er hielt. Damit
+  sind die Zahlen so zu lesen: direct 10 → 9 (−1), hosted 94 → 92 (−2), Graph 110 → 108 (−2),
+  Lockfile 99 → 97 (−2), MIT 19 → 17 (−2), weil sowohl der Wrapper als auch `google_mlkit_commons`
+  MIT sind (Appendix A, Zeilen 268/269). Die „eight direct hosted application dependencies" der
+  Zeile 244 werden entsprechend zu sieben (sieben hosted Direkteinträge neben den zwei SDK-Einträgen,
+  zusammen neun direkte Abhängigkeiten).
+  Nachgemessen wurde in T332 nicht (kein `flutter pub get`, kein `pub deps`); die Zahlen bleiben als
+  Auditstand stehen.
+
+Zeile 156 (§7.1, OSV-Lauf) braucht keine Einordnung: sie ist auf den 2026-11-12 datiert, und an
+diesem Tag war der Wrapper deklariert (`0e0cf2b:apps/feldexa_app/pubspec.yaml:62`).
