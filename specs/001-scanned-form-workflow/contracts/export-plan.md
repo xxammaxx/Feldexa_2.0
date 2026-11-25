@@ -136,7 +136,7 @@ Every op carries `provenance` (`machine | user | template`) so recognition prove
 | `lineHeightPt` | `1.2 × fontSizePt`, rounded to 0.01 |
 | `baselineFromTopPt` | `1.5 + 0.8 × fontSizePt` (approx. ascender), ≤ rect.height |
 | `color` | `#000000` only in v1 |
-| `lines` | non-empty; single-line has exactly one entry; no trailing spaces; `\n` materialized into entries |
+| `lines` | non-empty; single-line has exactly one entry; no trailing spaces; `\n` materialized into entries as specified in §3.1 (a trailing blank paragraph adds no entry) |
 | `overflow` | must be `false`; if true the plan is not produced and export is blocked (`EXP-001`) |
 
 **checkbox**
