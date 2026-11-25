@@ -54,7 +54,8 @@ display rect → PDF:    (u0, v0, ur, vr) = (cx0 + y, cy0 + x, h, w)
 
 ### Rotation 180
 
-Display top-left is the PDF top-right.
+Display top-left is the PDF bottom-right (`(cx1, cy0)`): the formula below maps
+`(0, 0)` there and `(W0, H0)` to the PDF top-left `(cx0, cy1)`.
 
 ```text
 display → PDF point:   u = cx1 - dx          v = cy0 + dy
