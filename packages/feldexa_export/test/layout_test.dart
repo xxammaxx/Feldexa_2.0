@@ -493,6 +493,109 @@ void main() {
       expect(twoLines.warnings.single.reason, 'too_many_lines');
     });
 
+    test('drops a trailing newline instead of adding a line', () {
+      // §3.1: the closing `\n` of a multiline value is a separator, not a
+      // line. Height 20 pt gives lineHeightPt 14.4 pt inside the available
+      // 17 pt, so only the one written line fits.
+      final ExportFieldLayout result = _layout.layoutField(
+        field: confirmedField(
+          id: uuid(60),
+          type: FieldType.multiline,
+          rect: Rect.fromLTWH(20, 20, 400, 20),
+        ),
+        geometry: a4(),
+        value: multilineValue('Hallo\n'),
+      );
+      expect((result.op! as ExportTextOp).lines, <String>['Hallo']);
+      expect(
+        result.warnings.map((ExportValidationWarning w) => w.reason),
+        isNot(contains('too_many_lines')),
+      );
+    });
+
+    test('drops trailing whitespace-only paragraphs', () {
+      final ExportFieldLayout result = _layout.layoutField(
+        field: confirmedField(
+          id: uuid(61),
+          type: FieldType.multiline,
+          rect: Rect.fromLTWH(20, 20, 400, 20),
+        ),
+        geometry: a4(),
+        value: multilineValue('Hallo   \n   '),
+      );
+      expect((result.op! as ExportTextOp).lines, <String>['Hallo']);
+      expect(result.warnings, isEmpty);
+      // The trimmed spaces of both paragraphs stay counted (§3.1).
+      expect(result.trimmedTrailingSpaceCount, 6);
+    });
+
+    test('keeps interior blank paragraphs as visible lines', () {
+      // Only the trailing blank paragraphs are dropped, so the blank lines the
+      // user wrote between text stay lines.
+      final ExportFieldLayout oneBlank = _layout.layoutField(
+        field: confirmedField(
+          id: uuid(62),
+          type: FieldType.multiline,
+          rect: Rect.fromLTWH(20, 20, 400, 100),
+        ),
+        geometry: a4(),
+        value: multilineValue('a\n\nb'),
+      );
+      expect((oneBlank.op! as ExportTextOp).lines, <String>['a', '', 'b']);
+
+      final ExportFieldLayout twoBlanks = _layout.layoutField(
+        field: confirmedField(
+          id: uuid(63),
+          type: FieldType.multiline,
+          rect: Rect.fromLTWH(20, 20, 400, 100),
+        ),
+        geometry: a4(),
+        value: multilineValue('a\n\n\nb'),
+      );
+      expect((twoBlanks.op! as ExportTextOp).lines, <String>['a', '', '', 'b']);
+    });
+
+    test('accepts two lines that exactly fill height − 2·1.5 pt', () {
+      // §3.1: available height = rect.height − 2·1.5. Height 31.8 pt gives
+      // fontSizePt = clamp(0.6 × 31.8, 7.0, 12.0) = 12.0 pt, lineHeightPt =
+      // round(1.2 × 12.0, 2) = 14.4 pt, baseline = 1.5 + 0.8 × 12.0 = 11.1 pt
+      // ≤ 31.8 pt. Two lines measure 2 × 14.4 = 28.8 pt and the available
+      // height is exactly 28.8 pt, so the value fits without overflow.
+      final ExportFieldLayout result = _layout.layoutField(
+        field: confirmedField(
+          id: uuid(64),
+          type: FieldType.multiline,
+          rect: Rect.fromLTWH(20, 20, 18.1, 31.8),
+        ),
+        geometry: a4(),
+        value: multilineValue('ab cd'),
+      );
+      final ExportTextOp op = result.op! as ExportTextOp;
+      expect(op.fontSizePt, 12.0);
+      expect(op.lineHeightPt, 14.4);
+      expect(op.lines, <String>['ab', 'cd']);
+      expect(result.warnings, isEmpty);
+    });
+
+    test('blocks two lines that exceed height − 2·1.5 pt by 0.1 pt', () {
+      // Same value and metrics at 31.7 pt: the available height is 28.7 pt
+      // while the two lines still measure 28.8 pt.
+      final ExportFieldLayout result = _layout.layoutField(
+        field: confirmedField(
+          id: uuid(65),
+          type: FieldType.multiline,
+          rect: Rect.fromLTWH(20, 20, 18.1, 31.7),
+        ),
+        geometry: a4(),
+        value: multilineValue('ab cd'),
+      );
+      expect(result.op, isNull);
+      expect(
+        result.warnings.map((ExportValidationWarning w) => w.reason),
+        <String>['too_many_lines'],
+      );
+    });
+
     test('blocks a multiline value with a missing glyph', () {
       final ExportFieldLayout result = _layout.layoutField(
         field: confirmedField(

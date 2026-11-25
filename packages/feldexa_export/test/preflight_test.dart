@@ -76,9 +76,10 @@ void main() {
 
   group('empty-field counting (§3.4)', () {
     test('an unset checkbox is a decided state, not an empty field', () {
-      // §3.2 draws nothing for an unchecked box and §3.4 says a checkbox is
-      // never empty. A checkbox with no stored value must therefore not
-      // inflate the "N Felder sind noch leer" hint.
+      // §3.4 counts empty confirmed fields and says nothing about checkboxes.
+      // By the layout rule (§3.2) an unchecked box draws no mark, so an unset
+      // checkbox is a decided state, not missing content: it must not inflate
+      // the "N Felder sind noch leer" hint.
       final ConfirmedField withoutValue = confirmedField(
         id: uuid(14),
         type: FieldType.checkbox,

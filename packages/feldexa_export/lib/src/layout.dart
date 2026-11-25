@@ -606,6 +606,13 @@ final class ExportLayout {
         }
       }
     }
+    // A closing `\n` and trailing whitespace-only paragraphs are separators,
+    // not lines: keeping them would shift no visible content but add a line
+    // and could block a field that fits (§3.1). Interior blank paragraphs were
+    // added above and stay lines.
+    while (lines.isNotEmpty && lines.last.isEmpty) {
+      lines.removeLast();
+    }
     return _WrappedLines(
       lines: lines,
       trimmedTrailingSpaceCount: trimmedTrailingSpaceCount,
