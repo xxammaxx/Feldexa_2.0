@@ -21,9 +21,11 @@
 #      counted but never addressed;
 #   3. stages the committed synthetic `sf-001.pdf` fixture and verifies its
 #      SHA-256 and size on the host and on the device;
-#   4. clears the test app data so the journey starts with an empty store, then
-#      runs `flutter test integration_test/android_export_test.dart -d <serial>`
-#      in the foreground and writes the log;
+#   4. clears the test app data so the journey starts with an empty store (the
+#      store probe is exercised on a scratch tree first, so its three outcomes
+#      are evidenced), then runs `flutter test
+#      integration_test/android_export_test.dart -d <serial>` in the foreground
+#      and writes the log;
 #   5. after a green run, picks the artifact bytes the test left in the
 #      app-internal cache up with `run-as`, verifies them against the digest and
 #      size the test printed, and clears the app data again;
@@ -31,9 +33,9 @@
 #      count and page size against the source fixture, `pdftotext` for the
 #      entered umlaut value, and a byte search for `/AcroForm`;
 #   7. records device identity, fixture/APK hashes, git identity (HEAD/tree/
-#      branch/subject/status), the permit admission, the marker sequence
-#      extracted from the integration log, and a source-level and log-level
-#      privacy check.
+#      branch/subject/status), the permit admission, the `flutter analyze` and
+#      `dart format` gates, the marker sequence extracted from the integration
+#      log, and a source-level and log-level privacy check.
 #
 # The tree must be committed before the run: the working tree must be clean.
 #
@@ -59,6 +61,7 @@ EXPECTED_AVD="T025_Pixel7_API35_KVM_20261115"
 EXPECTED_API="35"
 ADB="${T334_ADB:-$HOME/Android/Sdk/platform-tools/adb}"
 FLUTTER="${T334_FLUTTER:-$HOME/flutter/bin/flutter}"
+DART="${T334_DART:-$(dirname "$FLUTTER")/dart}"
 COMPUTE_SLOT="${T334_COMPUTE_SLOT:-$HOME/.pi/agent/skills/pi-maintainer/scripts/compute_slot.py}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SELF="$ROOT/tools/android/t334_drive_export.sh"
@@ -149,7 +152,7 @@ if [[ "${T334_COMPUTE_LOCK_HELD:-0}" != "1" ]]; then
 fi
 
 RUN_DIR="${T334_RUN_DIR:-$(mktemp -d "${TMPDIR:-/tmp}/feldexa-t334-run.XXXXXX")}"
-EVIDENCE_DIR="${T334_EVIDENCE_DIR:-$ROOT/specs/001-scanned-form-workflow/reports/artifacts/2026-11-26-t342-driver-hardening}"
+EVIDENCE_DIR="${T334_EVIDENCE_DIR:-$ROOT/specs/001-scanned-form-workflow/reports/artifacts/2026-11-26-t342b-driver-hardening}"
 LOG="$RUN_DIR/integration-android-t334.log"
 SEQUENCE="$RUN_DIR/marker-sequence.txt"
 ADB_STDERR_LOG="$RUN_DIR/adb-stderr.log"
@@ -164,14 +167,16 @@ if [[ -n "${T334_RUN_DIR:-}" ]]; then
     exit 1
   }
 fi
-: >"$SEQUENCE"
-: >"$ADB_STDERR_LOG"
+: >"$SEQUENCE" || fail "cannot create the marker sequence file $SEQUENCE"
+: >"$ADB_STDERR_LOG" || fail "cannot create the adb stderr log $ADB_STDERR_LOG"
 
 # Device-side stderr is a diagnosis trail, never noise: it lands in the run log
 # (`adb-stderr.log`, part of the evidence bundle) while the exit code of the adb
 # call stays visible to the caller, which checks it at every decision point.
+# Every call is bounded by `ADB_SHELL_TIMEOUT` (default 120s) so no wait loop can
+# hang on a dead transport; a caller with a tighter deadline lowers the limit.
 adb_shell() {
-  timeout 120 "$ADB" -s "$SERIAL" shell "$@" 2>>"$ADB_STDERR_LOG" | tr -d '\r'
+  timeout "${ADB_SHELL_TIMEOUT:-120}" "$ADB" -s "$SERIAL" shell "$@" 2>>"$ADB_STDERR_LOG" | tr -d '\r'
   return "${PIPESTATUS[0]}"
 }
 
@@ -264,6 +269,9 @@ collect_evidence() {
     artifact-bytes-acroform.txt \
     privacy-source-check.txt \
     privacy-log-check.txt \
+    store-probe.txt \
+    gate-analyze.txt \
+    gate-format.txt \
     host-flutter-pub-get.log; do
     if [[ -f "$RUN_DIR/$file" ]]; then
       sed -e "s|$ROOT/||g" -e "s|$ROOT|.|g" -e "s|$HOME/|~/|g" "$RUN_DIR/$file" \
@@ -278,6 +286,25 @@ collect_evidence() {
   log "T334 DRIVER: evidence written to $EVIDENCE_DIR"
 }
 
+# The bundle is committed, so no evidence text file may carry an absolute home
+# path; [collect_evidence] rewrites the host paths on the way in. This is the
+# last decision point before the result is fixed: only grep exit 1 (no match)
+# is clean, 0 is a hit, and >=2 is a tool error that must not read as clean.
+scan_evidence_home_paths() {
+  local hits scan_exit
+  hits="$(grep -rl --include='*.txt' -F '/home/' "$EVIDENCE_DIR")"
+  scan_exit=$?
+  if [[ "$scan_exit" -gt 1 ]]; then
+    log "T334 DRIVER: the evidence home-path scan failed with exit $scan_exit"
+    return 2
+  fi
+  if [[ -n "$hits" ]]; then
+    log "T334 DRIVER: an evidence text file still carries an absolute home path: $hits"
+    return 1
+  fi
+  return 0
+}
+
 log "T334 DRIVER: run directory $RUN_DIR"
 log "T334 DRIVER: shared heavy-work permits admitted (build, emulator)"
 
@@ -286,6 +313,9 @@ if [[ ! -x "$FLUTTER" ]]; then
 fi
 if [[ ! -x "$ADB" ]]; then
   fail "adb executable not found at $ADB"
+fi
+if [[ ! -x "$DART" ]]; then
+  fail "dart executable not found at $DART"
 fi
 
 {
@@ -299,8 +329,8 @@ fi
 } >"$RUN_DIR/compute-lock.txt"
 
 # --- 1. Device identity, emulator only --------------------------------------
-ALL_TRANSPORTS="$("$ADB" devices | awk 'NR>1 && NF>=1 && $1 !~ /^(List|of|devices)$/ {print $1}')"
-ALL_DEVICES="$("$ADB" devices | awk 'NR>1 && NF>=2 && $2=="device" {print $1}')"
+ALL_TRANSPORTS="$(timeout 60 "$ADB" devices | awk 'NR>1 && NF>=1 && $1 !~ /^(List|of|devices)$/ {print $1}')"
+ALL_DEVICES="$(timeout 60 "$ADB" devices | awk 'NR>1 && NF>=2 && $2=="device" {print $1}')"
 EMULATOR_DEVICES="$(printf '%s\n' "$ALL_DEVICES" | grep -E '^emulator-[0-9]+$')"
 EMULATOR_GREP_EXIT=$?
 [[ "$EMULATOR_GREP_EXIT" -le 1 ]] ||
@@ -366,16 +396,24 @@ log "T334 DRIVER: evidence directory $EVIDENCE_DIR"
 # to be free of aggregates afterwards. The probe inspects the root the app uses
 # (`MainActivity.STORE_ROOT_DIR` = `files/feldexa`) through `run-as`; a missing
 # root is the wiped case, any listed entry is a leftover document or template.
-STORE_EMPTY_PROBE='for d in files/feldexa/docs files/feldexa/templates; do if [ -e $d ]; then if [ -n "$(ls -A $d)" ]; then echo "leftover entries in $d"; exit 1; fi; fi; done; echo STORE_EMPTY_OK'
+# A failing `ls` reports itself (exit 3), so a toybox error can never read as
+# "empty" the way an unchecked command substitution would.
+STORE_ROOT_ON_DEVICE="files/feldexa"
+STORE_PROBE_BODY='base="$1"; for d in "$base/docs" "$base/templates"; do if [ -e "$d" ]; then entries="$(ls -A "$d")" || { echo "PROBE_TOOL_ERROR ls -A $d"; exit 3; }; if [ -n "$entries" ]; then echo "leftover entries in $d"; exit 1; fi; fi; done; echo STORE_EMPTY_OK; exit 0'
 
 adb_shell am force-stop "$PACKAGE" >/dev/null ||
   fail "could not stop $PACKAGE before the pre-run clear"
 INSTALLED_PACKAGES="$(adb_shell pm list packages "$PACKAGE")" ||
   fail "cannot query the installed packages for $PACKAGE"
-if printf '%s\n' "$INSTALLED_PACKAGES" | grep -qx "package:$PACKAGE"; then
+printf '%s\n' "$INSTALLED_PACKAGES" | grep -qx "package:$PACKAGE"
+INSTALLED_GREP_EXIT=$?
+# Exit 1 is "not installed", a grep error (>=2) is a tool failure, not a state.
+[[ "$INSTALLED_GREP_EXIT" -le 1 ]] ||
+  fail "the installed-package grep failed with exit $INSTALLED_GREP_EXIT"
+if [[ "$INSTALLED_GREP_EXIT" -eq 0 ]]; then
   adb_shell pm clear "$PACKAGE" >/dev/null ||
     fail "pre-run pm clear of $PACKAGE failed"
-  PRE_STORE_STATE="$(adb_shell "run-as $PACKAGE sh -c '$STORE_EMPTY_PROBE'")"
+  PRE_STORE_STATE="$(adb_shell "run-as $PACKAGE sh -c '$STORE_PROBE_BODY' sh '$STORE_ROOT_ON_DEVICE'")"
   [[ "$PRE_STORE_STATE" == *STORE_EMPTY_OK* ]] ||
     fail "the pre-run clear did not leave an empty store: ${PRE_STORE_STATE:-no answer from the store probe}"
   record "pre-run: app data cleared, store proved empty"
@@ -384,13 +422,54 @@ else
 fi
 adb_shell mkdir -p "$STAGING" >/dev/null ||
   fail "cannot create the device staging directory $STAGING"
-"$ADB" -s "$SERIAL" push "$APP/assets/fixtures/$FIXTURE" \
-  "$STAGING/$FIXTURE" >/dev/null || fail "staging push failed: $FIXTURE"
-adb_shell chmod 755 "$STAGING" >/dev/null
-adb_shell chmod 644 "$STAGING/$FIXTURE" >/dev/null
+timeout 300 "$ADB" -s "$SERIAL" push "$APP/assets/fixtures/$FIXTURE" \
+  "$STAGING/$FIXTURE" >/dev/null || fail "staging push failed or timed out: $FIXTURE"
+adb_shell chmod 755 "$STAGING" >/dev/null ||
+  fail "cannot set the mode of the device staging directory $STAGING"
+adb_shell chmod 644 "$STAGING/$FIXTURE" >/dev/null ||
+  fail "cannot set the mode of the staged fixture $STAGING/$FIXTURE"
+
+# The probe decides the pre-run store state, so its three outcomes are exercised
+# with the same body the run uses: an empty root (`STORE_EMPTY_OK`), a leftover
+# aggregate (exit 1), and a missing root (the wiped case, `STORE_EMPTY_OK`). The
+# transcripts and exit codes go into the evidence bundle.
+PROBE_SELFTEST_DIR="$STAGING/store-probe-selftest"
+adb_shell rm -rf "$PROBE_SELFTEST_DIR" >/dev/null ||
+  fail "cannot reset the store-probe scratch tree $PROBE_SELFTEST_DIR"
+adb_shell mkdir -p "$PROBE_SELFTEST_DIR/empty/docs" "$PROBE_SELFTEST_DIR/empty/templates" \
+  "$PROBE_SELFTEST_DIR/leftover/docs" >/dev/null ||
+  fail "cannot create the store-probe scratch tree $PROBE_SELFTEST_DIR"
+adb_shell touch "$PROBE_SELFTEST_DIR/leftover/docs/aggregate.bin" >/dev/null ||
+  fail "cannot stage the store-probe leftover aggregate"
+{
+  log "probe_body=$STORE_PROBE_BODY"
+  log "probe_root_used_by_the_run=$STORE_ROOT_ON_DEVICE (MainActivity.STORE_ROOT_DIR)"
+  log "expected_exits: empty=0 leftover=1 missing=0 ls_tool_error=3"
+} >"$RUN_DIR/store-probe.txt"
+for probe_case in empty leftover missing; do  case "$probe_case" in
+    empty | missing) PROBE_EXPECTED_EXIT=0 ;;
+    leftover) PROBE_EXPECTED_EXIT=1 ;;
+  esac
+  PROBE_OUTPUT="$(adb_shell "sh -c '$STORE_PROBE_BODY' sh '$PROBE_SELFTEST_DIR/$probe_case'")"
+  PROBE_EXIT=$?
+  printf '%s\n' "case=$probe_case expected_exit=$PROBE_EXPECTED_EXIT observed_exit=$PROBE_EXIT output=${PROBE_OUTPUT:-<no output>}" \
+    >>"$RUN_DIR/store-probe.txt"
+  [[ "$PROBE_EXIT" -eq "$PROBE_EXPECTED_EXIT" ]] ||
+    fail "store-probe self-test case '$probe_case' exited $PROBE_EXIT, expected $PROBE_EXPECTED_EXIT"
+  if [[ "$probe_case" == "leftover" ]]; then
+    [[ "$PROBE_OUTPUT" == *"leftover entries in"* ]] ||
+      fail "store-probe self-test case 'leftover' did not report the leftover entry"
+  else
+    [[ "$PROBE_OUTPUT" == *STORE_EMPTY_OK* ]] ||
+      fail "store-probe self-test case '$probe_case' did not report STORE_EMPTY_OK"
+  fi
+done
+printf '%s\n' "result=all three store-probe cases behave as expected" >>"$RUN_DIR/store-probe.txt"
+
 # A previous aborted run can leave the pickup acknowledgement behind; remove it
 # before the test starts so no wait can return on a stale ack.
-adb_shell rm -f "$STAGING/ack-artifact-picked-up" >/dev/null
+adb_shell rm -f "$STAGING/ack-artifact-picked-up" >/dev/null ||
+  fail "cannot remove a stale pickup acknowledgement from $STAGING"
 
 DEVICE_FIXTURE_SHA="$(adb_shell sha256sum "$STAGING/$FIXTURE" | awk '{print $1}')"
 HOST_FIXTURE_SHA="$(sha256sum "$APP/assets/fixtures/$FIXTURE" | awk '{print $1}')"
@@ -410,9 +489,10 @@ DEVICE_FIXTURE_SIZE="$(adb_shell stat -c %s "$STAGING/$FIXTURE")"
 
 # --- 3. Privacy source check -------------------------------------------------
 # A grep error (exit 2) is not "no match" (exit 1): only exit 1 proves the
-# absence of a network reference, everything else fails the run.
-if (cd "$APP" && grep -nE '\b(HttpClient|HttpRequest|Socket|WebSocket|RawDatagramSocket|NetworkImage)\b|https?://' \
-  "$TEST_FILE") >"$RUN_DIR/privacy-source-check.txt" 2>&1; then
+# absence of a network reference, everything else fails the run. The file is
+# addressed by absolute path, so a `cd` failure can never read as "no match".
+if grep -nE '\b(HttpClient|HttpRequest|Socket|WebSocket|RawDatagramSocket|NetworkImage)\b|https?://' \
+  "$APP/$TEST_FILE" >"$RUN_DIR/privacy-source-check.txt" 2>&1; then
   printf 'FAIL: network API reference found in %s\n' "$TEST_FILE" \
     >>"$RUN_DIR/privacy-source-check.txt"
   PRIVACY_PASS=0
@@ -443,7 +523,10 @@ adb_shell svc power stayon true >/dev/null ||
 # `mAwake=true`, `mScreenOnFully=true` and `isKeyguardShowing=false` from
 # `dumpsys window`.
 wait_for_awake_unlocked_screen() {
-  local deadline=$((SECONDS + 60)) power window
+  local deadline=$((SECONDS + 120)) power window
+  # A tighter per-call limit keeps the loop deadline hard: without it one dead
+  # transport would stretch a single iteration to four 120s adb timeouts.
+  local ADB_SHELL_TIMEOUT=20
   local wakefulness="" awake="" screen_on="" keyguard=""
   while ((SECONDS < deadline)); do
     adb_shell input keyevent KEYCODE_WAKEUP >/dev/null
@@ -467,7 +550,7 @@ wait_for_awake_unlocked_screen() {
   return 1
 }
 wait_for_awake_unlocked_screen ||
-  fail "the screen did not reach the awake, unlocked state within 60s"
+  fail "the screen did not reach the awake, unlocked state within 120s"
 record "screen awake and unlocked before the test start"
 
 # --- 5. Host preparation -----------------------------------------------------
@@ -479,9 +562,25 @@ elif [[ -x "$HOME/.feldexa-toolchain/jdk/bin/java" ]]; then
 fi
 (
   cd "$APP" || exit 1
-  exec "${FLUTTER_ENV[@]}" "$FLUTTER" pub get --offline
+  exec timeout 900 "${FLUTTER_ENV[@]}" "$FLUTTER" pub get --offline
 ) >"$RUN_DIR/host-flutter-pub-get.log" 2>&1 ||
-  fail "flutter pub get --offline failed; see host-flutter-pub-get.log"
+  fail "flutter pub get --offline failed or timed out; see host-flutter-pub-get.log"
+
+# --- 5b. Static gates --------------------------------------------------------
+# The run report claims "No issues found!" for `flutter analyze` and "0 changed"
+# for `dart format`; both commands run here, their exit status decides the run
+# (fail closed, both are bounded), and their literal output is evidence.
+(
+  cd "$APP" || exit 1
+  exec timeout 900 "${FLUTTER_ENV[@]}" "$FLUTTER" analyze --no-pub
+) >"$RUN_DIR/gate-analyze.txt" 2>&1 ||
+  fail "flutter analyze did not pass; see gate-analyze.txt"
+(
+  cd "$APP" || exit 1
+  exec timeout 300 "${FLUTTER_ENV[@]}" "$DART" format --output=none --set-exit-if-changed .
+) >"$RUN_DIR/gate-format.txt" 2>&1 ||
+  fail "dart format reported unformatted files; see gate-format.txt"
+record "static gates: flutter analyze clean, dart format 0 changed"
 
 # --- 6. Run the integration test --------------------------------------------
 adb_shell logcat -c >/dev/null ||
@@ -544,8 +643,8 @@ DEVICE_DATA_PREFIX="/data/user/0/$PACKAGE/"
   fail "the artifact marker path is not inside the app data directory: $MARKER_PATH"
 DEVICE_ARTIFACT_REL="${MARKER_PATH#"$DEVICE_DATA_PREFIX"}"
 
-adb_shell rm -f "$STAGING/ack-artifact-picked-up" >/dev/null
-PICKUP_OK=0
+adb_shell rm -f "$STAGING/ack-artifact-picked-up" >/dev/null ||
+  fail "cannot remove a stale pickup acknowledgement before the pickup retry"PICKUP_OK=0
 for attempt in 1 2 3; do
   if timeout 180 "$ADB" -s "$SERIAL" exec-out run-as "$PACKAGE" cat "$DEVICE_ARTIFACT_REL" \
     >"$RUN_DIR/export-artifact.pdf" 2>>"$ADB_STDERR_LOG" &&
@@ -621,10 +720,19 @@ SNAPSHOT_SHA="$(sha256sum "$RUN_DIR/export-artifact.pdf" | awk '{print $1}')"
   log "size_matches_marker=1"
 } >"$RUN_DIR/artifact-pickup.txt"
 
-adb_shell am force-stop "$PACKAGE" >/dev/null
+adb_shell am force-stop "$PACKAGE" >/dev/null ||
+  fail "could not stop $PACKAGE after the pickup"
 # `flutter test` uninstalls the app when it exits, so after a green run there may
 # be nothing left to clear; that is the desired post-condition, not a failure.
-if adb_shell pm list packages "$PACKAGE" | grep -qx "package:$PACKAGE"; then
+# The query and the match are both checked: an adb or grep tool error must never
+# be recorded as "the app is gone".
+POST_INSTALLED_PACKAGES="$(adb_shell pm list packages "$PACKAGE")" ||
+  fail "cannot query the installed packages for $PACKAGE after the pickup"
+printf '%s\n' "$POST_INSTALLED_PACKAGES" | grep -qx "package:$PACKAGE"
+POST_INSTALLED_GREP_EXIT=$?
+[[ "$POST_INSTALLED_GREP_EXIT" -le 1 ]] ||
+  fail "the post-pickup installed-package grep failed with exit $POST_INSTALLED_GREP_EXIT"
+if [[ "$POST_INSTALLED_GREP_EXIT" -eq 0 ]]; then
   adb_shell pm clear "$PACKAGE" >/dev/null 2>&1 ||
     fail "could not clear the app data after the pickup"
   record "app data cleared after the pickup"
@@ -686,11 +794,18 @@ MANGLED_GREP_EXIT=$?
 } >"$RUN_DIR/poppler-pdftotext.txt"
 
 ACROFORM_HITS="$(LC_ALL=C grep -a -o -F '/AcroForm' "$RUN_DIR/export-artifact.pdf" | wc -l)"
+ACROFORM_GREP_EXIT=$?
+# Exit 1 (no match) is the target, exit 0 means the marker is there, and a status
+# above 1 is a grep tool failure: `wc -l` reports 0 hits for an unreadable file,
+# so the status has to be read separately from the count.
 {
   log "command=LC_ALL=C grep -a -o -F '/AcroForm' <artifact> | wc -l"
+  log "acroform_grep_exit=$ACROFORM_GREP_EXIT (0=hits, 1=no match, >=2=tool error)"
   log "acroform_byte_occurrences=$ACROFORM_HITS"
   log "note=byte-level search only; this is not a structural PDF analysis"
 } >"$RUN_DIR/artifact-bytes-acroform.txt"
+[[ "$ACROFORM_GREP_EXIT" -le 1 ]] ||
+  fail "the /AcroForm byte search failed with exit $ACROFORM_GREP_EXIT"
 [[ "$ACROFORM_HITS" -eq 0 ]] ||
   fail "the artifact carries $ACROFORM_HITS /AcroForm byte occurrences"
 
@@ -742,20 +857,24 @@ else
 fi
 
 if [[ "$PRIVACY_PASS" -eq 1 ]]; then
-  record "PASS (flutter test exit 0; cleanup marker observed; artifact picked up; poppler proof; privacy checks PASS)"
+  # The result is fixed last: the bundle is collected and scanned before the
+  # PASS record and before run-status.txt exist, so a failing integrity check
+  # can never leave a bundle that carries result=PASS.
+  collect_evidence
+  scan_evidence_home_paths ||
+    fail "the evidence home-path scan did not come back clean; no result was written"
+  record "PASS (flutter test exit 0; cleanup marker observed; artifact picked up; poppler proof; static gates clean; privacy checks PASS)"
   printf 'result=PASS\nflutter_test_exit=0\nartifact_sha256=%s\nartifact_bytes=%s\n' \
     "$SNAPSHOT_SHA" "$HOST_ARTIFACT_SIZE" >"$RUN_DIR/run-status.txt"
   collect_evidence
-  # The bundle is committed, so no evidence text file may carry an absolute
-  # home path; [collect_evidence] rewrites the host paths on the way in. The
-  # scan is a decision point, so its exit code is checked: only "no match" (1)
-  # may lead to PASS.
-  HOME_PATH_HITS="$(grep -rl --include='*.txt' -F '/home/' "$EVIDENCE_DIR")"
-  HOME_PATH_GREP_EXIT=$?
-  [[ "$HOME_PATH_GREP_EXIT" -le 1 ]] ||
-    fail "the evidence home-path scan failed with exit $HOME_PATH_GREP_EXIT"
-  [[ -z "$HOME_PATH_HITS" ]] ||
-    fail "an evidence text file still carries an absolute home path: $HOME_PATH_HITS"
+  # run-status.txt and the final marker sequence are copied by the second
+  # collection; if the scan now fails, the fixation is retracted before exit.
+  scan_evidence_home_paths || {
+    printf 'result=FAIL\nflutter_test_exit=0\n' >"$RUN_DIR/run-status.txt"
+    record "FAIL (evidence integrity check failed after the result fixation)"
+    collect_evidence
+    fail "the evidence home-path scan did not come back clean after the result fixation"
+  }
   log "T334 DRIVER: PASS"
   exit 0
 fi
