@@ -1,0 +1,9 @@
+result=PASS
+flutter_test_exit=0
+artifact_1_sha256=8da0ce1fcf11bd4cc16d3860c4fd04e7d2537fe0927acd87d9dfc340e11e9484
+artifact_1_bytes=12029
+artifact_2_sha256=dcf302e2bc6b2c0f58e28efcafced381896e9205a053d0d47114a49694a198ec
+artifact_2_bytes=12029
+placement_verdict=NOT_PROVEN
+placement_tolerance_pt=2.835
+placement_reason=artifact 1: centre deviation dx=-132.140 pt / dy=-3.050 pt exceeds 2.835 pt; artifact 2: centre deviation dx=-132.140 pt / dy=-3.050 pt exceeds 2.835 pt; 

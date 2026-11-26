@@ -31,13 +31,22 @@
 //   5. copy those bytes into the app-internal cache path the host driver reads
 //      after the run, and print its path and digest as markers;
 //   6. open the production `ExportPreviewScreen` for the artifact, close it,
-//      and assert the session artifact is gone afterwards.
+//      and assert the session artifact is gone afterwards;
+//   7. reopen the same stored document from the start list, re-assert the
+//      confirmed field and its value, and run a second export through the same
+//      production controller into `e2e/export-artifact-2.pdf`, again with the
+//      preview-open/close/delete cycle.
+//
+// Both artifact cycles hand their bytes to the host one after the other: each
+// prints `T334_ARTIFACT_STORED:INDEX=<n>` and waits for the acknowledgement of
+// that index, so the driver reads each file while the app is still installed.
 //
 // The PDF's own media boxes and text are not asserted here: the artifact record
 // exposes no geometry, and the external proof on the picked-up file is the
-// host's Poppler run (`tools/android/t334_drive_export.sh`). The 1 mm placement
-// tolerance (`pdftotext -bbox`), an AcroForm fixture, and a second artifact
-// after reopening the document are explicitly *not* covered by this test.
+// host's Poppler run (`tools/android/t334_drive_export.sh`). The field rectangle
+// the export actually targets is printed as `T334_FIELD_RECT` (plain numbers,
+// no label and no value) so the host can measure the drawn value against it
+// with `pdftotext -bbox`. An AcroForm fixture stays out of this test.
 //
 // Markers carry phase names, content-free counts, the picked-up artifact's path
 // and digest only. No label, OCR text, title, entered value, or source id is
@@ -90,12 +99,14 @@ const String _fieldLabel = 'Familienname';
 /// of the leg. It fits the declared 300 × 18 pt rectangle.
 const String _fieldValue = 'Müller';
 
-/// The app-internal copy of the artifact bytes, relative to the app's temporary
-/// directory (`Directory.systemTemp`, which the engine resolves to the
-/// app-internal `code_cache` on Android). The host driver reads it with
-/// `adb exec-out run-as de.feldexa.app cat <path from the marker>` before it
-/// clears the app data, so the driver never guesses the directory name.
-const String _artifactRelativePath = 'e2e/export-artifact.pdf';
+/// The app-internal copy of the artifact bytes of export cycle [index],
+/// relative to the app's temporary directory (`Directory.systemTemp`, which the
+/// engine resolves to the app-internal `code_cache` on Android). The host
+/// driver reads it with `adb exec-out run-as de.feldexa.app cat <path from the
+/// marker>` before it clears the app data, so the driver never guesses the
+/// directory name. Cycle 1 keeps the historical file name.
+String _artifactRelativePath(int index) =>
+    index == 1 ? 'e2e/export-artifact.pdf' : 'e2e/export-artifact-$index.pdf';
 
 const String _pdfHeader = '%PDF-';
 const String _acroFormToken = '/AcroForm';
@@ -309,6 +320,19 @@ Future<core.ConfirmedField> _confirmNamedTextField(
     'W_MILLI=${(field.rect.width * 1000).round()}:'
     'H_MILLI=${(field.rect.height * 1000).round()}',
   );
+  // The rectangle the export layout targets, as plain numbers for the host's
+  // placement measurement. Convention: display space, i.e. the origin is the
+  // page's top-left corner, x grows to the right, y grows downwards, and the
+  // unit is the PDF point (1/72 in) — the same convention Poppler's
+  // `pdftotext -bbox` reports. The marker carries no label, no value, and no
+  // text.
+  _marker(
+    'FIELD_RECT:PAGE=${field.pageIndex + 1}:'
+    'X_MPT=${(field.rect.left * 1000).round()}:'
+    'Y_MPT=${(field.rect.top * 1000).round()}:'
+    'W_MPT=${(field.rect.width * 1000).round()}:'
+    'H_MPT=${(field.rect.height * 1000).round()}',
+  );
   return field;
 }
 
@@ -449,10 +473,14 @@ Future<Uint8List> _readArtifactBytes(String artifactId) async {
 }
 
 /// The app-internal cache file the host driver picks up after the run.
-File _artifactPickupFile() => File(
+File _artifactPickupFile(int index) => File(
   '${Directory.systemTemp.path}${Platform.pathSeparator}'
-  '${_artifactRelativePath.replaceAll('/', Platform.pathSeparator)}',
+  '${_artifactRelativePath(index).replaceAll('/', Platform.pathSeparator)}',
 );
+
+/// The acknowledgement the host driver writes after it picked up [index].
+File _pickupAckFile(int index) =>
+    File('$_fixtureRoot${Platform.pathSeparator}ack-artifact-picked-up-$index');
 
 int _indexOfBytes(Uint8List haystack, List<int> needle) {
   if (needle.isEmpty || haystack.length < needle.length) {
@@ -473,16 +501,14 @@ int _indexOfBytes(Uint8List haystack, List<int> needle) {
   return -1;
 }
 
-/// Waits for the host driver to acknowledge that it picked the artifact up.
+/// Waits for the host driver to acknowledge that it picked artifact [index] up.
 ///
 /// `flutter test` uninstalls the app when it exits, so the driver must read the
 /// app-internal copy while this test still runs. A stale acknowledgement from an
 /// aborted run must never acknowledge this phase, so the wait deletes it first
 /// and then accepts only an ack written no earlier than the phase start.
-Future<void> _waitForHostPickup() async {
-  final File ack = File(
-    '$_fixtureRoot${Platform.pathSeparator}ack-artifact-picked-up',
-  );
+Future<void> _waitForHostPickup(int index) async {
+  final File ack = _pickupAckFile(index);
   final DateTime phaseStart = DateTime.now();
   try {
     if (ack.existsSync()) {
@@ -492,7 +518,7 @@ Future<void> _waitForHostPickup() async {
     // A read-only staging directory can refuse the delete; the freshness check
     // below still rejects the older file.
   }
-  _marker('WAITING_FOR_HOST_PICKUP');
+  _marker('WAITING_FOR_HOST_PICKUP:INDEX=$index');
   final DateTime deadline = phaseStart.add(const Duration(minutes: 5));
   while (true) {
     final bool acknowledged = _acknowledgedAfter(ack, phaseStart);
@@ -500,7 +526,7 @@ Future<void> _waitForHostPickup() async {
       return;
     }
     if (DateTime.now().isAfter(deadline)) {
-      fail('the host driver did not acknowledge the artifact pickup');
+      fail('the host driver did not acknowledge the pickup of artifact $index');
     }
     await Future<void>.delayed(const Duration(milliseconds: 200));
   }
@@ -514,6 +540,250 @@ bool _acknowledgedAfter(File ack, DateTime phaseStart) {
   } on FileSystemException {
     return false;
   }
+}
+
+/// Leaves the editor route and reopens the stored [documentId] from the start
+/// list, so the second export runs on a freshly loaded aggregate instead of the
+/// in-memory state of the first one.
+Future<EditorScreenState> _reopenDocument(
+  WidgetTester tester,
+  String documentId,
+) async {
+  final NavigatorState navigator = Navigator.of(
+    tester.element(find.byType(EditorScreen)),
+  );
+  expect(
+    navigator.canPop(),
+    isTrue,
+    reason: 'the editor route must be a poppable route',
+  );
+  navigator.pop();
+  await _pumpUntil(
+    tester,
+    () =>
+        find.byType(EditorScreen).evaluate().isEmpty &&
+        find.byKey(_startScreenKey).evaluate().isNotEmpty,
+    timeout: const Duration(seconds: 180),
+    reason: 'the editor route did not close back to the start surface',
+  );
+  final Finder row = find.byKey(ValueKey<String>('stored-item-$documentId'));
+  await _pumpUntil(
+    tester,
+    () => row.evaluate().isNotEmpty,
+    timeout: const Duration(seconds: 180),
+    reason: 'the stored document row did not appear in the start list',
+  );
+  await tester.ensureVisible(row);
+  await tester.pumpAndSettle();
+  await tester.tap(row);
+  await _pumpUntil(
+    tester,
+    () => find.byKey(_editorScreenKey).evaluate().isNotEmpty,
+    timeout: const Duration(seconds: 300),
+    reason: 'the stored document did not reopen in the editor',
+  );
+  expect(
+    find.byKey(_importFailureKey),
+    findsNothing,
+    reason: 'reopening the stored document must not report a failure',
+  );
+  final EditorScreenState state = tester.state<EditorScreenState>(
+    find.byType(EditorScreen),
+  );
+  await _pumpUntil(
+    tester,
+    () => state.content != null,
+    timeout: const Duration(minutes: 3),
+    reason: 'the reopened document did not deliver its content',
+  );
+  await _waitForAnalysisTerminal(tester, state);
+  return state;
+}
+
+/// Asserts the verified artifact record of export cycle [index].
+///
+/// The five `ArtifactVerification` flags and the page count are the export
+/// acceptance criterion; the marker follows the last assertion that proves its
+/// facts.
+void _expectVerifiedArtifact(ExportArtifact artifact, {required int index}) {
+  expect(artifact.state, ExportArtifactState.succeeded);
+  expect(artifact.byteSize, isNotNull);
+  expect(artifact.byteSize! > 0, isTrue);
+  expect(artifact.sha256, isNotNull);
+  expect(artifact.sha256, matches(RegExp(r'^[0-9a-f]{64}$')));
+  expect(artifact.pageCount, _pageCount);
+  final ArtifactVerification verification = artifact.verification!;
+  expect(verification.pageCountMatches, isTrue);
+  expect(verification.mediaBoxesMatch, isTrue);
+  expect(verification.fontGlyphsPresent, isTrue);
+  expect(verification.noInteractiveFields, isTrue);
+  expect(verification.overlayBoundsWithinPage, isTrue);
+  expect(verification.allChecksPassed, isTrue);
+  _marker(
+    'EXPORT_VERIFIED:INDEX=$index:PAGES=${artifact.pageCount}:'
+    'BOUND=1:BYTES_GT_0=1:ALL_CHECKS_PASSED=1',
+  );
+}
+
+/// Exports the live revision of [documentId] through the production
+/// [ExportController] of the editor that is on screen.
+Future<ExportArtifact> _exportLiveRevision(
+  WidgetTester tester,
+  EditorScreenState state,
+  String documentId, {
+  required int index,
+}) async {
+  final EditorRuntime runtime = _liveRuntime(tester);
+  final LoadedDocument loaded = await runtime.loadDocument(documentId);
+  final String? revisionId = state.headRevisionId;
+  expect(
+    revisionId,
+    isNotNull,
+    reason: 'export cycle $index needs a durable revision',
+  );
+  final ExportController controller = ExportController(
+    exportPort: runtime.export,
+    clock: runtime.clock,
+    metrics: await loadExportFontMetrics(),
+    evidenceClass: editorEvidenceClass(),
+  );
+  final ExportPreparation preparation = controller.prepare(
+    loaded,
+    content: state.content,
+    revisionId: revisionId,
+  );
+  expect(
+    preparation,
+    isA<ExportPreparationReady>(),
+    reason: 'the filled revision must pass the export preflight',
+  );
+  _marker('EXPORT_PLAN_READY:INDEX=$index');
+
+  final ExportAttempt attempt = await controller.run(
+    preparation as ExportPreparationReady,
+  );
+  expect(attempt, isA<ExportAttemptSucceeded>());
+  final ExportArtifact artifact = (attempt as ExportAttemptSucceeded).artifact;
+  _expectVerifiedArtifact(artifact, index: index);
+  return artifact;
+}
+
+/// Copies the bytes of [artifact] into the app-internal cache, prints their
+/// digest, and waits until the host acknowledged the pickup of [index].
+Future<void> _storeArtifactForHostPickup(
+  ExportArtifact artifact, {
+  required int index,
+}) async {
+  final Uint8List bytes = await _readArtifactBytes(artifact.id);
+  expect(bytes.length, artifact.byteSize);
+  expect(crypto.sha256.convert(bytes).toString(), artifact.sha256);
+  expect(
+    String.fromCharCodes(bytes.take(_pdfHeader.length)),
+    _pdfHeader,
+    reason: 'the artifact must be a PDF',
+  );
+  expect(
+    _indexOfBytes(bytes, _acroFormToken.codeUnits),
+    -1,
+    reason: 'a flattened product must carry no AcroForm (byte-level check)',
+  );
+  _marker(
+    'ARTIFACT_BYTES:INDEX=$index:PATH_BYTES=${bytes.length}:SHA256_MATCH=1',
+  );
+
+  final File pickup = _artifactPickupFile(index);
+  pickup.parent.createSync(recursive: true);
+  pickup.writeAsBytesSync(bytes, flush: true);
+  final Uint8List reread = pickup.readAsBytesSync();
+  final String rereadSha256 = crypto.sha256.convert(reread).toString();
+  expect(reread.length, artifact.byteSize);
+  expect(rereadSha256, artifact.sha256);
+  _marker(
+    'ARTIFACT_STORED:INDEX=$index:PATH=${pickup.path}:BYTES=${reread.length}:'
+    'SHA256=$rereadSha256',
+  );
+  await _waitForHostPickup(index);
+  _marker('HOST_PICKUP_ACKED:INDEX=$index');
+}
+
+/// Opens the production preview for [artifact], closes it, and asserts that the
+/// session artifact is no longer readable afterwards.
+Future<void> _previewThenAssertDeleted(
+  WidgetTester tester,
+  EditorRuntime runtime,
+  ExportArtifact artifact, {
+  required int index,
+}) async {
+  unawaited(
+    Navigator.of(tester.element(find.byType(EditorScreen))).push<void>(
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) =>
+            ExportPreviewScreen(runtime: runtime, artifact: artifact),
+      ),
+    ),
+  );
+  await _pumpUntil(
+    tester,
+    () => find.byKey(exportPreviewRouteKey).evaluate().isNotEmpty,
+    timeout: const Duration(seconds: 120),
+    reason: 'the production preview route did not open',
+  );
+  await tester.pumpAndSettle();
+  expect(find.byKey(_previewCloseKey), findsOneWidget);
+  _marker('PREVIEW_OPEN:INDEX=$index');
+
+  await tester.ensureVisible(find.byKey(_previewCloseKey));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(_previewCloseKey));
+  await _pumpUntil(
+    tester,
+    () => find.byKey(exportPreviewRouteKey).evaluate().isEmpty,
+    timeout: const Duration(seconds: 120),
+    reason: 'the preview route did not close',
+  );
+  _marker('PREVIEW_CLOSED:INDEX=$index');
+
+  String? readErrorCode;
+  final DateTime deadline = DateTime.now().add(const Duration(seconds: 60));
+  while (DateTime.now().isBefore(deadline)) {
+    try {
+      await _readArtifactBytes(artifact.id);
+    } on PlatformException catch (error) {
+      readErrorCode = error.code;
+      break;
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await tester.pump();
+  }
+  expect(
+    readErrorCode,
+    'EXP-002',
+    reason: 'a closed preview must leave no readable session artifact',
+  );
+  _marker('ARTIFACT_DELETED_AFTER_PREVIEW_CLOSE:INDEX=$index:CODE=EXP-002');
+}
+
+/// One complete export cycle: production export, verified record, host pickup
+/// handshake, preview open/close, and the deletion proof.
+Future<void> _runExportCycle(
+  WidgetTester tester,
+  EditorScreenState state,
+  String documentId, {
+  required int index,
+}) async {
+  final ExportArtifact artifact = await _exportLiveRevision(
+    tester,
+    state,
+    documentId,
+    index: index,
+  );
+  await _storeArtifactForHostPickup(artifact, index: index);
+  await _previewThenAssertDeleted(
+    tester,
+    _liveRuntime(tester),
+    artifact,
+    index: index,
+  );
 }
 
 void main() {
@@ -548,7 +818,7 @@ void main() {
     }
   });
 
-  testWidgets('a filled umlaut value survives the verified export', (
+  testWidgets('a filled umlaut value survives the export and a reopen', (
     tester,
   ) async {
     final EditorScreenState state = await _importAndAnalyze(
@@ -570,138 +840,36 @@ void main() {
     // --- 2. A value with umlauts through the production value sheet ---------
     await _fillField(tester, state, field, _fieldValue);
 
-    // --- 3. Export the live revision through the production controller ------
-    final EditorRuntime runtime = _liveRuntime(tester);
-    final LoadedDocument loaded = await runtime.loadDocument(documentId);
-    final String? revisionId = state.headRevisionId;
-    expect(
-      revisionId,
-      isNotNull,
-      reason: 'the export needs a durable revision',
-    );
-    final ExportController controller = ExportController(
-      exportPort: runtime.export,
-      clock: runtime.clock,
-      metrics: await loadExportFontMetrics(),
-      evidenceClass: editorEvidenceClass(),
-    );
-    final ExportPreparation preparation = controller.prepare(
-      loaded,
-      content: state.content,
-      revisionId: revisionId,
-    );
-    expect(
-      preparation,
-      isA<ExportPreparationReady>(),
-      reason: 'the filled revision must pass the export preflight',
-    );
-    _marker('EXPORT_PLAN_READY');
+    // --- 3. First export cycle on the freshly imported document -------------
+    await _runExportCycle(tester, state, documentId, index: 1);
 
-    final ExportAttempt attempt = await controller.run(
-      preparation as ExportPreparationReady,
-    );
-    expect(attempt, isA<ExportAttemptSucceeded>());
-    final ExportArtifact artifact =
-        (attempt as ExportAttemptSucceeded).artifact;
-
-    // --- 4. The verified artifact record ------------------------------------
-    expect(artifact.state, ExportArtifactState.succeeded);
-    expect(artifact.byteSize, isNotNull);
-    expect(artifact.byteSize! > 0, isTrue);
-    expect(artifact.sha256, isNotNull);
-    expect(artifact.sha256, matches(RegExp(r'^[0-9a-f]{64}$')));
-    expect(artifact.pageCount, _pageCount);
-    final ArtifactVerification verification = artifact.verification!;
-    expect(verification.pageCountMatches, isTrue);
-    expect(verification.mediaBoxesMatch, isTrue);
-    expect(verification.fontGlyphsPresent, isTrue);
-    expect(verification.noInteractiveFields, isTrue);
-    expect(verification.overlayBoundsWithinPage, isTrue);
-    expect(verification.allChecksPassed, isTrue);
-    _marker(
-      'EXPORT_VERIFIED:PAGES=${artifact.pageCount}:'
-      'BOUND=1:BYTES_GT_0=1:ALL_CHECKS_PASSED=1',
-    );
-
-    // --- 5. The artifact bytes of this session ------------------------------
-    final Uint8List bytes = await _readArtifactBytes(artifact.id);
-    expect(bytes.length, artifact.byteSize);
-    expect(crypto.sha256.convert(bytes).toString(), artifact.sha256);
-    expect(
-      String.fromCharCodes(bytes.take(_pdfHeader.length)),
-      _pdfHeader,
-      reason: 'the artifact must be a PDF',
-    );
-    expect(
-      _indexOfBytes(bytes, _acroFormToken.codeUnits),
-      -1,
-      reason: 'a flattened product must carry no AcroForm (byte-level check)',
-    );
-    _marker('ARTIFACT_BYTES:PATH_BYTES=${bytes.length}:SHA256_MATCH=1');
-
-    // --- 6. Leave the bytes for the host's external Poppler proof -----------
-    final File pickup = _artifactPickupFile();
-    pickup.parent.createSync(recursive: true);
-    pickup.writeAsBytesSync(bytes, flush: true);
-    final Uint8List reread = pickup.readAsBytesSync();
-    final String rereadSha256 = crypto.sha256.convert(reread).toString();
-    expect(reread.length, artifact.byteSize);
-    expect(rereadSha256, artifact.sha256);
-    _marker(
-      'ARTIFACT_STORED:PATH=${pickup.path}:BYTES=${reread.length}:'
-      'SHA256=$rereadSha256',
-    );
-    await _waitForHostPickup();
-    _marker('HOST_PICKUP_ACKED');
-
-    // --- 7. The production preview deletes the session artifact -------------
-    unawaited(
-      Navigator.of(tester.element(find.byType(EditorScreen))).push<void>(
-        MaterialPageRoute<void>(
-          builder: (BuildContext context) =>
-              ExportPreviewScreen(runtime: runtime, artifact: artifact),
-        ),
-      ),
-    );
-    await _pumpUntil(
+    // --- 4. The same document reopened from the start list -----------------
+    final EditorScreenState reopened = await _reopenDocument(
       tester,
-      () => find.byKey(exportPreviewRouteKey).evaluate().isNotEmpty,
-      timeout: const Duration(seconds: 120),
-      reason: 'the production preview route did not open',
+      documentId,
     );
-    await tester.pumpAndSettle();
-    expect(find.byKey(_previewCloseKey), findsOneWidget);
-    _marker('PREVIEW_OPEN');
-
-    await tester.ensureVisible(find.byKey(_previewCloseKey));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(_previewCloseKey));
-    await _pumpUntil(
-      tester,
-      () => find.byKey(exportPreviewRouteKey).evaluate().isEmpty,
-      timeout: const Duration(seconds: 120),
-      reason: 'the preview route did not close',
-    );
-    _marker('PREVIEW_CLOSED');
-
-    String? readErrorCode;
-    final DateTime deadline = DateTime.now().add(const Duration(seconds: 60));
-    while (DateTime.now().isBefore(deadline)) {
-      try {
-        await _readArtifactBytes(artifact.id);
-      } on PlatformException catch (error) {
-        readErrorCode = error.code;
-        break;
-      }
-      await Future<void>.delayed(const Duration(milliseconds: 250));
-      await tester.pump();
-    }
+    expect(reopened.content!.pageCount, _pageCount);
+    final core.ConfirmedField reopenedField = reopened.content!.fields
+        .singleWhere(
+          (core.ConfirmedField candidate) => candidate.id == field.id,
+        );
     expect(
-      readErrorCode,
-      'EXP-002',
-      reason: 'a closed preview must leave no readable session artifact',
+      reopenedField.rect,
+      field.rect,
+      reason: 'the reopened document must keep the confirmed rectangle',
     );
-    _marker('ARTIFACT_DELETED_AFTER_PREVIEW_CLOSE:CODE=EXP-002');
+    final core.FieldValue reopenedValue =
+        reopened.content!.values[reopenedField.id]!;
+    expect(reopenedValue, isA<core.TextValue>());
+    expect(reopenedValue.overflow, isFalse);
+    expect((reopenedValue as core.TextValue).text, _fieldValue);
+    _marker(
+      'DOCUMENT_REOPENED:PAGES=${reopened.content!.pageCount}:'
+      'FIELD_RECT_MATCH=1:VALUE_MATCH=1',
+    );
+
+    // --- 5. Second export cycle on the reopened document -------------------
+    await _runExportCycle(tester, reopened, documentId, index: 2);
 
     _marker('CLEANUP_DONE');
   });

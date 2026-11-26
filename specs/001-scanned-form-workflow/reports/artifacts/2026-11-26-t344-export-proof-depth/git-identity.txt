@@ -1,0 +1,8 @@
+head=162baa985aaac57b664269be38054e163658eca5
+tree=715777b8ffe88c5808bfbc2b050b979935a0c5ef
+branch=xxammaxx/t344-export-proof-depth
+subject=fix(tools): read the last rect field and keep one placement verdict line (#344 A)
+status_porcelain:
+test_sha256=c84ee5b994e46ea165727f19c776a38279f5fcaa1596a749338196d34687ff9c
+driver_sha256=c1cfde50dff7ce85e31f6a8a83c352cd6f5f30e5ca5a44227e6122b6a5b8905b
+flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
