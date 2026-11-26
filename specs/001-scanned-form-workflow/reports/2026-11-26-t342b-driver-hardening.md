@@ -162,3 +162,25 @@ sha256sum apps/feldexa_app/integration_test/android_export_test.dart  # fe9b2143
 git status --porcelain specs/001-scanned-form-workflow/reports/artifacts/2026-11-26-t342-driver-hardening \
   specs/001-scanned-form-workflow/reports/artifacts/2026-11-26-t334-export   # leer: alte Belege unberührt
 ```
+
+## Bekannt-latent: eine Zeilentrennung im Treiber (Delta-Review A2, P2)
+
+Review A2 hat eine **durch diesen Nachzug eingeführte** Zeilentrennung gefunden, die `bash -n`
+nicht fangen kann:
+
+```bash
+# tools/android/t334_drive_export.sh:646–647 (Stand 9d9ca77a…)
+adb_shell rm -f "$STAGING/ack-artifact-picked-up" >/dev/null ||
+  fail "cannot remove a stale pickup acknowledgement before the pickup retry"PICKUP_OK=0
+```
+
+Im Elternstand (`0e1d7e2`, `:547–548`) waren das zwei Zeilen. Bash verkettet Meldung und
+Zuweisung zu einem Wort, die Datei bleibt syntaktisch gültig, `PICKUP_OK` wird nicht mehr
+initialisiert. **Beide** denkbaren Ausgänge sind fail-closed (`set -u`-Abbruch oder
+`[[ "" -eq 1 ]]` → `fail`), und der belegte Lauf erreicht die Stelle nicht (Pickup gelang im
+ersten Versuch, `PICKUP_OK=1` wird vor der Prüfung gesetzt).
+
+Bewusste Entscheidung: **nicht** in einem eigenen Commit geheilt, weil jede Treiberänderung den
+belegten Lauf von `driver_sha256=9d9ca77a…` entbindet und einen weiteren Emulatorlauf erzwingen
+würde — für einen Zeilenumbruch, der keinen falschen `PASS` erzeugen kann. Die Heilung (Zeile
+teilen) erfolgt mit dem **nächsten ohnehin fälligen Treiberlauf** im Rahmen von Issue #344.
