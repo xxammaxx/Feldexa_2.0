@@ -1,0 +1,8 @@
+head=d79017101b61adc35a41a99133eea2aa1b2689ea
+tree=4ebc2f1ce14381d0fcb320eddc65a7b612bae13b
+branch=xxammaxx/t334-export-e2e
+subject=test(e2e): clear the app data only when the app is still installed after the run
+status_porcelain:
+test_sha256=fe9b21433e4df4d18a705cc3f766e01a8dbab3b63d2c5d0bd82466071a03fd99
+driver_sha256=79ac6e84c6519c3758c571e4812db309e283a787692dd71ec7cae37359210e03
+flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git

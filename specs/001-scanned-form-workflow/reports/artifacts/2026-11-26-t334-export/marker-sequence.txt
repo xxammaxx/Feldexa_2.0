@@ -1,0 +1,5 @@
+test start 2026-11-26T11:18:50Z
+host pickup: 12029 bytes, sha256 1e24ac010a8fcef6f18852b4188b2f49cc958d5a37fa45281f2551b4fd534140 (marker matches)
+test exit=0
+app is no longer installed after the test (no app data to clear)
+PASS (flutter test exit 0; cleanup marker observed; artifact picked up; poppler proof; privacy checks PASS)
