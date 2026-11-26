@@ -1,0 +1,48 @@
+%PDF-1.7
+%FELDEXA-SYNTHETIC-FIXTURE
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R /AcroForm << /Fields [7 0 R] /DA (/Helv 0 Tf 0 g) /DR << /Font << /Helv 5 0 R >> >> /NeedAppearances false >> >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R /Annots [7 0 R] >>
+endobj
+4 0 obj
+<< /Length 224 >>
+stream
+0.8 w
+BT /F1 14 Tf 56 780 Td (Synthetisches AcroForm-Testformular) Tj ET
+BT /F1 10 Tf 56 716 Td (Familienname:) Tj ET
+56 690 m 356 690 l S
+BT /F1 8 Tf 56 660 Td (Synthetische Testdaten, keine personenbezogenen Daten.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Type /XObject /Subtype /Form /FormType 1 /BBox [0 0 300 18] /Resources << /Font << /Helv 5 0 R >> >> /Length 39 >>
+stream
+BT /Helv 10 Tf 3 5 Td (Feldwert) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Annot /Subtype /Widget /FT /Tx /T (familienname) /V (Feldwert) /Rect [56 690 356 708] /F 4 /P 3 0 R /DA (/Helv 10 Tf 0 g) /AP << /N 6 0 R >> >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000036 00000 n 
+0000000195 00000 n 
+0000000252 00000 n 
+0000000394 00000 n 
+0000000668 00000 n 
+0000000765 00000 n 
+0000000955 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R /ID [<46454C44455841464958545552453031> <46454C44455841464958545552453031>] >>
+startxref
+1124
+%%EOF

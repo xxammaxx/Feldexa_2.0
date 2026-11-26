@@ -35,9 +35,17 @@
 //   7. reopen the same stored document from the start list, re-assert the
 //      confirmed field and its value, and run a second export through the same
 //      production controller into `e2e/export-artifact-2.pdf`, again with the
-//      preview-open/close/delete cycle.
+//      preview-open/close/delete cycle;
+//   8. import the one-page `sf-acroform-001.pdf`, a source that really carries
+//      an AcroForm text field (`/FT /Tx`, widget annotation, normal
+//      appearance), and export it unchanged through the same production
+//      controller into `e2e/export-artifact-3.pdf`. This leg proves the
+//      flattening (`EXP-002`/FR-069): the artifact carries no `/AcroForm`, no
+//      `/Widget`, and no `/FT /Tx` byte sequence. It does **not** depend on the
+//      analysis offering a field: whatever the queue holds, the export runs on
+//      the imported revision and the host driver checks the picked-up bytes.
 //
-// Both artifact cycles hand their bytes to the host one after the other: each
+// All artifact cycles hand their bytes to the host one after the other: each
 // prints `T334_ARTIFACT_STORED:INDEX=<n>` and waits for the acknowledgement of
 // that index, so the driver reads each file while the app is still installed.
 //
@@ -46,7 +54,9 @@
 // host's Poppler run (`tools/android/t334_drive_export.sh`). The field rectangle
 // the export actually targets is printed as `T334_FIELD_RECT` (plain numbers,
 // no label and no value) so the host can measure the drawn value against it
-// with `pdftotext -bbox`. An AcroForm fixture stays out of this test.
+// with `pdftotext -bbox`. The third leg carries no drawn value and therefore no
+// placement measurement; its proof is the flattening byte search plus the
+// `pdftotext` extraction of the fixture's own field value.
 //
 // Markers carry phase names, content-free counts, the picked-up artifact's path
 // and digest only. No label, OCR text, title, entered value, or source id is
@@ -91,6 +101,21 @@ const int _fixtureSizeBytes = 5956;
 const int _pageCount = 2;
 const String _displayName = 't334-export.pdf';
 
+/// The one-page source of the third leg: the synthetic AcroForm reference
+/// (`tools/corpus/synthetic/make_acroform_fixture.py`). Its field value lives in
+/// the widget appearance, so the host's `pdftotext` proof after the export shows
+/// that the flattening kept the visible content instead of dropping it.
+const String _acroFormFixtureId = 'sf-acroform-001';
+const String _acroFormFixtureSha256 =
+    '7f4e014482425518058e28c497b9e8bcf4a4930dec1dbd5edb74cb8c8992af9a';
+const int _acroFormFixtureSizeBytes = 1424;
+const int _acroFormPageCount = 1;
+const String _acroFormDisplayName = 't334-acroform.pdf';
+
+/// The page count the export of leg [index] must report.
+int _expectedPageCount(int index) =>
+    index == 3 ? _acroFormPageCount : _pageCount;
+
 /// The fixture-declared text field this journey confirms, named by its label
 /// (`assets/fixtures/catalog.json` → `groundTruth.fields[].label`).
 const String _fieldLabel = 'Familienname';
@@ -110,6 +135,8 @@ String _artifactRelativePath(int index) =>
 
 const String _pdfHeader = '%PDF-';
 const String _acroFormToken = '/AcroForm';
+const String _widgetToken = '/Widget';
+const String _textFieldToken = '/FT /Tx';
 
 const String _platformChannelName = 'de.feldexa/platform';
 
@@ -170,11 +197,11 @@ Future<void> _waitForAnalysisTerminal(
   fail('the first analysis did not reach a terminal state before the bound');
 }
 
-Future<void> _armFile(File source) async {
+Future<void> _armFile(File source, {String displayName = _displayName}) async {
   final Map<Object?, Object?>? reply = await _testHooks
       .invokeMethod<Map<Object?, Object?>>('armFile', <String, Object?>{
         'path': source.path,
-        'displayName': _displayName,
+        'displayName': displayName,
         'forceUnknownPreflight': false,
       });
   expect(reply?['armed'], isTrue);
@@ -184,19 +211,17 @@ Future<void> _clearHook() async {
   await _testHooks.invokeMethod<void>('clear');
 }
 
-Uint8List _loadFixture() {
-  final File file = File(
-    '$_fixtureRoot${Platform.pathSeparator}$_fixtureId.pdf',
-  );
+Uint8List _loadFixture(String id, int sizeBytes, String sha256) {
+  final File file = File('$_fixtureRoot${Platform.pathSeparator}$id.pdf');
   if (!file.existsSync()) {
     fail(
-      'Fixture staging directory $_fixtureRoot is missing $_fixtureId.pdf. '
+      'Fixture staging directory $_fixtureRoot is missing $id.pdf. '
       'Run tools/android/t334_drive_export.sh.',
     );
   }
   final Uint8List bytes = file.readAsBytesSync();
-  expect(bytes.length, _fixtureSizeBytes);
-  expect(crypto.sha256.convert(bytes).toString(), _fixtureSha256);
+  expect(bytes.length, sizeBytes);
+  expect(crypto.sha256.convert(bytes).toString(), sha256);
   return bytes;
 }
 
@@ -611,7 +636,7 @@ void _expectVerifiedArtifact(ExportArtifact artifact, {required int index}) {
   expect(artifact.byteSize! > 0, isTrue);
   expect(artifact.sha256, isNotNull);
   expect(artifact.sha256, matches(RegExp(r'^[0-9a-f]{64}$')));
-  expect(artifact.pageCount, _pageCount);
+  expect(artifact.pageCount, _expectedPageCount(index));
   final ArtifactVerification verification = artifact.verification!;
   expect(verification.pageCountMatches, isTrue);
   expect(verification.mediaBoxesMatch, isTrue);
@@ -687,6 +712,17 @@ Future<void> _storeArtifactForHostPickup(
     -1,
     reason: 'a flattened product must carry no AcroForm (byte-level check)',
   );
+  expect(
+    _indexOfBytes(bytes, _widgetToken.codeUnits),
+    -1,
+    reason: 'a flattened product must carry no widget annotation',
+  );
+  expect(
+    _indexOfBytes(bytes, _textFieldToken.codeUnits),
+    -1,
+    reason: 'a flattened product must carry no text form field',
+  );
+  _marker('ARTIFACT_FIELD_TOKENS:INDEX=$index:ACROFORM=0:WIDGET=0:FT_TX=0');
   _marker(
     'ARTIFACT_BYTES:INDEX=$index:PATH_BYTES=${bytes.length}:SHA256_MATCH=1',
   );
@@ -786,22 +822,104 @@ Future<void> _runExportCycle(
   );
 }
 
+/// Imports the AcroForm reference fixture from the start surface and returns
+/// its editor state.
+///
+/// The third leg runs on a second document of the same session, so it first
+/// leaves the editor route the first two legs left behind. Nothing is confirmed
+/// and nothing is filled here: the leg's claim is the flattening of the source
+/// form, which must not depend on the analysis queue offering a field.
+Future<EditorScreenState> _importAcroFormFixture(
+  WidgetTester tester,
+  File scratchSource,
+) async {
+  final NavigatorState navigator = Navigator.of(
+    tester.element(find.byType(EditorScreen)),
+  );
+  expect(
+    navigator.canPop(),
+    isTrue,
+    reason: 'the second document needs the start surface route',
+  );
+  navigator.pop();
+  await _pumpUntil(
+    tester,
+    () =>
+        find.byType(EditorScreen).evaluate().isEmpty &&
+        find.byKey(_startScreenKey).evaluate().isNotEmpty,
+    timeout: const Duration(seconds: 180),
+    reason: 'the editor route did not close back to the start surface',
+  );
+
+  await _armFile(scratchSource, displayName: _acroFormDisplayName);
+  _marker('ACROFORM_FIXTURE_ARMED');
+  await tester.tap(find.byKey(_importActionKey));
+  await tester.pump();
+  await _pumpUntil(
+    tester,
+    () =>
+        find.byKey(_editorScreenKey).evaluate().isNotEmpty ||
+        find.byKey(_importFailureKey).evaluate().isNotEmpty,
+    timeout: const Duration(seconds: 300),
+    reason: 'no editor route or rejection after the armed AcroForm import',
+  );
+  expect(
+    find.byKey(_importFailureKey),
+    findsNothing,
+    reason: 'the synthetic AcroForm fixture must be accepted',
+  );
+  final EditorScreenState state = tester.state<EditorScreenState>(
+    find.byType(EditorScreen),
+  );
+  _marker('ACROFORM_EDITOR_READY');
+
+  await _waitForAnalysisTerminal(tester, state);
+  expect(state.content!.pageCount, _acroFormPageCount);
+  _marker(
+    'ACROFORM_ANALYSIS_READY:PAGES=${state.content!.pageCount}:'
+    'FIELDS=${state.content!.fields.length}',
+  );
+  return state;
+}
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   final Directory fixtureDirectory = Directory(_fixtureRoot);
   File? scratchSource;
+  File? acroFormScratchSource;
   bool hookArmed = false;
 
   setUpAll(() {
     expect(fixtureDirectory.existsSync(), isTrue);
-    final Uint8List fixtureBytes = _loadFixture();
+    final Uint8List fixtureBytes = _loadFixture(
+      _fixtureId,
+      _fixtureSizeBytes,
+      _fixtureSha256,
+    );
     _marker('FIXTURE_READY:BYTES=$_fixtureSizeBytes:MATCH=1');
     scratchSource = File(
       '${Directory.systemTemp.path}${Platform.pathSeparator}t334-'
       '${DateTime.now().microsecondsSinceEpoch}.pdf',
     );
     scratchSource!.writeAsBytesSync(fixtureBytes, flush: true);
+
+    final Uint8List acroFormBytes = _loadFixture(
+      _acroFormFixtureId,
+      _acroFormFixtureSizeBytes,
+      _acroFormFixtureSha256,
+    );
+    expect(
+      _indexOfBytes(acroFormBytes, _acroFormToken.codeUnits),
+      isNonNegative,
+      reason: 'the staged AcroForm fixture must really carry /AcroForm',
+    );
+    _marker('ACROFORM_FIXTURE_READY:BYTES=$_acroFormFixtureSizeBytes:MATCH=1');
+    acroFormScratchSource = File(
+      '${Directory.systemTemp.path}${Platform.pathSeparator}t334-acroform-'
+      '${DateTime.now().microsecondsSinceEpoch}.pdf',
+    );
+    acroFormScratchSource!.writeAsBytesSync(acroFormBytes, flush: true);
   });
 
   tearDownAll(() async {
@@ -815,6 +933,10 @@ void main() {
     final File? scratch = scratchSource;
     if (scratch != null && scratch.existsSync()) {
       scratch.deleteSync();
+    }
+    final File? acroFormScratch = acroFormScratchSource;
+    if (acroFormScratch != null && acroFormScratch.existsSync()) {
+      acroFormScratch.deleteSync();
     }
   });
 
@@ -870,6 +992,25 @@ void main() {
 
     // --- 5. Second export cycle on the reopened document -------------------
     await _runExportCycle(tester, reopened, documentId, index: 2);
+
+    // --- 6. Third leg: an AcroForm source, exported unchanged --------------
+
+    _marker('ACROFORM_LEG_START');
+    final EditorScreenState acroFormState = await _importAcroFormFixture(
+      tester,
+      acroFormScratchSource!,
+    );
+    final String acroFormDocumentId = tester
+        .widget<EditorScreen>(find.byType(EditorScreen))
+        .source
+        .documentId;
+    expect(
+      acroFormDocumentId,
+      isNot(documentId),
+      reason: 'the AcroForm fixture must be a second document',
+    );
+    await _runExportCycle(tester, acroFormState, acroFormDocumentId, index: 3);
+    _marker('ACROFORM_FLATTENING_PROVEN');
 
     _marker('CLEANUP_DONE');
   });

@@ -31,11 +31,19 @@
 #      size the test printed, and clears the app data again;
 #   6. proves the picked file with external tools on the host: `pdfinfo` page
 #      count and page size against the source fixture, `pdftotext` for the
-#      entered umlaut value, and a byte search for `/AcroForm`;
+#      expected value, and a byte search for `/AcroForm`, `/Widget`, and
+#      `/FT /Tx`;
 #   7. records device identity, fixture/APK hashes, git identity (HEAD/tree/
 #      branch/subject/status), the permit admission, the `flutter analyze` and
 #      `dart format` gates, the marker sequence extracted from the integration
 #      log, and a source-level and log-level privacy check.
+#
+# The third artifact is the flattening proof of issue #344: `sf-acroform-001.pdf`
+# really carries an AcroForm text field (proved in `fixture-acroform-proof.txt`
+# from `pdfinfo` and a byte search), is exported unchanged through the
+# production controller, and its artifact has to be free of `/AcroForm`,
+# `/Widget`, and `/FT /Tx` while `pdftotext` still yields the fixture's field
+# value — the flattening kept the visible content instead of dropping it.
 #
 # The tree must be committed before the run: the working tree must be clean.
 #
@@ -75,10 +83,62 @@ FIXTURE="sf-001.pdf"
 FIXTURE_SHA256="22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038"
 FIXTURE_SIZE_BYTES=5956
 EXPECTED_PAGE_COUNT=2
-ARTIFACT_REL="e2e/export-artifact.pdf"
-ARTIFACT_REL_2="e2e/export-artifact-2.pdf"
-ARTIFACT_COUNT=2
+# The third leg exports a source that really carries an AcroForm text field, so
+# the flattening (`EXP-002`/FR-069) is proven instead of being asserted on a
+# source without fields. Its field value lives in the widget appearance; the
+# host's `pdftotext` run proves that the flattening kept it visible.
+ACROFORM_FIXTURE="sf-acroform-001.pdf"
+ACROFORM_FIXTURE_SHA256="7f4e014482425518058e28c497b9e8bcf4a4930dec1dbd5edb74cb8c8992af9a"
+ACROFORM_FIXTURE_SIZE_BYTES=1424
+ACROFORM_PAGE_COUNT=1
+ACROFORM_VALUE="Feldwert"
+ARTIFACT_COUNT=3
 EXPECTED_VALUE="Müller"
+# Per-artifact expectations of the pickup and Poppler proof. Index 1/2 export
+# `sf-001.pdf` (2 pages, the journey's drawn `Müller` value); index 3 exports the
+# one-page AcroForm fixture unchanged (its own value `Feldwert`, no drawn value,
+# so no 1 mm placement claim).
+artifact_source_fixture() {
+  case "$1" in
+    1 | 2) printf '%s\n' "$FIXTURE" ;;
+    3) printf '%s\n' "$ACROFORM_FIXTURE" ;;
+    *) return 1 ;;
+  esac
+}
+
+artifact_source_pages() {
+  case "$1" in
+    1 | 2) printf '%s\n' "$EXPECTED_PAGE_COUNT" ;;
+    3) printf '%s\n' "$ACROFORM_PAGE_COUNT" ;;
+    *) return 1 ;;
+  esac
+}
+
+artifact_expected_value() {
+  case "$1" in
+    1 | 2) printf '%s\n' "$EXPECTED_VALUE" ;;
+    3) printf '%s\n' "$ACROFORM_VALUE" ;;
+    *) return 1 ;;
+  esac
+}
+
+# The in-app cache path of artifact [index] (see `_artifactRelativePath` in the
+# integration test: index 1 keeps the historical file name).
+artifact_relative_path() {
+  case "$1" in
+    1) printf '%s\n' 'e2e/export-artifact.pdf' ;;
+    *) printf '%s\n' "e2e/export-artifact-$1.pdf" ;;
+  esac
+}
+
+# The placement measurement needs a drawn value and a field rect, which only
+# the first two legs have.
+artifact_has_placement() {
+  case "$1" in
+    1 | 2) return 0 ;;
+    *) return 1 ;;
+  esac
+}
 # 1 mm in PDF points (1 pt = 1/72 in). This is a verification threshold of the
 # host measurement, never a product value.
 PLACEMENT_TOLERANCE_PT="2.835"
@@ -157,7 +217,7 @@ if [[ "${T334_COMPUTE_LOCK_HELD:-0}" != "1" ]]; then
 fi
 
 RUN_DIR="${T334_RUN_DIR:-$(mktemp -d "${TMPDIR:-/tmp}/feldexa-t334-run.XXXXXX")}"
-EVIDENCE_DIR="${T334_EVIDENCE_DIR:-$ROOT/specs/001-scanned-form-workflow/reports/artifacts/2026-11-26-t342b-driver-hardening}"
+EVIDENCE_DIR="${T334_EVIDENCE_DIR:-$ROOT/specs/001-scanned-form-workflow/reports/artifacts/2026-11-26-t344-acroform}"
 LOG="$RUN_DIR/integration-android-t334.log"
 SEQUENCE="$RUN_DIR/marker-sequence.txt"
 ADB_STDERR_LOG="$RUN_DIR/adb-stderr.log"
@@ -256,6 +316,17 @@ prepare_evidence_dir() {
 
 collect_evidence() {
   local file
+  local -a artifact_files=()
+  local index
+  for index in $(seq 1 "$ARTIFACT_COUNT"); do
+    artifact_files+=(
+      "artifact-$index-pickup.txt"
+      "artifact-$index-pdfinfo.txt"
+      "artifact-$index-pdftotext.txt"
+      "artifact-$index-acroform.txt"
+      "artifact-$index-placement.txt"
+    )
+  done
   for file in \
     integration-android-t334.log \
     adb-stderr.log \
@@ -266,18 +337,11 @@ collect_evidence() {
     device-binding.txt \
     compute-lock.txt \
     fixture-sha256.txt \
+    fixture-acroform-proof.txt \
+    pdfinfo-source-acroform.txt \
     apk-sha256.txt \
     git-identity.txt \
-    artifact-1-pickup.txt \
-    artifact-1-pdfinfo.txt \
-    artifact-1-pdftotext.txt \
-    artifact-1-acroform.txt \
-    artifact-1-placement.txt \
-    artifact-2-pickup.txt \
-    artifact-2-pdfinfo.txt \
-    artifact-2-pdftotext.txt \
-    artifact-2-acroform.txt \
-    artifact-2-placement.txt \
+    "${artifact_files[@]}" \
     privacy-source-check.txt \
     privacy-log-check.txt \
     store-probe.txt \
@@ -290,14 +354,12 @@ collect_evidence() {
         fail "cannot write evidence file $file"
     fi
   done
-  if [[ -f "$RUN_DIR/export-artifact-1.pdf" ]]; then
-    cp "$RUN_DIR/export-artifact-1.pdf" "$EVIDENCE_DIR/export-artifact-1.pdf" ||
-      fail "cannot write artifact 1 into the evidence directory"
-  fi
-  if [[ -f "$RUN_DIR/export-artifact-2.pdf" ]]; then
-    cp "$RUN_DIR/export-artifact-2.pdf" "$EVIDENCE_DIR/export-artifact-2.pdf" ||
-      fail "cannot write artifact 2 into the evidence directory"
-  fi
+  for index in $(seq 1 "$ARTIFACT_COUNT"); do
+    if [[ -f "$RUN_DIR/export-artifact-$index.pdf" ]]; then
+      cp "$RUN_DIR/export-artifact-$index.pdf" "$EVIDENCE_DIR/export-artifact-$index.pdf" ||
+        fail "cannot write artifact $index into the evidence directory"
+    fi
+  done
   log "T334 DRIVER: evidence written to $EVIDENCE_DIR"
 }
 
@@ -437,12 +499,17 @@ else
 fi
 adb_shell mkdir -p "$STAGING" >/dev/null ||
   fail "cannot create the device staging directory $STAGING"
-timeout 300 "$ADB" -s "$SERIAL" push "$APP/assets/fixtures/$FIXTURE" \
-  "$STAGING/$FIXTURE" >/dev/null || fail "staging push failed or timed out: $FIXTURE"
+for staged_fixture in "$FIXTURE" "$ACROFORM_FIXTURE"; do
+  timeout 300 "$ADB" -s "$SERIAL" push "$APP/assets/fixtures/$staged_fixture" \
+    "$STAGING/$staged_fixture" >/dev/null ||
+    fail "staging push failed or timed out: $staged_fixture"
+done
 adb_shell chmod 755 "$STAGING" >/dev/null ||
   fail "cannot set the mode of the device staging directory $STAGING"
-adb_shell chmod 644 "$STAGING/$FIXTURE" >/dev/null ||
-  fail "cannot set the mode of the staged fixture $STAGING/$FIXTURE"
+for staged_fixture in "$FIXTURE" "$ACROFORM_FIXTURE"; do
+  adb_shell chmod 644 "$STAGING/$staged_fixture" >/dev/null ||
+    fail "cannot set the mode of the staged fixture $STAGING/$staged_fixture"
+done
 
 # The probe decides the pre-run store state, so its three outcomes are exercised
 # with the same body the run uses: an empty root (`STORE_EMPTY_OK`), a leftover
@@ -483,7 +550,7 @@ printf '%s\n' "result=all three store-probe cases behave as expected" >>"$RUN_DI
 
 # A previous aborted run can leave a pickup acknowledgement behind; remove every
 # index before the test starts so no wait can return on a stale ack.
-for ack_index in 1 2; do
+for ack_index in $(seq 1 "$ARTIFACT_COUNT"); do
   adb_shell rm -f "$STAGING/ack-artifact-picked-up-$ack_index" >/dev/null ||
     fail "cannot remove a stale pickup acknowledgement $ack_index from $STAGING"
 done
@@ -497,12 +564,49 @@ DEVICE_FIXTURE_SIZE="$(adb_shell stat -c %s "$STAGING/$FIXTURE")"
   fail "host fixture sha256 $HOST_FIXTURE_SHA != $FIXTURE_SHA256"
 [[ "$DEVICE_FIXTURE_SIZE" == "$FIXTURE_SIZE_BYTES" ]] ||
   fail "device fixture size $DEVICE_FIXTURE_SIZE != $FIXTURE_SIZE_BYTES"
+DEVICE_ACROFORM_SHA="$(adb_shell sha256sum "$STAGING/$ACROFORM_FIXTURE" | awk '{print $1}')"
+HOST_ACROFORM_SHA="$(sha256sum "$APP/assets/fixtures/$ACROFORM_FIXTURE" | awk '{print $1}')"
+DEVICE_ACROFORM_SIZE="$(adb_shell stat -c %s "$STAGING/$ACROFORM_FIXTURE")"
+[[ "$DEVICE_ACROFORM_SHA" == "$ACROFORM_FIXTURE_SHA256" ]] ||
+  fail "device AcroForm fixture sha256 $DEVICE_ACROFORM_SHA != $ACROFORM_FIXTURE_SHA256"
+[[ "$HOST_ACROFORM_SHA" == "$ACROFORM_FIXTURE_SHA256" ]] ||
+  fail "host AcroForm fixture sha256 $HOST_ACROFORM_SHA != $ACROFORM_FIXTURE_SHA256"
+[[ "$DEVICE_ACROFORM_SIZE" == "$ACROFORM_FIXTURE_SIZE_BYTES" ]] ||
+  fail "device AcroForm fixture size $DEVICE_ACROFORM_SIZE != $ACROFORM_FIXTURE_SIZE_BYTES"
 
 {
   log "staging $STAGING/$FIXTURE sha256=$DEVICE_FIXTURE_SHA size=$DEVICE_FIXTURE_SIZE"
   log "host $(host_relative "$APP/assets/fixtures/$FIXTURE") sha256=$HOST_FIXTURE_SHA"
   log "pages=$EXPECTED_PAGE_COUNT (the committed fixture is used unchanged)"
+  log "staging $STAGING/$ACROFORM_FIXTURE sha256=$DEVICE_ACROFORM_SHA size=$DEVICE_ACROFORM_SIZE"
+  log "host $(host_relative "$APP/assets/fixtures/$ACROFORM_FIXTURE") sha256=$HOST_ACROFORM_SHA"
+  log "pages=$ACROFORM_PAGE_COUNT (the committed AcroForm fixture is used unchanged)"
 } >"$RUN_DIR/fixture-sha256.txt"
+
+# --- 2b. The AcroForm fixture must really carry the form it is named after --
+# Without this proof the third leg would only repeat the two existing legs: a
+# source without fields cannot show that the flattening works. Two independent
+# witnesses are recorded: Poppler's structural answer (`Form: AcroForm`) and a
+# byte search for the three markers the export has to remove.
+{
+  log "command=pdfinfo $(host_relative "$APP/assets/fixtures/$ACROFORM_FIXTURE")"
+  pdfinfo "$APP/assets/fixtures/$ACROFORM_FIXTURE" 2>&1
+  log "expected: Form: AcroForm"
+  log "command=LC_ALL=C grep -a -o -F <token> <fixture> | wc -l"
+  for form_token in '/AcroForm' '/Widget' '/FT /Tx'; do
+    token_hits="$(LC_ALL=C grep -a -o -F "$form_token" "$APP/assets/fixtures/$ACROFORM_FIXTURE" | wc -l)"
+    log "fixture_token '$form_token' occurrences=$token_hits"
+  done
+} >"$RUN_DIR/fixture-acroform-proof.txt" 2>&1
+ACROFORM_FIXTURE_FORM="$(pdfinfo "$APP/assets/fixtures/$ACROFORM_FIXTURE" 2>/dev/null | awk '/^Form:/ {sub(/^Form:[[:space:]]*/, ""); print}')"
+[[ "$ACROFORM_FIXTURE_FORM" == "AcroForm" ]] ||
+  fail "the committed AcroForm fixture reports 'Form: ${ACROFORM_FIXTURE_FORM:-<none>}', expected 'AcroForm'"
+for form_token in '/AcroForm' '/Widget' '/FT /Tx'; do
+  SOURCE_TOKEN_HITS="$(LC_ALL=C grep -a -o -F "$form_token" "$APP/assets/fixtures/$ACROFORM_FIXTURE" | wc -l)"
+  [[ "$SOURCE_TOKEN_HITS" -ge 1 ]] ||
+    fail "the committed AcroForm fixture carries no '$form_token' byte sequence"
+done
+record "AcroForm fixture proved: Form: AcroForm, /AcroForm, /Widget, /FT /Tx present"
 
 # --- 3. Privacy source check -------------------------------------------------
 # A grep error (exit 2) is not "no match" (exit 1): only exit 1 proves the
@@ -639,11 +743,8 @@ wait_for_marker() {
 declare -a MARKER_BYTES_BY_INDEX=() MARKER_SHA256_BY_INDEX=() MARKER_PATH_BY_INDEX=()
 declare -a HOST_SHA_BY_INDEX=() HOST_SIZE_BY_INDEX=()
 for PICKUP_INDEX in $(seq 1 "$ARTIFACT_COUNT"); do
-  if [[ "$PICKUP_INDEX" -eq 1 ]]; then
-    PICKUP_REL="$ARTIFACT_REL"
-  else
-    PICKUP_REL="$ARTIFACT_REL_2"
-  fi
+  PICKUP_REL="$(artifact_relative_path "$PICKUP_INDEX")" ||
+    fail "no artifact path is defined for index $PICKUP_INDEX"
   PICKUP_FILE="$RUN_DIR/export-artifact-$PICKUP_INDEX.pdf"
   log "T334 DRIVER: waiting for the stored-artifact marker of artifact $PICKUP_INDEX"
   if ! wait_for_marker "ARTIFACT_STORED:INDEX=$PICKUP_INDEX" 2400; then
@@ -785,11 +886,19 @@ command -v pdfinfo >/dev/null || fail "pdfinfo (poppler-utils) not found on the 
 command -v pdftotext >/dev/null || fail "pdftotext (poppler-utils) not found on the host"
 
 pdfinfo "$APP/assets/fixtures/$FIXTURE" >"$RUN_DIR/pdfinfo-source.txt" 2>&1 ||
-  fail "pdfinfo failed on the source fixture"
-SOURCE_PAGES="$(awk '/^Pages:/ {print $2}' "$RUN_DIR/pdfinfo-source.txt")"
-SOURCE_PAGE_SIZE="$(awk '/^Page size:/ {sub(/^Page size:[[:space:]]*/, ""); print}' "$RUN_DIR/pdfinfo-source.txt")"
-[[ "$SOURCE_PAGES" == "$EXPECTED_PAGE_COUNT" ]] ||
-  fail "source page count $SOURCE_PAGES != $EXPECTED_PAGE_COUNT"
+  fail "pdfinfo failed on the source fixture $FIXTURE"
+pdfinfo "$APP/assets/fixtures/$ACROFORM_FIXTURE" >"$RUN_DIR/pdfinfo-source-acroform.txt" 2>&1 ||
+  fail "pdfinfo failed on the source fixture $ACROFORM_FIXTURE"
+
+# The per-artifact proof compares against the source it was exported from, so a
+# leg can never inherit the pages, page size, or value of another leg.
+source_pdfinfo() {
+  case "$1" in
+    "$FIXTURE") printf '%s\n' "$RUN_DIR/pdfinfo-source.txt" ;;
+    "$ACROFORM_FIXTURE") printf '%s\n' "$RUN_DIR/pdfinfo-source-acroform.txt" ;;
+    *) return 1 ;;
+  esac
+}
 
 # The test prints the rectangle the export layout actually targets as plain
 # numbers (`T334_FIELD_RECT`). Convention: display space - origin at the page's
@@ -816,58 +925,95 @@ PLACEMENT_REASON=""
 for PICKUP_INDEX in $(seq 1 "$ARTIFACT_COUNT"); do
   PICKUP_FILE="$RUN_DIR/export-artifact-$PICKUP_INDEX.pdf"
   ARTIFACT_TEXT="$RUN_DIR/artifact-$PICKUP_INDEX.txt"
+  SOURCE_FIXTURE="$(artifact_source_fixture "$PICKUP_INDEX")" ||
+    fail "no source fixture is defined for artifact $PICKUP_INDEX"
+  EXPECTED_PAGES="$(artifact_source_pages "$PICKUP_INDEX")" ||
+    fail "no page count is defined for artifact $PICKUP_INDEX"
+  EXPECTED_TEXT="$(artifact_expected_value "$PICKUP_INDEX")" ||
+    fail "no value is defined for artifact $PICKUP_INDEX"
+  SOURCE_INFO="$(source_pdfinfo "$SOURCE_FIXTURE")" ||
+    fail "no source pdfinfo is recorded for $SOURCE_FIXTURE"
+  SOURCE_PAGES="$(awk '/^Pages:/ {print $2}' "$SOURCE_INFO")"
+  SOURCE_PAGE_SIZE="$(awk '/^Page size:/ {sub(/^Page size:[[:space:]]*/, ""); print}' "$SOURCE_INFO")"
+  [[ "$SOURCE_PAGES" == "$EXPECTED_PAGES" ]] ||
+    fail "source page count of $SOURCE_FIXTURE is $SOURCE_PAGES, expected $EXPECTED_PAGES"
 
   # --- pdfinfo: page count and page size against the source ---------------
   pdfinfo "$PICKUP_FILE" >"$RUN_DIR/pdfinfo-artifact-$PICKUP_INDEX.txt" 2>&1 ||
     fail "pdfinfo failed on picked-up artifact $PICKUP_INDEX"
   ARTIFACT_PAGES="$(awk '/^Pages:/ {print $2}' "$RUN_DIR/pdfinfo-artifact-$PICKUP_INDEX.txt")"
   ARTIFACT_PAGE_SIZE="$(awk '/^Page size:/ {sub(/^Page size:[[:space:]]*/, ""); print}' "$RUN_DIR/pdfinfo-artifact-$PICKUP_INDEX.txt")"
-  [[ "$ARTIFACT_PAGES" == "$EXPECTED_PAGE_COUNT" ]] ||
-    fail "artifact $PICKUP_INDEX page count $ARTIFACT_PAGES != $EXPECTED_PAGE_COUNT"
+  ARTIFACT_FORM="$(awk '/^Form:/ {sub(/^Form:[[:space:]]*/, ""); print}' "$RUN_DIR/pdfinfo-artifact-$PICKUP_INDEX.txt")"
+  [[ "$ARTIFACT_PAGES" == "$EXPECTED_PAGES" ]] ||
+    fail "artifact $PICKUP_INDEX page count $ARTIFACT_PAGES != $EXPECTED_PAGES"
   [[ "$ARTIFACT_PAGE_SIZE" == "$SOURCE_PAGE_SIZE" ]] ||
     fail "artifact $PICKUP_INDEX page size '$ARTIFACT_PAGE_SIZE' != source page size '$SOURCE_PAGE_SIZE'"
+  # Artifact 3 comes from a source that carries an AcroForm: the flattening has
+  # to remove it, so the exported form field must be gone structurally too.
+  if [[ "$PICKUP_INDEX" -eq 3 ]]; then
+    [[ "$ARTIFACT_FORM" != "AcroForm" ]] ||
+      fail "artifact 3 still reports 'Form: AcroForm' after the export"
+  fi
   {
     log "index=$PICKUP_INDEX"
-    log "command=pdfinfo $(host_relative "$APP/assets/fixtures/$FIXTURE")"
-    cat "$RUN_DIR/pdfinfo-source.txt"
+    log "command=pdfinfo $(host_relative "$APP/assets/fixtures/$SOURCE_FIXTURE")"
+    cat "$SOURCE_INFO"
     log "command=pdfinfo <artifact-$PICKUP_INDEX>"
     cat "$RUN_DIR/pdfinfo-artifact-$PICKUP_INDEX.txt"
-    log "pages: source=$SOURCE_PAGES artifact=$ARTIFACT_PAGES (expected=$EXPECTED_PAGE_COUNT)"
+    log "source_fixture=$SOURCE_FIXTURE"
+    log "pages: source=$SOURCE_PAGES artifact=$ARTIFACT_PAGES (expected=$EXPECTED_PAGES)"
     log "page_size: source=$SOURCE_PAGE_SIZE artifact=$ARTIFACT_PAGE_SIZE (must match)"
+    log "form: source=$([[ "$PICKUP_INDEX" -eq 3 ]] && printf "AcroForm" || printf "none") artifact=${ARTIFACT_FORM:-none}"
   } >"$RUN_DIR/artifact-$PICKUP_INDEX-pdfinfo.txt"
 
-  # --- the entered value in the extracted text ----------------------------
+  # --- the expected value in the extracted text ---------------------------
   pdftotext -enc UTF-8 "$PICKUP_FILE" "$ARTIFACT_TEXT" ||
     fail "pdftotext failed on picked-up artifact $PICKUP_INDEX"
   # Exit 1 (no match) is a real answer, exit 2 (tool error) is a `fail`: the
-  # entered value and the encoded umlaut are both read from the same extraction.
-  VALUE_MATCHES="$(grep -n -F "$EXPECTED_VALUE" "$ARTIFACT_TEXT")"
+  # expected value (the journey's entered `Müller` for index 1/2, the fixture's
+  # own field value for index 3) and the encoded umlaut are both read from the
+  # same extraction.
+  VALUE_MATCHES="$(grep -n -F "$EXPECTED_TEXT" "$ARTIFACT_TEXT")"
   VALUE_GREP_EXIT=$?
   [[ "$VALUE_GREP_EXIT" -le 1 ]] ||
-    fail "the entered-value grep failed with exit $VALUE_GREP_EXIT"
+    fail "the expected-value grep failed with exit $VALUE_GREP_EXIT"
   VALUE_HITS="$(printf '%s\n' "$VALUE_MATCHES" | sed '/^$/d' | wc -l)"
   [[ "$VALUE_HITS" -ge 1 ]] ||
-    fail "the entered value is not present in the extracted text of artifact $PICKUP_INDEX"
-  MANGLED_UMLAUTS="$(grep -c -F "M?ller" "$ARTIFACT_TEXT")"
-  MANGLED_GREP_EXIT=$?
-  [[ "$MANGLED_GREP_EXIT" -le 1 ]] ||
-    fail "the mangled-umlaut grep failed with exit $MANGLED_GREP_EXIT"
-  [[ "$MANGLED_UMLAUTS" -eq 0 ]] ||
-    fail "the extracted text of artifact $PICKUP_INDEX carries 'M?ller': the umlaut was not encoded"
+    fail "the expected value is not present in the extracted text of artifact $PICKUP_INDEX"
+  MANGLED_UMLAUTS="not_applicable"
+  if [[ "$EXPECTED_TEXT" == "$EXPECTED_VALUE" ]]; then
+    MANGLED_UMLAUTS="$(grep -c -F "M?ller" "$ARTIFACT_TEXT")"
+    MANGLED_GREP_EXIT=$?
+    [[ "$MANGLED_GREP_EXIT" -le 1 ]] ||
+      fail "the mangled-umlaut grep failed with exit $MANGLED_GREP_EXIT"
+    [[ "$MANGLED_UMLAUTS" -eq 0 ]] ||
+      fail "the extracted text of artifact $PICKUP_INDEX carries 'M?ller': the umlaut was not encoded"
+  fi
   {
     log "index=$PICKUP_INDEX"
     log "command=pdftotext -enc UTF-8 <artifact-$PICKUP_INDEX> <text>"
-    log "entered_value_occurrences=$VALUE_HITS"
-    log "value = \`Müller\` (synthetic fixture content entered by the journey)"
+    log "source_fixture=$SOURCE_FIXTURE"
+    log "expected_value_occurrences=$VALUE_HITS"
+    if [[ "$EXPECTED_TEXT" == "$EXPECTED_VALUE" ]]; then
+      log "value = \`Müller\` (synthetic fixture content entered by the journey)"
+    else
+      log "value = \`$ACROFORM_VALUE\` (the AcroForm fixture's own field value; it lives in the widget appearance, so a flattening that dropped appearances would lose it)"
+    fi
     log "umlaut_replaced_by_question_mark=$MANGLED_UMLAUTS"
     log "extracted_text_lines=$(wc -l <"$ARTIFACT_TEXT")"
     log "matched_lines:"
     log "$VALUE_MATCHES"
   } >"$RUN_DIR/artifact-$PICKUP_INDEX-pdftotext.txt"
 
-  # --- /AcroForm byte search ----------------------------------------------
+  # --- byte searches for the form markers the export must remove ----------
+  # Index 3 is the flattening proof: its source really carries all three
+  # markers, so all three have to be gone in the artifact.
   ACROFORM_HITS="$(LC_ALL=C grep -a -o -F '/AcroForm' "$PICKUP_FILE" | wc -l)"
   ACROFORM_GREP_EXIT=$?
+  WIDGET_HITS="$(LC_ALL=C grep -a -o -F '/Widget' "$PICKUP_FILE" | wc -l)"
+  WIDGET_GREP_EXIT=$?
+  TEXTFIELD_HITS="$(LC_ALL=C grep -a -o -F '/FT /Tx' "$PICKUP_FILE" | wc -l)"
+  TEXTFIELD_GREP_EXIT=$?
   # Exit 1 (no match) is the target, exit 0 means the marker is there, and a
   # status above 1 is a grep tool failure: `wc -l` reports 0 hits for an
   # unreadable file, so the status has to be read separately from the count.
@@ -876,12 +1022,33 @@ for PICKUP_INDEX in $(seq 1 "$ARTIFACT_COUNT"); do
     log "command=LC_ALL=C grep -a -o -F '/AcroForm' <artifact-$PICKUP_INDEX> | wc -l"
     log "acroform_grep_exit=$ACROFORM_GREP_EXIT (0=hits, 1=no match, >=2=tool error)"
     log "acroform_byte_occurrences=$ACROFORM_HITS"
+    log "command=LC_ALL=C grep -a -o -F '/Widget' <artifact-$PICKUP_INDEX> | wc -l"
+    log "widget_grep_exit=$WIDGET_GREP_EXIT (0=hits, 1=no match, >=2=tool error)"
+    log "widget_byte_occurrences=$WIDGET_HITS"
+    log "command=LC_ALL=C grep -a -o -F '/FT /Tx' <artifact-$PICKUP_INDEX> | wc -l"
+    log "textfield_grep_exit=$TEXTFIELD_GREP_EXIT (0=hits, 1=no match, >=2=tool error)"
+    log "textfield_byte_occurrences=$TEXTFIELD_HITS"
     log "note=byte-level search only; this is not a structural PDF analysis"
   } >"$RUN_DIR/artifact-$PICKUP_INDEX-acroform.txt"
-  [[ "$ACROFORM_GREP_EXIT" -le 1 ]] ||
-    fail "the /AcroForm byte search failed with exit $ACROFORM_GREP_EXIT on artifact $PICKUP_INDEX"
+  for token_grep_exit in "$ACROFORM_GREP_EXIT" "$WIDGET_GREP_EXIT" "$TEXTFIELD_GREP_EXIT"; do
+    [[ "$token_grep_exit" -le 1 ]] ||
+      fail "a form-marker byte search failed with exit $token_grep_exit on artifact $PICKUP_INDEX"
+  done
   [[ "$ACROFORM_HITS" -eq 0 ]] ||
     fail "artifact $PICKUP_INDEX carries $ACROFORM_HITS /AcroForm byte occurrences"
+  [[ "$WIDGET_HITS" -eq 0 ]] ||
+    fail "artifact $PICKUP_INDEX carries $WIDGET_HITS /Widget byte occurrences"
+  [[ "$TEXTFIELD_HITS" -eq 0 ]] ||
+    fail "artifact $PICKUP_INDEX carries $TEXTFIELD_HITS /FT /Tx byte occurrences"
+
+  if ! artifact_has_placement "$PICKUP_INDEX"; then
+    {
+      log "index=$PICKUP_INDEX"
+      log "verdict=NOT_APPLICABLE"
+      log "reason=artifact $PICKUP_INDEX exports the AcroForm fixture unchanged: no value was drawn, so there is no placement to measure"
+    } >"$RUN_DIR/artifact-$PICKUP_INDEX-placement.txt"
+    continue
+  fi
 
   # --- 1 mm placement measurement (`pdftotext -bbox`) ---------------------
   # The word element of the entered value on the marked page is matched by its
@@ -998,7 +1165,7 @@ shopt -u nullglob
 
 # A grep error (exit 2) is not "no match" (exit 1): only exit 1 proves the log
 # carries no document content.
-if grep -nE "$EXPECTED_VALUE|Familienname|t334-export\.pdf|/data/local/tmp/t334-fixtures" \
+if grep -nE "$EXPECTED_VALUE|$ACROFORM_VALUE|Familienname|t334-export\.pdf|t334-acroform\.pdf|/data/local/tmp/t334-fixtures" \
   "$LOG" >"$RUN_DIR/privacy-log-check.txt" 2>&1; then
   printf 'FAIL: document content, field label, display name, or fixture path found in the integration log\n' \
     >>"$RUN_DIR/privacy-log-check.txt"
@@ -1022,13 +1189,14 @@ if [[ "$PRIVACY_PASS" -eq 1 ]]; then
   collect_evidence
   scan_evidence_home_paths ||
     fail "the evidence home-path scan did not come back clean; no result was written"
-  record "PASS (flutter test exit 0; cleanup marker observed; two artifacts picked up with matching digests; poppler proof for both; static gates clean; privacy checks PASS; 1 mm placement claim $PLACEMENT_VERDICT)"
+  record "PASS (flutter test exit 0; cleanup marker observed; three artifacts picked up with matching digests; poppler and byte-search proof for all three; AcroForm flattening proved for artifact 3 (no /AcroForm, /Widget, /FT /Tx; field value survives in the text layer); static gates clean; privacy checks PASS; 1 mm placement claim $PLACEMENT_VERDICT)"
   {
     printf 'result=PASS\nflutter_test_exit=0\n'
-    printf 'artifact_1_sha256=%s\nartifact_1_bytes=%s\n' \
-      "${HOST_SHA_BY_INDEX[1]}" "${HOST_SIZE_BY_INDEX[1]}"
-    printf 'artifact_2_sha256=%s\nartifact_2_bytes=%s\n' \
-      "${HOST_SHA_BY_INDEX[2]}" "${HOST_SIZE_BY_INDEX[2]}"
+    for status_index in $(seq 1 "$ARTIFACT_COUNT"); do
+      printf 'artifact_%s_sha256=%s\nartifact_%s_bytes=%s\n' \
+        "$status_index" "${HOST_SHA_BY_INDEX[$status_index]}" \
+        "$status_index" "${HOST_SIZE_BY_INDEX[$status_index]}"
+    done
     printf 'placement_verdict=%s\n' "$PLACEMENT_VERDICT"
     printf 'placement_tolerance_pt=%s\n' "$PLACEMENT_TOLERANCE_PT"
     printf 'placement_reason=%s\n' "${PLACEMENT_REASON:-none}"
