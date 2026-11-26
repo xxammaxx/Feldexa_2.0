@@ -6,7 +6,7 @@
 //
 // They prove the app-bar export action of `contracts/editor-interactions.md`
 // §10: the action is enabled only for an exportable document state, the
-// pre-export sheet shows the empty-field and the provisional OD-1
+// pre-export sheet shows the empty-field and the ratified OD-1/Q1=A
 // unresolved-suggestion information without blocking, a blocking plan is shown
 // and never starts, a verified artifact opens the preview route, and a failure
 // shows the catalog sentence.
@@ -588,7 +588,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    // The provisional OD-1 information does not block: the start action exists.
+    // The ratified OD-1/Q1=A information does not block: the start action exists.
     expect(
       find.byKey(const ValueKey<String>('export-preflight-start')),
       findsOneWidget,

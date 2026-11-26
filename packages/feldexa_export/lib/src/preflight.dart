@@ -6,7 +6,7 @@
 //     empty fields allowed and reported as info, type/value compatibility,
 //     date/number canonical form, geometry inside the page bounds;
 //   * `contracts/export-plan.md` §3.4 — the empty-field statement and the
-//     **provisional** unresolved-suggestion behavior (owner decision OD-1);
+//     **ratified** unresolved-suggestion behavior (OD-1/Q1=A, 2026-11-26);
 //   * `contracts/export-plan.md` §4 — blocking codes `EXP-001` and `EXP-003`
 //     with the warning payload (`fieldId`, `pageIndex`, `fieldLabel`,
 //     `reason`);
@@ -16,7 +16,7 @@
 //
 // Provisional behavior (OD-1). Unresolved suggestions never enter the plan and
 // are counted in `info.unresolvedSuggestionCount`; they do not block under the
-// current provisional policy. FR-025 remains binding: the UI still has to
+// ratified policy. FR-025 remains binding for review: the UI still has to
 // surface overlapping or conflicting suggestions and require a decision. No
 // caller may treat the count as a settled export policy.
 //
@@ -71,7 +71,7 @@ final class ExportPreflightResult {
   /// Confirmed fields without renderable content (never blocking).
   final int emptyFieldCount;
 
-  /// Unresolved suggestions excluded provisionally (OD-1; never blocking).
+  /// Unresolved suggestions excluded and warned (OD-1/Q1=A; never blocking).
   final int unresolvedSuggestionCount;
 
   /// Every confirmed field in document order.

@@ -10,7 +10,7 @@
 //     unconfirmed fields, no suggestion/OCR text, no labels beyond warnings,
 //     no paths/URIs/device names, no interactive form definitions;
 //   * `contracts/export-plan.md` §3.4 — `info` counts for empty fields and
-//     provisionally excluded unresolved suggestions;
+//     ratified exclusion of unresolved suggestions (OD-1/Q1=A);
 //   * `contracts/coordinates-and-geometry.md` §5 — the display→PDF CTM and the
 //     per-op `pdfRect` derived from the page geometry;
 //   * FR-062, FR-068, FR-069.

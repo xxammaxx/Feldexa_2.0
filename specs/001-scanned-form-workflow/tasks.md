@@ -63,7 +63,7 @@ These findings cannot be settled by an implementation task. Tasks that touch the
 | OD-1 (CHK009) | Does export block until every overlapping suggestion conflict is resolved, or proceed with unresolved suggestions excluded and warned? | **Resolved 2026-11-26 (Q1=A):** `contracts/export-plan.md` §3.4 is ratified, FR-062 names the ratified non-blocking policy, and FR-025 still requires the user to resolve overlapping suggestions during review. This row records the question; the answer is in "Owner Decisions Taken 2026-11-26". | T113 |
 | OD-2 (CHK017) | Recruitment, prior familiarity, observation protocol, and timing boundaries for the SC-016 journey timing and the SC-018 5-of-5 first-time usability run. | `quickstart.md` §10 says five first-time users; no recruitment or protocol. | T137 |
 | OD-3 (CHK026) | Written equivalence rule and approval for any device other than the Samsung Galaxy A54 5G used for SC-004. | Plan names the Galaxy A54 5G and also allows an owner-approved equivalent. | T141 |
-| OD-4 (CHK024) | Numeric interaction/latency bound for the FR-100 50-item list "usable" criterion. | Plan Phase E says a 50-item list is tested; no numeric bound. | T097 |
+| OD-4 (CHK024) | Numeric interaction/latency bound for the FR-100 50-item list "usable" criterion. | **Resolved 2026-11-26 (Q10=A):** 50 entries, open-to-first-frame <= 500 ms in a host widget test, lazy viewport, no pagination; FR-100 and T097 carry the bound. | T097 |
 
 **Former documentation gap, closed 2026-11-26**: `spec.md` now carries FR-111 (export MUST over pre-filled content; editor hint SHOULD, planned) and SC-023. The export behaviour is implemented by the applier; SC-023 still needs its artifact-level verification (T109 extension) and is not claimed as verified here. The spec status stays **Draft**.
 
@@ -76,7 +76,7 @@ Recorded from the owner's answers to Q1-Q6 after review M3 (plan `RP-M3-003-HALT
 | OD-1 (CHK009) | **A** | **Applied 2026-11-26:** `contracts/export-plan.md` §3.4 is ratified (no longer provisional); FR-111 and SC-023 define the overlay-on-pre-filled-content behaviour and the spec edge case cites them. |
 | OD-2 (CHK017) | **A** | The SC-016 journey-timing and SC-018 5-of-5 usability study is in scope before release; T137 must record recruitment, prior familiarity, observation protocol, and timing boundaries, then produce evidence. |
 | OD-3 (CHK026) | **B** | **Applied 2026-11-26:** SC-004 permits an owner-approved equivalent device with a recorded equivalence rule, and the Assumptions section records the accepted 0.61 mm nominal font-ascent overshoot (#346); 1.00 mm remains the placement measurement tolerance. T141 still needs the approved device and run. |
-| OD-4 (CHK024) | **A attempted, not applicable** | The owner chose to ratify the baseline bound, but no numeric baseline exists in `spec.md`, `plan.md`, or this file (FR-100 only says "usable"); ratifying nothing would have meant inventing a threshold, so OD-4 stays **open** and a concrete number is required. T097 remains blocked. |
+| OD-4 (CHK024) | **A, then Q10=A** | The first answer could not ratify a bound because none existed; Q10 then supplied the concrete numbers (50 entries, <= 500 ms host first frame, lazy viewport, no pagination). FR-100 and T097 carry them. |
 | Q4 (T033/T034) | **A, deferred by Q9=B** | The owner chose to provide a rights-cleared 20-form corpus, but Q9=B defers delivery, the frozen metric, and the scorer to the external/manual release phase. SC-001, SC-002, and SC-005 are excluded from this phase's claims; the corpus is not in the tree. |
 | Q5 (tracker authority) | **B**, then Q8=A | The GitHub tracker remains authoritative with this cross-reference table. Q8=A later authorized the #318 fix and the closure of #310, #346, and #350 after verification; #318 is fixed and open, the other three are closed. |
 | Q6 (#350 golden drift) | **B** | The T264A drift was treated as a recognition regression: the nearest-candidate label rule restored the `508ed9be` baseline without touching the golden; `tools/evaluation` passes 60/60 and #350 is closed. |
@@ -135,7 +135,7 @@ These are the only genuine artifact contradictions found; each is resolved by th
 | FR-097–FR-100 (stored document access) | T095–T097 |
 | FR-101–FR-106 (template editing and versions) | T115–T120 |
 | FR-107–FR-110 (date entry) | T081 |
-| FR-111 (values over pre-filled content) | T104, T109 extension (export applier; SC-023 verification pending) |
+| FR-111 (values over pre-filled content) | T104, T109 extension (export applier; SC-023 verification pending); editor overlap hint: SHOULD, unscheduled |
 
 | Success Criterion | Verification task |
 | --- | --- |

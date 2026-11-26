@@ -754,7 +754,7 @@ abstract class AppLocalizations {
   /// **'{empty} Felder sind noch leer. Leere Felder werden nicht ausgefüllt, der Export bleibt möglich.'**
   String preExportEmptyFields(int empty);
 
-  /// §4 pre-export information: unreviewed suggestions are excluded under the provisional OD-1 policy.
+  /// §4 pre-export information: unreviewed suggestions are excluded under the ratified OD-1/Q1=A policy.
   ///
   /// In de, this message translates to:
   /// **'{count} Vorschläge sind noch nicht geprüft. Sie werden nicht in die PDF-Datei übernommen.'**

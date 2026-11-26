@@ -20,7 +20,7 @@
 // and never produces an artifact. It performs no widget work, holds no path,
 // URI, or artifact bytes, and never logs content.
 //
-// The provisional OD-1 behavior is inherited from `feldexa_export` and is not
+// The ratified OD-1/Q1=A behavior is inherited from `feldexa_export` and is not
 // re-decided here: unresolved suggestions are excluded from the plan and
 // counted in `ExportPlanInfo.unresolvedSuggestionCount`; they do not block.
 
