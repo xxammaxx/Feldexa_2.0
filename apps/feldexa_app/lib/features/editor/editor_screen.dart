@@ -2183,8 +2183,8 @@ class EditorScreenState extends State<EditorScreen> {
   ///    (§10 point 2); nothing starts.
   /// 3. Otherwise the pre-export information is shown: the empty-field count
   ///    and the unresolved-suggestion count. Neither blocks; the
-  ///    unresolved-suggestion sentence is the **provisional** OD-1 policy of
-  ///    `contracts/export-plan.md` §3.4 and is not a settled export rule.
+  ///    unresolved-suggestion sentence is the **ratified** OD-1/Q1=A policy of
+  ///    `contracts/export-plan.md` §3.4; the rule is ratified and settled.
   /// 4. The user starts the export; the port validates and renders, and only a
   ///    verified artifact opens the preview. A failure offers „Erneut
   ///    versuchen“ with the same action (§10 point 5).
@@ -2411,7 +2411,7 @@ class EditorScreenState extends State<EditorScreen> {
           body.add(Text(l10n.preExportEmptyFields(info.emptyFieldCount)));
         }
         if (info.unresolvedSuggestionCount > 0) {
-          // Provisional OD-1 policy (`contracts/export-plan.md` §3.4): the
+          // Ratified OD-1/Q1=A policy (`contracts/export-plan.md` §3.4): the
           // unreviewed suggestions are excluded from the plan and do not
           // block.
           body.add(

@@ -6,7 +6,7 @@
 //
 // They prove the app-bar export action of `contracts/editor-interactions.md`
 // §10: the action is enabled only for an exportable document state, the
-// pre-export sheet shows the empty-field and the provisional OD-1
+// pre-export sheet shows the empty-field and the ratified OD-1/Q1=A
 // unresolved-suggestion information without blocking, a blocking plan is shown
 // and never starts, a verified artifact opens the preview route, and a failure
 // shows the catalog sentence.
@@ -15,8 +15,6 @@
 library;
 
 import 'dart:async';
-import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:feldexa_app/features/editor/document_overview.dart'
     show documentOverviewRowKeyPrefix;
@@ -34,6 +32,7 @@ import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:feldexa_export/feldexa_export.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:flutter/material.dart' hide PageView;
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const String _documentId = '5f0c3a52-3a6a-4f0b-9c2d-1b7e4d8a6c01';
@@ -518,9 +517,12 @@ IconButton _exportButton(WidgetTester tester) {
 }
 
 void main() {
-  setUpAll(() {
+  setUpAll(() async {
+    // Issue #318: read the declared asset through the bundle, which
+    // flutter_test_config mocks to the app package for repository-root runs,
+    // instead of resolving `assets/...` against the invocation directory.
     _metrics = ExportFontMetrics.decode(
-      File('assets/fonts/metrics.json').readAsStringSync(),
+      await rootBundle.loadString('assets/fonts/metrics.json'),
     );
   });
 
@@ -586,7 +588,7 @@ void main() {
       ),
       findsOneWidget,
     );
-    // The provisional OD-1 information does not block: the start action exists.
+    // The ratified OD-1/Q1=A information does not block: the start action exists.
     expect(
       find.byKey(const ValueKey<String>('export-preflight-start')),
       findsOneWidget,

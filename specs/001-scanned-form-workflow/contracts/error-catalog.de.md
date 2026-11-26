@@ -93,7 +93,7 @@ This pre-loss disclosure names both the aggregate-isolation case and the global 
 | `SAVE-001` | No space during export | „Der Speicherplatz reicht für den Export nicht aus. Es wurde keine gültige PDF-Datei erstellt.“ | „Bitte geben Sie Speicherplatz frei und versuchen Sie es erneut.“ |
 | `DEL-001` | Delivery cancelled by user | *(no message)* | — |
 
-**Pre-export information** (empty fields: not blocking; unresolved suggestions: provisional pending owner decision OD-1, see `export-plan.md` §3.4): „{empty} Felder sind noch leer. Leere Felder werden nicht ausgefüllt, der Export bleibt möglich.“ and „{count} Vorschläge sind noch nicht geprüft. Sie werden nicht in die PDF-Datei übernommen.“
+**Pre-export information** (empty fields: not blocking; unresolved suggestions: excluded and warned, never blocking — ratified 2026-11-26, OD-1/Q1=A, see `export-plan.md` §3.4): „{empty} Felder sind noch leer. Leere Felder werden nicht ausgefüllt, der Export bleibt möglich.“ and „{count} Vorschläge sind noch nicht geprüft. Sie werden nicht in die PDF-Datei übernommen.“
 
 **Export success**: „Die PDF-Datei ist fertig und wurde geprüft. Sie können sie ansehen, speichern, teilen oder drucken.“ Never „garantiert korrekt“.
 

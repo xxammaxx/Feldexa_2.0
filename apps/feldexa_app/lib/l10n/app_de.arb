@@ -549,7 +549,7 @@
   },
   "preExportUnreviewedSuggestions": "{count} Vorschläge sind noch nicht geprüft. Sie werden nicht in die PDF-Datei übernommen.",
   "@preExportUnreviewedSuggestions": {
-    "description": "§4 pre-export information: unreviewed suggestions are excluded under the provisional OD-1 policy.",
+    "description": "§4 pre-export information: unreviewed suggestions are excluded under the ratified OD-1/Q1=A policy.",
     "placeholders": {
       "count": {
         "type": "int"

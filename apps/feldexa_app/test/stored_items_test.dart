@@ -821,6 +821,9 @@ void main() {
     },
   );
 
+  // This case pins the surface contract (keys, ordering, rect containment,
+  // scrolling). The ratified 50-entry latency bound lives in
+  // `stored_list_50_test.dart` (T097); the overlap is deliberate.
   testWidgets('50 document entries render and the last is reachable', (
     WidgetTester tester,
   ) async {
@@ -839,14 +842,13 @@ void main() {
     );
 
     expect(tester.takeException(), isNull);
+    // The newest entry is visible; lazy viewport rendering (FR-100, T097)
+    // means the oldest is not built until the viewport reaches it.
     expect(find.byKey(_entryKey(_uuid(1049))), findsOneWidget);
-    final Rect viewport = tester.getRect(find.byType(ListView));
-    expect(
-      tester.getRect(find.byKey(lastKey)).top,
-      greaterThan(viewport.bottom),
-      reason: 'the oldest entry starts below the visible list',
-    );
-
+    expect(find.byKey(lastKey), findsNothing);
+    final int builtEntries = tester.widgetList(find.byType(InkWell)).length;
+    expect(builtEntries, lessThan(50));
+    final Rect viewport = tester.getRect(find.byType(CustomScrollView));
     await tester.scrollUntilVisible(
       find.byKey(lastKey),
       400,

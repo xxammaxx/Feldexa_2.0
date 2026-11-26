@@ -22,9 +22,9 @@
 | Verdict | Count | Checklist IDs |
 | --- | ---: | --- |
 | RESOLVED (already answered) | 14 | CHK002, CHK003, CHK004, CHK005, CHK006, CHK007, CHK010, CHK012, CHK013, CHK015, CHK019, CHK022, CHK029, CHK034 |
-| GAP (real, non-contradictory) | 14 | CHK008, CHK011, CHK014, CHK016, CHK018, CHK020, CHK021, CHK023, CHK024, CHK027, CHK032, CHK033, CHK035, CHK036 |
+| GAP (real, non-contradictory) | 14 | CHK008, CHK011, CHK014, CHK016, CHK018, CHK020, CHK021, CHK023, CHK024 (resolved 2026-11-26, Q10=A), CHK027, CHK032, CHK033, CHK035, CHK036 |
 | CONTRADICTION (resolved by authority) | 6 | CHK001, CHK025, CHK028, CHK030, CHK031, CHK026* |
-| OWNER decision required | 2 primary (+2 bounded approvals) | CHK009, CHK017; CHK024 and CHK026 also need owner sign-off on a bound or equivalence rule |
+| OWNER decision required (2026-11-12 snapshot) | 2 primary (+2 bounded approvals) | CHK009, CHK017; CHK024 and CHK026 also needed owner sign-off — CHK009 (Q1=A) and CHK024 (Q10=A) were answered 2026-11-26; CHK017/CHK026 remain open |
 | **Total** | **36** | |
 
 \* CHK026 is a contradiction only in the weak sense: the plan names the required device and also permits an owner-approved equivalent. The constitution permits owner authorization but requires the named profile to be fixed and cited. The missing piece is a recorded equivalence rule, which needs owner approval.
@@ -41,7 +41,7 @@
 | CHK006 | RESOLVED | Verification state is enumerated as `unreviewed \| confirmed \| corrected \| rejected` with warnings (`data-model.md` §3.8), distinct from durability state `clean \| saving \| saved \| unsaved \| saveFailed \| recoveryFallback` (§2.5). |
 | CHK007 | RESOLVED | Number rules exist: German decimal comma, optional thousands separators, canonical storage `-?\d+(\.\d+)?`, no exponent (`data-model.md` §2.3, §3.6). Negative sign and decimal separator are therefore specified; the error catalog need not restate the full grammar. |
 | CHK008 | GAP | Per-field completion is visible (FR-041; `data-model.md` §3.8; overview count), but the semantics for an empty optional text field, an unchecked checkbox, and a validation-rejected value are not stated in one place. No contradiction; close with T085 and its test. |
-| CHK009 | **OWNER** | FR-025 says the system MUST require the user to resolve overlapping suggestions. `contracts/export-plan.md` §3.4 says unresolved suggestions are excluded, warned about, and do **not** block export. Both cannot be the final export policy. Owner must choose: (A) block export until every conflict is resolved, or (B) allow export with unresolved suggestions excluded and warned. Current plan behavior is (B); T113 implements it only provisionally and must not be treated as settled until the owner decides. |
+| CHK009 | **OWNER** | FR-025 says the system MUST require the user to resolve overlapping suggestions. `contracts/export-plan.md` §3.4 says unresolved suggestions are excluded, warned about, and do **not** block export. Both cannot be the final export policy. Owner must choose: (A) block export until every conflict is resolved, or (B) allow export with unresolved suggestions excluded and warned. **Resolved 2026-11-26 (Q1=A):** option (B) is ratified; `export-plan.md` §3.4 and FR-062 carry it, and T113 is updated. |
 | CHK010 | RESOLVED | FR-010 requires readable pages to remain usable and says a full export is "affected". EXP-006 blocks only when the applier cannot copy a page; it never silently drops or replaces it (`contracts/export-plan.md` §3.4). The statements are complementary, not divergent. |
 | CHK011 | GAP | "Exact same" geometry/interaction parity (FR-089) is operationalized by the same model coordinates, the shared test matrix (`contracts/editor-interactions.md` §12), and SC-017's 1 mm artifact tolerance. The named interaction set and zoom levels are partly listed; density/viewport enumeration remains incomplete. Close with T132 and T070. |
 | CHK012 | RESOLVED | The disclosure trigger is testable: first-run help and before the first save (`contracts/error-catalog.de.md` PRIV-001). |
@@ -56,7 +56,7 @@
 | CHK021 | GAP | Zoom levels are enumerated (`0.5, 1, 1.75, 3, 8` and `0.5×, 1×, 3×, 8×`), and viewport examples exist (360 dp, 800 dp, 1440 px), but screen densities and the exact measurement method for every tested condition are not enumerated. Close with T070 and T132. |
 | CHK022 | RESOLVED (operationally) | Numeric thresholds exist: 48 × 48 dp touch targets, 4.5:1 text contrast, 3:1 large-text/control contrast, 200 % text scale (`contracts/editor-interactions.md` §11; `research.md` accessibility decision). SC-015 still says "applicable minimum", so record the numbers at the acceptance step (T134); no contradiction. |
 | CHK023 | GAP | `contracts/error-catalog.de.md` §11 defines the audit (ARB key parity, English-string test, allowlist, typography, dialog-action rules), but release-only scope and system-provided UI are not explicit. Close with T133. |
-| CHK024 | GAP | FR-100 says the list must remain "usable" with ≥50 items without search; the plan has a 50-item evidence row but no interaction/latency bound. This is a small acceptance threshold that needs a defined measure (e.g., reach any item within a stated number of interactions or seconds). T097 defines and tests it; the numeric bound is an owner/UX decision. |
+| CHK024 | GAP | FR-100 says the list must remain "usable" with ≥50 items without search; the plan has a 50-item evidence row but no interaction/latency bound. This is a small acceptance threshold that needs a defined measure (e.g., reach any item within a stated number of interactions or seconds). T097 defines and tests it. **Resolved 2026-11-26 (Q10=A):** 50 entries, open-to-first-frame <= 500 ms in a host widget test, lazy viewport, no pagination; `stored_list_50_test.dart` tests it. |
 | CHK025 | CONTRADICTION (resolved) | SC-014 says 100 % of user-facing strings are German; FR-087 mandates the untranslated `SIMULATED` token. The constitution (Principles II and VIII) requires that token, so SC-014 must be read as applying to translatable strings, with `SIMULATED` as the allowlisted evidence marker already documented in `contracts/error-catalog.de.md` §9 and §11. T133 enforces that reading. No clarification is reopened. |
 | CHK026 | CONTRADICTION (owner-approved) | SC-004 requires a named representative device; the plan names the Galaxy A54 5G but the Evidence Plan also allows an "owner-approved equivalent" without an equivalence rule. The constitution permits owner authorization for significant decisions but requires every performance claim to cite the fixed profile. Record an equivalence rule and owner sign-off (T141); until then, only the Galaxy A54 5G satisfies SC-004. |
 | CHK027 | GAP | Plan budgets (700 ms, 400 ms, 60 fps, 300 ms, 5 s, 300 MB, 120 MB, 100 pages, 500 fields) are not each traceable to an FR/SC and are not labeled non-binding. Some are traceable (300 ms to FR-045/SC-020; 3 s to SC-004), others are engineering budgets. Close by recording a traceability table and labeling untraceable values as non-binding engineering budgets (T140). |
@@ -76,7 +76,7 @@
 2. **Spec first for product behavior.** Where a contract message contradicts a blocking requirement (FLD-001 vs EXP-001), the message is corrected, not the blocking requirement.
 3. **Plan first for engineering budgets.** Plan-level targets that are not in an FR/SC remain engineering budgets and must be labeled non-binding; they do not become product acceptance criteria by implication.
 4. **No new scope.** The 80 MiB cap, the preview cache, the 50-item list, and the corpus strata are existing plan/engineering facts. Recording them as verification or traceability does not add a feature.
-5. **No invented owner decisions.** Conflict-export gating (CHK009), usability protocol (CHK017), device equivalence (CHK026), and the 50-item usability bound (CHK024) are left for the owner and are marked as such in `tasks.md`.
+5. **No invented owner decisions (2026-11-12 snapshot).** Conflict-export gating (CHK009) and the 50-item bound (CHK024) were answered 2026-11-26 (Q1=A, Q10=A) and are applied in `tasks.md`, `spec.md` and `contracts/export-plan.md`; the usability protocol (CHK017) and device equivalence (CHK026) remain with the owner.
 
 ## Relation to the Next Stage
 
@@ -98,7 +98,7 @@ Command context: `.specify/scripts/bash/check-prerequisites.sh --json --require-
 | --- | --- | --- | --- | --- |
 | AN-01 | Ambiguity | HIGH | FR-045 "approximately 2 seconds" vs SC-020's strict 2 s bound | CR-1; T089/T092 |
 | AN-02 | Ambiguity | HIGH | FR-024 "exactly" vs SC-017's 1 mm tolerance | Different quantities; model exactness and artifact tolerance documented in CHK003; T070/T109 |
-| AN-03 | Inconsistency | HIGH | FR-025 conflict resolution vs non-blocking export in `export-plan.md` §3.4 | Owner decision OD-1; T113 provisional |
+| AN-03 | Inconsistency | HIGH | FR-025 conflict resolution vs non-blocking export in `export-plan.md` §3.4 | Resolved 2026-11-26 (Q1=A): §3.4 ratified, FR-062 updated, T113 wording updated |
 | AN-04 | Inconsistency | HIGH | SC-014 "100 % German" vs FR-087's mandatory `SIMULATED` token | Constitution Principles II/VIII; CR-2; T133 |
 | AN-05 | Ambiguity | HIGH | SC-015 "applicable minimum" lacks numbers in the spec | Numeric thresholds in `editor-interactions.md` §11; T134 |
 | AN-06 | Inconsistency | MEDIUM | Plan names Galaxy A54 5G but allows an unruled "owner-approved equivalent" | Owner decision OD-3; T141 |

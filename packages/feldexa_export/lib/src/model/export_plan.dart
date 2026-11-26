@@ -605,7 +605,7 @@ final class ExportPlanInfo extends JsonObject {
   /// Number of confirmed fields left empty.
   final int emptyFieldCount;
 
-  /// Number of unresolved suggestions excluded provisionally (OD-1).
+  /// Number of unresolved suggestions excluded (OD-1/Q1=A).
   final int unresolvedSuggestionCount;
 
   /// Serializes the informational counts.

@@ -15,7 +15,7 @@ confirmed fields + values
         │
         ▼
 [1] Preflight validation (shared Dart)
-    - unresolved suggestions excluded (provisional pending owner decision OD-1; see §3.4)
+    - unresolved suggestions excluded and warned, never blocking (ratified 2026-11-26, OD-1/Q1=A; see §3.4)
     - empty required-nothing policy: empty fields allowed, reported as info
     - type/value compatibility, date/number canonical form
     - geometry inside page bounds
@@ -197,14 +197,14 @@ Every op carries `provenance` (`machine | user | template`) so recognition prove
 
 ### 3.4 Empty fields and unresolved suggestions
 
-> **Provisional pending owner decision OD-1.** The unresolved-suggestion behavior below is the
-> documented **provisional implementation behavior only**. FR-025 remains binding: the system must
-> visibly surface overlapping or conflicting suggestions and must require the user to resolve them.
-> No task or test may treat the non-blocking behavior as the settled export policy. The empty-field
-> statement is not provisional: empty fields do not block export.
+> **Ratified 2026-11-26 by Owner Decision Q1=A** (review M4). Unresolved overlapping suggestions
+> are excluded from the artifact and counted; the user is warned before export and is never
+> blocked by them. FR-025 remains binding during review: overlapping or conflicting suggestions
+> are surfaced and must be resolved by the user before filling. Empty confirmed fields never
+> block export.
 
 - Empty confirmed fields are allowed. `info.emptyFieldCount` is shown to the user before export ("N Felder sind noch leer") but does not block (spec assumption).
-- Unresolved suggestions are **provisionally** excluded from the artifact and counted in `info.unresolvedSuggestionCount`; under the current provisional implementation the user is warned before export and is not blocked. This is not a settled policy (OD-1); FR-025 governs until the owner decides.
+- Unresolved suggestions are excluded from the artifact and counted in `info.unresolvedSuggestionCount`; the user is warned before export and is not blocked (ratified Q1=A, 2026-11-26). FR-025 still governs review, not export gating.
 - Rejected suggestions and rejected fields never appear.
 - Pages marked unreadable are still imported byte-for-byte. If the applier cannot copy such a page, the export is **blocked** with `EXP-006` naming the page; a page is never silently dropped, replaced, or re-rendered (FR-010, spec edge case "Missing or unreadable pages").
 
@@ -272,7 +272,7 @@ An export may be reported successful only if all of the following hold:
 | Original appearance | render source and output page at 150 dpi; masked comparison outside overlay rects | pixel-identical outside overlays |
 | Value placement | overlay ink bounding box vs planned rect | ≤ 1 mm at A4 (2.835 pt) |
 | Text content | extracted text contains each value with `ä ö ü ß € „ “` intact; multiline order preserved | exact content after whitespace normalization |
-| No clipping | no ink outside field rect (except descenders within 0.5 pt) and none outside page | zero clipped values |
+| No clipping | no visible ink outside the page and no clipped value; a nominal font ascent may exceed the field rect by up to the accepted 0.61 mm metric tolerance (#346), descenders by 0.5 pt | zero clipped values |
 | Checkbox states | exactly the intended boxes show a mark; no other box marks | exact |
 | Signatures | ink present at the planned rect, aspect preserved | present; no missing signature |
 | No interactive controls | no AcroForm fields, no widget annotations | zero |

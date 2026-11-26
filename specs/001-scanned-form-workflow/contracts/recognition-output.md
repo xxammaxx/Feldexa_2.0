@@ -77,7 +77,7 @@ One envelope per page per analysis run.
 | `proposedType` | enum | `text \| number \| date \| checkbox \| multiline \| signature` |
 | `confidence` | double | `0.0 … 1.0`, two decimals |
 | `uncertainty` | double | `1 − confidence`, two decimals |
-| `labelText` | string? | nearest label, trimmed, max 200 chars; null when no label is credible; never logged |
+| `labelText` | string? | nearest label, trimmed, max 200 chars; null when no label is credible; a printed label belongs to exactly one field, so a label on a shared row is assigned only to the nearest same-row candidate and the others stay null; an exact distance tie keeps the pre-existing deterministic tie order instead of duplicating the label; never logged |
 | `evidence.cues` | string[] | closed vocabulary in §3; sorted, unique |
 | `evidence.cueAgreement` | int | number of independent cue families supporting the candidate, ≥ 1 |
 | `evidence.skewDegrees` | double | estimated page skew, −10…+10 |

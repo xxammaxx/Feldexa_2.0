@@ -233,3 +233,19 @@ adb -s emulator-5554 shell run-as de.feldexa.app ls -l cache/feldexa_exports
 adb -s emulator-5554 exec-out run-as de.feldexa.app cat \
   cache/feldexa_exports/<id>.pdf > /tmp/<id>.pdf
 ```
+
+---
+
+## Erratum 2026-11-26 (M1 reconciliation, documentation only)
+
+The scope line above cites `reports/release/TASK-BRIEF-export-evidence.md`. That file is
+not in the repository and was never tracked: `git log --all --full-history --
+'**/TASK-BRIEF-export-evidence.md'` returns no commit, and `specs/001-scanned-form-workflow/
+reports/release/` does not exist. The citation refers to a brief that existed only outside
+git at run time; it is not reproducible from this revision. Nothing in this report's
+measurements, artifacts, or verdicts changes, and this erratum adds no evidence class.
+
+Also noted for traceability: the originally planned harness `tools/pdf_verify/verify.sh`
+was never committed either (same empty-history check). The verification work that exists is
+`tools/pdf_verify/placement.py` (placement metric only, using Poppler and ImageMagick);
+`qpdf` and MuPDF were absent on the evidence host, as recorded in section 0 above.

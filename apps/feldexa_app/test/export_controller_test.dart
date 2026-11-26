@@ -344,7 +344,7 @@ void main() {
       _loaded(content: content),
     );
 
-    // Provisional OD-1: an unreviewed suggestion and an empty field inform the
+    // Ratified OD-1/Q1=A: an unreviewed suggestion and an empty field inform the
     // user but never block the export.
     expect(preparation, isA<ExportPreparationReady>());
     final ExportPlanInfo info = (preparation as ExportPreparationReady).info;

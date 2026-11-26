@@ -22,9 +22,12 @@
 //  * text must be non-empty after trimming;
 //  * `ocrConfidence` must be at least 0.5; and
 //  * the Euclidean gap between the label rectangle and the candidate rectangle
-//    must be at most 24 pt. Rectangles that overlap or touch have gap 0.
+//    must be at most 24 pt. Rectangles that overlap or touch have gap 0. A
+//    label printed on the candidate's own row, to its left, is exempt from this
+//    cap (see [_sharesRow]); it is owned by the nearest same-row candidate.
 //
 // The nearest credible label is selected by a total order:
+//  0. a same-row label outranks an off-row label,
 //  1. gap distance (ascending; compared as squared distance, which is
 //     monotonic for non-negative gaps),
 //  2. label rect y (ascending),
@@ -362,6 +365,11 @@ final class TypeInference {
   /// [pageHeightPt] are the display-space page metrics; candidate and label
   /// rectangles must lie inside them.
   ///
+  /// [otherCandidates] is the page's remaining candidate set when the caller
+  /// has it. A printed label belongs to exactly one field, so a same-row label
+  /// is associated only with the nearest same-row candidate; without this set
+  /// the per-candidate rule of T263 correction-1 applies unchanged.
+  ///
   /// Throws a content-free [ArgumentError] for a non-finite/non-positive
   /// median or page metric, or for any rectangle outside the page.
   static TypeInferenceResult infer({
@@ -370,6 +378,7 @@ final class TypeInference {
     required double singleLineMedianHeightPt,
     required double pageWidthPt,
     required double pageHeightPt,
+    List<DisplayRect> otherCandidates = const <DisplayRect>[],
   }) {
     _validatePageMetrics(pageWidthPt, pageHeightPt);
     if (!singleLineMedianHeightPt.isFinite || singleLineMedianHeightPt <= 0) {
@@ -385,6 +394,7 @@ final class TypeInference {
     final List<_CredibleLabel> credible = _credibleLabels(
       labels,
       candidate.rect,
+      otherCandidates,
     );
     final _CredibleLabel? selected = _nearest(credible);
     final List<String> addedCues = <String>[];
@@ -447,6 +457,7 @@ final class TypeInference {
   static List<_CredibleLabel> _credibleLabels(
     List<LabelObservation> labels,
     DisplayRect candidate,
+    List<DisplayRect> otherCandidates,
   ) {
     final List<_CredibleLabel> credible = <_CredibleLabel>[];
     for (final LabelObservation label in labels) {
@@ -457,6 +468,15 @@ final class TypeInference {
       final double distanceSquared = _gapSquared(label.rect, candidate);
       final bool sharesRow = _sharesRow(label.rect, candidate);
       if (!sharesRow && distanceSquared > _maxLabelDistanceSquared + _epsilon) {
+        continue;
+      }
+      if (sharesRow &&
+          _hasNearerSameRowCandidate(
+            label.rect,
+            candidate,
+            distanceSquared,
+            otherCandidates,
+          )) {
         continue;
       }
       credible.add(
@@ -470,6 +490,29 @@ final class TypeInference {
       );
     }
     return credible;
+  }
+
+  /// True when another candidate on the same row sits closer to [label].
+  ///
+  /// A row can carry several candidates (for example two checkboxes side by
+  /// side). The printed label belongs to one of them, so a farther candidate
+  /// must not reuse it. Only strictly smaller gaps qualify, so two candidates
+  /// at the same distance keep the pre-existing tie behavior.
+  static bool _hasNearerSameRowCandidate(
+    DisplayRect label,
+    DisplayRect candidate,
+    double distanceSquared,
+    List<DisplayRect> otherCandidates,
+  ) {
+    for (final DisplayRect other in otherCandidates) {
+      if (other == candidate || !_sharesRow(label, other)) {
+        continue;
+      }
+      if (_gapSquared(label, other) + _epsilon < distanceSquared) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /// True when [label] is printed on the candidate's own row, to its left.

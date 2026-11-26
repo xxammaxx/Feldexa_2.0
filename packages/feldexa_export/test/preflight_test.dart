@@ -2,7 +2,7 @@
 //
 // These are host-VM tests (`NONE` evidence). They pin `contracts/export-plan.md`
 // §1 step [1], §3.4, and §4: empty fields never block, unresolved suggestions
-// are excluded and counted only under the provisional OD-1 behavior, geometry
+// are excluded and counted under the ratified OD-1/Q1=A behavior, geometry
 // beyond 0.5 pt blocks with EXP-003, incompatible content blocks, and every
 // warning names the field, page, label, and machine reason. They cannot prove
 // the German dialog text (T029/T117).
@@ -100,7 +100,7 @@ void main() {
     });
   });
 
-  group('unresolved suggestions (provisional, OD-1)', () {
+  group('unresolved suggestions (ratified, OD-1/Q1=A)', () {
     test('are excluded and counted without blocking', () {
       final ConfirmedField field = confirmedField(
         id: uuid(20),

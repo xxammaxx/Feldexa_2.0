@@ -55,6 +55,7 @@ TypeInferenceResult _infer({
   double singleLineMedianHeightPt = _medianPt,
   double pageWidthPt = _pageWidthPt,
   double pageHeightPt = _pageHeightPt,
+  List<DisplayRect> otherCandidates = const <DisplayRect>[],
 }) {
   return TypeInference.infer(
     candidate: candidate ?? _candidate(),
@@ -62,6 +63,7 @@ TypeInferenceResult _infer({
     singleLineMedianHeightPt: singleLineMedianHeightPt,
     pageWidthPt: pageWidthPt,
     pageHeightPt: pageHeightPt,
+    otherCandidates: otherCandidates,
   );
 }
 
@@ -1101,5 +1103,48 @@ void main() {
       expect(result.labelText, 'Erklärung und Äußerung');
       expect(result.addedCues, contains('ocr_alignment_right'));
     });
+  });
+
+  group('T264A regression — one printed label belongs to one field', () {
+    test(
+      'a label shared by two same-row candidates goes to the nearer one',
+      () {
+        final DisplayRect left = _rect(150, 300, 10, 10);
+        final DisplayRect right = _rect(250, 300, 10, 10);
+        final List<LabelObservation> labels = <LabelObservation>[
+          _label('Antrag', x: 100, y: 300, width: 45, height: 12),
+        ];
+
+        final TypeInferenceResult nearer = _infer(
+          candidate: _candidate(rect: left),
+          labels: labels,
+          otherCandidates: <DisplayRect>[left, right],
+        );
+        expect(nearer.labelText, 'Antrag');
+        expect(nearer.addedCues, contains('keyword_antrag'));
+
+        final TypeInferenceResult farther = _infer(
+          candidate: _candidate(rect: right),
+          labels: labels,
+          otherCandidates: <DisplayRect>[left, right],
+        );
+        expect(farther.labelText, isNull);
+        expect(farther.addedCues, isNot(contains('keyword_antrag')));
+        expect(farther.addedCues, isEmpty);
+      },
+    );
+
+    test(
+      'without the candidate set the single-candidate rule is unchanged',
+      () {
+        final TypeInferenceResult result = _infer(
+          candidate: _candidate(rect: _rect(150, 300, 10, 10)),
+          labels: <LabelObservation>[
+            _label('Antrag', x: 100, y: 300, width: 45, height: 12),
+          ],
+        );
+        expect(result.labelText, 'Antrag');
+      },
+    );
   });
 }
