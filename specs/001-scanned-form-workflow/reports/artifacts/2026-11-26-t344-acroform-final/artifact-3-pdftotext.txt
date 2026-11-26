@@ -1,0 +1,9 @@
+index=3
+command=pdftotext -enc UTF-8 <artifact-3> <text>
+source_fixture=sf-acroform-001.pdf
+expected_value_occurrences=1
+value = `Feldwert` (the AcroForm fixture's own field value; it lives in the widget appearance, so a flattening that dropped appearances would lose it)
+umlaut_replaced_by_question_mark=not_applicable
+extracted_text_lines=7
+matched_lines:
+4:Feldwert

@@ -1,0 +1,8 @@
+head=0e8a16431fe074c0e4fbde59f672e45e02f929b1
+tree=3477ac27bca1c02de333958e6990bd264556e309
+branch=xxammaxx/t344-acroform-fixture
+subject=test(e2e): delegate the 1 mm placement verdict to tools/pdf_verify/placement.py (#344 B)
+status_porcelain:
+test_sha256=350802c1aa3d8928c7237d4b4ebf95cae0a13c60398eb4bb5fa9ec3d03311c7a
+driver_sha256=ee66b73e8fa45f045e0d1d865185d52100df644e84f5a925c41a490ac12897df
+flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git

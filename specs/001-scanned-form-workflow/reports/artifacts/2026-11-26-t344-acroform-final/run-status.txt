@@ -1,0 +1,16 @@
+result=PASS
+flutter_test_exit=0
+artifact_1_sha256=7a45c77a4acf3b42aa6aebace34dded3ddf95f1a59249226e63996fe3ea09dba
+artifact_1_bytes=12029
+artifact_1_placement_verdict=PROVEN
+artifact_2_sha256=38262d6d119344baed69e9608aca5b845c5716949bb9ce70e329600a7c5f2779
+artifact_2_bytes=12029
+artifact_2_placement_verdict=PROVEN
+artifact_3_sha256=749097023e1cf38fa855f40bf8c10359d5f744107a36a5bd91ca76960b42a91e
+artifact_3_bytes=2388
+artifact_3_placement_verdict=NOT_APPLICABLE
+placement_verdict=PROVEN
+placement_tolerance_pt=2.835
+placement_metric=origin of the drawn value as the layout code places it (tools/pdf_verify/placement.py)
+placement_drawn_value_legs=1,2
+placement_reason=none (every drawn-value leg is PROVEN; the drawn-value legs are 1 2, every other leg drew no value)
