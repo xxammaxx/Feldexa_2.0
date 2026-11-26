@@ -1,0 +1,3 @@
+path=apps/feldexa_app/build/app/outputs/flutter-apk/app-debug.apk
+sha256=056387ad256362cba283ee1ae3014b61fecf837467ea4699db75b9ab3e344ea4
+bytes=173883286

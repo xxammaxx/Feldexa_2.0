@@ -22,6 +22,8 @@ The tool needs no package dependencies beyond `dart:io`, `dart:convert`, and
 | `fixtures.dart` | All fictional form layouts, field/OCR declarations, and ground truth. |
 | `pdf_writer.dart` | Deterministic PDF 1.7 writer; display-space geometry and rotation transforms. |
 | `crypto.dart` | Local SHA-256 (integrity pins), plus MD5/RC4 for the legacy protected fixture. |
+| `make_acroform_fixture.py` | Standalone deterministic writer for the AcroForm reference fixture (`sf-acroform-001.pdf`): one text field whose value lives only in the widget appearance, so the export flattening proof (#344 B) has a source that really carries a form. Hand-written PDF structure, no package dependency, `--check` regenerates in memory and fails on byte drift. |
+| `sf-acroform-001.pdf` | The Python-generated fixture itself (1424 bytes, SHA-256 `7f4e0144…2af9a`), emitted byte-identically into the canonical, web, and corpus copies. Registered in `apps/feldexa_app/assets/fixtures/catalog-acroform.json`, **not** in the generated `catalog.json`. |
 
 Generated outputs:
 
@@ -34,9 +36,16 @@ Generated outputs:
 - `tools/corpus/synthetic/sf-*.pdf` (byte-identical copies for `adb push`)
 
 The canonical files are the source of truth. The integrity test requires all
-three copies to match; `--check` verifies all 31 generated files. Because the
-canonical directory is not declared under `flutter.assets`, no fixture bytes
-can enter a production Android APK/AAB.
+three copies to match; `--check` verifies all 37 generated files (the number is
+the one `dart run tools/corpus/synthetic/generate.dart --check` reports).
+Because the canonical directory is not declared under `flutter.assets`, no
+fixture bytes can enter a production Android APK/AAB.
+
+The AcroForm fixture is the one exception to the generator split: it is written
+by `make_acroform_fixture.py` and registered in the separate
+`apps/feldexa_app/assets/fixtures/catalog-acroform.json` (checked by
+`apps/feldexa_app/test/acroform_fixture_catalog_test.dart`), so the byte-checked
+generated catalogue and its per-entry pins stay untouched.
 
 ## Web runtime check
 

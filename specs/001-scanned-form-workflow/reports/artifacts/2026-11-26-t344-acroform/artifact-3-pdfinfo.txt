@@ -1,0 +1,37 @@
+index=3
+command=pdfinfo apps/feldexa_app/assets/fixtures/sf-acroform-001.pdf
+Custom Metadata: no
+Metadata Stream: no
+Tagged:          no
+UserProperties:  no
+Suspects:        no
+Form:            AcroForm
+JavaScript:      no
+Pages:           1
+Encrypted:       no
+Page size:       595 x 842 pts (A4)
+Page rot:        0
+File size:       1424 bytes
+Optimized:       no
+PDF version:     1.7
+command=pdfinfo <artifact-3>
+Creator:         Feldexa
+Producer:        Feldexa
+Custom Metadata: no
+Metadata Stream: yes
+Tagged:          no
+UserProperties:  no
+Suspects:        no
+Form:            none
+JavaScript:      no
+Pages:           1
+Encrypted:       no
+Page size:       595 x 842 pts (A4)
+Page rot:        0
+File size:       2388 bytes
+Optimized:       no
+PDF version:     1.7
+source_fixture=sf-acroform-001.pdf
+pages: source=1 artifact=1 (expected=1)
+page_size: source=595 x 842 pts (A4) artifact=595 x 842 pts (A4) (must match)
+form: source=AcroForm artifact=none

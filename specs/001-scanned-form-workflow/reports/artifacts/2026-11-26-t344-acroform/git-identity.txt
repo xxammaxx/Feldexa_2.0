@@ -1,0 +1,8 @@
+head=742d47c0f300d708dea12e965a55274363b28ad1
+tree=9b4a5058d09f557c356f2df6074617ca130dd73c
+branch=xxammaxx/t344-acroform-fixture
+subject=test(e2e): prove the export flattening against an AcroForm fixture (#344 B)
+status_porcelain:
+test_sha256=350802c1aa3d8928c7237d4b4ebf95cae0a13c60398eb4bb5fa9ec3d03311c7a
+driver_sha256=6d60c142399a52604285550bd132d4a916e48a70ed948833806c06dd9cb23d70
+flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git

@@ -1,0 +1,3 @@
+{"compute_slot": "ACQUIRED", "resources": ["/tmp/orca-maintainer-heavy-1000.lock", "/tmp/pi-maintainer-io-1000.lock"], "uid": 1000}
+OK all 37 generated files are byte-for-byte current (catalog sha256 b26ed212f1ceefd3e07da0f739f7c09833a5fe00816e88f10693ddce639edcbc)
+{"compute_slot": "SETTLED", "exit_code": 0, "launcher_exit_code": 0, "adopted_failures": []}

@@ -1,0 +1,11 @@
+{"compute_slot": "ACQUIRED", "resources": ["/tmp/orca-maintainer-heavy-1000.lock", "/tmp/pi-maintainer-io-1000.lock"], "uid": 1000}
+00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t344-acroform-fixture/apps/feldexa_app/test/acroform_fixture_catalog_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: the request is synthetic, deterministic, and has no personal data
+00:00 +1: the register holds exactly the AcroForm reference fixture
+00:00 +2: the fixture is deliberately not part of the generated catalogue
+00:00 +3: every entry pins its committed bytes, paths, and generator
+00:00 +4: the fixture really carries the AcroForm the flattening proof needs
+00:00 +5: (tearDownAll)
+00:00 +5: All tests passed!
+{"compute_slot": "SETTLED", "exit_code": 0, "launcher_exit_code": 0, "adopted_failures": []}
