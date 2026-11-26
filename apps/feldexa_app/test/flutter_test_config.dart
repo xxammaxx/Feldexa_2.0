@@ -12,9 +12,9 @@
 // declared, so every test that needs the advance table failed with
 // "Unable to load asset: assets/fonts/metrics.json". Package-relative runs
 // worked, which made the suite look green in one invocation and red in the
-// other. The fallback below answers only the two assets declared in
-// `pubspec.yaml` (`assets/fonts/metrics.json`, `assets/fonts/OFL.txt`) from the
-// package directory; every other key returns null. It is a channel mock, so it
+// other. The fallback below answers only the assets and bundled font files
+// declared in `pubspec.yaml` (the `assets:` and `fonts:` entries under
+// `assets/fonts/`) from the package directory; every other key returns null. It is a channel mock, so it
 // answers before the default bundle rather than after it, and it is not
 // installed on the web, where `dart:io` is unavailable.
 //
@@ -80,7 +80,7 @@ Set<String> _declaredAssetKeys(Directory app) {
 
 /// Serves the declared asset files from the package directory as a fallback.
 ///
-/// Only the [_declaredAssets] keys are answered; every other key returns null,
+/// Only the keys from [_declaredAssetKeys] are answered; every other returns null,
 /// so the framework keeps its normal behavior and no test can load an
 /// undeclared or escaping path through this mock.
 void _installAppAssetFallback() {

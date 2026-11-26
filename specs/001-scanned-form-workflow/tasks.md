@@ -596,7 +596,7 @@ Read-only review M1 found drifted task rows, stale target paths, and an incomple
 
 ### Open Tracker Defects Cross-Reference
 
-The GitHub tracker remains authoritative for live defect state (owner decision Q5 pending); these rows are referenced, not mirrored or closed.
+The GitHub tracker remains authoritative for live defect state (Q5=B, applied 2026-11-26); these rows are referenced, not mirrored or closed.
 
 | Issue | Scope | State at 2026-11-26 | Affected tasks |
 | --- | --- | --- | --- |
