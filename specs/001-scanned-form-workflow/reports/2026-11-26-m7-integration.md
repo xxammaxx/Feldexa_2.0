@@ -27,7 +27,7 @@ Integration of the verified local remediation state from the review chain M1–M
 | `python3 -m unittest discover -s tools/repo` | `PASS` — 19/19 |
 | Maestro CLI flow `apps/feldexa_app/e2e/export_journey.yaml` | `PASS` — 90-94 s, 46 completed steps, no failed or skipped step |
 
-Maestro receipt (gate `android_e2e_gate.py`, final candidate, tree `a977170…`): `result=PASS`, `exit_code=0`, log sha256 `89506cad99c61b5da7f555b2a44c0a009d8130f518103d3eeadce71864241316`, `device_still_same=true`. The receipt's own note applies: it is CLI process evidence, and the installed APK identity is `UNVERIFIED`. The APK was built from `3c7f15f`; every later commit changes only documentation, comments and test-support code, so the installed product bytes are unchanged. The `a297ffa..final` delta is limited to that class and was re-gated on the final commit.
+Maestro receipt (`android_e2e_gate.py run` + `verify` on the final integration candidate; the receipt file in the run artifact names the exact commit and tree): `result=PASS`, `exit_code=0`, log sha256 `89506cad99c61b5da7f555b2a44c0a009d8130f518103d3eeadce71864241316`, `device_still_same=true`. The receipt's own note applies: it is CLI process evidence, and the installed APK identity is `UNVERIFIED`. The APK was built from `3c7f15f`; every later commit changes only documentation, comments and test-support code, so the installed product bytes are unchanged. The `a297ffa..final` delta is limited to that class and was re-gated on the final commit.
 
 ## Review dispositions
 
