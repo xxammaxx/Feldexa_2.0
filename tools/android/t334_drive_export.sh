@@ -800,11 +800,15 @@ SOURCE_PAGE_SIZE="$(awk '/^Page size:/ {sub(/^Page size:[[:space:]]*/, ""); prin
 RECT_LINE="$(grep -oE 'T334_FIELD_RECT:PAGE=[0-9]+:X_MPT=-?[0-9]+:Y_MPT=-?[0-9]+:W_MPT=-?[0-9]+:H_MPT=-?[0-9]+' "$LOG" | tail -1)"
 [[ -n "$RECT_LINE" ]] ||
   fail "the integration log carries no T334_FIELD_RECT marker; the placement measurement cannot be attributed"
-RECT_PAGE="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:PAGE=([0-9]+):.*/\1/')"
-RECT_X_MPT="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:X_MPT=(-?[0-9]+):.*/\1/')"
-RECT_Y_MPT="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:Y_MPT=(-?[0-9]+):.*/\1/')"
-RECT_W_MPT="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:W_MPT=(-?[0-9]+):.*/\1/')"
-RECT_H_MPT="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:H_MPT=(-?[0-9]+):.*/\1/')"
+RECT_PAGE="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:PAGE=([0-9]+)(:.*|$)/\1/')"
+RECT_X_MPT="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:X_MPT=(-?[0-9]+)(:.*|$)/\1/')"
+RECT_Y_MPT="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:Y_MPT=(-?[0-9]+)(:.*|$)/\1/')"
+RECT_W_MPT="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:W_MPT=(-?[0-9]+)(:.*|$)/\1/')"
+RECT_H_MPT="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:H_MPT=(-?[0-9]+)(:.*|$)/\1/')"
+for rect_value in "$RECT_PAGE" "$RECT_X_MPT" "$RECT_Y_MPT" "$RECT_W_MPT" "$RECT_H_MPT"; do
+  [[ "$rect_value" =~ ^-?[0-9]+$ ]] ||
+    fail "cannot read the field rect numbers from $RECT_LINE"
+done
 
 PLACEMENT_VERDICT="WITHIN_1MM"
 PLACEMENT_REASON=""
@@ -903,6 +907,10 @@ for PICKUP_INDEX in $(seq 1 "$ARTIFACT_COUNT"); do
   if [[ "$BBOX_HITS" -ne 1 ]]; then
     LOCAL_REASON="artifact $PICKUP_INDEX: $BBOX_HITS word matches for the entered value on page $RECT_PAGE (exactly one is required)"
     VERDICT="NOT_PROVEN"
+    {
+      log "verdict=$VERDICT"
+      log "reason=$LOCAL_REASON"
+    } >>"$RUN_DIR/artifact-$PICKUP_INDEX-placement.txt"
   else
     read -r BBOX_XMIN BBOX_YMIN BBOX_XMAX BBOX_YMAX <<<"$(printf '%s\n' "$BBOX_MATCHES" | sed -E 's/.*xMin="([0-9.]+)" yMin="([0-9.]+)" xMax="([0-9.]+)" yMax="([0-9.]+)".*/\1 \2 \3 \4/')"
     read -r RECT_X_PT RECT_Y_PT RECT_W_PT RECT_H_PT RECT_CX_PT RECT_CY_PT \
@@ -948,12 +956,6 @@ for PICKUP_INDEX in $(seq 1 "$ARTIFACT_COUNT"); do
     } >>"$RUN_DIR/artifact-$PICKUP_INDEX-placement.txt"
   fi
   if [[ "$VERDICT" != "WITHIN_1MM" ]]; then
-    {
-      log "deviation_pt=<not attributed>"
-      log "tolerance_pt=$PLACEMENT_TOLERANCE_PT"
-      log "verdict=$VERDICT"
-      log "reason=$LOCAL_REASON"
-    } >>"$RUN_DIR/artifact-$PICKUP_INDEX-placement.txt"
     PLACEMENT_VERDICT="NOT_PROVEN"
     PLACEMENT_REASON="${PLACEMENT_REASON}${LOCAL_REASON}; "
   fi
