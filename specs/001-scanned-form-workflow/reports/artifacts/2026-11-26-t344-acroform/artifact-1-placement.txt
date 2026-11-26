@@ -1,0 +1,15 @@
+index=1
+command=pdftotext -bbox -f 1 -l 1 <artifact-1> <xml>
+field_rect_marker=T334_FIELD_RECT:PAGE=1:X_MPT=190125:Y_MPT=147625:W_MPT=299875:H_MPT=18000
+axis_convention=display space; origin at the page's top-left corner, x to the right, y downwards; Poppler -bbox reports the same origin and direction, so no flip is applied
+page_height_pt=841.89
+page=1 value_word_matches=1
+rect_pt=190.125,147.625,299.875,18.000
+rect_center_pt=340.062,156.625
+value_bbox_pt=191.625000,146.219790,224.219400,160.929390
+value_bbox_center_pt=207.922,153.575
+deviation_pt=dx=-132.140,dy=-3.050
+tolerance_pt=2.835
+axis_convention_check=consistent
+verdict=NOT_PROVEN
+reason=artifact 1: centre deviation dx=-132.140 pt / dy=-3.050 pt exceeds 2.835 pt

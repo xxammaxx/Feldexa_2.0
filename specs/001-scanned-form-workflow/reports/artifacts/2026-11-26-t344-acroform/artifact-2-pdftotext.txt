@@ -1,0 +1,9 @@
+index=2
+command=pdftotext -enc UTF-8 <artifact-2> <text>
+source_fixture=sf-001.pdf
+expected_value_occurrences=1
+value = `Müller` (synthetic fixture content entered by the journey)
+umlaut_replaced_by_question_mark=0
+extracted_text_lines=92
+matched_lines:
+12:Müller

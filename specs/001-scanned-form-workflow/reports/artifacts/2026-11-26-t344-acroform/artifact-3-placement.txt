@@ -1,0 +1,3 @@
+index=3
+verdict=NOT_APPLICABLE
+reason=artifact 3 exports the AcroForm fixture unchanged: no value was drawn, so there is no placement to measure
