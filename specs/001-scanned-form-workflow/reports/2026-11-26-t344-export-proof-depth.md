@@ -735,3 +735,21 @@ Der Nachzug ändert **keine** Zahl und **keine** Schwelle: `placement_verdict=PR
 `artifact-{1,2}-placement-v2.txt` wörtlich unverändert. Offen bleiben weiterhin die in
 §8.8 deklarierten Punkte (Review B P3-2/P3-4, Review A P3-2/P3-5/P3-6) sowie die in
 §8.6 Punkt 2 genannte Ascent-Beobachtung (**#346**, Owner).
+
+Zusätzlich offen, nachgetragen nach dem Bestätigungs-Review B4 (beide **report-only**, ohne
+Einfluss auf das heutige Verdikt):
+
+- **Deklarationsförmige Zeile in Blockkommentar oder Raw-String.** Die Verankerung prüft den
+  Zeilenanfang, nicht den Kommentar-/String-Kontext: `/*` … `const val TEXT_PADDING_PT = 1.5` …
+  `*/` oder eine Raw-String-Zeile am Zeilenanfang wird als Deklaration gelesen. Ein falsches
+  `PROVEN` verlangt drei ungewöhnliche Bedingungen zugleich (alter Wert in Blockkommentar,
+  echte Deklaration unmatchbar, geänderter Wert) und ist heute nicht erreichbar; die
+  Kommentarformen über den Konstanten im Repo sind `//`, `///` und KDoc-`*`. Vor einer
+  Promotion des Werkzeugs zum Freigabekriterium: Blockkommentar-/String-Stripping vor dem Match
+  oder ausdrückliche Deklaration dieser Grenze.
+- **Strenger `$`-Anker.** Eine künftige Deklaration mit trailing `//`-Kommentar
+  (`const val TEXT_PADDING_PT = 1.5 // pinned`) wird mit Exit 5 verweigert. Das ist die richtige
+  Ausfallrichtung (Refusal statt geratener Wert), kann aber eine harmlose Refactor-Edite in ein
+  Refusal verwandeln; optional das Muster um ein trailing `//…` erweitern.
+- **Gleichzeitige identische Drift beider Padding-Kopien** bleibt unerkannt (oben Punkt 5);
+  eine Kotlin/Dart-Paritätsprüfung im Repo ist dadurch nicht ersetzt.

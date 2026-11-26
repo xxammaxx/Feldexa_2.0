@@ -10,7 +10,7 @@ derived, not typed in. `test_layout_constants_match_source` reads the real
 silently changing the target origin. Both readers are also driven against
 synthetic sources: a commented-out remnant must not shadow the declaration that
 compiles, and two declarations with differing values must refuse a verdict
-(Review B P1-1).
+(Review B3 P1-1).
 """
 
 from __future__ import annotations
