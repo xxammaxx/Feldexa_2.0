@@ -68,7 +68,7 @@ FIXTURE="sf-001.pdf"
 FIXTURE_SHA256="22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038"
 FIXTURE_SIZE_BYTES=5956
 EXPECTED_PAGE_COUNT=2
-ARTIFACT_REL="cache/e2e/export-artifact.pdf"
+ARTIFACT_REL="e2e/export-artifact.pdf"
 EXPECTED_VALUE="Müller"
 
 TEST_PID=""
@@ -143,7 +143,7 @@ fi
 : >"$SEQUENCE"
 
 adb_shell() {
-  "$ADB" -s "$SERIAL" shell "$@" 2>/dev/null | tr -d '\r'
+  timeout 120 "$ADB" -s "$SERIAL" shell "$@" 2>/dev/null | tr -d '\r'
 }
 
 record() {
@@ -422,9 +422,28 @@ MARKER_PATH="$(printf '%s\n' "$PICKUP_LINE" | sed -E 's/^T334_ARTIFACT_STORED:PA
 [[ "$MARKER_PATH" == *"/$ARTIFACT_REL" ]] ||
   fail "the artifact marker path does not end in /$ARTIFACT_REL: $MARKER_PATH"
 
-"$ADB" -s "$SERIAL" exec-out run-as "$PACKAGE" cat "$ARTIFACT_REL" \
-  >"$RUN_DIR/export-artifact.pdf" ||
-  fail "could not read $ARTIFACT_REL through run-as"
+# The test writes through `Directory.systemTemp`, which the Flutter engine on
+# Android resolves to the app's `code_cache` directory. The run-as path is that
+# marker path with the app data root removed, so the driver never guesses a
+# directory name.
+DEVICE_DATA_PREFIX="/data/user/0/$PACKAGE/"
+[[ "$MARKER_PATH" == "$DEVICE_DATA_PREFIX"* ]] ||
+  DEVICE_DATA_PREFIX="/data/data/$PACKAGE/"
+[[ "$MARKER_PATH" == "$DEVICE_DATA_PREFIX"* ]] ||
+  fail "the artifact marker path is not inside the app data directory: $MARKER_PATH"
+DEVICE_ARTIFACT_REL="${MARKER_PATH#"$DEVICE_DATA_PREFIX"}"
+
+PICKUP_OK=0
+for attempt in 1 2 3; do
+  if timeout 180 "$ADB" -s "$SERIAL" exec-out run-as "$PACKAGE" cat "$DEVICE_ARTIFACT_REL" \
+    >"$RUN_DIR/export-artifact.pdf" 2>/dev/null; then
+    PICKUP_OK=1
+    break
+  fi
+  sleep 3
+done
+[[ "$PICKUP_OK" -eq 1 ]] ||
+  fail "could not read $DEVICE_ARTIFACT_REL through run-as"
 [[ -s "$RUN_DIR/export-artifact.pdf" ]] ||
   fail "the picked-up artifact is empty"
 
@@ -438,7 +457,7 @@ HOST_ARTIFACT_SIZE="$(stat -c %s "$RUN_DIR/export-artifact.pdf")"
 SNAPSHOT_SHA="$(sha256sum "$RUN_DIR/export-artifact.pdf" | awk '{print $1}')"
 {
   log "path=$(host_relative "$RUN_DIR/export-artifact.pdf")"
-  log "device_path=/data/data/$PACKAGE/$ARTIFACT_REL (read via run-as, app-internal cache)"
+  log "device_path=$MARKER_PATH (read via run-as from the app-internal temp directory)"
   log "sha256=$SNAPSHOT_SHA"
   log "bytes=$HOST_ARTIFACT_SIZE"
   log "marker_sha256=$MARKER_SHA256"

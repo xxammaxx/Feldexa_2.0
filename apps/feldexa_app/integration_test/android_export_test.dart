@@ -90,10 +90,11 @@ const String _fieldLabel = 'Familienname';
 /// of the leg. It fits the declared 300 × 18 pt rectangle.
 const String _fieldValue = 'Müller';
 
-/// The app-internal copy of the artifact bytes, relative to the app cache
-/// directory (`Directory.systemTemp` on Android). The host driver reads it with
-/// `adb exec-out run-as de.feldexa.app cat cache/e2e/export-artifact.pdf`
-/// before it clears the app data.
+/// The app-internal copy of the artifact bytes, relative to the app's temporary
+/// directory (`Directory.systemTemp`, which the engine resolves to the
+/// app-internal `code_cache` on Android). The host driver reads it with
+/// `adb exec-out run-as de.feldexa.app cat <path from the marker>` before it
+/// clears the app data, so the driver never guesses the directory name.
 const String _artifactRelativePath = 'e2e/export-artifact.pdf';
 
 const String _pdfHeader = '%PDF-';
