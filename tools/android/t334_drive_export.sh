@@ -514,9 +514,15 @@ SNAPSHOT_SHA="$(sha256sum "$RUN_DIR/export-artifact.pdf" | awk '{print $1}')"
 } >"$RUN_DIR/artifact-pickup.txt"
 
 adb_shell am force-stop "$PACKAGE" >/dev/null
-adb_shell pm clear "$PACKAGE" >/dev/null 2>&1 ||
-  fail "could not clear the app data after the pickup"
-record "artifact picked up and app data cleared"
+# `flutter test` uninstalls the app when it exits, so after a green run there may
+# be nothing left to clear; that is the desired post-condition, not a failure.
+if adb_shell pm list packages "$PACKAGE" | grep -qx "package:$PACKAGE"; then
+  adb_shell pm clear "$PACKAGE" >/dev/null 2>&1 ||
+    fail "could not clear the app data after the pickup"
+  record "app data cleared after the pickup"
+else
+  record "app is no longer installed after the test (no app data to clear)"
+fi
 
 # --- 8. External proof on the host (Poppler and a byte search) --------------
 command -v pdfinfo >/dev/null || fail "pdfinfo (poppler-utils) not found on the host"
