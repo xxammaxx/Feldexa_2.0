@@ -159,10 +159,10 @@ class StoredItemsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context);
-    return ListView(
+    return CustomScrollView(
       key: const ValueKey<String>('stored-items-list'),
-      children: <Widget>[
-        _StoredSection(
+      slivers: <Widget>[
+        _StoredSectionSliver(
           key: const ValueKey<String>('documents-section'),
           heading: l10n.documentsGroup,
           emptyMessage: l10n.emptyDocuments,
@@ -170,8 +170,8 @@ class StoredItemsView extends StatelessWidget {
           onOpen: onOpenDocument,
           onDelete: onDelete,
         ),
-        const Divider(height: 1),
-        _StoredSection(
+        const SliverToBoxAdapter(child: Divider(height: 1)),
+        _StoredSectionSliver(
           key: const ValueKey<String>('templates-section'),
           heading: l10n.templatesGroup,
           emptyMessage: l10n.emptyTemplates,
@@ -184,9 +184,13 @@ class StoredItemsView extends StatelessWidget {
   }
 }
 
-/// One labelled group with its empty message or its sorted entries.
-class _StoredSection extends StatelessWidget {
-  const _StoredSection({
+/// One labelled group as a lazy sliver.
+///
+/// The header and the entries keep the former padding, semantics, and section
+/// key; only the entries become lazy, so a 50-entry list builds just the rows
+/// in view (FR-100, T097).
+class _StoredSectionSliver extends StatelessWidget {
+  const _StoredSectionSliver({
     required this.heading,
     required this.emptyMessage,
     required this.items,
@@ -204,23 +208,40 @@ class _StoredSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Semantics(
-            header: true,
-            child: Text(heading, style: theme.textTheme.titleMedium),
+    return SliverMainAxisGroup(
+      slivers: <Widget>[
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          sliver: SliverToBoxAdapter(
+            child: Semantics(
+              header: true,
+              child: Text(heading, style: theme.textTheme.titleMedium),
+            ),
           ),
-          const SizedBox(height: 8),
-          if (items.isEmpty)
-            Text(emptyMessage)
-          else
-            for (final DocumentSummary item in items)
-              _StoredItemEntry(item: item, onOpen: onOpen, onDelete: onDelete),
-        ],
-      ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 8)),
+        if (items.isEmpty)
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverToBoxAdapter(child: Text(emptyMessage)),
+          )
+        else
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverList.builder(
+              itemCount: items.length,
+              itemBuilder: (BuildContext context, int index) {
+                final DocumentSummary item = items[index];
+                return _StoredItemEntry(
+                  item: item,
+                  onOpen: onOpen,
+                  onDelete: onDelete,
+                );
+              },
+            ),
+          ),
+        const SliverToBoxAdapter(child: SizedBox(height: 16)),
+      ],
     );
   }
 }
