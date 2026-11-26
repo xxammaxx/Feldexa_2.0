@@ -1503,6 +1503,9 @@ _PageResult _analysePage(_PageSpec spec) {
       singleLineMedianHeightPt: medianHeight,
       pageWidthPt: spec.widthPt,
       pageHeightPt: spec.heightPt,
+      otherCandidates: [
+        for (final GeometryCandidate other in candidates) other.rect,
+      ],
     );
     typeObservations.add(
       _TypeObservation(

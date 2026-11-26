@@ -1597,6 +1597,9 @@ PagePassResult _analyse({
       singleLineMedianHeightPt: medianHeight,
       pageWidthPt: page.widthPt,
       pageHeightPt: page.heightPt,
+      otherCandidates: [
+        for (final GeometryCandidate other in candidates) other.rect,
+      ],
     );
     observed.add(
       ObservedField(

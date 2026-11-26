@@ -374,6 +374,9 @@ void _buildDrafts({
       singleLineMedianHeightPt: median,
       pageWidthPt: pageSizePt.width,
       pageHeightPt: pageSizePt.height,
+      otherCandidates: [
+        for (final GeometryCandidate other in candidates) other.rect,
+      ],
     );
     if (!admitsValueOfType(
       rect: candidate.rect,
