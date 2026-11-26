@@ -116,6 +116,10 @@ Die beiden Digests unterscheiden sich (`8da0ce1f…` vs. `dcf302e2…`) bei iden
 
 ## 2. 1-mm-Platzierungstoleranz — **NICHT belegt** (mit Grund)
 
+> **Durch §8 überholt (Issue #344 Teil A2).** Dieser Abschnitt bleibt als Historie
+> stehen: er hält fest, was die im Brief vorgegebene Mittelpunkts-Metrik gemessen
+> hat und warum sie das Ergebnis nicht tragen kann. Das gültige Verdikt steht in §8.
+
 ### Vorgehen (wie im Brief)
 
 1. Der Test gibt das tatsächlich verwendete Feld-Rect als **reine Zahlen** aus:
@@ -253,7 +257,7 @@ das physische S23 (`adb-RFCW80SMY4J-…`) war verbunden, wurde aber nicht adress
 | Feldzustand nach Wiederöffnung unverändert (Rect + Wert) | **belegt** | `expect(reopenedField.rect, field.rect)`, `TextValue` = eingegebener Wert, `overflow == false` |
 | Beide Artefakte extern belegt (Seiten, Seitengröße, Wert, kein `/AcroForm`) | **belegt** | `artifact-{1,2}-pdfinfo.txt`, `-pdftotext.txt`, `-acroform.txt` |
 | Beide Vorschau-/Löschzyklen (`EXP-002`) | **belegt** | `ARTIFACT_DELETED_AFTER_PREVIEW_CLOSE:INDEX=1|2:CODE=EXP-002` |
-| 1-mm-Platzierung am **Rect-Mittelpunkt** | **NICHT belegt** | §2: `dx=-132.140 pt`, `dy=-3.050 pt` > `2.835 pt`; Ursache: linksbündiges Layout nach §3.1 |
+| 1-mm-Platzierung am **Rect-Mittelpunkt** | **NICHT belegt** (durch §8 überholte Metrik) | §2: `dx=-132.140 pt`, `dy=-3.050 pt` > `2.835 pt`; Ursache: linksbündiges Layout nach §3.1 |
 | Digest-Reproduzierbarkeit über Läufe | **NICHT belegt** (unverändert) | zwei Artefakte desselben Laufs, gleiche Größe, verschiedene Digests |
 | AcroForm-Fixture / interaktives Feld | **NICHT belegt** (Teil B) | kein AcroForm-Fixture in diesem Slice |
 
@@ -318,3 +322,192 @@ oder ein nicht-leerer Arbeitsbaum beenden den Lauf mit einem Fehler, nie mit `PA
 Platzierungsmessung ist davon bewusst ausgenommen: sie ist eine **Prüfgröße**, kein
 Freigabekriterium; ihr Verdikt steht im PASS-Record (`1 mm placement claim NOT_PROVEN`),
 in `run-status.txt` und in `artifact-{1,2}-placement.txt`.
+
+## 8. Korrektur der Platzierungsmetrik (A2) — 1-mm-Platzierung **belegt**
+
+Nachtrag zu Issue #344 Teil A2. Kein neuer Emulatorlauf, kein neues Artefakt: gerechnet
+wird auf den bereits committeten PDFs aus `162baa9` (Digests unverändert
+`8da0ce1f…` / `dcf302e2…`, siehe `export-artifact-{1,2}.pdf`). Der Lauf `162baa9`, der
+Treiber-Hash und alle Evidenzdateien aus §1–§7 bleiben unangetastet; §2 steht als
+Historie (als überholt markiert).
+
+### 8.1 Fehler der alten Metrik
+
+Die alte Messung verglich den **Mittelpunkt der Wert-Box** mit dem **Mittelpunkt des
+Feldes**:
+
+```
+rect                     = x 190.125, y 147.625, w 299.875, h 18.000
+value bbox               = x 191.625 … 224.219   (Breite 32.594)
+rect  Mittelpunkt x      = 190.125 + 299.875 / 2 = 340.0625
+value Mittelpunkt x      = 191.625 +  32.594 / 2 = 207.922
+Differenz                                        = −132.1405   (protokolliert: −132.140)
+halber Feldüberhang      = (299.875 − 32.594) / 2 =  133.640
+```
+
+`−132.140` ist damit fast vollständig der **halbe Feldüberhang** (133.640 pt) abzüglich
+des 1,5-pt-Paddings: die Zahl misst Feldbreite und Werte-Länge, nicht die Position des
+Werts. Vertikal gilt dasselbe — der Rect-Mittelpunkt trägt keine Information darüber,
+wohin die Baseline gehört; ein Mittelpunkt-`dy` misst Ascent/Descent-Geometrie. Der
+Export zeichnet aber laut `contracts/export-plan.md` §3.1 **linksbündig und oben
+ausgerichtet**; eine Mittelpunkts-Aussage ist für dieses Layout strukturell
+unerfüllbar. Die `NICHT belegt`-Aussage aus §2 war damit ein Defekt der Prüfmethode,
+kein Produktbefund.
+
+### 8.2 Neue, aus dem Code abgeleitete Definition
+
+Werkzeug: `tools/pdf_verify/placement.py` (neu; Verzeichnis war bisher nur `.gitkeep`,
+in Issue #334 Kriterium 5 als fehlend benannt).
+`sha256 1e1a6e6f0d2462d759160a3b1e6e8027d1a2001689e4570844900af58cc53259`.
+
+Gemessene Größe: die Glyph-Box des exportierten Werts, wie Poppler sie mit
+`pdftotext -bbox` meldet (Display-Space: Ursprung linke obere Seitenecke, x nach rechts,
+y nach unten, PDF-Point) — dieselbe Konvention wie `core.ConfirmedField.rect`.
+
+Sollgröße: der Ursprung, an den der Layout-Code den Wert zeichnet. Die Zahlen werden
+zur Laufzeit aus ihren normativen Quellen gelesen, nicht eingetippt:
+
+| Größe | Quelle | Wert |
+| --- | --- | --- |
+| `exportFieldPaddingPt` | `packages/feldexa_export/lib/src/layout.dart` | 1.5 pt |
+| `_baselineAscenderFactor` | dito | 0.8 |
+| `_fontSizeHeightFactor`, Clamp 7.0 … 12.0 | dito | 0.6 |
+| Padding, vertikale Ausrichtung „top“, horizontale „left“ | `contracts/export-plan.md` §3.1 | normativ |
+| `ascender`, `descender`, `unitsPerEm` (Noto Sans) | `apps/feldexa_app/assets/fonts/metrics.json` | 1069, −293, 1000 |
+
+```
+fontSizePt = round(clamp(0.6 * rect.height, 7.0, 12.0), 1)
+origin x   = rect.x + padding
+baseline y = rect.y + padding + 0.8 * fontSizePt
+```
+
+Drei getrennte Punkte, jeder mit Zahl und eigenem `pass`/`fail`:
+
+1. `horizontal_origin` — gemessene Box-Oberkante/`xMin` gegen `origin x` (Toleranz 2,835 pt).
+2. `vertical_baseline` — gemessene Baseline gegen `baseline y`. Poppler meldet die
+   Ascent/Descent-Box der Schrift, nicht die Baseline; deshalb wird die Baseline von
+   **beiden** Box-Kanten genähert (`yMin + ascender` und `yMax + descender`) und
+   **beide** Näherungen müssen halten. Die Streuung zwischen ihnen wird mitprotokolliert.
+3. `containment` — die horizontale Lage der Box im Feld (linker Rand ≥ `rect.x`, rechter
+   Rand ≤ `rect.x + w`). Vertikal wird dieselbe Box nur **berichtet**, nicht gewertet:
+   die Box ist die Ascent/Descent-Box der Schrift, und §3.1 legt die Baseline fest, nicht
+   die Font-Box; die Ascent (1,069 em) ist größer als der Abstand Rect-Oberkante →
+   Baseline (1,5 pt + 0,8 em = 10,14 pt bei 10,8 pt Schrift), sodass die Ascent-Kante
+   konstruktionsbedingt über die Rect-Oberkante ragt. Beide vertikalen Überstände und
+   die Herleitung stehen als `informational.*`-Zeilen in der Evidenz.
+
+1-mm-Verdikt = `PROVEN`, wenn Punkt 1 und 2 halten. Exit 0 = alle Punkte `pass`,
+Exit 1 = ein Punkt `fail`, Exit 2 … 6 = **kein Verdikt** (Aufruffehler, Worttreffer
+fehlt, Worttreffer mehrdeutig, unlesbare Eingabe, Poppler-Fehler). Fehlt der Worttreffer
+oder ist die Achsenlage unklar (`axes_check`: Box außerhalb der Seite oder außerhalb
+eines aus dem Rect abgeleiteten Fensters — fängt 180°-Dreher und y-up-Lesart), gibt es
+kein „provisorisches“ Ergebnis, sondern Exit ≠ 0 mit Grund.
+
+### 8.3 Zahlen beider Artefakte
+
+Beide PDFs liefern identische Messwerte (Diff der Evidenzdateien bis auf den Dateinamen
+leer). Wörtlich aus `artifact-1-placement-v2.txt` (Kommandozeile und volle Ausgabe in der
+Datei; `artifact-2-placement-v2.txt` ist inhaltsgleich):
+
+```
+rect_pt=190.125,147.625,299.875,18.000
+font_size_pt=10.800
+glyph_box_pt=191.625000,146.219790,224.219400,160.929390
+glyph_box_width_pt=32.594400
+glyph_box_height_pt=14.709600
+font_box_height_expected_pt=14.709600
+target_origin_pt=191.625,157.765
+baseline_from_ascent_pt=157.764990
+baseline_from_descent_pt=157.764990
+baseline_estimate_spread_pt=0.000000
+tolerance_pt=2.835
+axes_check=consistent
+check.horizontal_origin.measured_pt=191.625000 target_pt=191.625000 deviation_pt=0.000000 tolerance_pt=2.835 result=pass
+check.vertical_baseline.measured_pt=157.764990 target_pt=157.765000 deviation_pt=-0.000010 tolerance_pt=2.835 result=pass
+check.containment.measured_pt=-1.500000 target_pt=0.000000 deviation_pt=-1.500000 tolerance_pt=0.000 result=pass
+informational.font_box_overflow_top_pt=1.405210
+informational.font_box_overflow_bottom_pt=-4.695610
+placement_verdict=PROVEN
+containment_verdict=PASS
+exit_code=0
+reason=origin deviation +0.000000 pt and baseline deviation -0.000010 pt are within 2.835 pt
+```
+
+Rechnung zu den Zahlen: `fontSizePt = round(0.6 · 18.000, 1) = 10.8`;
+`origin x = 190.125 + 1.5 = 191.625` (gemessen `191.625`, Abweichung `0.000000`);
+`baseline = 147.625 + 1.5 + 0.8 · 10.8 = 157.765`; gemessen
+`146.219790 + 1.069 · 10.8 = 157.764990` bzw. `160.929390 − 0.293 · 10.8 = 157.764990`
+(Abweichung `−0.000010`). Die gemessene Box-Höhe `14.709600` ist exakt
+`(1069 + 293)/1000 · 10.8` — die Box ist die Ascent/Descent-Box der Schrift und die
+Schriftmetriken sind die aus `metrics.json`. Keine Zahl ist geschätzt oder umgerechnet;
+alle Werte stammen aus der Poppler-Ausgabe bzw. aus den gelesenen Konstanten.
+
+### 8.4 1-mm-Verdikt
+
+**Belegt.** Der gezeichnete Wert liegt `0.000000 pt` (horizontal) und `0.000010 pt`
+(vertikal) von der Sollposition entfernt, die der Layout-Code berechnet; Toleranz
+`2.835 pt` (1 mm) — beide Punkte halten um mehr als drei Größenordnungen. Die
+Kontrollgröße `containment` ist mit `−1.500 pt` (links) und `−265.781 pt` (rechts)
+innerhalb des Feldes.
+
+Nicht Teil dieses Verdikts, sondern berichtet: die **Ascent/Descent-Box** der Schrift ragt
+`1.405210 pt` über die Rect-Oberkante (und `−4.696 pt`, also innerhalb, unter die
+Rect-Unterkante). Das folgt aus §3.1 selbst (`1.069 em − (1,5 pt + 0,8 em) > 0` für jede
+erlaubte Schriftgröße) und ist Font-Geometrie, keine Fehlplatzierung; offener Punkt 2 in
+§8.6.
+
+### 8.5 Selbsttest des Werkzeugs (ohne Netz, ohne Emulator, ohne Poppler)
+
+`python3 -m unittest discover -s tools/pdf_verify -p 'test_*.py'` (Exit 0), wörtlich
+— nur die Laufzeitangabe variiert von Lauf zu Lauf:
+
+```
+............................
+----------------------------------------------------------------------
+Ran 28 tests in 0.063s
+
+OK
+```
+
+Die Tests bauen die Poppler-Seite synthetisch aus denselben Layout-Zahlen und decken ab:
+exakter Treffer, 1-mm-Grenzfall (2,835 pt hält, 2,836 pt reißt), vertikaler Verstoß,
+Containment links/rechts, Ascent-Überstand als Zahl, fehlender Worttreffer (Exit 3),
+mehrdeutiger Worttreffer (Exit 4), Mehr-Wort-Argument (Exit 2), unlesbarer Marker
+(Exit 5), `--page`-Widerspruch (Exit 2), fehlendes `pdftotext` (Exit 6), fehlende
+Layout-Konstante (Exit 5), y-gespiegelte Box (Achsen-Check), sowie die Arithmetik der
+alten Mittelpunkts-Metrik (`−132.1405` gegen `133.6405`). `test_layout_constants_match_source`
+liest die echte `layout.dart`, damit eine geänderte Konstante die Suite bricht statt den
+Sollursprung still zu verschieben.
+
+### 8.6 Geänderte Dateien und offene Punkte
+
+Neu: `tools/pdf_verify/placement.py`, `tools/pdf_verify/test_placement.py`,
+`artifacts/2026-11-26-t344-export-proof-depth/artifact-{1,2}-placement-v2.txt`.
+Unverändert: `apps/**`, `packages/**`, `tools/android/t334_drive_export.sh`, beide PDFs und
+alle Evidenzdateien aus §1–§7 (inklusive der alten `artifact-{1,2}-placement.txt`).
+Dieser Report ist um §8 ergänzt und in §2/§5 als überholt markiert.
+
+1. **Toleranz unverändert** bei `2.835 pt` Default; `--tolerance-pt` existiert nur, um
+   strenger messen zu können. Es wurde keine Schwelle gelockert.
+2. **Ascent-Überstand (neu, Owner).** Die Ascent/Descent-Box der Schrift ist höher als
+   der Abstand von der Rect-Oberkante zur Baseline, den §3.1 vorschreibt; sie ragt bei
+   diesem Feld 1,405 pt (~0,5 mm) über die Rect-Oberkante. Das ist kein
+   Platzierungsfehler und verändert keine Ziffer dieser Messung, kann aber für Felder
+   relevant sein, über denen Inhalt steht. Ob §3.1 (Padding/Baseline-Faktor) angepasst
+   wird, ist eine Owner-Entscheidung und **nicht** Teil von A2.
+3. **Werkzeug nur auf diesen Lauf angewandt** — es ist generisch (`--pdf`,
+   `--value-word`, `--field-rect-marker`, `--layout`, `--font-metrics`, `--pdftotext`),
+   aber weitere Artefakte wurden nicht gemessen.
+4. **Kein Emulator-/Gradle-/`flutter test`-Lauf** in A2; der Beleg-Lauf `162baa9` bleibt
+   byte-identisch gebunden (PDF-Digests in §8.3 geprüft).
+
+### 8.7 Reproduktion
+
+```
+python3 -m unittest discover -s tools/pdf_verify -p 'test_*.py'
+python3 tools/pdf_verify/placement.py \
+  --pdf specs/001-scanned-form-workflow/reports/artifacts/2026-11-26-t344-export-proof-depth/export-artifact-1.pdf \
+  --value-word Müller \
+  --field-rect-marker T334_FIELD_RECT:PAGE=1:X_MPT=190125:Y_MPT=147625:W_MPT=299875:H_MPT=18000
+# exit 0, placement_verdict=PROVEN, containment_verdict=PASS
+```
