@@ -2184,7 +2184,7 @@ class EditorScreenState extends State<EditorScreen> {
   /// 3. Otherwise the pre-export information is shown: the empty-field count
   ///    and the unresolved-suggestion count. Neither blocks; the
   ///    unresolved-suggestion sentence is the **ratified** OD-1/Q1=A policy of
-  ///    `contracts/export-plan.md` §3.4 and is not a settled export rule.
+  ///    `contracts/export-plan.md` §3.4; the rule is ratified and settled.
   /// 4. The user starts the export; the port validates and renders, and only a
   ///    verified artifact opens the preview. A failure offers „Erneut
   ///    versuchen“ with the same action (§10 point 5).
