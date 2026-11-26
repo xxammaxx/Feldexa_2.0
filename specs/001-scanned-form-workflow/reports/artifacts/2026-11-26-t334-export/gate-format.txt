@@ -1,0 +1,8 @@
+# Supervisor-Gate 2 (Review B, Gate 2) — nachgeholt durch den Parent
+candidate=77ec66d51c27de828642dc817c110a60569bbe89
+tree=4746827164fdc2038f4c1cc1b9312370c3fc0b5b
+command=dart format --output=none --set-exit-if-changed packages apps (cwd repo root)
+observed_at_utc=2026-11-26T11:33:00Z
+output:
+Formatted 319 files (0 changed) in 2.77 seconds.
+exit=0

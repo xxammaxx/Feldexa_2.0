@@ -1,0 +1,4 @@
+result=PASS
+flutter_test_exit=0
+artifact_sha256=1e24ac010a8fcef6f18852b4188b2f49cc958d5a37fa45281f2551b4fd534140
+artifact_bytes=12029

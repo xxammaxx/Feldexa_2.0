@@ -1,0 +1,1 @@
+PASS: no document content, field label, display name, or fixture path in the integration log

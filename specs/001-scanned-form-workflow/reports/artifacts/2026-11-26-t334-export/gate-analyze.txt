@@ -1,0 +1,10 @@
+# Supervisor-Gate 1 (Review B, Gate 1) — nachgeholt durch den Parent
+candidate=77ec66d51c27de828642dc817c110a60569bbe89
+tree=4746827164fdc2038f4c1cc1b9312370c3fc0b5b
+worktree=worktrees/t334-export-e2e
+command=flutter analyze --no-pub (cwd apps/feldexa_app, Flutter 3.47.7 stable)
+observed_at_utc=2026-11-26T11:33:00Z
+output:
+Analyzing feldexa_app...
+No issues found! (ran in 4.8s)
+exit=0
