@@ -1,0 +1,9 @@
+pre-run: package not installed, no stored state exists
+screen awake and unlocked before the test start
+static gates: flutter analyze clean, dart format 0 changed
+test start 2026-11-26T12:40:15Z
+host pickup artifact 1: 12029 bytes, sha256 8da0ce1fcf11bd4cc16d3860c4fd04e7d2537fe0927acd87d9dfc340e11e9484 (marker matches)
+host pickup artifact 2: 12029 bytes, sha256 dcf302e2bc6b2c0f58e28efcafced381896e9205a053d0d47114a49694a198ec (marker matches)
+test exit=0
+app is no longer installed after the test (no app data to clear)
+PASS (flutter test exit 0; cleanup marker observed; two artifacts picked up with matching digests; poppler proof for both; static gates clean; privacy checks PASS; 1 mm placement claim NOT_PROVEN)

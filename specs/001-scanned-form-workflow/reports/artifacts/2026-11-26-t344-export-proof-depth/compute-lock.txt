@@ -1,0 +1,7 @@
+mode=shared-heavy-work-permits
+admission=python3 ~/.pi/agent/skills/pi-maintainer/scripts/compute_slot.py --wait --resource build --resource emulator -- <driver>
+resources=build(+io),emulator
+inside_permits=1 (T334_COMPUTE_LOCK_HELD=1)
+orca_command_used=0
+detached_jobs=0
+admitted_at_utc=2026-11-26T12:38:23Z

@@ -1,0 +1,5 @@
+index=2
+command=LC_ALL=C grep -a -o -F '/AcroForm' <artifact-2> | wc -l
+acroform_grep_exit=1 (0=hits, 1=no match, >=2=tool error)
+acroform_byte_occurrences=0
+note=byte-level search only; this is not a structural PDF analysis
