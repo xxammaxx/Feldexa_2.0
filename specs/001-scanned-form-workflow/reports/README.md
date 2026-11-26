@@ -443,6 +443,7 @@ the git bundle and are not bundle-verifiable.
 | [2026-11-26-t342b-driver-hardening.md](./2026-11-26-t342b-driver-hardening.md) | `EMULATOR` | Task evidence | Issue #342 follow-up: two remaining P2 wrong-PASS windows closed, with analyze/format/store-probe evidence bound to the new driver hash |
 | [2026-11-26-t344-export-proof-depth.md](./2026-11-26-t344-export-proof-depth.md) | `EMULATOR` | Task evidence | Issue #344 A: two artifacts across a reopen, line-join fix, and an honest `NOT_PROVEN` 1 mm placement (dx −132.140 pt against a 2.835 pt tolerance) |
 | [2026-11-26-m7-integration.md](./2026-11-26-m7-integration.md) | `EMULATOR` (host checks `NONE`) | Integration evidence | PR #351 candidate `a297ffa`: owner decisions Q1-Q11 applied, T264A golden restored without touching it (evaluation 60/60), lazy 50-item list with the ratified 500 ms host bound, repository-root app suite fixed (#318); Maestro `export_journey.yaml` PASS with receipt `89506cad…`; corpus, usability and DEVICE/SC-004 explicitly deferred (Q9=B) |
+| [2026-11-26-t344-acroform-flattening.md](./2026-11-26-t344-acroform-flattening.md) | `EMULATOR` (host checks `NONE`) | Task evidence | Issue #344 part B: AcroForm fixture and flattening proof on `emulator-5554`; no physical device addressed; artifact bundle under `artifacts/2026-11-26-t344-acroform-final/` |
 
 New reports append a row here in the same change. Results are run outcomes, not
 approval.
