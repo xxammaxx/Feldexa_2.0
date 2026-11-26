@@ -76,7 +76,12 @@ FIXTURE_SHA256="22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038
 FIXTURE_SIZE_BYTES=5956
 EXPECTED_PAGE_COUNT=2
 ARTIFACT_REL="e2e/export-artifact.pdf"
+ARTIFACT_REL_2="e2e/export-artifact-2.pdf"
+ARTIFACT_COUNT=2
 EXPECTED_VALUE="Müller"
+# 1 mm in PDF points (1 pt = 1/72 in). This is a verification threshold of the
+# host measurement, never a product value.
+PLACEMENT_TOLERANCE_PT="2.835"
 
 TEST_PID=""
 TEST_EXIT=255
@@ -263,10 +268,16 @@ collect_evidence() {
     fixture-sha256.txt \
     apk-sha256.txt \
     git-identity.txt \
-    artifact-pickup.txt \
-    poppler-pdfinfo.txt \
-    poppler-pdftotext.txt \
-    artifact-bytes-acroform.txt \
+    artifact-1-pickup.txt \
+    artifact-1-pdfinfo.txt \
+    artifact-1-pdftotext.txt \
+    artifact-1-acroform.txt \
+    artifact-1-placement.txt \
+    artifact-2-pickup.txt \
+    artifact-2-pdfinfo.txt \
+    artifact-2-pdftotext.txt \
+    artifact-2-acroform.txt \
+    artifact-2-placement.txt \
     privacy-source-check.txt \
     privacy-log-check.txt \
     store-probe.txt \
@@ -279,9 +290,13 @@ collect_evidence() {
         fail "cannot write evidence file $file"
     fi
   done
-  if [[ -f "$RUN_DIR/export-artifact.pdf" ]]; then
-    cp "$RUN_DIR/export-artifact.pdf" "$EVIDENCE_DIR/export-artifact.pdf" ||
-      fail "cannot write the picked-up artifact into the evidence directory"
+  if [[ -f "$RUN_DIR/export-artifact-1.pdf" ]]; then
+    cp "$RUN_DIR/export-artifact-1.pdf" "$EVIDENCE_DIR/export-artifact-1.pdf" ||
+      fail "cannot write artifact 1 into the evidence directory"
+  fi
+  if [[ -f "$RUN_DIR/export-artifact-2.pdf" ]]; then
+    cp "$RUN_DIR/export-artifact-2.pdf" "$EVIDENCE_DIR/export-artifact-2.pdf" ||
+      fail "cannot write artifact 2 into the evidence directory"
   fi
   log "T334 DRIVER: evidence written to $EVIDENCE_DIR"
 }
@@ -466,10 +481,12 @@ for probe_case in empty leftover missing; do  case "$probe_case" in
 done
 printf '%s\n' "result=all three store-probe cases behave as expected" >>"$RUN_DIR/store-probe.txt"
 
-# A previous aborted run can leave the pickup acknowledgement behind; remove it
-# before the test starts so no wait can return on a stale ack.
-adb_shell rm -f "$STAGING/ack-artifact-picked-up" >/dev/null ||
-  fail "cannot remove a stale pickup acknowledgement from $STAGING"
+# A previous aborted run can leave a pickup acknowledgement behind; remove every
+# index before the test starts so no wait can return on a stale ack.
+for ack_index in 1 2; do
+  adb_shell rm -f "$STAGING/ack-artifact-picked-up-$ack_index" >/dev/null ||
+    fail "cannot remove a stale pickup acknowledgement $ack_index from $STAGING"
+done
 
 DEVICE_FIXTURE_SHA="$(adb_shell sha256sum "$STAGING/$FIXTURE" | awk '{print $1}')"
 HOST_FIXTURE_SHA="$(sha256sum "$APP/assets/fixtures/$FIXTURE" | awk '{print $1}')"
@@ -615,51 +632,69 @@ wait_for_marker() {
   return 1
 }
 
-log "T334 DRIVER: waiting for the stored-artifact marker"
-if ! wait_for_marker "ARTIFACT_STORED" 2400; then
-  log "T334 DRIVER: stored-artifact marker not observed; test log follows"
-  tail -160 "$LOG"
-  fail "missing marker T334_ARTIFACT_STORED before the pickup"
-fi
-
-PICKUP_LINE="$(grep -oE 'T334_ARTIFACT_STORED:PATH=[^:]*:BYTES=[0-9]+:SHA256=[0-9a-f]{64}' "$LOG" | tail -1)"
-[[ -n "$PICKUP_LINE" ]] ||
-  fail "the integration log carries no T334_ARTIFACT_STORED marker"
-MARKER_BYTES="$(printf '%s\n' "$PICKUP_LINE" | sed -E 's/.*:BYTES=([0-9]+):SHA256=.*/\1/')"
-MARKER_SHA256="$(printf '%s\n' "$PICKUP_LINE" | sed -E 's/.*:SHA256=([0-9a-f]{64}).*/\1/')"
-MARKER_PATH="$(printf '%s\n' "$PICKUP_LINE" | sed -E 's/^T334_ARTIFACT_STORED:PATH=([^:]*):.*/\1/')"
-
-[[ "$MARKER_PATH" == *"/$ARTIFACT_REL" ]] ||
-  fail "the artifact marker path does not end in /$ARTIFACT_REL: $MARKER_PATH"
-
-# The test writes through `Directory.systemTemp`, which the Flutter engine on
-# Android resolves to the app's `code_cache` directory. The run-as path is that
-# marker path with the app data root removed, so the driver never guesses a
-# directory name.
-DEVICE_DATA_PREFIX="/data/user/0/$PACKAGE/"
-[[ "$MARKER_PATH" == "$DEVICE_DATA_PREFIX"* ]] ||
-  DEVICE_DATA_PREFIX="/data/data/$PACKAGE/"
-[[ "$MARKER_PATH" == "$DEVICE_DATA_PREFIX"* ]] ||
-  fail "the artifact marker path is not inside the app data directory: $MARKER_PATH"
-DEVICE_ARTIFACT_REL="${MARKER_PATH#"$DEVICE_DATA_PREFIX"}"
-
-adb_shell rm -f "$STAGING/ack-artifact-picked-up" >/dev/null ||
-  fail "cannot remove a stale pickup acknowledgement before the pickup retry"PICKUP_OK=0
-for attempt in 1 2 3; do
-  if timeout 180 "$ADB" -s "$SERIAL" exec-out run-as "$PACKAGE" cat "$DEVICE_ARTIFACT_REL" \
-    >"$RUN_DIR/export-artifact.pdf" 2>>"$ADB_STDERR_LOG" &&
-    [[ -s "$RUN_DIR/export-artifact.pdf" ]] &&
-    [[ "$(sha256sum "$RUN_DIR/export-artifact.pdf" | awk '{print $1}')" == "$MARKER_SHA256" ]]; then
-    PICKUP_OK=1
-    break
+# Both artifacts are picked up through the same handshake, one after the other:
+# the test prints `T334_ARTIFACT_STORED:INDEX=<n>` and then waits for the
+# acknowledgement of that index, so the driver finishes artifact n before the
+# test starts artifact n+1.
+declare -a MARKER_BYTES_BY_INDEX=() MARKER_SHA256_BY_INDEX=() MARKER_PATH_BY_INDEX=()
+declare -a HOST_SHA_BY_INDEX=() HOST_SIZE_BY_INDEX=()
+for PICKUP_INDEX in $(seq 1 "$ARTIFACT_COUNT"); do
+  if [[ "$PICKUP_INDEX" -eq 1 ]]; then
+    PICKUP_REL="$ARTIFACT_REL"
+  else
+    PICKUP_REL="$ARTIFACT_REL_2"
   fi
-  sleep 2
+  PICKUP_FILE="$RUN_DIR/export-artifact-$PICKUP_INDEX.pdf"
+  log "T334 DRIVER: waiting for the stored-artifact marker of artifact $PICKUP_INDEX"
+  if ! wait_for_marker "ARTIFACT_STORED:INDEX=$PICKUP_INDEX" 2400; then
+    log "T334 DRIVER: stored-artifact marker of artifact $PICKUP_INDEX not observed; test log follows"
+    tail -160 "$LOG"
+    fail "missing marker T334_ARTIFACT_STORED:INDEX=$PICKUP_INDEX before the pickup"
+  fi
+
+  PICKUP_LINE="$(grep -oE "T334_ARTIFACT_STORED:INDEX=$PICKUP_INDEX:PATH=[^:]*:BYTES=[0-9]+:SHA256=[0-9a-f]{64}" "$LOG" | tail -1)"
+  [[ -n "$PICKUP_LINE" ]] ||
+    fail "the integration log carries no T334_ARTIFACT_STORED marker for artifact $PICKUP_INDEX"
+  MARKER_BYTES="$(printf '%s\n' "$PICKUP_LINE" | sed -E 's/.*:BYTES=([0-9]+):SHA256=.*/\1/')"
+  MARKER_SHA256="$(printf '%s\n' "$PICKUP_LINE" | sed -E 's/.*:SHA256=([0-9a-f]{64}).*/\1/')"
+  MARKER_PATH="$(printf '%s\n' "$PICKUP_LINE" | sed -E 's/^T334_ARTIFACT_STORED:INDEX=[0-9]+:PATH=([^:]*):.*/\1/')"
+
+  [[ "$MARKER_PATH" == *"/$PICKUP_REL" ]] ||
+    fail "the marker path of artifact $PICKUP_INDEX does not end in /$PICKUP_REL: $MARKER_PATH"
+
+  # The test writes through `Directory.systemTemp`, which the Flutter engine on
+  # Android resolves to the app's `code_cache` directory. The run-as path is that
+  # marker path with the app data root removed, so the driver never guesses a
+  # directory name.
+  DEVICE_DATA_PREFIX="/data/user/0/$PACKAGE/"
+  [[ "$MARKER_PATH" == "$DEVICE_DATA_PREFIX"* ]] ||
+    DEVICE_DATA_PREFIX="/data/data/$PACKAGE/"
+  [[ "$MARKER_PATH" == "$DEVICE_DATA_PREFIX"* ]] ||
+    fail "the artifact marker path is not inside the app data directory: $MARKER_PATH"
+  DEVICE_ARTIFACT_REL="${MARKER_PATH#"$DEVICE_DATA_PREFIX"}"
+
+  adb_shell rm -f "$STAGING/ack-artifact-picked-up-$PICKUP_INDEX" >/dev/null ||
+    fail "cannot remove a stale pickup acknowledgement before the pickup retry"
+  PICKUP_OK=0
+  for attempt in 1 2 3; do
+    if timeout 180 "$ADB" -s "$SERIAL" exec-out run-as "$PACKAGE" cat "$DEVICE_ARTIFACT_REL" \
+      >"$PICKUP_FILE" 2>>"$ADB_STDERR_LOG" &&
+      [[ -s "$PICKUP_FILE" ]] &&
+      [[ "$(sha256sum "$PICKUP_FILE" | awk '{print $1}')" == "$MARKER_SHA256" ]]; then
+      PICKUP_OK=1
+      break
+    fi
+    sleep 2
+  done
+  [[ "$PICKUP_OK" -eq 1 ]] ||
+    fail "could not read $DEVICE_ARTIFACT_REL through run-as with the marker digest of artifact $PICKUP_INDEX"
+  adb_shell touch "$STAGING/ack-artifact-picked-up-$PICKUP_INDEX" >/dev/null ||
+    fail "could not acknowledge the pickup of artifact $PICKUP_INDEX to the test"
+  MARKER_BYTES_BY_INDEX[PICKUP_INDEX]="$MARKER_BYTES"
+  MARKER_SHA256_BY_INDEX[PICKUP_INDEX]="$MARKER_SHA256"
+  MARKER_PATH_BY_INDEX[PICKUP_INDEX]="$MARKER_PATH"
+  record "host pickup artifact $PICKUP_INDEX: $MARKER_BYTES bytes, sha256 $MARKER_SHA256 (marker matches)"
 done
-[[ "$PICKUP_OK" -eq 1 ]] ||
-  fail "could not read $DEVICE_ARTIFACT_REL through run-as with the marker digest"
-adb_shell touch "$STAGING/ack-artifact-picked-up" >/dev/null ||
-  fail "could not acknowledge the pickup to the test"
-record "host pickup: $MARKER_BYTES bytes, sha256 $MARKER_SHA256 (marker matches)"
 
 TEST_DEADLINE=$((SECONDS + 1800))
 while kill -0 "$TEST_PID" 2>/dev/null; do
@@ -701,24 +736,28 @@ if ! grep -F 'All tests passed' "$LOG" >/dev/null 2>&1; then
   fail "flutter test exited 0 without the 'All tests passed' summary line"
 fi
 
-HOST_ARTIFACT_SHA="$(sha256sum "$RUN_DIR/export-artifact.pdf" | awk '{print $1}')"
-HOST_ARTIFACT_SIZE="$(stat -c %s "$RUN_DIR/export-artifact.pdf")"
-[[ "$HOST_ARTIFACT_SIZE" == "$MARKER_BYTES" ]] ||
-  fail "picked-up size $HOST_ARTIFACT_SIZE != marker size $MARKER_BYTES"
-[[ "$HOST_ARTIFACT_SHA" == "$MARKER_SHA256" ]] ||
-  fail "picked-up sha256 $HOST_ARTIFACT_SHA != marker sha256 $MARKER_SHA256"
-
-SNAPSHOT_SHA="$(sha256sum "$RUN_DIR/export-artifact.pdf" | awk '{print $1}')"
-{
-  log "path=$(host_relative "$RUN_DIR/export-artifact.pdf")"
-  log "device_path=$MARKER_PATH (read via run-as from the app-internal temp directory)"
-  log "sha256=$SNAPSHOT_SHA"
-  log "bytes=$HOST_ARTIFACT_SIZE"
-  log "marker_sha256=$MARKER_SHA256"
-  log "marker_bytes=$MARKER_BYTES"
-  log "sha256_matches_marker=1"
-  log "size_matches_marker=1"
-} >"$RUN_DIR/artifact-pickup.txt"
+for PICKUP_INDEX in $(seq 1 "$ARTIFACT_COUNT"); do
+  PICKUP_FILE="$RUN_DIR/export-artifact-$PICKUP_INDEX.pdf"
+  HOST_ARTIFACT_SHA="$(sha256sum "$PICKUP_FILE" | awk '{print $1}')"
+  HOST_ARTIFACT_SIZE="$(stat -c %s "$PICKUP_FILE")"
+  [[ "$HOST_ARTIFACT_SIZE" == "${MARKER_BYTES_BY_INDEX[PICKUP_INDEX]}" ]] ||
+    fail "picked-up size of artifact $PICKUP_INDEX ($HOST_ARTIFACT_SIZE) != marker size ${MARKER_BYTES_BY_INDEX[PICKUP_INDEX]}"
+  [[ "$HOST_ARTIFACT_SHA" == "${MARKER_SHA256_BY_INDEX[PICKUP_INDEX]}" ]] ||
+    fail "picked-up sha256 of artifact $PICKUP_INDEX ($HOST_ARTIFACT_SHA) != marker sha256 ${MARKER_SHA256_BY_INDEX[PICKUP_INDEX]}"
+  HOST_SHA_BY_INDEX[PICKUP_INDEX]="$HOST_ARTIFACT_SHA"
+  HOST_SIZE_BY_INDEX[PICKUP_INDEX]="$HOST_ARTIFACT_SIZE"
+  {
+    log "index=$PICKUP_INDEX"
+    log "path=$(host_relative "$PICKUP_FILE")"
+    log "device_path=${MARKER_PATH_BY_INDEX[PICKUP_INDEX]} (read via run-as from the app-internal temp directory)"
+    log "sha256=$HOST_ARTIFACT_SHA"
+    log "bytes=$HOST_ARTIFACT_SIZE"
+    log "marker_sha256=${MARKER_SHA256_BY_INDEX[PICKUP_INDEX]}"
+    log "marker_bytes=${MARKER_BYTES_BY_INDEX[PICKUP_INDEX]}"
+    log "sha256_matches_marker=1"
+    log "size_matches_marker=1"
+  } >"$RUN_DIR/artifact-$PICKUP_INDEX-pickup.txt"
+done
 
 adb_shell am force-stop "$PACKAGE" >/dev/null ||
   fail "could not stop $PACKAGE after the pickup"
@@ -740,74 +779,192 @@ else
   record "app is no longer installed after the test (no app data to clear)"
 fi
 
-# --- 8. External proof on the host (Poppler and a byte search) --------------
+# --- 8. External proof on the host (Poppler, a byte search, and the 1 mm
+#        placement measurement) ---------------------------------------------
 command -v pdfinfo >/dev/null || fail "pdfinfo (poppler-utils) not found on the host"
 command -v pdftotext >/dev/null || fail "pdftotext (poppler-utils) not found on the host"
 
 pdfinfo "$APP/assets/fixtures/$FIXTURE" >"$RUN_DIR/pdfinfo-source.txt" 2>&1 ||
   fail "pdfinfo failed on the source fixture"
-pdfinfo "$RUN_DIR/export-artifact.pdf" >"$RUN_DIR/pdfinfo-artifact.txt" 2>&1 ||
-  fail "pdfinfo failed on the picked-up artifact"
-{
-  log "command=pdfinfo $(host_relative "$APP/assets/fixtures/$FIXTURE")"
-  cat "$RUN_DIR/pdfinfo-source.txt"
-  log "command=pdfinfo <artifact>"
-  cat "$RUN_DIR/pdfinfo-artifact.txt"
-} >"$RUN_DIR/poppler-pdfinfo.txt"
-
 SOURCE_PAGES="$(awk '/^Pages:/ {print $2}' "$RUN_DIR/pdfinfo-source.txt")"
-ARTIFACT_PAGES="$(awk '/^Pages:/ {print $2}' "$RUN_DIR/pdfinfo-artifact.txt")"
 SOURCE_PAGE_SIZE="$(awk '/^Page size:/ {sub(/^Page size:[[:space:]]*/, ""); print}' "$RUN_DIR/pdfinfo-source.txt")"
-ARTIFACT_PAGE_SIZE="$(awk '/^Page size:/ {sub(/^Page size:[[:space:]]*/, ""); print}' "$RUN_DIR/pdfinfo-artifact.txt")"
-[[ "$ARTIFACT_PAGES" == "$EXPECTED_PAGE_COUNT" ]] ||
-  fail "artifact page count $ARTIFACT_PAGES != $EXPECTED_PAGE_COUNT"
 [[ "$SOURCE_PAGES" == "$EXPECTED_PAGE_COUNT" ]] ||
   fail "source page count $SOURCE_PAGES != $EXPECTED_PAGE_COUNT"
-[[ "$ARTIFACT_PAGE_SIZE" == "$SOURCE_PAGE_SIZE" ]] ||
-  fail "artifact page size '$ARTIFACT_PAGE_SIZE' != source page size '$SOURCE_PAGE_SIZE'"
 
-pdftotext -enc UTF-8 "$RUN_DIR/export-artifact.pdf" "$RUN_DIR/artifact.txt" ||
-  fail "pdftotext failed on the picked-up artifact"
-# Exit 1 (no match) is a real answer, exit 2 (tool error) is a `fail`: the
-# entered value and the encoded umlaut are both read from the same extraction.
-VALUE_MATCHES="$(grep -n -F "$EXPECTED_VALUE" "$RUN_DIR/artifact.txt")"
-VALUE_GREP_EXIT=$?
-[[ "$VALUE_GREP_EXIT" -le 1 ]] ||
-  fail "the entered-value grep failed with exit $VALUE_GREP_EXIT"
-VALUE_HITS="$(printf '%s\n' "$VALUE_MATCHES" | sed '/^$/d' | wc -l)"
-[[ "$VALUE_HITS" -ge 1 ]] ||
-  fail "the entered value is not present in the extracted artifact text"
-MANGLED_UMLAUTS="$(grep -c -F "M?ller" "$RUN_DIR/artifact.txt")"
-MANGLED_GREP_EXIT=$?
-[[ "$MANGLED_GREP_EXIT" -le 1 ]] ||
-  fail "the mangled-umlaut grep failed with exit $MANGLED_GREP_EXIT"
-[[ "$MANGLED_UMLAUTS" -eq 0 ]] ||
-  fail "the extracted text carries 'M?ller': the umlaut was not encoded"
-{
-  log "command=pdftotext -enc UTF-8 <artifact> <text>"
-  log "entered_value_occurrences=$VALUE_HITS"
-  log "value = \`Müller\` (synthetic fixture content entered by the journey)"
-  log "umlaut_replaced_by_question_mark=$MANGLED_UMLAUTS"
-  log "extracted_text_lines=$(wc -l <"$RUN_DIR/artifact.txt")"
-  log "matched_lines:"
-  log "$VALUE_MATCHES"
-} >"$RUN_DIR/poppler-pdftotext.txt"
+# The test prints the rectangle the export layout actually targets as plain
+# numbers (`T334_FIELD_RECT`). Convention: display space - origin at the page's
+# top-left corner, x to the right, y downwards, unit = PDF point (1/72 in). That
+# is the same origin and direction Poppler's `pdftotext -bbox` reports, so the
+# comparison below needs no axis flip; the half-page check inside the loop
+# catches a different convention instead of reporting a silent number.
+RECT_LINE="$(grep -oE 'T334_FIELD_RECT:PAGE=[0-9]+:X_MPT=-?[0-9]+:Y_MPT=-?[0-9]+:W_MPT=-?[0-9]+:H_MPT=-?[0-9]+' "$LOG" | tail -1)"
+[[ -n "$RECT_LINE" ]] ||
+  fail "the integration log carries no T334_FIELD_RECT marker; the placement measurement cannot be attributed"
+RECT_PAGE="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:PAGE=([0-9]+):.*/\1/')"
+RECT_X_MPT="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:X_MPT=(-?[0-9]+):.*/\1/')"
+RECT_Y_MPT="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:Y_MPT=(-?[0-9]+):.*/\1/')"
+RECT_W_MPT="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:W_MPT=(-?[0-9]+):.*/\1/')"
+RECT_H_MPT="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:H_MPT=(-?[0-9]+):.*/\1/')"
 
-ACROFORM_HITS="$(LC_ALL=C grep -a -o -F '/AcroForm' "$RUN_DIR/export-artifact.pdf" | wc -l)"
-ACROFORM_GREP_EXIT=$?
-# Exit 1 (no match) is the target, exit 0 means the marker is there, and a status
-# above 1 is a grep tool failure: `wc -l` reports 0 hits for an unreadable file,
-# so the status has to be read separately from the count.
-{
-  log "command=LC_ALL=C grep -a -o -F '/AcroForm' <artifact> | wc -l"
-  log "acroform_grep_exit=$ACROFORM_GREP_EXIT (0=hits, 1=no match, >=2=tool error)"
-  log "acroform_byte_occurrences=$ACROFORM_HITS"
-  log "note=byte-level search only; this is not a structural PDF analysis"
-} >"$RUN_DIR/artifact-bytes-acroform.txt"
-[[ "$ACROFORM_GREP_EXIT" -le 1 ]] ||
-  fail "the /AcroForm byte search failed with exit $ACROFORM_GREP_EXIT"
-[[ "$ACROFORM_HITS" -eq 0 ]] ||
-  fail "the artifact carries $ACROFORM_HITS /AcroForm byte occurrences"
+PLACEMENT_VERDICT="WITHIN_1MM"
+PLACEMENT_REASON=""
+
+for PICKUP_INDEX in $(seq 1 "$ARTIFACT_COUNT"); do
+  PICKUP_FILE="$RUN_DIR/export-artifact-$PICKUP_INDEX.pdf"
+  ARTIFACT_TEXT="$RUN_DIR/artifact-$PICKUP_INDEX.txt"
+
+  # --- pdfinfo: page count and page size against the source ---------------
+  pdfinfo "$PICKUP_FILE" >"$RUN_DIR/pdfinfo-artifact-$PICKUP_INDEX.txt" 2>&1 ||
+    fail "pdfinfo failed on picked-up artifact $PICKUP_INDEX"
+  ARTIFACT_PAGES="$(awk '/^Pages:/ {print $2}' "$RUN_DIR/pdfinfo-artifact-$PICKUP_INDEX.txt")"
+  ARTIFACT_PAGE_SIZE="$(awk '/^Page size:/ {sub(/^Page size:[[:space:]]*/, ""); print}' "$RUN_DIR/pdfinfo-artifact-$PICKUP_INDEX.txt")"
+  [[ "$ARTIFACT_PAGES" == "$EXPECTED_PAGE_COUNT" ]] ||
+    fail "artifact $PICKUP_INDEX page count $ARTIFACT_PAGES != $EXPECTED_PAGE_COUNT"
+  [[ "$ARTIFACT_PAGE_SIZE" == "$SOURCE_PAGE_SIZE" ]] ||
+    fail "artifact $PICKUP_INDEX page size '$ARTIFACT_PAGE_SIZE' != source page size '$SOURCE_PAGE_SIZE'"
+  {
+    log "index=$PICKUP_INDEX"
+    log "command=pdfinfo $(host_relative "$APP/assets/fixtures/$FIXTURE")"
+    cat "$RUN_DIR/pdfinfo-source.txt"
+    log "command=pdfinfo <artifact-$PICKUP_INDEX>"
+    cat "$RUN_DIR/pdfinfo-artifact-$PICKUP_INDEX.txt"
+    log "pages: source=$SOURCE_PAGES artifact=$ARTIFACT_PAGES (expected=$EXPECTED_PAGE_COUNT)"
+    log "page_size: source=$SOURCE_PAGE_SIZE artifact=$ARTIFACT_PAGE_SIZE (must match)"
+  } >"$RUN_DIR/artifact-$PICKUP_INDEX-pdfinfo.txt"
+
+  # --- the entered value in the extracted text ----------------------------
+  pdftotext -enc UTF-8 "$PICKUP_FILE" "$ARTIFACT_TEXT" ||
+    fail "pdftotext failed on picked-up artifact $PICKUP_INDEX"
+  # Exit 1 (no match) is a real answer, exit 2 (tool error) is a `fail`: the
+  # entered value and the encoded umlaut are both read from the same extraction.
+  VALUE_MATCHES="$(grep -n -F "$EXPECTED_VALUE" "$ARTIFACT_TEXT")"
+  VALUE_GREP_EXIT=$?
+  [[ "$VALUE_GREP_EXIT" -le 1 ]] ||
+    fail "the entered-value grep failed with exit $VALUE_GREP_EXIT"
+  VALUE_HITS="$(printf '%s\n' "$VALUE_MATCHES" | sed '/^$/d' | wc -l)"
+  [[ "$VALUE_HITS" -ge 1 ]] ||
+    fail "the entered value is not present in the extracted text of artifact $PICKUP_INDEX"
+  MANGLED_UMLAUTS="$(grep -c -F "M?ller" "$ARTIFACT_TEXT")"
+  MANGLED_GREP_EXIT=$?
+  [[ "$MANGLED_GREP_EXIT" -le 1 ]] ||
+    fail "the mangled-umlaut grep failed with exit $MANGLED_GREP_EXIT"
+  [[ "$MANGLED_UMLAUTS" -eq 0 ]] ||
+    fail "the extracted text of artifact $PICKUP_INDEX carries 'M?ller': the umlaut was not encoded"
+  {
+    log "index=$PICKUP_INDEX"
+    log "command=pdftotext -enc UTF-8 <artifact-$PICKUP_INDEX> <text>"
+    log "entered_value_occurrences=$VALUE_HITS"
+    log "value = \`Müller\` (synthetic fixture content entered by the journey)"
+    log "umlaut_replaced_by_question_mark=$MANGLED_UMLAUTS"
+    log "extracted_text_lines=$(wc -l <"$ARTIFACT_TEXT")"
+    log "matched_lines:"
+    log "$VALUE_MATCHES"
+  } >"$RUN_DIR/artifact-$PICKUP_INDEX-pdftotext.txt"
+
+  # --- /AcroForm byte search ----------------------------------------------
+  ACROFORM_HITS="$(LC_ALL=C grep -a -o -F '/AcroForm' "$PICKUP_FILE" | wc -l)"
+  ACROFORM_GREP_EXIT=$?
+  # Exit 1 (no match) is the target, exit 0 means the marker is there, and a
+  # status above 1 is a grep tool failure: `wc -l` reports 0 hits for an
+  # unreadable file, so the status has to be read separately from the count.
+  {
+    log "index=$PICKUP_INDEX"
+    log "command=LC_ALL=C grep -a -o -F '/AcroForm' <artifact-$PICKUP_INDEX> | wc -l"
+    log "acroform_grep_exit=$ACROFORM_GREP_EXIT (0=hits, 1=no match, >=2=tool error)"
+    log "acroform_byte_occurrences=$ACROFORM_HITS"
+    log "note=byte-level search only; this is not a structural PDF analysis"
+  } >"$RUN_DIR/artifact-$PICKUP_INDEX-acroform.txt"
+  [[ "$ACROFORM_GREP_EXIT" -le 1 ]] ||
+    fail "the /AcroForm byte search failed with exit $ACROFORM_GREP_EXIT on artifact $PICKUP_INDEX"
+  [[ "$ACROFORM_HITS" -eq 0 ]] ||
+    fail "artifact $PICKUP_INDEX carries $ACROFORM_HITS /AcroForm byte occurrences"
+
+  # --- 1 mm placement measurement (`pdftotext -bbox`) ---------------------
+  # The word element of the entered value on the marked page is matched by its
+  # attributes, not by a text search: exactly one match is required, otherwise
+  # the position is not attributable and the 1 mm claim stays NOT proven.
+  BBOX_XML="$RUN_DIR/artifact-bbox-$PICKUP_INDEX.xml"
+  pdftotext -bbox -f "$RECT_PAGE" -l "$RECT_PAGE" "$PICKUP_FILE" "$BBOX_XML" ||
+    fail "pdftotext -bbox failed on picked-up artifact $PICKUP_INDEX"
+  BBOX_MATCHES="$(grep -oE "<word xMin=\"[0-9.]+\" yMin=\"[0-9.]+\" xMax=\"[0-9.]+\" yMax=\"[0-9.]+\">$EXPECTED_VALUE</word>" "$BBOX_XML")"
+  BBOX_GREP_EXIT=$?
+  [[ "$BBOX_GREP_EXIT" -le 1 ]] ||
+    fail "the -bbox word grep failed with exit $BBOX_GREP_EXIT"
+  BBOX_HITS="$(printf '%s\n' "$BBOX_MATCHES" | sed '/^$/d' | wc -l)"
+  PAGE_HEIGHT_PT="$(awk '/^Page size:/ {print $5}' "$RUN_DIR/pdfinfo-artifact-$PICKUP_INDEX.txt")"
+  {
+    log "index=$PICKUP_INDEX"
+    log "command=pdftotext -bbox -f $RECT_PAGE -l $RECT_PAGE <artifact-$PICKUP_INDEX> <xml>"
+    log "field_rect_marker=$RECT_LINE"
+    log "axis_convention=display space; origin at the page's top-left corner, x to the right, y downwards; Poppler -bbox reports the same origin and direction, so no flip is applied"
+    log "page_height_pt=$PAGE_HEIGHT_PT"
+    log "page=$RECT_PAGE value_word_matches=$BBOX_HITS"
+  } >"$RUN_DIR/artifact-$PICKUP_INDEX-placement.txt"
+  if [[ "$BBOX_HITS" -ne 1 ]]; then
+    LOCAL_REASON="artifact $PICKUP_INDEX: $BBOX_HITS word matches for the entered value on page $RECT_PAGE (exactly one is required)"
+    VERDICT="NOT_PROVEN"
+  else
+    read -r BBOX_XMIN BBOX_YMIN BBOX_XMAX BBOX_YMAX <<<"$(printf '%s\n' "$BBOX_MATCHES" | sed -E 's/.*xMin="([0-9.]+)" yMin="([0-9.]+)" xMax="([0-9.]+)" yMax="([0-9.]+)".*/\1 \2 \3 \4/')"
+    read -r RECT_X_PT RECT_Y_PT RECT_W_PT RECT_H_PT RECT_CX_PT RECT_CY_PT \
+      DEVIATION_X_PT DEVIATION_Y_PT <<<"$(awk -v rx="$RECT_X_MPT" -v ry="$RECT_Y_MPT" -v rw="$RECT_W_MPT" -v rh="$RECT_H_MPT" \
+      -v xmin="$BBOX_XMIN" -v ymin="$BBOX_YMIN" -v xmax="$BBOX_XMAX" -v ymax="$BBOX_YMAX" 'BEGIN {
+        rx = rx / 1000; ry = ry / 1000; rw = rw / 1000; rh = rh / 1000;
+        rcx = rx + rw / 2; rcy = ry + rh / 2;
+        bcx = (xmin + xmax) / 2; bcy = (ymin + ymax) / 2;
+        printf "%.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n", rx, ry, rw, rh, rcx, rcy, bcx - rcx, bcy - rcy;
+      }')"
+    read -r BBOX_CX_PT BBOX_CY_PT <<<"$(awk -v xmin="$BBOX_XMIN" -v ymin="$BBOX_YMIN" -v xmax="$BBOX_XMAX" -v ymax="$BBOX_YMAX" 'BEGIN {
+      printf "%.3f %.3f\n", (xmin + xmax) / 2, (ymin + ymax) / 2;
+    }')"
+    WITHIN="$(awk -v dx="$DEVIATION_X_PT" -v dy="$DEVIATION_Y_PT" -v tol="$PLACEMENT_TOLERANCE_PT" 'BEGIN {
+      ax = dx < 0 ? -dx : dx; ay = dy < 0 ? -dy : dy;
+      print (ax <= tol && ay <= tol) ? 1 : 0;
+    }')"
+    AXIS_OK="$(awk -v rect_cy="$RECT_CY_PT" -v bbox_cy="$BBOX_CY_PT" -v height="$PAGE_HEIGHT_PT" 'BEGIN {
+      if (height <= 0) { print 0; exit }
+      if ((rect_cy < height / 2 && bbox_cy > height / 2) || (rect_cy > height / 2 && bbox_cy < height / 2)) { print 0; exit }
+      print 1;
+    }')"
+    if [[ "$AXIS_OK" != "1" ]]; then
+      LOCAL_REASON="artifact $PICKUP_INDEX: the field rect and the extracted word lie on opposite page halves, so the y-axis convention is not attributable"
+      VERDICT="NOT_PROVEN"
+    elif [[ "$WITHIN" != "1" ]]; then
+      LOCAL_REASON="artifact $PICKUP_INDEX: centre deviation dx=${DEVIATION_X_PT} pt / dy=${DEVIATION_Y_PT} pt exceeds $PLACEMENT_TOLERANCE_PT pt"
+      VERDICT="NOT_PROVEN"
+    else
+      LOCAL_REASON="none"
+      VERDICT="WITHIN_1MM"
+    fi
+    {
+      log "rect_pt=$RECT_X_PT,$RECT_Y_PT,$RECT_W_PT,$RECT_H_PT"
+      log "rect_center_pt=$RECT_CX_PT,$RECT_CY_PT"
+      log "value_bbox_pt=$BBOX_XMIN,$BBOX_YMIN,$BBOX_XMAX,$BBOX_YMAX"
+      log "value_bbox_center_pt=$BBOX_CX_PT,$BBOX_CY_PT"
+      log "deviation_pt=dx=$DEVIATION_X_PT,dy=$DEVIATION_Y_PT"
+      log "tolerance_pt=$PLACEMENT_TOLERANCE_PT"
+      log "axis_convention_check=$([[ "$AXIS_OK" == "1" ]] && printf 'consistent' || printf 'inconclusive')"
+      log "verdict=$VERDICT"
+      log "reason=$LOCAL_REASON"
+    } >>"$RUN_DIR/artifact-$PICKUP_INDEX-placement.txt"
+  fi
+  if [[ "$VERDICT" != "WITHIN_1MM" ]]; then
+    {
+      log "deviation_pt=<not attributed>"
+      log "tolerance_pt=$PLACEMENT_TOLERANCE_PT"
+      log "verdict=$VERDICT"
+      log "reason=$LOCAL_REASON"
+    } >>"$RUN_DIR/artifact-$PICKUP_INDEX-placement.txt"
+    PLACEMENT_VERDICT="NOT_PROVEN"
+    PLACEMENT_REASON="${PLACEMENT_REASON}${LOCAL_REASON}; "
+  fi
+done
+
+log "T334 DRIVER: 1 mm placement measurement: verdict=$PLACEMENT_VERDICT"
+if [[ "$PLACEMENT_VERDICT" == "WITHIN_1MM" ]]; then
+  log "T334 DRIVER: both artifacts place the drawn value within $PLACEMENT_TOLERANCE_PT pt of the field rect centre"
+else
+  log "T334 DRIVER: the 1 mm placement claim is NOT proven: $PLACEMENT_REASON"
+fi
 
 # --- 9. Evidence -------------------------------------------------------------
 # A missing APK is a build/tool failure, never an empty digest file: with
@@ -863,9 +1020,17 @@ if [[ "$PRIVACY_PASS" -eq 1 ]]; then
   collect_evidence
   scan_evidence_home_paths ||
     fail "the evidence home-path scan did not come back clean; no result was written"
-  record "PASS (flutter test exit 0; cleanup marker observed; artifact picked up; poppler proof; static gates clean; privacy checks PASS)"
-  printf 'result=PASS\nflutter_test_exit=0\nartifact_sha256=%s\nartifact_bytes=%s\n' \
-    "$SNAPSHOT_SHA" "$HOST_ARTIFACT_SIZE" >"$RUN_DIR/run-status.txt"
+  record "PASS (flutter test exit 0; cleanup marker observed; two artifacts picked up with matching digests; poppler proof for both; static gates clean; privacy checks PASS; 1 mm placement claim $PLACEMENT_VERDICT)"
+  {
+    printf 'result=PASS\nflutter_test_exit=0\n'
+    printf 'artifact_1_sha256=%s\nartifact_1_bytes=%s\n' \
+      "${HOST_SHA_BY_INDEX[1]}" "${HOST_SIZE_BY_INDEX[1]}"
+    printf 'artifact_2_sha256=%s\nartifact_2_bytes=%s\n' \
+      "${HOST_SHA_BY_INDEX[2]}" "${HOST_SIZE_BY_INDEX[2]}"
+    printf 'placement_verdict=%s\n' "$PLACEMENT_VERDICT"
+    printf 'placement_tolerance_pt=%s\n' "$PLACEMENT_TOLERANCE_PT"
+    printf 'placement_reason=%s\n' "${PLACEMENT_REASON:-none}"
+  } >"$RUN_DIR/run-status.txt"
   collect_evidence
   # run-status.txt and the final marker sequence are copied by the second
   # collection; if the scan now fails, the fixation is retracted before exit.
