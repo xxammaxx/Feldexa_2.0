@@ -1,0 +1,7 @@
+serial=emulator-5554
+emulator_serials=emulator-5554
+all_attached_transports_count=1
+emulator_transports=1
+non_emulator_transports=0
+addressed_serial=emulator-5554
+non_emulator_transports_addressed=none
