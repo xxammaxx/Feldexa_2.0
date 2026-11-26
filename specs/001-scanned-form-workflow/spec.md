@@ -398,7 +398,8 @@ results are reported separately from Android results.
   the same cell MUST be surfaced rather than silently merged.
 - **Pre-filled scanned forms**: Printed values already in the scan MUST be treated as
   uneditable page content; the app MUST NOT claim to edit or remove them, and MUST allow
-  overlaying values where the user needs to.
+  overlaying values where the user needs to. The export behaviour is normative in FR-111 and SC-023
+  (Owner Decision Q1=A, 2026-11-26).
 - **Labels above or beside fields**: Labels MUST be used to infer field identity and MUST NOT
   themselves become fields.
 - **Conflicting or overlapping suggestions**: Both candidates MUST remain visible and
@@ -676,7 +677,10 @@ results are reported separately from Android results.
 - **FR-099**: Users MUST be able to delete a stored document or template from that list, after a
   German confirmation that names the item and states what will be removed.
 - **FR-100**: The list MUST remain usable for a device holding at least 50 stored documents and
-  templates without requiring search or filtering to reach an item.
+  templates without requiring search or filtering to reach an item. With 50 stored entries the
+  list MUST open to its first frame within 500 ms in the host widget test, MUST use lazy viewport
+  rendering, and MUST keep every entry reachable by scrolling without pagination
+  (ratified 2026-11-26, OD-4 / Q10=A; host evidence only, not a device performance claim).
 
 **Template editing and versions**
 
@@ -702,6 +706,11 @@ results are reported separately from Android results.
   but MUST NOT be the only input method.
 - **FR-110**: When the user reclassifies a date field as text, it MUST accept free text without
   date validation.
+- **FR-111**: When the user enters a value into a field whose area overlaps content already
+  printed in the scan, the export MUST place the value at the field position and MUST leave the
+  printed content unaltered, unmasked, and unremoved. The editor MUST show the overlap before
+  export so the user can decide whether the printed content still reads correctly (closed the
+  former spec gap under Owner Decision Q1=A, 2026-11-26).
 
 ### Key Entities
 
@@ -750,7 +759,8 @@ results are reported separately from Android results.
   after the user's review.
 - **SC-004**: A typical single A4 page is analyzed within 3 seconds (median) on a named
   representative Android device, with device characteristics, build type, and input document
-  recorded with the result.
+  recorded with the result. Under Owner Decision Q3=B (2026-11-26) an owner-approved equivalent
+  device MAY be used when a written equivalence rule is recorded with the result.
 - **SC-005**: Every form in the reference corpus can be completed end to end and produces a
   flattened PDF that opens, renders, and prints in at least two independent PDF readers with no
   missing, reordered, or visually altered pages.
@@ -792,6 +802,8 @@ results are reported separately from Android results.
   version.
 - **SC-022**: In 100% of invalid-date trials, the value is rejected with a German message and no
   impossible date can be stored or exported.
+- **SC-023**: In every export trial with a value over pre-filled printed content, the value is
+  placed at the field position and the printed page content is byte-preserved (FR-111).
 
 ## Evidence and Verification Rules
 
@@ -839,6 +851,10 @@ because the project produces evidence in several different environments.
   submissions. The user is informed of unfilled fields before export.
 - Pre-filled values already printed in a scanned form remain part of the page image and cannot be
   edited or removed by the app.
+  Values the user enters may be placed over them; FR-111 and SC-023 define that export behaviour.
+- Placement tolerance is 1.00 mm centre deviation for the measurement in T109/T344. A nominal
+  font ascent may extend up to 0.61 mm above the field rectangle; the owner accepted this on
+  2026-11-26 (#346, Q3=B), and it does not change the 1.00 mm measurement tolerance.
 - Documents are stored on the device only. There is no account, sync, or server component in this
   feature.
 - The app is single-user per device; concurrent editing of the same document by multiple users is

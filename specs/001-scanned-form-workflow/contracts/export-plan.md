@@ -197,14 +197,14 @@ Every op carries `provenance` (`machine | user | template`) so recognition prove
 
 ### 3.4 Empty fields and unresolved suggestions
 
-> **Provisional pending owner decision OD-1.** The unresolved-suggestion behavior below is the
-> documented **provisional implementation behavior only**. FR-025 remains binding: the system must
-> visibly surface overlapping or conflicting suggestions and must require the user to resolve them.
-> No task or test may treat the non-blocking behavior as the settled export policy. The empty-field
-> statement is not provisional: empty fields do not block export.
+> **Ratified 2026-11-26 by Owner Decision Q1=A** (review M4). Unresolved overlapping suggestions
+> are excluded from the artifact and counted; the user is warned before export and is never
+> blocked by them. FR-025 remains binding during review: overlapping or conflicting suggestions
+> are surfaced and must be resolved by the user before filling. Empty confirmed fields never
+> block export.
 
 - Empty confirmed fields are allowed. `info.emptyFieldCount` is shown to the user before export ("N Felder sind noch leer") but does not block (spec assumption).
-- Unresolved suggestions are **provisionally** excluded from the artifact and counted in `info.unresolvedSuggestionCount`; under the current provisional implementation the user is warned before export and is not blocked. This is not a settled policy (OD-1); FR-025 governs until the owner decides.
+- Unresolved suggestions are excluded from the artifact and counted in `info.unresolvedSuggestionCount`; the user is warned before export and is not blocked (ratified Q1=A, 2026-11-26). FR-025 still governs review, not export gating.
 - Rejected suggestions and rejected fields never appear.
 - Pages marked unreadable are still imported byte-for-byte. If the applier cannot copy such a page, the export is **blocked** with `EXP-006` naming the page; a page is never silently dropped, replaced, or re-rendered (FR-010, spec edge case "Missing or unreadable pages").
 
