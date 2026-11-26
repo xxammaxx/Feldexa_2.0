@@ -5,6 +5,7 @@
 - **Generation date**: 2026-11-12 (fixed for byte reproducibility)
 - **Evidence class**: `SIMULATED` development input only
 - **Repository**: `xxammaxx/Feldexa_2.0`
+- **AcroForm reference fixture**: `sf-acroform-001.pdf` (1424 bytes, SHA-256 `7f4e0144…2af9a`) is registered in `catalog-acroform.json` in this directory, deliberately not in `catalog.json`; that register carries its rights, personal-data, and determinism record (issue #344 part B, FR-069).
 
 ## Rights statement
 

@@ -11,6 +11,61 @@ Wrapper).
 (finaler Lauf; der Vorlauf-Bundle `…/2026-11-26-t344-acroform/` bleibt
 unverändert und wird unten dort zitiert, wo er eine Aussage trägt).
 
+## Run-Bindung
+
+Der Lauf ist an genau einen Commit gebunden. Quelle: `git-identity.txt` im
+Evidenzbundle, wörtlich:
+
+```
+head=0e8a16431fe074c0e4fbde59f672e45e02f929b1
+tree=3477ac27bca1c02de333958e6990bd264556e309
+branch=xxammaxx/t344-acroform-fixture
+subject=test(e2e): delegate the 1 mm placement verdict to tools/pdf_verify/placement.py (#344 B)
+status_porcelain:
+test_sha256=350802c1aa3d8928c7237d4b4ebf95cae0a13c60398eb4bb5fa9ec3d03311c7a
+driver_sha256=ee66b73e8fa45f045e0d1d865185d52100df644e84f5a925c41a490ac12897df
+flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
+```
+
+- `head`/`tree`/`subject`: der Stand, auf dem der Treiber lief;
+  `status_porcelain` war dabei leer.
+- `driver_sha256`: SHA-256 von `tools/android/t334_drive_export.sh`.
+- `test_sha256`: SHA-256 von
+  `apps/feldexa_app/integration_test/android_export_test.dart`.
+- Beide Digests sind gegen `head` nachgerechnet
+  (`git show 0e8a164:<pfad> | sha256sum`) und stimmen. Jede spätere Änderung an
+  einer der beiden Dateien entkoppelt den Lauf von diesem Commit.
+- Flutter: 3.47.7, channel stable.
+
+Evidenzbundle:
+`specs/001-scanned-form-workflow/reports/artifacts/2026-11-26-t344-acroform-final/`
+(39 Dateien: die 37 des Treiberlaufs plus `gate-generate-check.txt` und
+`gate-acroform-register-test.txt` aus dem Nachtrag dieses Reports; der
+Vorlauf-Bundle `…/2026-11-26-t344-acroform/` mit 37 Dateien bleibt
+byte-identisch).
+
+Geänderte und neue Dateien des Slices (Basis `cc37254` … `e1d9000`):
+
+```
+M  apps/feldexa_app/assets/fixtures/README.md
+A  apps/feldexa_app/assets/fixtures/catalog-acroform.json
+A  apps/feldexa_app/assets/fixtures/sf-acroform-001.pdf
+M  apps/feldexa_app/integration_test/android_export_test.dart
+A  apps/feldexa_app/test/acroform_fixture_catalog_test.dart
+A  apps/feldexa_app/web/fixtures/sf-acroform-001.pdf
+A  specs/001-scanned-form-workflow/reports/2026-11-26-t344-acroform-flattening.md
+A  specs/…/artifacts/2026-11-26-t344-acroform/ (Vorlauf-Bundle, 37 Dateien)
+A  specs/…/artifacts/2026-11-26-t344-acroform-final/ (finaler Bundle, 39 Dateien)
+M  tools/android/t334_drive_export.sh
+A  tools/corpus/synthetic/make_acroform_fixture.py
+A  tools/corpus/synthetic/sf-acroform-001.pdf
+```
+
+Der Treiberlauf selbst lief auf `0e8a164`; dieser Commit ändert ausschließlich
+`tools/android/t334_drive_export.sh` (+127/−112). `e1d9000` fügt den finalen
+Bundle und die Report-Fassung hinzu, ohne Treiber und Test anzufassen — darum
+bleiben `driver_sha256` und `test_sha256` über beide Commits gleich.
+
 ## Warum
 
 Punkt 2 von #344: `noInteractiveFields` war bisher nur über eine Byte-Suche und
@@ -76,14 +131,49 @@ Generatorpfads, strukturelle Marker (`/AcroForm`, `/Subtype /Widget`,
 `/FT /Tx`), Seitenzahl/MediaBox — und dass die ID **nicht** im generierten
 Katalog steht. Damit ist stille Drift rot statt unbemerkt.
 
-Gegenprobe nach der Änderung: `generate.dart --check` meldet weiter
-`OK all 37 generated files are byte-for-byte current`, der neue Unit-Test 5/5
-grün, `flutter analyze --no-pub` „No issues found!".
+### Gegenprobe nach der Änderung (belegt)
+
+`generate.dart --check` meldet weiter `OK all 37 generated files are
+byte-for-byte current` — **37**, nicht die 31, die in
+`tools/corpus/synthetic/README.md` stand; die Zahl dort ist in diesem Nachtrag
+auf die tatsächliche korrigiert. Der neue Unit-Test ist 5/5 grün,
+`flutter analyze --no-pub` meldet „No issues found!" (`gate-analyze.txt`).
+
+Beide Kommandos sind im Evidenzbundle abgelegt; sie liefen durch
+`compute_slot.py --wait --resource build --resource io` (kein Emulator, kein
+Gradle). Die Dateien beginnen mit den `compute_slot`-JSON-Zeilen
+(`ACQUIRED`/`SETTLED`, exit 0); zitiert ist jeweils die Werkzeugausgabe.
+Wörtlich, `gate-generate-check.txt`
+(`dart run tools/corpus/synthetic/generate.dart --check`, exit 0):
+
+```
+OK all 37 generated files are byte-for-byte current (catalog sha256 b26ed212f1ceefd3e07da0f739f7c09833a5fe00816e88f10693ddce639edcbc)
+```
+
+Wörtlich, `gate-acroform-register-test.txt`
+(`flutter test --no-pub test/acroform_fixture_catalog_test.dart`, exit 0; die
+Zahl hinter `+` ist die Anzahl der abgeschlossenen Tests):
+
+```
+00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t344-acroform-fixture/apps/feldexa_app/test/acroform_fixture_catalog_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: the request is synthetic, deterministic, and has no personal data
+00:00 +1: the register holds exactly the AcroForm reference fixture
+00:00 +2: the fixture is deliberately not part of the generated catalogue
+00:00 +3: every entry pins its committed bytes, paths, and generator
+00:00 +4: the fixture really carries the AcroForm the flattening proof needs
+00:00 +5: (tearDownAll)
+00:00 +5: All tests passed!
+```
+
+Die frühere Fassung dieses Absatzes behauptete beides ohne Beleg im Bundle
+(Review A P2-1); die Behauptungen stimmen mit der wörtlichen Ausgabe überein.
 
 ## Dritter Beleg-Leg im Integrationstest
 
 `apps/feldexa_app/integration_test/android_export_test.dart`, Leg 3 (die Legs 1
-und 2 bleiben inhaltlich unverändert):
+und 2 bleiben unverändert grün, Assertions verschärft: der gemeinsame
+Byte-Assert-Helfer greift jetzt für alle Legs):
 
 1. `sf-acroform-001.pdf` wird über den Debug-Hook `de.feldexa/test.import`
    armiert und über die produktive Import-Aktion importiert; Analyse bis zum
@@ -99,7 +189,9 @@ und 2 bleiben inhaltlich unverändert):
    `/AcroForm`, kein `/Widget`, kein `/FT /Tx`. Die drei Marker werden jetzt für
    **alle** Artefakte geprüft (einheitlich, ohne Sonderfall).
 
-Markersequenz des Legs (Auszug aus `markers-integration.txt`):
+Markersequenz des Legs (Auszug aus
+`specs/001-scanned-form-workflow/reports/artifacts/2026-11-26-t344-acroform-final/markers-integration.txt`,
+dem finalen Bundle; die Werte sind die des Laufs auf `0e8a164`):
 
 ```
 T334_ACROFORM_FIXTURE_READY:BYTES=1424:MATCH=1
@@ -108,7 +200,7 @@ T334_ACROFORM_FIXTURE_ARMED
 T334_ACROFORM_EDITOR_READY
 T334_ACROFORM_ANALYSIS_READY:PAGES=1:FIELDS=0
 T334_ARTIFACT_FIELD_TOKENS:INDEX=3:ACROFORM=0:WIDGET=0:FT_TX=0
-T334_ARTIFACT_STORED:INDEX=3:PATH=/data/user/0/de.feldexa.app/code_cache/e2e/export-artifact-3.pdf:BYTES=2388:SHA256=3b5360dccb0a970863062649581e304fce558a51ea9b1165f92ddb9478c147cb
+T334_ARTIFACT_STORED:INDEX=3:PATH=/data/user/0/de.feldexa.app/code_cache/e2e/export-artifact-3.pdf:BYTES=2388:SHA256=749097023e1cf38fa855f40bf8c10359d5f744107a36a5bd91ca76960b42a91e
 T334_HOST_PICKUP_ACKED:INDEX=3
 T334_ARTIFACT_DELETED_AFTER_PREVIEW_CLOSE:INDEX=3:CODE=EXP-002
 T334_ACROFORM_FLATTENING_PROVEN
@@ -280,3 +372,21 @@ und (im Vorlauf-Bundle) der identischen `-bbox`-Position.
   Wert gezeichnet.
 - Der Lauf beweist die Flattening-Kette auf `EMULATOR`; eine Aussage über
   physische Endgeräte ist damit nicht verbunden.
+- **Offen (Review A P3-2)**: die Zeile `form: source=… artifact=…` in
+  `artifact-N-pdfinfo.txt` leitet den Quellwert indexbasiert ab
+  (`tools/android/t334_drive_export.sh:999`:
+  `[[ "$PICKUP_INDEX" -eq 3 ]] && printf "AcroForm" || printf "none"`) statt
+  aus dem für dasselbe Artefakt bereits aufgezeichneten
+  `SOURCE_INFO` (`:967`). Im Lauf ist die Ausgabe korrekt
+  (`artifact-3-pdfinfo.txt`: `form: source=AcroForm artifact=none`), die
+  behauptete Quellform ist aber nicht aus der gemessenen `pdfinfo`-Ausgabe der
+  Quelle abgeleitet, sondern aus dem Leg-Index gesetzt — bei einem künftig
+  falsch zugeordneten Fixture würde die Zeile weiter „AcroForm" behaupten.
+  Nicht in diesem Slice behoben: die Korrektur ändert
+  `tools/android/t334_drive_export.sh` und damit `driver_sha256=ee66b73e…`,
+  was die Run-Bindung dieses Belegs entkoppeln würde. Sie gehört in den
+  nächsten ohnehin fälligen Treiberlauf.
+- **Offen (Review A P3-6)**: das Format-Gate deckt nur `apps/feldexa_app`, nicht
+  `packages apps`. Auch das ist eine Gate-Erweiterung außerhalb dieses Slice
+  (kein Produktbefund, aber eine Lücke in der statischen Abdeckung) und wird im
+  nächsten Treiberlauf mitgenommen.
