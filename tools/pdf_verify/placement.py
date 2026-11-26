@@ -16,9 +16,14 @@ same place on the page.
 Target quantity: the origin the layout code puts that value at. The numbers are
 read from their normative sources at run time, never typed in:
 
+* ``apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export/``
+  ``ExportPlanValidation.kt`` — ``TEXT_PADDING_PT`` (1.5 pt), the padding of the
+  code that actually draws the value (``PdfExportService`` takes it from
+  ``ExportPlanValidator``);
 * ``packages/feldexa_export/lib/src/layout.dart`` — ``exportFieldPaddingPt``
-  (1.5 pt), ``_baselineAscenderFactor`` (0.8), ``_fontSizeHeightFactor`` (0.6),
-  the ``fontSizePt`` clamp (7.0 … 12.0);
+  (1.5 pt, the plan builder's own copy of that padding),
+  ``_baselineAscenderFactor`` (0.8), ``_fontSizeHeightFactor`` (0.6), the
+  ``fontSizePt`` clamp (7.0 … 12.0);
 * ``specs/001-scanned-form-workflow/contracts/export-plan.md`` §3.1 —
   "padding 1.5 pt on all sides", "vertical alignment: top, baseline
   ``= rect.y + baselineFromTopPt``", "horizontal alignment: left";
@@ -26,21 +31,39 @@ read from their normative sources at run time, never typed in:
   ``descender`` (-293), ``unitsPerEm`` (1000) of the bundled Noto Sans, needed
   only to place the baseline inside the box Poppler reports.
 
+The padding exists twice, as two independent constants in two languages, and
+neither is derived from the other. The horizontal target is therefore taken from
+the constant the drawing code uses, and the layout copy is read as well: if the
+two disagree, or either cannot be read, the tool refuses a verdict with exit 5,
+because a drifted applier constant would move the drawn value away from a target
+derived from the other copy while the deviation stayed inside the 1 mm tolerance.
+
 From those the tool computes
 
     fontSizePt = round(clamp(0.6 * rect.height, 7.0, 12.0), 1)
-    origin x   = rect.x + exportFieldPaddingPt
-    baseline y = rect.y + exportFieldPaddingPt + _baselineAscenderFactor * fontSizePt
+    origin x   = rect.x + TEXT_PADDING_PT                     (drawing code)
+    baseline y = rect.y + baselineFromTopPt                   (§3.1 op field)
+               = rect.y + exportFieldPaddingPt + _baselineAscenderFactor * fontSizePt
 
-Three independent points are reported, each with its number and its own
+Four named points are reported, each with its number and its own
 ``pass``/``fail``:
 
 1. ``horizontal_origin`` — measured glyph-box left edge against ``origin x``.
 2. ``vertical_baseline`` — measured baseline against ``baseline y``. Poppler
    reports the font's ascent/descent box, not the baseline, so the baseline is
-   approximated from both sides (``yMin + ascender``, ``yMax + descender``);
-   both approximations must stay within the tolerance. The spread between them
-   is reported so a reader can see how tight the approximation is.
+   an *inference*: it is reconstructed from the two reported box edges through
+   the font metrics (``yMin + ascender``, ``yMax + descender``) and is never
+   measured directly. Both reconstructions have to stay within the tolerance.
+   They are not independent evidence: the spread between them
+
+       from_descent - from_ascent = (yMax - yMin) + (descender - ascender)
+                                  = box height - font box height
+
+   is algebraically forced to zero as soon as the reported box height equals the
+   font box height, which is the case for the recorded artifact (``14.709600``
+   both ways). ``baseline_estimate_spread_pt`` is reported because a *non-zero*
+   spread diagnoses a box that is not the font's ascent/descent box; a zero
+   spread confirms nothing, so point 4 carries the assumption instead.
 3. ``containment`` — the reported glyph box against the field rect, left and
    right edge: the left-aligned value must start inside the rect and must not
    overrun its right edge. Vertically the same box is only reported, not judged:
@@ -50,13 +73,24 @@ Three independent points are reported, each with its number and its own
    = 10.14 pt at 10.8 pt against an ascent of 11.545 pt). The ascent edge of the
    font box therefore protrudes above the rect top for every value drawn with
    this formula — 1.405 pt at the recorded field — which is font geometry, not a
-   placement error. The tool prints both vertical overflows and the allowance it
-   derives, so the number is checkable and the judgement stays with the reader.
+   placement error. The tool prints both vertical overflows together with the
+   two numbers the allowance follows from
+   (``informational.ascent_above_baseline_pt`` and
+   ``informational.baseline_offset_from_rect_top_pt``), so the number is
+   checkable and the judgement stays with the reader.
+4. ``font_box.height`` — the reported box height against
+   ``(ascender - descender) * fontSizePt``. This is the check that carries the
+   font-metric assumption the baseline reconstruction of point 2 rests on: it
+   verifies that the ascent/descent pair read from ``metrics.json`` is the pair
+   the PDF's own font reports. It is read at the printer's resolution
+   (``BOX_HEIGHT_TOLERANCE_PT``), not at the 1 mm placement tolerance, because
+   it compares two computations of one font metric rather than two positions.
 
-The 1 mm verdict is ``PROVEN`` when points 1 and 2 pass, ``NOT_PROVEN``
-otherwise. Exit code 0 means every point passed, 1 means a point failed, and
-2 … 6 mean the tool refused to produce a verdict (usage error, word not found,
-ambiguous word match, unreadable input, Poppler failure).
+The 1 mm verdict is ``PROVEN`` when points 1 and 2 pass and point 4 confirms
+the font-metric basis of the baseline inference, ``NOT_PROVEN`` otherwise. Exit
+code 0 means every point passed (containment included), 1 means a point failed,
+and 2 … 6 mean the tool refused to produce a verdict (usage error, word not
+found, ambiguous word match, unreadable input, Poppler failure).
 
 Why a centre-to-centre comparison is invalid here
 -------------------------------------------------
@@ -82,6 +116,7 @@ artifact is the defect the metric carries, not the product's.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import re
@@ -105,9 +140,24 @@ DEFAULT_TOLERANCE_PT = round(MILLIMETER_PT, 3)
 #: absorbs representation noise so a deviation of exactly 2.835 pt passes.
 _COMPARISON_TOLERANCE_PT = 1e-9
 
+#: Tolerance of the ``font_box.height`` assumption check, in points. Poppler
+#: prints six decimals, so its rounding stays at or below 1e-6 pt; one design
+#: unit of the bundled font is 0.007 pt at the smallest allowed size (7 pt /
+#: 1000). A thousandth of a point sits between the two: it absorbs the reader's
+#: rounding and still catches a change of the ascent or descent by a single font
+#: unit. This is a resolution bound, not a placement tolerance.
+BOX_HEIGHT_TOLERANCE_PT = 0.001
+
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
-_DEFAULT_LAYOUT = Path("packages/feldexa_export/lib/src/layout.dart")
-_DEFAULT_FONT_METRICS = Path("apps/feldexa_app/assets/fonts/metrics.json")
+_DEFAULT_LAYOUT = _REPOSITORY_ROOT / "packages/feldexa_export/lib/src/layout.dart"
+_DEFAULT_APPLIER = (
+    _REPOSITORY_ROOT
+    / "apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export"
+    / "ExportPlanValidation.kt"
+)
+_DEFAULT_FONT_METRICS = (
+    _REPOSITORY_ROOT / "apps/feldexa_app/assets/fonts/metrics.json"
+)
 
 EXIT_OK = 0
 EXIT_CHECK_FAILED = 1
@@ -121,6 +171,13 @@ _FIELD_RECT_MARKER = re.compile(
     r"^T334_FIELD_RECT:PAGE=(?P<page>[0-9]+)"
     r":X_MPT=(?P<x>-?[0-9]+):Y_MPT=(?P<y>-?[0-9]+)"
     r":W_MPT=(?P<width>-?[0-9]+):H_MPT=(?P<height>-?[0-9]+)$"
+)
+
+#: `const val TEXT_PADDING_PT = 1.5` in the applier's `ExportPlanValidator`.
+_TEXT_PADDING = re.compile(
+    r"const\s+val\s+TEXT_PADDING_PT\s*(?::\s*Double)?\s*=\s*"
+    r"(-?[0-9]+(?:\.[0-9]+)?)\s*$",
+    re.MULTILINE,
 )
 
 
@@ -237,6 +294,7 @@ class PlacementReport:
     page: int
     field_rect: FieldRect
     layout: LayoutConstants
+    applier_padding_pt: float
     font: FontVerticalMetrics
     font_size_pt: float
     expected_origin_x_pt: float
@@ -248,6 +306,7 @@ class PlacementReport:
     horizontal: CheckPoint
     vertical: CheckPoint
     containment: CheckPoint
+    font_box_height: CheckPoint
     box_overflow_top_pt: float
     box_overflow_bottom_pt: float
     ascent_above_baseline_pt: float
@@ -260,6 +319,7 @@ class PlacementReport:
         return (
             self.horizontal.passed
             and self.vertical.passed
+            and self.font_box_height.passed
             and self.axes_consistent
         )
 
@@ -347,6 +407,45 @@ def read_layout_constants(path: Path) -> LayoutConstants:
     )
 
 
+def require_matching_padding(
+    layout_pt: float, applier_pt: float, layout_path: Path, applier_path: Path
+) -> None:
+    """Refuse when the two padding copies disagree.
+
+    `layout.dart` and the applier's `ExportPlanValidator` each carry the 1.5 pt
+    field padding as an independent constant, and nothing derives one from the
+    other. The horizontal target origin is the padding of the code that draws,
+    so a drifted layout copy would make the tool measure against the wrong
+    number without leaving the tolerance.
+    """
+    if abs(layout_pt - applier_pt) <= _COMPARISON_TOLERANCE_PT:
+        return
+    raise PlacementError(
+        EXIT_UNREADABLE_INPUT,
+        f"field padding differs: layout source {layout_path} declares "
+        f"{layout_pt} pt, applier source {applier_path} declares "
+        f"{applier_pt} pt; the target origin would be derived from a constant "
+        f"the drawing code does not use",
+    )
+
+
+def read_applier_padding_pt(path: Path) -> float:
+    """Read `TEXT_PADDING_PT` from the applier's `ExportPlanValidator`."""
+    try:
+        source = path.read_text(encoding="utf-8")
+    except OSError as error:
+        raise PlacementError(
+            EXIT_UNREADABLE_INPUT, f"cannot read applier source {path}: {error}"
+        ) from error
+    match = _TEXT_PADDING.search(source)
+    if match is None:
+        raise PlacementError(
+            EXIT_UNREADABLE_INPUT,
+            f"applier source {path} does not declare `const val TEXT_PADDING_PT`",
+        )
+    return float(match.group(1))
+
+
 def read_font_vertical_metrics(path: Path) -> FontVerticalMetrics:
     """Read the bundled regular font's vertical metrics from `metrics.json`."""
     try:
@@ -373,15 +472,21 @@ def font_size_pt(rect: FieldRect, layout: LayoutConstants) -> float:
     return round_to(clamped, 1)
 
 
-def expected_origin_x_pt(rect: FieldRect, layout: LayoutConstants) -> float:
-    """The left edge §3.1 draws the value at: `rect.x + padding`."""
-    return rect.x_pt + layout.field_padding_pt
+def expected_origin_x_pt(rect: FieldRect, applier_padding_pt: float) -> float:
+    """The left edge the drawing code uses: `rect.x + TEXT_PADDING_PT`."""
+    return rect.x_pt + applier_padding_pt
 
 
 def expected_baseline_y_pt(
     rect: FieldRect, layout: LayoutConstants, font_size: float
 ) -> float:
-    """The baseline §3.1 draws the value on: `rect.y + baselineFromTopPt`."""
+    """The baseline §3.1 draws the value on: `rect.y + baselineFromTopPt`.
+
+    `baselineFromTopPt` is built by the plan builder from the layout copy of the
+    padding (`layout.dart`), and the applier draws the baseline the op carries.
+    `require_matching_padding` guarantees both copies are the same number, so the
+    horizontal and the vertical target rest on the same 1.5 pt.
+    """
     return (
         rect.y_pt
         + layout.field_padding_pt
@@ -555,10 +660,14 @@ def check_vertical_baseline(
 ) -> tuple[CheckPoint, float, float]:
     """Compare the measured baseline with the contract baseline.
 
-    Poppler reports the font's ascent/descent box, so the baseline is bracketed
-    from both edges. Both approximations have to hold; the spread between them
-    says how well they agree. The reported deviation is the ascent-side one,
-    the tighter approximation for a text line.
+    Poppler reports the font's ascent/descent box, not the baseline, so the
+    baseline is reconstructed from both box edges through the font metrics.
+    Both reconstructions have to hold. They agree by construction as soon as the
+    box height equals the font box height (`from_descent - from_ascent` equals
+    the height difference), so the pair is not independent evidence; the
+    assumption they share is checked by [check_font_box_height]. The reported
+    deviation is the ascent-side one, the tighter reconstruction for a line of
+    text.
     """
     from_ascent = box.y_min_pt + font.ascender_pt(font_size)
     from_descent = box.y_max_pt + font.descender_pt(font_size)
@@ -584,6 +693,35 @@ def check_vertical_baseline(
     )
 
 
+def check_font_box_height(
+    box: GlyphBox, font: FontVerticalMetrics, font_size: float
+) -> CheckPoint:
+    """Check the reported box height against the font's ascent/descent height.
+
+    This is the check that carries the font-metric assumption of the baseline
+    reconstruction: it holds exactly when the ascent/descent pair the tool reads
+    from `metrics.json` is the pair the PDF's own font reports. It is read at
+    the printer's resolution (`BOX_HEIGHT_TOLERANCE_PT`) and not at the 1 mm
+    placement tolerance, because it compares two computations of one font metric
+    rather than two positions.
+    """
+    expected_pt = font.box_height_pt(font_size)
+    deviation = box.height_pt - expected_pt
+    return CheckPoint(
+        name="font_box.height",
+        measured_pt=box.height_pt,
+        target_pt=expected_pt,
+        deviation_pt=deviation,
+        tolerance_pt=BOX_HEIGHT_TOLERANCE_PT,
+        passed=abs(deviation) <= BOX_HEIGHT_TOLERANCE_PT + _COMPARISON_TOLERANCE_PT,
+        detail=(
+            "glyph box height against (ascender - descender) * fontSizePt, the "
+            "font-metric basis of the baseline reconstruction; resolution bound, "
+            "not the placement tolerance"
+        ),
+    )
+
+
 def check_containment(
     box: GlyphBox, rect: FieldRect
 ) -> tuple[CheckPoint, float, float]:
@@ -605,7 +743,8 @@ def check_containment(
         tolerance_pt=0.0,
         passed=worst <= _COMPARISON_TOLERANCE_PT,
         detail=(
-            "glyph box inside the field rect horizontally; outward overflow "
+            "glyph box inside the field rect horizontally, exact containment by "
+            "design (tolerance 0); outward overflow "
             f"left={left_overflow:.3f}, right={right_overflow:.3f} "
             "(positive means outside the rect)"
         ),
@@ -620,6 +759,7 @@ def evaluate(
     value_word: str,
     rect: FieldRect,
     layout: LayoutConstants,
+    applier_padding_pt: float,
     font: FontVerticalMetrics,
     tolerance_pt: float,
 ) -> PlacementReport:
@@ -628,12 +768,13 @@ def evaluate(
         raise PlacementError(EXIT_USAGE, "--tolerance-pt must be positive")
     box = match_value_word(page_box, value_word)
     size_pt = font_size_pt(rect, layout)
-    origin_x = expected_origin_x_pt(rect, layout)
+    origin_x = expected_origin_x_pt(rect, applier_padding_pt)
     baseline_y = expected_baseline_y_pt(rect, layout, size_pt)
     horizontal = check_horizontal_origin(box, origin_x, tolerance_pt)
     vertical, baseline_from_ascent, baseline_from_descent = check_vertical_baseline(
         box, font, size_pt, baseline_y, tolerance_pt
     )
+    font_box_height = check_font_box_height(box, font, size_pt)
     containment, box_overflow_top, box_overflow_bottom = check_containment(box, rect)
     axes_consistent, _ = axis_check(page_box, rect, box, rect.page)
     return PlacementReport(
@@ -641,6 +782,7 @@ def evaluate(
         page=rect.page,
         field_rect=rect,
         layout=layout,
+        applier_padding_pt=applier_padding_pt,
         font=font,
         font_size_pt=size_pt,
         expected_origin_x_pt=origin_x,
@@ -652,6 +794,7 @@ def evaluate(
         horizontal=horizontal,
         vertical=vertical,
         containment=containment,
+        font_box_height=font_box_height,
         box_overflow_top_pt=box_overflow_top,
         box_overflow_bottom_pt=box_overflow_bottom,
         ascent_above_baseline_pt=font.ascender_pt(size_pt),
@@ -669,6 +812,7 @@ def verify(
     page: int | None,
     tolerance_pt: float,
     layout_path: Path,
+    applier_path: Path,
     font_metrics_path: Path,
     pdftotext: str,
 ) -> PlacementReport:
@@ -676,6 +820,10 @@ def verify(
     if tolerance_pt <= 0:
         raise PlacementError(EXIT_USAGE, "--tolerance-pt must be positive")
     layout = read_layout_constants(layout_path)
+    applier_padding_pt = read_applier_padding_pt(applier_path)
+    require_matching_padding(
+        layout.field_padding_pt, applier_padding_pt, layout_path, applier_path
+    )
     font = read_font_vertical_metrics(font_metrics_path)
     rect = parse_field_rect_marker(marker)
     if page is not None and page != rect.page:
@@ -690,9 +838,20 @@ def verify(
         value_word=value_word,
         rect=rect,
         layout=layout,
+        applier_padding_pt=applier_padding_pt,
         font=font,
         tolerance_pt=tolerance_pt,
     )
+
+
+def sha256_of(path: Path) -> str:
+    """Hex SHA-256 of the measured file, so the evidence is bound to its bytes."""
+    try:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+    except OSError as error:
+        raise PlacementError(
+            EXIT_UNREADABLE_INPUT, f"cannot hash {path}: {error}"
+        ) from error
 
 
 def _format_box(box: GlyphBox) -> str:
@@ -712,6 +871,7 @@ def format_report(report: PlacementReport, command: list[str]) -> list[str]:
     lines = [
         f"command={shlex.join(command)}",
         f"pdf={report.pdf}",
+        f"pdf_sha256={sha256_of(report.pdf)}",
         f"page={report.page}",
         f"value_word_matches={report.word_matches}",
         f"value_word_length={report.value_word_length}",
@@ -725,6 +885,7 @@ def format_report(report: PlacementReport, command: list[str]) -> list[str]:
         f"rect_centre_pt_unused={rect.x_pt + rect.width_pt / 2:.3f},"
         f"{rect.y_pt + rect.height_pt / 2:.3f}",
         f"layout_source_field_padding_pt={report.layout.field_padding_pt:.3f}",
+        f"applier_text_padding_pt={report.applier_padding_pt:.3f}",
         f"layout_source_baseline_ascender_factor="
         f"{report.layout.baseline_ascender_factor:.3f}",
         f"layout_source_font_size_height_factor="
@@ -760,6 +921,7 @@ def format_report(report: PlacementReport, command: list[str]) -> list[str]:
         report.horizontal,
         report.vertical,
         report.containment,
+        report.font_box_height,
     ):
         lines.append(
             f"check.{point.name}.measured_pt={point.measured_pt:.6f} "
@@ -775,19 +937,25 @@ def format_report(report: PlacementReport, command: list[str]) -> list[str]:
     )
     lines.append(f"containment_verdict={'PASS' if report.containment.passed else 'FAIL'}")
     lines.append(f"exit_code={report.exit_code}")
-    lines.append(
-        "reason="
-        + (
-            f"origin deviation {report.horizontal.deviation_pt:+.6f} pt and "
-            f"baseline deviation {report.vertical.deviation_pt:+.6f} pt are within "
-            f"{report.horizontal.tolerance_pt:.3f} pt"
-            if report.horizontal.passed and report.vertical.passed
-            else f"placement deviation origin {report.horizontal.deviation_pt:+.6f} pt / "
-            f"baseline {report.vertical.deviation_pt:+.6f} pt exceeds "
-            f"{report.horizontal.tolerance_pt:.3f} pt"
-        )
-        + ("" if report.axes_consistent else f"; axis check failed: {axes_detail}")
+    reason = (
+        f"origin deviation {report.horizontal.deviation_pt:+.6f} pt and "
+        f"baseline deviation {report.vertical.deviation_pt:+.6f} pt are within "
+        f"{report.horizontal.tolerance_pt:.3f} pt"
+        if report.horizontal.passed and report.vertical.passed
+        else f"placement deviation origin {report.horizontal.deviation_pt:+.6f} pt / "
+        f"baseline {report.vertical.deviation_pt:+.6f} pt exceeds "
+        f"{report.horizontal.tolerance_pt:.3f} pt"
     )
+    if not report.font_box_height.passed:
+        reason += (
+            f"; font box height check failed: "
+            f"{report.font_box_height.deviation_pt:+.6f} pt against "
+            f"{report.font_box_height.target_pt:.6f} pt exceeds "
+            f"{report.font_box_height.tolerance_pt:.3f} pt"
+        )
+    if not report.axes_consistent:
+        reason += f"; axis check failed: {axes_detail}"
+    lines.append(f"reason={reason}")
     return lines
 
 
@@ -825,7 +993,16 @@ def build_parser() -> argparse.ArgumentParser:
         "--layout",
         type=Path,
         default=_DEFAULT_LAYOUT,
-        help="layout source the target origin is derived from",
+        help="layout source the plan builder's numbers are read from",
+    )
+    parser.add_argument(
+        "--applier-source",
+        type=Path,
+        default=_DEFAULT_APPLIER,
+        help=(
+            "applier source whose TEXT_PADDING_PT the value is drawn with; its "
+            "padding must agree with the layout source"
+        ),
     )
     parser.add_argument(
         "--font-metrics",
@@ -841,6 +1018,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     arguments = build_parser().parse_args(argv)
+    command = [sys.executable, *sys.argv] if argv is None else [sys.executable, *argv]
     try:
         report = verify(
             pdf=arguments.pdf,
@@ -849,15 +1027,16 @@ def main(argv: list[str] | None = None) -> int:
             page=arguments.page,
             tolerance_pt=arguments.tolerance_pt,
             layout_path=arguments.layout,
+            applier_path=arguments.applier_source,
             font_metrics_path=arguments.font_metrics,
             pdftotext=arguments.pdftotext,
         )
+        lines = format_report(report, command)
     except PlacementError as error:
         print(f"verdict=REFUSED exit_code={error.exit_code}")
         print(f"reason={error.reason}")
         return error.exit_code
-    command = [sys.executable, *sys.argv] if argv is None else [sys.executable, *argv]
-    for line in format_report(report, command):
+    for line in lines:
         print(line)
     return report.exit_code
 

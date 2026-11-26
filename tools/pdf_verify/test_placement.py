@@ -5,13 +5,16 @@ The tests run without network, without an emulator, and without Poppler: the
 page the tool would read from `pdftotext -bbox` is synthesised from the same
 layout numbers the tool reads from the repository, so every expectation is
 derived, not typed in. `test_layout_constants_match_source` reads the real
-`layout.dart`, so a changed constant breaks the suite instead of silently
-changing the target origin.
+`layout.dart` and `test_applier_padding_matches_the_layout_source` reads the real
+`ExportPlanValidation.kt`, so a changed constant breaks the suite instead of
+silently changing the target origin.
 """
 
 from __future__ import annotations
 
+import hashlib
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -21,6 +24,11 @@ import placement  # noqa: E402
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 LAYOUT_PATH = REPOSITORY_ROOT / "packages/feldexa_export/lib/src/layout.dart"
+APPLIER_PATH = (
+    REPOSITORY_ROOT
+    / "apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export"
+    / "ExportPlanValidation.kt"
+)
 FONT_METRICS_PATH = REPOSITORY_ROOT / "apps/feldexa_app/assets/fonts/metrics.json"
 
 # The field rect of the recorded run, as the `T334_FIELD_RECT` marker carries it.
@@ -59,10 +67,13 @@ class PlacementTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
         self.layout = placement.read_layout_constants(LAYOUT_PATH)
+        self.applier_padding_pt = placement.read_applier_padding_pt(APPLIER_PATH)
         self.font = placement.read_font_vertical_metrics(FONT_METRICS_PATH)
         self.rect = placement.parse_field_rect_marker(FIELD_RECT_MARKER)
         self.font_size_pt = placement.font_size_pt(self.rect, self.layout)
-        self.origin_x_pt = placement.expected_origin_x_pt(self.rect, self.layout)
+        self.origin_x_pt = placement.expected_origin_x_pt(
+            self.rect, self.applier_padding_pt
+        )
         self.baseline_y_pt = placement.expected_baseline_y_pt(
             self.rect, self.layout, self.font_size_pt
         )
@@ -90,6 +101,7 @@ class PlacementTestCase(unittest.TestCase):
             value_word=word,
             rect=self.rect,
             layout=self.layout,
+            applier_padding_pt=self.applier_padding_pt,
             font=self.font,
             tolerance_pt=placement.DEFAULT_TOLERANCE_PT,
         )
@@ -126,6 +138,35 @@ class DerivedTargetTest(PlacementTestCase):
         self.assertEqual(self.layout.min_font_size_pt, 7.0)
         self.assertEqual(self.layout.max_font_size_pt, 12.0)
 
+    def test_applier_padding_matches_the_layout_source(self) -> None:
+        # The padding exists twice: in the plan builder (layout.dart) and in the
+        # applier that draws the value (TEXT_PADDING_PT). Both are pinned here.
+        self.assertEqual(self.applier_padding_pt, 1.5)
+        self.assertEqual(self.applier_padding_pt, self.layout.field_padding_pt)
+
+    def test_default_sources_are_absolute_and_readable(self) -> None:
+        arguments = placement.build_parser().parse_args(
+            [
+                "--pdf",
+                "synthetic.pdf",
+                "--value-word",
+                VALUE_WORD,
+                "--field-rect-marker",
+                FIELD_RECT_MARKER,
+            ]
+        )
+        # Independent of the working directory: the defaults resolve against the
+        # repository root, not against the process CWD.
+        self.assertTrue(arguments.layout.is_absolute())
+        self.assertTrue(arguments.applier_source.is_absolute())
+        self.assertTrue(arguments.font_metrics.is_absolute())
+        self.assertEqual(
+            placement.read_layout_constants(arguments.layout).field_padding_pt, 1.5
+        )
+        self.assertEqual(
+            placement.read_applier_padding_pt(arguments.applier_source), 1.5
+        )
+
     def test_font_vertical_metrics_match_source(self) -> None:
         self.assertEqual(self.font.units_per_em, 1000)
         self.assertEqual(self.font.ascender, 1069)
@@ -151,6 +192,22 @@ class ExactHitTest(PlacementTestCase):
         )
         self.assertAlmostEqual(
             report.baseline_from_descent_pt, self.baseline_y_pt, places=6
+        )
+
+    def test_baseline_spread_is_forced_by_the_box_height(self) -> None:
+        # The two reconstructions are not independent evidence: their distance is
+        # exactly the height difference between the reported box and the font
+        # box, so a matching height forces the spread to zero.
+        x_min, y_min, x_max, y_max = self.box()
+        report = self.report((x_min, y_min, x_max, y_max + 0.02))
+        spread = abs(
+            report.baseline_from_ascent_pt - report.baseline_from_descent_pt
+        )
+        self.assertAlmostEqual(spread, 0.02, places=9)
+        self.assertAlmostEqual(
+            abs(report.vertical.deviation_pt),
+            report.font_box_height.deviation_pt,
+            places=9,
         )
 
 
@@ -203,6 +260,15 @@ class ContainmentTest(PlacementTestCase):
         report = self.report((x_min, y_min, x_min + wide, y_max))
         self.assertFalse(report.containment.passed)
 
+    def test_containment_is_exact_by_design(self) -> None:
+        # The zero tolerance of the containment point must not read as a washed
+        # out threshold; the definition line says why it is zero.
+        report = self.report(self.box())
+        self.assertEqual(report.containment.tolerance_pt, 0.0)
+        self.assertIn(
+            "exact containment by design (tolerance 0)", report.containment.detail
+        )
+
     def test_font_ascent_box_protrudes_above_the_rect(self) -> None:
         report = self.report(self.box())
         # (1069/1000 - 0.8) * 10.8 - 1.5 = 1.4052 pt of ascent above the rect top.
@@ -222,6 +288,122 @@ class ContainmentTest(PlacementTestCase):
                 + self.layout.baseline_ascender_factor * size_pt
             )
             self.assertGreater(self.font.ascender_pt(size_pt), offset_pt)
+
+
+class FontBoxHeightTest(PlacementTestCase):
+    """The box height carries the font-metric basis of the baseline inference."""
+
+    def test_font_box_height_matches_the_metric(self) -> None:
+        report = self.report(self.box())
+        self.assertEqual(report.font_box_height.name, "font_box.height")
+        self.assertAlmostEqual(
+            report.font_box_height.measured_pt,
+            (self.font.ascender - self.font.descender)
+            * self.font_size_pt
+            / self.font.units_per_em,
+            places=9,
+        )
+        self.assertAlmostEqual(report.font_box_height.deviation_pt, 0.0, places=9)
+        self.assertLess(
+            placement.BOX_HEIGHT_TOLERANCE_PT, placement.DEFAULT_TOLERANCE_PT
+        )
+        self.assertTrue(report.font_box_height.passed)
+
+    def test_box_height_mismatch_blocks_the_verdict(self) -> None:
+        # A box that is not the font's ascent/descent box invalidates the
+        # baseline reconstruction, so the 1 mm verdict must not be claimed.
+        x_min, y_min, x_max, y_max = self.box()
+        report = self.report((x_min, y_min, x_max, y_max + 0.05))
+        self.assertTrue(report.horizontal.passed)
+        self.assertTrue(report.vertical.passed)
+        self.assertFalse(report.font_box_height.passed)
+        self.assertFalse(report.placement_proven)
+        self.assertEqual(report.exit_code, placement.EXIT_CHECK_FAILED)
+
+
+class PaddingParityTest(PlacementTestCase):
+    """Both padding copies are read; a drift refuses a verdict."""
+
+    def test_padding_drift_between_the_two_sources_refuses(self) -> None:
+        source = LAYOUT_PATH.read_text(encoding="utf-8")
+        drifted = source.replace(
+            "const double exportFieldPaddingPt = 1.5;",
+            "const double exportFieldPaddingPt = 2.0;",
+        )
+        self.assertNotEqual(drifted, source)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "layout.dart"
+            path.write_text(drifted, encoding="utf-8")
+            with self.assertRaises(placement.PlacementError) as context:
+                placement.verify(
+                    pdf=Path("synthetic.pdf"),
+                    value_word=VALUE_WORD,
+                    marker=FIELD_RECT_MARKER,
+                    page=None,
+                    tolerance_pt=placement.DEFAULT_TOLERANCE_PT,
+                    layout_path=path,
+                    applier_path=APPLIER_PATH,
+                    font_metrics_path=FONT_METRICS_PATH,
+                    pdftotext="pdftotext",
+                )
+        self.assertEqual(context.exception.exit_code, placement.EXIT_UNREADABLE_INPUT)
+        self.assertIn("field padding differs", context.exception.reason)
+
+    def test_unreadable_applier_source_refuses(self) -> None:
+        with self.assertRaises(placement.PlacementError) as context:
+            placement.read_applier_padding_pt(APPLIER_PATH.parent / "NoSuchSource.kt")
+        self.assertEqual(context.exception.exit_code, placement.EXIT_UNREADABLE_INPUT)
+
+    def test_applier_source_without_the_padding_constant_refuses(self) -> None:
+        # `layout.dart` carries the padding as `const double`, not as Kotlin.
+        with self.assertRaises(placement.PlacementError) as context:
+            placement.read_applier_padding_pt(LAYOUT_PATH)
+        self.assertEqual(context.exception.exit_code, placement.EXIT_UNREADABLE_INPUT)
+
+
+class OutputContractTest(PlacementTestCase):
+    """The report binds the measurement to the bytes it measured."""
+
+    def measured_report(self, pdf: Path):
+        return placement.evaluate(
+            page_box=placement.parse_page(bbox_document([(VALUE_WORD, *self.box())])),
+            pdf=pdf,
+            value_word=VALUE_WORD,
+            rect=self.rect,
+            layout=self.layout,
+            applier_padding_pt=self.applier_padding_pt,
+            font=self.font,
+            tolerance_pt=placement.DEFAULT_TOLERANCE_PT,
+        )
+
+    def test_report_binds_the_pdf_digest(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            pdf = Path(directory) / "artifact.pdf"
+            pdf.write_bytes(b"%PDF-1.7 synthetic artifact\n")
+            digest = hashlib.sha256(pdf.read_bytes()).hexdigest()
+            lines = placement.format_report(
+                self.measured_report(pdf), ["placement.py", "--pdf", str(pdf)]
+            )
+        self.assertIn(f"pdf_sha256={digest}", lines)
+        self.assertIn(f"pdf={pdf}", lines)
+
+    def test_report_prints_both_padding_sources_and_the_height_check(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            pdf = Path(directory) / "artifact.pdf"
+            pdf.write_bytes(b"%PDF-1.7 synthetic artifact\n")
+            text = "\n".join(
+                placement.format_report(self.measured_report(pdf), ["placement.py"])
+            )
+        self.assertIn("applier_text_padding_pt=1.500", text)
+        self.assertIn("layout_source_field_padding_pt=1.500", text)
+        # The whole line is pinned: measured and target height, and the
+        # resolution bound (0.001 pt) instead of the placement tolerance.
+        self.assertRegex(
+            text,
+            r"check\.font_box\.height\.measured_pt=14\.709600 "
+            r"target_pt=14\.709600 deviation_pt=[-+]?0\.000000 "
+            r"tolerance_pt=0\.001 result=pass",
+        )
 
 
 class RefusalTest(PlacementTestCase):
@@ -275,10 +457,28 @@ class RefusalTest(PlacementTestCase):
                 page=2,
                 tolerance_pt=placement.DEFAULT_TOLERANCE_PT,
                 layout_path=LAYOUT_PATH,
+                applier_path=APPLIER_PATH,
                 font_metrics_path=FONT_METRICS_PATH,
                 pdftotext="pdftotext",
             )
         self.assertEqual(context.exception.exit_code, placement.EXIT_USAGE)
+
+    def test_non_positive_tolerance_refuses(self) -> None:
+        # --tolerance-pt <= 0 is a usage error, not a zero-width measurement.
+        for tolerance_pt in (0.0, -1.0):
+            with self.assertRaises(placement.PlacementError) as context:
+                placement.verify(
+                    pdf=Path("synthetic.pdf"),
+                    value_word=VALUE_WORD,
+                    marker=FIELD_RECT_MARKER,
+                    page=None,
+                    tolerance_pt=tolerance_pt,
+                    layout_path=LAYOUT_PATH,
+                    applier_path=APPLIER_PATH,
+                    font_metrics_path=FONT_METRICS_PATH,
+                    pdftotext="pdftotext",
+                )
+            self.assertEqual(context.exception.exit_code, placement.EXIT_USAGE)
 
     def test_missing_pdftotext_refuses(self) -> None:
         with self.assertRaises(placement.PlacementError) as context:
@@ -289,6 +489,7 @@ class RefusalTest(PlacementTestCase):
                 page=None,
                 tolerance_pt=placement.DEFAULT_TOLERANCE_PT,
                 layout_path=LAYOUT_PATH,
+                applier_path=APPLIER_PATH,
                 font_metrics_path=FONT_METRICS_PATH,
                 pdftotext="feldexa-no-such-pdftotext",
             )

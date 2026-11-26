@@ -1,5 +1,6 @@
 command=/usr/bin/python3 tools/pdf_verify/placement.py --pdf specs/001-scanned-form-workflow/reports/artifacts/2026-11-26-t344-export-proof-depth/export-artifact-1.pdf --value-word 'Müller' --field-rect-marker T334_FIELD_RECT:PAGE=1:X_MPT=190125:Y_MPT=147625:W_MPT=299875:H_MPT=18000
 pdf=specs/001-scanned-form-workflow/reports/artifacts/2026-11-26-t344-export-proof-depth/export-artifact-1.pdf
+pdf_sha256=8da0ce1fcf11bd4cc16d3860c4fd04e7d2537fe0927acd87d9dfc340e11e9484
 page=1
 value_word_matches=1
 value_word_length=6
@@ -9,6 +10,7 @@ page_height_pt=841.890
 rect_pt=190.125,147.625,299.875,18.000
 rect_centre_pt_unused=340.062,156.625
 layout_source_field_padding_pt=1.500
+applier_text_padding_pt=1.500
 layout_source_baseline_ascender_factor=0.800
 layout_source_font_size_height_factor=0.600
 layout_source_font_size_clamp_pt=7.0..12.0
@@ -33,7 +35,9 @@ check.horizontal_origin.definition=glyph-box xMin against rect.x + padding (left
 check.vertical_baseline.measured_pt=157.764990 target_pt=157.765000 deviation_pt=-0.000010 tolerance_pt=2.835 result=pass
 check.vertical_baseline.definition=baseline approximations yMin + ascender and yMax + descender against rect.y + padding + 0.8 * fontSizePt
 check.containment.measured_pt=-1.500000 target_pt=0.000000 deviation_pt=-1.500000 tolerance_pt=0.000 result=pass
-check.containment.definition=glyph box inside the field rect horizontally; outward overflow left=-1.500, right=-265.781 (positive means outside the rect)
+check.containment.definition=glyph box inside the field rect horizontally, exact containment by design (tolerance 0); outward overflow left=-1.500, right=-265.781 (positive means outside the rect)
+check.font_box.height.measured_pt=14.709600 target_pt=14.709600 deviation_pt=0.000000 tolerance_pt=0.001 result=pass
+check.font_box.height.definition=glyph box height against (ascender - descender) * fontSizePt, the font-metric basis of the baseline reconstruction; resolution bound, not the placement tolerance
 check.axes.definition=box inside the page and within the rect window x -109.750..789.875, y 129.625..183.625
 placement_verdict=PROVEN
 containment_verdict=PASS

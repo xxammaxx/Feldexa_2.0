@@ -358,7 +358,9 @@ kein Produktbefund.
 
 Werkzeug: `tools/pdf_verify/placement.py` (neu; Verzeichnis war bisher nur `.gitkeep`,
 in Issue #334 Kriterium 5 als fehlend benannt).
-`sha256 1e1a6e6f0d2462d759160a3b1e6e8027d1a2001689e4570844900af58cc53259`.
+`sha256 0270092c35548b5f22f4d04db77a9e6d8e03d1c29cffbdc97f477cf85fe358b6`
+(nach dem Review-Nachzug in §8.8; der Stand aus `028f0dc` war
+`1e1a6e6f…`).
 
 Gemessene Größe: die Glyph-Box des exportierten Werts, wie Poppler sie mit
 `pdftotext -bbox` meldet (Display-Space: Ursprung linke obere Seitenecke, x nach rechts,
@@ -369,47 +371,89 @@ zur Laufzeit aus ihren normativen Quellen gelesen, nicht eingetippt:
 
 | Größe | Quelle | Wert |
 | --- | --- | --- |
-| `exportFieldPaddingPt` | `packages/feldexa_export/lib/src/layout.dart` | 1.5 pt |
+| `TEXT_PADDING_PT` (Padding des **zeichnenden** Codes) | `apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export/ExportPlanValidation.kt` | 1.5 pt |
+| `exportFieldPaddingPt` (Padding des Plan-Builders) | `packages/feldexa_export/lib/src/layout.dart` | 1.5 pt |
 | `_baselineAscenderFactor` | dito | 0.8 |
 | `_fontSizeHeightFactor`, Clamp 7.0 … 12.0 | dito | 0.6 |
 | Padding, vertikale Ausrichtung „top“, horizontale „left“ | `contracts/export-plan.md` §3.1 | normativ |
 | `ascender`, `descender`, `unitsPerEm` (Noto Sans) | `apps/feldexa_app/assets/fonts/metrics.json` | 1069, −293, 1000 |
 
+Das Padding liegt **zweimal** vor: als `exportFieldPaddingPt` im Plan-Builder und als
+`TEXT_PADDING_PT` im Applier, aus dem `PdfExportService` zeichnet. Keine der beiden
+Kopien wird aus der anderen abgeleitet. Deshalb ist der horizontale Sollursprung der
+Wert des **zeichnenden** Codes, und die Layout-Kopie wird zusätzlich gelesen: weichen
+beide ab (oder ist eine nicht lesbar), verweigert das Werkzeug das Verdikt mit Exit 5
+(`field padding differs: …` / `cannot read applier source …`). Ohne diese Prüfung
+würde eine Drift von `TEXT_PADDING_PT` die Sollgröße still verschieben und die
+Abweichung innerhalb der 1-mm-Toleranz bleiben.
+
 ```
 fontSizePt = round(clamp(0.6 * rect.height, 7.0, 12.0), 1)
-origin x   = rect.x + padding
-baseline y = rect.y + padding + 0.8 * fontSizePt
+origin x   = rect.x + TEXT_PADDING_PT                  (zeichnender Code)
+baseline y = rect.y + baselineFromTopPt                (§3.1-Op-Feld)
+           = rect.y + exportFieldPaddingPt + 0.8 * fontSizePt
 ```
 
-Drei getrennte Punkte, jeder mit Zahl und eigenem `pass`/`fail`:
+Vier benannte Punkte, jeder mit Zahl und eigenem `pass`/`fail`:
 
-1. `horizontal_origin` — gemessene Box-Oberkante/`xMin` gegen `origin x` (Toleranz 2,835 pt).
+1. `horizontal_origin` — gemessene **linke Kante (`xMin`)** gegen `origin x`
+   (Toleranz 2,835 pt).
 2. `vertical_baseline` — gemessene Baseline gegen `baseline y`. Poppler meldet die
-   Ascent/Descent-Box der Schrift, nicht die Baseline; deshalb wird die Baseline von
-   **beiden** Box-Kanten genähert (`yMin + ascender` und `yMax + descender`) und
-   **beide** Näherungen müssen halten. Die Streuung zwischen ihnen wird mitprotokolliert.
-3. `containment` — die horizontale Lage der Box im Feld (linker Rand ≥ `rect.x`, rechter
-   Rand ≤ `rect.x + w`). Vertikal wird dieselbe Box nur **berichtet**, nicht gewertet:
-   die Box ist die Ascent/Descent-Box der Schrift, und §3.1 legt die Baseline fest, nicht
-   die Font-Box; die Ascent (1,069 em) ist größer als der Abstand Rect-Oberkante →
-   Baseline (1,5 pt + 0,8 em = 10,14 pt bei 10,8 pt Schrift), sodass die Ascent-Kante
-   konstruktionsbedingt über die Rect-Oberkante ragt. Beide vertikalen Überstände und
-   die Herleitung stehen als `informational.*`-Zeilen in der Evidenz.
+   Ascent/Descent-Box der Schrift, nicht die Baseline; die Baseline wird daher aus
+   beiden Box-Kanten über die Font-Metrik **rekonstruiert** (`yMin + ascender`,
+   `yMax + descender`) und ist damit eine **Inferenzstufe**, keine direkte Messung.
+   Beide Rekonstruktionen müssen halten. Sie sind aber **keine unabhängige Evidenz**:
 
-1-mm-Verdikt = `PROVEN`, wenn Punkt 1 und 2 halten. Exit 0 = alle Punkte `pass`,
+   ```
+   from_descent − from_ascent = (yMax − yMin) + (descender − ascender)
+                              = Boxhöhe − Font-Boxhöhe
+   ```
+
+   Bei exakt passender Boxhöhe — im vorliegenden Artefakt `14.709600` auf beiden
+   Seiten — ist die Streuung algebraisch **zwingend 0**. `baseline_estimate_spread_pt`
+   bestätigt in diesem Fall **nichts**; die Zeile steht in der Evidenz, weil eine
+   Streuung ≠ 0 eine Box diagnostiert, die *nicht* die Ascent/Descent-Box der Schrift
+   ist. Die Annahme trägt stattdessen Punkt 4.
+3. `containment` — die horizontale Lage der Box im Feld (linker Rand ≥ `rect.x`, rechter
+   Rand ≤ `rect.x + w`), **exakt by design**: die Toleranz ist 0 und die Evidenzzeile
+   sagt das ausdrücklich („exact containment by design (tolerance 0)“), damit
+   `tolerance_pt=0.000` nicht wie eine genullte Schwelle liest. Vertikal wird dieselbe
+   Box nur **berichtet**, nicht gewertet: die Box ist die Ascent/Descent-Box der Schrift,
+   und §3.1 legt die Baseline fest, nicht die Font-Box; die Ascent (1,069 em) ist größer
+   als der Abstand Rect-Oberkante → Baseline (1,5 pt + 0,8 em = 10,14 pt bei 10,8 pt
+   Schrift), sodass die Ascent-Kante konstruktionsbedingt über die Rect-Oberkante ragt.
+   Beide vertikalen Überstände stehen als `informational.*`-Zeilen in der Evidenz,
+   zusammen mit den beiden Zahlen (`informational.ascent_above_baseline_pt`,
+   `informational.baseline_offset_from_rect_top_pt`), aus denen sich der Überstand
+   nachrechnen lässt.
+4. `font_box.height` — gemeldete Boxhöhe gegen `(ascender − descender) · fontSizePt`.
+   Das ist die Prüfung, die die Font-Metrik-Annahme der Baseline-Rekonstruktion trägt:
+   sie hält genau dann, wenn das Ascent/Descent-Paar aus `metrics.json` das Paar ist,
+   das die Schrift im PDF selbst meldet. Sie wird auf Druckauflösung geprüft
+   (`BOX_HEIGHT_TOLERANCE_PT = 0.001 pt` — Poppler rundet auf 1e-6 pt, eine Designeinheit
+   der Schrift ist 0,007 pt bei 7 pt; die Schranke liegt dazwischen), **nicht** auf die
+   1-mm-Toleranz: sie vergleicht zwei Rechnungen derselben Font-Metrik, nicht zwei
+   Positionen.
+
+1-mm-Verdikt = `PROVEN`, wenn Punkt 1 und 2 halten **und** Punkt 4 die Font-Metrik-Basis
+bestätigt (ohne sie ist die Baseline-Rekonstruktion wertlos); sonst `NOT_PROVEN`.
+Exit 0 = alle Punkte `pass` (inklusive `containment`),
 Exit 1 = ein Punkt `fail`, Exit 2 … 6 = **kein Verdikt** (Aufruffehler, Worttreffer
-fehlt, Worttreffer mehrdeutig, unlesbare Eingabe, Poppler-Fehler). Fehlt der Worttreffer
+fehlt, Worttreffer mehrdeutig, unlesbare Eingabe — inklusive Padding-Drift —,
+Poppler-Fehler). Fehlt der Worttreffer
 oder ist die Achsenlage unklar (`axes_check`: Box außerhalb der Seite oder außerhalb
 eines aus dem Rect abgeleiteten Fensters — fängt 180°-Dreher und y-up-Lesart), gibt es
 kein „provisorisches“ Ergebnis, sondern Exit ≠ 0 mit Grund.
 
 ### 8.3 Zahlen beider Artefakte
 
-Beide PDFs liefern identische Messwerte (Diff der Evidenzdateien bis auf den Dateinamen
-leer). Wörtlich aus `artifact-1-placement-v2.txt` (Kommandozeile und volle Ausgabe in der
-Datei; `artifact-2-placement-v2.txt` ist inhaltsgleich):
+Beide PDFs liefern identische Messwerte; der Diff der Evidenzdateien ist bis auf den
+Dateinamen und den — notwendigerweise abweichenden — `pdf_sha256` leer. Wörtlich aus
+`artifact-1-placement-v2.txt` (Kommandozeile und volle Ausgabe in der
+Datei; `artifact-2-placement-v2.txt` ist bis auf Pfad und Digest inhaltsgleich):
 
 ```
+pdf_sha256=8da0ce1fcf11bd4cc16d3860c4fd04e7d2537fe0927acd87d9dfc340e11e9484
 rect_pt=190.125,147.625,299.875,18.000
 font_size_pt=10.800
 glyph_box_pt=191.625000,146.219790,224.219400,160.929390
@@ -425,6 +469,7 @@ axes_check=consistent
 check.horizontal_origin.measured_pt=191.625000 target_pt=191.625000 deviation_pt=0.000000 tolerance_pt=2.835 result=pass
 check.vertical_baseline.measured_pt=157.764990 target_pt=157.765000 deviation_pt=-0.000010 tolerance_pt=2.835 result=pass
 check.containment.measured_pt=-1.500000 target_pt=0.000000 deviation_pt=-1.500000 tolerance_pt=0.000 result=pass
+check.font_box.height.measured_pt=14.709600 target_pt=14.709600 deviation_pt=0.000000 tolerance_pt=0.001 result=pass
 informational.font_box_overflow_top_pt=1.405210
 informational.font_box_overflow_bottom_pt=-4.695610
 placement_verdict=PROVEN
@@ -433,14 +478,24 @@ exit_code=0
 reason=origin deviation +0.000000 pt and baseline deviation -0.000010 pt are within 2.835 pt
 ```
 
+Die Zeilen `layout_source_field_padding_pt=1.500` und `applier_text_padding_pt=1.500`
+stehen beide in voller Länge in der Datei; sie sind der Nachweis, dass die
+Paritätsprüfung aus §8.2 beide Padding-Quellen gelesen hat.
+
+`pdf_sha256` bindet die Messung an die Bytes: `8da0ce1f…` bzw. `dcf302e2…` stimmen mit
+`artifact-{1,2}-pickup.txt` überein — aus der Evidenzdatei selbst nachprüfbar, ohne
+den Report zu glauben.
+
 Rechnung zu den Zahlen: `fontSizePt = round(0.6 · 18.000, 1) = 10.8`;
 `origin x = 190.125 + 1.5 = 191.625` (gemessen `191.625`, Abweichung `0.000000`);
 `baseline = 147.625 + 1.5 + 0.8 · 10.8 = 157.765`; gemessen
 `146.219790 + 1.069 · 10.8 = 157.764990` bzw. `160.929390 − 0.293 · 10.8 = 157.764990`
 (Abweichung `−0.000010`). Die gemessene Box-Höhe `14.709600` ist exakt
 `(1069 + 293)/1000 · 10.8` — die Box ist die Ascent/Descent-Box der Schrift und die
-Schriftmetriken sind die aus `metrics.json`. Keine Zahl ist geschätzt oder umgerechnet;
-alle Werte stammen aus der Poppler-Ausgabe bzw. aus den gelesenen Konstanten.
+Schriftmetriken sind die aus `metrics.json`; genau das prüft `check.font_box.height`
+(Abweichung `0.000000` bei Schranke `0.001`). **Nicht** gemessen, sondern aus der
+Font-Metrik rekonstruiert ist die Baseline (§8.2 Punkt 2, Inferenzstufe); alle übrigen
+Zahlen stehen wörtlich in der Poppler-Ausgabe bzw. in den gelesenen Konstanten.
 
 ### 8.4 1-mm-Verdikt
 
@@ -450,11 +505,18 @@ alle Werte stammen aus der Poppler-Ausgabe bzw. aus den gelesenen Konstanten.
 Kontrollgröße `containment` ist mit `−1.500 pt` (links) und `−265.781 pt` (rechts)
 innerhalb des Feldes.
 
+Die vertikale Zahl ist eine **Rekonstruktion**, keine Direktmessung: die Baseline wird aus
+den beiden Box-Kanten über die Font-Metrik gewonnen (§8.2 Punkt 2). Was diese Rekonstruktion
+trägt, ist `check.font_box.height`: die gemeldete Boxhöhe `14.709600` stimmt mit
+`(1069 + 293)/1000 · 10.8` auf `0.000000` überein (Schranke `0.001`). Die Streuung der
+beiden Rekonstruktionen (`baseline_estimate_spread_pt=0.000000`) ist dagegen **kein**
+Bestätigungssignal — sie ist bei passender Boxhöhe algebraisch zwingend null (§8.2).
+
 Nicht Teil dieses Verdikts, sondern berichtet: die **Ascent/Descent-Box** der Schrift ragt
 `1.405210 pt` über die Rect-Oberkante (und `−4.696 pt`, also innerhalb, unter die
 Rect-Unterkante). Das folgt aus §3.1 selbst (`1.069 em − (1,5 pt + 0,8 em) > 0` für jede
 erlaubte Schriftgröße) und ist Font-Geometrie, keine Fehlplatzierung; offener Punkt 2 in
-§8.6.
+§8.6, als Owner-Issue **#346** angelegt.
 
 ### 8.5 Selbsttest des Werkzeugs (ohne Netz, ohne Emulator, ohne Poppler)
 
@@ -462,22 +524,30 @@ erlaubte Schriftgröße) und ist Font-Geometrie, keine Fehlplatzierung; offener 
 — nur die Laufzeitangabe variiert von Lauf zu Lauf:
 
 ```
-............................
+........................................
 ----------------------------------------------------------------------
-Ran 28 tests in 0.063s
+Ran 40 tests in 0.087s
 
 OK
 ```
 
 Die Tests bauen die Poppler-Seite synthetisch aus denselben Layout-Zahlen und decken ab:
 exakter Treffer, 1-mm-Grenzfall (2,835 pt hält, 2,836 pt reißt), vertikaler Verstoß,
-Containment links/rechts, Ascent-Überstand als Zahl, fehlender Worttreffer (Exit 3),
-mehrdeutiger Worttreffer (Exit 4), Mehr-Wort-Argument (Exit 2), unlesbarer Marker
-(Exit 5), `--page`-Widerspruch (Exit 2), fehlendes `pdftotext` (Exit 6), fehlende
-Layout-Konstante (Exit 5), y-gespiegelte Box (Achsen-Check), sowie die Arithmetik der
-alten Mittelpunkts-Metrik (`−132.1405` gegen `133.6405`). `test_layout_constants_match_source`
-liest die echte `layout.dart`, damit eine geänderte Konstante die Suite bricht statt den
-Sollursprung still zu verschieben.
+Containment links/rechts (inklusive der Zeile „exact containment by design (tolerance 0)“),
+Ascent-Überstand als Zahl, fehlender Worttreffer (Exit 3), mehrdeutiger Worttreffer
+(Exit 4), Mehr-Wort-Argument (Exit 2), unlesbarer Marker (Exit 5), `--page`-Widerspruch
+(Exit 2), nicht-positive `--tolerance-pt` (Exit 2), fehlendes `pdftotext` (Exit 6),
+fehlende Layout-Konstante (Exit 5), y-gespiegelte Box (Achsen-Check), sowie die Arithmetik
+der alten Mittelpunkts-Metrik (`−132.1405` gegen `133.6405`).
+Neu aus dem Review-Nachzug (§8.8): Parität der beiden Padding-Quellen (1,5 pt in
+`layout.dart` und in `ExportPlanValidation.kt`), Drift der beiden Quellen → Exit 5,
+nicht lesbare Applier-Quelle → Exit 5, fehlende `TEXT_PADDING_PT` → Exit 5, absolute
+Default-Pfade unabhängig vom Arbeitsverzeichnis, `check.font_box.height` (Treffer,
+Schranke und Verdikt-Sperre bei abweichender Boxhöhe), die algebraische Entartung der
+Baseline-Streuung als Zahl, sowie `pdf_sha256` als Bindung der Evidenz an die Bytes.
+`test_layout_constants_match_source` und
+`test_applier_padding_matches_the_layout_source` lesen die echten Quellen, damit eine
+geänderte Konstante die Suite bricht statt den Sollursprung still zu verschieben.
 
 ### 8.6 Geänderte Dateien und offene Punkte
 
@@ -488,18 +558,22 @@ alle Evidenzdateien aus §1–§7 (inklusive der alten `artifact-{1,2}-placement
 Dieser Report ist um §8 ergänzt und in §2/§5 als überholt markiert.
 
 1. **Toleranz unverändert** bei `2.835 pt` Default; `--tolerance-pt` existiert nur, um
-   strenger messen zu können. Es wurde keine Schwelle gelockert.
-2. **Ascent-Überstand (neu, Owner).** Die Ascent/Descent-Box der Schrift ist höher als
+   strenger messen zu können. Es wurde keine Schwelle gelockert. Das Werkzeug selbst
+   erzwingt diese Absicht nicht (jeder positive Wert wird angenommen); die gelockerte
+   Schwelle wäre aber an der `tolerance_pt=`-Zeile und am protokollierten Kommando
+   sichtbar. (Offener Punkt aus Review B, nicht Teil des Nachzugs.)
+2. **Ascent-Überstand (Owner).** Die Ascent/Descent-Box der Schrift ist höher als
    der Abstand von der Rect-Oberkante zur Baseline, den §3.1 vorschreibt; sie ragt bei
    diesem Feld 1,405 pt (~0,5 mm) über die Rect-Oberkante. Das ist kein
    Platzierungsfehler und verändert keine Ziffer dieser Messung, kann aber für Felder
    relevant sein, über denen Inhalt steht. Ob §3.1 (Padding/Baseline-Faktor) angepasst
-   wird, ist eine Owner-Entscheidung und **nicht** Teil von A2.
+   wird, ist eine Owner-Entscheidung: **Issue #346**, **nicht** Teil von A2.
 3. **Werkzeug nur auf diesen Lauf angewandt** — es ist generisch (`--pdf`,
-   `--value-word`, `--field-rect-marker`, `--layout`, `--font-metrics`, `--pdftotext`),
-   aber weitere Artefakte wurden nicht gemessen.
+   `--value-word`, `--field-rect-marker`, `--layout`, `--applier-source`,
+   `--font-metrics`, `--pdftotext`), aber weitere Artefakte wurden nicht gemessen.
 4. **Kein Emulator-/Gradle-/`flutter test`-Lauf** in A2; der Beleg-Lauf `162baa9` bleibt
-   byte-identisch gebunden (PDF-Digests in §8.3 geprüft).
+   byte-identisch gebunden (PDF-Digests in §8.3 geprüft, jetzt zusätzlich in der
+   Evidenzdatei selbst als `pdf_sha256`).
 
 ### 8.7 Reproduktion
 
@@ -511,3 +585,40 @@ python3 tools/pdf_verify/placement.py \
   --field-rect-marker T334_FIELD_RECT:PAGE=1:X_MPT=190125:Y_MPT=147625:W_MPT=299875:H_MPT=18000
 # exit 0, placement_verdict=PROVEN, containment_verdict=PASS
 ```
+
+### 8.8 Nachzug nach Review A/B — Metrik-Integrität
+
+Review A (`reports/t344/review-a.md`) hat `028f0dc` mit „OK with notes“ bewertet, Review B
+(`reports/t344/review-b.md`) mit PASS; beide ohne blockierenden Befund. Kein neues
+Artefakt, kein PDF angefasst: die Messung selbst bleibt zifferngleich (nur der zusätzliche
+Nachweis der Bindung an die PDF-Bytes ist neu). Nachgezogen wurden:
+
+1. **Padding-Quelle des Zeichners (Review A P2-1).** Der horizontale Sollursprung kommt
+   jetzt aus `TEXT_PADDING_PT` in `ExportPlanValidation.kt` — der Konstante, mit der
+   `PdfExportService` tatsächlich zeichnet —, nicht mehr aus der Layout-Kopie. Beide
+   Quellen werden gelesen und auf Gleichheit geprüft; eine Drift oder eine nicht lesbare
+   Quelle beendet den Lauf mit Exit 5 (`field padding differs: …`). Ziel und Messung
+   bleiben `191.625` gegen `191.625`.
+2. **Baseline-Klammer und Font-Metrik (Review A P2-2).** Punkt 2 ist ausdrücklich als
+   **Inferenzstufe** dokumentiert; die Streuung ist bei passender Boxhöhe algebraisch
+   zwingend 0 und bestätigt nichts. Die Höhenprüfung ist von einer `informational`-Zeile
+   zu `check.font_box.height` geworden (`14.709600` gegen `14.709600`, Deviation
+   `0.000000`, Schranke `0.001`), und sie gated das Verdikt: ohne bestätigte Font-Metrik
+   keine `PROVEN`-Aussage. Zahlen unverändert.
+3. **Digest-Bindung (Review A P2-3).** `format_report` gibt `pdf_sha256=<hex>` aus; beide
+   v2-Evidenzdateien sind neu erzeugt. Die Digests `8da0ce1f…` / `dcf302e2…` stimmen mit
+   `artifact-{1,2}-pickup.txt` überein.
+4. **Kleinere Punkte (Review A P3-1, P3-3, P3-4, P3-8; P3-7 ein Fall).** `_REPOSITORY_ROOT`
+   ist jetzt der Basispunkt der Default-Pfade (das Werkzeug läuft aus jedem
+   Arbeitsverzeichnis); `tolerance_pt=0.000` bei `containment` ist im Output als „exact
+   containment by design (tolerance 0)“ ausgewiesen; das Wording in §8.2 sagt „linke
+   Kante (`xMin`)“ statt „Box-Oberkante“; der Docstring verweist für den Ascent-Überstand
+   auf die beiden gedruckten Zahlen statt auf eine nie gedruckte „allowance“-Zeile; und
+   `--tolerance-pt <= 0` ist als Exit-2-Fall getestet.
+
+Die Ascent-Beobachtung ist **nicht** Teil dieses Nachzugs: sie ist als Owner-Issue **#346**
+angelegt (siehe §8.6 Punkt 2). Offen und bewusst nicht angefasst: Review B P3-2
+(`tools/pdf_verify/.gitkeep` ist in §8.6 nicht als entfernt gelistet), Review A P3-2
+(`_COMPARISON_TOLERANCE_PT` und der `0.8 * fontSizePt`-Text im `definition`-Feld sind
+weiterhin literale Kopien), Review A P3-5 (Ink-Box vs. Poppler-Box), P3-6 (Toleranz pro
+Achse) und Review B P3-4 (`--page` in den Evidenz-Kommandos).
