@@ -23,11 +23,26 @@ und zieht das Artefakt für einen **externen** Poppler-Beleg auf den Host.
 | Slice-Commits | `dbe852f` (Test + Treiber), `fcc7d53` (Pickup-Pfad aus dem Marker), `76bec66` (Ack-Handshake), **`d790171`** (Post-Pickup-Cleanup, Lauf-Commit) |
 | HEAD des belegten Laufs | `d79017101b61adc35a41a99133eea2aa1b2689ea` |
 | Tree | `4ebc2f1ce14381d0fcb320eddc65a7b612bae13b` |
-| `git status --porcelain` vor dem Lauf | leer (Commit-before-run-Gate des Treibers bestanden) |
+| `git status --porcelain` | leer — der Treiber bricht bei nicht-leerem Arbeitsbaum **vor** dem Lauf ab (`t334_drive_export.sh:298–307`); die committete `git-identity.txt` wurde nach dem Lauf erfasst und zeigt denselben leeren Status |
 | Test-Datei SHA-256 | `fe9b21433e4df4d18a705cc3f766e01a8dbab3b63d2c5d0bd82466071a03fd99` |
 | Treiber SHA-256 | `79ac6e84c6519c3758c571e4812db309e283a787692dd71ec7cae37359210e03` |
 | Flutter | 3.47.7, stable |
 | APK (debug) | `apps/feldexa_app/build/app/outputs/flutter-apk/app-debug.apk`, sha256 `00b4fa6d64adfd2999c644a6c0c5c13e15d156e3f9929bfe88819f111204d0d3`, 173 863 216 B |
+
+### Dateien dieses Slices (Diff gegen Basis `baec0be`)
+
+**Neu**
+
+- `apps/feldexa_app/integration_test/android_export_test.dart` (708 Zeilen)
+- `tools/android/t334_drive_export.sh` (629 Zeilen, ausführbar)
+- `specs/001-scanned-form-workflow/reports/2026-11-26-t334-android-export-verification.md`
+- `specs/001-scanned-form-workflow/reports/artifacts/2026-11-26-t334-export/` (20 Evidenzdateien)
+
+**Geändert:** keine.
+
+**Nicht berührt:** kein Produktcode (`apps/feldexa_app/lib`, `apps/feldexa_app/android`, `packages/*`),
+`apps/feldexa_app/e2e/export_journey.yaml` unverändert. `git diff --name-only baec0be..<Kandidat>`
+nent nur Dateien unter `apps/feldexa_app/integration_test/`, `tools/android/` und `specs/`.
 
 ## 3. Gerät (nur Emulator)
 
@@ -55,13 +70,13 @@ kein Emulator-Neustart, keine Eingaben von einem Beobachtungspfad.
 
 ## 4. Permits (compute_slot)
 
-Der gesamte Lauf (Emulator, Gradle, Flutter-Test) lief in **einem** Permit-Abschnitt mit beiden
-Ressourcen. Wörtliche Events des Wrappers:
-
-```
-{"compute_slot": "ACQUIRED", "resources": ["/tmp/orca-maintainer-heavy-1000.lock", "/tmp/pi-maintainer-emulator-1000.lock", "/tmp/pi-maintainer-io-1000.lock"], "uid": 1000}
-{"compute_slot": "SETTLED", "exit_code": 0, "launcher_exit_code": 0, "adopted_failures": []}
-```
+Der gesamte Lauf (Emulator, Gradle, Flutter-Test) lief in **einem** Permit-Abschnitt mit `build`(+`io`)
+und `emulator`; der Treiber admitiert sich selbst (siehe §5). Die beobachteten `ACQUIRED`/`SETTLED`-
+Zeilen von `compute_slot.py` liegen **nicht** als Evidenzdatei im Repository (Review-A P2-1), sondern
+nur als Konsolenausgabe des Laufs; verbindlich committet ist der selbst deklarierte Admission-Block des
+Treibers. Dessen Felder `inside_permits`, `orca_command_used` und `detached_jobs` sind **literale
+Deklarationen** des Treibers, keine Messungen — belastbar sind `admitted_at_utc` und die
+Ressourcenliste.
 
 Der Treiber deklariert in seinem eigenen Admission-Block dieselben Ressourcen
 (`specs/…/artifacts/2026-11-26-t334-export/compute-lock.txt`):
@@ -79,10 +94,15 @@ admitted_at_utc=2026-11-26T11:18:43Z
 ## 5. Kommando
 
 ```
-cd apps/feldexa_app  # bzw. Repo-Wurzel für den Treiber
-python3 ~/.pi/agent/skills/pi-maintainer/scripts/compute_slot.py --wait \
-  --resource build --resource emulator -- bash tools/android/t334_drive_export.sh
+export PATH="$HOME/flutter/bin:$HOME/Android/Sdk/platform-tools:$PATH"
+cd <repo-root>
+bash tools/android/t334_drive_export.sh
 ```
+
+Der Treiber admitiert sich **selbst** über `compute_slot.py` (`--resource build --resource emulator`).
+Ein zusätzlicher äußerer Wrapper auf dieselben Locks ist deshalb ein Selbst-Deadlock und war in einer
+früheren Fassung dieses Reports falsch dokumentiert (Review-A P1-1); nur wenn bewusst von außen
+gesetzt, muss `T334_COMPUTE_LOCK_HELD=1` mitgegeben werden.
 
 Treiber-Ablauf: Permit-Admission → Gerätebindung (Serial/AVD/API/`qemu`/Boot) →
 Commit-before-run-Gate → Fixture-Staging mit Host- und Geräte-Digest → `pm clear` →
@@ -91,8 +111,9 @@ Hintergrund → warten auf `T334_ARTIFACT_STORED` → Artefakt per `run-as` hole
 Marker) → Ack-Datei für den Test → auf Testende warten → Poppler-Beleg auf dem Host →
 Evidenz + Privacy-Checks → fail-closed.
 
-Lauf: Start `2026-11-26T11:18:50Z`, Ende `2026-11-26T11:20:35Z` (≈ 115 s, Build bereits warm;
-der Kaltlauf davor brauchte 386,9 s für `assembleDebug`).
+Lauf: Start `2026-11-26T11:18:50Z` (evidenziert in `marker-sequence.txt`). Ein End-Zeitpunkt und eine
+Gesamtdauer sind **nicht** in der Evidenz erfasst (Review-A P2-3); `integration-android-t334.log`
+zeigt für `assembleDebug` dieses Laufs `52,4 s`, der Build war durch die Vorläufe warm.
 
 **Warum der Ack-Handshake nötig ist**: `flutter test` deinstalliert die App beim Beenden. Ein
 `run-as`-Pickup **nach** dem Testende liest nur noch `run-as: unknown package` (40 B, beobachtet im
@@ -127,7 +148,10 @@ T334_CLEANUP_DONE
 00:37 +1: All tests passed!
 ```
 
-Jeder Marker steht **nach** dem `expect`, das seinen Sachverhalt beweist. Marker tragen nur
+Jeder Marker **mit Tatsachenbehauptung** steht nach dem `expect`, das sie beweist. Drei reine
+Phasenmarker haben kein vorangehendes `expect` (Review-A P3-1): `T334_START_LIST_READY` (folgt einem
+fail-closed `_pumpUntil`), `T334_WAITING_FOR_HOST_PICKUP` (kündigt eine Wartezeit an) und
+`T334_CLEANUP_DONE` (reine Phase). Marker tragen nur
 Phasennamen, zählende Größen, den Pickup-Pfad und den Hex-Digest — keinen Feldnamen, keinen
 eingegebenen Wert, keinen OCR-Text.
 
@@ -275,10 +299,9 @@ Artefakt-PDF, 12 029 B, synthetisch, keine personenbezogenen Daten).
 
 ```
 export PATH="$HOME/flutter/bin:$HOME/Android/Sdk/platform-tools:$PATH"
-cd apps/feldexa_app && flutter analyze --no-pub          # No issues found!
-cd ../.. && dart format --output=none --set-exit-if-changed packages apps
-python3 ~/.pi/agent/skills/pi-maintainer/scripts/compute_slot.py --wait \
-  --resource build --resource emulator -- bash tools/android/t334_drive_export.sh
+cd apps/feldexa_app && flutter analyze --no-pub          # No issues found!  — Beleg: gate-analyze.txt
+cd ../.. && dart format --output=none --set-exit-if-changed packages apps  # 0 changed — gate-format.txt
+bash tools/android/t334_drive_export.sh                  # admitiert sich selbst, kein äußerer Wrapper
 git status --porcelain                                   # nach dem Commit leer
 ```
 
@@ -302,3 +325,31 @@ einem Fehler, nie mit `PASS`. Ohne gebooteten `emulator-5554` endet er mit exit 
    nach App-Deinstallation; `pm clear` bei deinstallierter App). Alle drei waren
    Treiber-Defekte, sind in `fcc7d53`, `76bec66`, `d790171` behoben und mit dem hier
    dokumentierten Lauf belegt; der Test selbst war bereits im ersten Lauf grün.
+
+## 13. Review-Nachführung (A/B) und Supervisor-Gates
+
+Zwei unabhängige Reviews auf demselben Kandidaten `77ec66d` (`reports/t334/review-a.md`, Reviewer
+`deepseek/deepseek-flash`; `reports/t334/review-b.md`, Reviewer `zai-coding-cn/glm-5.3-flash`): beide
+**PASS**, keines der Findings war substanzielle Beweisnot — sie betrafen Doku-Genauigkeit und
+Fail-closed-Härte des Treibers.
+
+Supervisor-Gates des Parents auf dem Kandidaten (nachgeholt, weil Reviewer B ohne Shell lief):
+
+| Gate | Ergebnis |
+| --- | --- |
+| `flutter analyze --no-pub` (App) | `No issues found!`, exit 0 — `gate-analyze.txt` |
+| `dart format --output=none --set-exit-if-changed packages apps` | `0 changed`, exit 0 — `gate-format.txt` |
+| `bash -n` + Ausführbarkeit des Treibers | Syntax OK, ausführbar |
+| Hashes gegen Evidenz | Test `fe9b2143…`, Treiber `79ac6e84…`, Artefakt `1e24ac01…` — alle identisch |
+| `git diff --stat d790171..77ec66d` | nur Report + Evidenzdateien (docs-only), kein Code |
+
+**In diesem Commit behoben** (Doku/Evidenz): P1-1 (Reproduktionskommando deadlockte gegen den
+eigenen Permit), P2-1 (Wrapper-Events nicht Evidenz — Formulierung präzisiert), P2-2 (Dateiliste
+ergänzt), P2-3 (unbelegte Zeitangaben neutralisiert), P3-1 (Marker-Formulierung präzisiert),
+P3-3 (Analyze-/Format-Belege ergänzt), P3-4 (Commit-before-run-Zuordnung präzisiert).
+
+**Bewusst nicht in diesem Slice behoben**: die Fail-open-Reste des Treibers (Review-A P3-2,
+Review-B Findings 1–5: ungeprüftes Prä-Lauf-`pm clear`, `find || true`, festes `sleep`, Env-Overrides,
+verschlucktes `adb`-stderr, leere `apk-sha256.txt` bei fehlendem APK, Privacy-Greps mit
+Fehler-als-kein-Treffer). Ein Treiber-Patch würde den belegten Lauf von seinem Treiber-Hash
+`79ac6e84…` entkoppeln. Nachführung mit erneutem, hash-gebundenem Treiberlauf: **Issue #342**.
