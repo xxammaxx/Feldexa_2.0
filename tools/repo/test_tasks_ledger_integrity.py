@@ -128,7 +128,9 @@ class TasksLedgerIntegrityTest(unittest.TestCase):
             refs = [
                 ref
                 for ref in BACKTICK.findall(line)
-                if ref.startswith(REPO_ROOTS) and not any(c in ref for c in "{}")
+                if ref.startswith(REPO_ROOTS)
+                and not any(c in ref for c in "{}")
+                and " " not in ref
             ]
             unresolved = [ref for ref in refs if not _resolve(ref)]
             if not unresolved:

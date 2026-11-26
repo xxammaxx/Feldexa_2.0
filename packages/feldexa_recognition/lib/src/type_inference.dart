@@ -489,17 +489,6 @@ final class TypeInference {
     return credible;
   }
 
-  /// True when [label] is printed on the candidate's own row, to its left.
-  ///
-  /// `contracts/recognition-output.md` §3.1 defines the cue
-  /// `ocr_alignment_right` as "the candidate is to the right of an OCR label
-  /// line". A left label is therefore associated by layout only when that
-  /// direction holds (the label's right edge is at or before the candidate's
-  /// left edge, within the layout tolerance) and the two rows really overlap:
-  /// at least half of the shorter box, so a one-point sliver at the top of a
-  /// candidate never counts. The horizontal gap itself is not distance-capped,
-  /// because a short label in a fixed label column leaves a wide empty gap that
-  /// says nothing about the association.
   /// True when another candidate on the same row sits closer to [label].
   ///
   /// A row can carry several candidates (for example two checkboxes side by
@@ -523,6 +512,17 @@ final class TypeInference {
     return false;
   }
 
+  /// True when [label] is printed on the candidate's own row, to its left.
+  ///
+  /// `contracts/recognition-output.md` §3.1 defines the cue
+  /// `ocr_alignment_right` as "the candidate is to the right of an OCR label
+  /// line". A left label is therefore associated by layout only when that
+  /// direction holds (the label's right edge is at or before the candidate's
+  /// left edge, within the layout tolerance) and the two rows really overlap:
+  /// at least half of the shorter box, so a one-point sliver at the top of a
+  /// candidate never counts. The horizontal gap itself is not distance-capped,
+  /// because a short label in a fixed label column leaves a wide empty gap that
+  /// says nothing about the association.
   static bool _sharesRow(DisplayRect label, DisplayRect candidate) {
     final double labelRight = label.x + label.width;
     if (labelRight > candidate.x + _rowDirectionTolerancePt) {

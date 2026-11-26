@@ -125,8 +125,8 @@ final class DocumentSummary {
 /// timestamps ordered by ascending [DocumentSummary.id]; the caller's lists are
 /// never mutated. Open callbacks receive the entry id; an optional delete
 /// callback is forwarded without a confirmation dialog. The root is a
-/// [ListView], so the surface is reachable by scrolling and needs no parent
-/// scroll view.
+/// [CustomScrollView] with one lazy sliver per group (FR-100, T097), so the
+/// surface is reachable by scrolling and needs no parent scroll view.
 class StoredItemsView extends StatelessWidget {
   /// Creates the two-group start list.
   const StoredItemsView({

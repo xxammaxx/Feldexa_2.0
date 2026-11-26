@@ -60,12 +60,12 @@ These findings cannot be settled by an implementation task. Tasks that touch the
 
 | ID | Decision needed | Current documented behavior | Affected tasks |
 | --- | --- | --- | --- |
-| OD-1 (CHK009) | Does export block until every overlapping suggestion conflict is resolved, or proceed with unresolved suggestions excluded and warned? | `contracts/export-plan.md` §3.4 is explicitly **provisional**: unresolved suggestions are excluded and warned without blocking. FR-062 now states that empty fields never block export and defers unresolved-suggestion handling to that provisional policy, while FR-025 remains binding and still requires the user to resolve overlapping suggestions. | T113 |
+| OD-1 (CHK009) | Does export block until every overlapping suggestion conflict is resolved, or proceed with unresolved suggestions excluded and warned? | **Resolved 2026-11-26 (Q1=A):** `contracts/export-plan.md` §3.4 is ratified, FR-062 names the ratified non-blocking policy, and FR-025 still requires the user to resolve overlapping suggestions during review. This row records the question; the answer is in "Owner Decisions Taken 2026-11-26". | T113 |
 | OD-2 (CHK017) | Recruitment, prior familiarity, observation protocol, and timing boundaries for the SC-016 journey timing and the SC-018 5-of-5 first-time usability run. | `quickstart.md` §10 says five first-time users; no recruitment or protocol. | T137 |
 | OD-3 (CHK026) | Written equivalence rule and approval for any device other than the Samsung Galaxy A54 5G used for SC-004. | Plan names the Galaxy A54 5G and also allows an owner-approved equivalent. | T141 |
 | OD-4 (CHK024) | Numeric interaction/latency bound for the FR-100 50-item list "usable" criterion. | Plan Phase E says a 50-item list is tested; no numeric bound. | T097 |
 
-**Unresolved documentation gap (not an owner decision, not a task instruction)**: `spec.md` edge case "overlaying a value on pre-filled scanned content" has no FR and no acceptance criterion. No task in this file implements or verifies that behavior; it must be closed by a future specification change, not invented here. The spec status stays **Draft**.
+**Former documentation gap, closed 2026-11-26**: `spec.md` now carries FR-111 (export MUST over pre-filled content; editor hint SHOULD, planned) and SC-023. The export behaviour is implemented by the applier; SC-023 still needs its artifact-level verification (T109 extension) and is not claimed as verified here. The spec status stays **Draft**.
 
 ### Owner Decisions Taken 2026-11-26
 
@@ -135,6 +135,7 @@ These are the only genuine artifact contradictions found; each is resolved by th
 | FR-097–FR-100 (stored document access) | T095–T097 |
 | FR-101–FR-106 (template editing and versions) | T115–T120 |
 | FR-107–FR-110 (date entry) | T081 |
+| FR-111 (values over pre-filled content) | T104, T109 extension (export applier; SC-023 verification pending) |
 
 | Success Criterion | Verification task |
 | --- | --- |
@@ -153,6 +154,7 @@ These are the only genuine artifact contradictions found; each is resolved by th
 | SC-017 | T070, T109 |
 | SC-019 | T048 (byte identity and modification time, plus deletion-reopen/render/export from the protected internal copy) |
 | SC-022 | T081 |
+| SC-023 | T109 extension (verification pending) |
 
 ---
 
@@ -345,7 +347,7 @@ These are the only genuine artifact contradictions found; each is resolved by th
 - [ ] T094 [US5] Add the storage-exhaustion and no-success-report test in `apps/feldexa_app/integration_test/storage_full_test.dart` (FR-074/FR-075/FR-076; SC-010)
 - [x] T095 [US5] Implement the start area with separate document and template groups in `apps/feldexa_app/lib/features/start/stored_items.dart`, showing each entry's title, last-edited date, and status (FR-058/FR-097/FR-098; clarification 3); T095 owns `DocumentSummary` as a projection of the port-level `StoredMeta`, not a second persisted type Integrated 2026-11-20 as PR #242 (merge `c31f08b`) from candidate `9c1b7b6` after two independent read-only PASS reviews (Codex quota-unavailable; approved DeepSeek Flash fallback via OpenCode `plan`). Delivers `DocumentSummary.fromStoredMeta` (unreadable wins; saved only with durable time not older than updatedAt; otherwise draft; exportReady caller-authored only; id/title/updatedAt preserved) and `StoredItemsView` with separate documents/templates sections, exact existing ARB headings, newest-first sorting with id tiebreak, title, local dd.MM.yyyy last-edited date, status icon+text for draft/saved/exportReady/unreadable, both empty states, open callbacks, optional delete callback without dialog, stable keys, and a scrollable 50-entry list. No store/network/clock/route/editor wiring. Scope is exactly two new files. Evidence `NONE`: app analyze 0, format 0, focused 22/22, full app 398/398, diff-check clean; post-merge on `c31f08b`: 398/398. Host-only; Android/device/TalkBack/visual `NOT_RUN`. Non-blocking notes: the date test mirrors the production local-date helper; the 200% test omits the delete/two-populated-section combination; entry keys rely on unique UUID ids; 50 entries are laid out eagerly (reachability only, T097 owns latency); `Neu` is not representable in the authorized four-state API; the optional delete tooltip uses Material localization and T096 owns the confirmation/dialog wording. T071 composition remains blocked. CI NOT_REQUIRED.
 - [x] T096 [US5] Implement list deletion with a German confirmation naming what remains in `apps/feldexa_app/lib/features/start/delete_item.dart` (FR-053/FR-099) Integrated 2026-11-20 as PR #243 (merge `4b0dd16`) from final candidate `806ccb0` (correction of `ddd964f`) after two independent read-only PASS reviews (Codex quota-unavailable; approved DeepSeek Flash fallback via OpenCode `plan`). Delivers `showDeleteItemConfirmation` for document/template with exact DEL-002/DEL-003 ARB content, German „Löschen“/„Abbrechen“ actions, stable dialog/confirm/cancel keys, confirm true / cancel and barrier false, no store/route/snackbar/deletion side effect, and `deletionConfirmationMessage` returning the exact post-deletion sentence. `AlertDialog(scrollable: true)` reflows at 200%; no new ARB/generated keys and no German literal in Dart. Scope is exactly two new files. Evidence `NONE`: app analyze 0, format 0, focused 11/11, full app 409/409, diff-check clean; post-merge on `4b0dd16`: 409/409. Host-only; Android/device/TalkBack/visual `NOT_RUN`. Non-blocking: the confirm label uses `MaterialLocalizations.deleteButtonTooltip` because Flutter has no delete-label getter and no ARB key was authorized; system back dismissal shares the tested null->false path; the static import scan is deliberately exact; `DeleteItemKind` does not model drafts because the ARB provides only document/template dialogs. T097 remains blocked on OD-4; T071 composition remains blocked. CI NOT_REQUIRED.
-- [x] T097 [US5] Implement the 50-item list test in `apps/feldexa_app/test/stored_list_50_test.dart` with the OD-4/Q10=A bound (50 entries, open-to-first-frame <= 500 ms, lazy viewport, all reachable without pagination) (FR-100; CHK024). **[Superseded path 2026-11-26, M7]** The originally named `apps/feldexa_app/integration_test/stored_list_50_test.dart` was not created: Q10=A specifies a host widget test, and the bound is measured there (evidence class `NONE`, not a DEVICE claim). The view now renders lazily in `apps/feldexa_app/lib/features/start/stored_items.dart`.
+- [x] T097 [US5] Implement the 50-item list test in `apps/feldexa_app/test/stored_list_50_test.dart` with the OD-4/Q10=A bound (50 entries, open-to-first-frame <= 500 ms, lazy viewport, all reachable without pagination) (FR-100; CHK024). **[Evidence: `reports/2026-11-26-m7-integration.md`]** **[Superseded path 2026-11-26, M7]** The originally named `apps/feldexa_app/integration_test/stored_list_50_test.dart` was not created: Q10=A specifies a host widget test, and the bound is measured there (evidence class `NONE`, not a DEVICE claim). The view now renders lazily in `apps/feldexa_app/lib/features/start/stored_items.dart`.
 - [ ] T098 [US5] Verify no plaintext PDF, log, thumbnail, or backup residue in `apps/feldexa_app/integration_test/plaintext_leak_test.dart` (FR-082; CHK029)
 - [ ] T099 [US5] Verify diagnostics exclude paths, file names, OCR text, values, and signatures in `apps/feldexa_app/test/diagnostics_privacy_test.dart` (FR-081)
 - [ ] T100 [US5] Verify a blocked storage operation is retryable after space is freed without re-import in `apps/feldexa_app/integration_test/storage_retry_test.dart` (FR-077)
@@ -372,7 +374,7 @@ These are the only genuine artifact contradictions found; each is resolved by th
 - [ ] T110 [US7] Add the printability test with the Android print preview and two independent engines in `apps/feldexa_app/integration_test/print_test.dart` (SC-005; CHK019)
 - [ ] T111 [P] [US7] Add the `SIMULATED` export watermark and non-production-artifact test in `apps/feldexa_app/integration_test/web_export_test.dart` (FR-087; `contracts/export-plan.md` §7)
 - [ ] T112 [US7] Define the full export verification set and its membership in `tools/pdf_verify/verification-set.md` (SC-006; CHK018)
-- [ ] T113 [US7] Implement the preflight unresolved-suggestion warning against the explicitly **provisional** `contracts/export-plan.md` §3.4 and the current FR-062 wording in `packages/feldexa_export/lib/src/preflight.dart`: empty fields never block export; unresolved overlapping suggestions are excluded and warned only under the provisional policy, and that behavior stays blocked on owner decision OD-1. No task or test may treat the non-blocking behavior as the settled export policy (FR-025/FR-062; CHK009)
+- [ ] T113 [US7] Implement the preflight unresolved-suggestion warning against the ratified `contracts/export-plan.md` §3.4 and the current FR-062 wording in `packages/feldexa_export/lib/src/preflight.dart`: empty fields never block export; unresolved overlapping suggestions are excluded and warned under the ratified policy (Q1=A, 2026-11-26). FR-025 still governs review and requires the user to resolve them (FR-025/FR-062; CHK009)
 
 **Checkpoint**: US7 is independently exportable and the artifact, not the UI, proves correctness.
 
@@ -567,7 +569,7 @@ Task: "Add the SIMULATED export watermark test in apps/feldexa_app/integration_t
 - **Date**: 2026-11-12 (corrective regeneration of `specs/001-scanned-form-workflow/tasks.md`).
 - **Base revision**: the prior authoring snapshot is not part of this candidate and is not required for verification (unavailable from the bundle); the current candidate is diffed against base `b3dbe29932c8a5bed13696406b6a2bcc80316ffa` with `git diff b3dbe29..HEAD`.
 - **Preserved IDs**: all 147 identifiers `T001`–`T147` are preserved in the same order and the same phase; none added, removed, merged, renumbered, or reordered. Phase structure, dependency/parallel rules, and evidence rules are unchanged.
-- **Analysis findings addressed**: C1 (gate order, T144 rewritten as a record task), C2 (T147 hands the exact revision to gates 7–9 without self-approval), G1 (T137 executes SC-016/SC-018 after OD-2), G2 (T048 deletion-reopen/render/export), G3 (T117 implements the FR-059 use-template flow), A1 (T113 cites the provisional §3.4 and FR-062, OD-1 unresolved), A2 (T097 stays blocked on OD-4, no invented bound), I2 (T095 shows status), I3/I4 (T045/T084 verify the corrected `IMP-007`/`FLD-001`; T029 consumes the corrected catalog), U4 (`tools/gate.sh`), U5 (single evidence root), I7/M1/M2 (traceability matrix and weak task traces corrected; T108 → FR-072), M3 (T093 asserts no app password / no mandatory biometric), U8 (T109 asserts provenance across save/reopen/export with no interactive controls in the flattened artifact), U7 (T029 consumes the corrected catalog; T045/T084 verify it).
+- **Analysis findings addressed**: C1 (gate order, T144 rewritten as a record task), C2 (T147 hands the exact revision to gates 7–9 without self-approval), G1 (T137 executes SC-016/SC-018 after OD-2), G2 (T048 deletion-reopen/render/export), G3 (T117 implements the FR-059 use-template flow), A1 (T113 cites the provisional §3.4 and FR-062, OD-1 unresolved; superseded 2026-11-26 — 3.4 ratified, FR-062 updated, T113 wording updated), A2 (T097 stays blocked on OD-4, no invented bound), I2 (T095 shows status), I3/I4 (T045/T084 verify the corrected `IMP-007`/`FLD-001`; T029 consumes the corrected catalog), U4 (`tools/gate.sh`), U5 (single evidence root), I7/M1/M2 (traceability matrix and weak task traces corrected; T108 → FR-072), M3 (T093 asserts no app password / no mandatory biometric), U8 (T109 asserts provenance across save/reopen/export with no interactive controls in the flattened artifact), U7 (T029 consumes the corrected catalog; T045/T084 verify it).
 - **Remaining unresolved findings / owner decisions**: OD-1, OD-2, and OD-3 were answered on 2026-11-26 (see Owner Decisions Taken) and are applied in `contracts/export-plan.md` and `spec.md`; OD-4 (50-item interaction bound) remains open. The pre-filled-scanned-content overlay gap is closed by FR-111/SC-023. `spec.md` status remains **Draft** until the open OD-4 and the pending release evidence are settled.
 
 ## Format Validation
@@ -599,16 +601,13 @@ The GitHub tracker remains authoritative for live defect state (owner decision Q
 | Issue | Scope | State at 2026-11-26 | Affected tasks |
 | --- | --- | --- | --- |
 | #335 | P1: 80 suggestions for 10 real fields, wrong type assignment | open | T264, T264D, T033/T034 family |
-| #318 | App test suite red from the repository root (`rootBundle` assets) | open | T145, T146 |
-| #310 | Formatter gate depends on the installed Dart version | open | T145 |
-| #346 | Nominal font ascent 0.61 mm above the field rect (contract-conformant, owner decision) | closed 2026-11-26 (Q8=A) | T104, T109, OD-3 |
+| #318 | App suite red from the repository root (`rootBundle` assets) | fixed 2026-11-26 (Q8=A); kept open by Q11=B until the integration PR merges | T145, T146 |
+| #310 | Formatter gate tied to the installed Dart version | closed 2026-11-26 (Q8=A; `dart format` 339/0 at Q8 time) | T145 |
+| #346 | Nominal font ascent 0.61 mm above the field rect | closed 2026-11-26 (Q8=A; accepted as spec tolerance, Q3=B) | T104, T109, OD-3 |
 | #227 | Owner stop-marker for handing over running tasks | open | T145–T147 |
-| #344 | Export proof depth: 1 mm placement, AcroForm fixture, second artifact | closed (verified 2026-11-26) | T105, T109, T112 |
-| #318 | App suite red from the repository root (rootBundle assets) | fixed 2026-11-26 (Q8=A); kept open by Q11=B | T145, T146 |
-| #310 | Formatter gate tied to the installed Dart version | closed 2026-11-26 (Q8=A, 338/0) | T145 |
-| #350 | T264A evaluation golden drift | closed 2026-11-26 (Q6=B fix, 60/60) | T142, T264A, T264D |
-| #349 | Evidence ledger reconciliation: unindexed reports, stale rows, drifted targets (this review) | open by Q11=B | T102–T113, reports index |
-| #350 | Evaluation 2/60 failures: T264A golden drift after the T263 label association | open | T142, T264A, T264D |
+| #344 | Export proof depth: 1 mm placement, AcroForm fixture, second artifact | closed 2026-11-26 (verified) | T105, T109, T112 |
+| #349 | Evidence ledger reconciliation (this review) | open by Q11=B until the integration PR merges | T102–T113, reports index |
+| #350 | T264A evaluation golden drift | closed 2026-11-26 (Q6=B fix; 60/60 with the untouched golden, report `2026-11-26-m7-integration.md`) | T142, T264A, T264D |
 
 ## T013 Blocker Correction Receipt
 

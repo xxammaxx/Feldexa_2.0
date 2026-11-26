@@ -578,8 +578,9 @@ results are reported separately from Android results.
 **Export**
 
 - **FR-062**: Users MUST be able to export a document as a completed PDF once its fields are
-  confirmed; empty fields MUST NOT block export. Handling of unresolved overlapping
-  suggestions remains subject to the documented provisional export preflight policy.
+  confirmed; empty fields MUST NOT block export. Unresolved overlapping suggestions are excluded
+  from the artifact and warned about, never blocking (ratified 2026-11-26, OD-1/Q1=A); FR-025
+  still governs review and requires the user to resolve them.
 - **FR-063**: The exported PDF MUST contain every original page in the original order with the
   original visual appearance.
 - **FR-064**: Entered values MUST be rendered at their field positions in a readable size and
@@ -708,9 +709,10 @@ results are reported separately from Android results.
   date validation.
 - **FR-111**: When the user enters a value into a field whose area overlaps content already
   printed in the scan, the export MUST place the value at the field position and MUST leave the
-  printed content unaltered, unmasked, and unremoved. The editor MUST show the overlap before
-  export so the user can decide whether the printed content still reads correctly (closed the
-  former spec gap under Owner Decision Q1=A, 2026-11-26).
+  printed content unaltered, unmasked, and unremoved. The editor SHOULD show the overlap before
+  export so the user can decide whether the printed content still reads correctly; that hint is
+  planned but not implemented in this iteration, and the export MUST above does not depend on it
+  (closed the former spec gap under Owner Decision Q1=A, 2026-11-26).
 
 ### Key Entities
 

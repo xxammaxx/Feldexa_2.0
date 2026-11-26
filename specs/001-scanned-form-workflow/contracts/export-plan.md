@@ -15,7 +15,7 @@ confirmed fields + values
         │
         ▼
 [1] Preflight validation (shared Dart)
-    - unresolved suggestions excluded (provisional pending owner decision OD-1; see §3.4)
+    - unresolved suggestions excluded and warned, never blocking (ratified 2026-11-26, OD-1/Q1=A; see §3.4)
     - empty required-nothing policy: empty fields allowed, reported as info
     - type/value compatibility, date/number canonical form
     - geometry inside page bounds
@@ -272,7 +272,7 @@ An export may be reported successful only if all of the following hold:
 | Original appearance | render source and output page at 150 dpi; masked comparison outside overlay rects | pixel-identical outside overlays |
 | Value placement | overlay ink bounding box vs planned rect | ≤ 1 mm at A4 (2.835 pt) |
 | Text content | extracted text contains each value with `ä ö ü ß € „ “` intact; multiline order preserved | exact content after whitespace normalization |
-| No clipping | no ink outside field rect (except descenders within 0.5 pt) and none outside page | zero clipped values |
+| No clipping | no visible ink outside the page and no clipped value; a nominal font ascent may exceed the field rect by up to the accepted 0.61 mm metric tolerance (#346), descenders by 0.5 pt | zero clipped values |
 | Checkbox states | exactly the intended boxes show a mark; no other box marks | exact |
 | Signatures | ink present at the planned rect, aspect preserved | present; no missing signature |
 | No interactive controls | no AcroForm fields, no widget annotations | zero |

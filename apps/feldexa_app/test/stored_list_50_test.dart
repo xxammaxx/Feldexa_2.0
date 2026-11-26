@@ -7,6 +7,10 @@
 //
 // Evidence class: NONE (host widget test). It makes no Android, device, or
 // performance claim about a real device; SC-004 remains a DEVICE measurement.
+// The 500 ms measurement is a host build/layout smoke bound (it warms the
+// harness first); the discriminating assertion for the lazy rendering is the
+// second case, which requires fewer than 50 entry widgets and an unbuilt
+// oldest entry.
 
 import 'package:feldexa_app/features/start/stored_items.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';

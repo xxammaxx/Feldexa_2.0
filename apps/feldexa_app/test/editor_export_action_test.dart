@@ -519,7 +519,7 @@ IconButton _exportButton(WidgetTester tester) {
 void main() {
   setUpAll(() async {
     // Issue #318: read the declared asset through the bundle, which
-    // flutter_test_config resets to the app package for repository-root runs,
+    // flutter_test_config mocks to the app package for repository-root runs,
     // instead of resolving `assets/...` against the invocation directory.
     _metrics = ExportFontMetrics.decode(
       await rootBundle.loadString('assets/fonts/metrics.json'),

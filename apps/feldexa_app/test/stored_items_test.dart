@@ -821,6 +821,9 @@ void main() {
     },
   );
 
+  // This case pins the surface contract (keys, ordering, rect containment,
+  // scrolling). The ratified 50-entry latency bound lives in
+  // `stored_list_50_test.dart` (T097); the overlap is deliberate.
   testWidgets('50 document entries render and the last is reachable', (
     WidgetTester tester,
   ) async {
