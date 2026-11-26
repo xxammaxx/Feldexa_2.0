@@ -1,0 +1,8 @@
+head=b4c86ae1640c24fbd63e42314ce575f8a4a4d394
+tree=3a0e3be6c8471696a32929005f0245236fa3ce7a
+branch=xxammaxx/t342-driver-hardening
+subject=chore(tools): harden t334_drive_export.sh to fail closed (#342)
+status_porcelain:
+test_sha256=fe9b21433e4df4d18a705cc3f766e01a8dbab3b63d2c5d0bd82466071a03fd99
+driver_sha256=c065ad3e9d7742c8841013237bee5475d692bcd8daae2e792331470c63ac7b23
+flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git

@@ -1,0 +1,8 @@
+path=/tmp/feldexa-t334-run.Mz5Kxb/export-artifact.pdf
+device_path=/data/user/0/de.feldexa.app/code_cache/e2e/export-artifact.pdf (read via run-as from the app-internal temp directory)
+sha256=6d0619f905e89cf60e32124e1c1d671f69d41a580639ae1e119728add6354fd0
+bytes=12029
+marker_sha256=6d0619f905e89cf60e32124e1c1d671f69d41a580639ae1e119728add6354fd0
+marker_bytes=12029
+sha256_matches_marker=1
+size_matches_marker=1

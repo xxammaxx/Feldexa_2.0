@@ -1,0 +1,7 @@
+pre-run: package not installed, no stored state exists
+screen awake and unlocked before the test start
+test start 2026-11-26T11:41:36Z
+host pickup: 12029 bytes, sha256 6d0619f905e89cf60e32124e1c1d671f69d41a580639ae1e119728add6354fd0 (marker matches)
+test exit=0
+app is no longer installed after the test (no app data to clear)
+PASS (flutter test exit 0; cleanup marker observed; artifact picked up; poppler proof; privacy checks PASS)
