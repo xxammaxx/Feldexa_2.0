@@ -330,6 +330,9 @@ adb_shell mkdir -p "$STAGING" >/dev/null
   "$STAGING/$FIXTURE" >/dev/null || fail "staging push failed: $FIXTURE"
 adb_shell chmod 755 "$STAGING" >/dev/null
 adb_shell chmod 644 "$STAGING/$FIXTURE" >/dev/null
+# A previous aborted run can leave the pickup acknowledgement behind; remove it
+# before the test starts so no wait can return on a stale ack.
+adb_shell rm -f "$STAGING/ack-artifact-picked-up" >/dev/null
 
 DEVICE_FIXTURE_SHA="$(adb_shell sha256sum "$STAGING/$FIXTURE" | awk '{print $1}')"
 HOST_FIXTURE_SHA="$(sha256sum "$APP/assets/fixtures/$FIXTURE" | awk '{print $1}')"
@@ -388,30 +391,38 @@ record "test start $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   cd "$APP" || exit 1
   exec "${FLUTTER_ENV[@]}" "$FLUTTER" test --no-pub \
     "$TEST_FILE" -d "$SERIAL"
-) >"$LOG" 2>&1
-TEST_EXIT=$?
-record "test exit=$TEST_EXIT"
+) >"$LOG" 2>&1 &
+TEST_PID=$!
 
-grep -E "T334_" "$LOG" >"$RUN_DIR/markers-integration.txt" 2>/dev/null || true
+# `flutter test` uninstalls the app when it exits, so the artifact has to be
+# picked up while the test is still running. The test prints its stored-artifact
+# marker and then waits for the acknowledgement this driver writes after a
+# digest-verified pickup (the same handshake shape as the T086 driver).
+marker_present() {
+  grep -F "T334_$1" "$LOG" >/dev/null 2>&1
+}
 
-if [[ "$TEST_EXIT" -ne 0 ]]; then
-  record "FAIL (flutter test exit $TEST_EXIT)"
-  printf 'result=FAIL\nflutter_test_exit=%s\n' "$TEST_EXIT" \
-    >"$RUN_DIR/run-status.txt"
-  collect_evidence
-  log "T334 DRIVER: FAIL (flutter test exit $TEST_EXIT); log tail follows"
-  tail -200 "$LOG"
-  exit 1
+wait_for_marker() {
+  local marker="$1" deadline=$((SECONDS + ${2:-1800}))
+  while ((SECONDS < deadline)); do
+    if marker_present "$marker"; then
+      return 0
+    fi
+    if ! kill -0 "$TEST_PID" 2>/dev/null; then
+      return 2
+    fi
+    sleep 1
+  done
+  return 1
+}
+
+log "T334 DRIVER: waiting for the stored-artifact marker"
+if ! wait_for_marker "ARTIFACT_STORED" 2400; then
+  log "T334 DRIVER: stored-artifact marker not observed; test log follows"
+  tail -160 "$LOG"
+  fail "missing marker T334_ARTIFACT_STORED before the pickup"
 fi
 
-if ! grep -F 'T334_CLEANUP_DONE' "$LOG" >/dev/null 2>&1; then
-  fail "flutter test exited 0 but the cleanup marker is missing"
-fi
-if ! grep -F 'All tests passed' "$LOG" >/dev/null 2>&1; then
-  fail "flutter test exited 0 without the 'All tests passed' summary line"
-fi
-
-# --- 7. Pick up the artifact, then clear the app data -----------------------
 PICKUP_LINE="$(grep -oE 'T334_ARTIFACT_STORED:PATH=[^:]*:BYTES=[0-9]+:SHA256=[0-9a-f]{64}' "$LOG" | tail -1)"
 [[ -n "$PICKUP_LINE" ]] ||
   fail "the integration log carries no T334_ARTIFACT_STORED marker"
@@ -433,19 +444,55 @@ DEVICE_DATA_PREFIX="/data/user/0/$PACKAGE/"
   fail "the artifact marker path is not inside the app data directory: $MARKER_PATH"
 DEVICE_ARTIFACT_REL="${MARKER_PATH#"$DEVICE_DATA_PREFIX"}"
 
+adb_shell rm -f "$STAGING/ack-artifact-picked-up" >/dev/null
 PICKUP_OK=0
 for attempt in 1 2 3; do
   if timeout 180 "$ADB" -s "$SERIAL" exec-out run-as "$PACKAGE" cat "$DEVICE_ARTIFACT_REL" \
-    >"$RUN_DIR/export-artifact.pdf" 2>/dev/null; then
+    >"$RUN_DIR/export-artifact.pdf" 2>/dev/null &&
+    [[ -s "$RUN_DIR/export-artifact.pdf" ]] &&
+    [[ "$(sha256sum "$RUN_DIR/export-artifact.pdf" | awk '{print $1}')" == "$MARKER_SHA256" ]]; then
     PICKUP_OK=1
     break
   fi
-  sleep 3
+  sleep 2
 done
 [[ "$PICKUP_OK" -eq 1 ]] ||
-  fail "could not read $DEVICE_ARTIFACT_REL through run-as"
-[[ -s "$RUN_DIR/export-artifact.pdf" ]] ||
-  fail "the picked-up artifact is empty"
+  fail "could not read $DEVICE_ARTIFACT_REL through run-as with the marker digest"
+adb_shell touch "$STAGING/ack-artifact-picked-up" >/dev/null ||
+  fail "could not acknowledge the pickup to the test"
+record "host pickup: $MARKER_BYTES bytes, sha256 $MARKER_SHA256 (marker matches)"
+
+TEST_DEADLINE=$((SECONDS + 1800))
+while kill -0 "$TEST_PID" 2>/dev/null; do
+  if ((SECONDS >= TEST_DEADLINE)); then
+    kill "$TEST_PID" 2>/dev/null
+    fail "the integration test did not exit within 1800s after the pickup"
+  fi
+  sleep 2
+done
+wait "$TEST_PID"
+TEST_EXIT=$?
+TEST_PID=""
+record "test exit=$TEST_EXIT"
+
+grep -E "T334_" "$LOG" >"$RUN_DIR/markers-integration.txt" 2>/dev/null || true
+
+if [[ "$TEST_EXIT" -ne 0 ]]; then
+  record "FAIL (flutter test exit $TEST_EXIT)"
+  printf 'result=FAIL\nflutter_test_exit=%s\n' "$TEST_EXIT" \
+    >"$RUN_DIR/run-status.txt"
+  collect_evidence
+  log "T334 DRIVER: FAIL (flutter test exit $TEST_EXIT); log tail follows"
+  tail -200 "$LOG"
+  exit 1
+fi
+
+if ! grep -F 'T334_CLEANUP_DONE' "$LOG" >/dev/null 2>&1; then
+  fail "flutter test exited 0 but the cleanup marker is missing"
+fi
+if ! grep -F 'All tests passed' "$LOG" >/dev/null 2>&1; then
+  fail "flutter test exited 0 without the 'All tests passed' summary line"
+fi
 
 HOST_ARTIFACT_SHA="$(sha256sum "$RUN_DIR/export-artifact.pdf" | awk '{print $1}')"
 HOST_ARTIFACT_SIZE="$(stat -c %s "$RUN_DIR/export-artifact.pdf")"

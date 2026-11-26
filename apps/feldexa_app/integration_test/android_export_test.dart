@@ -473,6 +473,49 @@ int _indexOfBytes(Uint8List haystack, List<int> needle) {
   return -1;
 }
 
+/// Waits for the host driver to acknowledge that it picked the artifact up.
+///
+/// `flutter test` uninstalls the app when it exits, so the driver must read the
+/// app-internal copy while this test still runs. A stale acknowledgement from an
+/// aborted run must never acknowledge this phase, so the wait deletes it first
+/// and then accepts only an ack written no earlier than the phase start.
+Future<void> _waitForHostPickup() async {
+  final File ack = File(
+    '$_fixtureRoot${Platform.pathSeparator}ack-artifact-picked-up',
+  );
+  final DateTime phaseStart = DateTime.now();
+  try {
+    if (ack.existsSync()) {
+      ack.deleteSync();
+    }
+  } on FileSystemException {
+    // A read-only staging directory can refuse the delete; the freshness check
+    // below still rejects the older file.
+  }
+  _marker('WAITING_FOR_HOST_PICKUP');
+  final DateTime deadline = phaseStart.add(const Duration(minutes: 5));
+  while (true) {
+    final bool acknowledged = _acknowledgedAfter(ack, phaseStart);
+    if (acknowledged) {
+      return;
+    }
+    if (DateTime.now().isAfter(deadline)) {
+      fail('the host driver did not acknowledge the artifact pickup');
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+  }
+}
+
+/// Whether [ack] is an acknowledgement written no earlier than [phaseStart].
+bool _acknowledgedAfter(File ack, DateTime phaseStart) {
+  final DateTime threshold = phaseStart.subtract(const Duration(seconds: 1));
+  try {
+    return !ack.lastModifiedSync().isBefore(threshold);
+  } on FileSystemException {
+    return false;
+  }
+}
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -608,6 +651,8 @@ void main() {
       'ARTIFACT_STORED:PATH=${pickup.path}:BYTES=${reread.length}:'
       'SHA256=$rereadSha256',
     );
+    await _waitForHostPickup();
+    _marker('HOST_PICKUP_ACKED');
 
     // --- 7. The production preview deletes the session artifact -------------
     unawaited(
