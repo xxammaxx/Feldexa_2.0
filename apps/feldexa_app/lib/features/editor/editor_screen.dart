@@ -2411,7 +2411,7 @@ class EditorScreenState extends State<EditorScreen> {
           body.add(Text(l10n.preExportEmptyFields(info.emptyFieldCount)));
         }
         if (info.unresolvedSuggestionCount > 0) {
-          // Provisional OD-1 policy (`contracts/export-plan.md` §3.4): the
+          // Ratified OD-1/Q1=A policy (`contracts/export-plan.md` §3.4): the
           // unreviewed suggestions are excluded from the plan and do not
           // block.
           body.add(

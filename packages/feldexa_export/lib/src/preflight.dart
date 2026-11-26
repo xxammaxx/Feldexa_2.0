@@ -14,11 +14,11 @@
 //     catalog/ARB; this file returns only codes and machine reasons;
 //   * FR-025, FR-062, FR-068.
 //
-// Provisional behavior (OD-1). Unresolved suggestions never enter the plan and
-// are counted in `info.unresolvedSuggestionCount`; they do not block under the
-// ratified policy. FR-025 remains binding for review: the UI still has to
-// surface overlapping or conflicting suggestions and require a decision. No
-// caller may treat the count as a settled export policy.
+// Ratified behavior (OD-1/Q1=A, 2026-11-26). Unresolved suggestions never enter
+// the plan and are counted in `info.unresolvedSuggestionCount`; they do not
+// block. FR-025 remains binding for review: the UI still has to surface
+// overlapping or conflicting suggestions and require a decision. The count is
+// the ratified export policy, not a provisional one.
 //
 // Rejected suggestions and rejected fields never appear: the plan is built
 // from `Document.fields`, which is the confirmed field set only.

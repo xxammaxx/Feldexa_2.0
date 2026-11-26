@@ -22,9 +22,12 @@
 //  * text must be non-empty after trimming;
 //  * `ocrConfidence` must be at least 0.5; and
 //  * the Euclidean gap between the label rectangle and the candidate rectangle
-//    must be at most 24 pt. Rectangles that overlap or touch have gap 0.
+//    must be at most 24 pt. Rectangles that overlap or touch have gap 0. A
+//    label printed on the candidate's own row, to its left, is exempt from this
+//    cap (see [_sharesRow]); it is owned by the nearest same-row candidate.
 //
 // The nearest credible label is selected by a total order:
+//  0. a same-row label outranks an off-row label,
 //  1. gap distance (ascending; compared as squared distance, which is
 //     monotonic for non-negative gaps),
 //  2. label rect y (ascending),
