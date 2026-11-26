@@ -31,8 +31,11 @@
 #      size the test printed, and clears the app data again;
 #   6. proves the picked file with external tools on the host: `pdfinfo` page
 #      count and page size against the source fixture, `pdftotext` for the
-#      expected value, and a byte search for `/AcroForm`, `/Widget`, and
-#      `/FT /Tx`;
+#      expected value, a byte search for `/AcroForm`, `/Widget`, and `/FT /Tx`,
+#      and — for every leg that drew a value — the 1 mm placement verdict of
+#      `tools/pdf_verify/placement.py`. The driver measures no placement itself:
+#      one metric, derived from the layout code that draws the value, and a
+#      drawn value without a `PROVEN` verdict ends the run;
 #   7. records device identity, fixture/APK hashes, git identity (HEAD/tree/
 #      branch/subject/status), the permit admission, the `flutter analyze` and
 #      `dart format` gates, the marker sequence extracted from the integration
@@ -131,14 +134,6 @@ artifact_relative_path() {
   esac
 }
 
-# The placement measurement needs a drawn value and a field rect, which only
-# the first two legs have.
-artifact_has_placement() {
-  case "$1" in
-    1 | 2) return 0 ;;
-    *) return 1 ;;
-  esac
-}
 # 1 mm in PDF points (1 pt = 1/72 in). This is a verification threshold of the
 # host measurement, never a product value.
 PLACEMENT_TOLERANCE_PT="2.835"
@@ -217,7 +212,7 @@ if [[ "${T334_COMPUTE_LOCK_HELD:-0}" != "1" ]]; then
 fi
 
 RUN_DIR="${T334_RUN_DIR:-$(mktemp -d "${TMPDIR:-/tmp}/feldexa-t334-run.XXXXXX")}"
-EVIDENCE_DIR="${T334_EVIDENCE_DIR:-$ROOT/specs/001-scanned-form-workflow/reports/artifacts/2026-11-26-t344-acroform}"
+EVIDENCE_DIR="${T334_EVIDENCE_DIR:-$ROOT/specs/001-scanned-form-workflow/reports/artifacts/2026-11-26-t344-acroform-final}"
 LOG="$RUN_DIR/integration-android-t334.log"
 SEQUENCE="$RUN_DIR/marker-sequence.txt"
 ADB_STDERR_LOG="$RUN_DIR/adb-stderr.log"
@@ -902,25 +897,63 @@ source_pdfinfo() {
 
 # The test prints the rectangle the export layout actually targets as plain
 # numbers (`T334_FIELD_RECT`). Convention: display space - origin at the page's
-# top-left corner, x to the right, y downwards, unit = PDF point (1/72 in). That
-# is the same origin and direction Poppler's `pdftotext -bbox` reports, so the
-# comparison below needs no axis flip; the half-page check inside the loop
-# catches a different convention instead of reporting a silent number.
-RECT_LINE="$(grep -oE 'T334_FIELD_RECT:PAGE=[0-9]+:X_MPT=-?[0-9]+:Y_MPT=-?[0-9]+:W_MPT=-?[0-9]+:H_MPT=-?[0-9]+' "$LOG" | tail -1)"
+# top-left corner, x to the right, y downwards, unit = PDF point (1/72 in), the
+# same origin and direction Poppler's `pdftotext -bbox` reports. The marker goes
+# to `tools/pdf_verify/placement.py`, which parses the numbers, compares them
+# with the word box it reads, and refuses a verdict if the two do not sit in one
+# convention (`axes_check`); a half-page heuristic is not needed and not used.
+RECT_LINE="$(grep -oE '^T334_FIELD_RECT:PAGE=[0-9]+:X_MPT=-?[0-9]+:Y_MPT=-?[0-9]+:W_MPT=-?[0-9]+:H_MPT=-?[0-9]+$' "$LOG" | tail -1)"
 [[ -n "$RECT_LINE" ]] ||
-  fail "the integration log carries no T334_FIELD_RECT marker; the placement measurement cannot be attributed"
-RECT_PAGE="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:PAGE=([0-9]+)(:.*|$)/\1/')"
-RECT_X_MPT="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:X_MPT=(-?[0-9]+)(:.*|$)/\1/')"
-RECT_Y_MPT="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:Y_MPT=(-?[0-9]+)(:.*|$)/\1/')"
-RECT_W_MPT="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:W_MPT=(-?[0-9]+)(:.*|$)/\1/')"
-RECT_H_MPT="$(printf '%s\n' "$RECT_LINE" | sed -E 's/.*:H_MPT=(-?[0-9]+)(:.*|$)/\1/')"
-for rect_value in "$RECT_PAGE" "$RECT_X_MPT" "$RECT_Y_MPT" "$RECT_W_MPT" "$RECT_H_MPT"; do
-  [[ "$rect_value" =~ ^-?[0-9]+$ ]] ||
-    fail "cannot read the field rect numbers from $RECT_LINE"
-done
+  fail "the integration log carries no well-formed T334_FIELD_RECT marker; the placement measurement cannot be attributed"
 
-PLACEMENT_VERDICT="WITHIN_1MM"
-PLACEMENT_REASON=""
+# --- 8a. Which legs drew a value, decided by the test's own markers ----------
+# A leg has a placement to measure exactly when a value was drawn into it, and
+# the test states that with markers instead of a leg number: it prints the field
+# rect when the field is confirmed, and it opens the flattening leg with
+# `T334_ACROFORM_LEG_START` - a leg that confirms and fills nothing and prints
+# no field rect at all (its own doc comment: "nothing is filled here"). So every
+# leg whose artifact is stored before that marker drew a value, every leg after
+# it did not, and the log must carry no field rect in that later region. A leg
+# without a rect has no placement to measure; the evidence file names that
+# reason instead of skipping the leg silently.
+FLATTENING_LEG_LINE="$(grep -n -F 'T334_ACROFORM_LEG_START' "$LOG" | head -1 | cut -d: -f1)"
+[[ "$FLATTENING_LEG_LINE" =~ ^[0-9]+$ ]] ||
+  fail "the integration log carries no T334_ACROFORM_LEG_START marker; the drawn-value legs cannot be attributed"
+read -r RECT_MARKERS_BEFORE RECT_MARKERS_AFTER <<<"$(awk -v boundary="$FLATTENING_LEG_LINE" '
+  /^T334_FIELD_RECT:PAGE=/ { if (NR < boundary) before++; else after++ }
+  END { printf "%d %d\n", before, after }' "$LOG")"
+[[ "$RECT_MARKERS_BEFORE" -eq 1 ]] ||
+  fail "the log carries $RECT_MARKERS_BEFORE field rect markers before the flattening leg, expected exactly one (one confirmed field)"
+[[ "$RECT_MARKERS_AFTER" -eq 0 ]] ||
+  fail "the log carries $RECT_MARKERS_AFTER field rect markers after T334_ACROFORM_LEG_START; that leg confirms no field and draws no value"
+DRAWN_LEGS="$(awk -v boundary="$FLATTENING_LEG_LINE" '
+  match($0, /^T334_ARTIFACT_STORED:INDEX=[0-9]+/) {
+    leg = substr($0, RSTART, RLENGTH)
+    sub(/.*INDEX=/, "", leg)
+    if (NR < boundary) print leg
+  }' "$LOG" | sort -n | uniq | paste -sd' ' -)"
+[[ -n "$DRAWN_LEGS" ]] ||
+  fail "the log stores no artifact before the flattening leg; no drawn-value leg is attributable"
+DRAWN_LEG_COUNT="$(printf '%s\n' "$DRAWN_LEGS" | wc -w)"
+if [[ "$DRAWN_LEG_COUNT" -gt 1 ]]; then
+  # Several legs then share the one field rect marker, which is only attributable
+  # because the test asserts the rectangle survived the reopen.
+  REOPEN_MARKERS="$(grep -oE '^T334_DOCUMENT_REOPENED:PAGES=[0-9]+:FIELD_RECT_MATCH=1:VALUE_MATCH=1$' "$LOG")"
+  [[ -n "$REOPEN_MARKERS" ]] ||
+    fail "$DRAWN_LEG_COUNT drawn-value legs share one field rect marker, but the log carries no DOCUMENT_REOPENED:FIELD_RECT_MATCH=1 marker that proves the rectangle survives the reopen"
+fi
+
+PLACEMENT_TOOL_REL="tools/pdf_verify/placement.py"
+[[ -f "$ROOT/$PLACEMENT_TOOL_REL" ]] ||
+  fail "the verified placement tool is missing: $PLACEMENT_TOOL_REL"
+LAYOUT_SOURCE_REL="packages/feldexa_export/lib/src/layout.dart"
+APPLIER_SOURCE_REL="apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export/ExportPlanValidation.kt"
+FONT_METRICS_REL="apps/feldexa_app/assets/fonts/metrics.json"
+for placement_source in "$LAYOUT_SOURCE_REL" "$APPLIER_SOURCE_REL" "$FONT_METRICS_REL"; do
+  [[ -f "$ROOT/$placement_source" ]] ||
+    fail "a placement source the tool reads is missing: $placement_source"
+done
+declare -a ARTIFACT_PLACEMENT_VERDICT=()
 
 for PICKUP_INDEX in $(seq 1 "$ARTIFACT_COUNT"); do
   PICKUP_FILE="$RUN_DIR/export-artifact-$PICKUP_INDEX.pdf"
@@ -1041,99 +1074,78 @@ for PICKUP_INDEX in $(seq 1 "$ARTIFACT_COUNT"); do
   [[ "$TEXTFIELD_HITS" -eq 0 ]] ||
     fail "artifact $PICKUP_INDEX carries $TEXTFIELD_HITS /FT /Tx byte occurrences"
 
-  if ! artifact_has_placement "$PICKUP_INDEX"; then
+  if [[ " $DRAWN_LEGS " != *" $PICKUP_INDEX "* ]]; then
     {
       log "index=$PICKUP_INDEX"
       log "verdict=NOT_APPLICABLE"
-      log "reason=artifact $PICKUP_INDEX exports the AcroForm fixture unchanged: no value was drawn, so there is no placement to measure"
+      log "reason=artifact $PICKUP_INDEX exports the AcroForm fixture unchanged: T334_ACROFORM_LEG_START opens its leg, the leg confirms and fills nothing, so the test prints no T334_FIELD_RECT marker for it, no value is drawn, and there is no placement to measure"
+      log "field_rect_marker=none (0 T334_FIELD_RECT markers after T334_ACROFORM_LEG_START at log line $FLATTENING_LEG_LINE)"
+      log "drawn_value_legs=$(printf '%s' "$DRAWN_LEGS" | tr ' ' ',')"
+      log "artifact_sha256=${HOST_SHA_BY_INDEX[$PICKUP_INDEX]}"
     } >"$RUN_DIR/artifact-$PICKUP_INDEX-placement.txt"
+    ARTIFACT_PLACEMENT_VERDICT[PICKUP_INDEX]="NOT_APPLICABLE"
     continue
   fi
 
-  # --- 1 mm placement measurement (`pdftotext -bbox`) ---------------------
-  # The word element of the entered value on the marked page is matched by its
-  # attributes, not by a text search: exactly one match is required, otherwise
-  # the position is not attributable and the 1 mm claim stays NOT proven.
-  BBOX_XML="$RUN_DIR/artifact-bbox-$PICKUP_INDEX.xml"
-  pdftotext -bbox -f "$RECT_PAGE" -l "$RECT_PAGE" "$PICKUP_FILE" "$BBOX_XML" ||
-    fail "pdftotext -bbox failed on picked-up artifact $PICKUP_INDEX"
-  BBOX_MATCHES="$(grep -oE "<word xMin=\"[0-9.]+\" yMin=\"[0-9.]+\" xMax=\"[0-9.]+\" yMax=\"[0-9.]+\">$EXPECTED_VALUE</word>" "$BBOX_XML")"
-  BBOX_GREP_EXIT=$?
-  [[ "$BBOX_GREP_EXIT" -le 1 ]] ||
-    fail "the -bbox word grep failed with exit $BBOX_GREP_EXIT"
-  BBOX_HITS="$(printf '%s\n' "$BBOX_MATCHES" | sed '/^$/d' | wc -l)"
-  PAGE_HEIGHT_PT="$(awk '/^Page size:/ {print $5}' "$RUN_DIR/pdfinfo-artifact-$PICKUP_INDEX.txt")"
+  # --- 1 mm placement: one metric, the verified tool ----------------------
+  # The driver measures nothing itself. `tools/pdf_verify/placement.py` derives
+  # the origin the layout code draws the value at (padding, baseline factor,
+  # font-size clamp, bundled font metrics) and compares it with the glyph box
+  # Poppler reports, so the number the evidence carries is the distance between
+  # two positions and no longer a centre-to-centre distance of a left-aligned
+  # value inside a wide field. A drawn value must come out `PROVEN`: every
+  # refusal of the tool (exit 2..6) and every failed check (exit 1) ends the run.
+  PLACEMENT_OUTPUT="$(cd "$RUN_DIR" && python3 \
+    "$ROOT/$PLACEMENT_TOOL_REL" \
+    --pdf "export-artifact-$PICKUP_INDEX.pdf" \
+    --value-word "$EXPECTED_VALUE" \
+    --field-rect-marker "$RECT_LINE" \
+    --layout "$ROOT/$LAYOUT_SOURCE_REL" \
+    --applier-source "$ROOT/$APPLIER_SOURCE_REL" \
+    --font-metrics "$ROOT/$FONT_METRICS_REL" \
+    --tolerance-pt "$PLACEMENT_TOLERANCE_PT" 2>&1)"
+  PLACEMENT_EXIT=$?
   {
     log "index=$PICKUP_INDEX"
-    log "command=pdftotext -bbox -f $RECT_PAGE -l $RECT_PAGE <artifact-$PICKUP_INDEX> <xml>"
+    log "placement_metric=origin of the drawn value as the layout code places it, measured with $PLACEMENT_TOOL_REL; this is not a centre-to-centre distance"
+    log "drawn_value_legs=$(printf '%s' "$DRAWN_LEGS" | tr ' ' ',')"
     log "field_rect_marker=$RECT_LINE"
-    log "axis_convention=display space; origin at the page's top-left corner, x to the right, y downwards; Poppler -bbox reports the same origin and direction, so no flip is applied"
-    log "page_height_pt=$PAGE_HEIGHT_PT"
-    log "page=$RECT_PAGE value_word_matches=$BBOX_HITS"
+    printf '%s\n' "$PLACEMENT_OUTPUT"
+    log "placement_tool_exit=$PLACEMENT_EXIT"
   } >"$RUN_DIR/artifact-$PICKUP_INDEX-placement.txt"
-  if [[ "$BBOX_HITS" -ne 1 ]]; then
-    LOCAL_REASON="artifact $PICKUP_INDEX: $BBOX_HITS word matches for the entered value on page $RECT_PAGE (exactly one is required)"
-    VERDICT="NOT_PROVEN"
-    {
-      log "verdict=$VERDICT"
-      log "reason=$LOCAL_REASON"
-    } >>"$RUN_DIR/artifact-$PICKUP_INDEX-placement.txt"
-  else
-    read -r BBOX_XMIN BBOX_YMIN BBOX_XMAX BBOX_YMAX <<<"$(printf '%s\n' "$BBOX_MATCHES" | sed -E 's/.*xMin="([0-9.]+)" yMin="([0-9.]+)" xMax="([0-9.]+)" yMax="([0-9.]+)".*/\1 \2 \3 \4/')"
-    read -r RECT_X_PT RECT_Y_PT RECT_W_PT RECT_H_PT RECT_CX_PT RECT_CY_PT \
-      DEVIATION_X_PT DEVIATION_Y_PT <<<"$(awk -v rx="$RECT_X_MPT" -v ry="$RECT_Y_MPT" -v rw="$RECT_W_MPT" -v rh="$RECT_H_MPT" \
-      -v xmin="$BBOX_XMIN" -v ymin="$BBOX_YMIN" -v xmax="$BBOX_XMAX" -v ymax="$BBOX_YMAX" 'BEGIN {
-        rx = rx / 1000; ry = ry / 1000; rw = rw / 1000; rh = rh / 1000;
-        rcx = rx + rw / 2; rcy = ry + rh / 2;
-        bcx = (xmin + xmax) / 2; bcy = (ymin + ymax) / 2;
-        printf "%.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n", rx, ry, rw, rh, rcx, rcy, bcx - rcx, bcy - rcy;
-      }')"
-    read -r BBOX_CX_PT BBOX_CY_PT <<<"$(awk -v xmin="$BBOX_XMIN" -v ymin="$BBOX_YMIN" -v xmax="$BBOX_XMAX" -v ymax="$BBOX_YMAX" 'BEGIN {
-      printf "%.3f %.3f\n", (xmin + xmax) / 2, (ymin + ymax) / 2;
-    }')"
-    WITHIN="$(awk -v dx="$DEVIATION_X_PT" -v dy="$DEVIATION_Y_PT" -v tol="$PLACEMENT_TOLERANCE_PT" 'BEGIN {
-      ax = dx < 0 ? -dx : dx; ay = dy < 0 ? -dy : dy;
-      print (ax <= tol && ay <= tol) ? 1 : 0;
-    }')"
-    AXIS_OK="$(awk -v rect_cy="$RECT_CY_PT" -v bbox_cy="$BBOX_CY_PT" -v height="$PAGE_HEIGHT_PT" 'BEGIN {
-      if (height <= 0) { print 0; exit }
-      if ((rect_cy < height / 2 && bbox_cy > height / 2) || (rect_cy > height / 2 && bbox_cy < height / 2)) { print 0; exit }
-      print 1;
-    }')"
-    if [[ "$AXIS_OK" != "1" ]]; then
-      LOCAL_REASON="artifact $PICKUP_INDEX: the field rect and the extracted word lie on opposite page halves, so the y-axis convention is not attributable"
-      VERDICT="NOT_PROVEN"
-    elif [[ "$WITHIN" != "1" ]]; then
-      LOCAL_REASON="artifact $PICKUP_INDEX: centre deviation dx=${DEVIATION_X_PT} pt / dy=${DEVIATION_Y_PT} pt exceeds $PLACEMENT_TOLERANCE_PT pt"
-      VERDICT="NOT_PROVEN"
-    else
-      LOCAL_REASON="none"
-      VERDICT="WITHIN_1MM"
-    fi
-    {
-      log "rect_pt=$RECT_X_PT,$RECT_Y_PT,$RECT_W_PT,$RECT_H_PT"
-      log "rect_center_pt=$RECT_CX_PT,$RECT_CY_PT"
-      log "value_bbox_pt=$BBOX_XMIN,$BBOX_YMIN,$BBOX_XMAX,$BBOX_YMAX"
-      log "value_bbox_center_pt=$BBOX_CX_PT,$BBOX_CY_PT"
-      log "deviation_pt=dx=$DEVIATION_X_PT,dy=$DEVIATION_Y_PT"
-      log "tolerance_pt=$PLACEMENT_TOLERANCE_PT"
-      log "axis_convention_check=$([[ "$AXIS_OK" == "1" ]] && printf 'consistent' || printf 'inconclusive')"
-      log "verdict=$VERDICT"
-      log "reason=$LOCAL_REASON"
-    } >>"$RUN_DIR/artifact-$PICKUP_INDEX-placement.txt"
-  fi
-  if [[ "$VERDICT" != "WITHIN_1MM" ]]; then
-    PLACEMENT_VERDICT="NOT_PROVEN"
-    PLACEMENT_REASON="${PLACEMENT_REASON}${LOCAL_REASON}; "
-  fi
+  TOOL_PDF_SHA="$(printf '%s\n' "$PLACEMENT_OUTPUT" | awk -F= '/^pdf_sha256=/ {print $2}')"
+  TOOL_VERDICT="$(printf '%s\n' "$PLACEMENT_OUTPUT" | awk -F= '/^placement_verdict=/ {print $2}')"
+  TOOL_CONTAINMENT="$(printf '%s\n' "$PLACEMENT_OUTPUT" | awk -F= '/^containment_verdict=/ {print $2}')"
+  case "$PLACEMENT_EXIT" in
+    0) ;;
+    1)
+      fail "the placement tool measured artifact $PICKUP_INDEX outside the $PLACEMENT_TOLERANCE_PT pt tolerance (exit 1); see artifact-$PICKUP_INDEX-placement.txt"
+      ;;
+    *)
+      fail "the placement tool refused a verdict for artifact $PICKUP_INDEX (exit $PLACEMENT_EXIT; 2=usage, 3=value word not found, 4=ambiguous word match, 5=unreadable input, 6=Poppler failure): a drawn value without a verdict fails the run; see artifact-$PICKUP_INDEX-placement.txt"
+      ;;
+  esac
+  [[ "$TOOL_VERDICT" == "PROVEN" ]] ||
+    fail "artifact $PICKUP_INDEX drew a value but the placement tool did not report PROVEN (got '${TOOL_VERDICT:-no verdict}')"
+  [[ "$TOOL_CONTAINMENT" == "PASS" ]] ||
+    fail "artifact $PICKUP_INDEX reported containment_verdict=${TOOL_CONTAINMENT:-missing}"
+  [[ "$TOOL_PDF_SHA" == "${HOST_SHA_BY_INDEX[$PICKUP_INDEX]}" ]] ||
+    fail "the placement tool hashed '${TOOL_PDF_SHA:-nothing}' for artifact $PICKUP_INDEX, the picked-up digest is '${HOST_SHA_BY_INDEX[$PICKUP_INDEX]}'"
+  ARTIFACT_PLACEMENT_VERDICT[PICKUP_INDEX]="$TOOL_VERDICT"
 done
 
-log "T334 DRIVER: 1 mm placement measurement: verdict=$PLACEMENT_VERDICT"
-if [[ "$PLACEMENT_VERDICT" == "WITHIN_1MM" ]]; then
-  log "T334 DRIVER: both artifacts place the drawn value within $PLACEMENT_TOLERANCE_PT pt of the field rect centre"
-else
-  log "T334 DRIVER: the 1 mm placement claim is NOT proven: $PLACEMENT_REASON"
-fi
+PLACEMENT_VERDICT="PROVEN"
+PLACEMENT_SUMMARY=""
+for placement_index in $(seq 1 "$ARTIFACT_COUNT"); do
+  PLACEMENT_SUMMARY="$PLACEMENT_SUMMARY artifact_$placement_index=${ARTIFACT_PLACEMENT_VERDICT[$placement_index]}"
+  case "${ARTIFACT_PLACEMENT_VERDICT[$placement_index]}" in
+    PROVEN | NOT_APPLICABLE) ;;
+    *) PLACEMENT_VERDICT="NOT_PROVEN" ;;
+  esac
+done
+PLACEMENT_SUMMARY="${PLACEMENT_SUMMARY# }"
+log "T334 DRIVER: 1 mm placement verdicts:$PLACEMENT_SUMMARY"
+log "T334 DRIVER: 1 mm placement claim: verdict=$PLACEMENT_VERDICT (measured for the drawn-value legs $DRAWN_LEGS, NOT_APPLICABLE where no value was drawn)"
 
 # --- 9. Evidence -------------------------------------------------------------
 # A missing APK is a build/tool failure, never an empty digest file: with
@@ -1189,17 +1201,20 @@ if [[ "$PRIVACY_PASS" -eq 1 ]]; then
   collect_evidence
   scan_evidence_home_paths ||
     fail "the evidence home-path scan did not come back clean; no result was written"
-  record "PASS (flutter test exit 0; cleanup marker observed; three artifacts picked up with matching digests; poppler and byte-search proof for all three; AcroForm flattening proved for artifact 3 (no /AcroForm, /Widget, /FT /Tx; field value survives in the text layer); static gates clean; privacy checks PASS; 1 mm placement claim $PLACEMENT_VERDICT)"
+  record "PASS (flutter test exit 0; cleanup marker observed; three artifacts picked up with matching digests; poppler and byte-search proof for all three; AcroForm flattening proved for artifact 3 (no /AcroForm, /Widget, /FT /Tx; field value survives in the text layer); static gates clean; privacy checks PASS; 1 mm placement claim $PLACEMENT_VERDICT ($PLACEMENT_SUMMARY))"
   {
     printf 'result=PASS\nflutter_test_exit=0\n'
     for status_index in $(seq 1 "$ARTIFACT_COUNT"); do
-      printf 'artifact_%s_sha256=%s\nartifact_%s_bytes=%s\n' \
+      printf 'artifact_%s_sha256=%s\nartifact_%s_bytes=%s\nartifact_%s_placement_verdict=%s\n' \
         "$status_index" "${HOST_SHA_BY_INDEX[$status_index]}" \
-        "$status_index" "${HOST_SIZE_BY_INDEX[$status_index]}"
+        "$status_index" "${HOST_SIZE_BY_INDEX[$status_index]}" \
+        "$status_index" "${ARTIFACT_PLACEMENT_VERDICT[$status_index]}"
     done
     printf 'placement_verdict=%s\n' "$PLACEMENT_VERDICT"
     printf 'placement_tolerance_pt=%s\n' "$PLACEMENT_TOLERANCE_PT"
-    printf 'placement_reason=%s\n' "${PLACEMENT_REASON:-none}"
+    printf 'placement_metric=origin of the drawn value as the layout code places it (%s)\n' "$PLACEMENT_TOOL_REL"
+    printf 'placement_drawn_value_legs=%s\n' "$(printf '%s' "$DRAWN_LEGS" | tr ' ' ',')"
+    printf 'placement_reason=%s\n' "none (every drawn-value leg is PROVEN; the drawn-value legs are $DRAWN_LEGS, every other leg drew no value)"
   } >"$RUN_DIR/run-status.txt"
   collect_evidence
   # run-status.txt and the final marker sequence are copied by the second
