@@ -7,7 +7,10 @@ layout numbers the tool reads from the repository, so every expectation is
 derived, not typed in. `test_layout_constants_match_source` reads the real
 `layout.dart` and `test_applier_padding_matches_the_layout_source` reads the real
 `ExportPlanValidation.kt`, so a changed constant breaks the suite instead of
-silently changing the target origin.
+silently changing the target origin. Both readers are also driven against
+synthetic sources: a commented-out remnant must not shadow the declaration that
+compiles, and two declarations with differing values must refuse a verdict
+(Review B P1-1).
 """
 
 from __future__ import annotations
@@ -60,6 +63,13 @@ def bbox_document(words: list[tuple[str, float, float, float, float]]) -> str:
         "  </page>\n"
         "</doc></body></html>\n"
     )
+
+
+def source_file(directory: str, name: str, body: str) -> Path:
+    """Write one synthetic source file and return its path."""
+    path = Path(directory) / name
+    path.write_text(body, encoding="utf-8")
+    return path
 
 
 class PlacementTestCase(unittest.TestCase):
@@ -359,6 +369,152 @@ class PaddingParityTest(PlacementTestCase):
         with self.assertRaises(placement.PlacementError) as context:
             placement.read_applier_padding_pt(LAYOUT_PATH)
         self.assertEqual(context.exception.exit_code, placement.EXIT_UNREADABLE_INPUT)
+
+
+class SourceConstantShadowingTest(PlacementTestCase):
+    """A comment or a second declaration must not shadow the compiled constant.
+
+    The numbers come from source files, so each reader has to see exactly the
+    declaration the compiler sees: a commented-out remnant is not a declaration,
+    and two declarations with differing values identify nothing at all.
+    """
+
+    APPLIER_WITH_COMMENTED_REMNANT = (
+        "object ExportPlanValidator {\n"
+        "    /**\n"
+        "     * const val TEXT_PADDING_PT = 1.5\n"
+        "     */\n"
+        "    // const val TEXT_PADDING_PT = 1.5\n"
+        "    const val TEXT_PADDING_PT = 2.0\n"
+        "}\n"
+    )
+
+    def test_commented_out_remnant_does_not_shadow_the_applier_constant(
+        self,
+    ) -> None:
+        # The shape of Review B P1-1: the old line is kept as a comment and the
+        # real constant moves to 2.0. Reading the comment would measure against
+        # 1.5 and call the drift proven.
+        with tempfile.TemporaryDirectory() as directory:
+            path = source_file(
+                directory,
+                "ExportPlanValidation.kt",
+                self.APPLIER_WITH_COMMENTED_REMNANT,
+            )
+            self.assertEqual(placement.read_applier_padding_pt(path), 2.0)
+            with self.assertRaises(placement.PlacementError) as context:
+                placement.verify(
+                    pdf=Path("synthetic.pdf"),
+                    value_word=VALUE_WORD,
+                    marker=FIELD_RECT_MARKER,
+                    page=None,
+                    tolerance_pt=placement.DEFAULT_TOLERANCE_PT,
+                    layout_path=LAYOUT_PATH,
+                    applier_path=path,
+                    font_metrics_path=FONT_METRICS_PATH,
+                    pdftotext="pdftotext",
+                )
+        self.assertEqual(context.exception.exit_code, placement.EXIT_UNREADABLE_INPUT)
+        self.assertIn("field padding differs", context.exception.reason)
+
+    def test_commented_out_remnant_does_not_shadow_the_layout_constant(self) -> None:
+        source = LAYOUT_PATH.read_text(encoding="utf-8")
+        drifted = source.replace(
+            "const double exportFieldPaddingPt = 1.5;",
+            "// const double exportFieldPaddingPt = 1.5;\n"
+            "/// const double exportFieldPaddingPt = 1.5;\n"
+            "const double exportFieldPaddingPt = 2.0;",
+        )
+        self.assertNotEqual(drifted, source)
+        with tempfile.TemporaryDirectory() as directory:
+            path = source_file(directory, "layout.dart", drifted)
+            self.assertEqual(
+                placement.read_layout_constants(path).field_padding_pt, 2.0
+            )
+            with self.assertRaises(placement.PlacementError) as context:
+                placement.verify(
+                    pdf=Path("synthetic.pdf"),
+                    value_word=VALUE_WORD,
+                    marker=FIELD_RECT_MARKER,
+                    page=None,
+                    tolerance_pt=placement.DEFAULT_TOLERANCE_PT,
+                    layout_path=path,
+                    applier_path=APPLIER_PATH,
+                    font_metrics_path=FONT_METRICS_PATH,
+                    pdftotext="pdftotext",
+                )
+        self.assertEqual(context.exception.exit_code, placement.EXIT_UNREADABLE_INPUT)
+        self.assertIn("field padding differs", context.exception.reason)
+
+    def test_two_applier_declarations_with_differing_values_refuse(self) -> None:
+        body = (
+            "object ExportPlanValidator {\n"
+            "    const val TEXT_PADDING_PT = 1.5\n"
+            "}\n"
+            "object ExportPlanValidatorLegacy {\n"
+            "    const val TEXT_PADDING_PT = 2.0\n"
+            "}\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = source_file(directory, "ExportPlanValidation.kt", body)
+            with self.assertRaises(placement.PlacementError) as context:
+                placement.read_applier_padding_pt(path)
+        self.assertEqual(context.exception.exit_code, placement.EXIT_UNREADABLE_INPUT)
+        # Both declarations are named with their lines, so the refusal is
+        # diagnosable instead of a silent first hit.
+        self.assertIn("line 2: 1.5", context.exception.reason)
+        self.assertIn("line 5: 2.0", context.exception.reason)
+
+    def test_two_layout_declarations_with_differing_values_refuse(self) -> None:
+        body = (
+            "const double exportFieldPaddingPt = 1.5;\n"
+            "const double exportMaxFontSizePt = 12.0;\n"
+            "const double exportFieldPaddingPt = 2.0;\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = source_file(directory, "layout.dart", body)
+            with self.assertRaises(placement.PlacementError) as context:
+                placement.read_layout_constants(path)
+        self.assertEqual(context.exception.exit_code, placement.EXIT_UNREADABLE_INPUT)
+        self.assertIn("line 1: 1.5", context.exception.reason)
+        self.assertIn("line 3: 2.0", context.exception.reason)
+
+    def test_two_applier_declarations_with_the_same_value_are_accepted(self) -> None:
+        body = (
+            "object ExportPlanValidator {\n"
+            "    const val TEXT_PADDING_PT = 1.5\n"
+            "}\n"
+            "object ExportPlanValidatorAlias {\n"
+            "    const val TEXT_PADDING_PT = 1.5\n"
+            "}\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = source_file(directory, "ExportPlanValidation.kt", body)
+            self.assertEqual(placement.read_applier_padding_pt(path), 1.5)
+
+    def test_two_layout_declarations_with_the_same_value_are_accepted(self) -> None:
+        body = (
+            "const double exportFieldPaddingPt = 1.5;\n"
+            "const double _baselineAscenderFactor = 0.8;\n"
+            "const double _fontSizeHeightFactor = 0.6;\n"
+            "const double exportMinFontSizePt = 7.0;\n"
+            "const double exportMaxFontSizePt = 12.0;\n"
+            "const double exportFieldPaddingPt = 1.5;\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = source_file(directory, "layout.dart", body)
+            constants = placement.read_layout_constants(path)
+        self.assertEqual(constants.field_padding_pt, 1.5)
+        self.assertEqual(constants.max_font_size_pt, 12.0)
+
+    def test_the_repository_sources_still_read_and_prove(self) -> None:
+        # The unchanged normal case keeps its numbers and its exit code: the
+        # anchoring must not turn the real files into a refusal.
+        self.assertEqual(self.layout.field_padding_pt, 1.5)
+        self.assertEqual(self.applier_padding_pt, 1.5)
+        self.assertAlmostEqual(self.origin_x_pt, 191.625, places=6)
+        self.assertAlmostEqual(self.baseline_y_pt, 157.765, places=6)
+        self.assertEqual(self.report(self.box()).exit_code, placement.EXIT_OK)
 
 
 class OutputContractTest(PlacementTestCase):

@@ -358,9 +358,9 @@ kein Produktbefund.
 
 Werkzeug: `tools/pdf_verify/placement.py` (neu; Verzeichnis war bisher nur `.gitkeep`,
 in Issue #334 Kriterium 5 als fehlend benannt).
-`sha256 0270092c35548b5f22f4d04db77a9e6d8e03d1c29cffbdc97f477cf85fe358b6`
-(nach dem Review-Nachzug in §8.8; der Stand aus `028f0dc` war
-`1e1a6e6f…`).
+`sha256 8e31b8b3946c89c5f30da53b6f8697c551583314c725ef97f7cc5b18d9542c79`
+(nach den Review-Nachzügen in §8.8 und §8.9; die Stände davor waren `0270092c…`
+aus §8.8 und `1e1a6e6f…` aus `028f0dc`).
 
 Gemessene Größe: die Glyph-Box des exportierten Werts, wie Poppler sie mit
 `pdftotext -bbox` meldet (Display-Space: Ursprung linke obere Seitenecke, x nach rechts,
@@ -378,14 +378,29 @@ zur Laufzeit aus ihren normativen Quellen gelesen, nicht eingetippt:
 | Padding, vertikale Ausrichtung „top“, horizontale „left“ | `contracts/export-plan.md` §3.1 | normativ |
 | `ascender`, `descender`, `unitsPerEm` (Noto Sans) | `apps/feldexa_app/assets/fonts/metrics.json` | 1069, −293, 1000 |
 
-Das Padding liegt **zweimal** vor: als `exportFieldPaddingPt` im Plan-Builder und als
-`TEXT_PADDING_PT` im Applier, aus dem `PdfExportService` zeichnet. Keine der beiden
-Kopien wird aus der anderen abgeleitet. Deshalb ist der horizontale Sollursprung der
-Wert des **zeichnenden** Codes, und die Layout-Kopie wird zusätzlich gelesen: weichen
-beide ab (oder ist eine nicht lesbar), verweigert das Werkzeug das Verdikt mit Exit 5
+Das Padding liegt **zweimal als Quellkonstante** vor: als `exportFieldPaddingPt` im
+Plan-Builder und als `TEXT_PADDING_PT` im Applier, aus dem `PdfExportService` zeichnet.
+Keine der beiden Kopien wird aus der anderen abgeleitet. (Ein drittes Literal steht im
+Op-Modell-Wächter `packages/feldexa_export/lib/src/model/export_plan.dart:1069`,
+`expectedBaseline = 1.5 + 0.8 * fontSizePt`; eine Drift dort lässt den Export selbst mit
+`ArgumentError` scheitern, statt die Messung still zu verschieben — das Werkzeug liest es
+daher nicht.) Deshalb ist der horizontale Sollursprung der Wert des **zeichnenden**
+Codes, und die Layout-Kopie wird zusätzlich gelesen: weichen beide ab (oder ist eine
+nicht lesbar), verweigert das Werkzeug das Verdikt mit Exit 5
 (`field padding differs: …` / `cannot read applier source …`). Ohne diese Prüfung
 würde eine Drift von `TEXT_PADDING_PT` die Sollgröße still verschieben und die
 Abweichung innerhalb der 1-mm-Toleranz bleiben.
+
+Was diese Paritätsprüfung **nicht** erkennen kann: eine **gleichzeitige identische
+Drift beider Kopien**. Würden `layout.dart` und der Applier auf denselben neuen Wert
+geändert (etwa beide auf 2.0), stimmen beide Quellen überein, das Werkzeug misst gegen
+den geänderten Code, und der Kontraktwert aus §3.1 („1.5 pt on all sides“) wird von
+keiner hier gelesenen Zahl geprüft — das Verdikt wäre dann eine Tautologie gegen den
+geänderten Code. Getragen wird der Kontraktwert allein von den Literal-Pins der Suite
+(`test_layout_constants_match_source`, `test_applier_padding_matches_the_layout_source`,
+`test_the_repository_sources_still_read_and_prove`): eine Repo-Änderung, die beide
+Kopien verschiebt, bricht die Suite. Eine **Kotlin/Dart-Paritätsprüfung im Repo** bleibt
+deshalb notwendig und wird von diesem Werkzeug nicht ersetzt.
 
 ```
 fontSizePt = round(clamp(0.6 * rect.height, 7.0, 12.0), 1)
@@ -428,8 +443,15 @@ Vier benannte Punkte, jeder mit Zahl und eigenem `pass`/`fail`:
    nachrechnen lässt.
 4. `font_box.height` — gemeldete Boxhöhe gegen `(ascender − descender) · fontSizePt`.
    Das ist die Prüfung, die die Font-Metrik-Annahme der Baseline-Rekonstruktion trägt:
-   sie hält genau dann, wenn das Ascent/Descent-Paar aus `metrics.json` das Paar ist,
-   das die Schrift im PDF selbst meldet. Sie wird auf Druckauflösung geprüft
+   sie hält genau dann, wenn die **Summe** des Paares aus `metrics.json` zur Boxhöhe der
+   Schrift im PDF passt. Sie bindet damit die **Differenz** des Paares, **nicht Ascent
+   und Descent einzeln**: eine kompensierende Drift (`ascender + N`, `descender − N`)
+   lässt die Höhe konstant und passiert die Schranke, verschiebt aber beide
+   Baseline-Rekonstruktionen um `N · fontSizePt / unitsPerEm` (bei 10,8 pt: 0,0108 pt je
+   Designeinheit) — die vertikale Toleranz wächst dann effektiv um diesen Betrag. Die
+   Aufteilung des Paares bleibt also eine **Annahme**; sie steht als
+   `font_ascender_units` / `font_descender_units` in der Evidenz und ist durch
+   `test_font_vertical_metrics_match_source` gepinnt. Geprüft wird auf Druckauflösung
    (`BOX_HEIGHT_TOLERANCE_PT = 0.001 pt` — Poppler rundet auf 1e-6 pt, eine Designeinheit
    der Schrift ist 0,007 pt bei 7 pt; die Schranke liegt dazwischen), **nicht** auf die
    1-mm-Toleranz: sie vergleicht zwei Rechnungen derselben Font-Metrik, nicht zwei
@@ -508,7 +530,10 @@ innerhalb des Feldes.
 Die vertikale Zahl ist eine **Rekonstruktion**, keine Direktmessung: die Baseline wird aus
 den beiden Box-Kanten über die Font-Metrik gewonnen (§8.2 Punkt 2). Was diese Rekonstruktion
 trägt, ist `check.font_box.height`: die gemeldete Boxhöhe `14.709600` stimmt mit
-`(1069 + 293)/1000 · 10.8` auf `0.000000` überein (Schranke `0.001`). Die Streuung der
+`(1069 + 293)/1000 · 10.8` auf `0.000000` überein (Schranke `0.001`). Diese Prüfung bindet
+die **Summe** des Ascent/Descent-Paares, nicht die Aufteilung zwischen beiden (§8.2
+Punkt 4); die Einzelwerte `1069` / `−293` stehen als `font_ascender_units` /
+`font_descender_units` in der Evidenz und sind in der Suite gepinnt. Die Streuung der
 beiden Rekonstruktionen (`baseline_estimate_spread_pt=0.000000`) ist dagegen **kein**
 Bestätigungssignal — sie ist bei passender Boxhöhe algebraisch zwingend null (§8.2).
 
@@ -524,9 +549,9 @@ erlaubte Schriftgröße) und ist Font-Geometrie, keine Fehlplatzierung; offener 
 — nur die Laufzeitangabe variiert von Lauf zu Lauf:
 
 ```
-........................................
+...............................................
 ----------------------------------------------------------------------
-Ran 40 tests in 0.087s
+Ran 47 tests in 0.197s
 
 OK
 ```
@@ -545,6 +570,13 @@ nicht lesbare Applier-Quelle → Exit 5, fehlende `TEXT_PADDING_PT` → Exit 5, 
 Default-Pfade unabhängig vom Arbeitsverzeichnis, `check.font_box.height` (Treffer,
 Schranke und Verdikt-Sperre bei abweichender Boxhöhe), die algebraische Entartung der
 Baseline-Streuung als Zahl, sowie `pdf_sha256` als Bindung der Evidenz an die Bytes.
+Neu aus dem Nachzug in §8.9 (Regex-Beschattung): auskommentierte Altzeile
+(`//`/`*`) mit geänderter echter Konstante → der Reader liefert den echten Wert
+(2.0) und der Lauf endet mit Exit 5; zwei echte Deklarationen mit unterschiedlichem
+Wert → Exit 5 mit beiden Werten und Zeilennummern; zwei Deklarationen mit gleichem
+Wert → akzeptiert; unveränderte Repo-Quellen → weiterhin Exit 0 mit `191.625` /
+`157.765`. Jeder dieser Fälle ist für **beide** Reader geprüft
+(`ExportPlanValidation.kt` und `layout.dart`).
 `test_layout_constants_match_source` und
 `test_applier_padding_matches_the_layout_source` lesen die echten Quellen, damit eine
 geänderte Konstante die Suite bricht statt den Sollursprung still zu verschieben.
@@ -555,7 +587,8 @@ Neu: `tools/pdf_verify/placement.py`, `tools/pdf_verify/test_placement.py`,
 `artifacts/2026-11-26-t344-export-proof-depth/artifact-{1,2}-placement-v2.txt`.
 Unverändert: `apps/**`, `packages/**`, `tools/android/t334_drive_export.sh`, beide PDFs und
 alle Evidenzdateien aus §1–§7 (inklusive der alten `artifact-{1,2}-placement.txt`).
-Dieser Report ist um §8 ergänzt und in §2/§5 als überholt markiert.
+Dieser Report ist um §8 ergänzt, in §2/§5 als überholt markiert und um den Nachzug in
+§8.9 (Regex-Beschattung, Textkorrekturen) erweitert.
 
 1. **Toleranz unverändert** bei `2.835 pt` Default; `--tolerance-pt` existiert nur, um
    strenger messen zu können. Es wurde keine Schwelle gelockert. Das Werkzeug selbst
@@ -622,3 +655,83 @@ angelegt (siehe §8.6 Punkt 2). Offen und bewusst nicht angefasst: Review B P3-2
 (`_COMPARISON_TOLERANCE_PT` und der `0.8 * fontSizePt`-Text im `definition`-Feld sind
 weiterhin literale Kopien), Review A P3-5 (Ink-Box vs. Poppler-Box), P3-6 (Toleranz pro
 Achse) und Review B P3-4 (`--page` in den Evidenz-Kommandos).
+
+### 8.9 Nachzug nach dem Delta-Review (`review-b3.md`, `review-a3.md`)
+
+Review B3 (`reports/t344/review-b3.md`) hat `c3b46df` mit **PASS** (OK with notes)
+bewertet und ein **P1** offen gelassen: der Kotlin-Regex war nicht zeilenverankert und
+nahm den ersten Treffer, war also durch eine auskommentierte Altzeile oder eine
+Zweitdeklaration beschattbar. Review A3 (`reports/t344/review-a3.md`) hat drei
+Textnotizen hinterlassen. Beides ist hier nachgezogen. Kein neues PDF, kein neues
+Artefakt: beide v2-Evidenzdateien sind mit dem geänderten Werkzeug **neu erzeugt** und
+byte-identisch zur vorherigen Fassung (Verdikt und alle Zahlen unverändert), die
+PDF-Digests bleiben `8da0ce1f…` / `dcf302e2…`.
+
+1. **Regex-Beschattung geschlossen (Review B3 P1-1).** Beide Konstanten-Reader sind
+   jetzt zeilenverankert (`^[ \t]*…`, `re.MULTILINE`) und laufen über einen gemeinsamen
+   Helfer `_read_declared_number` (`tools/pdf_verify/placement.py:394-427`), der **alle**
+   Treffer sammelt (`finditer`):
+   * `_TEXT_PADDING` (`placement.py:196-200`, Applier) und der Layout-`constant()`-Reader
+     (`placement.py:444-457`) tragen dasselbe verankerte Muster.
+   * Ein Kommentarpräfix (`//`, `///`, `*` in einer KDoc-Zeile) steht zwischen
+     Zeilenanfang und Schlüsselwort und kann die Deklaration damit nicht mehr
+     beschatten.
+   * Mehr als eine Deklaration mit **abweichendem** Wert → Exit 5
+     (`EXIT_UNREADABLE_INPUT`) mit **allen** Werten und Zeilennummern:
+     `… declares `const val TEXT_PADDING_PT` 2 times with differing values
+     (line 2: 1.5, line 5: 2.0), so the declaration the code uses cannot be
+     identified`. Zwei Deklarationen mit **gleichem** Wert werden akzeptiert (die Zahl
+     ist das, was das Ziel trägt). Keine Deklaration → Exit 5 wie bisher.
+   * Vorher-nachher belegt (Pre-Fix-Muster gegen die synthetischen Quellen aus dem
+     Test): `old applier read: 1.5 (real declaration: 2.0)` und
+     `old layout read: 1.5 (real declaration: 2.0)` — genau der stille Pfad zu einem
+     falschen `PROVEN`, den der Befund beschreibt.
+   * Die heutigen Repo-Quellen sind unverändert lesbar: `ExportPlanValidation.kt:25`
+     (`1.5`) und `layout.dart:36/39/42/56/58` liefern dieselben Zahlen wie vor dem Fix.
+2. **Tests für den Fix (Review B3 P1-1, Pflicht).** Neue Klasse
+   `SourceConstantShadowingTest` (`tools/pdf_verify/test_placement.py:374-517`, 7 Tests,
+   Suite jetzt **47** statt 40):
+   * (a) `test_commented_out_remnant_does_not_shadow_the_applier_constant` und
+     `…_the_layout_constant` — auskommentierte Altzeile (`//`, `///`, KDoc-`*`) **plus**
+     geänderte echte Konstante: der Reader liefert `2.0` (nicht `1.5`) und `verify()`
+     endet mit Exit 5 (`field padding differs`).
+   * (b) `test_two_applier_declarations_with_differing_values_refuse` und
+     `test_two_layout_declarations_with_differing_values_refuse` — zwei echte
+     Deklarationen (`1.5`/`2.0`) → Exit 5, beide Zeilen im Grund genannt.
+   * (c) `test_two_applier_declarations_with_the_same_value_are_accepted` und
+     `test_two_layout_declarations_with_the_same_value_are_accepted` → akzeptiert
+     (`1.5`, bzw. alle fünf Layout-Konstanten).
+   * (d) `test_the_repository_sources_still_read_and_prove` — unveränderter Normalfall:
+     `1.5`/`1.5`, Ziel `191.625`/`157.765`, `exit_code=EXIT_OK`.
+   Gegenprobe: mit den **alten** Readern (unverankert, erster Treffer) fallen genau die
+   vier Negativtests (a)/(b) für beide Reader — 4 Failures, 43 der 47 Tests grün —, die
+   Positivfälle (c)/(d) bleiben grün. Der Fix ist damit belegt, nicht nur behauptet.
+3. **Höhen-Check präzisiert (Review B3 P2-1 / Review A3).** Docstring
+   (`placement.py:94-104`, Punkt 4; `placement.py:753-768`,
+   `check_font_box_height`) und §8.2 Punkt 4 / §8.4 sagen jetzt, dass
+   `check.font_box.height` die **Summe** `(ascender − descender) · fontSizePt` bindet,
+   **nicht** Ascent und Descent einzeln: eine kompensierende Drift
+   (`ascender + N`, `descender − N`) hält die Höhe und passiert die Schranke, verschiebt
+   aber beide Baseline-Rekonstruktionen um `N · fontSizePt / unitsPerEm`. **Keine
+   Verhaltensänderung** — die gedruckte `definition=`-Zeile und alle Messzahlen sind
+   unverändert.
+4. **Drei Padding-Literale (Review A3).** Docstring (`placement.py:34-41`) und §8.2
+   sagen jetzt „zweimal als Quellkonstante“ und benennen das dritte Literal im
+   Op-Modell-Wächter (`packages/feldexa_export/lib/src/model/export_plan.dart:1069`),
+   das bewusst nicht gelesen wird (eine Drift dort lässt den Export selbst scheitern).
+5. **Gleichzeitige identische Drift beider Kopien (Review B3 P2-2).** Ausdrücklich als
+   Grenze festgehalten — im Docstring (`placement.py:43-52`) und in §8.2: werden
+   `layout.dart` und der Applier auf **denselben** neuen Wert geändert, besteht die
+   Paritätsprüfung, und das Werkzeug misst gegen den geänderten Code; der Kontraktwert
+   aus §3.1 wird dann von keiner gelesenen Zahl geprüft. Getragen wird er allein von den
+   Literal-Pins der Suite (eine Repo-Änderung beider Kopien bricht sie). Eine
+   **Kotlin/Dart-Paritätsprüfung im Repo bleibt deshalb notwendig** und ist nicht durch
+   dieses Werkzeug ersetzt.
+
+Der Nachzug ändert **keine** Zahl und **keine** Schwelle: `placement_verdict=PROVEN`,
+`check.horizontal_origin.deviation_pt=0.000000`,
+`check.vertical_baseline.deviation_pt=-0.000010`,
+`check.font_box.height.deviation_pt=0.000000`, `exit_code=0` — in beiden
+`artifact-{1,2}-placement-v2.txt` wörtlich unverändert. Offen bleiben weiterhin die in
+§8.8 deklarierten Punkte (Review B P3-2/P3-4, Review A P3-2/P3-5/P3-6) sowie die in
+§8.6 Punkt 2 genannte Ascent-Beobachtung (**#346**, Owner).

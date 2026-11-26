@@ -31,12 +31,25 @@ read from their normative sources at run time, never typed in:
   ``descender`` (-293), ``unitsPerEm`` (1000) of the bundled Noto Sans, needed
   only to place the baseline inside the box Poppler reports.
 
-The padding exists twice, as two independent constants in two languages, and
-neither is derived from the other. The horizontal target is therefore taken from
-the constant the drawing code uses, and the layout copy is read as well: if the
-two disagree, or either cannot be read, the tool refuses a verdict with exit 5,
+The padding exists twice as a source constant: two independent constants in two
+languages, and neither is derived from the other. (A third literal sits in the
+op-model guard of `export_plan.dart`; a drift there makes the export itself fail,
+so the tool does not read it.) The horizontal target is therefore taken from the
+constant the drawing code uses, and the layout copy is read as well: if the two
+disagree, or either cannot be read, the tool refuses a verdict with exit 5,
 because a drifted applier constant would move the drawn value away from a target
 derived from the other copy while the deviation stayed inside the 1 mm tolerance.
+
+What that parity gate cannot see is a *simultaneous identical* drift of both
+copies: if `layout.dart` and the applier were changed to the same new number,
+both agree, and the tool measures against the changed code while §3.1 ("1.5 pt
+on all sides") is not carried by any number read here. That contract value rests
+on the literal pins of the test suite, so a repository change that moves both
+copies breaks the suite; a Kotlin/Dart parity check inside the repository stays
+necessary and is not replaced by this tool. Both readers also refuse a verdict
+when one file declares the constant more than once with differing values, so a
+commented-out remnant or a second declaration cannot shadow the line that
+compiles.
 
 From those the tool computes
 
@@ -79,12 +92,16 @@ Four named points are reported, each with its number and its own
    ``informational.baseline_offset_from_rect_top_pt``), so the number is
    checkable and the judgement stays with the reader.
 4. ``font_box.height`` — the reported box height against
-   ``(ascender - descender) * fontSizePt``. This is the check that carries the
-   font-metric assumption the baseline reconstruction of point 2 rests on: it
-   verifies that the ascent/descent pair read from ``metrics.json`` is the pair
-   the PDF's own font reports. It is read at the printer's resolution
-   (``BOX_HEIGHT_TOLERANCE_PT``), not at the 1 mm placement tolerance, because
-   it compares two computations of one font metric rather than two positions.
+   ``(ascender - descender) * fontSizePt``. It bounds the *sum* of the pair, not
+   ascender and descender individually: the height still matches under a
+   compensating drift (``ascender + N``, ``descender - N``), and such a drift
+   moves both baseline reconstructions of point 2 by ``N * fontSizePt /
+   unitsPerEm``. The check therefore holds one height, not the ascent itself;
+   the split of the pair remains an assumption of point 2, printed as
+   ``font_ascender_units``/``font_descender_units`` and pinned by the suite. It
+   is read at the printer's resolution (``BOX_HEIGHT_TOLERANCE_PT``), not at the
+   1 mm placement tolerance, because it compares two computations of one font
+   metric rather than two positions.
 
 The 1 mm verdict is ``PROVEN`` when points 1 and 2 pass and point 4 confirms
 the font-metric basis of the baseline inference, ``NOT_PROVEN`` otherwise. Exit
@@ -174,9 +191,11 @@ _FIELD_RECT_MARKER = re.compile(
 )
 
 #: `const val TEXT_PADDING_PT = 1.5` in the applier's `ExportPlanValidator`.
+#: Anchored at the line start: a commented-out remnant (`//`, `*`) or a doc line
+#: must not shadow the declaration that compiles.
 _TEXT_PADDING = re.compile(
-    r"const\s+val\s+TEXT_PADDING_PT\s*(?::\s*Double)?\s*=\s*"
-    r"(-?[0-9]+(?:\.[0-9]+)?)\s*$",
+    r"^[ \t]*const\s+val\s+TEXT_PADDING_PT\s*(?::\s*Double)?\s*=\s*"
+    r"(?P<value>-?[0-9]+(?:\.[0-9]+)?)\s*$",
     re.MULTILINE,
 )
 
@@ -372,6 +391,42 @@ def parse_field_rect_marker(marker: str) -> FieldRect:
     return rect
 
 
+def _read_declared_number(
+    *,
+    source: str,
+    path: Path,
+    pattern: re.Pattern[str],
+    declaration: str,
+) -> float:
+    """Read one line-anchored numeric declaration and refuse any ambiguity.
+
+    The pattern only matches where a declaration can start (line start, no
+    comment prefix), so a commented-out remnant cannot shadow the line the
+    compiler sees. Every match is collected: a second declaration with a
+    differing value refuses a verdict and names both lines instead of silently
+    reading the first hit, because the first hit is not the one the code uses.
+    Two declarations with the same value are accepted — the number is what the
+    target origin depends on.
+    """
+    matches = [
+        (source.count("\n", 0, match.start()) + 1, float(match.group("value")))
+        for match in pattern.finditer(source)
+    ]
+    if not matches:
+        raise PlacementError(
+            EXIT_UNREADABLE_INPUT, f"{path} does not declare {declaration}"
+        )
+    if len({value for _, value in matches}) > 1:
+        declared = ", ".join(f"line {line}: {value}" for line, value in matches)
+        raise PlacementError(
+            EXIT_UNREADABLE_INPUT,
+            f"{path} declares {declaration} {len(matches)} times with differing "
+            f"values ({declared}), so the declaration the code uses cannot be "
+            f"identified",
+        )
+    return matches[0][1]
+
+
 def read_layout_constants(path: Path) -> LayoutConstants:
     """Read the layout numbers from `layout.dart`.
 
@@ -387,16 +442,19 @@ def read_layout_constants(path: Path) -> LayoutConstants:
         ) from error
 
     def constant(name: str) -> float:
+        # Anchored at the line start for the same reason as `_TEXT_PADDING`: a
+        # commented-out remnant or a doc line must not shadow the declaration.
         pattern = re.compile(
-            rf"const\s+double\s+{re.escape(name)}\s*=\s*(-?[0-9]+(?:\.[0-9]+)?)\s*;"
+            rf"^[ \t]*const\s+double\s+{re.escape(name)}\s*=\s*"
+            rf"(?P<value>-?[0-9]+(?:\.[0-9]+)?)\s*;",
+            re.MULTILINE,
         )
-        match = pattern.search(source)
-        if match is None:
-            raise PlacementError(
-                EXIT_UNREADABLE_INPUT,
-                f"layout source {path} does not declare `double {name}`",
-            )
-        return float(match.group(1))
+        return _read_declared_number(
+            source=source,
+            path=path,
+            pattern=pattern,
+            declaration=f"`const double {name}`",
+        )
 
     return LayoutConstants(
         field_padding_pt=constant("exportFieldPaddingPt"),
@@ -437,13 +495,12 @@ def read_applier_padding_pt(path: Path) -> float:
         raise PlacementError(
             EXIT_UNREADABLE_INPUT, f"cannot read applier source {path}: {error}"
         ) from error
-    match = _TEXT_PADDING.search(source)
-    if match is None:
-        raise PlacementError(
-            EXIT_UNREADABLE_INPUT,
-            f"applier source {path} does not declare `const val TEXT_PADDING_PT`",
-        )
-    return float(match.group(1))
+    return _read_declared_number(
+        source=source,
+        path=path,
+        pattern=_TEXT_PADDING,
+        declaration="`const val TEXT_PADDING_PT`",
+    )
 
 
 def read_font_vertical_metrics(path: Path) -> FontVerticalMetrics:
@@ -698,12 +755,16 @@ def check_font_box_height(
 ) -> CheckPoint:
     """Check the reported box height against the font's ascent/descent height.
 
-    This is the check that carries the font-metric assumption of the baseline
-    reconstruction: it holds exactly when the ascent/descent pair the tool reads
-    from `metrics.json` is the pair the PDF's own font reports. It is read at
-    the printer's resolution (`BOX_HEIGHT_TOLERANCE_PT`) and not at the 1 mm
-    placement tolerance, because it compares two computations of one font metric
-    rather than two positions.
+    The check compares the *sum* of the pair, `(ascender - descender)`, with the
+    box height the PDF's own font produced; it does not check ascender and
+    descender individually. A compensating drift (`ascender + N`,
+    `descender - N`) keeps the height and passes here, while it moves both
+    baseline reconstructions by `N * fontSizePt / unitsPerEm` — the split of the
+    pair stays an assumption of the baseline reconstruction and is only printed
+    (`font_ascender_units`/`font_descender_units`) and pinned by the suite. It
+    is read at the printer's resolution (`BOX_HEIGHT_TOLERANCE_PT`) and not at
+    the 1 mm placement tolerance, because it compares two computations of one
+    font metric rather than two positions.
     """
     expected_pt = font.box_height_pt(font_size)
     deviation = box.height_pt - expected_pt
