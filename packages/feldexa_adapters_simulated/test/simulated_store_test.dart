@@ -666,51 +666,49 @@ void main() {
     },
   );
 
-  test(
-    'a shared source survives until its last document/template owner is gone',
-    () async {
-      final world = await SimulatedTestWorld.create();
-      final imported = await world.importFixture('sf-004');
-      final saved = await world.createSavedDocument(
-        imported,
-        title: 'Geteiltes Dokument',
-      );
-      final created = await world.storeAdapter.createTemplate(
-        CreateTemplateRequest(
-          title: 'Geteilte Vorlage',
-          source: world.sourceRefFor(imported),
-          pages: <Page>[Page(index: 0, geometry: imported.pages.first)],
-          fieldOrder: const <String>[],
-        ),
-      );
+  test('each aggregate owns a private source copy; deleting one owner never '
+      'touches another (§3.3)', () async {
+    final world = await SimulatedTestWorld.create();
+    final imported = await world.importFixture('sf-004');
+    final saved = await world.createSavedDocument(
+      imported,
+      title: 'Geteiltes Dokument',
+    );
+    final created = await world.storeAdapter.createTemplate(
+      CreateTemplateRequest(
+        title: 'Geteilte Vorlage',
+        source: world.sourceRefFor(imported),
+        pages: <Page>[Page(index: 0, geometry: imported.pages.first)],
+        fieldOrder: const <String>[],
+      ),
+    );
 
-      final String documentTitle = world.backend
-          .document(saved.documentId)!
-          .title;
-      await world.storeAdapter.delete(
-        StoreKind.document,
-        saved.documentId,
-        DeleteConfirmation(title: documentTitle, acknowledged: true),
-      );
-      // The template still owns the shared source, so it must remain readable.
-      expect(world.backend.stagedSource(imported.sourceId), isNotNull);
-      final LoadedTemplate loaded = await world.storeAdapter.loadTemplate(
-        created.id,
-      );
-      expect(
-        loaded.sourceBytes,
-        orderedEquals(catalog.fixture('sf-004').bytes),
-      );
+    final String documentTitle = world.backend
+        .document(saved.documentId)!
+        .title;
+    await world.storeAdapter.delete(
+      StoreKind.document,
+      saved.documentId,
+      DeleteConfirmation(title: documentTitle, acknowledged: true),
+    );
+    // The template owns a private source copy, so it stays fully readable
+    // even though the document aggregate and the import-staged source are
+    // gone.
+    final LoadedTemplate loaded = await world.storeAdapter.loadTemplate(
+      created.id,
+    );
+    expect(loaded.sourceBytes, orderedEquals(catalog.fixture('sf-004').bytes));
 
-      await world.storeAdapter.delete(
-        StoreKind.template,
-        created.id,
-        DeleteConfirmation(title: 'Geteilte Vorlage', acknowledged: true),
-      );
-      expect(world.backend.template(created.id), isNull);
-      expect(world.backend.stagedSource(imported.sourceId), isNull);
-    },
-  );
+    await world.storeAdapter.delete(
+      StoreKind.template,
+      created.id,
+      DeleteConfirmation(title: 'Geteilte Vorlage', acknowledged: true),
+    );
+    expect(world.backend.template(created.id), isNull);
+    // Every aggregate-owned copy is gone with its owner; no shared staged
+    // source survives any aggregate.
+    expect(world.backend.stagedSources, isEmpty);
+  });
 
   test(
     'deleting a shared template leaves the document source intact',

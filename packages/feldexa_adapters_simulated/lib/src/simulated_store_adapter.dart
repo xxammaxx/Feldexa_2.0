@@ -224,7 +224,11 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
       title: request.title,
       createdAt: now,
       updatedAt: now,
-      source: source,
+      source: _stageAggregateSourceCopy(
+        ownerKind: StoreKind.document,
+        ownerId: request.documentId,
+        original: source,
+      ),
       head: revision.id,
       lastDurableAt: now,
     )..revisions[revision.id] = revision;
@@ -458,7 +462,11 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
       title: request.title,
       createdAt: now,
       updatedAt: now,
-      source: source,
+      source: _stageAggregateSourceCopy(
+        ownerKind: StoreKind.template,
+        ownerId: templateId,
+        original: source,
+      ),
       head: versionId,
       versions: <String, SimulatedTemplateVersionRecord>{
         versionId: SimulatedTemplateVersionRecord(
@@ -678,6 +686,37 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
       throw SecurityException();
     }
     return source;
+  }
+
+  /// Stages a fresh, aggregate-owned copy of [original]'s bytes and returns
+  /// the copy's `SourceFileRef`.
+  ///
+  /// Every new document/template aggregate owns its own encrypted source
+  /// copy under its own identity (`contracts/storage-format.md` §3.3;
+  /// `data-model.md` §3.10). The copy is capacity-checked and hashed by the
+  /// backend; the original staged source is not aliased and stays owned by
+  /// its own lifecycle (the import path removes it only when unreferenced).
+  SourceFileRef _stageAggregateSourceCopy({
+    required StoreKind ownerKind,
+    required String ownerId,
+    required SourceFileRef original,
+  }) {
+    final Uint8List bytes = _verifiedSourceBytes(original);
+    _checkCapacity(bytes.length);
+    final SimulatedStagedSource copy = backend.stageSourceBytes(
+      sourceId: backend.context.newId(),
+      fixtureId: '${ownerKind.name}-$ownerId',
+      bytes: bytes,
+      pageCount: original.pageCount,
+    );
+    return SourceFileRef(
+      id: copy.sourceId,
+      sha256: copy.sha256,
+      sizeBytes: bytes.length,
+      pageCount: original.pageCount,
+      originalName: original.originalName,
+      importedAt: copy.importedAt,
+    );
   }
 
   Uint8List _verifiedSourceBytes(SourceFileRef source) {
