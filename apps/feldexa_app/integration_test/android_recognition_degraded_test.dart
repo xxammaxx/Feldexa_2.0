@@ -238,33 +238,34 @@ void main() {
     expect(lowConfidence, lessThan(1.0));
   });
 
-  testWidgets('skewed pages feed the measured skew into the model', (
-    WidgetTester tester,
-  ) async {
-    final GrayRaster raster = GrayRaster.fromGrayBytes(
-      width: widthPx,
-      height: heightPx,
-      bytes: skewed,
-    );
-    // Detection still attempts a result on the skewed page (§3.5: the page
-    // is never silently dropped, its appearance is not altered). The
-    // detector must terminate deterministically; whether it retains a
-    // candidate on a 1 px/40-row shear is measured, not assumed.
-    final List<GeometryCandidate> candidates = GeometryDetector.detect(
-      raster.analyze(),
-      pageWidthPt: _pageWidthPt,
-      pageHeightPt: _pageHeightPt,
-    );
-    expect(candidates.length, lessThanOrEqualTo(1));
+  testWidgets(
+    'skewed pages attempt detection; the model skew predicate caps confidence',
+    (WidgetTester tester) async {
+      final GrayRaster raster = GrayRaster.fromGrayBytes(
+        width: widthPx,
+        height: heightPx,
+        bytes: skewed,
+      );
+      // Detection still attempts a result on the skewed page (§3.5: the page
+      // is never silently dropped, its appearance is not altered). The
+      // detector must terminate deterministically; whether it retains a
+      // candidate on a 1 px/40-row shear is measured, not assumed.
+      final List<GeometryCandidate> candidates = GeometryDetector.detect(
+        raster.analyze(),
+        pageWidthPt: _pageWidthPt,
+        pageHeightPt: _pageHeightPt,
+      );
+      expect(candidates.length, lessThanOrEqualTo(1));
 
-    final double skewedConfidence = _confidenceFor(2, 3.0, Contrast.normal);
-    final double baselineConfidence = _confidenceFor(2, 0, Contrast.normal);
-    expect(skewedConfidence, lessThan(baselineConfidence));
-    // The >2.0° model predicate is the measured skew regime of a shear the
-    // deskew stage cannot fully invert; the exact raster-space skew
-    // estimator is owned by the T263 deskew seam and is not re-modeled
-    // here (documented boundary, see report §4).
-  });
+      final double skewedConfidence = _confidenceFor(2, 3.0, Contrast.normal);
+      final double baselineConfidence = _confidenceFor(2, 0, Contrast.normal);
+      expect(skewedConfidence, lessThan(baselineConfidence));
+      // The >2.0° model predicate is the measured skew regime of a shear the
+      // deskew stage cannot fully invert; the exact raster-space skew
+      // estimator is owned by the T263 deskew seam and is not re-modeled
+      // here (documented boundary, see report §4).
+    },
+  );
 
   testWidgets('damaged pages still attempt detection and stay fillable', (
     WidgetTester tester,

@@ -21,6 +21,9 @@
 
 // ignore_for_file: depend_on_referenced_packages
 
+import 'dart:async';
+
+import 'package:feldexa_app/features/start/start_screen.dart';
 import 'package:feldexa_app/main.dart';
 import 'package:feldexa_ui/feldexa_ui.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -49,6 +52,28 @@ void main() {
       expect(find.byType(SimulatedBanner), findsOneWidget);
       expect(find.text(SimulatedEvidence.token), findsOneWidget);
       expect(find.textContaining('Entwicklungsansicht'), findsOneWidget);
+    });
+
+    testWidgets('the banner stays mounted above the pushed editor route', (
+      WidgetTester tester,
+    ) async {
+      // FR-087: the banner wraps the Navigator (`MaterialApp.builder`), so
+      // a pushed MaterialPageRoute cannot remove the labeling.
+      await tester.pumpWidget(FeldexaApp(simulatedShell: true));
+      await tester.pump();
+      final BuildContext context = tester.element(find.byType(StartScreen));
+      unawaited(
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (BuildContext routeContext) =>
+                const Scaffold(body: SizedBox()),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(SimulatedBanner), findsOneWidget);
+      expect(find.text(SimulatedEvidence.token), findsOneWidget);
     });
 
     testWidgets('FeldexaApp(simulatedShell: false) shows no banner', (

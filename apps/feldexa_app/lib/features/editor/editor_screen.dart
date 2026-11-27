@@ -129,7 +129,7 @@ import 'package:feldexa_export/feldexa_export.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:feldexa_recognition/src/page_analysis.dart' as recognition;
 import 'package:feldexa_ui/feldexa_ui.dart';
-import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode, kIsWeb;
 import 'package:flutter/material.dart' hide PageView;
 
 /// Stable key for a completed first analysis run whose revision was saved.
@@ -256,24 +256,33 @@ void _analysisDiagnostic(String message) {
   }
 }
 
-/// Evidence class written into a Phase A envelope for the current build mode.
+/// Evidence class written into a Phase A envelope for the current build.
 ///
-/// This is deliberately a build-mode label, not hardware detection. It follows
-/// the Phase B1 task decision (`emulator` in debug, `device` in release) and
-/// must never be read as an acceptance claim for either evidence class.
-/// T129: the tokens are single-sourced from the `EvidenceClass` port
-/// vocabulary, so the report fields can never drift from the port contract.
-String editorEvidenceClass({bool debugMode = kDebugMode}) {
+/// The class comes from the `EvidenceClass` port vocabulary (T129, single
+/// source): the SIMULATED shell reports `simulated`, every Android build
+/// reports the Phase B1 build-mode label (`emulator` in debug, `device` in
+/// release). A label must never be read as an acceptance claim for either
+/// evidence class, and a simulated shell can never emit `emulator`/`device`.
+String editorEvidenceClass({bool debugMode = kDebugMode, bool? simulated}) {
+  final bool isSimulated = simulated ?? kIsWeb;
+  if (isSimulated) {
+    return EvidenceClass.simulated.label.toLowerCase();
+  }
   return (debugMode ? EvidenceClass.emulator : EvidenceClass.device).label
       .toLowerCase();
 }
 
 /// The structured-log prefix of the current build's evidence class
-/// (T129; FR-087; error catalog §9). `EMULATOR`/`DEVICE` derive the bracket
-/// shape from the same port vocabulary; only `[SIMULATED]` is
-/// catalog-normative.
-String editorEvidenceLogPrefix({bool debugMode = kDebugMode}) =>
-    (debugMode ? EvidenceClass.emulator : EvidenceClass.device).logPrefix;
+/// (T129; FR-087; error catalog §9). A SIMULATED shell logs exactly
+/// `[SIMULATED]`, the one catalog-normative prefix; Android builds derive
+/// the same bracket shape from the port vocabulary.
+String editorEvidenceLogPrefix({bool debugMode = kDebugMode, bool? simulated}) {
+  final bool isSimulated = simulated ?? kIsWeb;
+  if (isSimulated) {
+    return EvidenceClass.simulated.logPrefix;
+  }
+  return (debugMode ? EvidenceClass.emulator : EvidenceClass.device).logPrefix;
+}
 
 /// Maps one T057 recognition failure to the canonical core page failure.
 ///

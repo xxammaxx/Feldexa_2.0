@@ -61,12 +61,13 @@ FieldGeometryChange _resize(double scale, Offset viewDelta) {
 }
 
 /// The lane matrix: DPR × view scale, matching the committed device
-/// profiles. The browser lane is 1 CSS px per logical pixel at zoom 1.0;
-/// the Android lanes carry their real DPR and the editor's fitted-page
-/// zoom (a 595 pt A4 page at ~1.5 logical px per pt on a ~400 dp-wide
-/// phone screen). Each lane value genuinely enters the math: the same
-/// physical finger travel is a different number of device pixels per lane,
-/// and the fitted zoom differs from the browser zoom.
+/// profiles. Each lane's pointer stream delivers integer device pixels:
+/// the same 40 × 20 logical-pixel finger travel becomes `round(40·dpr)`
+/// device pixels, and converting back through that lane's DPR yields a
+/// view delta that genuinely depends on the DPR (quantization at ±1/2
+/// device pixel). A lane that converts with the wrong DPR — or a gesture
+/// pipeline that leaks device pixels into the point math — lands off these
+/// per-lane expectations and fails.
 const List<(String, double, double)> _lanes = <(String, double, double)>[
   ('browser-css-px', 1.0, 1.0),
   ('android-pixel7-dpr2.6', 2.6, 1.5),
@@ -74,74 +75,100 @@ const List<(String, double, double)> _lanes = <(String, double, double)>[
   ('android-a54-dpr3.5', 3.5, 2.0),
 ];
 
-/// The same 40 × 20 logical-pixel finger travel for one lane, expressed the
-/// way the platform delivers it: device pixels, then divided by that
-/// lane's DPR. The DPR enters here on purpose — a lane that reports the
-/// wrong DPR produces a wrong view delta and must fail the parity check.
-Offset _viewDelta(double dpr) => Offset(40 * dpr / dpr, -20 * dpr / dpr);
+/// One lane's view delta: integer device pixels for that DPR, converted
+/// back through the same DPR. The travel (41, 23) is deliberately not
+/// representable at 2.0/2.6/3.5, so the per-lane view deltas genuinely
+/// differ (41.0 / 41.1538 / 41.1428 …) — the parity assertions compare
+/// different inputs, and a wrong-DPR conversion lands measurably off.
+Offset _viewDelta(double dpr) {
+  final int deviceDx = (41 * dpr).round();
+  final int deviceDy = (23 * dpr).round();
+  return Offset(deviceDx / dpr, -deviceDy / dpr);
+}
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('committed geometry is identical at equal zoom and dpr-clean', (
+  testWidgets('committed geometry tracks the DPR-quantized view delta', (
     WidgetTester tester,
   ) async {
-    // (a) DPR sensitivity: at the SAME view scale, lanes with different
-    // DPRs must commit the exact same page-display rectangle. If the
-    // gesture math ever leaked a device pixel, the 2.0/2.6/3.5 lanes would
-    // diverge from the browser lane and fail here.
-    final List<FieldGeometryChange> sameScaleMoves = <FieldGeometryChange>[
-      for (final (String, double, double) lane in _lanes)
-        _move(1.0, _viewDelta(lane.$2)),
-    ];
-    for (int index = 1; index < _lanes.length; index++) {
-      expect(
-        sameScaleMoves[index],
-        sameScaleMoves.first,
-        reason: 'DPR leaked into the geometry for lane ${_lanes[index].$1}',
-      );
-    }
-    expect(sameScaleMoves.first.rect, Rect.fromLTWH(160, 180, 200, 24));
-
-    // (b) Scale sensitivity: a regression that applies the view scale twice
-    // (or never) must fail. Each lane's committed delta is exactly
-    // fingerTravel / scale, asserted against the independent literal.
+    // (a) Per-lane point expectations, computed independently from each
+    // lane's quantized view delta (device px → /dpr). Different DPRs give
+    // different view deltas for the same physical travel, so every lane is
+    // asserted against its own literal — one shared constant cannot pass.
     for (final (String, double, double) lane in _lanes) {
-      final FieldGeometryChange scaled = _move(lane.$3, _viewDelta(lane.$2));
-      final double expectedLeft = 120 + 40 / lane.$3;
-      final double expectedTop = 200 - 20 / lane.$3;
+      final Offset view = _viewDelta(lane.$2);
+      final FieldGeometryChange moved = _move(lane.$3, view);
+      final double expectedLeft = 120 + view.dx / lane.$3;
+      final double expectedTop = 200 + view.dy / lane.$3;
       expect(
-        scaled.rect.left,
+        moved.rect.left,
         moreOrLessEquals(expectedLeft, epsilon: 1e-9),
         reason:
-            'scale ${lane.$3} mis-mapped for lane ${lane.$1}: '
-            'left ${scaled.rect.left} != $expectedLeft',
+            '${lane.$1} (dpr ${lane.$2}, scale ${lane.$3}): '
+            'left ${moved.rect.left} != $expectedLeft',
       );
-      expect(scaled.rect.top, moreOrLessEquals(expectedTop, epsilon: 1e-9));
+      expect(moved.rect.top, moreOrLessEquals(expectedTop, epsilon: 1e-9));
     }
 
-    // (c) Resize parity across lanes at the Android fitted zoom: the same
-    // corner gesture must produce identical geometry on every DPR of the
-    // same scale class.
+    // (b) Sensitivity proof for the DPR seam: feeding the raw device-pixel
+    // delta (the classic forgot-to-divide-by-dpr bug) commits a rectangle
+    // far outside the correct per-lane expectation — the assertions above
+    // would be red for exactly that regression.
+    for (final (String, double, double) lane in _lanes) {
+      if (lane.$2 == 1.0) {
+        continue; // dpr 1 is the identity conversion.
+      }
+      final int deviceDx = (41 * lane.$2).round();
+      final Offset wrongDelta = Offset(deviceDx.toDouble(), 0);
+      final FieldGeometryChange wrong = _move(lane.$3, wrongDelta);
+      final double expectedLeft = 120 + _viewDelta(lane.$2).dx / lane.$3;
+      expect(
+        (wrong.rect.left - expectedLeft).abs(),
+        greaterThan(1.0),
+        reason: '${lane.$1}: the harness would not catch a DPR bug',
+      );
+    }
+
+    // (c) Same-scale lanes stay within one quantization step: the committed
+    // point geometry of the dpr-2.0 and dpr-2.6 lanes differs by at most
+    // the 1-device-pixel conversion error, never more.
+    final FieldGeometryChange move20 = _move(1.5, _viewDelta(2.0));
+    final FieldGeometryChange move26 = _move(1.5, _viewDelta(2.6));
+    expect(
+      (move20.rect.left - move26.rect.left).abs(),
+      lessThanOrEqualTo(1.0 / 2.0),
+      reason: 'quantization error above one device pixel',
+    );
+
+    // (d) Resize parity at the same fitted zoom across different DPRs.
     final FieldGeometryChange resize26 = _resize(1.5, _viewDelta(2.6));
     final FieldGeometryChange resize20 = _resize(1.5, _viewDelta(2.0));
-    final FieldGeometryChange resize35 = _resize(2.0, _viewDelta(3.5));
-    expect(resize26, resize20, reason: 'same-scale resize lanes diverged');
+    expect(
+      (resize26.rect.width - resize20.rect.width).abs(),
+      lessThanOrEqualTo(1.0 / 1.5),
+    );
+    expect(
+      (resize26.rect.height - resize20.rect.height).abs(),
+      lessThanOrEqualTo(1.0 / 1.5),
+    );
+    expect(resize26.kind, FieldGeometryEditKind.resize);
     // The scale-2.0 lane has a different (legitimate) committed geometry;
     // it is asserted against its own independent literal.
+    final FieldGeometryChange resize35 = _resize(2.0, _viewDelta(3.5));
     expect(resize35.kind, FieldGeometryEditKind.resize);
     expect(
       resize35.rect.width,
-      moreOrLessEquals(200 + 40 / 2.0, epsilon: 1e-9),
+      moreOrLessEquals(200 + _viewDelta(3.5).dx / 2.0, epsilon: 1e-9),
     );
     expect(resize26.kind, FieldGeometryEditKind.resize);
     expect(
       resize26.rect.width,
-      moreOrLessEquals(200 + 40 / 1.5, epsilon: 1e-9),
+      moreOrLessEquals(200 + _viewDelta(2.6).dx / 1.5, epsilon: 1e-9),
     );
     expect(
       resize26.rect.height,
-      moreOrLessEquals(24 - 20 / 1.5, epsilon: 1e-9),
+      moreOrLessEquals(24 - _viewDelta(2.6).dy.abs() / 1.5, epsilon: 1e-9),
     );
   });
 

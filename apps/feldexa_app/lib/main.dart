@@ -151,20 +151,21 @@ class _FeldexaAppState extends State<FeldexaApp> {
       locale: const Locale('de'),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      home: Column(
+      // T129 (FR-087): the persistent, non-dismissible global SIMULATED
+      // banner wraps the Navigator itself (`builder`), so it stays visible
+      // above every pushed route — start screen, editor, overview — on the
+      // simulated shell. Never rendered on Android: simulated evidence must
+      // not label Android runs.
+      builder: (BuildContext context, Widget? child) => Column(
         children: <Widget>[
-          // T129 (FR-087): the persistent, non-dismissible global SIMULATED
-          // banner above the surface on the simulated shell. Never rendered
-          // on Android: simulated evidence must not label Android runs.
           if (widget.simulatedShell) const SimulatedBanner(),
-          Expanded(
-            child: StartScreen(
-              startup: widget.startup,
-              importRuntimeFactory: widget.importRuntimeFactory,
-              pageRendererFactory: widget.pageRendererFactory,
-            ),
-          ),
+          Expanded(child: child ?? const SizedBox.shrink()),
         ],
+      ),
+      home: StartScreen(
+        startup: widget.startup,
+        importRuntimeFactory: widget.importRuntimeFactory,
+        pageRendererFactory: widget.pageRendererFactory,
       ),
     );
   }

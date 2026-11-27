@@ -1700,4 +1700,22 @@ void main() {
     expect(EvidenceClass.simulated.logPrefix, '[SIMULATED]');
     expect(EvidenceClass.emulator.reportFieldLine, 'evidenceClass: EMULATOR');
   });
+
+  test('the simulated web build reports SIMULATED, never emulator (T129)', () {
+    // Debug-web used to report `emulator`; the SIMULATED shell wins over
+    // the build-mode label in both the report field and the log prefix.
+    expect(editorEvidenceClass(debugMode: true, simulated: true), 'simulated');
+    expect(
+      editorEvidenceLogPrefix(debugMode: true, simulated: true),
+      '[SIMULATED]',
+    );
+    expect(editorEvidenceClass(debugMode: false, simulated: true), 'simulated');
+    expect(
+      editorEvidenceLogPrefix(debugMode: false, simulated: true),
+      '[SIMULATED]',
+    );
+    // An Android build can never carry the simulated token.
+    expect(editorEvidenceClass(simulated: false), isNot('simulated'));
+    expect(editorEvidenceLogPrefix(simulated: false), isNot('[SIMULATED]'));
+  });
 }
