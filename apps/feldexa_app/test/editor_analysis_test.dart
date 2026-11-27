@@ -1692,4 +1692,12 @@ void main() {
     expect(editorEvidenceClass(debugMode: true), 'emulator');
     expect(editorEvidenceClass(debugMode: false), 'device');
   });
+
+  test('the structured log prefix derives from the port vocabulary (T129)', () {
+    expect(editorEvidenceLogPrefix(debugMode: true), '[EMULATOR]');
+    expect(editorEvidenceLogPrefix(debugMode: false), '[DEVICE]');
+    // Only the simulated prefix is catalog-normative; the shape is shared.
+    expect(EvidenceClass.simulated.logPrefix, '[SIMULATED]');
+    expect(EvidenceClass.emulator.reportFieldLine, 'evidenceClass: EMULATOR');
+  });
 }

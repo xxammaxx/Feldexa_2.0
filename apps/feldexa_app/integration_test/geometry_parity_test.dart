@@ -40,7 +40,9 @@ FieldGeometryChange _move(double scale, Offset viewDelta) {
     pageBox: _pageBox,
     scale: scale,
   );
-  session.update(mapViewDeltaToDisplay(viewDelta: viewDelta, scale: scale));
+  // Exactly the production call path (editor_screen.dart:1234): the session
+  // maps the cumulative view delta by the scale itself, once.
+  session.update(viewDelta);
   return session.commit()!;
 }
 
@@ -52,7 +54,9 @@ FieldGeometryChange _resize(double scale, Offset viewDelta) {
     pageBox: _pageBox,
     scale: scale,
   );
-  session.update(mapViewDeltaToDisplay(viewDelta: viewDelta, scale: scale));
+  // Exactly the production call path (editor_screen.dart:1234): the session
+  // maps the cumulative view delta by the scale itself, once.
+  session.update(viewDelta);
   return session.commit()!;
 }
 
@@ -79,7 +83,7 @@ Offset _viewDelta(double dpr) => Offset(40 * dpr / dpr, -20 * dpr / dpr);
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('committed geometry is identical across browser/Android lanes', (
+  testWidgets('committed geometry is identical at equal zoom and dpr-clean', (
     WidgetTester tester,
   ) async {
     // (a) DPR sensitivity: at the SAME view scale, lanes with different
@@ -96,6 +100,16 @@ void main() {
         sameScaleMoves.first,
         reason: 'DPR leaked into the geometry for lane ${_lanes[index].$1}',
       );
+    }
+    expect(sameScaleMoves.first.rect, Rect.fromLTWH(160, 180, 200, 24));
+
+    // (b) Scale sensitivity: a regression that applies the view scale twice
+    // (or never) must fail. Each lane's committed delta is exactly
+    // fingerTravel / scale, asserted against the independent literal.
+    for (final (String, double, double) lane in _lanes) {
+      final FieldGeometryChange scaled = _move(lane.$3, _viewDelta(lane.$2));
+      final double expectedLeft = 120 + 40 / lane.$3;
+      final double expectedTop = 200 - 20 / lane.$3;
       expect(
         scaled.rect.left,
         moreOrLessEquals(expectedLeft, epsilon: 1e-9),
@@ -103,6 +117,7 @@ void main() {
             'scale ${lane.$3} mis-mapped for lane ${lane.$1}: '
             'left ${scaled.rect.left} != $expectedLeft',
       );
+      expect(scaled.rect.top, moreOrLessEquals(expectedTop, epsilon: 1e-9));
     }
 
     // (c) Resize parity across lanes at the Android fitted zoom: the same

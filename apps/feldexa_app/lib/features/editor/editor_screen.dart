@@ -264,7 +264,8 @@ void _analysisDiagnostic(String message) {
 /// T129: the tokens are single-sourced from the `EvidenceClass` port
 /// vocabulary, so the report fields can never drift from the port contract.
 String editorEvidenceClass({bool debugMode = kDebugMode}) {
-  return debugMode ? 'emulator' : 'device';
+  return (debugMode ? EvidenceClass.emulator : EvidenceClass.device).label
+      .toLowerCase();
 }
 
 /// The structured-log prefix of the current build's evidence class

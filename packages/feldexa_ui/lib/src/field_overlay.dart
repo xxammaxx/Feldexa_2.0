@@ -272,7 +272,8 @@ FieldOverlayStyle fieldOverlayStyle(FieldOverlayItem item) {
         // overlay outlines, the review badge, and the summary in agreement.
         dashed: confidence == null || confidence < UncertaintyThresholds.solid,
         strokeWidth: 1.5,
-        uncertain: confidence == null || confidence < 0.50,
+        uncertain:
+            confidence == null || confidence < UncertaintyThresholds.uncertain,
         conflicting: item.conflicting,
         selected: item.selected,
       );

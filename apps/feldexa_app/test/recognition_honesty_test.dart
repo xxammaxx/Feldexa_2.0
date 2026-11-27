@@ -245,6 +245,29 @@ void main() {
       }
     });
 
+    testWidgets('rejected suggestions never count as open', (
+      WidgetTester tester,
+    ) async {
+      final RecognitionSummaryCounts counts =
+          RecognitionSummaryCounts.fromParts(
+            const <ConfirmedField>[],
+            <FieldSuggestion>[
+              _suggestion(
+                ordinal: '0003',
+                confidence: 0.90,
+                resolution: SuggestionResolution.rejected,
+              ),
+            ],
+          );
+      expect(counts.open, 0);
+      expect(counts.openUncertain, 0);
+      await tester.pumpWidget(_host(RecognitionSummary(counts: counts)));
+      final AppLocalizations l10n = AppLocalizations.of(
+        tester.element(find.byType(RecognitionSummary)),
+      );
+      expect(find.text(l10n.recognitionSummaryOpen(0)), findsOneWidget);
+    });
+
     testWidgets('the empty summary still disclaims completeness', (
       WidgetTester tester,
     ) async {
@@ -259,6 +282,91 @@ void main() {
         ),
       );
       expect(find.textContaining('unvollständig'), findsOneWidget);
+    });
+  });
+
+  group('IMP-006 pages keep exactly one warning surface', () {
+    late AppLocalizations l10n;
+
+    setUp(() async {
+      l10n = await AppLocalizations.delegate.load(const Locale('de'));
+    });
+
+    core.Page pageFixture({
+      required int index,
+      core.AnalysisState analysis = core.AnalysisState.complete,
+      bool unreadable = false,
+      String? messageKey,
+    }) {
+      return core.Page(
+        index: index,
+        geometry: core.PageGeometry(
+          mediaBox: core.Rect.fromLTWH(0, 0, 595, 842),
+        ),
+        analysis: analysis,
+        unreadable: unreadable,
+        failure: messageKey == null
+            ? null
+            : core.PageFailure(
+                pageIndex: index,
+                category: core.PageFailureCategory.unsupportedStructure,
+                messageKey: messageKey,
+              ),
+      );
+    }
+
+    test('the projection excludes IMP-006 and unreadable pages', () {
+      // P2 fix: an import-unreadable page is persisted as `failed` with
+      // IMP-006; the existing T044 warning must stay the only rendering.
+      final List<PageFailureExplanation> notices =
+          recognitionFailureExplanations(l10n, <core.Page>[
+            pageFixture(
+              index: 0,
+              messageKey: 'REC-002',
+              analysis: core.AnalysisState.failed,
+            ),
+            pageFixture(
+              index: 1,
+              unreadable: true,
+              messageKey: 'IMP-006',
+              analysis: core.AnalysisState.failed,
+            ),
+            pageFixture(
+              index: 2,
+              messageKey: 'IMP-006',
+              analysis: core.AnalysisState.failed,
+            ),
+            pageFixture(
+              index: 3,
+              messageKey: 'REC-003',
+              analysis: core.AnalysisState.failed,
+            ),
+          ]);
+      expect(
+        notices.map((PageFailureExplanation notice) => notice.code),
+        <String>['REC-002', 'REC-003'],
+        reason: 'IMP-006 must not produce a second notice',
+      );
+    });
+
+    test('a fully import-unreadable document produces no REC notices', () {
+      expect(
+        recognitionFailureExplanations(l10n, <core.Page>[
+          pageFixture(
+            index: 0,
+            unreadable: true,
+            messageKey: 'IMP-006',
+            analysis: core.AnalysisState.failed,
+          ),
+          pageFixture(
+            index: 1,
+            unreadable: true,
+            messageKey: 'IMP-006',
+            analysis: core.AnalysisState.failed,
+          ),
+        ]),
+        isEmpty,
+      );
     });
   });
 

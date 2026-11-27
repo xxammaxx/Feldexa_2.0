@@ -132,6 +132,23 @@ Uint8List _damagedBytes(Uint8List baseline, int widthPx, int heightPx) {
 
 String _hash(Uint8List bytes) => crypto.sha256.convert(bytes).toString();
 
+/// Pinned expected pixel hashes of the four deterministic variants.
+///
+/// A change to any variant transformation changes its bytes and therefore
+/// fails this comparison before any recognition assertion runs. The values
+/// are pinned from a measured run at HEAD; they are content hashes of the
+/// transformed rasters, never screenshots.
+const Map<String, String> _expectedHashes = <String, String>{
+  'baseline':
+      'dfac2e97a9b3304b460f33af793fef93bb858bd8eaa0eeba5d97f6cfa6ce5865',
+  'low-contrast':
+      'd433415a7cf24818ce215841c000bfb6fbb0aa9d695fbfef85dc5404ec668164',
+  'skew-1px-per-40rows':
+      '633cd2f0a80fd4696882da7fc7b475dd78db122c287673b325d1151b0704b23b',
+  'damaged-band':
+      '8dcf38f49a724ef032d03b11791dc7bd64a637e458339d6f2bd2a7a92d3e9ee8',
+};
+
 /// Deterministic confidence evaluation for the detected field candidate.
 double _confidenceFor(int cueFamilies, double skew, Contrast contrast) {
   return ConfidenceModel.evaluate(

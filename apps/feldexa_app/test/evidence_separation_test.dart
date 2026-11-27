@@ -115,6 +115,29 @@ void main() {
       );
     });
 
+    test('the public constructor classifies honestly for its inputs (P3)', () {
+      // Boundary, not a gap: the public main constructor is the harness
+      // seam — it labels exactly the class it is given, with no derivation.
+      // The EMULATOR/DEVICE assignment itself is owned by the test harness
+      // that executed a run (Principle VIII); a simulated *adapter* never
+      // calls it with a runtime class, which the registry enforces via the
+      // SIM-001 release rejection.
+      final CapabilityEvidence runtimeLabeled = CapabilityEvidence(
+        evidenceClass: EvidenceClass.emulator,
+        adapterId: 'android.mlkit.v1',
+      );
+      expect(runtimeLabeled.evidenceClass, EvidenceClass.emulator);
+      expect(runtimeLabeled.simulated, isFalse);
+      expect(runtimeLabeled.toReportFields()['evidenceClass'], 'EMULATOR');
+      // The separation invariant still holds at the report level: a
+      // runtime-labeled report never contains the simulated token, and a
+      // simulated report never contains a runtime token.
+      expect(
+        runtimeLabeled.toReportFields().containsValue('SIMULATED'),
+        isFalse,
+      );
+    });
+
     test('parsing cannot promote SIMULATED into a runtime class', () {
       expect(EvidenceClass.parse('SIMULATED'), EvidenceClass.simulated);
       expect(EvidenceClass.tryParse('emulator'), EvidenceClass.emulator);
