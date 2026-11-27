@@ -95,15 +95,17 @@ ACROFORM_FIXTURE_SHA256="7f4e014482425518058e28c497b9e8bcf4a4930dec1dbd5edb74cb8
 ACROFORM_FIXTURE_SIZE_BYTES=1424
 ACROFORM_PAGE_COUNT=1
 ACROFORM_VALUE="Feldwert"
-ARTIFACT_COUNT=3
+ARTIFACT_COUNT=4
 EXPECTED_VALUE="Müller"
 # Per-artifact expectations of the pickup and Poppler proof. Index 1/2 export
 # `sf-001.pdf` (2 pages, the journey's drawn `Müller` value); index 3 exports the
 # one-page AcroForm fixture unchanged (its own value `Feldwert`, no drawn value,
-# so no 1 mm placement claim).
+# so no 1 mm placement claim); index 4 is the T109 mark leg: a two-page `sf-001`
+# export with one text value, a checked and an unchecked checkbox, and two
+# signatures, verified with the T105 harness and the test's own field rects.
 artifact_source_fixture() {
   case "$1" in
-    1 | 2) printf '%s\n' "$FIXTURE" ;;
+    1 | 2 | 4) printf '%s\n' "$FIXTURE" ;;
     3) printf '%s\n' "$ACROFORM_FIXTURE" ;;
     *) return 1 ;;
   esac
@@ -111,7 +113,7 @@ artifact_source_fixture() {
 
 artifact_source_pages() {
   case "$1" in
-    1 | 2) printf '%s\n' "$EXPECTED_PAGE_COUNT" ;;
+    1 | 2 | 4) printf '%s\n' "$EXPECTED_PAGE_COUNT" ;;
     3) printf '%s\n' "$ACROFORM_PAGE_COUNT" ;;
     *) return 1 ;;
   esac
@@ -119,7 +121,7 @@ artifact_source_pages() {
 
 artifact_expected_value() {
   case "$1" in
-    1 | 2) printf '%s\n' "$EXPECTED_VALUE" ;;
+    1 | 2 | 4) printf '%s\n' "$EXPECTED_VALUE" ;;
     3) printf '%s\n' "$ACROFORM_VALUE" ;;
     *) return 1 ;;
   esac
@@ -212,7 +214,7 @@ if [[ "${T334_COMPUTE_LOCK_HELD:-0}" != "1" ]]; then
 fi
 
 RUN_DIR="${T334_RUN_DIR:-$(mktemp -d "${TMPDIR:-/tmp}/feldexa-t334-run.XXXXXX")}"
-EVIDENCE_DIR="${T334_EVIDENCE_DIR:-$ROOT/specs/001-scanned-form-workflow/reports/artifacts/2026-11-26-t344-acroform-final}"
+EVIDENCE_DIR="${T334_EVIDENCE_DIR:-$ROOT/specs/001-scanned-form-workflow/reports/artifacts/2026-11-27-t109-export-harness}"
 LOG="$RUN_DIR/integration-android-t334.log"
 SEQUENCE="$RUN_DIR/marker-sequence.txt"
 ADB_STDERR_LOG="$RUN_DIR/adb-stderr.log"
@@ -320,6 +322,9 @@ collect_evidence() {
       "artifact-$index-pdftotext.txt"
       "artifact-$index-acroform.txt"
       "artifact-$index-placement.txt"
+      "harness-artifact-$index.json"
+      "harness-artifact-$index-console.txt"
+      "expectations-artifact-$index.json"
     )
   done
   for file in \
@@ -805,7 +810,7 @@ TEST_EXIT=$?
 TEST_PID=""
 record "test exit=$TEST_EXIT"
 
-MARKERS="$(grep -E "T334_" "$LOG")"
+MARKERS="$(grep -E "T334_|T109_" "$LOG")"
 MARKERS_GREP_EXIT=$?
 [[ "$MARKERS_GREP_EXIT" -le 1 ]] ||
   fail "cannot read the marker lines from the integration log (grep exit $MARKERS_GREP_EXIT)"
@@ -895,52 +900,53 @@ source_pdfinfo() {
   esac
 }
 
-# The test prints the rectangle the export layout actually targets as plain
-# numbers (`T334_FIELD_RECT`). Convention: display space - origin at the page's
-# top-left corner, x to the right, y downwards, unit = PDF point (1/72 in), the
-# same origin and direction Poppler's `pdftotext -bbox` reports. The marker goes
-# to `tools/pdf_verify/placement.py`, which parses the numbers, compares them
-# with the word box it reads, and refuses a verdict if the two do not sit in one
-# convention (`axes_check`); a half-page heuristic is not needed and not used.
-RECT_LINE="$(grep -oE '^T334_FIELD_RECT:PAGE=[0-9]+:X_MPT=-?[0-9]+:Y_MPT=-?[0-9]+:W_MPT=-?[0-9]+:H_MPT=-?[0-9]+$' "$LOG" | tail -1)"
-[[ -n "$RECT_LINE" ]] ||
-  fail "the integration log carries no well-formed T334_FIELD_RECT marker; the placement measurement cannot be attributed"
-
-# --- 8a. Which legs drew a value, decided by the test's own markers ----------
-# A leg has a placement to measure exactly when a value was drawn into it, and
-# the test states that with markers instead of a leg number: it prints the field
-# rect when the field is confirmed, and it opens the flattening leg with
-# `T334_ACROFORM_LEG_START` - a leg that confirms and fills nothing and prints
-# no field rect at all (its own doc comment: "nothing is filled here"). So every
-# leg whose artifact is stored before that marker drew a value, every leg after
-# it did not, and the log must carry no field rect in that later region. A leg
-# without a rect has no placement to measure; the evidence file names that
-# reason instead of skipping the leg silently.
+# The T109 marks leg runs after the flattening leg, confirms its own
+# „Familienname“ text field, and stores artifact 4. Its rect is a second
+# T334_FIELD_RECT after the boundary, so each drawn leg gets its own rect.
 FLATTENING_LEG_LINE="$(grep -n -F 'T334_ACROFORM_LEG_START' "$LOG" | head -1 | cut -d: -f1)"
 [[ "$FLATTENING_LEG_LINE" =~ ^[0-9]+$ ]] ||
   fail "the integration log carries no T334_ACROFORM_LEG_START marker; the drawn-value legs cannot be attributed"
+T109_LEG_LINE="$(grep -n -F 'T334_T109_MARKS_LEG_START' "$LOG" | head -1 | cut -d: -f1)"
+[[ "$T109_LEG_LINE" =~ ^[0-9]+$ ]] ||
+  fail "the integration log carries no T334_T109_MARKS_LEG_START marker; the T109 drawn leg cannot be attributed"
 read -r RECT_MARKERS_BEFORE RECT_MARKERS_AFTER <<<"$(awk -v boundary="$FLATTENING_LEG_LINE" '
   /^T334_FIELD_RECT:PAGE=/ { if (NR < boundary) before++; else after++ }
   END { printf "%d %d\n", before, after }' "$LOG")"
 [[ "$RECT_MARKERS_BEFORE" -eq 1 ]] ||
   fail "the log carries $RECT_MARKERS_BEFORE field rect markers before the flattening leg, expected exactly one (one confirmed field)"
-[[ "$RECT_MARKERS_AFTER" -eq 0 ]] ||
-  fail "the log carries $RECT_MARKERS_AFTER field rect markers after T334_ACROFORM_LEG_START; that leg confirms no field and draws no value"
-DRAWN_LEGS="$(awk -v boundary="$FLATTENING_LEG_LINE" '
+[[ "$RECT_MARKERS_AFTER" -eq 1 ]] ||
+  fail "the log carries $RECT_MARKERS_AFTER field rect markers after T334_ACROFORM_LEG_START, expected exactly one (the T109 text field)"
+PRE_RECT_LINE="$(awk -v boundary="$FLATTENING_LEG_LINE" '
+  /^T334_FIELD_RECT:PAGE=/ && NR < boundary { print; exit }' "$LOG")"
+POST_RECT_LINE="$(awk -v boundary="$FLATTENING_LEG_LINE" '
+  /^T334_FIELD_RECT:PAGE=/ && NR > boundary { print; exit }' "$LOG")"
+[[ -n "$PRE_RECT_LINE" && -n "$POST_RECT_LINE" ]] ||
+  fail "a per-leg T334_FIELD_RECT marker is missing (pre='$PRE_RECT_LINE' post='$POST_RECT_LINE')"
+
+# A leg drew a value when its artifact was stored before the flattening leg, or
+# in the T109 marks leg that opens at T334_T109_MARKS_LEG_START. Artifact 3 (the
+# AcroForm fixture, stored between those two markers) drew no value.
+DRAWN_LEGS="$(awk -v boundary="$FLATTENING_LEG_LINE" -v t109="$T109_LEG_LINE" '
   match($0, /^T334_ARTIFACT_STORED:INDEX=[0-9]+/) {
     leg = substr($0, RSTART, RLENGTH)
     sub(/.*INDEX=/, "", leg)
-    if (NR < boundary) print leg
+    if (NR < boundary || NR > t109) print leg
   }' "$LOG" | sort -n | uniq | paste -sd' ' -)"
 [[ -n "$DRAWN_LEGS" ]] ||
-  fail "the log stores no artifact before the flattening leg; no drawn-value leg is attributable"
+  fail "the log stores no artifact for a drawn-value leg; no placement is attributable"
+POST_LEGS="$(awk -v t109="$T109_LEG_LINE" '
+  NR > t109 && match($0, /^T334_ARTIFACT_STORED:INDEX=[0-9]+/) {
+    leg = substr($0, RSTART, RLENGTH)
+    sub(/.*INDEX=/, "", leg)
+    print leg
+  }' "$LOG" | sort -n | uniq | paste -sd' ' -)"
 DRAWN_LEG_COUNT="$(printf '%s\n' "$DRAWN_LEGS" | wc -w)"
-if [[ "$DRAWN_LEG_COUNT" -gt 1 ]]; then
-  # Several legs then share the one field rect marker, which is only attributable
+if [[ "$DRAWN_LEG_COUNT" -gt 2 ]]; then
+  # Several legs then share a field rect marker, which is only attributable
   # because the test asserts the rectangle survived the reopen.
   REOPEN_MARKERS="$(grep -oE '^T334_DOCUMENT_REOPENED:PAGES=[0-9]+:FIELD_RECT_MATCH=1:VALUE_MATCH=1$' "$LOG")"
   [[ -n "$REOPEN_MARKERS" ]] ||
-    fail "$DRAWN_LEG_COUNT drawn-value legs share one field rect marker, but the log carries no DOCUMENT_REOPENED:FIELD_RECT_MATCH=1 marker that proves the rectangle survives the reopen"
+    fail "$DRAWN_LEG_COUNT drawn-value legs share field rect markers, but the log carries no DOCUMENT_REOPENED:FIELD_RECT_MATCH=1 marker that proves the rectangle survives the reopen"
 fi
 
 PLACEMENT_TOOL_REL="tools/pdf_verify/placement.py"
@@ -1075,16 +1081,26 @@ for PICKUP_INDEX in $(seq 1 "$ARTIFACT_COUNT"); do
     fail "artifact $PICKUP_INDEX carries $TEXTFIELD_HITS /FT /Tx byte occurrences"
 
   if [[ " $DRAWN_LEGS " != *" $PICKUP_INDEX "* ]]; then
+    if [[ "$PICKUP_INDEX" -eq 3 ]]; then
+      NOT_APPLICABLE_REASON="artifact 3 exports the AcroForm fixture unchanged (T334_ACROFORM_LEG_START, log line $FLATTENING_LEG_LINE): the leg confirms and fills nothing, draws no value, and prints no field rect; there is no placement to measure"
+    else
+      NOT_APPLICABLE_REASON="artifact $PICKUP_INDEX has no drawn value: its leg region carries no field rect marker and no value word"
+    fi
     {
       log "index=$PICKUP_INDEX"
       log "verdict=NOT_APPLICABLE"
-      log "reason=artifact $PICKUP_INDEX exports the AcroForm fixture unchanged: T334_ACROFORM_LEG_START opens its leg, the leg confirms and fills nothing, so the test prints no T334_FIELD_RECT marker for it, no value is drawn, and there is no placement to measure"
-      log "field_rect_marker=none (0 T334_FIELD_RECT markers after T334_ACROFORM_LEG_START at log line $FLATTENING_LEG_LINE)"
-      log "drawn_value_legs=$(printf '%s' "$DRAWN_LEGS" | tr ' ' ',')"
+      log "reason=$NOT_APPLICABLE_REASON"
+      log "field_rect_marker=none_for_this_leg"
+      log "field_rect_markers_total_before=$RECT_MARKERS_BEFORE after=$RECT_MARKERS_AFTER; drawn_value_legs=$(printf '%s' "$DRAWN_LEGS" | tr ' ' ',')"
       log "artifact_sha256=${HOST_SHA_BY_INDEX[$PICKUP_INDEX]}"
     } >"$RUN_DIR/artifact-$PICKUP_INDEX-placement.txt"
     ARTIFACT_PLACEMENT_VERDICT[PICKUP_INDEX]="NOT_APPLICABLE"
     continue
+  fi
+
+  LEG_RECT_LINE="$PRE_RECT_LINE"
+  if [[ " $POST_LEGS " == *" $PICKUP_INDEX "* ]]; then
+    LEG_RECT_LINE="$POST_RECT_LINE"
   fi
 
   # --- 1 mm placement: one metric, the verified tool ----------------------
@@ -1099,7 +1115,7 @@ for PICKUP_INDEX in $(seq 1 "$ARTIFACT_COUNT"); do
     "$ROOT/$PLACEMENT_TOOL_REL" \
     --pdf "export-artifact-$PICKUP_INDEX.pdf" \
     --value-word "$EXPECTED_VALUE" \
-    --field-rect-marker "$RECT_LINE" \
+    --field-rect-marker "$LEG_RECT_LINE" \
     --layout "$ROOT/$LAYOUT_SOURCE_REL" \
     --applier-source "$ROOT/$APPLIER_SOURCE_REL" \
     --font-metrics "$ROOT/$FONT_METRICS_REL" \
@@ -1109,7 +1125,7 @@ for PICKUP_INDEX in $(seq 1 "$ARTIFACT_COUNT"); do
     log "index=$PICKUP_INDEX"
     log "placement_metric=origin of the drawn value as the layout code places it, measured with $PLACEMENT_TOOL_REL; this is not a centre-to-centre distance"
     log "drawn_value_legs=$(printf '%s' "$DRAWN_LEGS" | tr ' ' ',')"
-    log "field_rect_marker=$RECT_LINE"
+    log "field_rect_marker=$LEG_RECT_LINE"
     printf '%s\n' "$PLACEMENT_OUTPUT"
     log "placement_tool_exit=$PLACEMENT_EXIT"
   } >"$RUN_DIR/artifact-$PICKUP_INDEX-placement.txt"
@@ -1146,6 +1162,73 @@ done
 PLACEMENT_SUMMARY="${PLACEMENT_SUMMARY# }"
 log "T334 DRIVER: 1 mm placement verdicts:$PLACEMENT_SUMMARY"
 log "T334 DRIVER: 1 mm placement claim: verdict=$PLACEMENT_VERDICT (measured for the drawn-value legs $DRAWN_LEGS, NOT_APPLICABLE where no value was drawn)"
+
+# --- 8c. T105 harness: every executable contracts/export-plan.md §6 row -----
+# The harness is the independent verifier (qpdf, Poppler, MuPDF). Artifact 4 is
+# the T109 mark leg: its expectations come from the test's own field rects, so
+# the masked appearance diff, placement, no-clipping, checkbox states and
+# signatures are all judged on real geometry. Artifacts 1/2 carry the drawn
+# text value; artifact 3 has no field or mark and is verified structurally.
+HARNESS_TOOL_REL="tools/pdf_verify/verify_artifact.py"
+EXPECTATIONS_TOOL_REL="tools/pdf_verify/expectations_from_markers.py"
+[[ -f "$ROOT/$HARNESS_TOOL_REL" ]] ||
+  fail "the T105 harness is missing: $HARNESS_TOOL_REL"
+[[ -f "$ROOT/$EXPECTATIONS_TOOL_REL" ]] ||
+  fail "the expectations helper is missing: $EXPECTATIONS_TOOL_REL"
+command -v qpdf >/dev/null || fail "qpdf is missing; the §6 structural row cannot run"
+command -v mutool >/dev/null || fail "MuPDF (mutool) is missing; the second print engine cannot run"
+HARNESS_SUMMARY=""
+for HARNESS_INDEX in $(seq 1 "$ARTIFACT_COUNT"); do
+  PICKUP_FILE="$RUN_DIR/export-artifact-$HARNESS_INDEX.pdf"
+  HARNESS_SOURCE_FIXTURE="$(artifact_source_fixture "$HARNESS_INDEX")" ||
+    fail "no source fixture is defined for harness artifact $HARNESS_INDEX"
+  HARNESS_EXPECTATIONS=()
+  if [[ "$HARNESS_INDEX" -eq 1 || "$HARNESS_INDEX" -eq 2 || "$HARNESS_INDEX" -eq 4 ]]; then
+    EXPECTATIONS_FILE="$RUN_DIR/expectations-artifact-$HARNESS_INDEX.json"
+    python3 "$ROOT/$EXPECTATIONS_TOOL_REL" \
+      --markers "$LOG" \
+      --index "$HARNESS_INDEX" \
+      --out "$EXPECTATIONS_FILE" >/dev/null ||
+      fail "cannot derive the harness expectations of artifact $HARNESS_INDEX from the test markers"
+    HARNESS_EXPECTATIONS=(--expectations "$EXPECTATIONS_FILE")
+  fi
+  HARNESS_JSON="$RUN_DIR/harness-artifact-$HARNESS_INDEX.json"
+  if ! python3 "$ROOT/$HARNESS_TOOL_REL" \
+    --source "$APP/assets/fixtures/$HARNESS_SOURCE_FIXTURE" \
+    --artifact "$PICKUP_FILE" \
+    "${HARNESS_EXPECTATIONS[@]}" \
+    --source-sha256 "$(sha256sum "$APP/assets/fixtures/$HARNESS_SOURCE_FIXTURE" | awk '{print $1}')" \
+    --print-dpi 300 \
+    --out "$HARNESS_JSON" >"$RUN_DIR/harness-artifact-$HARNESS_INDEX-console.txt" 2>&1; then
+    fail "the T105 harness reported a FAIL for artifact $HARNESS_INDEX; see harness-artifact-$HARNESS_INDEX-console.txt"
+  fi
+  HARNESS_PASS="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["summary"]["pass"])' "$HARNESS_JSON")" ||
+    fail "cannot read the harness summary of artifact $HARNESS_INDEX"
+  HARNESS_FAIL="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["summary"]["fail"])' "$HARNESS_JSON")" ||
+    fail "cannot read the harness summary of artifact $HARNESS_INDEX"
+  [[ "$HARNESS_FAIL" -eq 0 ]] ||
+    fail "the harness summary of artifact $HARNESS_INDEX carries $HARNESS_FAIL FAIL row(s)"
+  if [[ "$HARNESS_INDEX" -eq 4 ]]; then
+    for required_row in \
+      "structural validity" "page count and order" "page geometry" \
+      "original appearance" "value placement" "text content" "no clipping" \
+      "checkbox states" "signatures" "no interactive controls" \
+      "printability" "source integrity"; do
+      ROW_STATUS="$(python3 -c '
+import json, sys
+rows = json.load(open(sys.argv[1]))["rows"]
+check = sys.argv[2]
+print(next((row["status"] for row in rows if row["check"] == check), "MISSING"))
+' "$HARNESS_JSON" "$required_row")" ||
+        fail "cannot read harness row '$required_row' of artifact $HARNESS_INDEX"
+      [[ "$ROW_STATUS" == "PASS" ]] ||
+        fail "harness row '$required_row' of artifact $HARNESS_INDEX is $ROW_STATUS, expected PASS"
+    done
+  fi
+  HARNESS_SUMMARY="$HARNESS_SUMMARY artifact_${HARNESS_INDEX}=${HARNESS_PASS}P/${HARNESS_FAIL}F"
+done
+HARNESS_SUMMARY="${HARNESS_SUMMARY# }"
+log "T334 DRIVER: T105 harness summaries:$HARNESS_SUMMARY"
 
 # --- 9. Evidence -------------------------------------------------------------
 # A missing APK is a build/tool failure, never an empty digest file: with
@@ -1201,7 +1284,7 @@ if [[ "$PRIVACY_PASS" -eq 1 ]]; then
   collect_evidence
   scan_evidence_home_paths ||
     fail "the evidence home-path scan did not come back clean; no result was written"
-  record "PASS (flutter test exit 0; cleanup marker observed; three artifacts picked up with matching digests; poppler and byte-search proof for all three; AcroForm flattening proved for artifact 3 (no /AcroForm, /Widget, /FT /Tx; field value survives in the text layer); static gates clean; privacy checks PASS; 1 mm placement claim $PLACEMENT_VERDICT ($PLACEMENT_SUMMARY))"
+  record "PASS (flutter test exit 0; cleanup marker observed; four artifacts picked up with matching digests; poppler and byte-search proof for all four; AcroForm flattening proved for artifact 3 (no /AcroForm, /Widget, /FT /Tx; field value survives in the text layer); T105 harness PASS for every artifact (artifact 4: appearance, placement, no-clipping, checkbox states and signatures on the test's own rects); static gates clean; privacy checks PASS; 1 mm placement claim $PLACEMENT_VERDICT ($PLACEMENT_SUMMARY))"
   {
     printf 'result=PASS\nflutter_test_exit=0\n'
     for status_index in $(seq 1 "$ARTIFACT_COUNT"); do
@@ -1215,6 +1298,8 @@ if [[ "$PRIVACY_PASS" -eq 1 ]]; then
     printf 'placement_metric=origin of the drawn value as the layout code places it (%s)\n' "$PLACEMENT_TOOL_REL"
     printf 'placement_drawn_value_legs=%s\n' "$(printf '%s' "$DRAWN_LEGS" | tr ' ' ',')"
     printf 'placement_reason=%s\n' "none (every drawn-value leg is PROVEN; the drawn-value legs are $DRAWN_LEGS, every other leg drew no value)"
+    printf 'harness_summary=%s\n' "$HARNESS_SUMMARY"
+    printf 'harness_artifact_4_rows=PASS (appearance, placement, no-clipping, checkbox states, signatures, text, printability, source integrity)\n'
   } >"$RUN_DIR/run-status.txt"
   collect_evidence
   # run-status.txt and the final marker sequence are copied by the second

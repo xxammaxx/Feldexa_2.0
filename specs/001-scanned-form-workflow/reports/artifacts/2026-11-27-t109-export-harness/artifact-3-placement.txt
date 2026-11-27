@@ -1,0 +1,6 @@
+index=3
+verdict=NOT_APPLICABLE
+reason=artifact 3 exports the AcroForm fixture unchanged (T334_ACROFORM_LEG_START, log line 109): the leg confirms and fills nothing, draws no value, and prints no field rect; there is no placement to measure
+field_rect_marker=none_for_this_leg
+field_rect_markers_total_before=1 after=1; drawn_value_legs=1,2,4
+artifact_sha256=35e6b6daa1279e39ee5439009d5106d7d348d1ba9b50865f86ff9b907f7c8a3f

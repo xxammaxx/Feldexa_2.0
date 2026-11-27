@@ -1,0 +1,5 @@
+The committed T108 evidence was produced at 56fd988. The current test differs only in
+comments and in the marker string SAVE_CANCELLED:REPORTED_SUCCESS=0, renamed to
+REPORTED_FAILURE=0 because the assertion set proves the absence of a delivery failure,
+not the absence of a location hint. Assertions, phases, and the four PASS paths are
+unchanged; no new T108 device run was made for this text fix.

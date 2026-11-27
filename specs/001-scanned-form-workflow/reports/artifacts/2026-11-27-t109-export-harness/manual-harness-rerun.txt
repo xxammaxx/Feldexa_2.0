@@ -1,0 +1,19 @@
+The automated driver run at HEAD 20d24c picked up all four artifacts with
+matching digests and the integration test passed all four legs. Its harness
+loop then aborted on the then-buggy T109 marker parser (it did not accept the
+shared T334_ prefix), so the artifact-4 harness invocation was re-run manually
+on the same picked-up bytes after the parser fix (commit a688462):
+
+  python3 tools/pdf_verify/expectations_from_markers.py \
+    --markers markers-integration.txt --index 4 --out expectations-artifact-4.json
+  python3 tools/pdf_verify/verify_artifact.py \
+    --source apps/feldexa_app/assets/fixtures/sf-001.pdf \
+    --artifact export-artifact-4.pdf \
+    --expectations expectations-artifact-4.json \
+    --source-sha256 22c939cc...a038 --print-dpi 300 \
+    --out harness-artifact-4.json
+
+Result: 12 PASS, 0 FAIL, 0 PARTIAL, 1 NOT_RUN (artifact isolation is the T108
+driver's proof). The picked-up PDFs are task-owned and were deleted after the
+run; their digests are in artifact-*-pickup.txt. The driver was not re-run for
+a third time (environment stall); the test itself passed in both emulator runs.

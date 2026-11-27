@@ -1,0 +1,11 @@
+pre-run: package not installed, no stored state exists
+AcroForm fixture proved: Form: AcroForm, /AcroForm, /Widget, /FT /Tx present
+screen awake and unlocked before the test start
+static gates: flutter analyze clean, dart format 0 changed
+test start 2026-11-27T21:27:03Z
+host pickup artifact 1: 12029 bytes, sha256 b7740198122b04912e7264ece0b51375d3cfa42343b08a7869b84bb6c7bc3c5b (marker matches)
+host pickup artifact 2: 12029 bytes, sha256 3071afb4f63bc21a8a14e0af6dcc5ddf5472c2f1292b17fddcf07d9ef7c7ac4a (marker matches)
+host pickup artifact 3: 2388 bytes, sha256 35e6b6daa1279e39ee5439009d5106d7d348d1ba9b50865f86ff9b907f7c8a3f (marker matches)
+host pickup artifact 4: 13411 bytes, sha256 d2324a48ae18ec2181579b56bca3409b4a680eea81c1062b5753add12130129b (marker matches)
+test exit=0
+app is no longer installed after the test (no app data to clear)

@@ -41,12 +41,41 @@ internal object ImportTestHooks {
     @Volatile
     private var armed: ArmedFixture? = null
 
+    /** The session artifact directory, wired by `MainActivity` in debug builds. */
+    @Volatile
+    private var artifactDirectory: File? = null
+
     /** Whether the next preflight should take the real `IMP-005` branch. */
     @Volatile
     var forceUnknownPreflight: Boolean = false
         private set
 
     private data class ArmedFixture(val path: String, val displayName: String?)
+
+    /**
+     * T108: exposes the session export-artifact directory to the failure test.
+     *
+     * The test can then prove that a failed or interrupted export leaves no
+     * `.pdf` and no `.pdf.tmp` behind. This is a debug-only seam: it returns
+     * content-free counts and toggles the directory's owner-write bit for the
+     * real IO-failure leg. It never returns a path, file name, or byte.
+     */
+    fun setArtifactDirectory(directory: File) {
+        artifactDirectory = directory
+    }
+
+    private fun artifactProbe(): Map<String, Any?> {
+        val directory = artifactDirectory ?: return mapOf("wired" to false)
+        val files = directory.listFiles().orEmpty()
+        return mapOf(
+            "wired" to true,
+            "pdfCount" to files.count { it.isFile && it.name.endsWith(".pdf") },
+            "tmpCount" to files.count { it.isFile && it.name.endsWith(".pdf.tmp") },
+            "fileCount" to files.count { it.isFile },
+            "writable" to directory.canWrite(),
+        )
+    }
+
 
     /** Registers the debug-only test channel. Idempotent per engine. */
     fun register(messenger: BinaryMessenger) {
@@ -67,6 +96,23 @@ internal object ImportTestHooks {
                 "clear" -> {
                     clear()
                     result.success(mapOf("cleared" to true))
+                }
+
+                "artifactProbe" -> result.success(artifactProbe())
+
+                "setArtifactWriteFault" -> {
+                    val directory = artifactDirectory
+                    val enabled = call.argument<Boolean>("enabled") ?: false
+                    val applied = directory != null &&
+                        directory.setWritable(!enabled, true) &&
+                        directory.canWrite() != enabled
+                    result.success(
+                        mapOf(
+                            "wired" to (directory != null),
+                            "fault" to enabled,
+                            "applied" to applied,
+                        ),
+                    )
                 }
 
                 else -> result.notImplemented()

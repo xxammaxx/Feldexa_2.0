@@ -1,0 +1,78 @@
+{
+  "source": "apps/feldexa_app/assets/fixtures/sf-acroform-001.pdf",
+  "artifact": "/tmp/feldexa-t334-run.k2Hxyw/export-artifact-3.pdf",
+  "rows": [
+    {
+      "check": "structural validity",
+      "status": "PASS",
+      "detail": "qpdf --check exit 0"
+    },
+    {
+      "check": "page count and order",
+      "status": "PASS",
+      "detail": "1 pages; order proxy (page-size sequence) equal. Uniform-size pages cannot prove order; a per-page content hash is not implemented"
+    },
+    {
+      "check": "page geometry",
+      "status": "PASS",
+      "detail": "1 pages, sizes and rotations equal within 0.01 pt (pdfinfo MediaBox/rot)"
+    },
+    {
+      "check": "no interactive controls",
+      "status": "PASS",
+      "detail": "no /AcroForm and no /Widget in the bytes; pdfinfo Form: none. Byte scan is not a full structural parse"
+    },
+    {
+      "check": "text content",
+      "status": "PARTIAL",
+      "detail": "text extracted but no German glyph from the verification set appears"
+    },
+    {
+      "check": "original appearance",
+      "status": "NOT_RUN",
+      "detail": "masked pixel comparison needs --expectations masks (field rects); without them the value overlay cannot be excluded"
+    },
+    {
+      "check": "no clipping",
+      "status": "NOT_RUN",
+      "detail": "no value expectation (value + rect) supplied; page-bound checks alone do not prove clipping"
+    },
+    {
+      "check": "checkbox states",
+      "status": "NOT_RUN",
+      "detail": "no checkbox expectations supplied"
+    },
+    {
+      "check": "signatures",
+      "status": "NOT_RUN",
+      "detail": "no signature expectations supplied"
+    },
+    {
+      "check": "value placement",
+      "status": "NOT_RUN",
+      "detail": "no expectation with value + rect supplied"
+    },
+    {
+      "check": "printability",
+      "status": "PASS",
+      "detail": "Poppler and MuPDF rendered all 1 pages at 300 dpi"
+    },
+    {
+      "check": "source integrity",
+      "status": "PASS",
+      "detail": "sha256 7f4e014482425518058e28c497b9e8bcf4a4930dec1dbd5edb74cb8c8992af9a"
+    },
+    {
+      "check": "artifact isolation",
+      "status": "NOT_RUN",
+      "detail": "task-owned: a failed export must leave no artifact (T108/T334 driver)"
+    }
+  ],
+  "summary": {
+    "pass": 6,
+    "fail": 0,
+    "partial": 1,
+    "not_run": 6,
+    "unavailable": 0
+  }
+}

@@ -1,0 +1,7 @@
+probe_body=base="$1"; for d in "$base/docs" "$base/templates"; do if [ -e "$d" ]; then entries="$(ls -A "$d")" || { echo "PROBE_TOOL_ERROR ls -A $d"; exit 3; }; if [ -n "$entries" ]; then echo "leftover entries in $d"; exit 1; fi; fi; done; echo STORE_EMPTY_OK; exit 0
+probe_root_used_by_the_run=files/feldexa (MainActivity.STORE_ROOT_DIR)
+expected_exits: empty=0 leftover=1 missing=0 ls_tool_error=3
+case=empty expected_exit=0 observed_exit=0 output=STORE_EMPTY_OK
+case=leftover expected_exit=1 observed_exit=1 output=leftover entries in /data/local/tmp/t334-fixtures/store-probe-selftest/leftover/docs
+case=missing expected_exit=0 observed_exit=0 output=STORE_EMPTY_OK
+result=all three store-probe cases behave as expected
