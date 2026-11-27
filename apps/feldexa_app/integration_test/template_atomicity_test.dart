@@ -121,8 +121,8 @@ void main() {
     },
   );
 
-  test('a failed version write preserves the previous version head exactly '
-      '(FR-106, SAVE-003 path)', () async {
+  test('a failed post-write read-back preserves the previous version head '
+      'byte- and hash-identical (FR-106, SAVE-003 path)', () async {
     final SimulatedBackend backend = SimulatedBackend(
       context: SimulatedAdapterContext(),
     );
@@ -138,24 +138,34 @@ void main() {
     );
     expect(created.isSuccess, isTrue);
     final String head = created.meta!.latestRevisionId!;
+    final SimulatedTemplateVersionRecord headRecord = backend
+        .template(created.meta!.id)!
+        .versions[head]!;
+    final int bytesBefore = headRecord.canonicalBytes.length;
+    final String hashBefore = headRecord.sha256;
 
-    store.failNextWrite();
-    await expectLater(
-      store.saveTemplateVersion(
-        SaveTemplateVersionRequest(
-          templateId: created.meta!.id,
-          expectedHead: head,
-          pageSnapshot: <Page>[_page()],
-          fieldSnapshot: <ConfirmedField>[_field(order: 0)],
-        ),
-      ),
-      throwsA(isA<StorageWriteException>()),
+    // Post-write read-back damage: the write lands, verification fails; the
+    // FR-106 reporting rule runs through the T117 use case.
+    store.corruptNextCommit();
+    final SaveTemplateVersionResult corrupted = await saveTemplateVersion(
+      store: store,
+      templateId: created.meta!.id,
+      expectedHead: head,
+      pageSnapshot: <Page>[_page()],
+      fieldSnapshot: <ConfirmedField>[_field(order: 0)],
     );
+    expect(corrupted.isSuccess, isFalse);
+    expect(corrupted.errorCode, 'SAVE-003');
+    expect(corrupted.meta, isNull);
 
-    final LoadedTemplate loaded = await store.loadTemplate(created.meta!.id);
-    expect(loaded.template.meta.versions, hasLength(1));
-    expect(loaded.template.meta.latestVersion.versionId, head);
-    expect(loaded.template.meta.latestVersion.versionId, head);
+    // Byte- and hash-exact: the previous head is untouched, no partial
+    // version exists, and the failed version was rolled back.
+    final SimulatedTemplateRecord record = backend.template(created.meta!.id)!;
+    expect(record.versions, hasLength(1));
+    expect(record.head, head);
+    expect(record.versions[head]!.canonicalBytes.length, bytesBefore);
+    expect(record.versions[head]!.sha256, hashBefore);
+
     // A correct save afterwards appends exactly one new version.
     final SaveTemplateVersionResult saved = await saveTemplateVersion(
       store: store,

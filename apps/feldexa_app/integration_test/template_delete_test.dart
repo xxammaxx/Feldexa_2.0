@@ -133,6 +133,7 @@ void main() {
       backend: backend,
     );
     final SourceFileRef source = _stagedSource(backend);
+    final Uint8List fixtureBytes = backend.readStagedSource(source.id)!;
     final StoredMeta template = await _createTemplate(store, source);
     final UseTemplateResult derived = await _derive(
       backend,
@@ -193,6 +194,9 @@ void main() {
       (reloaded.content.values[textFieldId] as TextValue).text,
       'Bleibt erhalten',
     );
+    // The derived document's own source copy opens with the original bytes
+    // even with every other source object removed.
+    expect(reloaded.sourceBytes, fixtureBytes);
     // The document list still shows exactly the derived document.
     final List<StoredMeta> documents = await store.list(StoreKind.document);
     expect(documents, hasLength(1));
