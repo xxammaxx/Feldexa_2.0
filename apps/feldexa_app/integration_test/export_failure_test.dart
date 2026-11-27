@@ -43,7 +43,7 @@ import 'package:feldexa_app/features/export/export_preview.dart';
 import 'package:feldexa_app/features/fill/text_control.dart';
 import 'package:feldexa_app/features/start/stored_items.dart';
 import 'package:feldexa_app/main.dart' as app;
-import 'package:feldexa_application/src/review/edit_field.dart' as edit;
+import 'package:feldexa_application/src/review/set_value.dart' as value_edit;
 import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:feldexa_export/feldexa_export.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
@@ -476,36 +476,35 @@ void main() {
     _marker('IO_FAILURE_REPORTED:CODE=${failedAttempt.code}');
     await _expectEmptyArtifactDirectory(phase: 'IO_FAILURE');
 
-    // --- 2. Preflight failure: one field outside the page ------------------
-    final core.Rect displayBox = state.content!.pages[0].geometry.displayBox;
-    final core.Rect outsideRect = core.Rect.fromLTWH(
-      displayBox.left + displayBox.width + 40,
-      displayBox.top + 100,
-      120,
-      18,
-    );
-    final String outsideFieldId = runtime.ids.newId();
-    final edit.EditFieldChange outside = edit.addField(
-      state.content!,
-      outsideFieldId,
-      0,
-      outsideRect,
-      core.FieldType.checkbox,
-      'Außerhalb der Seite',
-      runtime.clock.nowUtc().toUtc(),
-    );
+    // --- 2. Preflight failure: the value overflows its field ----------------
+    // `addField` refuses a rect outside the page, so the blocked snapshot is
+    // produced by the production value command: a value far longer than the
+    // recognised 300 x 18 pt field must block with EXP-001, never be shrunk or
+    // truncated, and never reach a port.
+    final core.RevisionContent overflowing = value_edit
+        .setFieldValue(
+          state.content!,
+          field.id,
+          value: core.TextValue(
+            text: 'Übermaß ' * 80,
+            lastEditedAt: runtime.clock.nowUtc().toUtc(),
+          ),
+          lastEditedAt: runtime.clock.nowUtc().toUtc(),
+        )
+        .content;
     final ExportPreparation blockedPreparation = controller.prepare(
       await runtime.loadDocument(documentId),
-      content: outside.content,
+      content: overflowing,
       revisionId: state.headRevisionId,
     );
     // The blocked plan never reaches a port; only the preflight code matters.
     expect(blockedPreparation, isA<ExportPreparationBlocked>());
     final ExportPreparationBlocked blocked =
         blockedPreparation as ExportPreparationBlocked;
-    expect(blocked.validation.warnings.map((w) => w.code), contains('EXP-003'));
+    expect(blocked.validation.warnings.map((w) => w.code), contains('EXP-001'));
+    expect(blocked.validation.warnings, isNotEmpty);
     _marker(
-      'PREFLIGHT_BLOCKED:CODE=EXP-003:'
+      'PREFLIGHT_BLOCKED:CODE=EXP-001:'
       'WARNINGS=${blocked.validation.warnings.length}',
     );
     await _expectEmptyArtifactDirectory(phase: 'PREFLIGHT_BLOCKED');
