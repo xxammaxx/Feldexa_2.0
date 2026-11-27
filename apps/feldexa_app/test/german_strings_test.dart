@@ -77,6 +77,18 @@ const Set<String> _nonCodeArbKeys = <String>{
   'actionRetry',
   'actionUnderstood',
   'appTitle',
+  // T124 (FR-085): document-summary provenance rows. The wording follows the
+  // catalog §2 summary rule („Vorschläge“, „unsicher“, never a completeness
+  // claim) but the rows are not catalog codes; `recognitionSummaryNote` is
+  // the mandatory no-completeness note asserted by
+  // `test/recognition_honesty_test.dart`.
+  'recognitionSummaryTitle',
+  'recognitionSummaryManual',
+  'recognitionSummaryAdopted',
+  'recognitionSummaryTemplate',
+  'recognitionSummaryOpen',
+  'recognitionSummaryUncertain',
+  'recognitionSummaryNote',
   'deleteDocumentDialog',
   'deleteTemplateDialog',
   'deletionConfirmation',
