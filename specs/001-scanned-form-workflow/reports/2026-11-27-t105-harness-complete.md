@@ -33,13 +33,23 @@ Committed pair `tools/corpus/synthetic/sf-001.pdf` + `export-artifact-1.pdf`, wi
 committed expectations `reports/artifacts/2026-11-26-t344-export-proof-depth/expectations-artifact-1.json`
 (rect and value from the T344 placement record):
 
-**10 PASS, 0 FAIL, 3 NOT_RUN** (checkbox/signature expectations absent for this artifact;
-artifact isolation task-owned), exit 0. Without the expectations file: **8 PASS, 0 FAIL,
-5 NOT_RUN** (appearance/placement/marks cannot be judged without rects).
+Command and receipt:
 
-Unit tests: `tools/pdf_verify/test_verify_artifact.py` — **16/16 PASS**, including the
+```
+python3 tools/pdf_verify/verify_artifact.py \
+  --source tools/corpus/synthetic/sf-001.pdf \
+  --artifact specs/001-scanned-form-workflow/reports/artifacts/2026-11-26-t344-export-proof-depth/export-artifact-1.pdf \
+  --expectations specs/001-scanned-form-workflow/reports/artifacts/2026-11-26-t344-export-proof-depth/expectations-artifact-1.json \
+  --source-sha256 "$(sha256sum tools/corpus/synthetic/sf-001.pdf | cut -d' ' -f1)"
+```
+
+**10 PASS, 0 FAIL, 3 NOT_RUN** (checkbox/signature expectations absent for this artifact;
+artifact isolation task-owned), exit 0. Without the expectations file: **7 PASS, 0 FAIL,
+6 NOT_RUN** (appearance/placement/no-clipping/marks cannot be judged without rects).
+
+Unit tests: `tools/pdf_verify/test_verify_artifact.py` — **17/17 PASS**, including the
 qpdf/mutool availability branches, the expectations-enabled appearance/clipping/placement
-run, PPM/ink helpers and the 13-row inventory.
+run, PPM/ink helpers, a synthetic mark PASS/FAIL pair and the 13-row inventory.
 
 ## Disposition
 

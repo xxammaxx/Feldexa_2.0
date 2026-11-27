@@ -27,9 +27,9 @@ command.
 
 ## SC membership
 
-- **SC-005** (opens/renders/prints in two independent readers): V1 rows +
-  printability (V2). The second engine is blocked on MuPDF; the in-app PDFium
-  preview does not satisfy "independent reader".
+- **SC-005** (opens/renders/prints in two independent readers): V1 rows including
+  printability with Poppler and MuPDF. The in-app PDFium preview does not satisfy
+  "independent reader".
 - **SC-006** (zero clipped/misplaced/wrong-checkbox/missing-signature):
   placement (V1) + checkbox/signature rows (V3, T109).
 - `qpdf` 12.4.2 and MuPDF 1.28.5 are present; the V1 rows above were executed on the

@@ -79,6 +79,27 @@ class GeometryFailureTest(unittest.TestCase):
         self.assertEqual("PARTIAL", rows(report)["page geometry"].status)
 
 
+class MarkTest(unittest.TestCase):
+    def test_mark_comparison_passes_only_with_extra_ink(self) -> None:
+        def raster(ink: int) -> tuple[int, int, bytes]:
+            pixels = bytearray([255, 255, 255] * (10 * 10))
+            for i in range(ink):
+                pixels[i * 3 : i * 3 + 3] = b"\x00\x00\x00"
+            return (10, 10, bytes(pixels))
+
+        marks = {"marks": [{"page": 1, "rect": [0, 0, 10, 10], "type": "checkbox", "expected": "marked"}]}
+        report = va.Report(source="s", artifact="a")
+        with mock.patch.object(va, "_render_page", side_effect=[raster(0), raster(80)]):
+            va.check_marks(report, SOURCE, ARTIFACT, marks, "checkbox")
+        self.assertEqual("PASS", rows(report)["checkbox states"].status)
+
+        empty = {"marks": [{"page": 1, "rect": [0, 0, 10, 10], "type": "checkbox", "expected": "empty"}]}
+        report = va.Report(source="s", artifact="a")
+        with mock.patch.object(va, "_render_page", side_effect=[raster(0), raster(80)]):
+            va.check_marks(report, SOURCE, ARTIFACT, empty, "checkbox")
+        self.assertEqual("FAIL", rows(report)["checkbox states"].status)
+
+
 class SourceIntegrityTest(unittest.TestCase):
     def test_match_and_mismatch(self) -> None:
         report = va.Report(source="s", artifact="a")

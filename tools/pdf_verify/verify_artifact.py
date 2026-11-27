@@ -1,30 +1,31 @@
 #!/usr/bin/env python3
 """Export-artifact verification harness (T105, contracts/export-plan.md §6).
 
-Runs the tool-executable rows of the §6 verification contract against one
-artifact PDF and reports PASS / FAIL / PARTIAL / NOT_RUN / UNAVAILABLE per row.
-Rows that need an input the caller did not supply are reported as NOT_RUN with
-the exact missing input; absent external engines are UNAVAILABLE. The harness
+Runs every tool-executable §6 row against one artifact PDF and reports
+PASS / FAIL / PARTIAL / NOT_RUN / UNAVAILABLE per row. Rows that need an input
+the caller did not supply report NOT_RUN with the missing input; the harness
 never invents a PASS.
 
-What it verifies without extra inputs
--------------------------------------
-* page count and page-size sequence (order proxy) against the source PDF,
-* per-page MediaBox size and page rotation equality within 0.01 pt,
-* absence of ``/AcroForm`` and ``/Widget`` in the artifact bytes,
-* text extraction and German glyph presence,
-* a 150 dpi render of page 1 and 300 dpi renders of every page (Poppler; MuPDF
-  is executed when present and otherwise reported PARTIAL),
-* SHA-256 of the source file (unchanged).
+Without extra inputs it verifies: structural validity (``qpdf --check``), page
+count and page-size sequence, per-page size and rotation, absence of
+``/AcroForm``/``/Widget``, text and German glyphs, 300 dpi printability with
+Poppler and, when present, MuPDF, and the source SHA-256.
 
-Rows that need ``--expectations FIELD_JSON`` (values, field rects, checkbox and
-signature states, appearance masks):
-* text content against expected values,
-* value placement (delegated to ``placement.py`` semantics where a rect and a
-  value word are supplied),
-* checkbox state and signature presence.
-The masked appearance comparison and the no-clipping measurement are NOT
-implemented; they report ``NOT_RUN`` with that reason (not with a missing input).
+With ``--expectations FIELD_JSON`` it additionally verifies: a masked 72-dpi
+appearance diff outside the mask rects, the no-clipping measurement (every word
+box inside its page; expected values inside rect + 1 mm), value placement
+inside rect + 1 mm with the 0.61 mm ascent allowance (Q3=B), checkbox and
+signature marks by rendered ink density against the source, and expected text
+values.
+
+Expectations shape::
+
+    {
+      "fields": [{"page": 1, "rect": [x, y, w, h], "type": "text", "value": "..."}],
+      "marks":  [{"page": 1, "rect": [x, y, w, h], "type": "checkbox|signature",
+                  "expected": "marked"|"empty"}],
+      "masks":  [{"page": 1, "rect": [x, y, w, h]}]
+    }
 
 Usage:
   verify_artifact.py --source SRC.pdf --artifact ART.pdf [--expectations F.json]
@@ -328,7 +329,10 @@ def _read_ppm(path: Path) -> tuple[int, int, bytes]:
     width, height, maxval = (int(f) for f in fields)
     if maxval != 255:
         raise ValueError(f"unsupported PPM maxval {maxval}")
-    return width, height, data[index : index + width * height * 3]
+    payload = data[index : index + width * height * 3]
+    if len(payload) != width * height * 3:
+        raise ValueError(f"truncated PPM payload: {len(payload)} of {width * height * 3} bytes")
+    return width, height, payload
 
 
 def _render_page(path: Path, page: int, dpi: int, tmp: Path) -> tuple[int, int, bytes]:
@@ -346,13 +350,16 @@ def _render_page(path: Path, page: int, dpi: int, tmp: Path) -> tuple[int, int, 
 
 
 def _rect_pixels(rect: list[float], dpi: int) -> tuple[int, int, int, int]:
+    """Pixel coverage of a top-down point rect: floor(origin), ceil(far edge)."""
+    import math
+
     scale = dpi / 72.0
     x, y, w, h = rect
     return (
-        max(0, int(x * scale)),
-        max(0, int(y * scale)),
-        int((x + w) * scale) + 1,
-        int((y + h) * scale) + 1,
+        max(0, math.floor(x * scale)),
+        max(0, math.floor(y * scale)),
+        math.ceil((x + w) * scale),
+        math.ceil((y + h) * scale),
     )
 
 
@@ -378,7 +385,8 @@ def check_appearance(report: Report, source: Path, artifact: Path, expectations:
             "masked pixel comparison needs --expectations masks (field rects); without them the value overlay cannot be excluded",
         )
         return
-    pages = min(pdf_pages(source), pdf_pages(artifact), 3)
+    total_pages = min(pdf_pages(source), pdf_pages(artifact))
+    pages = min(total_pages, 10)
     with tempfile.TemporaryDirectory(prefix="feldexa-appearance-") as tmp:
         tmp_path = Path(tmp)
         for page in range(1, pages + 1):
@@ -406,51 +414,65 @@ def check_appearance(report: Report, source: Path, artifact: Path, expectations:
                         f"page {page}: {differing} pixels differ outside the masks",
                     )
                     return
-    report.add(
-        "original appearance",
-        "PASS",
-        f"{pages} page(s) pixel-identical outside {len(masks)} mask(s) at 72 dpi",
-    )
+    if pages < total_pages:
+        report.add(
+            "original appearance",
+            "PARTIAL",
+            f"{pages} of {total_pages} pages compared (cap 10), pixel-identical outside "
+            f"{len(masks)} mask(s) at 72 dpi",
+        )
+    else:
+        report.add(
+            "original appearance",
+            "PASS",
+            f"{pages} page(s) pixel-identical outside {len(masks)} mask(s) at 72 dpi",
+        )
 
 
 def check_clipping(report: Report, artifact: Path, expectations: dict | None) -> None:
     if shutil.which("pdftotext") is None:
         report.add("no clipping", "UNAVAILABLE", "pdftotext not on PATH")
         return
-    pages = pdf_pages(artifact)
-    out = run(["pdftotext", "-bbox", str(artifact), "-"]).stdout
-    width_match = re.search(r'width="([\d.]+)" height="([\d.]+)"', out)
-    if not width_match:
-        report.add("no clipping", "FAIL", "pdftotext -bbox reported no page geometry")
-        return
-    page_width, page_height = float(width_match.group(1)), float(width_match.group(2))
-    outside = 0
-    for match in re.finditer(
-        r'<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">',
-        out,
-    ):
-        x0, y0, x1, y1 = (float(v) for v in match.groups())
-        if x0 < -0.5 or y0 < -0.5 or x1 > page_width + 0.5 or y1 > page_height + 0.5:
-            outside += 1
-    if outside:
-        report.add("no clipping", "FAIL", f"{outside} word box(es) outside the page")
-        return
-    fields = (expectations or {}).get("fields") or []
-    tolerance = 2.835
-    for field in fields:
-        value = str(field.get("value") or "")
-        rect = field.get("rect")
-        if not value or not rect:
-            continue
-        x, y, w, h = (float(v) for v in rect)
-        pattern = re.compile(re.escape(value))
-        if not pattern.search(out):
-            continue
-        matched = re.search(
-            r'<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">' + re.escape(value),
-            out,
+    fields = [f for f in (expectations or {}).get("fields", []) if f.get("value") and f.get("rect")]
+    if not fields:
+        report.add(
+            "no clipping",
+            "NOT_RUN",
+            "no value expectation (value + rect) supplied; page-bound checks alone do not prove clipping",
         )
-        if matched:
+        return
+    out = run(["pdftotext", "-bbox", str(artifact), "-"]).stdout
+    page_blocks = re.findall(
+        r'<page width="([\d.]+)" height="([\d.]+)">(.*?)</page>', out, re.S
+    )
+    if not page_blocks:
+        report.add("no clipping", "FAIL", "pdftotext -bbox reported no pages")
+        return
+    outside: list[str] = []
+    tolerance = 2.835
+    checked = 0
+    for page_no, (page_width, page_height, body) in enumerate(page_blocks, start=1):
+        width, height = float(page_width), float(page_height)
+        for match in re.finditer(
+            r'<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">',
+            body,
+        ):
+            x0, y0, x1, y1 = (float(v) for v in match.groups())
+            if x0 < -0.5 or y0 < -0.5 or x1 > width + 0.5 or y1 > height + 0.5:
+                outside.append(f"p{page_no} word outside page")
+        for field in fields:
+            if int(field.get("page", 1)) != page_no:
+                continue
+            value = str(field["value"])
+            x, y, w, h = (float(v) for v in field["rect"])
+            matched = re.search(
+                r'<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">'
+                + re.escape(value),
+                body,
+            )
+            if not matched:
+                continue
+            checked += 1
             x0, y0, x1, y1 = (float(v) for v in matched.groups())
             if (
                 x0 < x - tolerance
@@ -458,27 +480,23 @@ def check_clipping(report: Report, artifact: Path, expectations: dict | None) ->
                 or x1 > x + w + tolerance
                 or y1 > y + h + tolerance
             ):
-                report.add(
-                    "no clipping",
-                    "FAIL",
-                    f"value {value!r} box {x0:.2f},{y0:.2f},{x1:.2f},{y1:.2f} outside rect+tolerance",
-                )
-                return
+                outside.append(f"p{page_no} value {value!r} outside rect+tolerance")
+    if outside:
+        report.add("no clipping", "FAIL", "; ".join(outside[:4]))
+        return
+    if checked == 0:
+        report.add("no clipping", "NOT_RUN", "expected values not found as words")
+        return
     report.add(
         "no clipping",
         "PASS",
-        f"all word boxes inside the page; {len(fields)} value(s) inside rect+1 mm",
+        f"all word boxes inside their page; {checked} value(s) inside rect+1 mm",
     )
 
 
 def check_placement(report: Report, artifact: Path, expectations: dict | None) -> None:
-    fields = (expectations or {}).get("fields") or []
-    target = None
-    for field in fields:
-        if field.get("value") and field.get("rect"):
-            target = field
-            break
-    if target is None:
+    fields = [f for f in (expectations or {}).get("fields", []) if f.get("value") and f.get("rect")]
+    if not fields:
         report.add(
             "value placement",
             "NOT_RUN",
@@ -486,29 +504,44 @@ def check_placement(report: Report, artifact: Path, expectations: dict | None) -
         )
         return
     out = run(["pdftotext", "-bbox", str(artifact), "-"]).stdout
-    value = str(target["value"])
-    matched = re.search(
-        r'<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">' + re.escape(value),
-        out,
-    )
-    if not matched:
-        report.add("value placement", "NOT_RUN", f"value {value!r} not found as one word")
-        return
-    x0, y0, x1, y1 = (float(v) for v in matched.groups())
-    x, y, w, h = (float(v) for v in target["rect"])
     tolerance = 2.835
     ascent_tolerance = 0.61 * 72 / 25.4
-    if x0 < x - tolerance or x1 > x + w + tolerance or y1 > y + h + tolerance or y0 < y - ascent_tolerance:
-        report.add(
-            "value placement",
-            "FAIL",
-            f"value box {x0:.2f},{y0:.2f},{x1:.2f},{y1:.2f} outside rect+1 mm (ascent 0.61 mm)",
+    checked = 0
+    worst_ascent = 0.0
+    for field in fields:
+        value = str(field["value"])
+        matched = re.search(
+            r'<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">'
+            + re.escape(value),
+            out,
         )
+        if not matched:
+            continue
+        checked += 1
+        x0, y0, x1, y1 = (float(v) for v in matched.groups())
+        x, y, w, h = (float(v) for v in field["rect"])
+        if (
+            x0 < x - tolerance
+            or x1 > x + w + tolerance
+            or y1 > y + h + tolerance
+            or y0 < y - ascent_tolerance
+        ):
+            report.add(
+                "value placement",
+                "FAIL",
+                f"value {value!r} box {x0:.2f},{y0:.2f},{x1:.2f},{y1:.2f} outside rect+1 mm "
+                f"(ascent 0.61 mm)",
+            )
+            return
+        worst_ascent = max(worst_ascent, max(0.0, y - y0))
+    if checked == 0:
+        report.add("value placement", "NOT_RUN", "expected values not found as words")
         return
     report.add(
         "value placement",
         "PASS",
-        f"value box inside rect+1 mm; ascent overflow {max(0.0, y - y0):.2f} pt <= 0.61 mm",
+        f"{checked} value(s) inside rect+1 mm; max ascent overflow {worst_ascent:.2f} pt "
+        "<= 0.61 mm",
     )
 
 
