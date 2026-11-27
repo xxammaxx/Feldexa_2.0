@@ -458,3 +458,4 @@ the git bundle and are not bundle-verifiable.
 New reports append a row here in the same change. Results are run outcomes, not
 approval.
 
+| [2026-11-27-t092-t101-lifecycle.md](./2026-11-27-t092-t101-lifecycle.md) | `EMULATOR` (+ `SIMULATED`-Läufe im Geräte-Lauf, Host `NONE`) | Task evidence | US5-Lifecycle/Datenschutz T092-T101: Autosave-Force-Stop-Recovery am echten Store (SC-009/SC-020), Quickstart ohne App-Passwort/Biometrie plus SAVE-002/SAVE-008-Key-Loss-Isolation (FR-049/050/052), SAVE-001-Exhaustion ohne Erfolgsbericht (FR-074-076; SC-010), Klartext-Sweep über den app-privaten Baum (FR-082), SAVE-001-Retry nach Freigabe ohne Re-Import (FR-077), Diagnose-Privacy inkl. Docs/Verhalten-Befund (FR-081), SIMULATED Web-Persistence/Recovery (FR-086/087). Geräte-Läufe 14/14 auf `emulator-5554`, Host 8/8; Browser-Lane `NOT_RUN` (Chrome-for-Testing-Hang dokumentiert) |
