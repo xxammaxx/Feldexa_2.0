@@ -33,7 +33,7 @@ T334_PATTERN = re.compile(
     r"W_MPT=(-?\d+):H_MPT=(-?\d+)$"
 )
 T109_PATTERN = re.compile(
-    r"^T109_EXPECT:ID=([a-z0-9-]+):PAGE=(\d+):X_MPT=(-?\d+):"
+    r"^(?:T334_)?T109_EXPECT:ID=([a-z0-9-]+):PAGE=(\d+):X_MPT=(-?\d+):"
     r"Y_MPT=(-?\d+):W_MPT=(-?\d+):H_MPT=(-?\d+)$"
 )
 

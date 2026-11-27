@@ -276,14 +276,21 @@ def evidence_dir(mode: str) -> Path:
 
 def capture_print_preview(mode: str) -> None:
     out = evidence_dir(mode)
-    activity = subprocess.run(
-        [ADB, "-s", SERIAL, "shell", "dumpsys", "activity", "activities"],
-        capture_output=True,
-        text=True,
-        timeout=120,
-    ).stdout
+    activity = ""
+    spooler = False
+    deadline = time.time() + 90
+    while time.time() < deadline:
+        activity = subprocess.run(
+            [ADB, "-s", SERIAL, "shell", "dumpsys", "activity", "activities"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        ).stdout
+        spooler = "com.android.printspooler" in activity or "PrintActivity" in activity
+        if spooler:
+            break
+        time.sleep(2)
     (out / "print-preview-activities.txt").write_text(activity, encoding="utf-8")
-    spooler = "com.android.printspooler" in activity or "PrintActivity" in activity
     print_jobs = subprocess.run(
         [ADB, "-s", SERIAL, "shell", "dumpsys", "print"],
         capture_output=True,
