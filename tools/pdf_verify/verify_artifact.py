@@ -504,21 +504,39 @@ def check_placement(report: Report, artifact: Path, expectations: dict | None) -
         )
         return
     out = run(["pdftotext", "-bbox", str(artifact), "-"]).stdout
+    blocks = {
+        index: body
+        for index, body in enumerate(
+            re.findall(r"<page [^>]*>(.*?)</page>", out, re.S), start=1
+        )
+    }
     tolerance = 2.835
     ascent_tolerance = 0.61 * 72 / 25.4
     checked = 0
     worst_ascent = 0.0
     for field in fields:
+        page = int(field.get("page", 1))
+        body = blocks.get(page)
+        if body is None:
+            report.add("value placement", "NOT_RUN", f"page {page} not present in artifact")
+            return
         value = str(field["value"])
-        matched = re.search(
+        pattern = re.compile(
             r'<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">'
-            + re.escape(value),
-            out,
+            + re.escape(value)
         )
-        if not matched:
+        matches = pattern.findall(body)
+        if len(matches) > 1:
+            report.add(
+                "value placement",
+                "NOT_RUN",
+                f"value {value!r} occurs {len(matches)} times on page {page}; placement is ambiguous",
+            )
+            return
+        if not matches:
             continue
         checked += 1
-        x0, y0, x1, y1 = (float(v) for v in matched.groups())
+        x0, y0, x1, y1 = (float(v) for v in matches[0])
         x, y, w, h = (float(v) for v in field["rect"])
         if (
             x0 < x - tolerance
