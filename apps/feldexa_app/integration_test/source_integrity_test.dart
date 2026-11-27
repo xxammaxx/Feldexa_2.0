@@ -799,7 +799,9 @@ Map<String, Object?> _ctmJson(PageGeometry page) {
         'a': -1.0,
         'b': 0.0,
         'c': 0.0,
-        'd': -1.0,
+        // coordinates-and-geometry.md §2: u = cx1 - dx, v = cy0 + dy.
+        // The §5 table's printed d = -1 is a typo; §2 is normative.
+        'd': 1.0,
         'e': cx1,
         'f': cy0,
       };
