@@ -4,10 +4,10 @@ Defined 2026-11-27. The rows are the `contracts/export-plan.md` §6 verification
 set. Membership names who executes a check and with which tool. A tool that is
 absent on the evidence host is named, not silently skipped.
 
-Legend: **V1** = executable today with present tooling; **V2** = defined but
-needs a tool that is absent on this host (`qpdf`, MuPDF); **V3** = task-owned
-runtime acceptance (T109/T143/T334 driver) and therefore not proven by a host
-command.
+Legend: **V1** = executable today with the present tooling (qpdf 12.4.2,
+Poppler, MuPDF 1.28.5); **V2** = defined but needs a tool that is absent on the
+evidence host; **V3** = task-owned runtime acceptance (T109/T143/T334 driver) and
+therefore not proven by a host command.
 
 | §6 check | Tolerance / criterion | Tool | Member | Status |
 | --- | --- | --- | --- | --- |
