@@ -1,0 +1,14 @@
+{
+  "note": "Verifier expectations for export-artifact-1.pdf, derived from artifact-1-placement-v2.txt (rect marker T334_FIELD_RECT PAGE=1 X_MPT=190125 Y_MPT=147625 W_MPT=299875 H_MPT=18000) and artifact-1-pdftotext.txt (value Müller). The mask is the field rect.",
+  "fields": [
+    {
+      "page": 1,
+      "rect": [190.125, 147.625, 299.875, 18.0],
+      "type": "text",
+      "value": "Müller"
+    }
+  ],
+  "masks": [
+    {"page": 1, "rect": [190.125, 147.625, 299.875, 18.0]}
+  ]
+}

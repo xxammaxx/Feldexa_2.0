@@ -286,12 +286,256 @@ def check_source_integrity(report: Report, source: Path, expected: str | None) -
         )
 
 
-def check_structural(report: Report) -> None:
-    report.add(
-        "structural validity",
-        "NOT_RUN",
-        "qpdf absent and the PDFBox reload is an in-app check; neither is available here",
+def check_structural(report: Report, artifact: Path) -> None:
+    qpdf = shutil.which("qpdf")
+    if qpdf is None:
+        report.add(
+            "structural validity",
+            "NOT_RUN",
+            "qpdf absent and the PDFBox reload is an in-app check; neither is available here",
+        )
+        return
+    proc = run([qpdf, "--check", str(artifact)], timeout=180)
+    if proc.returncode == 0:
+        report.add("structural validity", "PASS", "qpdf --check exit 0")
+    else:
+        detail = (proc.stdout + proc.stderr).strip().splitlines()
+        report.add(
+            "structural validity",
+            "FAIL",
+            "qpdf --check failed: " + (detail[-1][:180] if detail else f"exit {proc.returncode}"),
+        )
+
+
+def _read_ppm(path: Path) -> tuple[int, int, bytes]:
+    data = path.read_bytes()
+    if not data.startswith(b"P6"):
+        raise ValueError(f"{path} is not a P6 PPM")
+    fields: list[bytes] = []
+    index = 2
+    while len(fields) < 3:
+        while index < len(data) and data[index : index + 1].isspace():
+            index += 1
+        if data[index : index + 1] == b"#":
+            while index < len(data) and data[index] != 0x0A:
+                index += 1
+            continue
+        start = index
+        while index < len(data) and not data[index : index + 1].isspace():
+            index += 1
+        fields.append(data[start:index])
+    index += 1
+    width, height, maxval = (int(f) for f in fields)
+    if maxval != 255:
+        raise ValueError(f"unsupported PPM maxval {maxval}")
+    return width, height, data[index : index + width * height * 3]
+
+
+def _render_page(path: Path, page: int, dpi: int, tmp: Path) -> tuple[int, int, bytes]:
+    target = tmp / f"{path.stem}-{page}-{dpi}"
+    proc = run(
+        ["pdftoppm", "-r", str(dpi), "-f", str(page), "-l", str(page), "-singlefile", str(path), str(target)],
+        timeout=300,
     )
+    if proc.returncode != 0:
+        raise RuntimeError(f"pdftoppm failed on page {page}: {proc.stderr.strip()[:160]}")
+    candidates = sorted(tmp.glob(f"{target.name}*.ppm"))
+    if not candidates:
+        raise RuntimeError(f"pdftoppm produced no PPM for page {page}")
+    return _read_ppm(candidates[0])
+
+
+def _rect_pixels(rect: list[float], dpi: int) -> tuple[int, int, int, int]:
+    scale = dpi / 72.0
+    x, y, w, h = rect
+    return (
+        max(0, int(x * scale)),
+        max(0, int(y * scale)),
+        int((x + w) * scale) + 1,
+        int((y + h) * scale) + 1,
+    )
+
+
+def _ink_pixels(raster: tuple[int, int, bytes], rect: list[float], dpi: int) -> int:
+    width, height, pixels = raster
+    x0, y0, x1, y1 = _rect_pixels(rect, dpi)
+    ink = 0
+    for y in range(max(0, y0), min(height, y1)):
+        row = y * width * 3
+        for x in range(max(0, x0), min(width, x1)):
+            offset = row + x * 3
+            if min(pixels[offset : offset + 3]) < 200:
+                ink += 1
+    return ink
+
+
+def check_appearance(report: Report, source: Path, artifact: Path, expectations: dict | None) -> None:
+    masks = (expectations or {}).get("masks")
+    if not masks:
+        report.add(
+            "original appearance",
+            "NOT_RUN",
+            "masked pixel comparison needs --expectations masks (field rects); without them the value overlay cannot be excluded",
+        )
+        return
+    pages = min(pdf_pages(source), pdf_pages(artifact), 3)
+    with tempfile.TemporaryDirectory(prefix="feldexa-appearance-") as tmp:
+        tmp_path = Path(tmp)
+        for page in range(1, pages + 1):
+            src = _render_page(source, page, 72, tmp_path)
+            art = _render_page(artifact, page, 72, tmp_path)
+            if src[:2] != art[:2] or src[2] != art[2]:
+                differing = 0
+                width, height, src_px = src
+                _, _, art_px = art
+                page_masks = [m["rect"] for m in masks if int(m.get("page", 1)) == page]
+                for y in range(height):
+                    for x in range(width):
+                        if any(
+                            x0 <= x < x1 and y0 <= y < y1
+                            for x0, y0, x1, y1 in (_rect_pixels(r, 72) for r in page_masks)
+                        ):
+                            continue
+                        offset = (y * width + x) * 3
+                        if src_px[offset : offset + 3] != art_px[offset : offset + 3]:
+                            differing += 1
+                if differing:
+                    report.add(
+                        "original appearance",
+                        "FAIL",
+                        f"page {page}: {differing} pixels differ outside the masks",
+                    )
+                    return
+    report.add(
+        "original appearance",
+        "PASS",
+        f"{pages} page(s) pixel-identical outside {len(masks)} mask(s) at 72 dpi",
+    )
+
+
+def check_clipping(report: Report, artifact: Path, expectations: dict | None) -> None:
+    if shutil.which("pdftotext") is None:
+        report.add("no clipping", "UNAVAILABLE", "pdftotext not on PATH")
+        return
+    pages = pdf_pages(artifact)
+    out = run(["pdftotext", "-bbox", str(artifact), "-"]).stdout
+    width_match = re.search(r'width="([\d.]+)" height="([\d.]+)"', out)
+    if not width_match:
+        report.add("no clipping", "FAIL", "pdftotext -bbox reported no page geometry")
+        return
+    page_width, page_height = float(width_match.group(1)), float(width_match.group(2))
+    outside = 0
+    for match in re.finditer(
+        r'<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">',
+        out,
+    ):
+        x0, y0, x1, y1 = (float(v) for v in match.groups())
+        if x0 < -0.5 or y0 < -0.5 or x1 > page_width + 0.5 or y1 > page_height + 0.5:
+            outside += 1
+    if outside:
+        report.add("no clipping", "FAIL", f"{outside} word box(es) outside the page")
+        return
+    fields = (expectations or {}).get("fields") or []
+    tolerance = 2.835
+    for field in fields:
+        value = str(field.get("value") or "")
+        rect = field.get("rect")
+        if not value or not rect:
+            continue
+        x, y, w, h = (float(v) for v in rect)
+        pattern = re.compile(re.escape(value))
+        if not pattern.search(out):
+            continue
+        matched = re.search(
+            r'<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">' + re.escape(value),
+            out,
+        )
+        if matched:
+            x0, y0, x1, y1 = (float(v) for v in matched.groups())
+            if (
+                x0 < x - tolerance
+                or y0 < y - tolerance
+                or x1 > x + w + tolerance
+                or y1 > y + h + tolerance
+            ):
+                report.add(
+                    "no clipping",
+                    "FAIL",
+                    f"value {value!r} box {x0:.2f},{y0:.2f},{x1:.2f},{y1:.2f} outside rect+tolerance",
+                )
+                return
+    report.add(
+        "no clipping",
+        "PASS",
+        f"all word boxes inside the page; {len(fields)} value(s) inside rect+1 mm",
+    )
+
+
+def check_placement(report: Report, artifact: Path, expectations: dict | None) -> None:
+    fields = (expectations or {}).get("fields") or []
+    target = None
+    for field in fields:
+        if field.get("value") and field.get("rect"):
+            target = field
+            break
+    if target is None:
+        report.add(
+            "value placement",
+            "NOT_RUN",
+            "no expectation with value + rect supplied",
+        )
+        return
+    out = run(["pdftotext", "-bbox", str(artifact), "-"]).stdout
+    value = str(target["value"])
+    matched = re.search(
+        r'<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="([\d.]+)">' + re.escape(value),
+        out,
+    )
+    if not matched:
+        report.add("value placement", "NOT_RUN", f"value {value!r} not found as one word")
+        return
+    x0, y0, x1, y1 = (float(v) for v in matched.groups())
+    x, y, w, h = (float(v) for v in target["rect"])
+    tolerance = 2.835
+    ascent_tolerance = 0.61 * 72 / 25.4
+    if x0 < x - tolerance or x1 > x + w + tolerance or y1 > y + h + tolerance or y0 < y - ascent_tolerance:
+        report.add(
+            "value placement",
+            "FAIL",
+            f"value box {x0:.2f},{y0:.2f},{x1:.2f},{y1:.2f} outside rect+1 mm (ascent 0.61 mm)",
+        )
+        return
+    report.add(
+        "value placement",
+        "PASS",
+        f"value box inside rect+1 mm; ascent overflow {max(0.0, y - y0):.2f} pt <= 0.61 mm",
+    )
+
+
+def check_marks(
+    report: Report, source: Path, artifact: Path, expectations: dict | None, kind: str
+) -> None:
+    label = "checkbox states" if kind == "checkbox" else "signatures"
+    marks = [m for m in (expectations or {}).get("marks", []) if m.get("type") == kind]
+    if not marks:
+        report.add(label, "NOT_RUN", f"no {kind} expectations supplied")
+        return
+    with tempfile.TemporaryDirectory(prefix=f"feldexa-{kind}-") as tmp:
+        tmp_path = Path(tmp)
+        for mark in marks:
+            page = int(mark.get("page", 1))
+            src = _render_page(source, page, 150, tmp_path)
+            art = _render_page(artifact, page, 150, tmp_path)
+            src_ink = _ink_pixels(src, mark["rect"], 150)
+            art_ink = _ink_pixels(art, mark["rect"], 150)
+            expected = mark.get("expected", "marked")
+            if expected == "marked" and art_ink <= src_ink:
+                report.add(label, "FAIL", f"expected a mark on page {page}, ink {src_ink}->{art_ink}")
+                return
+            if expected == "empty" and art_ink > src_ink + 50:
+                report.add(label, "FAIL", f"expected no mark on page {page}, ink {src_ink}->{art_ink}")
+                return
+    report.add(label, "PASS", f"{len(marks)} {kind} expectation(s) matched at 150 dpi")
 
 
 def check_printability(report: Report, artifact: Path, dpi: int) -> None:
@@ -350,87 +594,6 @@ def check_printability(report: Report, artifact: Path, dpi: int) -> None:
     )
 
 
-def check_render(report: Report, artifact: Path) -> None:
-    if shutil.which("pdftoppm") is None:
-        report.add("original appearance", "UNAVAILABLE", "pdftoppm not on PATH")
-        return
-    with tempfile.TemporaryDirectory(prefix="feldexa-render-") as tmp:
-        proc = run(
-            ["pdftoppm", "-r", "150", "-f", "1", "-l", "1", "-png", str(artifact),
-             f"{tmp}/page"],
-            timeout=180,
-        )
-        if proc.returncode != 0 or not any(Path(tmp).iterdir()):
-            report.add(
-                "original appearance", "FAIL", "page 1 did not render at 150 dpi"
-            )
-            return
-    report.add(
-        "original appearance",
-        "NOT_RUN",
-        "page 1 renders at 150 dpi; the masked pixel comparison is not implemented "
-        "(no ImageMagick compare wiring), so no appearance PASS is claimed",
-    )
-
-
-def check_placement(report: Report, artifact: Path, expectations: dict | None) -> None:
-    if not expectations or not expectations.get("placement"):
-        report.add(
-            "value placement",
-            "NOT_RUN",
-            "no placement expectation (field rect + one-word value + page) supplied",
-        )
-        return
-    placement = expectations["placement"]
-    tool = Path(__file__).with_name("placement.py")
-    proc = run(
-        [
-            sys.executable,
-            str(tool),
-            "--pdf",
-            str(artifact),
-            "--value-word",
-            str(placement["value_word"]),
-            "--field-rect-marker",
-            str(placement["field_rect_marker"]),
-            "--page",
-            str(placement["page"]),
-        ],
-        timeout=180,
-    )
-    status = "PASS" if proc.returncode == 0 else "FAIL"
-    report.add(
-        "value placement",
-        status,
-        (proc.stdout.strip().splitlines() or ["no output"])[-1][:200],
-    )
-
-
-def check_clipping(report: Report) -> None:
-    report.add(
-        "no clipping",
-        "NOT_RUN",
-        "not implemented: needs the pdftotext -bbox / ascender-tolerance measurement "
-        "from placement.py; no clipping PASS is claimed",
-    )
-
-
-def check_marks(report: Report, expectations: dict | None, kind: str) -> None:
-    label = "checkbox states" if kind == "checkbox" else "signatures"
-    if not expectations:
-        report.add(label, "NOT_RUN", "no --expectations supplied")
-        return
-    marks = [f for f in expectations.get("fields", []) if f.get("type") == kind]
-    if not marks:
-        report.add(label, "NOT_RUN", f"no {kind} expectations supplied")
-        return
-    report.add(
-        label,
-        "NOT_RUN",
-        f"{len(marks)} {kind} expectations present; rendered-state comparison is not implemented",
-    )
-
-
 def build_report(
     source: Path, artifact: Path, expected_sha: str | None, expectations: dict | None,
     print_dpi: int,
@@ -453,15 +616,15 @@ def build_report(
         except Exception as exc:  # noqa: BLE001 - a crashed row must not become a traceback
             report.add(check, "FAIL", f"check crashed: {type(exc).__name__}: {exc}")
 
-    guarded("structural validity", lambda: check_structural(report))
+    guarded("structural validity", lambda: check_structural(report, artifact))
     guarded("page count and order", lambda: check_page_count(report, source, artifact))
     guarded("page geometry", lambda: check_geometry(report, source, artifact))
     guarded("no interactive controls", lambda: check_interactive_controls(report, artifact))
     guarded("text content", lambda: check_text(report, artifact, expectations))
-    guarded("original appearance", lambda: check_render(report, artifact))
-    guarded("no clipping", lambda: check_clipping(report))
-    guarded("checkbox states", lambda: check_marks(report, expectations, "checkbox"))
-    guarded("signatures", lambda: check_marks(report, expectations, "signature"))
+    guarded("original appearance", lambda: check_appearance(report, source, artifact, expectations))
+    guarded("no clipping", lambda: check_clipping(report, artifact, expectations))
+    guarded("checkbox states", lambda: check_marks(report, source, artifact, expectations, "checkbox"))
+    guarded("signatures", lambda: check_marks(report, source, artifact, expectations, "signature"))
     guarded("value placement", lambda: check_placement(report, artifact, expectations))
     guarded("printability", lambda: check_printability(report, artifact, print_dpi))
     guarded("source integrity", lambda: check_source_integrity(report, source, expected_sha))

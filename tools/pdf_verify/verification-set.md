@@ -11,17 +11,17 @@ command.
 
 | §6 check | Tolerance / criterion | Tool | Member | Status |
 | --- | --- | --- | --- | --- |
-| Structural validity | must pass (`qpdf --check` external, PDFBox reload internal) | `qpdf --check` (absent) + PDFBox reload (in-app) | V2 (qpdf), V3 (reload) | **NOT_RUN** — `qpdf` absent; the PDFBox reload runs only inside the Android export path |
+| Structural validity | must pass (`qpdf --check` external, PDFBox reload internal) | `qpdf --check` + PDFBox reload (in-app) | V1 (qpdf), V3 (reload) | `qpdf` PASS on the T344 artifact; the reload stays in-app |
 | Page count and order | exact | `pdfinfo`, page-by-page `pdftoppm` | V1 | covered by T105/T334 artifacts |
 | Page geometry | 0.01 pt | `pdfinfo` + `verify_artifact.py` | V1 | automated (sizes and rotation from pdfinfo) |
-| Original appearance | pixel-identical outside overlays | `pdftoppm` + ImageMagick compare | V1 | used in T105 |
-| Value placement | ≤ 1 mm (2.835 pt) | `tools/pdf_verify/placement.py` | V1 | **PROVEN** (T344 B, 2.835 pt) |
+| Original appearance | pixel-identical outside overlays | `pdftoppm` + PPM mask compare (`verify_artifact.py`) | V1 | masked PASS on the T344 artifact |
+| Value placement | ≤ 1 mm (2.835 pt), ascent 0.61 mm | `placement.py` + `verify_artifact.py` | V1 | **PROVEN** (T344 B; harness PASS) |
 | Text content | exact after whitespace normalization | `pdftotext` | V1 | used in T105/T334 |
-| No clipping | zero clipped values | `pdftotext -bbox` + `placement.py` | V3 | **NOT_RUN** — measurement not implemented in the harness |
-| Checkbox states | exact | rendered-page comparison | V3 | T109 |
-| Signatures | present, aspect preserved | rendered-page comparison + store read-back | V3 | T109 |
+| No clipping | zero clipped values | `pdftotext -bbox` + rect tolerance (`verify_artifact.py`) | V1 | PASS on the T344 artifact |
+| Checkbox states | exact | rendered ink-density comparison (`verify_artifact.py`) | V1 (implemented), T109 executes | T109 |
+| Signatures | present, aspect preserved | rendered ink-density comparison + store read-back | V1 (implemented), T109 executes | T109 |
 | No interactive controls | zero AcroForm fields | byte search `/AcroForm`, PDFBox | V1 | used in T334 |
-| Printability | 300 dpi on two engines | `pdftoppm` + `mutool draw` | V2 | **PARTIAL** — Poppler ran; `mutool draw` **NOT_RUN** (absent) |
+| Printability | 300 dpi on two engines | `pdftoppm` + `mutool draw` | V1 | PASS (Poppler + MuPDF 1.28.5) |
 | Source integrity | SHA-256 unchanged | `sha256sum` | V1 | used in T105/T334 |
 | Artifact isolation | no `.pdf` after failure | driver + app test | V3 | T108/T334 driver |
 
@@ -32,10 +32,10 @@ command.
   preview does not satisfy "independent reader".
 - **SC-006** (zero clipped/misplaced/wrong-checkbox/missing-signature):
   placement (V1) + checkbox/signature rows (V3, T109).
-- `qpdf --check` remains absent; V2 rows stay `NOT_RUN` until it is available or
-  the owner approves a substitute engine.
+- `qpdf` 12.4.2 and MuPDF 1.28.5 are present; the V1 rows above were executed on the
+  T344 artifact. Rows that need mark expectations remain `NOT_RUN` without them.
 - **Artifact isolation** is an instance of **SC-010** (no false success, last saved state
   intact), owned by T108/T334; it is not part of SC-005/SC-006.
-- Executable harness: `tools/pdf_verify/verify_artifact.py` runs the rows marked V1 above
-  and the Poppler half of printability. The no-clipping measurement and the masked
-  appearance comparison are not implemented and report `NOT_RUN` for that reason.
+- Executable harness: `tools/pdf_verify/verify_artifact.py` runs every V1 row, including
+  the masked appearance diff, the no-clipping measurement and the rendered mark
+  comparison. Expectations for the T344 artifact are committed next to it.
