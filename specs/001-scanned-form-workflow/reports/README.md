@@ -449,6 +449,7 @@ the git bundle and are not bundle-verifiable.
 | [2026-11-27-t113-preflight-ratified.md](./2026-11-27-t113-preflight-ratified.md) | `NONE` | Task evidence | T113 ratified preflight: unresolved suggestions counted and non-blocking, wired into plan build and the pre-export dialog; 38/38 focused, 121/121 package |
 | [2026-11-27-t105-harness.md](./2026-11-27-t105-harness.md) | `NONE` | Task evidence | T105 partial harness: `tools/pdf_verify/verify_artifact.py` runs the §6 rows that need no absent engine; smoke 5 PASS/0 FAIL/1 PARTIAL/7 NOT_RUN; unit tests 14/14; qpdf absent, MuPDF partial residual recorded |
 | [2026-11-27-t072-t087-web-tests.md](./2026-11-27-t072-t087-web-tests.md) | `SIMULATED` (host checks `NONE`) | Task evidence | T072/T087 SIMULATED review/fill suites added as real `test/` files; 5/5 host-VM PASS; `integration_test/` paths superseded (T062); browser execution `NOT_RUN` (no Chrome); rows stay open |
+| [2026-11-27-t105-harness-complete.md](./2026-11-27-t105-harness-complete.md) | `NONE` | Task evidence | T105 complete harness with qpdf 12.4.2 + MuPDF 1.28.5: masked appearance, no-clipping, placement and mark comparison implemented; T344 artifact 10 PASS / 0 FAIL / 3 NOT_RUN; 17/17 unit tests |
 New reports append a row here in the same change. Results are run outcomes, not
 approval.
 

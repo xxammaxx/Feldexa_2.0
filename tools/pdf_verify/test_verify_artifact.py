@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 import tempfile
 import unittest
@@ -19,6 +20,9 @@ ARTIFACT = (
     / "2026-11-26-t344-export-proof-depth/export-artifact-1.pdf"
 )
 HAS_POPPLER = all(shutil.which(b) for b in ("pdfinfo", "pdftotext", "pdftoppm"))
+HAS_QPDF = shutil.which("qpdf") is not None
+HAS_MUTOOL = shutil.which("mutool") is not None
+EXPECTATIONS = ARTIFACT.parent / "expectations-artifact-1.json"
 
 
 def rows(report: va.Report) -> dict[str, va.Row]:
@@ -73,6 +77,27 @@ class GeometryFailureTest(unittest.TestCase):
              ):
             va.check_geometry(report, SOURCE, ARTIFACT)
         self.assertEqual("PARTIAL", rows(report)["page geometry"].status)
+
+
+class MarkTest(unittest.TestCase):
+    def test_mark_comparison_passes_only_with_extra_ink(self) -> None:
+        def raster(ink: int) -> tuple[int, int, bytes]:
+            pixels = bytearray([255, 255, 255] * (10 * 10))
+            for i in range(ink):
+                pixels[i * 3 : i * 3 + 3] = b"\x00\x00\x00"
+            return (10, 10, bytes(pixels))
+
+        marks = {"marks": [{"page": 1, "rect": [0, 0, 10, 10], "type": "checkbox", "expected": "marked"}]}
+        report = va.Report(source="s", artifact="a")
+        with mock.patch.object(va, "_render_page", side_effect=[raster(0), raster(80)]):
+            va.check_marks(report, SOURCE, ARTIFACT, marks, "checkbox")
+        self.assertEqual("PASS", rows(report)["checkbox states"].status)
+
+        empty = {"marks": [{"page": 1, "rect": [0, 0, 10, 10], "type": "checkbox", "expected": "empty"}]}
+        report = va.Report(source="s", artifact="a")
+        with mock.patch.object(va, "_render_page", side_effect=[raster(0), raster(80)]):
+            va.check_marks(report, SOURCE, ARTIFACT, empty, "checkbox")
+        self.assertEqual("FAIL", rows(report)["checkbox states"].status)
 
 
 class SourceIntegrityTest(unittest.TestCase):
@@ -143,19 +168,35 @@ class HarnessTest(unittest.TestCase):
         self.assertEqual("PASS", by_check["no interactive controls"].status)
         self.assertEqual("PASS", by_check["text content"].status)
         self.assertEqual("PASS", by_check["source integrity"].status)
-        self.assertIn("NOT_RUN", by_check["no clipping"].status)
-        self.assertNotEqual("FAIL", by_check["printability"].status)
         self.assertEqual(13, len(report.rows), "the §6 row inventory must stay at 13")
-        summary = {
-            "pass": sum(r.status == "PASS" for r in report.rows),
-            "partial": sum(r.status == "PARTIAL" for r in report.rows),
-            "not_run": sum(r.status == "NOT_RUN" for r in report.rows),
-        }
-        if shutil.which("mutool") is None:
-            self.assertEqual({"pass": 5, "partial": 1, "not_run": 7}, summary)
-        else:
-            self.assertEqual({"pass": 6, "partial": 0, "not_run": 7}, summary)
+        self.assertEqual("PASS" if HAS_QPDF else "NOT_RUN", by_check["structural validity"].status)
+        self.assertEqual(
+            "PASS" if HAS_MUTOOL else "PARTIAL", by_check["printability"].status
+        )
         self.assertEqual(0, report.exit_code())
+
+    def test_expectations_enable_appearance_clipping_and_placement(self) -> None:
+        self.assertTrue(EXPECTATIONS.is_file(), "expectations fixture missing")
+        expectations = json.loads(EXPECTATIONS.read_text(encoding="utf-8"))
+        report = va.build_report(
+            SOURCE, ARTIFACT, va.sha256(SOURCE), expectations, print_dpi=150
+        )
+        by_check = rows(report)
+        self.assertEqual("PASS", by_check["original appearance"].status)
+        self.assertEqual("PASS", by_check["no clipping"].status)
+        self.assertEqual("PASS", by_check["value placement"].status)
+        self.assertEqual("NOT_RUN", by_check["checkbox states"].status)
+        self.assertEqual("NOT_RUN", by_check["signatures"].status)
+        self.assertEqual(0, report.exit_code())
+
+    def test_ppm_helpers(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            ppm = Path(tmp) / "x.ppm"
+            ppm.write_bytes(b"P6\n2 1\n255\n" + bytes([0, 0, 0, 255, 255, 255]))
+            width, height, pixels = va._read_ppm(ppm)
+            self.assertEqual((2, 1), (width, height))
+            ink = va._ink_pixels((width, height, pixels), [0, 0, 0.5, 1], 72)
+            self.assertEqual(1, ink)
 
     def test_interactive_control_scan_fails_on_acroform_bytes(self) -> None:
         report = va.Report(source="s", artifact="a")
