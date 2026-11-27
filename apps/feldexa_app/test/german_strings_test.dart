@@ -33,6 +33,29 @@ const String _generatedPath = 'lib/l10n/app_localizations_de.dart';
 /// its guidance); the section-8 assertion below fails if the catalog text and
 /// the ARB text diverge.
 const Set<String> _nonCodeArbKeys = <String>{
+  // T114-T117 US6 template keys. FR-054's explicit action, the create/use
+  // sheets, and the layout-only editor have no coded error-catalog row; the
+  // wording is fixed by the FRs (exclusion notice FR-057, layout-only notice
+  // FR-102, independent-document notice FR-059/FR-060) and clarification 4.
+  'saveAsTemplateAction',
+  'createTemplateSheetTitle',
+  'createTemplateTitleLabel',
+  'createTemplateExclusionNotice',
+  'createTemplateStructurePending',
+  'createTemplateConfirm',
+  'createTemplateSuccess',
+  'createTemplateFailed',
+  'useTemplateAction',
+  'useTemplateSheetTitle',
+  'useTemplateNotice',
+  'useTemplateConfirm',
+  'useTemplateSuccess',
+  'useTemplateFailed',
+  'templateEditorTitle',
+  'templateEditorLayoutOnlyNotice',
+  'templateEditorSaveVersion',
+  'templateEditorVersionLabel',
+  'templateEditorMoveFieldHint',
   'startupRecoveryIncomplete',
   'startupRecoveryIncompleteRecovery',
   'a11yCheckbox',

@@ -761,4 +761,69 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get actionCheckStorage => 'Speicherplatz prüfen';
+
+  @override
+  String get saveAsTemplateAction => 'Als Vorlage speichern';
+
+  @override
+  String get createTemplateSheetTitle => 'Vorlage erstellen';
+
+  @override
+  String get createTemplateTitleLabel => 'Titel der Vorlage';
+
+  @override
+  String get createTemplateExclusionNotice =>
+      'Werte und Unterschriften werden nicht in die Vorlage übernommen.';
+
+  @override
+  String get createTemplateStructurePending =>
+      'Die Feldstruktur muss zuerst vollständig geprüft sein.';
+
+  @override
+  String get createTemplateConfirm => 'Vorlage speichern';
+
+  @override
+  String get createTemplateSuccess => 'Vorlage gespeichert.';
+
+  @override
+  String get createTemplateFailed =>
+      'Das Speichern der Vorlage ist fehlgeschlagen. Die Vorlage wurde nicht gespeichert.';
+
+  @override
+  String get useTemplateAction => 'Vorlage verwenden';
+
+  @override
+  String get useTemplateSheetTitle => 'Dokument aus Vorlage erstellen';
+
+  @override
+  String get useTemplateNotice =>
+      'Es wird ein neues, unabhängiges Dokument mit leeren Werten erstellt. Die Vorlage bleibt unverändert.';
+
+  @override
+  String get useTemplateConfirm => 'Dokument erstellen';
+
+  @override
+  String get useTemplateSuccess => 'Dokument erstellt.';
+
+  @override
+  String get useTemplateFailed =>
+      'Das Erstellen des Dokuments ist fehlgeschlagen. Es wurde kein Dokument erstellt.';
+
+  @override
+  String get templateEditorTitle => 'Vorlage bearbeiten (nur Layout)';
+
+  @override
+  String get templateEditorLayoutOnlyNotice =>
+      'Diese Vorlage kann nur im Layout bearbeitet werden. Werte und Unterschriften können in einer Vorlage nicht erfasst werden.';
+
+  @override
+  String get templateEditorSaveVersion => 'Als neue Version speichern';
+
+  @override
+  String templateEditorVersionLabel(int number) {
+    return 'Version $number';
+  }
+
+  @override
+  String get templateEditorMoveFieldHint => 'Feld verschieben';
 }
