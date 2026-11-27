@@ -1560,6 +1560,111 @@ void main() {
     });
   });
 
+  group('save-shape invariants (FR-054–FR-057, SC-013)', () {
+    // A filled document snapshot (T058 `RevisionContent` shape: pages,
+    // confirmed fields including machine-provenance ones, values, signatures,
+    // verification) is the input the explicit "Als Vorlage speichern" action
+    // feeds into a template save. These tests pin that the template-side
+    // snapshot models keep the layout (FR-056) and cannot carry the filled
+    // part (FR-057), so a use case that passes the document shape through the
+    // template constructors cannot leak values or signatures by construction.
+    test(
+      'a filled document snapshot saves as pages plus field definitions '
+      '(FR-056)',
+      () {
+        final ConfirmedField machineField = _field(
+          id: _uuid(30),
+          order: 0,
+          provenance: Provenance.machine,
+          sourceSuggestionId: 's_p0_0001',
+          suggestionConfidence: 0.82,
+          label: 'Familienname',
+        );
+        final TemplateVersionContent content = _content(
+          fields: <ConfirmedField>[
+            machineField,
+            _field(order: 1, type: FieldType.signature, label: 'Unterschrift'),
+          ],
+        );
+        expect(content.pageSnapshot, _pages());
+        expect(content.fieldSnapshot, hasLength(2));
+        expect(content.fieldSnapshot.first.provenance, Provenance.machine);
+        expect(content.fieldSnapshot.first.type, FieldType.text);
+        expect(content.fieldSnapshot.last.type, FieldType.signature);
+        expect(
+          content.fieldOrder,
+          <String>[machineField.id, content.fieldSnapshot.last.id],
+        );
+      },
+    );
+
+    test(
+      'the saved payload of a filled snapshot has no value, signature, '
+      'verification, or origin key (FR-057)',
+      () {
+        final TemplateVersionContent content = _content(
+          fields: <ConfirmedField>[
+            _field(
+              order: 0,
+              provenance: Provenance.machine,
+              sourceSuggestionId: 's_p0_0001',
+              suggestionConfidence: 0.82,
+              label: 'Familienname',
+            ),
+            _field(order: 1, type: FieldType.signature, label: 'Unterschrift'),
+          ],
+        );
+        final Map<String, Object?> json = _roundTrip(content.toJson());
+        expect(json.containsKey('values'), isFalse);
+        expect(json.containsKey('signatures'), isFalse);
+        expect(json.containsKey('suggestions'), isFalse);
+        expect(json.containsKey('verification'), isFalse);
+        expect(json.containsKey('templateOrigin'), isFalse);
+      },
+    );
+
+    test(
+      'a filled snapshot stored as a template exposes no filled content '
+      '(FR-057, SC-013)',
+      () {
+        final TemplateVersionContent content = _content(
+          fields: <ConfirmedField>[
+            _field(
+              order: 0,
+              provenance: Provenance.machine,
+              sourceSuggestionId: 's_p0_0001',
+              suggestionConfidence: 0.82,
+              label: 'Familienname',
+            ),
+          ],
+        );
+        final StoredTemplate stored = _stored(
+          version: _version(
+            fieldSnapshot: content.fieldSnapshot,
+            pageSnapshot: content.pageSnapshot,
+          ),
+          content: content,
+        );
+        final Map<String, Object?> metaJson = _roundTrip(stored.meta.toJson());
+        final Map<String, Object?> contentJson = _roundTrip(
+          stored.content.toJson(),
+        );
+        for (final Map<String, Object?> json in <Map<String, Object?>>[
+          metaJson,
+          contentJson,
+        ]) {
+          expect(json.containsKey('values'), isFalse);
+          expect(json.containsKey('signatures'), isFalse);
+          expect(json.containsKey('suggestions'), isFalse);
+          expect(json.containsKey('verification'), isFalse);
+          expect(json.containsKey('templateOrigin'), isFalse);
+        }
+        expect(stored.meta.versions, isNotEmpty);
+        expect(stored.version.fieldSnapshot, hasLength(1));
+      },
+    );
+  });
+
   group('unknown same-schema fields', () {
     test('survive a full template read/write round at every level', () {
       final Map<String, Object?> json = Map<String, Object?>.from(
