@@ -57,9 +57,13 @@ def build(markers: list[str], index: int) -> dict:
     marks: list[dict] = []
     masks: list[dict] = []
     if index in (1, 2):
-        found = [m for m in markers if (match := T334_PATTERN.match(m))]
-        if len(found) != 1:
-            raise ValueError(f"index {index}: expected one T334_FIELD_RECT, found {len(found)}")
+        # The T109 mark leg later confirms its own text field and prints one
+        # more T334_FIELD_RECT; cycles 1 and 2 were exported from the same
+        # first confirmed field, so the first marker is the one that belongs to
+        # them. The helper still refuses a log without any marker.
+        found = [m for m in markers if T334_PATTERN.match(m)]
+        if not found:
+            raise ValueError(f"index {index}: expected a T334_FIELD_RECT, found none")
         match = T334_PATTERN.match(found[0])
         assert match is not None
         page = int(match.group(1))
