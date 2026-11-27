@@ -777,7 +777,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get createTemplateStructurePending =>
-      'Die Feldstruktur muss zuerst vollständig geprüft sein.';
+      'Die Feldstruktur muss zuerst geprüft sein.';
 
   @override
   String get createTemplateConfirm => 'Vorlage speichern';

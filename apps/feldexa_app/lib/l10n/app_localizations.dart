@@ -1323,7 +1323,7 @@ abstract class AppLocalizations {
   /// T115 FR-055: notice shown while the field structure is not fully reviewed.
   ///
   /// In de, this message translates to:
-  /// **'Die Feldstruktur muss zuerst vollständig geprüft sein.'**
+  /// **'Die Feldstruktur muss zuerst geprüft sein.'**
   String get createTemplateStructurePending;
 
   /// T115: confirm action of the Als-Vorlage-speichern sheet.

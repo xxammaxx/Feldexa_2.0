@@ -1033,7 +1033,7 @@
   "@createTemplateExclusionNotice": {
     "description": "T115 FR-057: notice that entered values and signatures are excluded from the saved template."
   },
-  "createTemplateStructurePending": "Die Feldstruktur muss zuerst vollständig geprüft sein.",
+  "createTemplateStructurePending": "Die Feldstruktur muss zuerst geprüft sein.",
   "@createTemplateStructurePending": {
     "description": "T115 FR-055: notice shown while the field structure is not fully reviewed."
   },
