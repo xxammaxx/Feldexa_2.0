@@ -145,6 +145,13 @@ class HarnessTest(unittest.TestCase):
         self.assertEqual("PASS", by_check["source integrity"].status)
         self.assertIn("NOT_RUN", by_check["no clipping"].status)
         self.assertNotEqual("FAIL", by_check["printability"].status)
+        self.assertEqual(13, len(report.rows), "the §6 row inventory must stay at 13")
+        summary = {
+            "pass": sum(r.status == "PASS" for r in report.rows),
+            "partial": sum(r.status == "PARTIAL" for r in report.rows),
+            "not_run": sum(r.status == "NOT_RUN" for r in report.rows),
+        }
+        self.assertEqual({"pass": 5, "partial": 1, "not_run": 7}, summary)
         self.assertEqual(0, report.exit_code())
 
     def test_interactive_control_scan_fails_on_acroform_bytes(self) -> None:

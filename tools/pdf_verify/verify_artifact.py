@@ -39,7 +39,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import re
 import shutil
 import subprocess
@@ -320,7 +319,7 @@ def check_printability(report: Report, artifact: Path, dpi: int) -> None:
                 "printability",
                 "PARTIAL",
                 f"Poppler rendered all {pages} pages at {dpi} dpi; muPDF absent, "
-                "second engine NOT_RUN",
+                "second engine not run",
             )
             return
         for page in range(1, pages + 1):
@@ -447,6 +446,7 @@ def build_report(
     except (ValueError, OSError, subprocess.SubprocessError) as exc:
         report.add("input readable", "FAIL", f"artifact not a readable PDF: {exc}")
         return report
+
     def guarded(check: str, run_check) -> None:
         try:
             run_check()
@@ -465,29 +465,6 @@ def build_report(
     guarded("value placement", lambda: check_placement(report, artifact, expectations))
     guarded("printability", lambda: check_printability(report, artifact, print_dpi))
     guarded("source integrity", lambda: check_source_integrity(report, source, expected_sha))
-    report.add(
-        "artifact isolation",
-        "NOT_RUN",
-        "task-owned: a failed export must leave no artifact (T108/T334 driver)",
-    )
-    return report
-    try:
-        pdf_pages(artifact)
-    except (ValueError, OSError, subprocess.SubprocessError) as exc:
-        report.add("input readable", "FAIL", f"artifact not a readable PDF: {exc}")
-        return report
-    check_structural(report)
-    check_page_count(report, source, artifact)
-    check_geometry(report, source, artifact)
-    check_interactive_controls(report, artifact)
-    check_text(report, artifact, expectations)
-    check_render(report, artifact)
-    check_clipping(report)
-    check_marks(report, expectations, "checkbox")
-    check_marks(report, expectations, "signature")
-    check_placement(report, artifact, expectations)
-    check_printability(report, artifact, print_dpi)
-    check_source_integrity(report, source, expected_sha)
     report.add(
         "artifact isolation",
         "NOT_RUN",
