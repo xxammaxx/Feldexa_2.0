@@ -448,6 +448,7 @@ the git bundle and are not bundle-verifiable.
 | [2026-11-27-t102-export-plan-contract.md](./2026-11-27-t102-export-plan-contract.md) | `NONE` | Task evidence | T102 path reconciliation: the §2–§4 contract suite is `export_contract_models_test.dart` (38/38 focused, 121/121 package); superseded path recorded |
 | [2026-11-27-t113-preflight-ratified.md](./2026-11-27-t113-preflight-ratified.md) | `NONE` | Task evidence | T113 ratified preflight: unresolved suggestions counted and non-blocking, wired into plan build and the pre-export dialog; 38/38 focused, 121/121 package |
 | [2026-11-27-t105-harness.md](./2026-11-27-t105-harness.md) | `NONE` | Task evidence | T105 partial harness: `tools/pdf_verify/verify_artifact.py` runs the §6 rows that need no absent engine; smoke 5 PASS/0 FAIL/1 PARTIAL/7 NOT_RUN; unit tests 14/14; qpdf absent, MuPDF partial residual recorded |
+| [2026-11-27-t072-t087-web-tests.md](./2026-11-27-t072-t087-web-tests.md) | `SIMULATED` (host checks `NONE`) | Task evidence | T072/T087 SIMULATED browser review/fill suites added and analyzed (0 issues); browser execution `NOT_RUN` (no Chrome/chromedriver); rows stay open |
 New reports append a row here in the same change. Results are run outcomes, not
 approval.
 
