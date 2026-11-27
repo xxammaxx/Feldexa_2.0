@@ -1,0 +1,20 @@
+command=pdfinfo apps/feldexa_app/assets/fixtures/sf-acroform-001.pdf
+Custom Metadata: no
+Metadata Stream: no
+Tagged:          no
+UserProperties:  no
+Suspects:        no
+Form:            AcroForm
+JavaScript:      no
+Pages:           1
+Encrypted:       no
+Page size:       595 x 842 pts (A4)
+Page rot:        0
+File size:       1424 bytes
+Optimized:       no
+PDF version:     1.7
+expected: Form: AcroForm
+command=LC_ALL=C grep -a -o -F <token> <fixture> | wc -l
+fixture_token '/AcroForm' occurrences=1
+fixture_token '/Widget' occurrences=1
+fixture_token '/FT /Tx' occurrences=1

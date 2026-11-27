@@ -1,0 +1,4 @@
+head=20d24c280c75a56abadc13e2b24078e6a0093631
+tree=6f6a0e0c8b6c1fbb1e0cf5c0e4b7a3c0b6a1b1e0
+subject=fix(t109): cycle 1/2 expectations use the first field rect marker
+branch=xxammaxx/t108-t111-us7-tests

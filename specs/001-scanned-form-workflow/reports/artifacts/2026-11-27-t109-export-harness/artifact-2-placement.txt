@@ -1,0 +1,50 @@
+index=2
+placement_metric=origin of the drawn value as the layout code places it, measured with tools/pdf_verify/placement.py; this is not a centre-to-centre distance
+drawn_value_legs=1,2
+field_rect_marker=T334_FIELD_RECT:PAGE=1:X_MPT=190125:Y_MPT=147625:W_MPT=299875:H_MPT=18000
+command=/usr/bin/python3 /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t108-t111-us7/tools/pdf_verify/placement.py --pdf export-artifact-2.pdf --value-word 'Müller' --field-rect-marker T334_FIELD_RECT:PAGE=1:X_MPT=190125:Y_MPT=147625:W_MPT=299875:H_MPT=18000 --layout /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t108-t111-us7/packages/feldexa_export/lib/src/layout.dart --applier-source /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t108-t111-us7/apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export/ExportPlanValidation.kt --font-metrics /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t108-t111-us7/apps/feldexa_app/assets/fonts/metrics.json --tolerance-pt 2.835
+pdf=export-artifact-2.pdf
+pdf_sha256=3071afb4f63bc21a8a14e0af6dcc5ddf5472c2f1292b17fddcf07d9ef7c7ac4a
+page=1
+value_word_matches=1
+value_word_length=6
+axis_convention=display space; origin at the page's top-left corner, x to the right, y downwards; Poppler -bbox reports the same origin and direction, so no flip is applied
+page_width_pt=595.280
+page_height_pt=841.890
+rect_pt=190.125,147.625,299.875,18.000
+rect_centre_pt_unused=340.062,156.625
+layout_source_field_padding_pt=1.500
+applier_text_padding_pt=1.500
+layout_source_baseline_ascender_factor=0.800
+layout_source_font_size_height_factor=0.600
+layout_source_font_size_clamp_pt=7.0..12.0
+font_ascender_units=1069 font_descender_units=-293 font_units_per_em=1000
+font_size_pt=10.800
+glyph_box_pt=191.625000,146.219790,224.219400,160.929390
+glyph_box_width_pt=32.594400
+glyph_box_height_pt=14.709600
+font_box_height_expected_pt=14.709600
+target_origin_pt=191.625,157.765
+informational.font_box_overflow_top_pt=1.405210
+informational.font_box_overflow_bottom_pt=-4.695610
+informational.ascent_above_baseline_pt=11.545200
+informational.baseline_offset_from_rect_top_pt=10.140000
+baseline_from_ascent_pt=157.764990
+baseline_from_descent_pt=157.764990
+baseline_estimate_spread_pt=0.000000
+tolerance_pt=2.835
+axes_check=consistent
+check.horizontal_origin.measured_pt=191.625000 target_pt=191.625000 deviation_pt=0.000000 tolerance_pt=2.835 result=pass
+check.horizontal_origin.definition=glyph-box xMin against rect.x + padding (left alignment)
+check.vertical_baseline.measured_pt=157.764990 target_pt=157.765000 deviation_pt=-0.000010 tolerance_pt=2.835 result=pass
+check.vertical_baseline.definition=baseline approximations yMin + ascender and yMax + descender against rect.y + padding + 0.8 * fontSizePt
+check.containment.measured_pt=-1.500000 target_pt=0.000000 deviation_pt=-1.500000 tolerance_pt=0.000 result=pass
+check.containment.definition=glyph box inside the field rect horizontally, exact containment by design (tolerance 0); outward overflow left=-1.500, right=-265.781 (positive means outside the rect)
+check.font_box.height.measured_pt=14.709600 target_pt=14.709600 deviation_pt=0.000000 tolerance_pt=0.001 result=pass
+check.font_box.height.definition=glyph box height against (ascender - descender) * fontSizePt, the font-metric basis of the baseline reconstruction; resolution bound, not the placement tolerance
+check.axes.definition=box inside the page and within the rect window x -109.750..789.875, y 129.625..183.625
+placement_verdict=PROVEN
+containment_verdict=PASS
+exit_code=0
+reason=origin deviation +0.000000 pt and baseline deviation -0.000010 pt are within 2.835 pt
+placement_tool_exit=0

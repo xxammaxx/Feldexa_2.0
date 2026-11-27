@@ -1,0 +1,37 @@
+index=4
+command=pdfinfo apps/feldexa_app/assets/fixtures/sf-001.pdf
+Custom Metadata: no
+Metadata Stream: no
+Tagged:          no
+UserProperties:  no
+Suspects:        no
+Form:            none
+JavaScript:      no
+Pages:           2
+Encrypted:       no
+Page size:       595.28 x 841.89 pts (A4)
+Page rot:        0
+File size:       5956 bytes
+Optimized:       no
+PDF version:     1.7
+command=pdfinfo <artifact-4>
+Creator:         Feldexa
+Producer:        Feldexa
+Custom Metadata: no
+Metadata Stream: yes
+Tagged:          no
+UserProperties:  no
+Suspects:        no
+Form:            none
+JavaScript:      no
+Pages:           2
+Encrypted:       no
+Page size:       595.28 x 841.89 pts (A4)
+Page rot:        0
+File size:       13411 bytes
+Optimized:       no
+PDF version:     1.7
+source_fixture=sf-001.pdf
+pages: source=2 artifact=2 (expected=2)
+page_size: source=595.28 x 841.89 pts (A4) artifact=595.28 x 841.89 pts (A4) (must match)
+form: source=none artifact=none

@@ -1,0 +1,28 @@
+{
+  "note": "T105 expectations for export artifact 2, derived from the integration test's own T334_FIELD_RECT/T109_EXPECT markers; every rect is also an appearance mask",
+  "fields": [
+    {
+      "page": 1,
+      "rect": [
+        190.125,
+        147.625,
+        299.875,
+        18.0
+      ],
+      "type": "text",
+      "value": "Müller"
+    }
+  ],
+  "marks": [],
+  "masks": [
+    {
+      "page": 1,
+      "rect": [
+        190.125,
+        147.625,
+        299.875,
+        18.0
+      ]
+    }
+  ]
+}

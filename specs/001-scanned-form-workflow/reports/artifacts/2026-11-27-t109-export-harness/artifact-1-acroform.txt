@@ -1,0 +1,11 @@
+index=1
+command=LC_ALL=C grep -a -o -F '/AcroForm' <artifact-1> | wc -l
+acroform_grep_exit=1 (0=hits, 1=no match, >=2=tool error)
+acroform_byte_occurrences=0
+command=LC_ALL=C grep -a -o -F '/Widget' <artifact-1> | wc -l
+widget_grep_exit=1 (0=hits, 1=no match, >=2=tool error)
+widget_byte_occurrences=0
+command=LC_ALL=C grep -a -o -F '/FT /Tx' <artifact-1> | wc -l
+textfield_grep_exit=1 (0=hits, 1=no match, >=2=tool error)
+textfield_byte_occurrences=0
+note=byte-level search only; this is not a structural PDF analysis

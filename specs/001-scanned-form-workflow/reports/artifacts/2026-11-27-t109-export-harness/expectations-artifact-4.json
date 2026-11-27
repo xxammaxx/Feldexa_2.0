@@ -1,0 +1,109 @@
+{
+  "note": "T105 expectations for export artifact 4, derived from the integration test's own T334_FIELD_RECT/T109_EXPECT markers; every rect is also an appearance mask",
+  "fields": [
+    {
+      "page": 1,
+      "rect": [
+        190.125,
+        147.625,
+        299.875,
+        18.0
+      ],
+      "type": "text",
+      "value": "Müller"
+    }
+  ],
+  "marks": [
+    {
+      "page": 1,
+      "rect": [
+        190.0,
+        502.0,
+        10.0,
+        10.0
+      ],
+      "type": "checkbox",
+      "expected": "marked"
+    },
+    {
+      "page": 2,
+      "rect": [
+        190.0,
+        480.0,
+        10.0,
+        10.0
+      ],
+      "type": "checkbox",
+      "expected": "empty"
+    },
+    {
+      "page": 1,
+      "rect": [
+        190.0,
+        612.0,
+        300.0,
+        30.0
+      ],
+      "type": "signature",
+      "expected": "marked"
+    },
+    {
+      "page": 2,
+      "rect": [
+        190.0,
+        626.0,
+        300.0,
+        30.0
+      ],
+      "type": "signature",
+      "expected": "marked"
+    }
+  ],
+  "masks": [
+    {
+      "page": 1,
+      "rect": [
+        190.125,
+        147.625,
+        299.875,
+        18.0
+      ]
+    },
+    {
+      "page": 1,
+      "rect": [
+        190.0,
+        502.0,
+        10.0,
+        10.0
+      ]
+    },
+    {
+      "page": 2,
+      "rect": [
+        190.0,
+        480.0,
+        10.0,
+        10.0
+      ]
+    },
+    {
+      "page": 1,
+      "rect": [
+        190.0,
+        612.0,
+        300.0,
+        30.0
+      ]
+    },
+    {
+      "page": 2,
+      "rect": [
+        190.0,
+        626.0,
+        300.0,
+        30.0
+      ]
+    }
+  ]
+}
