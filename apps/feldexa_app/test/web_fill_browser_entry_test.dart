@@ -1,16 +1,16 @@
 // T087 SIMULATED browser fill test (FR-086/FR-087).
 //
-// Fills the real text and checkbox controls in a browser: single-line rejects
-// line breaks, multiline keeps them, Enter commits, checkbox toggles and
-// disabled/read-only controls never call back. SIMULATED surface only; without
-// Chrome on the host it is NOT_RUN.
+// Fills the real text and checkbox controls: single-line rejects line breaks,
+// multiline keeps them, Enter commits, checkbox toggles and disabled/read-only
+// controls never call back. The suite is platform-agnostic, so it runs on the
+// host VM (NONE evidence) and, when Chrome is available, in the browser lane;
+// without Chrome the browser run is NOT_RUN.
 //
 // The suite lives under `test/` because Flutter 3.47.7 roots Chrome browser
 // tests at `<project>/test`; `.specify/init-options.json` sets
 // `allow_symlinks: false`, so T087's original `integration_test/` path is
 // superseded rather than linked (same measured constraint as T062).
 
-@TestOn('browser')
 library;
 
 import 'package:feldexa_app/features/fill/checkbox_control.dart';

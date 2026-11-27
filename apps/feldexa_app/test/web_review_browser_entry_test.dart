@@ -1,16 +1,15 @@
 // T072 SIMULATED browser review-interaction suite (FR-086/FR-089).
 //
-// Runs the real review panel in a browser: confirm, reject and undo callbacks,
-// German labels, and no overflow at 200 % text scale. It is a `flutter_test`
-// browser test, not Android runtime evidence; without Chrome on the host it is
-// NOT_RUN.
+// Runs the real review panel: confirm, reject and undo callbacks, German
+// labels, and no overflow at 200 % text scale. The suite is platform-agnostic,
+// so it runs on the host VM (NONE evidence) and, when Chrome is available, in
+// the browser lane; without Chrome the browser run is NOT_RUN.
 //
 // The suite lives under `test/` because Flutter 3.47.7 roots Chrome browser
 // tests at `<project>/test`; `.specify/init-options.json` sets
 // `allow_symlinks: false`, so T072's original `integration_test/` path is
 // superseded rather than linked (same measured constraint as T062).
 
-@TestOn('browser')
 library;
 
 import 'package:feldexa_app/features/editor/suggestion_review_panel.dart';
@@ -24,11 +23,12 @@ core.FieldSuggestion _suggestion({
   required core.FieldType type,
   required core.Rect rect,
   String? labelText,
+  int pageIndex = 1,
   core.SuggestionResolution resolution = core.SuggestionResolution.unresolved,
 }) {
   return core.FieldSuggestion(
     id: id,
-    pageIndex: 0,
+    pageIndex: pageIndex,
     rect: rect,
     proposedType: type,
     confidence: 0.82,
