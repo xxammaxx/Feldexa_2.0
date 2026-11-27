@@ -9,16 +9,18 @@
 //      session artifact directory and run the production `ExportController`.
 //      The native applier cannot create its temp file, fails with `EXP-002`,
 //      and the probe proves no `.pdf` and no `.pdf.tmp` was left behind;
-//   3. **preflight-failure leg**: add one real confirmed field outside the page
-//      and prepare again. The plan is blocked (`EXP-003`) before any native
-//      write, and the probe proves the artifact directory is still empty;
+//   3. **preflight-failure leg**: commit an overflowing value through the
+//      production value command and prepare again. The plan is blocked
+//      (`EXP-001`) before any native write, and the probe proves the artifact
+//      directory is still empty;
 //   4. **success control**: a valid export still succeeds and publishes exactly
 //      one artifact (so the empty directories above are not a probe artefact);
 //   5. **interrupted delivery**: open the production preview, tap „Speichern“,
 //      and let the host driver cancel the system picker with BACK. The preview
-//      must not report a failure or success, must keep the artifact readable,
-//      and the subsequent close must delete it (`EXP-002`), leaving the
-//      artifact directory empty again.
+//      must report no delivery failure, must keep the artifact readable, and
+//      the subsequent close must delete it (`EXP-002`), leaving the artifact
+//      directory empty again. The test does not assert the absence of a
+//      location hint; the marker therefore claims only "no failure".
 //
 // The artifact-directory probe (`ImportTestHooks`) is a declared debug-only
 // test seam: content-free counts and one real owner-write toggle. It exists
@@ -135,7 +137,7 @@ Uint8List _loadFixture() {
   if (!file.existsSync()) {
     fail(
       'Fixture staging directory $_fixtureRoot is missing $_fixtureId.pdf. '
-      'Run tools/android/t108_drive_export_failure.sh.',
+      'Run tools/android/t108_t110_drive.py failure.',
     );
   }
   final Uint8List bytes = file.readAsBytesSync();
@@ -572,7 +574,7 @@ void main() {
     );
     final Uint8List stillThere = await runtime.export.readArtifact(artifact.id);
     expect(stillThere.length, artifact.byteSize);
-    _marker('SAVE_CANCELLED:REPORTED_SUCCESS=0:ARTIFACT_READABLE=1');
+    _marker('SAVE_CANCELLED:REPORTED_FAILURE=0:ARTIFACT_READABLE=1');
 
     await tester.tap(find.byKey(_previewCloseKey));
     await _pumpUntil(

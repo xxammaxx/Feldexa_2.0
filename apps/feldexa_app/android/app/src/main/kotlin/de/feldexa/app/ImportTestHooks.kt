@@ -104,7 +104,7 @@ internal object ImportTestHooks {
                     val directory = artifactDirectory
                     val enabled = call.argument<Boolean>("enabled") ?: false
                     val applied = directory != null &&
-                        directory.setWritable(!enabled, false) &&
+                        directory.setWritable(!enabled, true) &&
                         directory.canWrite() != enabled
                     result.success(
                         mapOf(

@@ -900,56 +900,53 @@ source_pdfinfo() {
   esac
 }
 
-# The test prints the rectangle the export layout actually targets as plain
-# numbers (`T334_FIELD_RECT`). Convention: display space - origin at the page's
-# top-left corner, x to the right, y downwards, unit = PDF point (1/72 in), the
-# same origin and direction Poppler's `pdftotext -bbox` reports. The marker goes
-# to `tools/pdf_verify/placement.py`, which parses the numbers, compares them
-# with the word box it reads, and refuses a verdict if the two do not sit in one
-# convention (`axes_check`); a half-page heuristic is not needed and not used.
-RECT_LINE="$(grep -oE '^T334_FIELD_RECT:PAGE=[0-9]+:X_MPT=-?[0-9]+:Y_MPT=-?[0-9]+:W_MPT=-?[0-9]+:H_MPT=-?[0-9]+$' "$LOG" | tail -1)"
-[[ -n "$RECT_LINE" ]] ||
-  fail "the integration log carries no well-formed T334_FIELD_RECT marker; the placement measurement cannot be attributed"
-
-# --- 8a. Which legs drew a value, decided by the test's own markers ----------
-# A leg has a placement to measure exactly when a value was drawn into it, and
-# the test states that with markers instead of a leg number: it prints the field
-# rect when the field is confirmed, and it opens the flattening leg with
-# `T334_ACROFORM_LEG_START` - a leg that confirms and fills nothing and prints
-# no field rect at all (its own doc comment: "nothing is filled here"). So every
-# leg whose artifact is stored before that marker drew a value, every leg after
-# it did not, and the log must carry no field rect in that later region. A leg
-# without a rect has no placement to measure; the evidence file names that
-# reason instead of skipping the leg silently.
+# The T109 marks leg runs after the flattening leg, confirms its own
+# „Familienname“ text field, and stores artifact 4. Its rect is a second
+# T334_FIELD_RECT after the boundary, so each drawn leg gets its own rect.
 FLATTENING_LEG_LINE="$(grep -n -F 'T334_ACROFORM_LEG_START' "$LOG" | head -1 | cut -d: -f1)"
 [[ "$FLATTENING_LEG_LINE" =~ ^[0-9]+$ ]] ||
   fail "the integration log carries no T334_ACROFORM_LEG_START marker; the drawn-value legs cannot be attributed"
+T109_LEG_LINE="$(grep -n -F 'T334_T109_MARKS_LEG_START' "$LOG" | head -1 | cut -d: -f1)"
+[[ "$T109_LEG_LINE" =~ ^[0-9]+$ ]] ||
+  fail "the integration log carries no T334_T109_MARKS_LEG_START marker; the T109 drawn leg cannot be attributed"
 read -r RECT_MARKERS_BEFORE RECT_MARKERS_AFTER <<<"$(awk -v boundary="$FLATTENING_LEG_LINE" '
   /^T334_FIELD_RECT:PAGE=/ { if (NR < boundary) before++; else after++ }
   END { printf "%d %d\n", before, after }' "$LOG")"
 [[ "$RECT_MARKERS_BEFORE" -eq 1 ]] ||
   fail "the log carries $RECT_MARKERS_BEFORE field rect markers before the flattening leg, expected exactly one (one confirmed field)"
-# The T109 mark leg runs after the flattening leg and confirms its own
-# „Familienname“ text field, so exactly one further T334_FIELD_RECT is expected
-# there; its checkbox/signature rects are T109_EXPECT markers and are consumed
-# by the T105 expectations helper.
 [[ "$RECT_MARKERS_AFTER" -eq 1 ]] ||
   fail "the log carries $RECT_MARKERS_AFTER field rect markers after T334_ACROFORM_LEG_START, expected exactly one (the T109 text field)"
-DRAWN_LEGS="$(awk -v boundary="$FLATTENING_LEG_LINE" '
+PRE_RECT_LINE="$(awk -v boundary="$FLATTENING_LEG_LINE" '
+  /^T334_FIELD_RECT:PAGE=/ && NR < boundary { print; exit }' "$LOG")"
+POST_RECT_LINE="$(awk -v boundary="$FLATTENING_LEG_LINE" '
+  /^T334_FIELD_RECT:PAGE=/ && NR > boundary { print; exit }' "$LOG")"
+[[ -n "$PRE_RECT_LINE" && -n "$POST_RECT_LINE" ]] ||
+  fail "a per-leg T334_FIELD_RECT marker is missing (pre='$PRE_RECT_LINE' post='$POST_RECT_LINE')"
+
+# A leg drew a value when its artifact was stored before the flattening leg, or
+# in the T109 marks leg that opens at T334_T109_MARKS_LEG_START. Artifact 3 (the
+# AcroForm fixture, stored between those two markers) drew no value.
+DRAWN_LEGS="$(awk -v boundary="$FLATTENING_LEG_LINE" -v t109="$T109_LEG_LINE" '
   match($0, /^T334_ARTIFACT_STORED:INDEX=[0-9]+/) {
     leg = substr($0, RSTART, RLENGTH)
     sub(/.*INDEX=/, "", leg)
-    if (NR < boundary) print leg
+    if (NR < boundary || NR > t109) print leg
   }' "$LOG" | sort -n | uniq | paste -sd' ' -)"
 [[ -n "$DRAWN_LEGS" ]] ||
-  fail "the log stores no artifact before the flattening leg; no drawn-value leg is attributable"
+  fail "the log stores no artifact for a drawn-value leg; no placement is attributable"
+POST_LEGS="$(awk -v t109="$T109_LEG_LINE" '
+  NR > t109 && match($0, /^T334_ARTIFACT_STORED:INDEX=[0-9]+/) {
+    leg = substr($0, RSTART, RLENGTH)
+    sub(/.*INDEX=/, "", leg)
+    print leg
+  }' "$LOG" | sort -n | uniq | paste -sd' ' -)"
 DRAWN_LEG_COUNT="$(printf '%s\n' "$DRAWN_LEGS" | wc -w)"
-if [[ "$DRAWN_LEG_COUNT" -gt 1 ]]; then
-  # Several legs then share the one field rect marker, which is only attributable
+if [[ "$DRAWN_LEG_COUNT" -gt 2 ]]; then
+  # Several legs then share a field rect marker, which is only attributable
   # because the test asserts the rectangle survived the reopen.
   REOPEN_MARKERS="$(grep -oE '^T334_DOCUMENT_REOPENED:PAGES=[0-9]+:FIELD_RECT_MATCH=1:VALUE_MATCH=1$' "$LOG")"
   [[ -n "$REOPEN_MARKERS" ]] ||
-    fail "$DRAWN_LEG_COUNT drawn-value legs share one field rect marker, but the log carries no DOCUMENT_REOPENED:FIELD_RECT_MATCH=1 marker that proves the rectangle survives the reopen"
+    fail "$DRAWN_LEG_COUNT drawn-value legs share field rect markers, but the log carries no DOCUMENT_REOPENED:FIELD_RECT_MATCH=1 marker that proves the rectangle survives the reopen"
 fi
 
 PLACEMENT_TOOL_REL="tools/pdf_verify/placement.py"
@@ -1084,16 +1081,26 @@ for PICKUP_INDEX in $(seq 1 "$ARTIFACT_COUNT"); do
     fail "artifact $PICKUP_INDEX carries $TEXTFIELD_HITS /FT /Tx byte occurrences"
 
   if [[ " $DRAWN_LEGS " != *" $PICKUP_INDEX "* ]]; then
+    if [[ "$PICKUP_INDEX" -eq 3 ]]; then
+      NOT_APPLICABLE_REASON="artifact 3 exports the AcroForm fixture unchanged (T334_ACROFORM_LEG_START, log line $FLATTENING_LEG_LINE): the leg confirms and fills nothing, draws no value, and prints no field rect; there is no placement to measure"
+    else
+      NOT_APPLICABLE_REASON="artifact $PICKUP_INDEX has no drawn value: its leg region carries no field rect marker and no value word"
+    fi
     {
       log "index=$PICKUP_INDEX"
       log "verdict=NOT_APPLICABLE"
-      log "reason=artifact $PICKUP_INDEX exports the AcroForm fixture unchanged: T334_ACROFORM_LEG_START opens its leg, the leg confirms and fills nothing, so the test prints no T334_FIELD_RECT marker for it, no value is drawn, and there is no placement to measure"
-      log "field_rect_marker=none (0 T334_FIELD_RECT markers after T334_ACROFORM_LEG_START at log line $FLATTENING_LEG_LINE)"
-      log "drawn_value_legs=$(printf '%s' "$DRAWN_LEGS" | tr ' ' ',')"
+      log "reason=$NOT_APPLICABLE_REASON"
+      log "field_rect_marker=none_for_this_leg"
+      log "field_rect_markers_total_before=$RECT_MARKERS_BEFORE after=$RECT_MARKERS_AFTER; drawn_value_legs=$(printf '%s' "$DRAWN_LEGS" | tr ' ' ',')"
       log "artifact_sha256=${HOST_SHA_BY_INDEX[$PICKUP_INDEX]}"
     } >"$RUN_DIR/artifact-$PICKUP_INDEX-placement.txt"
     ARTIFACT_PLACEMENT_VERDICT[PICKUP_INDEX]="NOT_APPLICABLE"
     continue
+  fi
+
+  LEG_RECT_LINE="$PRE_RECT_LINE"
+  if [[ " $POST_LEGS " == *" $PICKUP_INDEX "* ]]; then
+    LEG_RECT_LINE="$POST_RECT_LINE"
   fi
 
   # --- 1 mm placement: one metric, the verified tool ----------------------
@@ -1108,7 +1115,7 @@ for PICKUP_INDEX in $(seq 1 "$ARTIFACT_COUNT"); do
     "$ROOT/$PLACEMENT_TOOL_REL" \
     --pdf "export-artifact-$PICKUP_INDEX.pdf" \
     --value-word "$EXPECTED_VALUE" \
-    --field-rect-marker "$RECT_LINE" \
+    --field-rect-marker "$LEG_RECT_LINE" \
     --layout "$ROOT/$LAYOUT_SOURCE_REL" \
     --applier-source "$ROOT/$APPLIER_SOURCE_REL" \
     --font-metrics "$ROOT/$FONT_METRICS_REL" \
@@ -1118,7 +1125,7 @@ for PICKUP_INDEX in $(seq 1 "$ARTIFACT_COUNT"); do
     log "index=$PICKUP_INDEX"
     log "placement_metric=origin of the drawn value as the layout code places it, measured with $PLACEMENT_TOOL_REL; this is not a centre-to-centre distance"
     log "drawn_value_legs=$(printf '%s' "$DRAWN_LEGS" | tr ' ' ',')"
-    log "field_rect_marker=$RECT_LINE"
+    log "field_rect_marker=$LEG_RECT_LINE"
     printf '%s\n' "$PLACEMENT_OUTPUT"
     log "placement_tool_exit=$PLACEMENT_EXIT"
   } >"$RUN_DIR/artifact-$PICKUP_INDEX-placement.txt"

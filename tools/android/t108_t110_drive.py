@@ -94,6 +94,16 @@ def not_run(message: str) -> "NoReturn":  # noqa: F821
     raise SystemExit(2)
 
 
+def scrub(text: str) -> str:
+    """Removes host, worktree, and raw run paths from committed evidence."""
+    text = text.replace(str(ROOT) + "/", "")
+    text = text.replace(str(ROOT), ".")
+    text = text.replace(str(Path.home()) + "/", "~/")
+    text = text.replace("run-tscn02hu", "<workspace>")
+    text = text.replace("Felda_2.0_Arbeitsbereich", "<workspace>")
+    return text
+
+
 def run(cmd: list[str], *, timeout: int = 120, check: bool = True) -> subprocess.CompletedProcess:
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
     if check and proc.returncode != 0:
@@ -235,7 +245,7 @@ def read_log_lines(proc: subprocess.Popen, log_path: Path, mode: str) -> list[st
     assert proc.stdout is not None
     with log_path.open("w", encoding="utf-8") as log_file:
         for raw in proc.stdout:
-            line = raw.rstrip("\n")
+            line = scrub(raw.rstrip("\n"))
             log_file.write(line + "\n")
             log_file.flush()
             print(line, flush=True)
@@ -356,6 +366,10 @@ def pickup_print_artifact(mode: str, line: str) -> None:
         )
     log(f"DRIVER: picked up artifact {len(proc.stdout)} bytes sha256={digest}")
     verify_print_artifact(mode, artifact)
+    # Task-owned export artifact: verified, then deleted; only the digest and
+    # the host receipts remain committed.
+    artifact.unlink(missing_ok=True)
+    shutil.rmtree(out / "engine-renders", ignore_errors=True)
 
 
 def verify_print_artifact(mode: str, artifact: Path) -> None:
@@ -382,10 +396,14 @@ def verify_print_artifact(mode: str, artifact: Path) -> None:
         timeout=900,
     )
     (out / "harness-console.txt").write_text(
-        harness.stdout + harness.stderr, encoding="utf-8"
+        scrub(harness.stdout + harness.stderr), encoding="utf-8"
     )
     if harness.returncode != 0:
         fail(f"T105 harness failed on the print artifact ({harness.returncode})")
+    (out / "harness-report.json").write_text(
+        scrub((out / "harness-report.json").read_text(encoding="utf-8")),
+        encoding="utf-8",
+    )
     report = json.loads((out / "harness-report.json").read_text(encoding="utf-8"))
     rows = {row["check"]: row for row in report["rows"]}
     for required in (
@@ -469,8 +487,14 @@ def compare_engines(artifact: Path, work: Path) -> str:
             text=True,
             timeout=300,
         )
-        metric = (diff.stderr.strip() + diff.stdout.strip()).splitlines()[-1]
-        differing = float(metric.split()[0]) if metric else 0.0
+        # compare exits 1 when the images differ (expected) and >1 on a tool
+        # error; an empty metric is a failure, never 0 %.
+        if diff.returncode > 1:
+            fail(f"compare failed on page {page} (exit {diff.returncode}): {diff.stderr[-200:]}")
+        metric = (diff.stderr.strip() + diff.stdout.strip()).splitlines()
+        if not metric:
+            fail(f"compare produced no metric on page {page}")
+        differing = float(metric[-1].split()[0])
         size = subprocess.run(
             ["identify", "-format", "%w %h", str(poppler)],
             capture_output=True,
@@ -526,17 +550,17 @@ def run_test(mode: str) -> tuple[list[str], int]:
 def write_gates(mode: str, lines: list[str], test_exit: int, device: dict, git: dict) -> None:
     out = evidence_dir(mode)
     markers = extract_markers(lines, MODES[mode]["marker"])
-    (out / "markers.txt").write_text("\n".join(markers) + "\n", encoding="utf-8")
+    (out / "markers.txt").write_text(scrub("\n".join(markers)) + "\n", encoding="utf-8")
     if test_exit != 0:
         fail(f"flutter test exited {test_exit}")
     if not any("All tests passed!" in line for line in lines):
         fail("flutter test exited 0 without the 'All tests passed!' summary")
     (out / "device.txt").write_text(
-        "\n".join(f"{key}={value}" for key, value in device.items()) + "\n",
+        scrub("\n".join(f"{key}={value}" for key, value in device.items())) + "\n",
         encoding="utf-8",
     )
     (out / "git.txt").write_text(
-        "\n".join(f"{key}={value}" for key, value in git.items()) + "\n",
+        scrub("\n".join(f"{key}={value}" for key, value in git.items())) + "\n",
         encoding="utf-8",
     )
     reference = "ok" if mode == "failure" else "synthetic sf-001.pdf"
@@ -549,8 +573,22 @@ def write_gates(mode: str, lines: list[str], test_exit: int, device: dict, git: 
 
 def privacy_check(mode: str) -> None:
     out = evidence_dir(mode)
-    texts = [p.read_text(encoding="utf-8", errors="ignore") for p in out.glob("*") if p.is_file()]
-    forbidden = ["Familienname", "Müller-Lüdenscheidt", "content://", "file://"]
+    home_hits = [
+        path.name
+        for path in out.glob("*.txt")
+        if "/home/" in path.read_text(encoding="utf-8", errors="ignore")
+    ]
+    if home_hits:
+        fail(f"privacy check found home paths in the evidence: {home_hits}")
+    # The print-preview dumps legitimately carry spooler content:// URIs and the
+    # fixture's own label; they are evidence of the system UI, not app content
+    # leaving the app. The picked-up PDF is deleted before this check.
+    texts = [
+        p.read_text(encoding="utf-8", errors="ignore")
+        for p in out.glob("*.txt")
+        if p.is_file() and not p.name.startswith("print-preview-")
+    ]
+    forbidden = ["Familienname", "Müller-Lüdenscheidt"]
     hits = []
     for text in texts:
         for token in forbidden:
@@ -568,6 +606,18 @@ def main() -> int:
     reexec_under_permit([args.mode])
     if not Path(FLUTTER).is_file():
         fail(f"flutter not found at {FLUTTER}")
+    for tool in ("qpdf", "pdftoppm", "pdftotext", "pdfinfo", "mutool", "compare", "identify"):
+        if shutil.which(tool) is None:
+            fail(f"required host tool is missing: {tool}")
+    out = evidence_dir(args.mode)
+    if (
+        any(out.iterdir())
+        and os.environ.get("FELDEXA_DRIVER_ALLOW_OVERWRITE") != "1"
+    ):
+        fail(
+            f"evidence directory {out.relative_to(ROOT)} is not empty; "
+            "set FELDEXA_DRIVER_ALLOW_OVERWRITE=1 to replace it"
+        )
     log(f"DRIVER: mode={args.mode} serial={SERIAL}")
     git = git_identity()
     device = verify_device()
