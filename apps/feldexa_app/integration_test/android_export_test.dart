@@ -69,6 +69,7 @@
 // ignore_for_file: depend_on_referenced_packages
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart' as crypto;
@@ -84,6 +85,10 @@ import 'package:feldexa_app/features/fill/overflow_warning.dart';
 import 'package:feldexa_app/features/fill/text_control.dart';
 import 'package:feldexa_app/features/start/stored_items.dart';
 import 'package:feldexa_app/main.dart' as app;
+import 'package:feldexa_application/src/review/apply_signature.dart'
+    as signature_edit;
+import 'package:feldexa_application/src/review/edit_field.dart' as edit;
+import 'package:feldexa_application/src/review/set_value.dart' as value_edit;
 import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:feldexa_export/feldexa_export.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
@@ -882,6 +887,257 @@ Future<EditorScreenState> _importAcroFormFixture(
   return state;
 }
 
+// T109: one synthetic 64 x 16 PNG with visible black ink. The bytes are test
+// data, not a signature of any person; the export draws exactly this image at
+// the planned rect, and the T105 harness compares the rendered ink against the
+// source page inside the same rect.
+const String _signaturePngBase64 =
+    'iVBORw0KGgoAAAANSUhEUgAAAEAAAAAQCAQAAAAM7rGiAAAAIGNIUk0AAHomAACAhAAA'
+    '+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAACYktHRAD/h4/MvwAAAAd0SU1FB+oL'
+    'GxQHKgQWJ3YAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMTEtMjdUMjA6MDc6NDIrMDA6'
+    'MDD1Si/ZAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTExLTI3VDIwOjA3OjQyKzAwOjAw'
+    'hBeXZQAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0xMS0yN1QyMDowNzo0MiswMDow'
+    'MNMCtroAAADgSURBVEjH7dQ9TgJRFMXxH8XEzoQFTMsKLCys2IJ7oLFhASbuwElwC1Zu'
+    'hHWYWBoNHwIjyLPQICqDw6Wx4Jz6f9/Ju+c9Dvrnaim0gtyZo/0Ob+pJkqSnGeKS22iM'
+    'TGc15MMdWYgLxWhvGJIk7SC3U4yW/pYh/cpGbOdqxljfXrV/N6Ie90eMzdur8lcjduN+'
+    'xsjrba+6ERFu3UUDuTunkaei/LzGRw8GBoZGRsbGXkxMTE3NzJRKr+bmFhbeLC1lTpy7'
+    'bqDQxdC9p9pDjl26ADeuPIfir5Tv8dtFuIO+6R0pGylJjIJ5VAAAAABJRU5ErkJggg==';
+
+/// Imports a fresh copy of the two-page fixture from the start surface.
+Future<EditorScreenState> _importFreshFixture(
+  WidgetTester tester,
+  File scratchSource,
+) async {
+  final NavigatorState navigator = Navigator.of(
+    tester.element(find.byType(EditorScreen)),
+  );
+  navigator.pop();
+  await _pumpUntil(
+    tester,
+    () =>
+        find.byType(EditorScreen).evaluate().isEmpty &&
+        find.byKey(_startScreenKey).evaluate().isNotEmpty,
+    timeout: const Duration(seconds: 180),
+    reason: 'the editor route did not close back to the start surface',
+  );
+  await _armFile(scratchSource);
+  _marker('T109_FIXTURE_ARMED');
+  await tester.tap(find.byKey(_importActionKey));
+  await tester.pump();
+  await _pumpUntil(
+    tester,
+    () =>
+        find.byKey(_editorScreenKey).evaluate().isNotEmpty ||
+        find.byKey(_importFailureKey).evaluate().isNotEmpty,
+    timeout: const Duration(seconds: 300),
+    reason: 'no editor route or rejection after the armed fourth import',
+  );
+  expect(find.byKey(_importFailureKey), findsNothing);
+  final EditorScreenState state = tester.state<EditorScreenState>(
+    find.byType(EditorScreen),
+  );
+  await _waitForAnalysisTerminal(tester, state);
+  expect(state.content!.pageCount, _pageCount);
+  _marker('T109_EDITOR_READY:PAGES=${state.content!.pageCount}');
+  return state;
+}
+
+void _expectRectMarker(String id, core.ConfirmedField field) {
+  _marker(
+    'T109_EXPECT:ID=$id:PAGE=${field.pageIndex + 1}:'
+    'X_MPT=${(field.rect.left * 1000).round()}:'
+    'Y_MPT=${(field.rect.top * 1000).round()}:'
+    'W_MPT=${(field.rect.width * 1000).round()}:'
+    'H_MPT=${(field.rect.height * 1000).round()}',
+  );
+}
+
+/// T109: fills one text field, two checkbox states, and two signatures on a
+/// two-page document, then saves, reopens, asserts the provenance survives, and
+/// exports the reopened revision for the host's T105 harness run.
+Future<void> _runMarksLeg(WidgetTester tester, File scratchSource) async {
+  _marker('T109_MARKS_LEG_START');
+  final EditorScreenState imported = await _importFreshFixture(
+    tester,
+    scratchSource,
+  );
+  final EditorRuntime runtime = _liveRuntime(tester);
+  final String documentId = tester
+      .widget<EditorScreen>(find.byType(EditorScreen))
+      .source
+      .documentId;
+
+  final core.ConfirmedField textField = await _confirmNamedTextField(
+    tester,
+    imported,
+  );
+  await _fillField(tester, imported, textField, _fieldValue);
+
+  final LoadedDocument loaded = await runtime.loadDocument(documentId);
+  final DateTime now = runtime.clock.nowUtc().toUtc();
+  final String checkedBoxId = runtime.ids.newId();
+  final String emptyBoxId = runtime.ids.newId();
+  final String signatureAId = runtime.ids.newId();
+  final String signatureBId = runtime.ids.newId();
+
+  core.RevisionContent content = loaded.content;
+  content = edit
+      .addField(
+        content,
+        checkedBoxId,
+        0,
+        core.Rect.fromLTWH(190, 502, 10, 10),
+        core.FieldType.checkbox,
+        'weiblich',
+        now,
+      )
+      .content;
+  content = edit
+      .addField(
+        content,
+        emptyBoxId,
+        1,
+        core.Rect.fromLTWH(190, 480, 10, 10),
+        core.FieldType.checkbox,
+        'Barzahlung',
+        now,
+      )
+      .content;
+  content = edit
+      .addField(
+        content,
+        signatureAId,
+        0,
+        core.Rect.fromLTWH(190, 612, 300, 30),
+        core.FieldType.signature,
+        'Unterschrift',
+        now,
+      )
+      .content;
+  content = edit
+      .addField(
+        content,
+        signatureBId,
+        1,
+        core.Rect.fromLTWH(190, 626, 300, 30),
+        core.FieldType.signature,
+        'Unterschrift',
+        now,
+      )
+      .content;
+  content = value_edit
+      .setFieldValue(
+        content,
+        checkedBoxId,
+        value: core.CheckboxValue(checked: true, lastEditedAt: now),
+        lastEditedAt: now,
+      )
+      .content;
+  content = value_edit
+      .setFieldValue(
+        content,
+        emptyBoxId,
+        value: core.CheckboxValue(checked: false, lastEditedAt: now),
+        lastEditedAt: now,
+      )
+      .content;
+
+  final Uint8List signaturePng = base64Decode(_signaturePngBase64);
+  for (final String fieldId in <String>[signatureAId, signatureBId]) {
+    final String assetId = runtime.ids.newId();
+    final signature_edit.SignatureAsset asset = signature_edit
+        .SignatureAsset.fromPng(bytes: signaturePng, widthPx: 64, heightPx: 16);
+    await runtime.store.writeSignature(
+      WriteSignatureRequest(
+        documentId: documentId,
+        assetId: assetId,
+        bytes: asset.bytes,
+        sha256: asset.sha256,
+      ),
+    );
+    content = signature_edit
+        .applySignature(
+          content,
+          fieldId,
+          assetId: assetId,
+          asset: asset,
+          capturedAt: now,
+        )
+        .content;
+  }
+  await runtime.saveRevision(
+    SaveRevisionRequest(
+      documentId: documentId,
+      expectedHead: loaded.meta.latestRevisionId,
+      content: content,
+      kind: core.RevisionKind.explicit,
+    ),
+  );
+  _marker(
+    'T109_REVISION_SAVED:FIELDS=${content.fields.length}:'
+    'CHECKED=1:EMPTY=1:SIGNATURES=2',
+  );
+
+  final EditorScreenState reopened = await _reopenDocument(tester, documentId);
+  final core.ConfirmedField reopenedText = reopened.content!.fields.singleWhere(
+    (core.ConfirmedField field) => field.id == textField.id,
+  );
+  final core.ConfirmedField checkedBox = reopened.content!.fields.singleWhere(
+    (core.ConfirmedField field) => field.id == checkedBoxId,
+  );
+  final core.ConfirmedField emptyBox = reopened.content!.fields.singleWhere(
+    (core.ConfirmedField field) => field.id == emptyBoxId,
+  );
+  final core.ConfirmedField signatureA = reopened.content!.fields.singleWhere(
+    (core.ConfirmedField field) => field.id == signatureAId,
+  );
+  final core.ConfirmedField signatureB = reopened.content!.fields.singleWhere(
+    (core.ConfirmedField field) => field.id == signatureBId,
+  );
+
+  expect(reopenedText.provenance, core.Provenance.machine);
+  expect(reopenedText.sourceSuggestionId, isNotNull);
+  expect(
+    reopened.content!.suggestions,
+    isNotEmpty,
+    reason: 'the suggestion provenance survives save and reopen',
+  );
+  for (final core.ConfirmedField field in <core.ConfirmedField>[
+    checkedBox,
+    emptyBox,
+    signatureA,
+    signatureB,
+  ]) {
+    expect(field.provenance, core.Provenance.user);
+  }
+  expect(
+    (reopened.content!.values[checkedBoxId]! as core.CheckboxValue).checked,
+    isTrue,
+  );
+  expect(
+    (reopened.content!.values[emptyBoxId]! as core.CheckboxValue).checked,
+    isFalse,
+  );
+  expect(reopened.content!.values[signatureAId], isA<core.SignatureValue>());
+  expect(reopened.content!.values[signatureBId], isA<core.SignatureValue>());
+  expect(reopened.content!.signatures[signatureAId], isNotNull);
+  expect(reopened.content!.signatures[signatureBId], isNotNull);
+  _marker(
+    'T109_PROVENANCE_SURVIVED:SUGGESTIONS=${reopened.content!.suggestions.length}:'
+    'MACHINE=1:USER=4:CHECKED=1:EMPTY=1:SIGNATURES=2',
+  );
+
+  _expectRectMarker('text', reopenedText);
+  _expectRectMarker('checkbox-checked', checkedBox);
+  _expectRectMarker('checkbox-empty', emptyBox);
+  _expectRectMarker('signature-a', signatureA);
+  _expectRectMarker('signature-b', signatureB);
+  _marker('T109_EXPECTATIONS_READY:FIELDS=5');
+
+  await _runExportCycle(tester, reopened, documentId, index: 4);
+  _marker('T109_MARKS_EXPORT_VERIFIED');
+}
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -1011,6 +1267,9 @@ void main() {
     );
     await _runExportCycle(tester, acroFormState, acroFormDocumentId, index: 3);
     _marker('ACROFORM_FLATTENING_PROVEN');
+
+    // --- 7. T109: checkbox states and signatures on both real pages --------
+    await _runMarksLeg(tester, scratchSource!);
 
     _marker('CLEANUP_DONE');
   });
