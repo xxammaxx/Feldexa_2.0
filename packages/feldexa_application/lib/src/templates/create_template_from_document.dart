@@ -47,9 +47,12 @@ enum TemplateStructureReadiness {
 ///
 /// The structure is reviewed exactly when no suggestion is still
 /// `unresolved` (rejected and confirmed suggestions count as reviewed) and
-/// every user-created field carries a verification entry whose state is not
+/// every **user-added** field carries a verification entry whose state is not
 /// `unreviewed`. Fields of machine provenance are covered by their
-/// suggestion's resolution and need no separate verification entry.
+/// suggestion's resolution, and fields of [Provenance.template] are inherited
+/// from a reviewed template version (FR-055 covers user-added fields only),
+/// so neither may permanently block a derived document from being saved as a
+/// template again.
 TemplateStructureReadiness templateStructureReadiness(RevisionContent content) {
   for (final FieldSuggestion suggestion in content.suggestions) {
     if (suggestion.resolution == SuggestionResolution.unresolved) {
@@ -57,7 +60,7 @@ TemplateStructureReadiness templateStructureReadiness(RevisionContent content) {
     }
   }
   for (final ConfirmedField field in content.fields) {
-    if (field.provenance != Provenance.machine) {
+    if (field.provenance == Provenance.user) {
       final FieldVerification? verification = content.verification[field.id];
       if (verification == null ||
           verification.state == FieldVerificationState.unreviewed) {
@@ -66,6 +69,40 @@ TemplateStructureReadiness templateStructureReadiness(RevisionContent content) {
     }
   }
   return TemplateStructureReadiness.reviewed;
+}
+
+/// Rejects layout objects whose `unknownFields` extensions carry forbidden
+/// template payload keys (`values`, `signatures`, `suggestions`,
+/// `templateOrigin`).
+///
+/// The template decoders refuse these keys, so a tampered or future document
+/// revision carrying them would otherwise turn the freshly written template
+/// unreadable on the next load instead of failing closed at write time
+/// (FR-057/SC-013, defense in depth).
+void rejectForbiddenLayoutExtensions(
+  Iterable<Page> pages,
+  Iterable<ConfirmedField> fields,
+) {
+  const Set<String> forbidden = <String>{
+    'values',
+    'signatures',
+    'suggestions',
+    'templateOrigin',
+  };
+  void check(Map<String, Object?> unknownFields, String what) {
+    for (final String key in unknownFields.keys) {
+      if (forbidden.contains(key)) {
+        throw ArgumentError('$what carries the forbidden extension "$key"');
+      }
+    }
+  }
+
+  for (final Page page in pages) {
+    check(page.unknownFields, 'a page');
+  }
+  for (final ConfirmedField field in fields) {
+    check(field.unknownFields, 'a confirmed field');
+  }
 }
 
 /// The outcome of [createTemplateFromDocument].
@@ -132,6 +169,7 @@ Future<CreateTemplateResult> createTemplateFromDocument({
     fields: content.fields,
     fieldOrder: content.fieldOrder,
   );
+  rejectForbiddenLayoutExtensions(content.pages, content.fields);
 
   try {
     final StoredMeta meta = await store.createTemplate(request);

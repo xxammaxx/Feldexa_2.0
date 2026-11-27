@@ -34,11 +34,12 @@
 // through a result or a log line here.
 library;
 
-import 'dart:typed_data';
-
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:feldexa_core/feldexa_core.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
+
+import 'create_template_from_document.dart'
+    show rejectForbiddenLayoutExtensions;
 
 /// The outcome of [saveTemplateVersion].
 final class SaveTemplateVersionResult {
@@ -93,6 +94,7 @@ Future<SaveTemplateVersionResult> saveTemplateVersion({
     pageSnapshot: pageSnapshot,
     fieldSnapshot: fieldSnapshot,
   );
+  rejectForbiddenLayoutExtensions(pageSnapshot, fieldSnapshot);
 
   try {
     final StoredMeta meta = await store.saveTemplateVersion(request);

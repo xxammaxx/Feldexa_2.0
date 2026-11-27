@@ -264,6 +264,7 @@ void main() {
       source: source,
     );
     expect(used.isSuccess, isFalse);
+    expect(used.errorCode, 'SAVE-003');
     expect(used.meta, isNull);
     expect(backend.documents, isEmpty);
   });

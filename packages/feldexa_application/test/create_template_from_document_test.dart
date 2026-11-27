@@ -16,6 +16,8 @@ import 'package:feldexa_core/feldexa_core.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+const String _signatureAssetId = '00000000-0000-4000-8000-0000000000a1';
+
 String _uuid(int value) =>
     '00000000-0000-4000-8000-${value.toString().padLeft(12, '0')}';
 
@@ -103,8 +105,24 @@ RevisionContent _filledContent() {
         text: 'geheim',
         lastEditedAt: DateTime.utc(2026, 11, 27, 10),
       ),
+      signature.id: SignatureValue(
+        signatureAssetId: _signatureAssetId,
+        lastEditedAt: DateTime.utc(2026, 11, 27, 10),
+      ),
     },
-    signatures: const <String, SignatureMark>{},
+    signatures: <String, SignatureMark>{
+      signature.id: SignatureMark(
+        assetId: _signatureAssetId,
+        fieldId: signature.id,
+        pageIndex: 0,
+        rect: signature.rect,
+        widthPx: 320,
+        heightPx: 160,
+        capturedAt: DateTime.utc(2026, 11, 27, 10),
+        sha256:
+            'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      ),
+    },
     verification: <String, FieldVerification>{
       userText.id: FieldVerification(
         state: FieldVerificationState.confirmed,
@@ -157,12 +175,83 @@ void main() {
       fields: content.fields,
       fieldOrder: content.fieldOrder,
       values: content.values,
+      signatures: content.signatures,
       verification: const <String, FieldVerification>{},
     );
     expect(
       templateStructureReadiness(unreviewed),
       TemplateStructureReadiness.unreviewed,
     );
+  });
+
+  test('template-provenance fields never block a derived document from being '
+      'saved as a template again (FR-055)', () {
+    // A derived document shape: layout fields inherited from the pinned
+    // template version, no verification entries at all.
+    final ConfirmedField inherited = ConfirmedField(
+      id: _uuid(40),
+      pageIndex: 0,
+      rect: Rect.fromLTWH(60, 100, 200, 24),
+      type: FieldType.text,
+      provenance: Provenance.template,
+      label: 'Geerbtes Feld',
+      order: 0,
+      createdAt: DateTime.utc(2026, 11, 27, 9),
+      updatedAt: DateTime.utc(2026, 11, 27, 9),
+    );
+    final RevisionContent derived = RevisionContent(
+      pages: <Page>[_page()],
+      fields: <ConfirmedField>[inherited],
+      fieldOrder: <String>[inherited.id],
+      templateOrigin: TemplateOrigin(
+        templateId: _uuid(41),
+        templateVersionId: _uuid(42),
+        templateVersionNumber: 1,
+      ),
+    );
+    expect(
+      templateStructureReadiness(derived),
+      TemplateStructureReadiness.reviewed,
+    );
+  });
+
+  test('a forbidden unknownFields extension fails closed before any store call '
+      '(FR-057, SC-013)', () async {
+    final SimulatedBackend backend = SimulatedBackend(
+      context: SimulatedAdapterContext(),
+    );
+    final SimulatedSecureStoreAdapter store = SimulatedSecureStoreAdapter(
+      backend: backend,
+    );
+    final ConfirmedField smuggler = ConfirmedField(
+      id: _uuid(50),
+      pageIndex: 0,
+      rect: Rect.fromLTWH(60, 100, 200, 24),
+      type: FieldType.text,
+      provenance: Provenance.user,
+      label: 'Unsauberes Feld',
+      order: 0,
+      createdAt: DateTime.utc(2026, 11, 27, 9),
+      updatedAt: DateTime.utc(2026, 11, 27, 9),
+      unknownFields: const <String, Object?>{
+        'values': <String, Object?>{'smuggled': true},
+      },
+    );
+    final RevisionContent content = RevisionContent(
+      pages: <Page>[_page()],
+      fields: <ConfirmedField>[smuggler],
+      fieldOrder: <String>[smuggler.id],
+    );
+    await expectLater(
+      createTemplateFromDocument(
+        store: store,
+        title: 'Unsauber',
+        source: _source(backend, _fixture()),
+        content: content,
+      ),
+      throwsArgumentError,
+    );
+    expect(backend.templates, isEmpty);
   });
 
   test('creating a template from a filled document stores pages and field '
@@ -206,6 +295,7 @@ void main() {
     );
     expect(canonical.contains('Musterfrau'), isFalse);
     expect(canonical.contains('geheim'), isFalse);
+    expect(canonical.contains(_signatureAssetId), isFalse);
     expect(canonical.contains('values'), isFalse);
     expect(canonical.contains('signatures'), isFalse);
   });
