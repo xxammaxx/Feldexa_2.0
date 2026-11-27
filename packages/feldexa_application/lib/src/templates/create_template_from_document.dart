@@ -71,14 +71,19 @@ TemplateStructureReadiness templateStructureReadiness(RevisionContent content) {
   return TemplateStructureReadiness.reviewed;
 }
 
-/// Rejects layout objects whose `unknownFields` extensions carry forbidden
-/// template payload keys (`values`, `signatures`, `suggestions`,
-/// `templateOrigin`).
+/// Rejects layout objects whose `unknownFields` extensions — at the top
+/// level and on every modeled nested object (`PageGeometry` incl. CropBox,
+/// `PageFailure`, `Rect`, `FieldValidation`) — carry forbidden template
+/// payload keys (`values`, `signatures`, `suggestions`, `templateOrigin`).
 ///
 /// The template decoders refuse these keys, so a tampered or future document
 /// revision carrying them would otherwise turn the freshly written template
 /// unreadable on the next load instead of failing closed at write time
-/// (FR-057/SC-013, defense in depth).
+/// (FR-057/SC-013, defense in depth). The guard throws
+/// [CorruptDataException] (`SAVE-003`) rather than an [ArgumentError]: the
+/// input comes from a persisted document snapshot, so this is a data-
+/// integrity failure that the calling sheet reports through the regular
+/// failure path, not a programmer error.
 void rejectForbiddenLayoutExtensions(
   Iterable<Page> pages,
   Iterable<ConfirmedField> fields,
@@ -92,16 +97,23 @@ void rejectForbiddenLayoutExtensions(
   void check(Map<String, Object?> unknownFields, String what) {
     for (final String key in unknownFields.keys) {
       if (forbidden.contains(key)) {
-        throw ArgumentError('$what carries the forbidden extension "$key"');
+        throw CorruptDataException();
       }
     }
   }
 
   for (final Page page in pages) {
     check(page.unknownFields, 'a page');
+    check(page.geometry.unknownFields, 'a page geometry');
+    check(page.geometry.cropBox.unknownFields, 'a crop box');
+    if (page.failure != null) {
+      check(page.failure!.unknownFields, 'a page failure');
+    }
   }
   for (final ConfirmedField field in fields) {
     check(field.unknownFields, 'a confirmed field');
+    check(field.rect.unknownFields, 'a field rectangle');
+    check(field.validation.unknownFields, 'a field validation');
   }
 }
 
@@ -169,9 +181,8 @@ Future<CreateTemplateResult> createTemplateFromDocument({
     fields: content.fields,
     fieldOrder: content.fieldOrder,
   );
-  rejectForbiddenLayoutExtensions(content.pages, content.fields);
-
   try {
+    rejectForbiddenLayoutExtensions(content.pages, content.fields);
     final StoredMeta meta = await store.createTemplate(request);
     final String? latestVersionId = meta.latestRevisionId;
     final bool verified =

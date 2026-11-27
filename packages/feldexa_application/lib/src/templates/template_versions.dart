@@ -94,9 +94,8 @@ Future<SaveTemplateVersionResult> saveTemplateVersion({
     pageSnapshot: pageSnapshot,
     fieldSnapshot: fieldSnapshot,
   );
-  rejectForbiddenLayoutExtensions(pageSnapshot, fieldSnapshot);
-
   try {
+    rejectForbiddenLayoutExtensions(pageSnapshot, fieldSnapshot);
     final StoredMeta meta = await store.saveTemplateVersion(request);
     final String? latestVersionId = meta.latestRevisionId;
     final bool verified =

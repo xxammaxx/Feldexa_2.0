@@ -173,6 +173,19 @@ void main() {
     );
     expect(saved.latestRevisionId, isNot(derived.meta!.latestRevisionId));
 
+    // Per-aggregate ownership (storage-format.md §3.3), asserted on
+    // identities, not only bytes: template and derived document each own a
+    // staged source distinct from the import-staged original and from each
+    // other.
+    final String templateSourceId = backend.template(template.id)!.source.id;
+    final String documentSourceId = backend
+        .document(derived.meta!.id)!
+        .source
+        .id;
+    expect(templateSourceId, isNot(source.id));
+    expect(documentSourceId, isNot(source.id));
+    expect(documentSourceId, isNot(templateSourceId));
+
     // Explicit deletion of the template aggregate only.
     await store.delete(
       StoreKind.template,
@@ -197,6 +210,26 @@ void main() {
     // The derived document's own source copy opens with the original bytes
     // even with every other source object removed.
     expect(reloaded.sourceBytes, fixtureBytes);
+    // Deleting the template removed exactly its own source copy: the copy id
+    // is gone, the derived document's copy and (until explicitly removed)
+    // the import-staged original remain staged.
+    expect(backend.stagedSource(templateSourceId), isNull);
+    expect(backend.stagedSource(documentSourceId), isNotNull);
+    expect(backend.stagedSource(source.id), isNotNull);
+    expect(backend.removeSourceIfUnreferenced(source.id), isTrue);
+    expect(backend.stagedSource(source.id), isNull);
+    // The copy carries the real page geometry: analysis of a copied source
+    // does not fall over a placeholder page (the raster adapter reads
+    // source.pages; a 1x1 placeholder would fail the display-box checks).
+    final SimulatedPageRasterAdapter raster = SimulatedPageRasterAdapter(
+      backend: backend,
+    );
+    final PageGeometry copiedGeometry = await raster.pageDimensions(
+      documentSourceId,
+      0,
+    );
+    expect(copiedGeometry.displaySize.width, 595);
+    expect(copiedGeometry.displaySize.height, 842);
     // The document list still shows exactly the derived document.
     final List<StoredMeta> documents = await store.list(StoreKind.document);
     expect(documents, hasLength(1));

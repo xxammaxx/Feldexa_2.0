@@ -683,6 +683,19 @@ void main() {
       ),
     );
 
+    final String templateSourceId = world.backend
+        .template(created.id)!
+        .source
+        .id;
+    // Discriminating ownership: the template owns its own source identity,
+    // distinct from the import-staged original and from the document's.
+    expect(templateSourceId, isNot(imported.sourceId));
+    expect(
+      templateSourceId,
+      isNot(world.backend.document(saved.documentId)!.source.id),
+    );
+    expect(world.backend.stagedSource(templateSourceId), isNotNull);
+
     final String documentTitle = world.backend
         .document(saved.documentId)!
         .title;
@@ -691,9 +704,10 @@ void main() {
       saved.documentId,
       DeleteConfirmation(title: documentTitle, acknowledged: true),
     );
-    // The template owns a private source copy, so it stays fully readable
-    // even though the document aggregate and the import-staged source are
-    // gone.
+    // Deleting the document removed exactly its own copy; the template's
+    // private copy is untouched and keeps it fully readable even though
+    // the import-staged original is gone.
+    expect(world.backend.stagedSource(templateSourceId), isNotNull);
     final LoadedTemplate loaded = await world.storeAdapter.loadTemplate(
       created.id,
     );
@@ -709,6 +723,36 @@ void main() {
     // source survives any aggregate.
     expect(world.backend.stagedSources, isEmpty);
   });
+
+  test(
+    'combined content + source bytes are capacity-checked together (§3.3)',
+    () async {
+      final world = await SimulatedTestWorld.create();
+      final imported = await world.importFixture('sf-004');
+      // The source copy alone would fit; only content + copy together
+      // exceed the cap, so the combined check must block the creation.
+      world.backend.maxTotalBytes = world.backend.totalBytes + 400;
+      await expectLater(
+        world.storeAdapter.createTemplate(
+          CreateTemplateRequest(
+            title: 'Zu grosse Vorlage',
+            source: world.sourceRefFor(imported),
+            pages: <Page>[Page(index: 0, geometry: imported.pages.first)],
+            fieldOrder: const <String>[],
+          ),
+        ),
+        throwsA(isA<StorageFullException>()),
+      );
+      // No partial aggregate and no leaked source copy.
+      expect(world.backend.templates, isEmpty);
+      expect(
+        world.backend.stagedSources.keys.where(
+          (String id) => id != imported.sourceId,
+        ),
+        isEmpty,
+      );
+    },
+  );
 
   test(
     'deleting a shared template leaves the document source intact',

@@ -242,15 +242,50 @@ void main() {
       fields: <ConfirmedField>[smuggler],
       fieldOrder: <String>[smuggler.id],
     );
-    await expectLater(
-      createTemplateFromDocument(
-        store: store,
-        title: 'Unsauber',
-        source: _source(backend, _fixture()),
-        content: content,
-      ),
-      throwsArgumentError,
+    // Data-integrity failure, not programmer error: the sheet reports it
+    // through the regular SAVE-003 failure path.
+    final CreateTemplateResult result = await createTemplateFromDocument(
+      store: store,
+      title: 'Unsauber',
+      source: _source(backend, _fixture()),
+      content: content,
     );
+    expect(result.isSuccess, isFalse);
+    expect(result.errorCode, 'SAVE-003');
+    expect(result.meta, isNull);
+    expect(backend.templates, isEmpty);
+  });
+
+  test('a forbidden extension on a nested modeled object fails closed '
+      '(FR-057, SC-013)', () async {
+    final SimulatedBackend backend = SimulatedBackend(
+      context: SimulatedAdapterContext(),
+    );
+    final SimulatedSecureStoreAdapter store = SimulatedSecureStoreAdapter(
+      backend: backend,
+    );
+    // The smuggled key sits on the nested PageGeometry, not on the page.
+    final Page riggedPage = Page(
+      index: 0,
+      geometry: PageGeometry(
+        mediaBox: Rect.fromLTWH(0, 0, 595, 842),
+        unknownFields: const <String, Object?>{
+          'signatures': <String, Object?>{'smuggled': true},
+        },
+      ),
+    );
+    final RevisionContent content = RevisionContent(
+      pages: <Page>[riggedPage],
+      fieldOrder: const <String>[],
+    );
+    final CreateTemplateResult result = await createTemplateFromDocument(
+      store: store,
+      title: 'Verschachtelt',
+      source: _source(backend, _fixture()),
+      content: content,
+    );
+    expect(result.isSuccess, isFalse);
+    expect(result.errorCode, 'SAVE-003');
     expect(backend.templates, isEmpty);
   });
 

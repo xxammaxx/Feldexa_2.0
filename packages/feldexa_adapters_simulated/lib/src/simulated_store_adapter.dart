@@ -228,6 +228,10 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
         ownerKind: StoreKind.document,
         ownerId: request.documentId,
         original: source,
+        pages: request.initialRevision.content.pages
+            .map((Page page) => page.geometry)
+            .toList(),
+        extraCommittedBytes: canonicalBytes.length,
       ),
       head: revision.id,
       lastDurableAt: now,
@@ -466,6 +470,8 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
         ownerKind: StoreKind.template,
         ownerId: templateId,
         original: source,
+        pages: request.pages.map((Page page) => page.geometry).toList(),
+        extraCommittedBytes: canonicalBytes.length,
       ),
       head: versionId,
       versions: <String, SimulatedTemplateVersionRecord>{
@@ -700,14 +706,19 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
     required StoreKind ownerKind,
     required String ownerId,
     required SourceFileRef original,
+    required List<PageGeometry> pages,
+    int extraCommittedBytes = 0,
   }) {
+    // Combined capacity: the aggregate's committed bytes plus its own source
+    // copy must jointly fit, so content + source can never exceed the store
+    // cap one check at a time.
     final Uint8List bytes = _verifiedSourceBytes(original);
-    _checkCapacity(bytes.length);
+    _checkCapacity(bytes.length + extraCommittedBytes);
     final SimulatedStagedSource copy = backend.stageSourceBytes(
       sourceId: backend.context.newId(),
       fixtureId: '${ownerKind.name}-$ownerId',
       bytes: bytes,
-      pageCount: original.pageCount,
+      pages: pages,
     );
     return SourceFileRef(
       id: copy.sourceId,

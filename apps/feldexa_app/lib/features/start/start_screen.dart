@@ -376,9 +376,6 @@ class _StartScreenState extends State<StartScreen> {
     }
     await _reloadStoredItems();
     if (!mounted) {
-      setState(() {
-        _openingStored = false;
-      });
       return;
     }
     setState(() {
