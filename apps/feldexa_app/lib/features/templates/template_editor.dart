@@ -136,6 +136,18 @@ class _TemplateEditorViewState extends State<TemplateEditorView> {
   core.Rect? _dragStartRect;
   Offset? _dragStartGlobal;
 
+  /// Live drag-preview rectangles per field id; cleared when the caller
+  /// delivers a rebuilt field list.
+  final Map<String, core.Rect> _previews = <String, core.Rect>{};
+
+  @override
+  void didUpdateWidget(TemplateEditorView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(widget.fields, oldWidget.fields)) {
+      _previews.clear();
+    }
+  }
+
   double get _scale => _pageWidth / _displaySize.width;
 
   core.PageGeometry get _currentGeometry =>
@@ -199,7 +211,9 @@ class _TemplateEditorViewState extends State<TemplateEditorView> {
   }
 
   Widget _layoutField(TemplateEditorField field, AppLocalizations l10n) {
-    final core.Rect rect = field.rect;
+    // Live preview: the displayed rectangle follows the drag immediately;
+    // the caller-owned field list is only reported on drag end.
+    final core.Rect rect = _previews[field.id] ?? field.rect;
     return Positioned(
       left: rect.left * _scale,
       top: rect.top * _scale,
@@ -223,6 +237,9 @@ class _TemplateEditorViewState extends State<TemplateEditorView> {
             startRect.width,
             startRect.height,
           );
+          setState(() {
+            _previews[field.id] = _dragStartRect!;
+          });
         },
         onPanEnd: (DragEndDetails details) {
           final core.Rect? moved = _dragStartRect;

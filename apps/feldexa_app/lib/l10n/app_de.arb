@@ -1049,10 +1049,6 @@
   "@createTemplateFailed": {
     "description": "T115 FR-106 pattern: content-free failure notice; no optimistic success."
   },
-  "useTemplateAction": "Vorlage verwenden",
-  "@useTemplateAction": {
-    "description": "T117 FR-059: explicit action that creates a new independent document from a template."
-  },
   "useTemplateSheetTitle": "Dokument aus Vorlage erstellen",
   "@useTemplateSheetTitle": {
     "description": "T117: title of the use-template sheet."
@@ -1064,10 +1060,6 @@
   "useTemplateConfirm": "Dokument erstellen",
   "@useTemplateConfirm": {
     "description": "T117: confirm action of the use-template sheet."
-  },
-  "useTemplateSuccess": "Dokument erstellt.",
-  "@useTemplateSuccess": {
-    "description": "T117: content-free success notice after a verified document creation from a template."
   },
   "useTemplateFailed": "Das Erstellen des Dokuments ist fehlgeschlagen. Es wurde kein Dokument erstellt.",
   "@useTemplateFailed": {

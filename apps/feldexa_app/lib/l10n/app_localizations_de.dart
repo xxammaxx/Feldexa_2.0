@@ -790,9 +790,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Das Speichern der Vorlage ist fehlgeschlagen. Die Vorlage wurde nicht gespeichert.';
 
   @override
-  String get useTemplateAction => 'Vorlage verwenden';
-
-  @override
   String get useTemplateSheetTitle => 'Dokument aus Vorlage erstellen';
 
   @override
@@ -801,9 +798,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get useTemplateConfirm => 'Dokument erstellen';
-
-  @override
-  String get useTemplateSuccess => 'Dokument erstellt.';
 
   @override
   String get useTemplateFailed =>

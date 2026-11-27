@@ -31,6 +31,7 @@ import '../../l10n/app_localizations.dart';
 const String useTemplateSheetKey = 'use-template-sheet';
 const String useTemplateConfirmKey = 'use-template-confirm';
 const String useTemplateCancelKey = 'use-template-cancel';
+const String useTemplateStatusKey = 'use-template-status';
 
 /// Shows the German "Vorlage verwenden" sheet for one template.
 ///
@@ -50,6 +51,7 @@ Future<versions.UseTemplateResult?> showUseTemplateSheet(
     builder: (BuildContext dialogContext) {
       final AppLocalizations dialogL10n = AppLocalizations.of(dialogContext);
       bool busy = false;
+      bool failed = false;
       return StatefulBuilder(
         builder: (BuildContext sheetContext, StateSetter setSheetState) {
           Future<void> confirm() async {
@@ -58,16 +60,21 @@ Future<versions.UseTemplateResult?> showUseTemplateSheet(
             }
             setSheetState(() {
               busy = true;
+              failed = false;
             });
             final versions.UseTemplateResult result = await onCreate();
-            if (result.isSuccess) {
-              if (sheetContext.mounted) {
-                Navigator.of(sheetContext).pop(result);
-              }
+            if (!sheetContext.mounted) {
               return;
             }
+            if (result.isSuccess) {
+              Navigator.of(sheetContext).pop(result);
+              return;
+            }
+            // Content-free failure notice (FR-106 pattern): no optimistic
+            // success, no document opened.
             setSheetState(() {
               busy = false;
+              failed = true;
             });
           }
 
@@ -83,6 +90,11 @@ Future<versions.UseTemplateResult?> showUseTemplateSheet(
                 Text(dialogL10n.templateEditorVersionLabel(versionNumber)),
                 const SizedBox(height: 8),
                 Text(dialogL10n.useTemplateNotice),
+                if (failed)
+                  Text(
+                    dialogL10n.useTemplateFailed,
+                    key: const ValueKey<String>(useTemplateStatusKey),
+                  ),
               ],
             ),
             actions: <Widget>[

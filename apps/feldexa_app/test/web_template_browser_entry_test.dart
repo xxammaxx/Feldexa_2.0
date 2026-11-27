@@ -90,11 +90,12 @@ void main() {
       find.byKey(const ValueKey<String>('create-template-pending')),
       findsOneWidget,
     );
-    await tester.tap(
+    // Real assertion: confirm has no callback while the structure is
+    // unreviewed, so no creation path can be triggered.
+    final TextButton confirm = tester.widget<TextButton>(
       find.byKey(const ValueKey<String>(createTemplateConfirmKey)),
-      warnIfMissed: false,
     );
-    await tester.pump();
+    expect(confirm.onPressed, isNull);
     expect(tester.takeException(), isNull);
   });
 

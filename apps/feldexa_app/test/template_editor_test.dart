@@ -102,17 +102,15 @@ void main() {
   testWidgets('the version-save action stays disabled by default (FR-103)', (
     WidgetTester tester,
   ) async {
-    var saveCalls = 0;
     await tester.pumpWidget(
       _host(_editor(onLayoutChange: (_) {}, saveVersionEnabled: false)),
     );
-    await tester.tap(
+    // Real assertion: the save action's onPressed is null, so no save path
+    // can be triggered at all.
+    final IconButton button = tester.widget<IconButton>(
       find.byKey(const ValueKey<String>(templateEditorSaveVersionKey)),
-      warnIfMissed: false,
     );
-    await tester.pump();
-    expect(saveCalls, 0);
-    expect(tester.takeException(), isNull);
+    expect(button.onPressed, isNull);
   });
 
   testWidgets('a completed drag reports exactly one layout change (FR-101)', (

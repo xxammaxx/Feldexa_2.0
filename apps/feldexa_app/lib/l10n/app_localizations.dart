@@ -1344,12 +1344,6 @@ abstract class AppLocalizations {
   /// **'Das Speichern der Vorlage ist fehlgeschlagen. Die Vorlage wurde nicht gespeichert.'**
   String get createTemplateFailed;
 
-  /// T117 FR-059: explicit action that creates a new independent document from a template.
-  ///
-  /// In de, this message translates to:
-  /// **'Vorlage verwenden'**
-  String get useTemplateAction;
-
   /// T117: title of the use-template sheet.
   ///
   /// In de, this message translates to:
@@ -1367,12 +1361,6 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Dokument erstellen'**
   String get useTemplateConfirm;
-
-  /// T117: content-free success notice after a verified document creation from a template.
-  ///
-  /// In de, this message translates to:
-  /// **'Dokument erstellt.'**
-  String get useTemplateSuccess;
 
   /// T117 FR-106 pattern: content-free failure notice; no optimistic success.
   ///

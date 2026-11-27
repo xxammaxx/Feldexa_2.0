@@ -302,45 +302,88 @@ class _StartScreenState extends State<StartScreen> {
   /// aggregate is never mutated (FR-060); the derived document pins the
   /// loaded version (FR-104) with empty values and copied source pages
   /// (FR-059). Success is verified by the T117 use case before the editor
-  /// opens; the list is refreshed on return.
+  /// opens; the list is refreshed BEFORE the editor route so
+  /// `_openStoredDocument` finds the new entry, and the runtime created for
+  /// ids/clock is disposed when nothing is navigated.
   Future<void> _useStoredTemplate(String templateId) async {
     final ImportRuntime? runtime = _runtime;
     final SecureStorePort? store = runtime?.store;
     if (runtime == null || store == null || _openingStored) {
       return;
     }
+    if (templateId.trim().isEmpty) {
+      // Programmer-error guard before any store call; no content is echoed.
+      return;
+    }
+    setState(() {
+      _openingStored = true;
+      _failure = null;
+    });
+    EditorRuntime? created;
+    Future<void> reset() async {
+      await created?.dispose();
+      created = null;
+      if (mounted) {
+        setState(() {
+          _openingStored = false;
+        });
+      }
+    }
+
     final LoadedTemplate loaded;
     try {
       loaded = await store.loadTemplate(templateId);
     } catch (_) {
       // Content-free: an unreadable template keeps its list entry and opens
       // nothing; the failure carries no template content.
+      await reset();
       return;
     }
     if (!mounted) {
+      await reset();
       return;
     }
     final versions.UseTemplateResult? result = await showUseTemplateSheet(
       context,
       templateTitle: loaded.template.meta.title,
       versionNumber: loaded.template.meta.latestVersion.versionNumber,
-      onCreate: () {
-        final EditorRuntime editorRuntime = runtime.createEditorRuntime();
+      onCreate: () async {
+        // One runtime per creation attempt; a superseded one is disposed
+        // before the next attempt and never leaked on the failure path.
+        await created?.dispose();
+        created = runtime.createEditorRuntime();
         return versions.useTemplate(
           store: store,
           templateId: templateId,
-          documentId: editorRuntime.ids.newId(),
-          initialRevisionId: editorRuntime.ids.newId(),
+          documentId: created!.ids.newId(),
+          initialRevisionId: created!.ids.newId(),
           initialKind: core.RevisionKind.explicit,
           title: loaded.template.meta.title,
-          createdAt: editorRuntime.clock.nowUtc().toUtc(),
+          createdAt: created!.clock.nowUtc().toUtc(),
           source: loaded.template.meta.source,
         );
       },
     );
-    if (result == null || !result.isSuccess || !mounted) {
+    await created?.dispose();
+    created = null;
+    if (result == null || !result.isSuccess) {
+      await reset();
       return;
     }
+    if (!mounted) {
+      await reset();
+      return;
+    }
+    await _reloadStoredItems();
+    if (!mounted) {
+      setState(() {
+        _openingStored = false;
+      });
+      return;
+    }
+    setState(() {
+      _openingStored = false;
+    });
     await _openStoredDocument(result.meta!.id);
   }
 
