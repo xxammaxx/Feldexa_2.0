@@ -1,219 +1,219 @@
-00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart
-00:00 +0: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
-00:00 +1: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
-00:00 +2: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
-00:00 +3: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
-00:00 +4: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
-00:00 +5: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
-00:00 +6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
-00:00 +7: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
-00:00 +8: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
-00:00 +9: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
-00:00 +10: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
-00:01 +11: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart: page descriptors derive display size and rotation from geometry
-00:01 +12: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart: page rotation propagates into the envelope
-00:01 +13: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart: a duplicate page index is rejected before analysis
-00:01 +14: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart: an empty page yields a complete envelope with no suggestions
-00:01 +15: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart: an OCR block without lines contributes its block text
-00:01 +16: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart: two cues of one family count once in cueAgreement
-00:01 +17: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/analyze_document_test.dart: suggestion ids and order are deterministic
-00:01 +18: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:01 +19: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:01 +20: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:01 +21: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:01 +22: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:01 +23: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:01 +24: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:01 +25: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:01 +26: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:01 +27: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:01 +28: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:01 +29: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:01 +30: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:01 +31: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:01 +32: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:01 +33: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:01 +34: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:01 +35: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:01 +36: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:02 +37: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:02 +38: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:02 +39: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:02 +40: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:02 +41: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:02 +42: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:02 +43: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
-00:02 +44: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: debounces a mark and saves exactly once at two seconds
-00:02 +45: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: uses the production 2 s default when debounce is omitted
-00:02 +46: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: restarts the debounce timer on every mark and saves once
-00:02 +47: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: flush saves immediately, cancels the timer, and reports saving
-00:03 +48: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: explicit flush saves with no pending change; plain flush is a no-op
-00:03 +49: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: lifecycle pause, inactive, and detach flush; resume does not
-00:03 +50: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: inactive then paused with one pending change saves once
-00:03 +51: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: changes during a save coalesce into one follow-up snapshot
-00:03 +52: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: EditCommandKind exposes the exact §3.14 wire names in order
-00:03 +53: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: EditCommandKind exposes the exact §3.14 wire names in order
-00:03 +54: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: a storage failure preserves the head until an explicit recovery
-00:03 +55: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: EditCommandKind classifies field-scoped and coalescable kinds
-00:03 +56: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: a failed clean explicit save keeps no pending change
-00:03 +57: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: a failed clean explicit save keeps no pending change
-00:03 +58: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: EditCommand accepts suggestion-resolution commands without a field id
-00:03 +59: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: uses initialHead then the latest id and reads content at save time
-00:03 +60: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: EditCommand requires a field id for every field-scoped kind
-00:03 +61: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: markDirty during an in-flight save keeps the saving status
-00:03 +62: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: markDirty during an in-flight save keeps the saving status
-00:03 +63: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: markDirty during an in-flight save keeps the saving status
-00:03 +64: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: EditCommand rejects a non-UTC timestamp content-free
-00:03 +65: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: dispose cancels the timer and lifecycle and blocks later saves
-00:03 +66: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: dispose cancels the timer and lifecycle and blocks later saves
-00:03 +67: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: CommandHistory bounds an empty history cannot undo or redo
-00:03 +68: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/autosave_test.dart: dispose completes an outstanding flush false and starts no follow-up
-00:03 +69: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: CommandHistory bounds the 101st command drops the oldest entry
-00:03 +70: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: CommandHistory ordering record, undo, and redo preserve exact order and snapshots
-00:03 +71: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: CommandHistory ordering a new record clears the redo branch
-00:03 +72: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: CommandHistory ordering undo and redo interleave without losing order
-00:03 +73: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing coalesces the same kind and field at 499 ms
-00:03 +74: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing coalesces at the inclusive 500 ms boundary
-00:03 +75: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing coalesces equal timestamps at the lower bound
-00:03 +76: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing does not coalesce at 501 ms
-00:03 +77: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing setValue coalesces as typing for the same field
-00:03 +78: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing does not coalesce different fields or different kinds
-00:03 +79: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing non-coalescable kinds never merge
-00:03 +80: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing merged is true only on the coalesced entry
-00:03 +81: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: CommandHistory validation and immutability rejects an older timestamp content-free
-00:03 +82: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: CommandHistory validation and immutability accepts an equal timestamp on a non-coalescable kind
-00:03 +83: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: CommandHistory validation and immutability stored snapshots are never mutated
-00:03 +84: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/command_history_test.dart: CommandHistory validation and immutability identical command sequences produce identical histories
-00:03 +85: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion creates one machine field and copies provenance, page, rect, type, confidence, label, order, and timestamps
-00:04 +86: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion preserves pages, unrelated fields, values, verification, template origin, and content unknown fields
-00:04 +87: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion a missing suggestion is suggestionNotFound
-00:04 +88: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion a rejected or already confirmed suggestion is wrongState
-00:04 +89: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion an unresolved suggestion with an existing machine field is unrepresentable in the core aggregate
-00:04 +90: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion a duplicateOfConfirmed suggestion is duplicateNotConfirmable
-00:04 +91: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion an invalid field id is invalidInput
-00:04 +92: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion an invalid label is invalidInput
-00:04 +93: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion a non-UTC timestamp is invalidInput
-00:04 +94: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion a field id already used by a confirmed field is invalidInput
-00:04 +95: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: rejectSuggestion rejects without changing any confirmed field or other content
-00:04 +96: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: rejectSuggestion rejecting a flagged duplicate is allowed and creates no field
-00:04 +97: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: rejectSuggestion wrong states and missing suggestions fail closed
-00:04 +98: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoRejection restores unresolved without touching fields or other content
-00:04 +99: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoRejection wrong states and missing suggestions fail closed
-00:04 +100: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation removes the untouched generated field and renumbers the remaining fields contiguously in fieldOrder sequence
-00:04 +101: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation removing the last field keeps the remaining order unchanged
-00:04 +102: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation an expected field id that is absent is fieldNotFound
-00:04 +103: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation an expected field that exists but is not the linked machine field is fieldTouched
-00:04 +104: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a changed label is fieldTouched and leaves content unchanged
-00:04 +105: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a changed type is fieldTouched
-00:04 +106: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a changed rect is fieldTouched
-00:04 +107: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a changed order is fieldTouched
-00:04 +108: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a changed timestamp is fieldTouched
-00:04 +109: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a top-level unknownFields-only change is fieldTouched and leaves content unchanged
-00:04 +110: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a nested unknownFields-only change is fieldTouched and leaves content unchanged
-00:04 +111: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation an identical snapshot including unknown fields undoes and round-trips
-00:04 +112: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation an attached value is fieldTouched and leaves content unchanged
-00:04 +113: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation an attached verification entry is fieldTouched
-00:04 +114: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation an attached signature value and mark are fieldTouched
-00:04 +115: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation missing suggestions and wrong states fail closed
-00:04 +116: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation clears a duplicate flag that loses its supporting machine field
-00:04 +117: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: cross-cutting guarantees every successful command leaves its input unchanged
-00:04 +118: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: cross-cutting guarantees commands are deterministic for identical inputs
-00:04 +119: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: cross-cutting guarantees every success returns content accepted by the core aggregate
-00:04 +120: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: cross-cutting guarantees every error message is content-free
-00:04 +121: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/confirm_suggestion_test.dart: cross-cutting guarantees the command library has no I/O, clock, or id-randomness path
-00:16 +122: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/create_template_from_document_test.dart: templateStructureReadiness requires resolved suggestions
-00:18 +123: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/create_template_from_document_test.dart: templateStructureReadiness requires reviewed user-added fields
-00:18 +124: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/create_template_from_document_test.dart: template-provenance fields never block a derived document from being saved as a template again (FR-055)
-00:18 +125: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/create_template_from_document_test.dart: a forbidden unknownFields extension fails closed before any store call (FR-057, SC-013)
-00:18 +126: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/create_template_from_document_test.dart: a forbidden extension on a nested modeled object fails closed (FR-057, SC-013)
-00:18 +127: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/create_template_from_document_test.dart: creating a template from a filled document stores pages and field definitions without values or signatures (FR-055–FR-057)
-00:18 +128: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: addField appends a user field with exact geometry, order, timestamps, and no suggestion linkage
-00:18 +129: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: addField appends a user field with exact geometry, order, timestamps, and no suggestion linkage
-00:18 +130: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: addField appends a user field with exact geometry, order, timestamps, and no suggestion linkage
-00:18 +131: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: addField accepts an exact edge-touching rect on another page without rounding
-00:18 +132: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: addField rejects invalid ids and treats an existing id as wrongState
-00:18 +133: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: addField rejects empty, oversized, and control-character labels
-00:18 +134: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: addField rejects a non-UTC timestamp
-00:18 +135: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: addField rejects a missing page and every out-of-page rect
-00:18 +136: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: removeField removes a user field, its value and verification, and renumbers the remaining fields contiguously
-00:18 +137: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: removeField removes a signature field with its value, mark, and verification
-00:18 +138: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: removeField rejects a removed machine field suggestion and clears the now unsupported duplicate flag
-00:18 +139: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: removeField removing the last field empties fields and keyed data
-00:18 +140: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: removeField a missing field fails closed without changing the input
-00:18 +141: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: moveField and resizeField move stores the exact rect, updates updatedAt, and preserves all other field content
-00:18 +142: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: moveField and resizeField resize has the same preservation rules and the resized kind
-00:18 +143: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: moveField and resizeField out-of-page rects and a missing field fail closed
-00:18 +144: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: moveField and resizeField a non-UTC timestamp is invalidInput for both commands
-00:18 +145: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: moveField and resizeField moving a machine field recomputes a stale duplicate flag
-00:18 +146: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField text to multiline preserves text, metadata, and unknown fields
-00:18 +147: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField multiline to text without line breaks stores plain text
-00:18 +148: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField multiline to text joins line breaks only with the explicit flag
-00:18 +149: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField multiline to text without the flag preserves the line breaks as flagged incompatible content
-00:18 +150: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField text to number parses the German decimal and keeps rawGerman
-00:18 +151: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField text to number failure preserves the exact text with NUM-001
-00:18 +152: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField text to date parses German and stores the canonical date
-00:18 +153: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField text to date distinguishes malformed DATE-001 and impossible DATE-002 while preserving the text
-00:18 +154: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField number to text stores the canonical textual form and clears the incompatibility error
-00:18 +155: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField date to text stores the canonical textual form and clears the error
-00:18 +156: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField text, number, date, and multiline to checkbox preserve prior textual content with the incompatible warning
-00:18 +157: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField text to signature preserves content with the warning and creates no signature mark
-00:18 +158: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField checkbox to text preserves checked/unchecked as the Ja/Nein projection
-00:18 +159: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField checkbox to number/date preserves Ja/Nein without numeric or date inference
-00:18 +160: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField checkbox to multiline follows the same Ja/Nein projection
-00:18 +161: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField signature to text clears the value exactly like core and removes the signature mark
-00:18 +162: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField signature to number/date clears the value and mark exactly like core
-00:18 +163: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField number, date, and multiline to signature preserve prior content with the warning and create no signature mark
-00:18 +164: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField same-type reclassification fails with noChange and leaves the input unchanged
-00:18 +165: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField a misplaced join flag, missing field, and non-UTC timestamp fail closed
-00:18 +166: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField a machine field keeps its suggestion linkage, and a type change clears a stale duplicate flag
-00:18 +167: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: reclassifyField reclassifying preserved content back to text clears the error and keeps the original text
-00:18 +168: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees every command leaves its input unchanged
-00:18 +169: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees commands are deterministic for identical inputs
-00:18 +170: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees move and reclassify receipts restore the previous revision exactly
-00:18 +171: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees every representative success is accepted by the core aggregate and round-trips canonically
-00:18 +172: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees add, move, and resize share the geometry boundary that rejects NaN, infinity, zero, and negative components with stable content-free codes
-00:18 +173: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees machine-field move receipts snapshot the complete previous suggestions for exact undo
-00:18 +174: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees every error message is content-free
-00:18 +175: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees the command library has no I/O, clock, or id-randomness path
-00:19 +176: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/raster_page_stage_runner_test.dart: the stage work runs on a worker isolate
-00:19 +177: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/raster_page_stage_runner_test.dart: a stalled worker ends at the deadline without partial suggestions
-00:19 +178: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/raster_page_stage_test.dart: the stage analyses with the documented default ink threshold
-00:19 +179: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/raster_page_stage_test.dart: one stage message owns the caller buffer instead of copying it
-00:19 +180: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/raster_page_stage_test.dart: the keyword/type bonus follows the shared keyword→type truth
-00:20 +181: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/raster_page_stage_test.dart: the keyword/type bonus follows the shared keyword→type truth
-00:20 +182: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/raster_page_stage_test.dart: the keyword/type bonus follows the shared keyword→type truth
-00:20 +183: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/raster_page_stage_test.dart: the keyword/type bonus follows the shared keyword→type truth
-00:20 +184: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/raster_page_stage_test.dart: the keyword/type bonus follows the shared keyword→type truth
-00:20 +185: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/save_document_test.dart: passes through StorageWriteException as SAVE-003
-00:20 +186: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/raster_page_stage_test.dart: value-fit admission (issue #340) a glyph-counter box interior is not offered as a field
-00:20 +187: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/raster_page_stage_test.dart: value-fit admission (issue #340) a glyph-counter box interior is not offered as a field
-00:20 +188: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/raster_page_stage_test.dart: value-fit admission (issue #340) a glyph-counter box interior is not offered as a field
-00:20 +189: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/raster_page_stage_test.dart: value-fit admission (issue #340) a glyph-counter box interior is not offered as a field
-00:20 +190: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/raster_page_stage_test.dart: value-fit admission (issue #340) a glyph-counter box interior is not offered as a field
-00:20 +191: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/raster_page_stage_test.dart: value-fit admission (issue #340) a glyph-counter box interior is not offered as a field
-00:20 +192: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/raster_page_stage_test.dart: value-fit admission (issue #340) a glyph-counter box interior is not offered as a field
-00:20 +193: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/save_document_test.dart: rejects an invalid expected head before any save call
-00:20 +194: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/raster_page_stage_test.dart: value-fit admission (issue #340) a checkbox above the model minimum is still offered
-00:20 +195: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/raster_page_stage_test.dart: value-fit admission (issue #340) a checkbox above the model minimum is still offered
-00:20 +196: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/set_value_test.dart
-00:21 +196: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/set_value_test.dart: text stores its matching value and preserves the rest
-00:21 +197: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/set_value_test.dart: number stores its matching value and preserves the rest
-00:21 +198: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/set_value_test.dart: date stores its matching value and preserves the rest
-00:21 +199: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/set_value_test.dart: checkbox stores its matching value and preserves the rest
-00:21 +200: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/set_value_test.dart: multiline stores its matching value and preserves the rest
-00:21 +201: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/set_value_test.dart: signature stores its matching value and preserves the rest
-00:21 +202: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/set_value_test.dart: rejects a value whose concrete type does not match the field
-00:21 +203: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/set_value_test.dart: a compatible text replacement clears the incompatible-content warning
-00:21 +204: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/set_value_test.dart: a compatible number replacement clears a blocking parse error
-00:21 +205: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/set_value_test.dart: an incompatible replacement keeps the warning and mutates nothing
-00:21 +206: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/set_value_test.dart: rejects a missing field without echoing the id
-00:21 +207: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/set_value_test.dart: rejects a non-UTC edit instant
-00:21 +208: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/set_value_test.dart: keeps a long text untruncated
-00:21 +209: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/template_versions_test.dart: saving a template change appends a new immutable version
-00:21 +210: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/template_versions_test.dart: using a template creates an independent document with empty values and the pinned version (FR-059, FR-104)
-00:21 +211: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/template_versions_test.dart: a document created from version 1 keeps its pinned layout across a template change (FR-104), while a new document uses the latest version (FR-105)
-00:21 +212: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/template_versions_test.dart: deleting the template leaves the derived document loadable and intact (FR-060, FR-099)
-00:21 +213: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/template_versions_test.dart: a version save with a stale expected head fails and reports no success (FR-106 pattern)
-00:21 +214: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/template_versions_test.dart: a use of a missing template reports the load failure code without creating a document
-00:21 +215: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_application/test/template_versions_test.dart: a non-UTC timestamp is a programmer error before any port call
+00:00 +0: loading <workspace>/packages/feldexa_application/test/analyze_document_test.dart
+00:00 +0: <workspace>/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
+00:00 +1: <workspace>/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
+00:00 +2: <workspace>/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
+00:00 +3: <workspace>/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
+00:00 +4: <workspace>/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
+00:00 +5: <workspace>/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
+00:00 +6: <workspace>/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
+00:00 +7: <workspace>/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
+00:00 +8: <workspace>/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
+00:00 +9: <workspace>/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
+00:00 +10: <workspace>/packages/feldexa_application/test/analyze_document_test.dart: an underline page with a Betrag label yields one typed suggestion
+00:01 +11: <workspace>/packages/feldexa_application/test/analyze_document_test.dart: page descriptors derive display size and rotation from geometry
+00:01 +12: <workspace>/packages/feldexa_application/test/analyze_document_test.dart: page rotation propagates into the envelope
+00:01 +13: <workspace>/packages/feldexa_application/test/analyze_document_test.dart: a duplicate page index is rejected before analysis
+00:01 +14: <workspace>/packages/feldexa_application/test/analyze_document_test.dart: an empty page yields a complete envelope with no suggestions
+00:01 +15: <workspace>/packages/feldexa_application/test/analyze_document_test.dart: an OCR block without lines contributes its block text
+00:01 +16: <workspace>/packages/feldexa_application/test/analyze_document_test.dart: two cues of one family count once in cueAgreement
+00:01 +17: <workspace>/packages/feldexa_application/test/analyze_document_test.dart: suggestion ids and order are deterministic
+00:01 +18: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:01 +19: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:01 +20: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:01 +21: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:01 +22: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:01 +23: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:01 +24: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:01 +25: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:01 +26: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:01 +27: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:01 +28: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:01 +29: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:01 +30: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:01 +31: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:01 +32: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:01 +33: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:01 +34: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:01 +35: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:01 +36: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:02 +37: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:02 +38: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:02 +39: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:02 +40: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:02 +41: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:02 +42: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:02 +43: <workspace>/packages/feldexa_application/test/autosave_test.dart: pins the initial state for a missing and an existing head
+00:02 +44: <workspace>/packages/feldexa_application/test/autosave_test.dart: debounces a mark and saves exactly once at two seconds
+00:02 +45: <workspace>/packages/feldexa_application/test/autosave_test.dart: uses the production 2 s default when debounce is omitted
+00:02 +46: <workspace>/packages/feldexa_application/test/autosave_test.dart: restarts the debounce timer on every mark and saves once
+00:02 +47: <workspace>/packages/feldexa_application/test/autosave_test.dart: flush saves immediately, cancels the timer, and reports saving
+00:03 +48: <workspace>/packages/feldexa_application/test/autosave_test.dart: explicit flush saves with no pending change; plain flush is a no-op
+00:03 +49: <workspace>/packages/feldexa_application/test/autosave_test.dart: lifecycle pause, inactive, and detach flush; resume does not
+00:03 +50: <workspace>/packages/feldexa_application/test/autosave_test.dart: inactive then paused with one pending change saves once
+00:03 +51: <workspace>/packages/feldexa_application/test/autosave_test.dart: changes during a save coalesce into one follow-up snapshot
+00:03 +52: <workspace>/packages/feldexa_application/test/command_history_test.dart: EditCommandKind exposes the exact §3.14 wire names in order
+00:03 +53: <workspace>/packages/feldexa_application/test/command_history_test.dart: EditCommandKind exposes the exact §3.14 wire names in order
+00:03 +54: <workspace>/packages/feldexa_application/test/autosave_test.dart: a storage failure preserves the head until an explicit recovery
+00:03 +55: <workspace>/packages/feldexa_application/test/command_history_test.dart: EditCommandKind classifies field-scoped and coalescable kinds
+00:03 +56: <workspace>/packages/feldexa_application/test/autosave_test.dart: a failed clean explicit save keeps no pending change
+00:03 +57: <workspace>/packages/feldexa_application/test/autosave_test.dart: a failed clean explicit save keeps no pending change
+00:03 +58: <workspace>/packages/feldexa_application/test/command_history_test.dart: EditCommand accepts suggestion-resolution commands without a field id
+00:03 +59: <workspace>/packages/feldexa_application/test/autosave_test.dart: uses initialHead then the latest id and reads content at save time
+00:03 +60: <workspace>/packages/feldexa_application/test/command_history_test.dart: EditCommand requires a field id for every field-scoped kind
+00:03 +61: <workspace>/packages/feldexa_application/test/autosave_test.dart: markDirty during an in-flight save keeps the saving status
+00:03 +62: <workspace>/packages/feldexa_application/test/autosave_test.dart: markDirty during an in-flight save keeps the saving status
+00:03 +63: <workspace>/packages/feldexa_application/test/autosave_test.dart: markDirty during an in-flight save keeps the saving status
+00:03 +64: <workspace>/packages/feldexa_application/test/command_history_test.dart: EditCommand rejects a non-UTC timestamp content-free
+00:03 +65: <workspace>/packages/feldexa_application/test/autosave_test.dart: dispose cancels the timer and lifecycle and blocks later saves
+00:03 +66: <workspace>/packages/feldexa_application/test/autosave_test.dart: dispose cancels the timer and lifecycle and blocks later saves
+00:03 +67: <workspace>/packages/feldexa_application/test/command_history_test.dart: CommandHistory bounds an empty history cannot undo or redo
+00:03 +68: <workspace>/packages/feldexa_application/test/autosave_test.dart: dispose completes an outstanding flush false and starts no follow-up
+00:03 +69: <workspace>/packages/feldexa_application/test/command_history_test.dart: CommandHistory bounds the 101st command drops the oldest entry
+00:03 +70: <workspace>/packages/feldexa_application/test/command_history_test.dart: CommandHistory ordering record, undo, and redo preserve exact order and snapshots
+00:03 +71: <workspace>/packages/feldexa_application/test/command_history_test.dart: CommandHistory ordering a new record clears the redo branch
+00:03 +72: <workspace>/packages/feldexa_application/test/command_history_test.dart: CommandHistory ordering undo and redo interleave without losing order
+00:03 +73: <workspace>/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing coalesces the same kind and field at 499 ms
+00:03 +74: <workspace>/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing coalesces at the inclusive 500 ms boundary
+00:03 +75: <workspace>/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing coalesces equal timestamps at the lower bound
+00:03 +76: <workspace>/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing does not coalesce at 501 ms
+00:03 +77: <workspace>/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing setValue coalesces as typing for the same field
+00:03 +78: <workspace>/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing does not coalesce different fields or different kinds
+00:03 +79: <workspace>/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing non-coalescable kinds never merge
+00:03 +80: <workspace>/packages/feldexa_application/test/command_history_test.dart: CommandHistory coalescing merged is true only on the coalesced entry
+00:03 +81: <workspace>/packages/feldexa_application/test/command_history_test.dart: CommandHistory validation and immutability rejects an older timestamp content-free
+00:03 +82: <workspace>/packages/feldexa_application/test/command_history_test.dart: CommandHistory validation and immutability accepts an equal timestamp on a non-coalescable kind
+00:03 +83: <workspace>/packages/feldexa_application/test/command_history_test.dart: CommandHistory validation and immutability stored snapshots are never mutated
+00:03 +84: <workspace>/packages/feldexa_application/test/command_history_test.dart: CommandHistory validation and immutability identical command sequences produce identical histories
+00:03 +85: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion creates one machine field and copies provenance, page, rect, type, confidence, label, order, and timestamps
+00:04 +86: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion preserves pages, unrelated fields, values, verification, template origin, and content unknown fields
+00:04 +87: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion a missing suggestion is suggestionNotFound
+00:04 +88: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion a rejected or already confirmed suggestion is wrongState
+00:04 +89: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion an unresolved suggestion with an existing machine field is unrepresentable in the core aggregate
+00:04 +90: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion a duplicateOfConfirmed suggestion is duplicateNotConfirmable
+00:04 +91: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion an invalid field id is invalidInput
+00:04 +92: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion an invalid label is invalidInput
+00:04 +93: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion a non-UTC timestamp is invalidInput
+00:04 +94: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: confirmSuggestion a field id already used by a confirmed field is invalidInput
+00:04 +95: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: rejectSuggestion rejects without changing any confirmed field or other content
+00:04 +96: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: rejectSuggestion rejecting a flagged duplicate is allowed and creates no field
+00:04 +97: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: rejectSuggestion wrong states and missing suggestions fail closed
+00:04 +98: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoRejection restores unresolved without touching fields or other content
+00:04 +99: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoRejection wrong states and missing suggestions fail closed
+00:04 +100: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation removes the untouched generated field and renumbers the remaining fields contiguously in fieldOrder sequence
+00:04 +101: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation removing the last field keeps the remaining order unchanged
+00:04 +102: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation an expected field id that is absent is fieldNotFound
+00:04 +103: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation an expected field that exists but is not the linked machine field is fieldTouched
+00:04 +104: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a changed label is fieldTouched and leaves content unchanged
+00:04 +105: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a changed type is fieldTouched
+00:04 +106: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a changed rect is fieldTouched
+00:04 +107: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a changed order is fieldTouched
+00:04 +108: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a changed timestamp is fieldTouched
+00:04 +109: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a top-level unknownFields-only change is fieldTouched and leaves content unchanged
+00:04 +110: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation a nested unknownFields-only change is fieldTouched and leaves content unchanged
+00:04 +111: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation an identical snapshot including unknown fields undoes and round-trips
+00:04 +112: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation an attached value is fieldTouched and leaves content unchanged
+00:04 +113: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation an attached verification entry is fieldTouched
+00:04 +114: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation an attached signature value and mark are fieldTouched
+00:04 +115: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation missing suggestions and wrong states fail closed
+00:04 +116: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: undoConfirmation clears a duplicate flag that loses its supporting machine field
+00:04 +117: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: cross-cutting guarantees every successful command leaves its input unchanged
+00:04 +118: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: cross-cutting guarantees commands are deterministic for identical inputs
+00:04 +119: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: cross-cutting guarantees every success returns content accepted by the core aggregate
+00:04 +120: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: cross-cutting guarantees every error message is content-free
+00:04 +121: <workspace>/packages/feldexa_application/test/confirm_suggestion_test.dart: cross-cutting guarantees the command library has no I/O, clock, or id-randomness path
+00:16 +122: <workspace>/packages/feldexa_application/test/create_template_from_document_test.dart: templateStructureReadiness requires resolved suggestions
+00:18 +123: <workspace>/packages/feldexa_application/test/create_template_from_document_test.dart: templateStructureReadiness requires reviewed user-added fields
+00:18 +124: <workspace>/packages/feldexa_application/test/create_template_from_document_test.dart: template-provenance fields never block a derived document from being saved as a template again (FR-055)
+00:18 +125: <workspace>/packages/feldexa_application/test/create_template_from_document_test.dart: a forbidden unknownFields extension fails closed before any store call (FR-057, SC-013)
+00:18 +126: <workspace>/packages/feldexa_application/test/create_template_from_document_test.dart: a forbidden extension on a nested modeled object fails closed (FR-057, SC-013)
+00:18 +127: <workspace>/packages/feldexa_application/test/create_template_from_document_test.dart: creating a template from a filled document stores pages and field definitions without values or signatures (FR-055–FR-057)
+00:18 +128: <workspace>/packages/feldexa_application/test/edit_field_test.dart: addField appends a user field with exact geometry, order, timestamps, and no suggestion linkage
+00:18 +129: <workspace>/packages/feldexa_application/test/edit_field_test.dart: addField appends a user field with exact geometry, order, timestamps, and no suggestion linkage
+00:18 +130: <workspace>/packages/feldexa_application/test/edit_field_test.dart: addField appends a user field with exact geometry, order, timestamps, and no suggestion linkage
+00:18 +131: <workspace>/packages/feldexa_application/test/edit_field_test.dart: addField accepts an exact edge-touching rect on another page without rounding
+00:18 +132: <workspace>/packages/feldexa_application/test/edit_field_test.dart: addField rejects invalid ids and treats an existing id as wrongState
+00:18 +133: <workspace>/packages/feldexa_application/test/edit_field_test.dart: addField rejects empty, oversized, and control-character labels
+00:18 +134: <workspace>/packages/feldexa_application/test/edit_field_test.dart: addField rejects a non-UTC timestamp
+00:18 +135: <workspace>/packages/feldexa_application/test/edit_field_test.dart: addField rejects a missing page and every out-of-page rect
+00:18 +136: <workspace>/packages/feldexa_application/test/edit_field_test.dart: removeField removes a user field, its value and verification, and renumbers the remaining fields contiguously
+00:18 +137: <workspace>/packages/feldexa_application/test/edit_field_test.dart: removeField removes a signature field with its value, mark, and verification
+00:18 +138: <workspace>/packages/feldexa_application/test/edit_field_test.dart: removeField rejects a removed machine field suggestion and clears the now unsupported duplicate flag
+00:18 +139: <workspace>/packages/feldexa_application/test/edit_field_test.dart: removeField removing the last field empties fields and keyed data
+00:18 +140: <workspace>/packages/feldexa_application/test/edit_field_test.dart: removeField a missing field fails closed without changing the input
+00:18 +141: <workspace>/packages/feldexa_application/test/edit_field_test.dart: moveField and resizeField move stores the exact rect, updates updatedAt, and preserves all other field content
+00:18 +142: <workspace>/packages/feldexa_application/test/edit_field_test.dart: moveField and resizeField resize has the same preservation rules and the resized kind
+00:18 +143: <workspace>/packages/feldexa_application/test/edit_field_test.dart: moveField and resizeField out-of-page rects and a missing field fail closed
+00:18 +144: <workspace>/packages/feldexa_application/test/edit_field_test.dart: moveField and resizeField a non-UTC timestamp is invalidInput for both commands
+00:18 +145: <workspace>/packages/feldexa_application/test/edit_field_test.dart: moveField and resizeField moving a machine field recomputes a stale duplicate flag
+00:18 +146: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField text to multiline preserves text, metadata, and unknown fields
+00:18 +147: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField multiline to text without line breaks stores plain text
+00:18 +148: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField multiline to text joins line breaks only with the explicit flag
+00:18 +149: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField multiline to text without the flag preserves the line breaks as flagged incompatible content
+00:18 +150: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField text to number parses the German decimal and keeps rawGerman
+00:18 +151: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField text to number failure preserves the exact text with NUM-001
+00:18 +152: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField text to date parses German and stores the canonical date
+00:18 +153: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField text to date distinguishes malformed DATE-001 and impossible DATE-002 while preserving the text
+00:18 +154: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField number to text stores the canonical textual form and clears the incompatibility error
+00:18 +155: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField date to text stores the canonical textual form and clears the error
+00:18 +156: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField text, number, date, and multiline to checkbox preserve prior textual content with the incompatible warning
+00:18 +157: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField text to signature preserves content with the warning and creates no signature mark
+00:18 +158: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField checkbox to text preserves checked/unchecked as the Ja/Nein projection
+00:18 +159: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField checkbox to number/date preserves Ja/Nein without numeric or date inference
+00:18 +160: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField checkbox to multiline follows the same Ja/Nein projection
+00:18 +161: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField signature to text clears the value exactly like core and removes the signature mark
+00:18 +162: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField signature to number/date clears the value and mark exactly like core
+00:18 +163: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField number, date, and multiline to signature preserve prior content with the warning and create no signature mark
+00:18 +164: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField same-type reclassification fails with noChange and leaves the input unchanged
+00:18 +165: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField a misplaced join flag, missing field, and non-UTC timestamp fail closed
+00:18 +166: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField a machine field keeps its suggestion linkage, and a type change clears a stale duplicate flag
+00:18 +167: <workspace>/packages/feldexa_application/test/edit_field_test.dart: reclassifyField reclassifying preserved content back to text clears the error and keeps the original text
+00:18 +168: <workspace>/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees every command leaves its input unchanged
+00:18 +169: <workspace>/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees commands are deterministic for identical inputs
+00:18 +170: <workspace>/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees move and reclassify receipts restore the previous revision exactly
+00:18 +171: <workspace>/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees every representative success is accepted by the core aggregate and round-trips canonically
+00:18 +172: <workspace>/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees add, move, and resize share the geometry boundary that rejects NaN, infinity, zero, and negative components with stable content-free codes
+00:18 +173: <workspace>/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees machine-field move receipts snapshot the complete previous suggestions for exact undo
+00:18 +174: <workspace>/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees every error message is content-free
+00:18 +175: <workspace>/packages/feldexa_application/test/edit_field_test.dart: cross-cutting guarantees the command library has no I/O, clock, or id-randomness path
+00:19 +176: <workspace>/packages/feldexa_application/test/raster_page_stage_runner_test.dart: the stage work runs on a worker isolate
+00:19 +177: <workspace>/packages/feldexa_application/test/raster_page_stage_runner_test.dart: a stalled worker ends at the deadline without partial suggestions
+00:19 +178: <workspace>/packages/feldexa_application/test/raster_page_stage_test.dart: the stage analyses with the documented default ink threshold
+00:19 +179: <workspace>/packages/feldexa_application/test/raster_page_stage_test.dart: one stage message owns the caller buffer instead of copying it
+00:19 +180: <workspace>/packages/feldexa_application/test/raster_page_stage_test.dart: the keyword/type bonus follows the shared keyword→type truth
+00:20 +181: <workspace>/packages/feldexa_application/test/raster_page_stage_test.dart: the keyword/type bonus follows the shared keyword→type truth
+00:20 +182: <workspace>/packages/feldexa_application/test/raster_page_stage_test.dart: the keyword/type bonus follows the shared keyword→type truth
+00:20 +183: <workspace>/packages/feldexa_application/test/raster_page_stage_test.dart: the keyword/type bonus follows the shared keyword→type truth
+00:20 +184: <workspace>/packages/feldexa_application/test/raster_page_stage_test.dart: the keyword/type bonus follows the shared keyword→type truth
+00:20 +185: <workspace>/packages/feldexa_application/test/save_document_test.dart: passes through StorageWriteException as SAVE-003
+00:20 +186: <workspace>/packages/feldexa_application/test/raster_page_stage_test.dart: value-fit admission (issue #340) a glyph-counter box interior is not offered as a field
+00:20 +187: <workspace>/packages/feldexa_application/test/raster_page_stage_test.dart: value-fit admission (issue #340) a glyph-counter box interior is not offered as a field
+00:20 +188: <workspace>/packages/feldexa_application/test/raster_page_stage_test.dart: value-fit admission (issue #340) a glyph-counter box interior is not offered as a field
+00:20 +189: <workspace>/packages/feldexa_application/test/raster_page_stage_test.dart: value-fit admission (issue #340) a glyph-counter box interior is not offered as a field
+00:20 +190: <workspace>/packages/feldexa_application/test/raster_page_stage_test.dart: value-fit admission (issue #340) a glyph-counter box interior is not offered as a field
+00:20 +191: <workspace>/packages/feldexa_application/test/raster_page_stage_test.dart: value-fit admission (issue #340) a glyph-counter box interior is not offered as a field
+00:20 +192: <workspace>/packages/feldexa_application/test/raster_page_stage_test.dart: value-fit admission (issue #340) a glyph-counter box interior is not offered as a field
+00:20 +193: <workspace>/packages/feldexa_application/test/save_document_test.dart: rejects an invalid expected head before any save call
+00:20 +194: <workspace>/packages/feldexa_application/test/raster_page_stage_test.dart: value-fit admission (issue #340) a checkbox above the model minimum is still offered
+00:20 +195: <workspace>/packages/feldexa_application/test/raster_page_stage_test.dart: value-fit admission (issue #340) a checkbox above the model minimum is still offered
+00:20 +196: loading <workspace>/packages/feldexa_application/test/set_value_test.dart
+00:21 +196: <workspace>/packages/feldexa_application/test/set_value_test.dart: text stores its matching value and preserves the rest
+00:21 +197: <workspace>/packages/feldexa_application/test/set_value_test.dart: number stores its matching value and preserves the rest
+00:21 +198: <workspace>/packages/feldexa_application/test/set_value_test.dart: date stores its matching value and preserves the rest
+00:21 +199: <workspace>/packages/feldexa_application/test/set_value_test.dart: checkbox stores its matching value and preserves the rest
+00:21 +200: <workspace>/packages/feldexa_application/test/set_value_test.dart: multiline stores its matching value and preserves the rest
+00:21 +201: <workspace>/packages/feldexa_application/test/set_value_test.dart: signature stores its matching value and preserves the rest
+00:21 +202: <workspace>/packages/feldexa_application/test/set_value_test.dart: rejects a value whose concrete type does not match the field
+00:21 +203: <workspace>/packages/feldexa_application/test/set_value_test.dart: a compatible text replacement clears the incompatible-content warning
+00:21 +204: <workspace>/packages/feldexa_application/test/set_value_test.dart: a compatible number replacement clears a blocking parse error
+00:21 +205: <workspace>/packages/feldexa_application/test/set_value_test.dart: an incompatible replacement keeps the warning and mutates nothing
+00:21 +206: <workspace>/packages/feldexa_application/test/set_value_test.dart: rejects a missing field without echoing the id
+00:21 +207: <workspace>/packages/feldexa_application/test/set_value_test.dart: rejects a non-UTC edit instant
+00:21 +208: <workspace>/packages/feldexa_application/test/set_value_test.dart: keeps a long text untruncated
+00:21 +209: <workspace>/packages/feldexa_application/test/template_versions_test.dart: saving a template change appends a new immutable version
+00:21 +210: <workspace>/packages/feldexa_application/test/template_versions_test.dart: using a template creates an independent document with empty values and the pinned version (FR-059, FR-104)
+00:21 +211: <workspace>/packages/feldexa_application/test/template_versions_test.dart: a document created from version 1 keeps its pinned layout across a template change (FR-104), while a new document uses the latest version (FR-105)
+00:21 +212: <workspace>/packages/feldexa_application/test/template_versions_test.dart: deleting the template leaves the derived document loadable and intact (FR-060, FR-099)
+00:21 +213: <workspace>/packages/feldexa_application/test/template_versions_test.dart: a version save with a stale expected head fails and reports no success (FR-106 pattern)
+00:21 +214: <workspace>/packages/feldexa_application/test/template_versions_test.dart: a use of a missing template reports the load failure code without creating a document
+00:21 +215: <workspace>/packages/feldexa_application/test/template_versions_test.dart: a non-UTC timestamp is a programmer error before any port call
 00:21 +216: All tests passed!

@@ -97,8 +97,11 @@ void main() {
     'signature',
   };
 
+  // Strip only simple `{name}` placeholders. ICU plural/select skeletons are
+  // deliberately not stripped: their branch texts (`=0{...}`, `one{...}`,
+  // `other{...}`) are user-visible German text and must be scanned too.
   String withoutPlaceholders(String value) =>
-      value.replaceAll(RegExp(r'\{[^}]*\}'), '');
+      value.replaceAll(RegExp(r'\{[A-Za-z_][A-Za-z0-9_]*\}'), '');
 
   test('release locale set is German-only', () {
     final List<String> arbFiles =

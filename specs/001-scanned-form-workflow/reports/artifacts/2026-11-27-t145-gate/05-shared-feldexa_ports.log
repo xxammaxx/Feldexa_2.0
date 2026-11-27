@@ -1,140 +1,140 @@
-00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/descriptor_test.dart
-00:00 +0: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/descriptor_test.dart: CapabilityKind matches the contract declaration order
-00:00 +1: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: ImportRequest defaults to the contract 80 MiB cap
-00:00 +2: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: ImportRequest defaults to the contract 80 MiB cap
-00:00 +3: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: ImportRequest defaults to the contract 80 MiB cap
-00:00 +4: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: ImportRequest defaults to the contract 80 MiB cap
-00:00 +5: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/descriptor_test.dart: CapabilityDescriptor rejects a simulated flag that disagrees with the evidence
-00:00 +6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: ImportRequest accepts a lower cap and rejects zero or a larger cap
-00:00 +7: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: ImportRequest accepts a lower cap and rejects zero or a larger cap
-00:00 +8: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: ImportRequest accepts a lower cap and rejects zero or a larger cap
-00:00 +9: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/descriptor_test.dart: CapabilityDescriptor rejects unsafe supported-feature tokens without echoing them
-00:00 +10: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: ImportedSource carries every contract field and the canonical geometry type
-00:00 +11: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: ImportedSource carries every contract field and the canonical geometry type
-00:00 +12: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: ImportedSource carries every contract field and the canonical geometry type
-00:00 +13: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/descriptor_test.dart: CapabilityDescriptor redacts the adapter id and features from toString
-00:00 +14: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: ImportedSource accepts partially readable sources with unique failed pages
-00:00 +15: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: ImportedSource accepts partially readable sources with unique failed pages
-00:00 +16: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: ImportedSource rejects an inconsistent page count and unsafe values
-00:00 +17: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: ImportedSource redacts the display name from toString
-00:00 +18: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: SourceIntegrity represents both readable and unreadable results
-00:00 +19: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: SourceIntegrity carries the capability evidence required by §1
-00:00 +20: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: SourceIntegrity rejects invalid hashes, counts, and out-of-range failures
-00:00 +21: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: RasterRequest and RasterImage uses the documented raster defaults and formats
-00:00 +22: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: RasterRequest and RasterImage rejects invalid raster requests
-00:00 +23: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: RasterRequest and RasterImage accepts RGBA and gray8 buffers with correct row coverage
-00:00 +24: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: RasterRequest and RasterImage rejects malformed raster buffers
-00:00 +25: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: OCR DTOs carries display-point rectangles and 0-1 confidence
-00:00 +26: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: OCR DTOs rejects confidence outside 0-1 without echoing text
-00:00 +27: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: OCR DTOs rejects invalid page indexes and language tags
-00:00 +28: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: OCR DTOs redacts OCR text from toString
-00:00 +29: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs StoreStatus validates capacity counts
-00:00 +30: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs StoredMeta carries the single port-level list read model
-00:00 +31: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs StoredMeta represents an unreadable entry honestly
-00:00 +32: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs StoredMeta rejects invalid ids, titles, and timestamps
-00:00 +33: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs LoadedDocument and LoadedTemplate use canonical types
-00:00 +34: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs CreateDocumentRequest validates and trims the title
-00:00 +35: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs SaveRevisionRequest carries a canonical RevisionContent
-00:00 +36: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs CreateTemplateRequest freezes snapshots and requires pages
-00:00 +37: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs SaveTemplateVersionRequest freezes snapshots
-00:00 +38: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs WriteSignatureRequest validates bytes and hash
-00:00 +39: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs DeleteConfirmation carries explicit acknowledgement
-00:00 +40: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs RecoveryStamp validates optional evidence fields
-00:00 +41: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Export DTOs ExportOptions defaults to mandated flatten and embedFonts
-00:00 +42: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Export DTOs rejects disabling mandatory flattening
-00:00 +43: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Export DTOs ExportRequest carries the canonical plan and options
-00:00 +44: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Export DTOs ExportResult carries the canonical artifact and evidence
-00:00 +45: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Export DTOs ExportValidationResult carries canonical validation and evidence
-00:00 +46: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Export DTOs ExportValidationResult preserves blocking warnings and evidence
-00:00 +47: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Delivery and lifecycle DTOs DeliveryOutcome reports cancellation without an error
-00:00 +48: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Delivery and lifecycle DTOs DeliveryOutcome rejects internal paths and URIs in the hint
-00:00 +49: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/dto_contract_test.dart: Delivery and lifecycle DTOs AppLifecycleSignal matches the contract order
-00:00 +50: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract rejects non-catalog codes without echoing them
-00:00 +51: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract rejects a path-bearing or spaced ARB key without echoing it
-00:00 +52: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract rejects German sentences, paths, and content in message safely
-00:00 +53: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract every contract exception carries its §11.1 ARB message key
-00:00 +54: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract a catalog row without a German message keeps the code as its key
-00:00 +55: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract toString is content-free and names the code and severity
-00:00 +56: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract declares exactly the four internal severity levels
-00:00 +57: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: Ports §3 exception table matches code, retryability, and severity for every row
-00:00 +58: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: Ports §3 exception table SAVE-008 distinguishes a temporary provider outage from a reset
-00:00 +59: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: Ports §3 exception table SAVE-003 keeps its two concrete causes distinct
-00:00 +60: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: ImportRejectionKind maps every kind to its catalog code and machine message
-00:00 +61: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: ImportRejectionKind rejected imports keep the fixed non-retryable contract row
-00:00 +62: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: ImportRejectionKind cancellation and full storage use their dedicated exceptions
-00:00 +63: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: ImportRejectionKind unsupported encryption is not reported as unknown reason
-00:00 +64: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: ImportRejectionKind over-limit files map to IMP-007
-00:00 +65: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: Typed payloads ExportBlockedException keeps a defensive read-only field list
-00:00 +66: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: Typed payloads ExportBlockedException accepts identifier-shaped boundary ids
-00:00 +67: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: Typed payloads ExportBlockedException rejects empty, duplicate, and unsafe ids
-00:01 +68: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/errors_test.dart: Typed payloads RenderException keeps a valid zero-based page index
-00:01 +69: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: EvidenceClass declares exactly the four contract classes in contract order
-00:01 +70: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: EvidenceClass uses the exact uppercase report tokens
-00:01 +71: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: EvidenceClass parses enum names and report tokens case-insensitively
-00:01 +72: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: EvidenceClass rejects unknown and empty tokens without echoing the input
-00:01 +73: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: EvidenceClass separates Android classes from SIMULATED and NONE
-00:01 +74: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: EvidenceClass every class has a non-empty description
-00:01 +75: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence derives simulated only for the simulated class
-00:01 +76: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence simulated named constructor keeps its reason
-00:01 +77: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence android named constructor declares no simulated evidence
-00:01 +78: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence non-simulated evidence may not carry a simulated reason
-00:01 +79: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence accepts the documented machine-token boundaries
-00:01 +80: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence rejects content-like or unsafe adapter ids without echoing them
-00:01 +81: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence rejects content-like or unsafe reasons without echoing them
-00:01 +82: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence every construction path applies runtime validation
-00:01 +83: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence redacts adapter id and reason from toString
-00:01 +84: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence value equality covers class, adapter, and reason
-00:01 +85: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: T129 structured logs and report fields (FR-087, catalog §9) the simulated log prefix is exactly the catalog token
-00:01 +86: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: T129 structured logs and report fields (FR-087, catalog §9) the simulated report field line is exactly the catalog token
-00:01 +87: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: T129 structured logs and report fields (FR-087, catalog §9) every class reports its own token; no class merges into another
-00:01 +88: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: T129 structured logs and report fields (FR-087, catalog §9) simulated evidence reports evidenceClass SIMULATED only
-00:01 +89: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/evidence_test.dart: T129 structured logs and report fields (FR-087, catalog §9) structured log lines carry the class prefix
-00:01 +90: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: ImportRequest invariants defaults to the 80 MiB cap and cannot exceed it
-00:01 +91: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: ImportRequest invariants toString carries no path or content
-00:01 +92: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: ImportedSource invariants exposes the documented verified-source shape
-00:01 +93: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: ImportedSource invariants rejects invalid ids, hashes, sizes, and page counts
-00:01 +94: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: ImportedSource invariants requires pages.length == pageCount
-00:01 +95: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: ImportedSource invariants page failures must name a unique page inside the source
-00:01 +96: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: ImportedSource invariants displayName is a trimmed file name, never a path
-00:01 +97: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: ImportedSource invariants toString omits the display name and source bytes
-00:01 +98: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: SourceIntegrity invariants records an unreadable source without inventing a hash
-00:01 +99: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: SourceIntegrity invariants rejects a bad hash, page count, or out-of-range failure
-00:01 +100: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: SourceIntegrity invariants toString is content-free
-00:01 +101: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: typed error taxonomy every ImportRejectionKind maps to its catalog code and machine key
-00:01 +102: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: typed error taxonomy rejections carry the §11.1 ARB message key, not the catalog code
-00:01 +103: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: typed error taxonomy cancelled and storageFull are not ImportRejectedException kinds
-00:01 +104: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: typed error taxonomy dedicated exceptions keep their codes, ARB keys, and retryability
-00:01 +105: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: typed error taxonomy a rejection is content-free
-00:01 +106: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: capability evidence vocabulary simulated evidence is structurally labelled SIMULATED
-00:01 +107: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: capability evidence vocabulary Android evidence declares NONE until the harness attaches a class
-00:01 +108: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: capability evidence vocabulary the simulated flag is derived and cannot be inconsistent
-00:01 +109: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: capability evidence vocabulary parses the four canonical report tokens
-00:01 +110: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: capability evidence vocabulary every acceptance-relevant port result requires evidence
-00:01 +111: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: port signatures and descriptor the port exposes exactly the documented method parameter types
-00:01 +112: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: port signatures and descriptor the import descriptor enforces a truthful evidence label
-00:01 +113: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/import_port_test.dart: port signatures and descriptor the port signature has no File, Uri, or widget parameter
-00:02 +114: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/ports_contract_test.dart: AdapterRegistry contract exposes one interface and descriptor per capability in order
-00:02 +115: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/ports_contract_test.dart: AdapterRegistry contract every port is a PlatformCapability with a matching descriptor
-00:02 +116: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/ports_contract_test.dart: AdapterRegistry contract reports a development registry with simulated capabilities
-00:02 +117: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values DocumentImportPort stages a verified source
-00:02 +118: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values PageRasterPort returns canonical geometry and pixels
-00:02 +119: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values OcrPort returns blocks with canonical rectangles
-00:02 +120: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values SecureStorePort reads, writes, lists, and recovers
-00:02 +121: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values PdfExportPort validates with evidence and exports the artifact
-00:02 +122: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values DeliveryPort reports a completed save
-00:02 +123: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values LifecyclePort emits the platform sequence
-00:02 +124: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values ClockPort and IdPort are deterministic seams
-00:02 +125: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values DiagnosticsPort records only scalar fields
-00:02 +126: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/ports_contract_test.dart: Port failures use the T014 typed exceptions cancellation throws ImportCancelledException, not null
-00:02 +127: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/ports_contract_test.dart: Port failures use the T014 typed exceptions a failed render throws RenderException
-00:02 +128: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/ports_contract_test.dart: Port failures use the T014 typed exceptions a full store throws StorageFullException
-00:02 +129: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/ports_contract_test.dart: Port failures use the T014 typed exceptions a failed export throws ExportFailedException
-00:02 +130: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/type_ownership_test.dart: the barrel re-exports the canonical T014 declarations exactly once
-00:02 +131: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/type_ownership_test.dart: port DTOs consume the canonical core and export types
-00:02 +132: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/type_ownership_test.dart: PdfExportPort.validate wraps canonical validation with evidence
-00:02 +133: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/type_ownership_test.dart: T013 files declare no canonical type owned by another task
-00:02 +134: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/type_ownership_test.dart: feldexa_ports has no Flutter, platform, or plugin import
-00:02 +135: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/type_ownership_test.dart: core and export never import feldexa_ports
-00:03 +136: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/type_ownership_test.dart: the barrel re-exports declarations only, not canonical models
-00:03 +137: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_ports/test/type_ownership_test.dart: every T013-owned file named by the task exists
+00:00 +0: loading <workspace>/packages/feldexa_ports/test/descriptor_test.dart
+00:00 +0: <workspace>/packages/feldexa_ports/test/descriptor_test.dart: CapabilityKind matches the contract declaration order
+00:00 +1: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: ImportRequest defaults to the contract 80 MiB cap
+00:00 +2: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: ImportRequest defaults to the contract 80 MiB cap
+00:00 +3: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: ImportRequest defaults to the contract 80 MiB cap
+00:00 +4: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: ImportRequest defaults to the contract 80 MiB cap
+00:00 +5: <workspace>/packages/feldexa_ports/test/descriptor_test.dart: CapabilityDescriptor rejects a simulated flag that disagrees with the evidence
+00:00 +6: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: ImportRequest accepts a lower cap and rejects zero or a larger cap
+00:00 +7: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: ImportRequest accepts a lower cap and rejects zero or a larger cap
+00:00 +8: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: ImportRequest accepts a lower cap and rejects zero or a larger cap
+00:00 +9: <workspace>/packages/feldexa_ports/test/descriptor_test.dart: CapabilityDescriptor rejects unsafe supported-feature tokens without echoing them
+00:00 +10: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: ImportedSource carries every contract field and the canonical geometry type
+00:00 +11: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: ImportedSource carries every contract field and the canonical geometry type
+00:00 +12: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: ImportedSource carries every contract field and the canonical geometry type
+00:00 +13: <workspace>/packages/feldexa_ports/test/descriptor_test.dart: CapabilityDescriptor redacts the adapter id and features from toString
+00:00 +14: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: ImportedSource accepts partially readable sources with unique failed pages
+00:00 +15: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: ImportedSource accepts partially readable sources with unique failed pages
+00:00 +16: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: ImportedSource rejects an inconsistent page count and unsafe values
+00:00 +17: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: ImportedSource redacts the display name from toString
+00:00 +18: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: SourceIntegrity represents both readable and unreadable results
+00:00 +19: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: SourceIntegrity carries the capability evidence required by §1
+00:00 +20: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: SourceIntegrity rejects invalid hashes, counts, and out-of-range failures
+00:00 +21: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: RasterRequest and RasterImage uses the documented raster defaults and formats
+00:00 +22: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: RasterRequest and RasterImage rejects invalid raster requests
+00:00 +23: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: RasterRequest and RasterImage accepts RGBA and gray8 buffers with correct row coverage
+00:00 +24: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: RasterRequest and RasterImage rejects malformed raster buffers
+00:00 +25: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: OCR DTOs carries display-point rectangles and 0-1 confidence
+00:00 +26: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: OCR DTOs rejects confidence outside 0-1 without echoing text
+00:00 +27: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: OCR DTOs rejects invalid page indexes and language tags
+00:00 +28: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: OCR DTOs redacts OCR text from toString
+00:00 +29: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs StoreStatus validates capacity counts
+00:00 +30: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs StoredMeta carries the single port-level list read model
+00:00 +31: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs StoredMeta represents an unreadable entry honestly
+00:00 +32: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs StoredMeta rejects invalid ids, titles, and timestamps
+00:00 +33: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs LoadedDocument and LoadedTemplate use canonical types
+00:00 +34: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs CreateDocumentRequest validates and trims the title
+00:00 +35: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs SaveRevisionRequest carries a canonical RevisionContent
+00:00 +36: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs CreateTemplateRequest freezes snapshots and requires pages
+00:00 +37: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs SaveTemplateVersionRequest freezes snapshots
+00:00 +38: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs WriteSignatureRequest validates bytes and hash
+00:00 +39: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs DeleteConfirmation carries explicit acknowledgement
+00:00 +40: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Store DTOs RecoveryStamp validates optional evidence fields
+00:00 +41: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Export DTOs ExportOptions defaults to mandated flatten and embedFonts
+00:00 +42: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Export DTOs rejects disabling mandatory flattening
+00:00 +43: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Export DTOs ExportRequest carries the canonical plan and options
+00:00 +44: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Export DTOs ExportResult carries the canonical artifact and evidence
+00:00 +45: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Export DTOs ExportValidationResult carries canonical validation and evidence
+00:00 +46: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Export DTOs ExportValidationResult preserves blocking warnings and evidence
+00:00 +47: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Delivery and lifecycle DTOs DeliveryOutcome reports cancellation without an error
+00:00 +48: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Delivery and lifecycle DTOs DeliveryOutcome rejects internal paths and URIs in the hint
+00:00 +49: <workspace>/packages/feldexa_ports/test/dto_contract_test.dart: Delivery and lifecycle DTOs AppLifecycleSignal matches the contract order
+00:00 +50: <workspace>/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract rejects non-catalog codes without echoing them
+00:00 +51: <workspace>/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract rejects a path-bearing or spaced ARB key without echoing it
+00:00 +52: <workspace>/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract rejects German sentences, paths, and content in message safely
+00:00 +53: <workspace>/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract every contract exception carries its §11.1 ARB message key
+00:00 +54: <workspace>/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract a catalog row without a German message keeps the code as its key
+00:00 +55: <workspace>/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract toString is content-free and names the code and severity
+00:00 +56: <workspace>/packages/feldexa_ports/test/errors_test.dart: FeldexaException base contract declares exactly the four internal severity levels
+00:00 +57: <workspace>/packages/feldexa_ports/test/errors_test.dart: Ports §3 exception table matches code, retryability, and severity for every row
+00:00 +58: <workspace>/packages/feldexa_ports/test/errors_test.dart: Ports §3 exception table SAVE-008 distinguishes a temporary provider outage from a reset
+00:00 +59: <workspace>/packages/feldexa_ports/test/errors_test.dart: Ports §3 exception table SAVE-003 keeps its two concrete causes distinct
+00:00 +60: <workspace>/packages/feldexa_ports/test/errors_test.dart: ImportRejectionKind maps every kind to its catalog code and machine message
+00:00 +61: <workspace>/packages/feldexa_ports/test/errors_test.dart: ImportRejectionKind rejected imports keep the fixed non-retryable contract row
+00:00 +62: <workspace>/packages/feldexa_ports/test/errors_test.dart: ImportRejectionKind cancellation and full storage use their dedicated exceptions
+00:00 +63: <workspace>/packages/feldexa_ports/test/errors_test.dart: ImportRejectionKind unsupported encryption is not reported as unknown reason
+00:00 +64: <workspace>/packages/feldexa_ports/test/errors_test.dart: ImportRejectionKind over-limit files map to IMP-007
+00:00 +65: <workspace>/packages/feldexa_ports/test/errors_test.dart: Typed payloads ExportBlockedException keeps a defensive read-only field list
+00:00 +66: <workspace>/packages/feldexa_ports/test/errors_test.dart: Typed payloads ExportBlockedException accepts identifier-shaped boundary ids
+00:00 +67: <workspace>/packages/feldexa_ports/test/errors_test.dart: Typed payloads ExportBlockedException rejects empty, duplicate, and unsafe ids
+00:01 +68: <workspace>/packages/feldexa_ports/test/errors_test.dart: Typed payloads RenderException keeps a valid zero-based page index
+00:01 +69: <workspace>/packages/feldexa_ports/test/evidence_test.dart: EvidenceClass declares exactly the four contract classes in contract order
+00:01 +70: <workspace>/packages/feldexa_ports/test/evidence_test.dart: EvidenceClass uses the exact uppercase report tokens
+00:01 +71: <workspace>/packages/feldexa_ports/test/evidence_test.dart: EvidenceClass parses enum names and report tokens case-insensitively
+00:01 +72: <workspace>/packages/feldexa_ports/test/evidence_test.dart: EvidenceClass rejects unknown and empty tokens without echoing the input
+00:01 +73: <workspace>/packages/feldexa_ports/test/evidence_test.dart: EvidenceClass separates Android classes from SIMULATED and NONE
+00:01 +74: <workspace>/packages/feldexa_ports/test/evidence_test.dart: EvidenceClass every class has a non-empty description
+00:01 +75: <workspace>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence derives simulated only for the simulated class
+00:01 +76: <workspace>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence simulated named constructor keeps its reason
+00:01 +77: <workspace>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence android named constructor declares no simulated evidence
+00:01 +78: <workspace>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence non-simulated evidence may not carry a simulated reason
+00:01 +79: <workspace>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence accepts the documented machine-token boundaries
+00:01 +80: <workspace>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence rejects content-like or unsafe adapter ids without echoing them
+00:01 +81: <workspace>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence rejects content-like or unsafe reasons without echoing them
+00:01 +82: <workspace>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence every construction path applies runtime validation
+00:01 +83: <workspace>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence redacts adapter id and reason from toString
+00:01 +84: <workspace>/packages/feldexa_ports/test/evidence_test.dart: CapabilityEvidence value equality covers class, adapter, and reason
+00:01 +85: <workspace>/packages/feldexa_ports/test/evidence_test.dart: T129 structured logs and report fields (FR-087, catalog §9) the simulated log prefix is exactly the catalog token
+00:01 +86: <workspace>/packages/feldexa_ports/test/evidence_test.dart: T129 structured logs and report fields (FR-087, catalog §9) the simulated report field line is exactly the catalog token
+00:01 +87: <workspace>/packages/feldexa_ports/test/evidence_test.dart: T129 structured logs and report fields (FR-087, catalog §9) every class reports its own token; no class merges into another
+00:01 +88: <workspace>/packages/feldexa_ports/test/evidence_test.dart: T129 structured logs and report fields (FR-087, catalog §9) simulated evidence reports evidenceClass SIMULATED only
+00:01 +89: <workspace>/packages/feldexa_ports/test/evidence_test.dart: T129 structured logs and report fields (FR-087, catalog §9) structured log lines carry the class prefix
+00:01 +90: <workspace>/packages/feldexa_ports/test/import_port_test.dart: ImportRequest invariants defaults to the 80 MiB cap and cannot exceed it
+00:01 +91: <workspace>/packages/feldexa_ports/test/import_port_test.dart: ImportRequest invariants toString carries no path or content
+00:01 +92: <workspace>/packages/feldexa_ports/test/import_port_test.dart: ImportedSource invariants exposes the documented verified-source shape
+00:01 +93: <workspace>/packages/feldexa_ports/test/import_port_test.dart: ImportedSource invariants rejects invalid ids, hashes, sizes, and page counts
+00:01 +94: <workspace>/packages/feldexa_ports/test/import_port_test.dart: ImportedSource invariants requires pages.length == pageCount
+00:01 +95: <workspace>/packages/feldexa_ports/test/import_port_test.dart: ImportedSource invariants page failures must name a unique page inside the source
+00:01 +96: <workspace>/packages/feldexa_ports/test/import_port_test.dart: ImportedSource invariants displayName is a trimmed file name, never a path
+00:01 +97: <workspace>/packages/feldexa_ports/test/import_port_test.dart: ImportedSource invariants toString omits the display name and source bytes
+00:01 +98: <workspace>/packages/feldexa_ports/test/import_port_test.dart: SourceIntegrity invariants records an unreadable source without inventing a hash
+00:01 +99: <workspace>/packages/feldexa_ports/test/import_port_test.dart: SourceIntegrity invariants rejects a bad hash, page count, or out-of-range failure
+00:01 +100: <workspace>/packages/feldexa_ports/test/import_port_test.dart: SourceIntegrity invariants toString is content-free
+00:01 +101: <workspace>/packages/feldexa_ports/test/import_port_test.dart: typed error taxonomy every ImportRejectionKind maps to its catalog code and machine key
+00:01 +102: <workspace>/packages/feldexa_ports/test/import_port_test.dart: typed error taxonomy rejections carry the §11.1 ARB message key, not the catalog code
+00:01 +103: <workspace>/packages/feldexa_ports/test/import_port_test.dart: typed error taxonomy cancelled and storageFull are not ImportRejectedException kinds
+00:01 +104: <workspace>/packages/feldexa_ports/test/import_port_test.dart: typed error taxonomy dedicated exceptions keep their codes, ARB keys, and retryability
+00:01 +105: <workspace>/packages/feldexa_ports/test/import_port_test.dart: typed error taxonomy a rejection is content-free
+00:01 +106: <workspace>/packages/feldexa_ports/test/import_port_test.dart: capability evidence vocabulary simulated evidence is structurally labelled SIMULATED
+00:01 +107: <workspace>/packages/feldexa_ports/test/import_port_test.dart: capability evidence vocabulary Android evidence declares NONE until the harness attaches a class
+00:01 +108: <workspace>/packages/feldexa_ports/test/import_port_test.dart: capability evidence vocabulary the simulated flag is derived and cannot be inconsistent
+00:01 +109: <workspace>/packages/feldexa_ports/test/import_port_test.dart: capability evidence vocabulary parses the four canonical report tokens
+00:01 +110: <workspace>/packages/feldexa_ports/test/import_port_test.dart: capability evidence vocabulary every acceptance-relevant port result requires evidence
+00:01 +111: <workspace>/packages/feldexa_ports/test/import_port_test.dart: port signatures and descriptor the port exposes exactly the documented method parameter types
+00:01 +112: <workspace>/packages/feldexa_ports/test/import_port_test.dart: port signatures and descriptor the import descriptor enforces a truthful evidence label
+00:01 +113: <workspace>/packages/feldexa_ports/test/import_port_test.dart: port signatures and descriptor the port signature has no File, Uri, or widget parameter
+00:02 +114: <workspace>/packages/feldexa_ports/test/ports_contract_test.dart: AdapterRegistry contract exposes one interface and descriptor per capability in order
+00:02 +115: <workspace>/packages/feldexa_ports/test/ports_contract_test.dart: AdapterRegistry contract every port is a PlatformCapability with a matching descriptor
+00:02 +116: <workspace>/packages/feldexa_ports/test/ports_contract_test.dart: AdapterRegistry contract reports a development registry with simulated capabilities
+00:02 +117: <workspace>/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values DocumentImportPort stages a verified source
+00:02 +118: <workspace>/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values PageRasterPort returns canonical geometry and pixels
+00:02 +119: <workspace>/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values OcrPort returns blocks with canonical rectangles
+00:02 +120: <workspace>/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values SecureStorePort reads, writes, lists, and recovers
+00:02 +121: <workspace>/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values PdfExportPort validates with evidence and exports the artifact
+00:02 +122: <workspace>/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values DeliveryPort reports a completed save
+00:02 +123: <workspace>/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values LifecyclePort emits the platform sequence
+00:02 +124: <workspace>/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values ClockPort and IdPort are deterministic seams
+00:02 +125: <workspace>/packages/feldexa_ports/test/ports_contract_test.dart: Port methods return contract values DiagnosticsPort records only scalar fields
+00:02 +126: <workspace>/packages/feldexa_ports/test/ports_contract_test.dart: Port failures use the T014 typed exceptions cancellation throws ImportCancelledException, not null
+00:02 +127: <workspace>/packages/feldexa_ports/test/ports_contract_test.dart: Port failures use the T014 typed exceptions a failed render throws RenderException
+00:02 +128: <workspace>/packages/feldexa_ports/test/ports_contract_test.dart: Port failures use the T014 typed exceptions a full store throws StorageFullException
+00:02 +129: <workspace>/packages/feldexa_ports/test/ports_contract_test.dart: Port failures use the T014 typed exceptions a failed export throws ExportFailedException
+00:02 +130: <workspace>/packages/feldexa_ports/test/type_ownership_test.dart: the barrel re-exports the canonical T014 declarations exactly once
+00:02 +131: <workspace>/packages/feldexa_ports/test/type_ownership_test.dart: port DTOs consume the canonical core and export types
+00:02 +132: <workspace>/packages/feldexa_ports/test/type_ownership_test.dart: PdfExportPort.validate wraps canonical validation with evidence
+00:02 +133: <workspace>/packages/feldexa_ports/test/type_ownership_test.dart: T013 files declare no canonical type owned by another task
+00:02 +134: <workspace>/packages/feldexa_ports/test/type_ownership_test.dart: feldexa_ports has no Flutter, platform, or plugin import
+00:02 +135: <workspace>/packages/feldexa_ports/test/type_ownership_test.dart: core and export never import feldexa_ports
+00:03 +136: <workspace>/packages/feldexa_ports/test/type_ownership_test.dart: the barrel re-exports declarations only, not canonical models
+00:03 +137: <workspace>/packages/feldexa_ports/test/type_ownership_test.dart: every T013-owned file named by the task exists
 00:03 +138: All tests passed!

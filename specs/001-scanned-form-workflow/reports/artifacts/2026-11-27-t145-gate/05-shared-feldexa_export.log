@@ -1,125 +1,125 @@
-00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_artifact_test.dart
-00:00 +0: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_artifact_test.dart: ArtifactVerification requires five passing checks and UTC time
-00:00 +1: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_artifact_test.dart: ArtifactVerification allChecksPassed is false when any single check fails
-00:00 +2: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine starts in validating and refuses every shortcut
-00:00 +3: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine advances validating -> rendering -> verifying -> succeeded -> deleted
-00:00 +4: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine failed is terminal and clears output
-00:00 +5: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine blocking is artifactless and cannot create an ExportArtifact
-00:00 +6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine rejects a verification argument outside verifying
-00:00 +7: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine succeed refuses an incomplete, premature, or malformed success
-00:00 +8: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine exposes the exact state wire tokens and rejects blocked
-00:00 +9: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact JSON round-trips every valid state and preserves unknown fields
-00:00 +10: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact JSON refuses optimistic or inconsistent restored records
-00:00 +11: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema serializes the §2 schema canonically and round-trips
-00:00 +12: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema serializes the §2 schema canonically and round-trips
-00:00 +13: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema serializes the §2 schema canonically and round-trips
-00:00 +14: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema serializes the §2 schema canonically and round-trips
-00:01 +15: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema derives display size and CTM from the page geometry
-00:01 +16: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema preserves unknown same-schema fields at every modeled level
-00:01 +17: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema rejects forbidden plan content at any depth
-00:01 +18: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema rejects invalid plan identity, evidence, and page metadata
-00:01 +19: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema rejects absolute and URI font asset paths
-00:01 +20: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema rejects mismatched CTM, display size, and pdfRect
-00:01 +21: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema rejects duplicate ops for one field
-00:01 +22: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules rejects overflowing, clipped, and malformed text ops
-00:01 +23: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules rejects text metrics that violate the §2.2 formula
-00:01 +24: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules rejects the stale §2 example baseline under the §2.2 formula
-00:01 +25: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules applies the text clamps before checking the formula
-00:01 +26: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules rejects checkbox metrics that violate the §2.2 formula
-00:01 +27: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules rejects mark values outside the normative clamps
-00:01 +28: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules rejects an unknown op discriminator and provenance token
-00:01 +29: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy rejects absolute paths and URIs in warnings
-00:01 +30: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy rejects device names and user identifiers in warnings
-00:01 +31: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy accepts safe warnings, labels, and relative text
-00:01 +32: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy rejects forbidden values in unknown fields and keeps safe ones
-00:01 +33: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy rejects private values in schema metadata strings
-00:01 +34: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy rejects forbidden values in nested geometry and op extensions
-00:01 +35: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy rejects forbidden values in plan JSON warnings and unknown fields
-00:01 +36: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportValidation empty validation is valid and non-blocking
-00:01 +37: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportValidation blocking warning keeps code, reason, and field context
-00:01 +38: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/export_contract_models_test.dart: ExportValidation rejects non-blocking codes and local timestamps
-00:02 +39: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +40: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +41: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +42: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +43: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +44: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +45: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +46: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +47: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +48: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +49: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +50: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +51: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +52: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +53: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +54: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +55: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +56: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +57: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +58: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +59: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +60: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +61: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +62: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +63: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +64: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +65: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +66: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +67: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +68: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +69: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +70: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +71: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +72: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +73: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +74: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +75: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +76: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
-00:02 +76: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: bundled metrics document declares schema v1 and the two bundled Noto Sans weights
-00:02 +77: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: bundled metrics document asset size and declared SHA-256 pin match the bundle contract
-00:02 +78: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: bundled metrics document advance maps are ordered, bounded, and canonical
-00:02 +79: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: bundled metrics document regular and bold expose identical glyph coverage
-00:03 +80: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
-00:03 +81: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
-00:03 +82: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
-00:03 +83: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
-00:03 +84: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
-00:03 +85: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
-00:03 +86: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
-00:03 +87: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
-00:03 +88: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
-00:03 +89: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
-00:03 +90: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
-00:03 +91: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
-00:03 +92: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
-00:03 +93: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage every bundled advance equals the Dart hmtx advance
-00:03 +94: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart font-wide metrics match the bundled header values
-00:03 +95: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: malformed sfnt bounds a cmap group array that fits its declared length parses
-00:03 +96: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: malformed sfnt bounds a cmap group array beyond its declared length is rejected
-00:03 +97: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: malformed sfnt bounds a huge cmap group count is rejected before any group read
-00:03 +98: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: FR-067 German typography required German codepoints have positive advances
-00:03 +99: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: FR-067 German typography representative German values are fully renderable
-00:03 +100: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: FR-067 German typography point widths match independent pinned values at 7/10/12 pt
-00:03 +101: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: FR-067 German typography 200 deterministic sample strings agree with the bundled table
-00:03 +102: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: FR-067 German typography zero-advance combining marks stay covered without width
-00:03 +103: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: FR-067 German typography measurement iterates runes, including non-BMP codepoints
-00:03 +104: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: FR-068 clip arithmetic (test-local) single-line padding arithmetic honors the 1.5 pt inset
-00:03 +105: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: FR-068 clip arithmetic (test-local) long German value crosses the helper threshold, wider field does not
-00:03 +106: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: FR-068 clip arithmetic (test-local) unrenderable characters fail as coverage, not zero width
-00:03 +107: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: ExportFont contract the bundled identity satisfies the ExportFont contract
-00:03 +108: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/font_metrics_test.dart: (tearDownAll)
-00:04 +108: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/preflight_test.dart: empty fields are allowed, counted, and never block the export
-00:04 +109: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/preflight_test.dart: empty-field counting (§3.4) an unset checkbox is a decided state, not an empty field
-00:04 +110: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/preflight_test.dart: unresolved suggestions (ratified, OD-1/Q1=A) are excluded and counted without blocking
-00:04 +111: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/preflight_test.dart: geometry inside the page bounds blocks a rect beyond the display box with EXP-003
-00:04 +112: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/preflight_test.dart: geometry inside the page bounds tolerates at most 0.5 pt of overshoot
-00:04 +113: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/preflight_test.dart: geometry inside the page bounds pins the 0.5 pt boundary (0.49 passes, 0.51 blocks)
-00:04 +114: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/preflight_test.dart: type and value compatibility blocks preserved incompatible content
-00:04 +115: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/preflight_test.dart: type and value compatibility blocks a field whose validation state is a blocking error
-00:04 +116: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/preflight_test.dart: type and value compatibility blocks a value that does not match its field type
-00:04 +117: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/preflight_test.dart: type and value compatibility blocks a signature value without its capture
-00:04 +118: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/preflight_test.dart: snapshot integrity refuses a page-geometry list that does not cover the document
-00:04 +119: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/preflight_test.dart: snapshot integrity refuses content that references an unknown field
-00:04 +120: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_export/test/preflight_test.dart: snapshot integrity refuses a local validation timestamp
+00:00 +0: loading <workspace>/packages/feldexa_export/test/export_artifact_test.dart
+00:00 +0: <workspace>/packages/feldexa_export/test/export_artifact_test.dart: ArtifactVerification requires five passing checks and UTC time
+00:00 +1: <workspace>/packages/feldexa_export/test/export_artifact_test.dart: ArtifactVerification allChecksPassed is false when any single check fails
+00:00 +2: <workspace>/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine starts in validating and refuses every shortcut
+00:00 +3: <workspace>/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine advances validating -> rendering -> verifying -> succeeded -> deleted
+00:00 +4: <workspace>/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine failed is terminal and clears output
+00:00 +5: <workspace>/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine blocking is artifactless and cannot create an ExportArtifact
+00:00 +6: <workspace>/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine rejects a verification argument outside verifying
+00:00 +7: <workspace>/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine succeed refuses an incomplete, premature, or malformed success
+00:00 +8: <workspace>/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact state machine exposes the exact state wire tokens and rejects blocked
+00:00 +9: <workspace>/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact JSON round-trips every valid state and preserves unknown fields
+00:00 +10: <workspace>/packages/feldexa_export/test/export_artifact_test.dart: ExportArtifact JSON refuses optimistic or inconsistent restored records
+00:00 +11: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema serializes the §2 schema canonically and round-trips
+00:00 +12: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema serializes the §2 schema canonically and round-trips
+00:00 +13: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema serializes the §2 schema canonically and round-trips
+00:00 +14: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema serializes the §2 schema canonically and round-trips
+00:01 +15: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema derives display size and CTM from the page geometry
+00:01 +16: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema preserves unknown same-schema fields at every modeled level
+00:01 +17: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema rejects forbidden plan content at any depth
+00:01 +18: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema rejects invalid plan identity, evidence, and page metadata
+00:01 +19: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema rejects absolute and URI font asset paths
+00:01 +20: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema rejects mismatched CTM, display size, and pdfRect
+00:01 +21: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan v1 schema rejects duplicate ops for one field
+00:01 +22: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules rejects overflowing, clipped, and malformed text ops
+00:01 +23: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules rejects text metrics that violate the §2.2 formula
+00:01 +24: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules rejects the stale §2 example baseline under the §2.2 formula
+00:01 +25: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules applies the text clamps before checking the formula
+00:01 +26: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules rejects checkbox metrics that violate the §2.2 formula
+00:01 +27: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules rejects mark values outside the normative clamps
+00:01 +28: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportOp rules rejects an unknown op discriminator and provenance token
+00:01 +29: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy rejects absolute paths and URIs in warnings
+00:01 +30: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy rejects device names and user identifiers in warnings
+00:01 +31: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy accepts safe warnings, labels, and relative text
+00:01 +32: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy rejects forbidden values in unknown fields and keeps safe ones
+00:01 +33: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy rejects private values in schema metadata strings
+00:01 +34: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy rejects forbidden values in nested geometry and op extensions
+00:01 +35: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportPlan privacy rejects forbidden values in plan JSON warnings and unknown fields
+00:01 +36: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportValidation empty validation is valid and non-blocking
+00:01 +37: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportValidation blocking warning keeps code, reason, and field context
+00:01 +38: <workspace>/packages/feldexa_export/test/export_contract_models_test.dart: ExportValidation rejects non-blocking codes and local timestamps
+00:02 +39: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +40: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +41: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +42: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +43: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +44: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +45: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +46: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +47: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +48: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +49: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +50: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +51: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +52: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +53: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +54: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +55: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +56: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +57: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +58: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +59: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +60: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +61: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +62: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +63: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +64: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +65: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +66: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +67: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +68: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +69: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +70: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +71: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +72: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +73: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +74: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +75: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +76: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (setUpAll)
+00:02 +76: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: bundled metrics document declares schema v1 and the two bundled Noto Sans weights
+00:02 +77: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: bundled metrics document asset size and declared SHA-256 pin match the bundle contract
+00:02 +78: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: bundled metrics document advance maps are ordered, bounded, and canonical
+00:02 +79: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: bundled metrics document regular and bold expose identical glyph coverage
+00:03 +80: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
+00:03 +81: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
+00:03 +82: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
+00:03 +83: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
+00:03 +84: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
+00:03 +85: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
+00:03 +86: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
+00:03 +87: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
+00:03 +88: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
+00:03 +89: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
+00:03 +90: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
+00:03 +91: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
+00:03 +92: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart cmap coverage equals the bundled advance keys
+00:03 +93: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage every bundled advance equals the Dart hmtx advance
+00:03 +94: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: Dart advances and glyph coverage Dart font-wide metrics match the bundled header values
+00:03 +95: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: malformed sfnt bounds a cmap group array that fits its declared length parses
+00:03 +96: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: malformed sfnt bounds a cmap group array beyond its declared length is rejected
+00:03 +97: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: malformed sfnt bounds a huge cmap group count is rejected before any group read
+00:03 +98: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: FR-067 German typography required German codepoints have positive advances
+00:03 +99: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: FR-067 German typography representative German values are fully renderable
+00:03 +100: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: FR-067 German typography point widths match independent pinned values at 7/10/12 pt
+00:03 +101: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: FR-067 German typography 200 deterministic sample strings agree with the bundled table
+00:03 +102: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: FR-067 German typography zero-advance combining marks stay covered without width
+00:03 +103: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: FR-067 German typography measurement iterates runes, including non-BMP codepoints
+00:03 +104: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: FR-068 clip arithmetic (test-local) single-line padding arithmetic honors the 1.5 pt inset
+00:03 +105: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: FR-068 clip arithmetic (test-local) long German value crosses the helper threshold, wider field does not
+00:03 +106: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: FR-068 clip arithmetic (test-local) unrenderable characters fail as coverage, not zero width
+00:03 +107: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: ExportFont contract the bundled identity satisfies the ExportFont contract
+00:03 +108: <workspace>/packages/feldexa_export/test/font_metrics_test.dart: (tearDownAll)
+00:04 +108: <workspace>/packages/feldexa_export/test/preflight_test.dart: empty fields are allowed, counted, and never block the export
+00:04 +109: <workspace>/packages/feldexa_export/test/preflight_test.dart: empty-field counting (§3.4) an unset checkbox is a decided state, not an empty field
+00:04 +110: <workspace>/packages/feldexa_export/test/preflight_test.dart: unresolved suggestions (ratified, OD-1/Q1=A) are excluded and counted without blocking
+00:04 +111: <workspace>/packages/feldexa_export/test/preflight_test.dart: geometry inside the page bounds blocks a rect beyond the display box with EXP-003
+00:04 +112: <workspace>/packages/feldexa_export/test/preflight_test.dart: geometry inside the page bounds tolerates at most 0.5 pt of overshoot
+00:04 +113: <workspace>/packages/feldexa_export/test/preflight_test.dart: geometry inside the page bounds pins the 0.5 pt boundary (0.49 passes, 0.51 blocks)
+00:04 +114: <workspace>/packages/feldexa_export/test/preflight_test.dart: type and value compatibility blocks preserved incompatible content
+00:04 +115: <workspace>/packages/feldexa_export/test/preflight_test.dart: type and value compatibility blocks a field whose validation state is a blocking error
+00:04 +116: <workspace>/packages/feldexa_export/test/preflight_test.dart: type and value compatibility blocks a value that does not match its field type
+00:04 +117: <workspace>/packages/feldexa_export/test/preflight_test.dart: type and value compatibility blocks a signature value without its capture
+00:04 +118: <workspace>/packages/feldexa_export/test/preflight_test.dart: snapshot integrity refuses a page-geometry list that does not cover the document
+00:04 +119: <workspace>/packages/feldexa_export/test/preflight_test.dart: snapshot integrity refuses content that references an unknown field
+00:04 +120: <workspace>/packages/feldexa_export/test/preflight_test.dart: snapshot integrity refuses a local validation timestamp
 00:04 +121: All tests passed!

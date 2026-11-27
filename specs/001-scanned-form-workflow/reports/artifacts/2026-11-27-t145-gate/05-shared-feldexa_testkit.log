@@ -1,162 +1,162 @@
-00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart
-00:00 +0: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock starts at the Unix epoch in UTC
-00:00 +1: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass consumes the canonical ports EvidenceClass declaration
-00:00 +2: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock normalises an explicit local time to UTC
-00:00 +3: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock normalises an explicit local time to UTC
-00:00 +4: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass rejects unknown and empty tokens instead of defaulting
-00:00 +5: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass rejects unknown and empty tokens instead of defaulting
-00:00 +6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock advances by exact durations
-00:00 +7: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock advances by exact durations
-00:00 +8: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock rejects a negative advance
-00:00 +9: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass labels are distinct report tokens
-00:00 +10: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass labels are distinct report tokens
-00:00 +11: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass labels are distinct report tokens
-00:00 +12: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass labels are distinct report tokens
-00:00 +13: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass labels are distinct report tokens
-00:00 +14: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass labels are distinct report tokens
-00:00 +15: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass labels are distinct report tokens
-00:00 +16: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLabel host checks carry NONE and no runtime claim
-00:00 +17: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLabel SIMULATED browser labels are not Android evidence
-00:00 +18: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLabel Android labels stay EMULATOR or DEVICE
-00:00 +19: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLabel value equality covers class, surface, and detail
-00:00 +20: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLabel detail stays available explicitly but is redacted from logs
-00:00 +21: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLedger separates host, SIMULATED, and Android results
-00:00 +22: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLedger host checks next to one runtime class are not a merged claim
-00:00 +23: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLedger SIMULATED plus DEVICE is still a merged claim
-00:00 +24: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLedger entries are a read-only view
-00:00 +25: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector injects nothing without an armed rule
-00:00 +26: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector injects a one-shot fault at the armed point
-00:00 +27: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector honours startsAt call numbering
-00:00 +28: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector honours times and then passes
-00:00 +29: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector times null injects on every matching call
-00:00 +30: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector different fault points are independent
-00:00 +31: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector same point can arm later calls
-00:00 +32: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector arm, disarm, and clear manage rules
-00:00 +33: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector rejects duplicate rules for the same point and call
-00:00 +34: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector validates rule arguments
-00:00 +35: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector run and runAsync do not execute the action on a fault
-00:00 +36: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector run and runAsync return the action result when clear
-00:00 +37: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector action exceptions propagate and are not converted to faults
-00:00 +38: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector faultsAt filters by point and kind
-00:00 +39: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector catalog codes distinguish global, aggregate-key, and integrity failures
-00:00 +40: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector wrapped-DEK authentication failure is SAVE-003, not key loss
-00:02 +41: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: ScriptedClock is deterministic and never advances on its own
-00:02 +42: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: ScriptedClock rejects a backward advance but allows an explicit rewind
-00:02 +43: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: ScriptedClock applies forward and backward jumps after the configured reads
-00:02 +44: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: ScriptedClock rejects a jump scheduled for a read that already happened
-00:02 +45: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: ScriptedClock reset returns to the origin and replays the jump script
-00:02 +46: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: ScriptedClock rejects non-positive jumps and a wrong descriptor kind
-00:02 +47: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: SequenceIds produces valid v4 ids and deterministic idempotency keys
-00:02 +48: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: SequenceIds reset returns to the configured first value
-00:02 +49: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: SequenceIds rejects a wrong descriptor kind and an invalid first value
-00:02 +50: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: faultExceptionFor maps every fault kind to its typed catalog exception
-00:02 +51: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: faultExceptionFor keeps key-loss, integrity, and global failures distinct
-00:02 +52: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: faultExceptionFor quota and write-interruption exceptions stay retryable
-00:02 +53: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore maps a quota fault at store.write and does not run the write
-00:02 +54: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore does not check internal fsync or commit before the delegate runs
-00:02 +55: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore checks the phase-aware seam inside the adapter transaction
-00:02 +56: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore runs the write when no fault matches
-00:02 +57: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore does not convert a real delegate exception into a fault
-00:02 +58: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore checks keystore.unwrap before a document read
-00:02 +59: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore surfaces aggregate-scoped SAVE-002 at the unwrap point
-00:02 +60: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore checks keystore.unwrap on the write path
-00:02 +61: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore surfaces both SAVE-008 contexts at the unwrap point
-00:02 +62: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore surfaces an aggregate key fault at store.read
-00:02 +63: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +64: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +65: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +66: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +67: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +68: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +69: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +70: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +71: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +72: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +73: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +74: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +75: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +76: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +77: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +78: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +79: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +80: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +81: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +82: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +83: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:02 +84: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
-00:03 +84: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue is schema 1, fixtures-1.1.0, and SIMULATED
-00:03 +85: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue declares dev-only delivery and no Flutter assets
-00:03 +86: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue exposes five valid fixtures and three import failures
-00:03 +87: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue exposes typed pages and ground truth
-00:03 +88: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue maps each delivery target to its declared path
-00:03 +89: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue failure fixtures declare their catalog codes
-00:03 +90: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue exposes the catalogue entry as deeply immutable data
-00:03 +91: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue looks up fixtures by id and reports unknown ids
-00:03 +92: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue round-trips to a stable string summary
-00:03 +93: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (tearDownAll)
-00:03 +93: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects an unsupported schema version
-00:03 +94: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects non-SIMULATED evidence, including Android classes
-00:03 +95: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a fixture count that does not match
-00:03 +96: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects duplicate fixture ids
-00:03 +97: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a malformed SHA-256 pin
-00:03 +98: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a wrong failure code
-00:03 +99: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects Flutter-asset fixture delivery
-00:03 +100: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects personal data in the synthetic catalogue
-00:03 +101: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a page-count mismatch
-00:03 +102: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects an invalid page rotation
-00:03 +103: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects an unexpected OCR document on a failure fixture
-00:03 +104: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a path that does not match the id
-00:03 +105: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects unknown roles and statuses
-00:03 +106: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a missing required string
-00:03 +107: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects expectedError on a valid fixture
-00:03 +108: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects non-synthetic fixture kinds
-00:03 +109: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a valid fixture without ground truth
-00:03 +110: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects malformed JSON
-00:03 +111: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: path safety rejects Windows backslash traversal in every delivery directory
-00:03 +112: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: path safety rejects absolute, drive, UNC, and traversal delivery directories
-00:03 +113: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: path safety rejects unsafe Web base paths
-00:03 +114: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: path safety rejects traversal-shaped expected-OCR paths
-00:03 +115: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_catalog_test.dart: path safety rejects unsafe generator and fixture paths
-00:03 +116: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader (setUpAll)
-00:03 +116: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader opens and validates the canonical catalogue
-00:03 +117: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:04 +118: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:04 +119: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:04 +120: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:04 +121: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:04 +122: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:04 +123: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:04 +124: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:04 +125: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:04 +126: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:04 +127: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:04 +128: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:04 +129: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:04 +130: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:05 +131: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:05 +132: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:05 +133: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:05 +134: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:05 +135: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:05 +136: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:05 +137: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
-00:05 +138: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader keeps the documented PDF shape per status
-00:05 +139: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads all fixtures in catalogue order
-00:05 +140: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads and validates every expected-OCR document
-00:06 +141: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader rejects expected OCR for an import-failure fixture
-00:06 +142: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader rejects an unknown fixture id
-00:06 +143: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader canonical, Web, and corpus copies are byte-identical
-00:08 +144: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader Web expected-OCR mirror is byte-identical for valid fixtures
-00:08 +145: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader marks the catalogue as SIMULATED, never Android evidence
-00:08 +146: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader (tearDownAll)
-00:08 +146: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures (setUpAll)
-00:08 +146: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures detects a checksum mismatch
-00:08 +147: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures detects a declared-size mismatch
-00:08 +148: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures detects a missing fixture file
-00:08 +149: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures detects a wrong PDF shape even without a checksum
-00:08 +150: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures skips the digest only when explicitly asked
-00:08 +151: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures rejects an invalid expected-OCR document
-00:08 +152: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures rejects a catalog with a Windows delivery traversal before I/O
-00:08 +153: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures wraps malformed catalog JSON
-00:08 +154: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures (tearDownAll)
+00:00 +0: loading <workspace>/packages/feldexa_testkit/test/evidence_test.dart
+00:00 +0: <workspace>/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock starts at the Unix epoch in UTC
+00:00 +1: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass consumes the canonical ports EvidenceClass declaration
+00:00 +2: <workspace>/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock normalises an explicit local time to UTC
+00:00 +3: <workspace>/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock normalises an explicit local time to UTC
+00:00 +4: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass rejects unknown and empty tokens instead of defaulting
+00:00 +5: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass rejects unknown and empty tokens instead of defaulting
+00:00 +6: <workspace>/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock advances by exact durations
+00:00 +7: <workspace>/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock advances by exact durations
+00:00 +8: <workspace>/packages/feldexa_testkit/test/fake_clock_test.dart: FakeClock rejects a negative advance
+00:00 +9: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass labels are distinct report tokens
+00:00 +10: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass labels are distinct report tokens
+00:00 +11: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass labels are distinct report tokens
+00:00 +12: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass labels are distinct report tokens
+00:00 +13: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass labels are distinct report tokens
+00:00 +14: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass labels are distinct report tokens
+00:00 +15: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceClass labels are distinct report tokens
+00:00 +16: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLabel host checks carry NONE and no runtime claim
+00:00 +17: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLabel SIMULATED browser labels are not Android evidence
+00:00 +18: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLabel Android labels stay EMULATOR or DEVICE
+00:00 +19: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLabel value equality covers class, surface, and detail
+00:00 +20: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLabel detail stays available explicitly but is redacted from logs
+00:00 +21: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLedger separates host, SIMULATED, and Android results
+00:00 +22: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLedger host checks next to one runtime class are not a merged claim
+00:00 +23: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLedger SIMULATED plus DEVICE is still a merged claim
+00:00 +24: <workspace>/packages/feldexa_testkit/test/evidence_test.dart: EvidenceLedger entries are a read-only view
+00:00 +25: <workspace>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector injects nothing without an armed rule
+00:00 +26: <workspace>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector injects a one-shot fault at the armed point
+00:00 +27: <workspace>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector honours startsAt call numbering
+00:00 +28: <workspace>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector honours times and then passes
+00:00 +29: <workspace>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector times null injects on every matching call
+00:00 +30: <workspace>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector different fault points are independent
+00:00 +31: <workspace>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector same point can arm later calls
+00:00 +32: <workspace>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector arm, disarm, and clear manage rules
+00:00 +33: <workspace>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector rejects duplicate rules for the same point and call
+00:00 +34: <workspace>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector validates rule arguments
+00:00 +35: <workspace>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector run and runAsync do not execute the action on a fault
+00:00 +36: <workspace>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector run and runAsync return the action result when clear
+00:00 +37: <workspace>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector action exceptions propagate and are not converted to faults
+00:00 +38: <workspace>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector faultsAt filters by point and kind
+00:00 +39: <workspace>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector catalog codes distinguish global, aggregate-key, and integrity failures
+00:00 +40: <workspace>/packages/feldexa_testkit/test/fault_hooks_test.dart: FaultInjector wrapped-DEK authentication failure is SAVE-003, not key loss
+00:02 +41: <workspace>/packages/feldexa_testkit/test/faults_test.dart: ScriptedClock is deterministic and never advances on its own
+00:02 +42: <workspace>/packages/feldexa_testkit/test/faults_test.dart: ScriptedClock rejects a backward advance but allows an explicit rewind
+00:02 +43: <workspace>/packages/feldexa_testkit/test/faults_test.dart: ScriptedClock applies forward and backward jumps after the configured reads
+00:02 +44: <workspace>/packages/feldexa_testkit/test/faults_test.dart: ScriptedClock rejects a jump scheduled for a read that already happened
+00:02 +45: <workspace>/packages/feldexa_testkit/test/faults_test.dart: ScriptedClock reset returns to the origin and replays the jump script
+00:02 +46: <workspace>/packages/feldexa_testkit/test/faults_test.dart: ScriptedClock rejects non-positive jumps and a wrong descriptor kind
+00:02 +47: <workspace>/packages/feldexa_testkit/test/faults_test.dart: SequenceIds produces valid v4 ids and deterministic idempotency keys
+00:02 +48: <workspace>/packages/feldexa_testkit/test/faults_test.dart: SequenceIds reset returns to the configured first value
+00:02 +49: <workspace>/packages/feldexa_testkit/test/faults_test.dart: SequenceIds rejects a wrong descriptor kind and an invalid first value
+00:02 +50: <workspace>/packages/feldexa_testkit/test/faults_test.dart: faultExceptionFor maps every fault kind to its typed catalog exception
+00:02 +51: <workspace>/packages/feldexa_testkit/test/faults_test.dart: faultExceptionFor keeps key-loss, integrity, and global failures distinct
+00:02 +52: <workspace>/packages/feldexa_testkit/test/faults_test.dart: faultExceptionFor quota and write-interruption exceptions stay retryable
+00:02 +53: <workspace>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore maps a quota fault at store.write and does not run the write
+00:02 +54: <workspace>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore does not check internal fsync or commit before the delegate runs
+00:02 +55: <workspace>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore checks the phase-aware seam inside the adapter transaction
+00:02 +56: <workspace>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore runs the write when no fault matches
+00:02 +57: <workspace>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore does not convert a real delegate exception into a fault
+00:02 +58: <workspace>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore checks keystore.unwrap before a document read
+00:02 +59: <workspace>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore surfaces aggregate-scoped SAVE-002 at the unwrap point
+00:02 +60: <workspace>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore checks keystore.unwrap on the write path
+00:02 +61: <workspace>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore surfaces both SAVE-008 contexts at the unwrap point
+00:02 +62: <workspace>/packages/feldexa_testkit/test/faults_test.dart: FaultingSecureStore surfaces an aggregate key fault at store.read
+00:02 +63: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +64: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +65: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +66: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +67: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +68: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +69: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +70: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +71: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +72: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +73: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +74: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +75: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +76: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +77: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +78: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +79: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +80: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +81: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +82: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +83: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:02 +84: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (setUpAll)
+00:03 +84: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue is schema 1, fixtures-1.1.0, and SIMULATED
+00:03 +85: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue declares dev-only delivery and no Flutter assets
+00:03 +86: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue exposes five valid fixtures and three import failures
+00:03 +87: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue exposes typed pages and ground truth
+00:03 +88: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue maps each delivery target to its declared path
+00:03 +89: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue failure fixtures declare their catalog codes
+00:03 +90: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue exposes the catalogue entry as deeply immutable data
+00:03 +91: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue looks up fixtures by id and reports unknown ids
+00:03 +92: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue round-trips to a stable string summary
+00:03 +93: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: committed catalogue (tearDownAll)
+00:03 +93: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects an unsupported schema version
+00:03 +94: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects non-SIMULATED evidence, including Android classes
+00:03 +95: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a fixture count that does not match
+00:03 +96: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects duplicate fixture ids
+00:03 +97: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a malformed SHA-256 pin
+00:03 +98: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a wrong failure code
+00:03 +99: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects Flutter-asset fixture delivery
+00:03 +100: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects personal data in the synthetic catalogue
+00:03 +101: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a page-count mismatch
+00:03 +102: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects an invalid page rotation
+00:03 +103: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects an unexpected OCR document on a failure fixture
+00:03 +104: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a path that does not match the id
+00:03 +105: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects unknown roles and statuses
+00:03 +106: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a missing required string
+00:03 +107: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects expectedError on a valid fixture
+00:03 +108: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects non-synthetic fixture kinds
+00:03 +109: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects a valid fixture without ground truth
+00:03 +110: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: validation rejects malformed JSON
+00:03 +111: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: path safety rejects Windows backslash traversal in every delivery directory
+00:03 +112: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: path safety rejects absolute, drive, UNC, and traversal delivery directories
+00:03 +113: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: path safety rejects unsafe Web base paths
+00:03 +114: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: path safety rejects traversal-shaped expected-OCR paths
+00:03 +115: <workspace>/packages/feldexa_testkit/test/fixture_catalog_test.dart: path safety rejects unsafe generator and fixture paths
+00:03 +116: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader (setUpAll)
+00:03 +116: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader opens and validates the canonical catalogue
+00:03 +117: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:04 +118: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:04 +119: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:04 +120: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:04 +121: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:04 +122: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:04 +123: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:04 +124: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:04 +125: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:04 +126: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:04 +127: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:04 +128: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:04 +129: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:04 +130: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:05 +131: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:05 +132: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:05 +133: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:05 +134: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:05 +135: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:05 +136: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:05 +137: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads every fixture with the declared bytes and hash
+00:05 +138: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader keeps the documented PDF shape per status
+00:05 +139: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads all fixtures in catalogue order
+00:05 +140: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader loads and validates every expected-OCR document
+00:06 +141: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader rejects expected OCR for an import-failure fixture
+00:06 +142: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader rejects an unknown fixture id
+00:06 +143: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader canonical, Web, and corpus copies are byte-identical
+00:08 +144: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader Web expected-OCR mirror is byte-identical for valid fixtures
+00:08 +145: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader marks the catalogue as SIMULATED, never Android evidence
+00:08 +146: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: canonical loader (tearDownAll)
+00:08 +146: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures (setUpAll)
+00:08 +146: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures detects a checksum mismatch
+00:08 +147: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures detects a declared-size mismatch
+00:08 +148: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures detects a missing fixture file
+00:08 +149: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures detects a wrong PDF shape even without a checksum
+00:08 +150: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures skips the digest only when explicitly asked
+00:08 +151: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures rejects an invalid expected-OCR document
+00:08 +152: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures rejects a catalog with a Windows delivery traversal before I/O
+00:08 +153: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures wraps malformed catalog JSON
+00:08 +154: <workspace>/packages/feldexa_testkit/test/fixture_loader_test.dart: integrity failures (tearDownAll)
 00:08 +154: All tests passed!

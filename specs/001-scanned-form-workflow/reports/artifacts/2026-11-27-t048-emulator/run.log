@@ -8,10 +8,10 @@ assets/fixtures/sf-001.pdf: 1 file pushed, 0 skipped. 69.7 MB/s (5956 bytes in 0
 assets/fixtures/sf-003.pdf: 1 file pushed, 0 skipped. 133.1 MB/s (6610 bytes in 0.000s)
 22c939ccc788f24868a115e5f635d1c0e0618d760b28518a4bd5e039f8caa038  /data/local/tmp/t046-fixtures/sf-001.pdf
 c19afcf6f86ed21a422426c5f01613bb9643b097d0facad3b3349f9873e4ea4f  /data/local/tmp/t046-fixtures/sf-003.pdf
-00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/apps/feldexa_app/integration_test/source_integrity_test.dart
+00:00 +0: loading <workspace>/apps/feldexa_app/integration_test/source_integrity_test.dart
 Running Gradle task 'assembleDebug'...                          
 WARNING: A restricted method in java.lang.System has been called
-WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/home/xxammaxx/.gradle/wrapper/dists/gradle-9.3.1-all/9ot9r568e8zfvvd4mn8rbu1j0/gradle-9.3.1/lib/native-platform-0.22-milestone-29.jar)
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:<home>/.gradle/wrapper/dists/gradle-9.3.1-all/9ot9r568e8zfvvd4mn8rbu1j0/gradle-9.3.1/lib/native-platform-0.22-milestone-29.jar)
 WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
 WARNING: Restricted methods will be blocked in a future release unless native access is enabled
 

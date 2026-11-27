@@ -1,141 +1,141 @@
-00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart
-00:00 +0: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: single-page-text-import — a single-page PDF is accepted with the documented source shape
-00:00 +1: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: five-page-geometry-import — a five-page source is accepted with ordered page geometry
-00:00 +2: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: initial-revision-committed-and-verified — NOT COVERED by SIMULATED T028 SimulatedDocumentImportAdapter
+00:00 +0: loading <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart
+00:00 +0: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: single-page-text-import — a single-page PDF is accepted with the documented source shape
+00:00 +1: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: five-page-geometry-import — a five-page source is accepted with ordered page geometry
+00:00 +2: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: initial-revision-committed-and-verified — NOT COVERED by SIMULATED T028 SimulatedDocumentImportAdapter
   Skip: NOT COVERED: T028 import creates SimulatedDocumentRecord(head: null) with an empty revisions map at simulated_import_adapter.dart:196-206; the initial revision is committed later by store.createDocument. contracts/platform-channel.md §3/§4 and contracts/storage-format.md §3.2 require the import commit to write and verify the initial revision and head before it returns. Owner: T038 channel import / T040 encrypted copy.
-00:00 +2 ~1: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: source-immutability-and-verification — the picked bytes stay immutable and verifySource re-reads the same hash
-00:00 +3 ~1: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: verify-detects-staged-corruption — verifySource detects injected staged corruption and reports it as unreadable
-00:00 +4 ~1: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: evidence-labelled-simulated — the result and descriptor carry the SIMULATED evidence label
-00:00 +5 ~1: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: imp001-password-protected — an encrypted PDF is rejected as IMP-001 passwordProtected
-00:00 +6 ~1: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: imp002-truncated-input — a truncated input is rejected as IMP-002
-00:00 +7 ~1: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: imp004-not-pdf — a non-PDF input is rejected as IMP-004 notPdf
-00:00 +8 ~1: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: imp005-unknown-reason — an unknown failure is rejected as IMP-005 without a password claim
-00:00 +9 ~1: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: imp007-too-large — a source above the request byte cap is rejected as IMP-007
-00:00 +10 ~1: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: imp000-cancelled — picker cancellation is IMP-000 and stages nothing
-00:00 +11 ~1: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: save001-storage-full — storage exhaustion is SAVE-001 and leaves no record
-00:00 +12 ~1: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: no-record-after-rejection — rejections and cancellation leave no document, draft, template, record, or source
-00:00 +13 ~1: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: image-only-pdf-accepted — NOT COVERED by SIMULATED T028 SimulatedDocumentImportAdapter
+00:00 +2 ~1: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: source-immutability-and-verification — the picked bytes stay immutable and verifySource re-reads the same hash
+00:00 +3 ~1: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: verify-detects-staged-corruption — verifySource detects injected staged corruption and reports it as unreadable
+00:00 +4 ~1: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: evidence-labelled-simulated — the result and descriptor carry the SIMULATED evidence label
+00:00 +5 ~1: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: imp001-password-protected — an encrypted PDF is rejected as IMP-001 passwordProtected
+00:00 +6 ~1: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: imp002-truncated-input — a truncated input is rejected as IMP-002
+00:00 +7 ~1: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: imp004-not-pdf — a non-PDF input is rejected as IMP-004 notPdf
+00:00 +8 ~1: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: imp005-unknown-reason — an unknown failure is rejected as IMP-005 without a password claim
+00:00 +9 ~1: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: imp007-too-large — a source above the request byte cap is rejected as IMP-007
+00:00 +10 ~1: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: imp000-cancelled — picker cancellation is IMP-000 and stages nothing
+00:00 +11 ~1: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: save001-storage-full — storage exhaustion is SAVE-001 and leaves no record
+00:00 +12 ~1: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: no-record-after-rejection — rejections and cancellation leave no document, draft, template, record, or source
+00:00 +13 ~1: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: image-only-pdf-accepted — NOT COVERED by SIMULATED T028 SimulatedDocumentImportAdapter
   Skip: NOT COVERED: the in-memory catalogue contains no image-only PDF; T028 selects whole fixtures and exposes no text/form-field metadata. Owner: T038/T039.
-00:00 +13 ~2: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: imp006-partial-pages — NOT COVERED by SIMULATED T028 SimulatedDocumentImportAdapter
+00:00 +13 ~2: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: imp006-partial-pages — NOT COVERED by SIMULATED T028 SimulatedDocumentImportAdapter
   Skip: NOT COVERED: T028 always returns an empty pageFailures list; no fixture models a partially readable source. Owner: T038/T044.
-00:00 +13 ~3: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: imp004-unsupported-structure — NOT COVERED by SIMULATED T028 SimulatedDocumentImportAdapter
+00:00 +13 ~3: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: imp004-unsupported-structure — NOT COVERED by SIMULATED T028 SimulatedDocumentImportAdapter
   Skip: NOT COVERED: the in-memory catalogue has no unsupported-structure fixture; T028 distinguishes only not-a-pdf (IMP-004 notPdf). Owner: T038/T039.
-00:00 +13 ~4: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: save003-staged-write-failure — NOT COVERED by SIMULATED T028 SimulatedDocumentImportAdapter
+00:00 +13 ~4: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: save003-staged-write-failure — NOT COVERED by SIMULATED T028 SimulatedDocumentImportAdapter
   Skip: NOT COVERED: SimulatedBackend.stageSource has no write-fault hook and SimulatedDocumentImportAdapter exposes no staged-write fault injection. Owner: T038/T040.
-00:00 +13 ~5: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: save003-staged-integrity-mismatch — a staged hash/authentication mismatch is CorruptDataException SAVE-003
-00:00 +14 ~5: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: real-saf-picker-and-password-entry — NOT COVERED by SIMULATED T028 SimulatedDocumentImportAdapter
+00:00 +13 ~5: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: save003-staged-integrity-mismatch — a staged hash/authentication mismatch is CorruptDataException SAVE-003
+00:00 +14 ~5: <workspace>/packages/feldexa_adapters_simulated/test/import_conformance_test.dart: real-saf-picker-and-password-entry — NOT COVERED by SIMULATED T028 SimulatedDocumentImportAdapter
   Skip: NOT COVERED: T028 uses SimulatedImportPicker over the in-memory catalogue; it cannot launch Android SAF or accept/deny a password. Owner: T038.
-00:00 +14 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_boundary_test.dart: the simulated package has no platform or Android-adapter imports
-00:00 +15 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_boundary_test.dart: library sources never read the wall clock or randomness
-00:00 +16 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_boundary_test.dart: the Android registry never imports the simulated package
-00:00 +17 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_boundary_test.dart: the package barrel exports every adapter and the evidence contract
-00:00 +18 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_evidence_test.dart: all six adapters carry SIMULATED evidence and the right capability
-00:01 +19 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_evidence_test.dart: no adapter claims EMULATOR, DEVICE, or unlabelled evidence
-00:01 +20 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_evidence_test.dart: the deterministic context has a fixed UTC instant and stable ids
-00:01 +21 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_evidence_test.dart: a custom fixed instant is normalised to UTC
-00:01 +22 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_evidence_test.dart: descriptor evidence cannot be upgraded by a caller
-00:01 +23 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: (setUpAll)
-00:02 +23 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: export descriptor is SIMULATED PDF export
-00:02 +24 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: validates and exports a deterministic SIMULATED preview
-00:02 +25 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: validates and exports a deterministic SIMULATED preview
+00:00 +14 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_boundary_test.dart: the simulated package has no platform or Android-adapter imports
+00:00 +15 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_boundary_test.dart: library sources never read the wall clock or randomness
+00:00 +16 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_boundary_test.dart: the Android registry never imports the simulated package
+00:00 +17 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_boundary_test.dart: the package barrel exports every adapter and the evidence contract
+00:00 +18 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_evidence_test.dart: all six adapters carry SIMULATED evidence and the right capability
+00:01 +19 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_evidence_test.dart: no adapter claims EMULATOR, DEVICE, or unlabelled evidence
+00:01 +20 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_evidence_test.dart: the deterministic context has a fixed UTC instant and stable ids
+00:01 +21 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_evidence_test.dart: a custom fixed instant is normalised to UTC
+00:01 +22 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_evidence_test.dart: descriptor evidence cannot be upgraded by a caller
+00:01 +23 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: (setUpAll)
+00:02 +23 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: export descriptor is SIMULATED PDF export
+00:02 +24 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: validates and exports a deterministic SIMULATED preview
+00:02 +25 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: validates and exports a deterministic SIMULATED preview
 Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
-00:04 +26 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_fixtures_test.dart: page geometry matches the declared display size for every rotation
-00:04 +27 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: two exports of the same plan produce byte-identical previews
-00:04 +28 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: two exports of the same plan produce byte-identical previews
-00:04 +29 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: two exports of the same plan produce byte-identical previews
-00:04 +30 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: two exports of the same plan produce byte-identical previews
-00:04 +31 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: two exports of the same plan produce byte-identical previews
+00:04 +26 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_fixtures_test.dart: page geometry matches the declared display size for every rotation
+00:04 +27 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: two exports of the same plan produce byte-identical previews
+00:04 +28 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: two exports of the same plan produce byte-identical previews
+00:04 +29 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: two exports of the same plan produce byte-identical previews
+00:04 +30 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: two exports of the same plan produce byte-identical previews
+00:04 +31 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: two exports of the same plan produce byte-identical previews
 Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
 Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
-00:04 +32 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_fixtures_test.dart: a non-SIMULATED catalogue is refused
-00:04 +33 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: the bundled Noto Sans font can be embedded
-00:04 +34 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: overflow-free text that Helvetica cannot encode blocks with EXP-004
-00:04 +35 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: embedFonts:false falls back to the Helvetica substitute
-00:04 +36 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: export maps a field-level EXP-003 blocker to ExportBlockedException
-00:04 +37 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a corrupted staged source is EXP-005 and never reaches export
-00:05 +38 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a missing staged source is EXP-005 and export fails
-00:05 +39 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a plan/source SHA mismatch is EXP-005 and export fails
-00:05 +40 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a missing revision is EXP-005 and export fails
-00:05 +41 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a page-count mismatch is EXP-006 and export fails
-00:05 +42 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: (setUpAll)
-00:05 +43 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: (setUpAll)
-00:05 +43 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: successful export leaves the staged source bytes unchanged
+00:04 +32 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_fixtures_test.dart: a non-SIMULATED catalogue is refused
+00:04 +33 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: the bundled Noto Sans font can be embedded
+00:04 +34 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: overflow-free text that Helvetica cannot encode blocks with EXP-004
+00:04 +35 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: embedFonts:false falls back to the Helvetica substitute
+00:04 +36 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: export maps a field-level EXP-003 blocker to ExportBlockedException
+00:04 +37 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a corrupted staged source is EXP-005 and never reaches export
+00:05 +38 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a missing staged source is EXP-005 and export fails
+00:05 +39 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a plan/source SHA mismatch is EXP-005 and export fails
+00:05 +40 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a missing revision is EXP-005 and export fails
+00:05 +41 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a page-count mismatch is EXP-006 and export fails
+00:05 +42 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: (setUpAll)
+00:05 +43 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: (setUpAll)
+00:05 +43 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: successful export leaves the staged source bytes unchanged
 Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
-00:05 +44 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: descriptor is SIMULATED and identifies the import capability
-00:05 +45 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: descriptor is SIMULATED and identifies the import capability
-00:05 +46 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a missing signature asset blocks with EXP-005
-00:05 +47 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: imports a valid fixture, stages it, and verifies the hash
-00:05 +48 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a post-revision signature asset is unlinked and fails export
-00:05 +49 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: imports every valid fixture with its catalogue page count
-00:05 +50 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a revision-bound signature asset exports after hash verification
+00:05 +44 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: descriptor is SIMULATED and identifies the import capability
+00:05 +45 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: descriptor is SIMULATED and identifies the import capability
+00:05 +46 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a missing signature asset blocks with EXP-005
+00:05 +47 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: imports a valid fixture, stages it, and verifies the hash
+00:05 +48 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a post-revision signature asset is unlinked and fails export
+00:05 +49 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: imports every valid fixture with its catalogue page count
+00:05 +50 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a revision-bound signature asset exports after hash verification
 Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
-00:06 +51 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: password-protected fixture maps to IMP-001
-00:06 +52 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a mutated signature asset is EXP-005 signature_hash_mismatch
-00:06 +53 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: truncated fixture maps to IMP-002
-00:06 +54 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: request document/revision ids must match the plan
-00:06 +55 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: non-PDF fixture maps to IMP-004
-00:06 +56 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: readArtifact rejects a missing artifact; delete is idempotent
-00:06 +57 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: cancellation throws IMP-000 and stages nothing
-00:06 +58 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: delivery reports a labelled SIMULATED hand-off
+00:06 +51 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: password-protected fixture maps to IMP-001
+00:06 +52 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: a mutated signature asset is EXP-005 signature_hash_mismatch
+00:06 +53 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: truncated fixture maps to IMP-002
+00:06 +54 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: request document/revision ids must match the plan
+00:06 +55 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: non-PDF fixture maps to IMP-004
+00:06 +56 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: readArtifact rejects a missing artifact; delete is idempotent
+00:06 +57 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: cancellation throws IMP-000 and stages nothing
+00:06 +58 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: delivery reports a labelled SIMULATED hand-off
 Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
-00:06 +59 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: an empty picker is a cancellation, never an invented import
-00:06 +60 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: delivery cancellation is completed:false and not an error
+00:06 +59 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: an empty picker is a cancellation, never an invented import
+00:06 +60 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: delivery cancellation is completed:false and not an error
 Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
-00:06 +61 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: a size cap below the fixture maps to IMP-007
-00:06 +62 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: delivery of an unknown artifact fails with EXP-002
-00:06 +63 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: unknown fixture ids map to the unknown-reason category
-00:06 +64 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: fixture catalogue is untouched by the export and delivery flows
+00:06 +61 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: a size cap below the fixture maps to IMP-007
+00:06 +62 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: delivery of an unknown artifact fails with EXP-002
+00:06 +63 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: unknown fixture ids map to the unknown-reason category
+00:06 +64 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_export_delivery_test.dart: fixture catalogue is untouched by the export and delivery flows
 Helvetica has no Unicode support see https://github.com/DavBfr/dart_pdf/wiki/Fonts-Management
-00:06 +65 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: picker selections and cancellations keep caller order
-00:06 +66 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: verifySource reports an unknown source as unreadable
-00:06 +67 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: same inputs produce identical ids and hashes across runs
-00:08 +68 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: import refuses to create an aggregate under global SAVE-008
-00:08 +69 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: page geometry of a rotated fixture is preserved
-00:08 +70 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: a staged source reference mismatch is refused as PLT-002
-00:08 +71 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: a full store refuses the import before source or aggregate
-00:08 +72 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: a refused import preserves the existing source and aggregate
-00:08 +73 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: staged read-back damage maps to CorruptDataException SAVE-003
-00:08 +74 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: (tearDownAll)
-00:09 +74 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: (setUpAll)
-00:09 +74 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: (setUpAll)
-00:10 +75 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: (setUpAll)
-00:10 +75 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: pageDimensions returns the imported display geometry
-00:10 +76 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: descriptor is SIMULATED secure storage
-00:10 +77 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: unknown source and out-of-range pages raise PAGE-001
-00:10 +78 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: creates, saves, and loads a verified document revision
-00:10 +79 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: gray8 raster dimensions and byte layout follow the request
-00:10 +80 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a wrong expectedHead is refused and the head is unchanged
-00:10 +81 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: rgba8888 raster uses four bytes per pixel
-00:10 +82 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: retention keeps head + newest explicit/recovery + last 3 autosaves
-00:10 +83 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: negative page dimensions are rejected before lookup
-00:10 +84 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a failed staged write throws SAVE-003 and preserves the head
-00:10 +85 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: a cap of one pixel still yields a non-empty 1x1 raster
-00:10 +86 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a failed read-back throws SAVE-003 without moving the head
-00:10 +87 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: renders respect the maxDimensionPx safety cap
-00:11 +88 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: renders respect the maxDimensionPx safety cap
-00:11 +89 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: global SAVE-008 blocks new document and template aggregates
-00:11 +90 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: the same render request produces byte-identical output
-00:11 +91 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: aggregate key loss is SAVE-002 and leaves other documents usable
-00:11 +92 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: different pages produce different deterministic rasters
-00:11 +93 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: global key loss is SAVE-008 for every aggregate
-00:11 +94 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: evict forgets raster origins so OCR can no longer resolve them
-00:11 +95 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: evict forgets raster origins so OCR can no longer resolve them
-00:11 +96 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: an existing signature asset is immutable and rejected without mutation
-00:11 +97 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: OCR returns the pre-authored blocks for the rendered fixture page
-00:11 +98 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a signature asset at the 2 MiB cap is accepted
-00:11 +99 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a signature asset at the 2 MiB cap is accepted
-00:12 +100 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a signature asset at the 2 MiB cap is accepted
-00:12 +101 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a signature asset at the 2 MiB cap is accepted
-00:12 +102 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: an above-cap signature is refused with SAVE-007 and retains nothing
-00:12 +103 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: delete requires an acknowledged matching title
-00:12 +104 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: an unreadable aggregate is deleted with the placeholder title
-00:12 +105 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: template versions are immutable, loadable, and never pruned
-00:12 +106 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a failed template read-back leaves the previous version head intact
-00:12 +107 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: status reports deterministic object counts and bytes
-00:12 +108 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: delete removes the source when the document is its last owner
-00:12 +109 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: each aggregate owns a private source copy; deleting one owner never touches another (§3.3)
-00:12 +110 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: combined content + source bytes are capacity-checked together (§3.3)
-00:12 +111 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: deleting a shared template leaves the document source intact
-00:13 +112 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: deleting the last owner frees capacity for a new import
-00:13 +113 ~6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: (tearDownAll)
+00:06 +65 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: picker selections and cancellations keep caller order
+00:06 +66 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: verifySource reports an unknown source as unreadable
+00:06 +67 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: same inputs produce identical ids and hashes across runs
+00:08 +68 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: import refuses to create an aggregate under global SAVE-008
+00:08 +69 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: page geometry of a rotated fixture is preserved
+00:08 +70 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: a staged source reference mismatch is refused as PLT-002
+00:08 +71 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: a full store refuses the import before source or aggregate
+00:08 +72 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: a refused import preserves the existing source and aggregate
+00:08 +73 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: staged read-back damage maps to CorruptDataException SAVE-003
+00:08 +74 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_import_test.dart: (tearDownAll)
+00:09 +74 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: (setUpAll)
+00:09 +74 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: (setUpAll)
+00:10 +75 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: (setUpAll)
+00:10 +75 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: pageDimensions returns the imported display geometry
+00:10 +76 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: descriptor is SIMULATED secure storage
+00:10 +77 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: unknown source and out-of-range pages raise PAGE-001
+00:10 +78 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: creates, saves, and loads a verified document revision
+00:10 +79 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: gray8 raster dimensions and byte layout follow the request
+00:10 +80 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a wrong expectedHead is refused and the head is unchanged
+00:10 +81 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: rgba8888 raster uses four bytes per pixel
+00:10 +82 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: retention keeps head + newest explicit/recovery + last 3 autosaves
+00:10 +83 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: negative page dimensions are rejected before lookup
+00:10 +84 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a failed staged write throws SAVE-003 and preserves the head
+00:10 +85 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: a cap of one pixel still yields a non-empty 1x1 raster
+00:10 +86 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a failed read-back throws SAVE-003 without moving the head
+00:10 +87 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: renders respect the maxDimensionPx safety cap
+00:11 +88 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: renders respect the maxDimensionPx safety cap
+00:11 +89 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: global SAVE-008 blocks new document and template aggregates
+00:11 +90 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: the same render request produces byte-identical output
+00:11 +91 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: aggregate key loss is SAVE-002 and leaves other documents usable
+00:11 +92 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: different pages produce different deterministic rasters
+00:11 +93 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: global key loss is SAVE-008 for every aggregate
+00:11 +94 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: evict forgets raster origins so OCR can no longer resolve them
+00:11 +95 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: evict forgets raster origins so OCR can no longer resolve them
+00:11 +96 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: an existing signature asset is immutable and rejected without mutation
+00:11 +97 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_raster_ocr_test.dart: OCR returns the pre-authored blocks for the rendered fixture page
+00:11 +98 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a signature asset at the 2 MiB cap is accepted
+00:11 +99 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a signature asset at the 2 MiB cap is accepted
+00:12 +100 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a signature asset at the 2 MiB cap is accepted
+00:12 +101 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a signature asset at the 2 MiB cap is accepted
+00:12 +102 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: an above-cap signature is refused with SAVE-007 and retains nothing
+00:12 +103 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: delete requires an acknowledged matching title
+00:12 +104 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: an unreadable aggregate is deleted with the placeholder title
+00:12 +105 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: template versions are immutable, loadable, and never pruned
+00:12 +106 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: a failed template read-back leaves the previous version head intact
+00:12 +107 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: status reports deterministic object counts and bytes
+00:12 +108 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: delete removes the source when the document is its last owner
+00:12 +109 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: each aggregate owns a private source copy; deleting one owner never touches another (§3.3)
+00:12 +110 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: combined content + source bytes are capacity-checked together (§3.3)
+00:12 +111 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: deleting a shared template leaves the document source intact
+00:13 +112 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: deleting the last owner frees capacity for a new import
+00:13 +113 ~6: <workspace>/packages/feldexa_adapters_simulated/test/simulated_store_test.dart: (tearDownAll)
 00:13 +113 ~6: All tests passed!

@@ -1,0 +1,1412 @@
+/usr/bin/which: no vswhere.exe in (<home>/flutter/bin:<home>/flutter/bin:<home>/flutter/bin:<home>/flutter/bin:<home>/flutter/bin:<home>/flutter/bin:<home>/flutter/bin:<home>/.local/bin:<home>/.opencode/bin:<home>/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl)
+
+
+No Visual Studio installation found with the requested Microsoft.VisualStudio.Component.VC.Tools.x86.x64 component.
+
+00:00 +0: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/acroform_fixture_catalog_test.dart
+00:00 +0: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/acroform_fixture_catalog_test.dart: (setUpAll)
+00:00 +0: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/acroform_fixture_catalog_test.dart: the request is synthetic, deterministic, and has no personal data
+00:00 +1: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/acroform_fixture_catalog_test.dart: the register holds exactly the AcroForm reference fixture
+00:00 +2: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/acroform_fixture_catalog_test.dart: the fixture is deliberately not part of the generated catalogue
+00:00 +3: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/acroform_fixture_catalog_test.dart: every entry pins its committed bytes, paths, and generator
+00:00 +4: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/acroform_fixture_catalog_test.dart: the fixture really carries the AcroForm the flattening proof needs
+00:00 +5: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/acroform_fixture_catalog_test.dart: (tearDownAll)
+00:00 +5: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/android_backup_rules_test.dart
+00:00 +5: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/android_backup_rules_test.dart: manifest disables backup and points at the extraction rules
+00:00 +6: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/android_backup_rules_test.dart: every transfer mode excludes every app data domain
+00:00 +7: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/android_backup_rules_test.dart: cross-platform transfer is not declared without an iOS identity
+00:00 +8: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/app_import_composition_test.dart
+00:01 +8: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/app_import_composition_test.dart: start surface renders the committed German catalog strings
+00:02 +9: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/app_import_composition_test.dart: accepted import opens the editor, lists every page, and reads the protected source for the imported documentId
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_UNSUPPORTED
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-unsupported
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=3:EXPECTED=3
+00:03 +10: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/app_import_composition_test.dart: a rejection shows catalog text without a code or navigation and creates no document
+00:03 +11: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/app_import_composition_test.dart: a cancelled picker returns to the start surface with no text
+00:03 +12: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/app_import_composition_test.dart: a partial source derives the IMP-006 warning and marks the affected page unreadable
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_UNSUPPORTED
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-unsupported
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+00:03 +13: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/app_smoke_test.dart
+00:04 +13: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/app_smoke_test.dart: renders the Feldexa shell in German
+00:05 +14: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/checkbox_control_test.dart
+00:06 +14: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/checkbox_control_test.dart: renders unchecked and checked states with the caller label
+00:07 +15: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/checkbox_control_test.dart: tap toggles false to true to false, once per tap
+00:07 +16: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/checkbox_control_test.dart: hit region is at least 48 by 48 dp and edges toggle
+00:07 +17: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/checkbox_control_test.dart: drawn box stays smaller than the hit region
+00:07 +18: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/checkbox_control_test.dart: disabled and read-only controls neither toggle nor call back
+00:07 +19: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/checkbox_control_test.dart: two controls keep independent caller-owned values
+00:07 +20: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/checkbox_control_test.dart: renders a long label at 200 percent text scale
+00:07 +21: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/checkbox_control_test.dart: production source imports only the Flutter presentation framework
+00:07 +22: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/create_template_sheet_test.dart
+00:08 +22: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/create_template_sheet_test.dart: shows the German exclusion notice and title input
+00:09 +23: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/create_template_sheet_test.dart: confirm stays disabled while the structure is unreviewed and shows the pending notice (FR-055)
+00:09 +24: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/create_template_sheet_test.dart: confirm calls the create action once with the trimmed title and closes after the verified success
+00:10 +25: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/delete_item_test.dart
+00:11 +25: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/delete_item_test.dart: exact ARB content document kind shows only the exact DEL-002 message
+00:12 +26: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/delete_item_test.dart: exact ARB content template kind shows only the exact DEL-003 message
+00:12 +27: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/delete_item_test.dart: result semantics confirm returns true exactly once
+00:12 +28: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/delete_item_test.dart: result semantics cancel returns false exactly once
+00:12 +29: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/delete_item_test.dart: result semantics barrier dismissal returns false exactly once
+00:12 +30: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/delete_item_test.dart: confirm reads Löschen and cancel stays the system cancel label
+00:12 +31: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/delete_item_test.dart: confirm, cancel, and barrier keep the host and move only the dialog route
+00:12 +32: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/delete_item_test.dart: the title appears exactly once and the stable keys identify all controls
+00:12 +33: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/delete_item_test.dart: deletionConfirmationMessage returns the exact ARB sentence
+00:12 +34: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/delete_item_test.dart: 200 % text scale reflows at 280 logical pixels without overflow
+00:13 +35: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/delete_item_test.dart: production source is ASCII, German-free, and presentation-only
+00:13 +36: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/diagnostics_privacy_test.dart
+00:14 +36: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/diagnostics_privacy_test.dart: descriptor declares the on-device scalar-only ring buffer
+00:14 +37: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/diagnostics_privacy_test.dart: nested maps, lists, and byte payloads are dropped, not stored
+00:14 +38: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/diagnostics_privacy_test.dart: the ring buffer is capped at its capacity
+00:14 +39: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/diagnostics_privacy_test.dart: clear() empties the on-device buffer without throwing
+00:14 +40: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/diagnostics_privacy_test.dart: §2.9 whitelist discards free strings, paths, titles, and OCR text
+00:14 +41: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/diagnostics_privacy_test.dart: event codes and field names are stable identifiers only
+00:14 +42: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/document_overview_test.dart
+00:14 +42: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/document_overview_test.dart: DocumentOverviewCounts counts total, filled, and blocking with T085 semantics
+00:14 +43: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/document_overview_test.dart: DocumentOverviewCounts an empty overview is empty and has zero counts
+00:14 +44: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/document_overview_test.dart: shows every T085 completion state and the count summary
+00:16 +45: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/document_overview_test.dart: shows the same durability status and never checks unsaved work
+00:16 +46: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/document_overview_test.dart: continue returns to the editor without a field
+00:16 +47: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/document_overview_test.dart: a field row returns the selected field id to continue filling
+00:16 +48: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/document_overview_test.dart: lays out at 200 percent text scale without overflow
+00:16 +49: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/durability_status_test.dart
+00:17 +49: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/durability_status_test.dart: every durability state renders its exact ARB label and pinned icon
+00:18 +50: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/durability_status_test.dart: saved and saveFailed render local 24-hour time from explicit or saved UTC
+00:18 +51: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/durability_status_test.dart: time label is local, 24-hour, zero-padded, and never reads a clock
+00:18 +52: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/durability_status_test.dart: null time renders the exact --:-- fallback for saved and saveFailed
+00:18 +53: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/durability_status_test.dart: only clean and saved may show a durable check
+00:18 +54: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/durability_status_test.dart: one status semantic node carries the exact visible text
+00:18 +55: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/durability_status_test.dart: stable keys identify the status surface and disclosure
+00:18 +56: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/durability_status_test.dart: visible PRIV-001 disclosure renders the exact sentence and one node
+00:18 +57: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/durability_status_test.dart: hidden PRIV-001 disclosure reserves no space and exposes no semantics
+00:19 +58: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/durability_status_test.dart: 200 percent scale reflows every status in a narrow width
+00:19 +59: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/durability_status_test.dart: 200 percent scale reflows the PRIV-001 disclosure in a narrow width
+00:19 +60: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/durability_status_test.dart: production source stays presentation-only
+00:19 +61: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart
+00:20 +61: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=2:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=2:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_OK
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:ready
+00:21 +62: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: an existing suggestion set is skipped without analysis or a write
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=1
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=1:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:21 +63: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: a completed zero-suggestion run is durable across reopen
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=0:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=0:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_OK
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:ready
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:21 +64: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: a partially unreadable first import still analyzes readable pages
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=2:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=2:SUGGESTIONS=0:STRIP=2
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=1:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=2:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_OK
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:ready
+00:22 +65: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: divergent loaded geometry fails before analysis or save
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_LOAD_REJECT:IDENTITY=1:PAGES=1:GEOMETRY=0
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-reject
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:22 +66: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: a loaded/source page-count mismatch fails before analysis
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_LOAD_REJECT:IDENTITY=1:PAGES=0:GEOMETRY=0
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-reject
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+00:22 +67: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: same-size different rotation fails before analysis
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_LOAD_REJECT:IDENTITY=1:PAGES=1:GEOMETRY=0
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-reject
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:22 +68: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: quantized geometry within 0.001 pt per edge is accepted
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_OK
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:ready
+00:22 +69: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: a page failure is isolated while the healthy page is saved
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=2:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=2:SUGGESTIONS=0:STRIP=2
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=2:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=2:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=1:STATUS=failed:CATEGORY=rasterization:KEY=PAGE-001
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=2:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_OK
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:ready
+00:22 +70: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: the viewer and strip stay available while analysis runs
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_OK
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:ready
+00:22 +71: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: a save failure keeps the viewer and the in-memory result
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_FAIL:CODE=SAVE-003
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=save-error
+00:22 +72: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: the viewer receives the single protected load without a second store read
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_OK
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:ready
+00:22 +73: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: a hung protected load becomes analysis-failed without a second read
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_FAIL:TYPE=timeout
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-timeout
+T071A_DIAG_VIEW_BYTES:PRESENT=0
+T071A_DIAG_VIEW_FAIL:CODE=sourceUnavailable
+00:23 +74: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: a hung analysis becomes analysis-failed without losing loaded content
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+[EMULATOR] T071A_DIAG_ANALYSIS_FAIL:CODE=timeout
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=analysis-timeout
+00:23 +75: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: confirm, reject, and undo save with the advancing revision head
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=2
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=2:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:23 +76: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: undo after an analysis apply keeps the analysis suggestions
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_OK
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:ready
+00:23 +77: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: a review save failure keeps the viewer, panel, and prior revision
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=2
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=2:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:23 +78: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: applyDocumentAnalysis leaves the base revision immutable on success
+00:23 +79: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: applyDocumentAnalysis rejects existing suggestions without mutating the base revision
+00:23 +80: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: every recognition failure category maps to the core contract
+00:23 +81: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: cancelled pages stay pending and contribute no suggestions
+00:23 +82: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: ImportRuntime returns the unavailable runtime for a throwing factory
+00:23 +83: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: the evidence label is a deterministic build-mode label
+00:23 +84: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: the structured log prefix derives from the port vocabulary (T129)
+00:23 +85: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_analysis_test.dart: the simulated web build reports SIMULATED, never emulator (T129)
+00:23 +86: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart
+00:24 +86: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: (setUpAll)
+00:24 +86: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: PageView overlay builder receives page, viewport rect, mapping
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+00:25 +87: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:26 +88: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: the value sheet lays out above the software keyboard
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:26 +89: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: tapping a suggestion highlights it without a value sheet
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=1
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=1:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:27 +90: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: a confirmed field keeps its tap where an unresolved suggestion overlaps
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=1
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=1:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:27 +91: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: an empty page still clears a stale selection
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:27 +92: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: invalid number input stays open and valid German is stored
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:27 +93: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: impossible date keeps the sheet open and a real date saves
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:28 +94: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: a verified save updates content, head, and durability status
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:28 +95: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: an overflowing value persists the FLD-001 flag and reopens in full
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:28 +96: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: a failed save keeps the sheet open and claims no saved state
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:28 +97: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: a readable stored document opens and the list reloads on return
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:29 +98: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: an unreadable stored document is not opened
+00:29 +99: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: 200 percent text scale composes editor and sheet without overflow
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:29 +100: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: field order sheet reorders in document order and saves one undo step
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:29 +101: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: a failed reorder save keeps the previous order untouched
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:29 +102: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: the per-field reorder action opens the field-order review
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:30 +103: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: next/previous move focus in field order while the value sheet stays open
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:30 +104: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: the page-order action sorts the order in one revision
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:30 +105: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: next from an untouched empty number adds no revision and focuses the next
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:30 +106: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: a checkbox target receives focus after next
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:30 +107: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: a signature target receives focus after next
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:31 +108: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: the overview shows completion and continues a field without losing values
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:31 +109: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_composition_test.dart: (tearDownAll)
+00:31 +109: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_export_action_test.dart
+00:32 +109: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_export_action_test.dart: (setUpAll)
+00:32 +109: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_export_action_test.dart: the export action is disabled until the document state is exportable
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:33 +110: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_export_action_test.dart: the pre-export sheet shows the OD-1 information without blocking the export
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=1
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=1:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:34 +111: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_export_action_test.dart: starting the export opens the preview of the verified artifact
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:34 +112: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_export_action_test.dart: a blocking plan shows its catalog sentence and starts nothing
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:34 +113: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_export_action_test.dart: a failed export shows the catalog sentence and no preview
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:35 +114: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_export_action_test.dart: cancelling the pre-export sheet exports nothing
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:35 +115: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_export_action_test.dart: the plan is built from the live revision, not from the loaded snapshot
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=1
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=1:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:36 +116: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_export_action_test.dart: a blocking plan lists the field page and jumps to the field
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:36 +117: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_export_action_test.dart: a failed export offers "Erneut versuchen" and exports again
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:36 +118: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_export_action_test.dart: the progress surface shows the reported export phases
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:36 +119: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_export_action_test.dart: the cancel action cancels the running export once and shows no error
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:37 +120: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_export_action_test.dart: a render that finished after a claimed cancellation is discarded, not previewed
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:37 +121: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_export_action_test.dart: a cancel before the render starts is refused and the export still completes
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:37 +122: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_export_action_test.dart: an artifact of an export whose editor was disposed is deleted
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:37 +123: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_export_action_test.dart: (tearDownAll)
+00:37 +123: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_geometry_test.dart
+00:38 +123: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_geometry_test.dart: a body drag previews, saves once, and commits the exact move
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:40 +124: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_geometry_test.dart: a corner drag resizes from the opposite anchor with one save
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:40 +125: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_geometry_test.dart: undo restores the exact previous rectangle
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:40 +126: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_geometry_test.dart: a pointer cancel discards the preview and commits nothing
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:40 +127: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_geometry_test.dart: two fingers pan and zoom the page and never edit geometry
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:40 +128: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_geometry_test.dart: lifting one finger of a pinch does not re-arm the geometry claim
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:41 +129: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_geometry_test.dart: the geometry preview stays visible until the commit resolves
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:41 +130: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_geometry_test.dart: undo refuses a stale snapshot instead of dropping newer content
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=1
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=1:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:41 +131: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_geometry_test.dart: undo after a value edit keeps the field and reverses only the value
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=1
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=1:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:42 +132: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_geometry_test.dart: a drag outside the selected field still pans the page
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:42 +133: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_review_panel_test.dart
+00:43 +133: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+00:44 +134: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_review_panel_test.dart: shows fallback, uncertain, conflict, and progress markers
+00:44 +135: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_review_panel_test.dart: confirm, reject, and undo callbacks receive the exact value
+00:44 +136: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_review_panel_test.dart: busy disables actions while a save is in flight
+00:44 +137: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_review_panel_test.dart: empty states distinguish no suggestions from all reviewed
+00:44 +138: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_review_panel_test.dart: no overflow at 200 % text scale
+00:44 +139: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_runtime_recognition_execution_test.dart
+00:45 +139: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_runtime_recognition_execution_test.dart: the Android composition runs the raster stage off the UI isolate
+00:45 +140: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_runtime_recognition_execution_test.dart: the target-selected editor runtime never resolves inline
+00:45 +141: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_runtime_recognition_execution_test.dart: the fail-closed editor runtime never resolves inline
+00:45 +142: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_sensitive_route_test.dart
+00:46 +142: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_sensitive_route_test.dart: entering the editor requests the editor route protection
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_UNSUPPORTED
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-unsupported
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:47 +143: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_sensitive_route_test.dart: a not-applied protection keeps the editor usable and is never read as protected
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_UNSUPPORTED
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-unsupported
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:47 +144: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_sensitive_route_test.dart: a failing sensitive route never blocks the editor
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_UNSUPPORTED
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-unsupported
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:47 +145: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_sensitive_route_test.dart: leaving the editor clears the flag before the runtime is disposed
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_UNSUPPORTED
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-unsupported
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:48 +146: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_signature_test.dart
+00:48 +146: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:51 +147: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_signature_test.dart: reopening shows the signed field and the read-back asset
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:51 +148: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_signature_test.dart: undo restores the unsigned revision exactly
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:52 +149: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_signature_test.dart: a failed asset write saves no revision and stays open
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:52 +150: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_signature_test.dart: a failed revision save leaves the document unsigned
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:53 +151: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_signature_test.dart: two fields never share ink (no global signature state)
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:54 +152: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/editor_signature_test.dart: the signature field is painted, movable, and resizable
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+00:55 +153: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/evidence_separation_test.dart
+00:55 +153: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/evidence_separation_test.dart: report fields keep SIMULATED separate (FR-088) simulated evidence reports only its own class token
+00:55 +154: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/evidence_separation_test.dart: report fields keep SIMULATED separate (FR-088) every class token is distinct and parse-stable
+00:55 +155: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/evidence_separation_test.dart: report fields keep SIMULATED separate (FR-088) the simulated report field line is never a runtime class
+00:55 +156: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/evidence_separation_test.dart: report fields keep SIMULATED separate (FR-088) structured log lines stay prefixed with their own class
+00:55 +157: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/evidence_separation_test.dart: the simulated UI surface is never Android evidence SimulatedSurface.globalBanner stays SIMULATED and denies Android verification
+00:55 +158: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/evidence_separation_test.dart: the simulated UI surface is never Android evidence SimulatedSurface.log stays SIMULATED and denies Android verification
+00:55 +159: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/evidence_separation_test.dart: the simulated UI surface is never Android evidence SimulatedSurface.exportFooter stays SIMULATED and denies Android verification
+00:55 +160: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/evidence_separation_test.dart: the simulated UI surface is never Android evidence SimulatedSurface.report stays SIMULATED and denies Android verification
+00:55 +161: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/evidence_separation_test.dart: the simulated UI surface is never Android evidence SimulatedSurface.storage stays SIMULATED and denies Android verification
+00:55 +162: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/evidence_separation_test.dart: the simulated UI surface is never Android evidence the report descriptor renders the exact catalog field
+00:55 +163: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/evidence_separation_test.dart: no construction path upgrades simulated evidence simulated is derived, never accepted from a caller
+00:55 +164: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/evidence_separation_test.dart: no construction path upgrades simulated evidence the Android adapter constructor yields NONE, not EMULATOR
+00:55 +165: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/evidence_separation_test.dart: no construction path upgrades simulated evidence a simulated reason on a runtime class is rejected
+00:55 +166: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/evidence_separation_test.dart: no construction path upgrades simulated evidence the public constructor classifies honestly for its inputs (P3)
+00:55 +167: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/evidence_separation_test.dart: no construction path upgrades simulated evidence parsing cannot promote SIMULATED into a runtime class
+00:55 +168: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_controller_test.dart
+00:56 +168: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_controller_test.dart: (setUpAll)
+00:56 +168: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_controller_test.dart: prepare builds the canonical plan from the verified snapshot
+00:56 +169: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_controller_test.dart: prepare builds the plan from the live revision, not from the load
+00:56 +170: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_controller_test.dart: prepare reports the pre-export information of empty and unreviewed content without blocking it
+00:56 +171: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_controller_test.dart: prepare blocks content that would overflow its field (EXP-001)
+00:56 +172: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_controller_test.dart: prepare refuses a snapshot without a durable revision
+00:56 +173: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_controller_test.dart: run validates, exports, and reports the verified artifact
+00:56 +174: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_controller_test.dart: a blocking validation result never starts the export
+00:56 +175: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_controller_test.dart: an export failure carries the catalog code
+00:56 +176: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_controller_test.dart: an unclassified export failure is reported as EXP-002
+00:56 +177: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_controller_test.dart: an unmapped platform error is reported as EXP-002, never thrown
+00:56 +178: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_controller_test.dart: a security rejection of the port keeps its own code
+00:56 +179: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_controller_test.dart: blocking texts use the catalog sentences and their placeholders
+00:56 +180: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_controller_test.dart: a page code carries its page number and a save code its own row
+00:56 +181: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_controller_test.dart: a warning set without field labels falls back to the generic row
+00:56 +182: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_controller_test.dart: failure codes map to their catalog sentence
+00:56 +183: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_controller_test.dart: (tearDownAll)
+00:56 +183: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_preview_test.dart
+00:57 +183: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_preview_test.dart: shows the page count, the size, and the four actions
+00:58 +184: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_preview_test.dart: formats the byte size with a German decimal comma
+00:59 +185: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_preview_test.dart: each action is one delivery call for this artifact
+00:59 +186: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_preview_test.dart: a cancelled hand-off is not an error
+00:59 +187: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_preview_test.dart: a failed hand-off leaves a content-free state and no sentence
+00:59 +188: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_preview_test.dart: the export route protects the window and the editor route takes over after leaving
+00:59 +189: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_preview_test.dart: closing deletes the artifact exactly once
+00:59 +190: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_preview_test.dart: a detached view deletes the artifact
+00:59 +191: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_preview_test.dart: a failing delete is never reported as a successful one
+00:59 +192: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/export_preview_test.dart: a failing sensitive route keeps the preview usable
+00:59 +193: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart
+01:00 +193: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: text and multiline values empty text is optional-empty
+01:00 +194: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: text and multiline values whitespace-only text is optional-empty
+01:00 +195: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: text and multiline values non-empty text is complete
+01:00 +196: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: text and multiline values empty multiline is optional-empty
+01:00 +197: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: text and multiline values whitespace and newline-only multiline is optional-empty
+01:00 +198: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: text and multiline values non-empty multiline is complete
+01:00 +199: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: non-text values an unchecked checkbox is complete
+01:00 +200: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: non-text values a checked checkbox is complete
+01:00 +201: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: non-text values a number value is complete
+01:00 +202: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: non-text values a date value is complete
+01:00 +203: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: non-text values a signature value is complete
+01:00 +204: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: non-text values a null value with ok validation is optional-empty
+01:00 +205: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: blocking validation error an error wins over a non-empty value
+01:00 +206: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: blocking validation error an error wins over a null value
+01:00 +207: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: blocking validation error an error wins over an unchecked checkbox
+01:00 +208: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: warning precedence a warning overrides a non-empty value
+01:00 +209: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: warning precedence a warning overrides a null value
+01:00 +210: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: warning precedence an empty optional text with a warning is warning, not empty
+01:00 +211: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: warning precedence a warning overrides an unchecked checkbox
+01:00 +212: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: incompatible content non-empty preserved text with ok validation is incompatible
+01:00 +213: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: incompatible content empty preserved text is still incompatible
+01:00 +214: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: incompatible content incompatible content wins over a warning
+01:00 +215: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: incompatible content a blocking error wins over incompatible content
+01:00 +216: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: extension semantics every state maps to the exact blocking and completion predicates
+01:00 +217: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_completion_test.dart: production source purity imports only the core model and writes no user-facing text
+01:00 +218: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart
+01:01 +218: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+01:03 +219: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: text control German text is accepted and preserved without truncation
+01:03 +220: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: text control the entered text is still shown in the control before save
+01:03 +221: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: multiline control the selected multiline field presents the multiline control
+01:03 +222: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: multiline control line breaks are preserved and the text is not truncated
+01:03 +223: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: number control the selected number field presents the number control
+01:04 +224: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: number control 1.234,56 is accepted and stored canonically
+01:04 +225: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: number control a German comma decimal is accepted and stored canonically
+01:04 +226: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: number control invalid number input is not accepted and not stored
+01:04 +227: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: date control the selected date field presents the date control
+01:04 +228: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: date control 31.12.2025 is accepted and stored canonically
+01:04 +229: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: date control an impossible calendar date is not accepted and not stored
+01:04 +230: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: date control a malformed date is not accepted and not stored
+01:04 +231: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: checkbox control the selected checkbox field presents the checkbox control
+01:05 +232: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: checkbox control toggling the checkbox updates the committed value
+01:05 +233: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: checkbox control toggling the checkbox twice commits the unchecked state
+01:05 +234: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: signature control signature editing opens the sheet and invents no value
+01:05 +235: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: signature control applying ink reports exactly one hint-bearing draft
+01:05 +236: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_controls_test.dart: signature control an empty apply stores nothing and keeps the sheet open
+01:05 +237: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart
+01:06 +237: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: deterministic document order sorts by page, y, x, then id regardless of the stored order
+01:06 +238: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: deterministic document order breaks a full tie with the stable field id
+01:06 +239: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: deterministic document order the current order follows fieldOrder, not the page order
+01:06 +240: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: deterministic document order a degenerate id list never drops or duplicates a field
+01:06 +241: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: review read model exposes page, position, label, type, provenance and confidence
+01:06 +242: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: review read model reports the conflict while the source suggestion carries it
+01:06 +243: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: review read model a live conflict clears once the opposing candidate is resolved
+01:06 +244: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: review read model a stale conflict reference stays open until it is decided
+01:06 +245: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: review read model maps every T085 completion state
+01:06 +246: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: review read model reports a blocking validation error as blocking completion
+01:06 +247: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: review read model a document without confirmed fields yields no rows
+01:06 +248: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: reorder moveFieldToIndex renumbers order contiguously
+01:06 +249: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: reorder preserves pages, suggestions, values, signatures and extensions
+01:06 +250: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: reorder a no-op move returns the same snapshot and changed is false
+01:06 +251: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: reorder moveFieldUp and moveFieldDown stop at the boundaries
+01:06 +252: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: reorder page order is reachable as one complete reorder
+01:06 +253: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: reorder a reorder applies to the live snapshot, not a stale capture
+01:06 +254: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: reorder rejects an unknown field and an out-of-range index
+01:06 +255: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: undo and persistence one reorder step undoes to the exact previous order and values
+01:06 +256: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: undo and persistence reorder commands never coalesce into one undo step
+01:06 +257: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: undo and persistence a reordered snapshot round-trips through persisted JSON
+01:06 +258: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: next and previous in the current order walk the stored order without wrapping
+01:06 +259: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: next and previous in the current order follow a reordered snapshot
+01:06 +260: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: next and previous in the current order are safe without confirmed fields
+01:06 +261: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_test.dart: next and previous in the current order navigation never mutates the revision
+01:06 +262: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_widget_test.dart
+01:07 +262: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_widget_test.dart: renders the current order with all required metadata
+01:08 +263: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_widget_test.dart: move actions report the exact field and respect boundaries
+01:08 +264: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_widget_test.dart: busy disables every move action
+01:08 +265: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_widget_test.dart: a row tap selects that field
+01:09 +266: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_widget_test.dart: shows the German empty state
+01:09 +267: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_order_widget_test.dart: composes at 200 % text scale without an overflow
+01:09 +268: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_overflow_sheet_test.dart
+01:10 +268: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_overflow_sheet_test.dart: (setUpAll)
+01:10 +268: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_overflow_sheet_test.dart: text longer than the field display region sets overflow
+01:11 +269: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_overflow_sheet_test.dart: the FLD-001 warning is visible immediately after the commit
+01:11 +270: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_overflow_sheet_test.dart: a text that still fits commits without a warning and closes
+01:11 +271: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_overflow_sheet_test.dart: a stored overflowing value reopens with warning and full text
+01:12 +272: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_overflow_sheet_test.dart: saving the committed overflowing draft again commits nothing
+01:12 +273: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_overflow_sheet_test.dart: shortening the overflowing draft clears the warning and closes
+01:12 +274: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_overflow_sheet_test.dart: multiline line counting drives the same flag
+01:12 +275: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_overflow_sheet_test.dart: a multiline value that fits keeps the sheet closing path
+01:12 +276: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_overflow_sheet_test.dart: a long number is flagged against the stored German form
+01:12 +277: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_overflow_sheet_test.dart: a long date is flagged and kept verbatim
+01:13 +278: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_overflow_sheet_test.dart: a checkbox has no clipable text and never warns
+01:13 +279: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_overflow_sheet_test.dart: (tearDownAll)
+01:13 +279: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_text_fit_test.dart
+01:13 +279: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_text_fit_test.dart: font metrics follow the export-plan §2.2 clamps font size is 0.6 × height clamped to 7.0 … 12.0 pt
+01:13 +280: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_text_fit_test.dart: font metrics follow the export-plan §2.2 clamps line height is 1.2 × font size and the baseline stays in the field
+01:13 +281: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_text_fit_test.dart: font metrics follow the export-plan §2.2 clamps the available box removes 1.5 pt on every side
+01:13 +282: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_text_fit_test.dart: single-line fields (text, number, date) a text that fits the available width does not overflow
+01:13 +283: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_text_fit_test.dart: single-line fields (text, number, date) a text wider than the available width overflows
+01:13 +284: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_text_fit_test.dart: single-line fields (text, number, date) the exact available width is still accepted
+01:13 +285: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_text_fit_test.dart: single-line fields (text, number, date) a line break cannot be rendered by a single-line field
+01:13 +286: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_text_fit_test.dart: multiline fields one line fits, two lines exceed a one-line-high box
+01:13 +287: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_text_fit_test.dart: multiline fields greedy word wrap keeps as many words per line as fit
+01:13 +288: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_text_fit_test.dart: multiline fields a single word wider than the line overflows and is not broken
+01:13 +289: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_text_fit_test.dart: multiline fields an explicit empty line counts as a rendered line
+01:13 +290: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_text_fit_test.dart: fields without clipable text and degenerate boxes checkbox and signature never report a text overflow
+01:13 +291: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_text_fit_test.dart: fields without clipable text and degenerate boxes empty and whitespace-only text never overflows
+01:13 +292: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_text_fit_test.dart: fields without clipable text and degenerate boxes a box with no usable inner area overflows any text
+01:13 +293: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_text_fit_test.dart: fields without clipable text and degenerate boxes a box shorter than the baseline overflows any text
+01:13 +294: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_text_fit_test.dart: the measure callback is the single metrics seam a wider measure flips the same text from fitting to overflowing
+01:13 +295: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart
+01:14 +295: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: text over 10,000 runes is refused in the open sheet
+01:16 +296: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: a text control character is refused in the open sheet
+01:16 +297: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: multiline over 10,000 runes is refused in the open sheet
+01:16 +298: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: single-line done commits once and closes the sheet
+01:16 +299: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: focus loss commits once and closes the sheet
+01:17 +300: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: the multiline done action commits once and shows FLD-001
+01:17 +301: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: the explicit save commits once and closes the sheet
+01:17 +302: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: a failed save keeps the sheet open and editable
+01:17 +303: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: explicit close cancels without a focus-loss save
+01:17 +304: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: the per-field reorder action commits and hands off
+01:17 +305: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: the reorder action keeps the sheet open on a failed commit
+01:17 +306: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: previous/next are disabled at the order boundaries
+01:17 +307: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: next commits once, moves focus, and keeps the sheet open
+01:18 +308: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: a failed next commit does not move to the next field
+01:18 +309: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: untouched empty number navigates without NUM-001 or a commit
+01:18 +310: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: untouched empty date navigates without DATE-001 or a commit
+01:18 +311: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: untouched checkbox navigates without a commit
+01:18 +312: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: untouched signature navigates without a commit
+01:18 +313: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: untouched text with an existing value adds no setValue
+01:18 +314: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: untouched incompatible text is not converted by navigation
+01:18 +315: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: unchanged text reorder opens the review without a commit
+01:18 +316: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: untouched number reorder opens the review, no commit
+01:18 +317: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: untouched date reorder opens the review, no commit
+01:19 +318: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: untouched checkbox reorder opens the review, no commit
+01:19 +319: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: untouched signature reorder opens the review, no commit
+01:19 +320: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: changed invalid number blocks next with NUM-001
+01:19 +321: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: changed invalid date blocks next with DATE-001
+01:19 +322: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: changed valid number commits once and then navigates
+01:19 +323: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: a vanished target re-enables the sheet after the commit
+01:19 +324: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: a checkbox control receives focus when the sheet opens
+01:19 +325: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/field_value_sheet_test.dart: a signature control receives focus when the sheet opens
+01:19 +326: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/font_bundle_test.dart
+01:20 +326: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/font_bundle_test.dart: asset bundle contains assets/fonts/NotoSans-Regular.ttf
+01:20 +327: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/font_bundle_test.dart: asset bundle contains assets/fonts/NotoSans-Bold.ttf
+01:20 +328: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/font_bundle_test.dart: asset bundle contains the SIL OFL 1.1 text
+01:20 +329: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/font_metrics_bundle_test.dart
+01:21 +329: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/font_metrics_bundle_test.dart: (setUpAll)
+01:21 +329: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/font_metrics_bundle_test.dart: metrics.json is a schema-v1 document for both weights
+01:21 +330: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/font_metrics_bundle_test.dart: metrics for assets/fonts/NotoSans-Regular.ttf match head/hhea/maxp/hmtx/cmap
+01:21 +331: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/font_metrics_bundle_test.dart: assets/fonts/NotoSans-Regular.ttf covers the FR-067 German codepoints
+01:21 +332: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/font_metrics_bundle_test.dart: metrics for assets/fonts/NotoSans-Bold.ttf match head/hhea/maxp/hmtx/cmap
+01:21 +333: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/font_metrics_bundle_test.dart: assets/fonts/NotoSans-Bold.ttf covers the FR-067 German codepoints
+01:21 +334: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/font_metrics_bundle_test.dart: advance keys are emitted in ascending numeric order
+01:21 +335: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/font_metrics_bundle_test.dart: sample strings measure to the pinned point widths
+01:21 +336: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/font_metrics_bundle_test.dart: missing glyphs stay absent and zero-width marks stay available
+01:21 +337: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/font_metrics_bundle_test.dart: (tearDownAll)
+01:21 +337: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/german_strings_test.dart
+01:22 +337: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/german_strings_test.dart: (setUpAll)
+01:22 +337: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/german_strings_test.dart: ARB and corrected catalog agree on every coded message
+01:22 +338: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/german_strings_test.dart: catalog and ARB key mapping is complete in both directions
+01:22 +339: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/german_strings_test.dart: corrected IMP-007 and FLD-001 texts are preserved verbatim
+01:22 +340: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/german_strings_test.dart: PRIV-001 discloses aggregate isolation and the global reset exception
+01:22 +341: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/german_strings_test.dart: placeholder metadata is complete, typed, and German
+01:22 +342: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/german_strings_test.dart: generated localization code exposes every ARB key
+01:22 +343: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/german_strings_test.dart: start area, status, action, and deletion labels match the catalog
+01:22 +344: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/german_strings_test.dart: page analysis-state vocabulary matches §8, the ARB, and generated code
+01:22 +345: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/german_strings_test.dart: durability, privacy, export, and SIMULATED labels match the catalog
+01:22 +346: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/german_strings_test.dart: accessibility semantics use the catalog templates and German states
+01:22 +347: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/german_strings_test.dart: no untranslated English UI words remain; SIMULATED is allowlisted
+01:22 +348: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/german_strings_test.dart: (tearDownAll)
+01:22 +348: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_cap_wording_test.dart
+01:23 +348: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+01:23 +349: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart
+01:24 +349: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: catalog mapping maps every import and import-reachable storage code exactly
+01:24 +350: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: catalog mapping IMP-000 and PLT-004 are cancellations without a message
+01:24 +351: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: catalog mapping an unknown code falls back to IMP-005, never to a password claim
+01:24 +352: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: catalog mapping an unknown exception maps to IMP-005 semantics
+01:24 +353: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: catalog mapping isUnrecognized is true only for the unknown-cause fallback
+01:24 +354: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness only a positive password diagnosis claims password protection
+01:24 +355: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness unsupported encryption uses the truthful IMP-004 text with a false exactness flag
+01:24 +356: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness a raw IMP-001 code with the unsupported-encryption key renders IMP-004
+01:24 +357: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness a raw IMP-001 code with the canonical password key stays IMP-001
+01:24 +358: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness a noncanonical IMP-001 password key is not a password claim
+01:24 +359: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness regression: unsupported encryption never renders the password sentence
+01:24 +360: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: FR-007 truthfulness uncertain and structural failures never say password protected
+01:24 +361: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: tone and privacy rendered text contains no code, path, URI, or document title
+01:24 +362: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: IMP-006 partial import a partial source yields the warning with 1-based page numbers
+01:24 +363: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: IMP-006 partial import a single failed page uses its 1-based number
+01:24 +364: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: IMP-006 partial import a fully readable source has no warning
+01:24 +365: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: FR-009 rejection gate a rejected import never reaches document creation
+01:24 +366: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: FR-009 rejection gate storage, too-large, and unknown failures also create nothing
+01:24 +367: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: FR-009 rejection gate cancellation returns to the previous screen and creates nothing
+01:24 +368: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: FR-009 rejection gate an untyped failure is rejected with IMP-005 and creates nothing
+01:24 +369: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: FR-009 rejection gate an accepted partial import creates the document with a warning
+01:24 +370: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_error_mapper_test.dart: FR-009 rejection gate a fully readable import creates the document without a warning
+01:24 +371: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_semantics_test.dart
+01:25 +371: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_semantics_test.dart: exact German catalog messages per failure class presents the pinned message and recovery for every import code
+01:25 +372: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_semantics_test.dart: exact German catalog messages per failure class an unclassified exception presents the IMP-005 German text
+01:25 +373: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_semantics_test.dart: exact German catalog messages per failure class pinned sentences are exactly the committed catalog rows
+01:25 +374: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_semantics_test.dart: exact German catalog messages per failure class the mapper resolves the same text through AppLocalizations
+01:25 +375: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_semantics_test.dart: FR-007 truthful password diagnosis only the positive password diagnosis claims password protection
+01:25 +376: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_semantics_test.dart: FR-007 truthful password diagnosis canonical unsupported encryption presents IMP-004 with a false flag
+01:25 +377: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_semantics_test.dart: FR-094 no internals in user text rendered text and mapper identity contain no internals
+01:25 +378: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_semantics_test.dart: FR-094 no internals in user text partial warning text and identity contain no internals
+01:25 +379: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_semantics_test.dart: FR-094 no internals in user text accepted candidate and source identities omit the display name
+01:25 +380: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_semantics_test.dart: FR-009 error semantics at the flow level every rejected or cancelled failure creates no document
+01:25 +381: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_semantics_test.dart: FR-009 error semantics at the flow level an untyped failure is rejected with IMP-005 and creates nothing
+01:25 +382: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_semantics_test.dart: FR-009 error semantics at the flow level IMP-006 succeeds with a warning and ascending 1-based pages
+01:25 +383: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_semantics_test.dart: FR-009 error semantics at the flow level the flow warning matches T044 page state for the same pages
+01:25 +384: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/import_semantics_test.dart: German-only user surface every asserted sentence is German catalog text, not a fallback
+01:25 +385: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/l10n_scaffold_test.dart
+01:26 +385: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/l10n_scaffold_test.dart: German is the only supported release locale
+01:26 +386: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/l10n_scaffold_test.dart: l10n.yaml points at the German template and committed output
+01:26 +387: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+01:26 +388: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+01:26 +389: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/overflow_warning_test.dart
+01:27 +389: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+01:28 +390: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/overflow_warning_test.dart: visible true renders the exact FLD-001 texts and one live region
+01:28 +391: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/overflow_warning_test.dart: FLD-001 and EXP-001 rows agree with the ARB and stop export
+01:28 +392: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/overflow_warning_test.dart: no dismiss control and a rebuild with visible false clears it
+01:28 +393: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/overflow_warning_test.dart: 200 percent scale reflows in a narrow width without overflow
+01:28 +394: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/overflow_warning_test.dart: production source stays presentation-only
+01:28 +395: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart
+01:29 +395: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: readable pages a pending page is readable with its reported display size
+01:29 +396: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: readable pages running analysis is projected as analyzing
+01:29 +397: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: readable pages complete analysis is projected as ready
+01:29 +398: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: readable pages a failed analysis stays readable, renderable, and labeled
+01:29 +399: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: readable pages a fully readable document succeeds without a warning
+01:29 +400: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder the placeholder page is unreadable and exposes no display size
+01:29 +401: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder an unreadable page hides even a real-looking reported size
+01:29 +402: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder an unreadable page may omit its reported size
+01:29 +403: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder an IMP-006 failure marks a page unreadable without the flag
+01:29 +404: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder the unreadable flag alone is sufficient
+01:29 +405: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder a persisted T040 placeholder JSON page is suppressed
+01:29 +406: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder a readable 1x1 page is treated as its reported size
+01:29 +407: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder pages are ordered and affected numbers are ascending and 1-based
+01:29 +408: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation a partially unreadable document succeeds with the warning
+01:29 +409: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation affected pages are listed in ascending order
+01:29 +410: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation a single affected page uses its 1-based number
+01:29 +411: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation warning text is catalog German without codes or paths
+01:29 +412: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation readable pages stay usable in a partial document
+01:29 +413: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation a partial document is not an error state
+01:29 +414: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation derived collections are immutable
+01:29 +415: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: fully unreadable document all pages unreadable yields the explicit error state
+01:29 +416: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: fully unreadable document a single unreadable page is a fully unreadable document
+01:29 +417: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: fully unreadable document the error state exposes no renderable size and no warning
+01:29 +418: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects an empty page collection
+01:29 +419: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects duplicate page indices
+01:29 +420: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects non-contiguous page indices
+01:29 +421: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects a negative page index at construction
+01:29 +422: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: input validation and privacy requires a failure key exactly for a failed analysis
+01:29 +423: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects a malformed failure key without echoing it
+01:29 +424: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: input validation and privacy requires a reported size for a readable page
+01:29 +425: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects a non-finite, zero, or negative display size
+01:29 +426: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: input validation and privacy input and state toString omit geometry and content
+01:29 +427: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: canonical Page compatibility every core analysis state maps to exactly one phase
+01:29 +428: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_state_test.dart: canonical Page compatibility a canonical unreadable page keeps its flag and failure key
+01:29 +429: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_strip_test.dart
+01:30 +429: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_strip_test.dart: PageStripController rejects an initial page outside the document
+01:30 +430: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_strip_test.dart: PageStripController selects pages, delegates scrolling, and clamps at boundaries
+01:30 +431: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_strip_test.dart: PageStripController changes selection before a viewport exists
+01:30 +432: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+01:31 +433: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+01:31 +434: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+01:31 +435: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation rejects a page list that does not match the viewer
+01:31 +436: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_strip_test.dart: PageStrip semantics exposes one German button per page with state hints
+01:31 +437: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_strip_test.dart: PageStrip semantics updates the semantic hint when analysis progresses
+01:31 +438: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation collapses below 600 dp and navigates with labelled buttons
+01:31 +439: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation shows unreadable and uncertain markers in compact mode
+01:32 +440: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation stays usable at 200% text scaling in both presentations
+01:32 +441: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation uses the full strip at exactly 600 dp
+01:32 +442: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_strip_test.dart: PageStrip long documents builds lazily and reveals a distant selection
+01:32 +443: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_strip_test.dart: PageStrip long documents compact mode stays usable at page 100
+01:32 +444: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart
+01:33 +444: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageViewLayout keeps original order, display sizes, and centered page boxes
+01:33 +445: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageViewLayout rejects an empty page list, a negative gap, and bad indices
+01:33 +446: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageViewLayout validates the page display size value itself
+01:33 +447: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageGeometry.displaySize input uses the exact display size for all four rotations
+01:33 +448: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageGeometry.displaySize input keeps mixed pages independent in document order
+01:33 +449: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: view transform and hit testing maps view to display and back at every contract zoom level
+01:33 +450: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: view transform and hit testing maps a display rectangle without changing its PDF geometry
+01:33 +451: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: view transform and hit testing round-trips all rotations with non-zero CropBox offsets
+01:33 +452: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: view transform and hit testing uses the contract pan and scale formula directly
+01:33 +453: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: view transform and hit testing rejects zero-area rectangles
+01:33 +454: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageViewController fit width follows the widest page and the 0.5×–8× bounds
+01:33 +455: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageViewController fit page uses the tighter dimension ratio
+01:33 +456: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageViewController scrollToPage places the page top at the viewport top
+01:33 +457: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageViewController hit-tests page indices and rejects the inter-page gap
+01:33 +458: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageViewController does not depend on the device pixel ratio
+01:33 +459: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageViewController rejects invalid viewport and transform values
+01:33 +460: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening caps an A3 page at 4096 px on the long edge
+01:33 +461: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening does not downscale a small page below its DPR size
+01:33 +462: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening raster cap leaves view and display mapping unchanged
+01:33 +463: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening zoom-in fitWidth sanity check (passes before and after; not RED evidence)
+01:33 +464: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening fitWidth clamps pan with the target scale after zoom-out (RED on a28fbf0)
+01:33 +465: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects an overflowing accumulated page strip
+01:33 +466: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects derived rectangle extents with opposite extreme endpoints
+01:33 +467: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects far-edge overflow in pageRectInViewport (RED on 219539b)
+01:33 +468: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects non-finite point and rectangle mapping paths
+01:33 +469: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects viewToDisplay page-origin subtraction overflow
+01:33 +470: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects a hostile derived page rectangle
+01:33 +471: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects a public raster cap above the contract 4096
+01:33 +472: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening enforces the minimum page extent and a finite floor
+01:33 +473: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening keeps desiredScale finite for extreme finite inputs
+01:33 +474: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening clamps raster scale to a positive minimum on underflow
+01:33 +475: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects an overflowing transformed rectangle
+01:33 +476: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=3:EXPECTED=3
+01:34 +477: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageView widget reuses the opened document across rebuilds
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:34 +478: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageView widget keeps the mapping when the device pixel ratio changes
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:34 +479: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageView widget builds only pages intersecting the viewport
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=3:EXPECTED=3
+01:34 +480: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageView widget disposes the renderer when the viewer is removed
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:34 +481: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageView widget reopens on a source change and disposes the old renderer
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:34 +482: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageView widget refuses a page-count mismatch without painting pages
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_PAGE_COUNT_MISMATCH:RENDERED=1:EXPECTED=2
+T071A_DIAG_VIEW_FAIL:CODE=pageCountMismatch
+01:34 +483: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageView widget reports an unavailable source with a content-free failure
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=0
+T071A_DIAG_VIEW_FAIL:CODE=sourceUnavailable
+01:34 +484: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/page_view_test.dart: PageView widget sanitizes a renderer exception
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_FAIL:CODE=unreadableSource
+01:34 +485: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/platform_registry_test.dart
+01:35 +485: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/platform_registry_test.dart: compile-time selection dart:io selects the Android registry by default
+01:35 +486: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/platform_registry_test.dart: compile-time selection the unsupported target fails closed with PLT-001
+01:35 +487: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation accepts real Android adapters with EvidenceClass.none
+01:35 +488: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects one simulated adapter with SIM-001
+01:35 +489: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects an all-simulated adapter set with SIM-001
+01:35 +490: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects an environment-labelled adapter instead of mislabelling it
+01:35 +491: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects a descriptor in the wrong capability slot
+01:35 +492: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/platform_registry_test.dart: Web registry evidence separation accepts simulated-only adapters and reports development mode
+01:35 +493: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/platform_registry_test.dart: Web registry evidence separation rejects an Android-labelled adapter instead of claiming it as Web
+01:35 +494: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/platform_registry_test.dart: release assertion accepts the real Android registry
+01:35 +495: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/platform_registry_test.dart: release assertion rejects a simulated Web registry with SIM-001
+01:35 +496: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/platform_registry_test.dart: release assertion inspects live descriptors when the registry metadata lies
+01:35 +497: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/platform_registry_test.dart: release assertion rejects a registry that only claims simulated capabilities
+01:35 +498: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/platform_registry_test.dart: Android dependency boundary registry sources never import the simulated adapter package
+01:35 +499: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/recognition_honesty_test.dart
+01:36 +499: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/recognition_honesty_test.dart: ARB and generated localizations carry no completeness claim no ARB user-facing text states a completeness claim
+01:36 +500: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/recognition_honesty_test.dart: ARB and generated localizations carry no completeness claim sentence-initial and standalone claims are caught too
+01:36 +501: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/recognition_honesty_test.dart: ARB and generated localizations carry no completeness claim the generated German localization class states no claim
+01:36 +502: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/recognition_honesty_test.dart: ARB and generated localizations carry no completeness claim the honest summary vocabulary is present in the ARB
+01:36 +503: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/recognition_honesty_test.dart: the rendered US8 summary claims no completeness summary rows and note stay inside the honest vocabulary
+01:37 +504: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/recognition_honesty_test.dart: the rendered US8 summary claims no completeness rejected suggestions never count as open
+01:37 +505: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/recognition_honesty_test.dart: the rendered US8 summary claims no completeness the empty summary still disclaims completeness
+01:37 +506: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/recognition_honesty_test.dart: IMP-006 pages keep exactly one warning surface the projection excludes IMP-006 and unreadable pages
+01:37 +507: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/recognition_honesty_test.dart: IMP-006 pages keep exactly one warning surface a fully import-unreadable document produces no REC notices
+01:37 +508: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/recognition_honesty_test.dart: failed-page explanations never imply a complete document REC-002 explanation states the failure and the unchanged pages
+01:37 +509: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/recognition_honesty_test.dart: failed-page explanations never imply a complete document REC-003 explanation explains the unsupported structure
+01:37 +510: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/recognition_honesty_test.dart: failed-page explanations never imply a complete document unknown and null keys produce no invented explanation
+01:37 +511: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/recognition_honesty_test.dart: failed-page explanations never imply a complete document the failure notice renders message and recovery verbatim
+01:37 +512: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/review_conflict_sheet_test.dart
+01:38 +512: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/review_conflict_sheet_test.dart: only symmetric conflicting candidates render conflict badges
+01:39 +513: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/review_conflict_sheet_test.dart: tapping a badge opens exactly the symmetric group
+01:39 +514: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/review_conflict_sheet_test.dart: confirming one candidate sends only that candidate and closes
+01:39 +515: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/review_conflict_sheet_test.dart: reopening from the second candidate rejects only that one
+01:39 +516: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/review_conflict_sheet_test.dart: resolved candidates show state without resolution actions
+01:39 +517: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/review_conflict_sheet_test.dart: busy disables the badge and the sheet resolution actions
+01:39 +518: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/review_conflict_sheet_test.dart: a stale conflict reference shows the candidate and a note
+01:40 +519: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/review_conflict_sheet_test.dart: the sheet scrolls without overflow at 200 % text scale
+01:40 +520: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/review_degraded_test.dart
+01:41 +520: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/review_degraded_test.dart: an uncertain page is marked and claims nothing more
+01:42 +521: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/review_degraded_test.dart: a low-confidence suggestion shows the uncertain badge
+01:42 +522: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/review_degraded_test.dart: a page without suggestions shows the empty state
+01:42 +523: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/review_degraded_test.dart: confirm, reject, and undo keep the degraded document usable
+01:42 +524: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/review_degraded_test.dart: a corrected value on the degraded page loses no content
+01:43 +525: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/review_degraded_test.dart: a value entered on the degraded page survives a round trip
+01:43 +526: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/signature_png_test.dart
+01:44 +526: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/signature_png_test.dart: encodes a real PNG at the drawn size
+01:44 +527: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/signature_png_test.dart: never upscales and caps the long edge at 1024 px
+01:44 +528: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/signature_png_test.dart: paints only ink on a transparent background
+01:44 +529: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/signature_png_test.dart: is deterministic and independent per call
+01:44 +530: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/signature_png_test.dart: an unusable canvas yields no image
+01:44 +531: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/signature_png_test.dart: an empty draft stays a valid, fully transparent image
+01:45 +532: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/signature_png_test.dart: the derived asset digest equals package:crypto
+01:45 +533: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/signature_sheet_test.dart
+01:45 +533: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/signature_sheet_test.dart: draws two strokes and applies their captured geometry
+01:46 +534: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/signature_sheet_test.dart: undo removes only the last stroke and clear removes all ink
+01:47 +535: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/signature_sheet_test.dart: a tap produces exactly one one-point stroke at the tap
+01:47 +536: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/signature_sheet_test.dart: a small drag stays one stroke with clamped points
+01:47 +537: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/signature_sheet_test.dart: cancel never applies and apply reports exactly once
+01:47 +538: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/signature_sheet_test.dart: draft and stroke collections are unmodifiable snapshots
+01:47 +539: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/signature_sheet_test.dart: a fresh instance starts empty with no static ink
+01:47 +540: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/signature_sheet_test.dart: labels come from the caller and 200 percent scale reflows
+01:47 +541: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/signature_sheet_test.dart: production source imports only the Flutter presentation framework
+01:47 +542: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/simulated_raster_parity_test.dart
+01:48 +542: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/simulated_raster_parity_test.dart: A4 portrait SIMULATED raster matches RasterSize.fromDisplaySize
+01:48 +543: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/simulated_raster_parity_test.dart: A4 landscape SIMULATED raster matches RasterSize.fromDisplaySize
+01:48 +544: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/simulated_raster_parity_test.dart: A4 landscape (90° rotated page) keeps raster parity
+01:48 +545: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/simulated_raster_parity_test.dart: committed sf-001 fixture raster matches RasterSize.fromDisplaySize
+01:48 +546: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart
+01:49 +546: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: order and platform seam export sweep precedes native recovery and contract reads
+01:49 +547: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: order and platform seam the platform selector has no native recovery without a runtime
+01:49 +548: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: key material unavailable aggregate SAVE-002 deletes nothing and is reported
+01:49 +549: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: key material unavailable global SAVE-008 deletes nothing and is reported
+01:49 +550: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: key material unavailable a native SAVE-008 still sweeps plaintext previews and skips reads
+01:49 +551: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback native fallback adoption survives later stamps that report false
+01:49 +552: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback SAVE-004 fallback surfaces the German guidance
+01:49 +553: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback corrupt head without a verified revision is degraded
+01:49 +554: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback a fallback without a verified revision is never success
+01:49 +555: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: storage exhaustion SAVE-001 is surfaced and the last durable state stays intact
+01:49 +556: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: storage exhaustion SAVE-005 schema-too-new surfaces the update guidance
+01:49 +557: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages stale entries are removed, fresh entries and aggregates are kept
+01:49 +558: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages session end removes every export preview regardless of age
+01:49 +559: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages session end reports a listing failure instead of false success
+01:49 +560: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages a deletion failure is surfaced, not swallowed
+01:49 +561: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: determinism and bound the documented bound is pinned and reached deterministically
+01:49 +562: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: determinism and bound identical inputs produce the same outcome
+01:49 +563: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: production io filesystem adapter lists only exports and reports staging as native-owned
+01:49 +564: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: production io filesystem adapter full sweep removes stale previews and keeps fresh ones
+01:49 +565: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: production io filesystem adapter a missing export directory is empty and is not created
+01:49 +566: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a symlinked export root is refused and deletes nothing outside
+01:49 +567: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a symlinked entry inside the root is refused, outside file kept
+01:49 +568: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures the adapter directly refuses a symlink entry deletion
+01:49 +569: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a regular old file inside the real root is still deleted
+01:49 +570: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a rejected backslash name is a redacted cleanup failure
+01:49 +571: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures an uninspectable entry is a redacted cleanup failure
+01:49 +572: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a timed-out sweep performs no read or deletion after the stop
+01:49 +573: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation the bounded runner passes one absolute deadline into the run
+01:49 +574: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a native deadline stop prevents every later destructive pass
+01:49 +575: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation an already cancelled sweep still removes export previews first
+01:49 +576: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a native recovery timeout still removes stale previews first
+01:49 +577: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a failed preview removal is reported, never silent
+01:49 +578: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a throwing native recovery still removes stale previews first
+01:49 +579: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a timed-out production-shaped run still reports degraded
+01:49 +580: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_wiring_test.dart
+01:50 +580: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_wiring_test.dart: production composition the platform selector builds the real Android store and io adapter
+01:50 +581: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a hang becomes a bounded timeout, never a crash or success
+01:50 +582: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a thrown sweep becomes a degraded failure, never a crash
+01:50 +583: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a clean result stays complete
+01:50 +584: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a degraded result is not reported as success
+01:50 +585: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface renders the localized SAVE-004 guidance
+01:51 +586: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface keeps the plain shell when startup is absent
+01:51 +587: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface keeps the plain shell for a clean startup
+01:51 +588: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface a timed-out startup shows the ARB recovery notice
+01:51 +589: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface a thrown startup shows the ARB recovery notice
+01:52 +590: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface a degraded result without notices shows the ARB notice
+01:52 +591: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring the shell sweeps export previews at session end
+01:52 +592: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring the shell also sweeps when the engine detaches
+01:52 +593: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring a transient inactive state does not sweep
+01:52 +594: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring the shell stops observing after it is disposed
+01:52 +595: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring only paused and detached are session-end states
+01:52 +596: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring session-end failure hook receives only a redacted category
+01:52 +597: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart
+01:53 +597: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: DocumentSummary.fromStoredMeta readable with lastDurableAt equal to updatedAt is saved
+01:53 +598: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: DocumentSummary.fromStoredMeta readable with lastDurableAt after updatedAt is saved
+01:53 +599: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: DocumentSummary.fromStoredMeta readable with lastDurableAt before updatedAt is draft
+01:53 +600: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: DocumentSummary.fromStoredMeta readable without lastDurableAt is draft
+01:53 +601: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: DocumentSummary.fromStoredMeta unreadable wins over a durable timestamp
+01:53 +602: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: DocumentSummary.fromStoredMeta copies id, title, and UTC updatedAt unchanged
+01:53 +603: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: DocumentSummary.fromStoredMeta never infers exportReady from any StoredMeta fixture
+01:53 +604: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: DocumentSummary.fromStoredMeta a manually constructed exportReady summary keeps that status
+01:53 +605: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: renders exact group headings and keeps entries in their group
+01:54 +606: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: sorts each group newest first with an ascending-id tie and copies lists
+01:54 +607: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: shows the full title, local dd.MM.yyyy date, and no ellipsis
+01:54 +608: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: renders all four exact status labels with pinned icons
+01:54 +609: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: shows both empty messages when both groups are empty
+01:54 +610: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: documents empty shows only the documents empty message
+01:54 +611: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: templates empty shows only the templates empty message
+01:54 +612: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: open callbacks receive the exact id exactly once
+01:54 +613: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: optional delete forwards once without invoking open callbacks
+01:54 +614: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: no delete control exists without a delete callback
+01:54 +615: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: stable keys identify both sections and every entry
+01:54 +616: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: 200 percent text scale reflows at 280 logical pixels without overflow
+01:54 +617: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: 50 document entries render and the last is reachable
+01:55 +618: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_items_test.dart: production source stays presentation-only with authorized imports
+01:55 +619: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_list_50_test.dart
+01:56 +619: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_list_50_test.dart: 50 stored items open within the ratified 500 ms budget
+01:57 +620: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/stored_list_50_test.dart: 50 stored items render lazily and the last stays reachable
+01:57 +621: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart
+01:58 +621: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+01:58 +621: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance catalog is a SIMULATED, deterministic fixture catalogue
+01:58 +622: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance catalogue contains the four editor forms and three failure fixtures
+01:58 +623: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-001 carries complete synthetic provenance
+01:58 +624: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-002 carries complete synthetic provenance
+01:58 +625: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-003 carries complete synthetic provenance
+01:58 +626: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-004 carries complete synthetic provenance
+01:58 +627: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-005 carries complete synthetic provenance
+01:58 +628: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-protected carries complete synthetic provenance
+01:58 +629: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-truncated carries complete synthetic provenance
+01:58 +630: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-not-a-pdf carries complete synthetic provenance
+01:58 +631: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures four valid forms cover every field type, rotation, and page-count need
+01:58 +632: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 PDF bytes, page geometry, and fixed metadata are valid
+01:58 +633: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 ground truth is unique, typed, and inside page bounds
+01:58 +634: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 expected OCR is sorted, bounded, and matches assertions
+01:58 +635: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 OCR labels support every ground-truth field
+01:58 +636: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 canonical, Web, and corpus copies are byte-identical
+01:58 +637: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 PDF bytes, page geometry, and fixed metadata are valid
+01:58 +638: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 ground truth is unique, typed, and inside page bounds
+01:58 +639: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 expected OCR is sorted, bounded, and matches assertions
+01:58 +640: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 OCR labels support every ground-truth field
+01:58 +641: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 canonical, Web, and corpus copies are byte-identical
+01:58 +642: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 PDF bytes, page geometry, and fixed metadata are valid
+01:58 +643: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 ground truth is unique, typed, and inside page bounds
+01:58 +644: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 expected OCR is sorted, bounded, and matches assertions
+01:58 +645: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 OCR labels support every ground-truth field
+01:58 +646: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 canonical, Web, and corpus copies are byte-identical
+01:58 +647: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 PDF bytes, page geometry, and fixed metadata are valid
+01:58 +648: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 ground truth is unique, typed, and inside page bounds
+01:58 +649: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 expected OCR is sorted, bounded, and matches assertions
+01:58 +650: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 OCR labels support every ground-truth field
+01:58 +651: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 canonical, Web, and corpus copies are byte-identical
+01:58 +652: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-005 PDF bytes, page geometry, and fixed metadata are valid
+01:58 +653: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-005 ground truth is unique, typed, and inside page bounds
+01:58 +654: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-005 expected OCR is sorted, bounded, and matches assertions
+01:58 +655: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-005 OCR labels support every ground-truth field
+01:58 +656: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-005 canonical, Web, and corpus copies are byte-identical
+01:58 +657: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: dev-only delivery policy pubspec declares fonts but never fixture assets
+01:58 +658: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: dev-only delivery policy canonical and Web fixture trees are byte-identical
+01:58 +659: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: dev-only delivery policy the Web delivery mirror is outside Flutter asset directories
+01:58 +660: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: failure fixtures sf-protected is a genuine encrypted PDF for IMP-001
+01:58 +661: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: failure fixtures sf-truncated is a deterministic prefix without EOF for IMP-002
+01:58 +662: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: failure fixtures sf-not-a-pdf is text with a .pdf name for IMP-004
+01:58 +663: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: German content and synthetic marker OCR text exercises German characters and quotation marks
+01:58 +664: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/synthetic_fixtures_test.dart: (tearDownAll)
+01:59 +664: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/template_editor_test.dart
+01:59 +664: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/template_editor_test.dart: renders the German layout-only surfaces from the ARB
+02:00 +665: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/template_editor_test.dart: the version-save action stays disabled by default (FR-103)
+02:00 +666: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/template_editor_test.dart: a completed drag reports exactly one layout change (FR-101)
+02:01 +667: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/template_editor_test.dart: drag handles keep a 48 dp semantics floor (FR-101)
+02:01 +668: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/template_editor_test.dart: no overflow at 200 percent text scale
+02:01 +669: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/text_control_test.dart
+02:02 +669: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+02:02 +670: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/text_control_test.dart: round-trips German umlauts through onChanged
+02:03 +671: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/text_control_test.dart: single-line mode filters a pasted line break
+02:03 +672: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/text_control_test.dart: multiline mode preserves line breaks
+02:03 +673: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/text_control_test.dart: Enter commits once and then calls onNext
+02:03 +674: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/text_control_test.dart: focus loss after an edit commits exactly once
+02:03 +675: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/text_control_test.dart: multiline done action commits once and unfocuses
+02:03 +676: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/text_control_test.dart: multiline done action is absent without a caller label
+02:03 +677: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/text_control_test.dart: external value synchronizes only while unfocused
+02:03 +678: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/text_control_test.dart: previous and next callbacks fire with caller tooltips
+02:03 +679: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/text_control_test.dart: previous and next buttons are omitted when callbacks are null
+02:03 +680: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/text_control_test.dart: preserves 10,001 characters without truncation
+02:03 +681: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/text_control_test.dart: read-only mode changes nothing and commits nothing
+02:04 +682: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/text_control_test.dart: disabled mode changes nothing and commits nothing
+02:04 +683: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/text_control_test.dart: builds at 200 percent text scale without throwing
+02:04 +684: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/text_control_test.dart: fires only injected callbacks for edits and submission
+02:04 +685: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/text_control_test.dart: production source imports no ARB, editor, or persistence module
+02:04 +686: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_fill_browser_entry_test.dart
+02:05 +686: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_fill_browser_entry_test.dart: single-line input rejects line breaks and Enter commits
+02:06 +687: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_fill_browser_entry_test.dart: multiline input keeps line breaks
+02:06 +688: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_fill_browser_entry_test.dart: checkbox toggles once and never fires when read-only
+02:06 +689: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_persistence_browser_entry_test.dart
+02:07 +689: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_persistence_browser_entry_test.dart: a saved document survives a simulated reload and recovers without re-import
+02:07 +690: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_persistence_browser_entry_test.dart: an autosave revision committed before the reload is also recovered
+02:07 +691: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_persistence_browser_entry_test.dart: a fresh session without persisted state starts empty and deterministic
+02:07 +692: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_review_browser_entry_test.dart
+02:08 +692: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_review_browser_entry_test.dart: confirm, reject and undo report the exact suggestion
+02:09 +693: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_review_browser_entry_test.dart: review panel does not overflow at 200 percent text scale
+02:09 +694: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_template_browser_entry_test.dart
+02:10 +694: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_template_browser_entry_test.dart: template entry shows the exclusion notice and keeps confirm disabled while unreviewed
+02:11 +695: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_template_browser_entry_test.dart: create-template sheet has no overflow at 200 percent scale
+02:11 +696: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_template_browser_entry_test.dart: the layout-only template editor exposes no value or signature control (FR-102)
+02:11 +697: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart
+02:12 +697: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: the SIMULATED banner is mounted on the simulated shell (T129) FeldexaApp(simulatedShell: true) shows the global banner
+02:13 +698: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: the SIMULATED banner is mounted on the simulated shell (T129) the banner stays mounted above the pushed editor route
+02:13 +699: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: the SIMULATED banner is mounted on the simulated shell (T129) FeldexaApp(simulatedShell: false) shows no banner
+02:13 +700: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: the SIMULATED banner is mounted on the simulated shell (T129) the shell default follows the platform evidence class
+02:13 +701: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: the SIMULATED banner keeps the exact catalog surface (§9) token, context line, and semantics label are exact
+02:13 +702: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: the SIMULATED banner keeps the exact catalog surface (§9) the banner descriptor denies Android verification
+02:13 +703: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: uncertainty presentation under the SIMULATED surface a low-confidence suggestion carries the uncertainty badge
+02:13 +704: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: uncertainty presentation under the SIMULATED surface a confident suggestion carries no uncertainty badge
+02:13 +705: loading <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/german_release_audit_test.dart
+02:14 +705: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/german_release_audit_test.dart: release locale set is German-only
+02:14 +706: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/german_release_audit_test.dart: every translatable ARB value is German or allowlisted
+02:14 +707: <home>/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t048-records/apps/feldexa_app/test/german_release_audit_test.dart: SIMULATED is exact and allowlisted everywhere
+02:14 +708: All tests passed!
