@@ -11,6 +11,7 @@ command.
 
 | §6 check | Tolerance / criterion | Tool | Member | Status |
 | --- | --- | --- | --- | --- |
+| Structural validity | must pass (`qpdf --check` external, PDFBox reload internal) | `qpdf --check` (absent) + PDFBox preflight | V2 | **NOT_RUN** — `qpdf` absent on the evidence host; the PDFBox reload is V1 |
 | Page count and order | exact | `pdfinfo`, page-by-page `pdftoppm` | V1 | covered by T105/T334 artifacts |
 | Page geometry | 0.01 pt | `pdfinfo` + `placement.py` geometry output | V1 | partial (geometry compare manual) |
 | Original appearance | pixel-identical outside overlays | `pdftoppm` + ImageMagick compare | V1 | used in T105 |
