@@ -11,7 +11,7 @@ command.
 
 | §6 check | Tolerance / criterion | Tool | Member | Status |
 | --- | --- | --- | --- | --- |
-| Structural validity | must pass (`qpdf --check` external, PDFBox reload internal) | `qpdf --check` (absent) + PDFBox preflight | V2 | **NOT_RUN** — `qpdf` absent on the evidence host; the PDFBox reload is V1 |
+| Structural validity | must pass (`qpdf --check` external, PDFBox reload internal) | `qpdf --check` (absent) + PDFBox reload | V2 | **NOT_RUN** — `qpdf` absent on the evidence host; the PDFBox reload is V1 |
 | Page count and order | exact | `pdfinfo`, page-by-page `pdftoppm` | V1 | covered by T105/T334 artifacts |
 | Page geometry | 0.01 pt | `pdfinfo` + `placement.py` geometry output | V1 | partial (geometry compare manual) |
 | Original appearance | pixel-identical outside overlays | `pdftoppm` + ImageMagick compare | V1 | used in T105 |
@@ -21,7 +21,7 @@ command.
 | Checkbox states | exact | rendered-page comparison | V3 | T109 |
 | Signatures | present, aspect preserved | rendered-page comparison + store read-back | V3 | T109 |
 | No interactive controls | zero AcroForm fields | byte search `/AcroForm`, PDFBox | V1 | used in T334 |
-| Printability | 300 dpi on two engines | `pdftoppm` + `mutool draw` | V2 | MuPDF absent; one engine only |
+| Printability | 300 dpi on two engines | `pdftoppm` + `mutool draw` | V2 | **PARTIAL** — Poppler ran; `mutool draw` **NOT_RUN** (absent) |
 | Source integrity | SHA-256 unchanged | `sha256sum` | V1 | used in T105/T334 |
 | Artifact isolation | no `.pdf` after failure | driver + app test | V3 | T108/T334 driver |
 
@@ -34,3 +34,8 @@ command.
   placement (V1) + checkbox/signature rows (V3, T109).
 - `qpdf --check` remains absent; V2 rows stay `NOT_RUN` until it is available or
   the owner approves a substitute engine.
+- **Artifact isolation** maps to **SC-010** (failed export leaves no artifact), owned by
+  T108/T334; it is not part of SC-005/SC-006.
+- Executable harness: `tools/pdf_verify/verify_artifact.py` runs the V1 rows and the
+  Poppler half of V2; rows needing expectations or absent engines report `NOT_RUN`
+  with the reason.
