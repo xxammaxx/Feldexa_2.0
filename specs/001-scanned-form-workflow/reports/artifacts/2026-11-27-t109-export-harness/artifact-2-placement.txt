@@ -1,8 +1,8 @@
 index=2
 placement_metric=origin of the drawn value as the layout code places it, measured with tools/pdf_verify/placement.py; this is not a centre-to-centre distance
-drawn_value_legs=1,2
+drawn_value_legs=1,2,4
 field_rect_marker=T334_FIELD_RECT:PAGE=1:X_MPT=190125:Y_MPT=147625:W_MPT=299875:H_MPT=18000
-command=/usr/bin/python3 /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t108-t111-us7/tools/pdf_verify/placement.py --pdf export-artifact-2.pdf --value-word 'Müller' --field-rect-marker T334_FIELD_RECT:PAGE=1:X_MPT=190125:Y_MPT=147625:W_MPT=299875:H_MPT=18000 --layout /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t108-t111-us7/packages/feldexa_export/lib/src/layout.dart --applier-source /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t108-t111-us7/apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export/ExportPlanValidation.kt --font-metrics /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t108-t111-us7/apps/feldexa_app/assets/fonts/metrics.json --tolerance-pt 2.835
+command=/usr/bin/python3 tools/pdf_verify/placement.py --pdf export-artifact-2.pdf --value-word 'Müller' --field-rect-marker T334_FIELD_RECT:PAGE=1:X_MPT=190125:Y_MPT=147625:W_MPT=299875:H_MPT=18000 --layout packages/feldexa_export/lib/src/layout.dart --applier-source apps/feldexa_app/android/app/src/main/kotlin/de/feldexa/app/export/ExportPlanValidation.kt --font-metrics apps/feldexa_app/assets/fonts/metrics.json --tolerance-pt 2.835
 pdf=export-artifact-2.pdf
 pdf_sha256=3071afb4f63bc21a8a14e0af6dcc5ddf5472c2f1292b17fddcf07d9ef7c7ac4a
 page=1
@@ -47,4 +47,3 @@ placement_verdict=PROVEN
 containment_verdict=PASS
 exit_code=0
 reason=origin deviation +0.000000 pt and baseline deviation -0.000010 pt are within 2.835 pt
-placement_tool_exit=0

@@ -1,5 +1,5 @@
 {
-  "source": "/home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/worktrees/t108-t111-us7/apps/feldexa_app/assets/fixtures/sf-001.pdf",
+  "source": "apps/feldexa_app/assets/fixtures/sf-001.pdf",
   "artifact": "/tmp/feldexa-t334-run.k2Hxyw/export-artifact-1.pdf",
   "rows": [
     {

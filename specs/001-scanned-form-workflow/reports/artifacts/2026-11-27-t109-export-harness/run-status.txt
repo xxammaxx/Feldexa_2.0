@@ -1,0 +1,22 @@
+result=PASS
+flutter_test_exit=0
+artifact_1_sha256=b7740198122b04912e7264ece0b51375d3cfa42343b08a7869b84bb6c7bc3c5b
+artifact_1_bytes=12029
+artifact_1_placement_verdict=PROVEN
+artifact_2_sha256=3071afb4f63bc21a8a14e0af6dcc5ddf5472c2f1292b17fddcf07d9ef7c7ac4a
+artifact_2_bytes=12029
+artifact_2_placement_verdict=PROVEN
+artifact_3_sha256=35e6b6daa1279e39ee5439009d5106d7d348d1ba9b50865f86ff9b907f7c8a3f
+artifact_3_bytes=2388
+artifact_3_placement_verdict=NOT_APPLICABLE
+artifact_4_sha256=d2324a48ae18ec2181579b56bca3409b4a680eea81c1062b5753add12130129b
+artifact_4_bytes=13411
+artifact_4_placement_verdict=PROVEN
+placement_verdict=PROVEN
+placement_tolerance_pt=2.835
+placement_metric=origin of the drawn value as the layout code places it (tools/pdf_verify/placement.py)
+placement_drawn_value_legs=1,2,4
+placement_reason=artifact 3 is NOT_APPLICABLE (AcroForm source, no value drawn); artifacts 1,2,4 are PROVEN
+harness_summary=artifact_1=10P/0F artifact_2=10P/0F artifact_3=6P/0F artifact_4=12P/0F
+harness_artifact_4_rows=PASS (structural validity, page count/order proxy, geometry, appearance outside 5 rects, placement, no-clipping, checkbox states, signatures presence/ink, no interactive controls, printability, source integrity; artifact isolation is T108)
+note=evidence reconstructed on the host from the raw run directory of the committed HEAD 20d24c run (artifacts were deleted after verification); the test itself passed in two emulator runs. apk_sha256 is the build output present after that run, not a run-time marker.

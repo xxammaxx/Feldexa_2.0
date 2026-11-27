@@ -1,4 +1,8 @@
 head=20d24c280c75a56abadc13e2b24078e6a0093631
-tree=6f6a0e0c8b6c1fbb1e0cf5c0e4b7a3c0b6a1b1e0
-subject=fix(t109): cycle 1/2 expectations use the first field rect marker
+tree=792fbdedef0d5173ba4feff558f20d5391edcf0a
 branch=xxammaxx/t108-t111-us7-tests
+subject=fix(t109): cycle 1/2 expectations use the first field rect marker
+status_porcelain:
+test_sha256=ce7680df04755c10deefc12ee2a9dd83c8acb782e4a7e4a140d982088682d6be
+driver_sha256=d4259823ab385b841a14c196a1629818ab847790e58a017a17d9c3c6b1dbf0f4
+flutter=Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git

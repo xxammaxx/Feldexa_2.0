@@ -6,5 +6,5 @@ sdk=35
 abi=x86_64
 boot_completed=1
 qemu=1
-wm_size=Physical size: 1080x2400 
-wm_density=Physical density: 420 
+wm_size=Physical size: 1080x2400
+wm_density=Physical density: 420
