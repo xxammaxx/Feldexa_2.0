@@ -215,6 +215,16 @@ def write_ack(staging: str, name: str) -> None:
     adb_shell("sh", "-c", f": > {staging}/{name}")
 
 
+def clear_app_data() -> None:
+    """Clears the test app data only when the debug app is installed."""
+    packages = adb_shell("pm", "list", "packages", PACKAGE)
+    if f"package:{PACKAGE}" not in packages.splitlines():
+        log("DRIVER: app not installed; nothing to clear")
+        return
+    adb_shell("pm", "clear", PACKAGE, timeout=180)
+    log("DRIVER: app data cleared")
+
+
 def read_log_lines(proc: subprocess.Popen, log_path: Path, mode: str) -> list[str]:
     cfg = MODES[mode]
     staging = cfg["staging"]
@@ -557,10 +567,10 @@ def main() -> int:
     for key, value in device.items():
         log(f"DRIVER: {key}={value}")
     stage_fixture(MODES[args.mode]["staging"])
-    adb_shell("pm", "clear", PACKAGE, timeout=180)
+    clear_app_data()
     lines, test_exit = run_test(args.mode)
     write_gates(args.mode, lines, test_exit, device, git)
-    adb_shell("pm", "clear", PACKAGE, timeout=180)
+    clear_app_data()
     privacy_check(args.mode)
     log(
         f"DRIVER: PASS mode={args.mode} evidence="
