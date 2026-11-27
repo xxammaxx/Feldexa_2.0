@@ -1,0 +1,28 @@
+/usr/bin/which: no vswhere.exe in (/home/xxammaxx/flutter/bin:/home/xxammaxx/flutter/bin:/home/xxammaxx/flutter/bin:/home/xxammaxx/flutter/bin:/home/xxammaxx/flutter/bin:/home/xxammaxx/flutter/bin:/home/xxammaxx/flutter/bin:/home/xxammaxx/.local/bin:/home/xxammaxx/.opencode/bin:/home/xxammaxx/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl)
+
+
+No Visual Studio installation found with the requested Microsoft.VisualStudio.Component.VC.Tools.x86.x64 component.
+
+00:00 +0: loading /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/android_clients_test.dart
+00:00 +0: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/android_clients_test.dart: import result is parsed and IMP-001 maps to a typed rejection
+00:00 +1: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/android_clients_test.dart: OCR sends the resolved page size and parses blocks
+00:00 +2: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/android_clients_test.dart: OCR fails closed when no page-size resolver is wired
+00:00 +3: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/android_clients_test.dart: export validate and render reconstruct a verified artifact
+00:00 +4: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/android_clients_test.dart: export validate and render reconstruct a verified artifact
+00:00 +5: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/android_clients_test.dart: export validate and render reconstruct a verified artifact
+00:00 +6: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/android_clients_test.dart: export validate and render reconstruct a verified artifact
+00:00 +7: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/android_clients_test.dart: export validate and render reconstruct a verified artifact
+00:00 +8: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/android_clients_test.dart: export validate and render reconstruct a verified artifact
+00:00 +9: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/android_clients_test.dart: export validate and render reconstruct a verified artifact
+00:00 +10: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/android_clients_test.dart: export validate and render reconstruct a verified artifact
+00:00 +11: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/android_clients_test.dart: export validate and render reconstruct a verified artifact
+00:00 +12: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/android_clients_test.dart: export progress relays the running operation and cancel uses its id
+00:00 +13: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/android_clients_test.dart: delivery maps cancellation and never claims a completed save
+00:00 +14: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/android_clients_test.dart: raster eviction forgets sizes only for the requested source
+00:00 +15: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/android_clients_test.dart: clock, ids, and diagnostics stay content-free
+00:01 +16: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/operation_client_test.dart: reconciles a terminal result arriving before the start reply
+00:01 +17: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/operation_client_test.dart: terminal errors retain code without losing retryability
+00:01 +18: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/operation_client_test.dart: rejects malformed start replies
+00:01 +19: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/operation_client_test.dart: closed result stream fails a pending accepted operation
+00:01 +20: /home/xxammaxx/Schreibtisch/Feldexa_2.0_Arbeitsbereich/run-tscn02hu/repo/worktrees/t048-records/packages/feldexa_adapters_android/test/operation_client_test.dart: start exposes the operation ID for cancellation
+00:01 +21: All tests passed!
