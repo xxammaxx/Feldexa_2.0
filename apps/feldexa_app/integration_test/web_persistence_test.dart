@@ -16,7 +16,7 @@
 // document without any re-import.
 //
 // Normative sources: `spec.md` FR-086/FR-087/FR-088;
-// `contracts/error-catalog.de.md` §6 (SIMULATED banner text);
+// `contracts/error-catalog.de.md` §9 (SIMULATED labeling, banner text);
 // `simulated_store_adapter.dart` header note ("may be persisted only for
 // reload tests").
 
