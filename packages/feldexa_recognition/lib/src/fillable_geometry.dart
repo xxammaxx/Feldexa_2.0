@@ -51,15 +51,32 @@
 //    `small_square` cue of §3.1 starts at 4 pt, and 4 pt is also the model's
 //    minimum field size; a smaller region is a glyph counter, not a box the
 //    user could mark.
-//  * `signature` has no derived minimum: its cue (`signature_area`) requires a
-//    large low-ink region and the export only fits a captured image into the
-//    rect, so no rect can be "unfillable" for that reason.
+//  * `signature`: the filter deliberately keeps admitting every rect, but the
+//    *export* does have a derived floor: §3.3 pads 1.0 pt per side and blocks
+//    `signature_too_small` when `min(rect.width, rect.height) ≤ 2.0 pt`
+//    (`layout.dart`: `exportSignaturePaddingPt = 1.0`, the `availableWidth /
+//    availableHeight ≤ 0` check). So a rect of 2.0 pt or less on a side is an
+//    unfillable proposal of the #340 class once `signature` is forced by the
+//    label lexicon (`unterschrift`, `datum/unterschrift`) without a
+//    `signature_area` cue that guarantees size. Enforcing that floor here is a
+//    documented residual, not a decided contract minimum of this filter.
 //
 // The residual case this deliberately does not decide: a text-bearing rect that
 // is tall enough but so narrow that only a few glyphs fit at the minimum font
 // size. That is ordinary overflow (`FLD-001`/`EXP-001`), which the contract
 // keeps as a visible warning for user-confirmed fields (FR-037/FR-038); it is
 // not a candidate-quality defect, because the user can shorten the value.
+//
+// A second residual: for `multiline` only the baseline rule below is derived.
+// The normative vertical rule `lines.length × lineHeightPt ≤ rect.height − 3.0`
+// (`export-plan.md` §3.1 padding with the multiline block check, implemented as
+// the `EXP-001`/`too_many_lines` check in `layout.dart`) is not derived here, so
+// a multiline rect with
+// `7.1 ≤ height < 11.4` (one line at the 7.0 pt minimum font, 8.4 pt line
+// height, minus the 3.0 pt padding) passes this filter and can still block the
+// export. "A candidate that cannot is not offered" therefore holds for the
+// single-line baseline and width rules, not yet for the multiline vertical
+// rule or the signature image floor.
 library;
 
 import 'dart:math' as math;
@@ -94,7 +111,11 @@ const double minCheckboxSidePt = 4;
 ///
 /// [proposedType] is one of `SuggestionSchema.proposedTypes`. Types without a
 /// derived minimum (today only `signature`) are always admitted, so a new type
-/// is never silently dropped by this rule.
+/// is never silently dropped by this rule. The known residuals — the
+/// `signature` image floor of `layout.dart` and the multiline vertical
+/// `too_many_lines` rule — are documented in the library header but are not
+/// enforced here; `fillable_geometry_test.dart` pins the schema-token coupling
+/// and the 7.1/3.0/4.0 admission edges, not the residual edges.
 bool admitsValueOfType({
   required DisplayRect rect,
   required String proposedType,

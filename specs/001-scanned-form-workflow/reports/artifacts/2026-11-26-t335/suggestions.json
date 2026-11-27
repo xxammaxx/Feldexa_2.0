@@ -1,0 +1,2766 @@
+{
+  "tool": "tools/evaluation/t335_suggestion_inventory.dart",
+  "issue": 335,
+  "fixtureId": "sf-001",
+  "evidenceClass": "NONE (host: productive stage on a Poppler raster with committed fixture OCR)",
+  "classificationRule": {
+    "realFieldIou": 0.5,
+    "printedContentShare": 0.5,
+    "samePlaceIou": 0.9,
+    "categories": [
+      "real_field",
+      "duplicate_field",
+      "partial_field",
+      "printed_content",
+      "inventory_rule",
+      "undeclared_empty_region"
+    ]
+  },
+  "declaredFieldCount": 23,
+  "totals": {
+    "suggestions": 55,
+    "byCategory": {
+      "printed_content": 26,
+      "real_field": 23,
+      "undeclared_empty_region": 2,
+      "duplicate_field": 4
+    },
+    "byProposedType": {
+      "text": 33,
+      "checkbox": 13,
+      "date": 5,
+      "multiline": 2,
+      "number": 2
+    },
+    "typeMismatches": [
+      {
+        "suggestionId": "s_p0_0005",
+        "fieldId": "p0-vorname",
+        "label": "Vorname",
+        "declared": "text",
+        "proposed": "date",
+        "labelText": "Vorname"
+      },
+      {
+        "suggestionId": "s_p0_0007",
+        "fieldId": "p0-geburtsort",
+        "label": "Geburtsort",
+        "declared": "text",
+        "proposed": "date",
+        "labelText": "Geburtsort"
+      },
+      {
+        "suggestionId": "s_p0_0017",
+        "fieldId": "p0-unterschrift",
+        "label": "Unterschrift",
+        "declared": "signature",
+        "proposed": "text",
+        "labelText": null
+      },
+      {
+        "suggestionId": "s_p1_0013",
+        "fieldId": "p1-betrag-1",
+        "label": "Betrag 1",
+        "declared": "number",
+        "proposed": "text",
+        "labelText": "Meldebescheinigung"
+      },
+      {
+        "suggestionId": "s_p1_0018",
+        "fieldId": "p1-betrag-2",
+        "label": "Betrag 2",
+        "declared": "number",
+        "proposed": "text",
+        "labelText": "Beglaubigung einer Kopie"
+      },
+      {
+        "suggestionId": "s_p1_0024",
+        "fieldId": "p1-betrag-3",
+        "label": "Betrag 3",
+        "declared": "number",
+        "proposed": "text",
+        "labelText": "Versand mit Rückumschlag"
+      },
+      {
+        "suggestionId": "s_p1_0036",
+        "fieldId": "p1-unterschrift",
+        "label": "Unterschrift",
+        "declared": "signature",
+        "proposed": "text",
+        "labelText": null
+      }
+    ],
+    "optionA": {
+      "description": "suggestions whose FieldInventory role or exclusion is not a field candidate (would disappear if the production path offered only inventory.fieldCandidates)",
+      "count": 8,
+      "ids": [
+        "s_p0_0002",
+        "s_p0_0003",
+        "s_p0_0012",
+        "s_p1_0002",
+        "s_p1_0009",
+        "s_p1_0020",
+        "s_p1_0032",
+        "s_p1_0034"
+      ]
+    }
+  },
+  "pages": [
+    {
+      "pageIndex": 0,
+      "pageSizePt": {
+        "width": 595.28,
+        "height": 841.89
+      },
+      "rasterSize": {
+        "width": 1654,
+        "height": 2339
+      },
+      "declaredFieldCount": 13,
+      "candidateCount": 22,
+      "inventoryEntryCount": 19,
+      "inventoryFieldCandidateCount": 16,
+      "inventoryExclusionCount": 3,
+      "suggestionCount": 18,
+      "declaredFieldsWithoutSuggestion": [],
+      "suggestions": [
+        {
+          "id": "s_p0_0001",
+          "order": 1,
+          "rect": {
+            "x": 56.875,
+            "y": 43.5,
+            "width": 481.625,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": "Musteramt für Bürgerdienste",
+          "cues": [
+            "alignment_left",
+            "underline"
+          ],
+          "confidence": 0.59,
+          "inkCoverage": 0.056,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.196,
+            "containedShare": 1.0,
+            "containedText": "SYNTHETISCHES TESTDOKUMENT – kein amtliches Formular"
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p0_0002",
+          "order": 2,
+          "rect": {
+            "x": 116.25,
+            "y": 45.75,
+            "width": 5.125,
+            "height": 4.625
+          },
+          "proposedType": "checkbox",
+          "labelText": "Musteramt für Bürgerdienste",
+          "cues": [
+            "alignment_left",
+            "box",
+            "small_square"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.275,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 1.0,
+            "containedShare": 0.017,
+            "containedText": "Musteramt für Bürgerdienste"
+          },
+          "inventory": {
+            "role": "filledRegion",
+            "kind": "checkbox",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 4.625,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p0_0003",
+          "order": 3,
+          "rect": {
+            "x": 58.375,
+            "y": 99.75,
+            "width": 5.0,
+            "height": 4.625
+          },
+          "proposedType": "checkbox",
+          "labelText": "Bitte in Druckbuchstaben ausfüllen.",
+          "cues": [
+            "alignment_left",
+            "box",
+            "small_square"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.275,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 1.0,
+            "containedShare": 0.014,
+            "containedText": "Bitte in Druckbuchstaben ausfüllen."
+          },
+          "inventory": {
+            "role": "filledRegion",
+            "kind": "checkbox",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 4.625,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p0_0004",
+          "order": 4,
+          "rect": {
+            "x": 190.125,
+            "y": 147.625,
+            "width": 299.875,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": "Familienname",
+          "cues": [
+            "alignment_left",
+            "keyword_familienname",
+            "ocr_alignment_right",
+            "underline"
+          ],
+          "confidence": 0.83,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p0-familienname",
+            "fieldType": "text",
+            "label": "Familienname",
+            "iou": 0.959,
+            "centerInside": true,
+            "rect": {
+              "x": 190.0,
+              "y": 148.0,
+              "width": 300.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p0_0005",
+          "order": 5,
+          "rect": {
+            "x": 190.125,
+            "y": 181.75,
+            "width": 299.875,
+            "height": 18.0
+          },
+          "proposedType": "date",
+          "labelText": "Vorname",
+          "cues": [
+            "alignment_left",
+            "date_context",
+            "keyword_vorname",
+            "ocr_alignment_right",
+            "underline"
+          ],
+          "confidence": 0.83,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p0-vorname",
+            "fieldType": "text",
+            "label": "Vorname",
+            "iou": 0.972,
+            "centerInside": true,
+            "rect": {
+              "x": 190.0,
+              "y": 182.0,
+              "width": 300.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": "declared text != proposed date"
+        },
+        {
+          "id": "s_p0_0006",
+          "order": 6,
+          "rect": {
+            "x": 190.125,
+            "y": 215.625,
+            "width": 299.875,
+            "height": 18.0
+          },
+          "proposedType": "date",
+          "labelText": "Geburtsdatum",
+          "cues": [
+            "alignment_left",
+            "date_context",
+            "keyword_geburtsdatum",
+            "ocr_alignment_right",
+            "underline"
+          ],
+          "confidence": 0.93,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p0-geburtsdatum",
+            "fieldType": "date",
+            "label": "Geburtsdatum",
+            "iou": 0.959,
+            "centerInside": true,
+            "rect": {
+              "x": 190.0,
+              "y": 216.0,
+              "width": 300.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p0_0007",
+          "order": 7,
+          "rect": {
+            "x": 190.125,
+            "y": 249.5,
+            "width": 299.875,
+            "height": 18.0
+          },
+          "proposedType": "date",
+          "labelText": "Geburtsort",
+          "cues": [
+            "alignment_left",
+            "date_context",
+            "keyword_geburtsort",
+            "ocr_alignment_right",
+            "underline"
+          ],
+          "confidence": 0.83,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p0-geburtsort",
+            "fieldType": "text",
+            "label": "Geburtsort",
+            "iou": 0.946,
+            "centerInside": true,
+            "rect": {
+              "x": 190.0,
+              "y": 250.0,
+              "width": 300.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": "declared text != proposed date"
+        },
+        {
+          "id": "s_p0_0008",
+          "order": 8,
+          "rect": {
+            "x": 190.125,
+            "y": 283.625,
+            "width": 299.875,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": "Staatsangehörigkeit",
+          "cues": [
+            "alignment_left",
+            "ocr_alignment_right",
+            "underline"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p0-staatsangehoerigkeit",
+            "fieldType": "text",
+            "label": "Staatsangehörigkeit",
+            "iou": 0.959,
+            "centerInside": true,
+            "rect": {
+              "x": 190.0,
+              "y": 284.0,
+              "width": 300.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p0_0009",
+          "order": 9,
+          "rect": {
+            "x": 190.125,
+            "y": 353.5,
+            "width": 299.875,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": "Straße und Hausnummer",
+          "cues": [
+            "alignment_left",
+            "keyword_hausnummer",
+            "keyword_straße",
+            "ocr_alignment_right",
+            "underline"
+          ],
+          "confidence": 0.83,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p0-strasse",
+            "fieldType": "text",
+            "label": "Straße und Hausnummer",
+            "iou": 0.946,
+            "centerInside": true,
+            "rect": {
+              "x": 190.0,
+              "y": 354.0,
+              "width": 300.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p0_0010",
+          "order": 10,
+          "rect": {
+            "x": 190.125,
+            "y": 387.75,
+            "width": 299.875,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": "Postleitzahl",
+          "cues": [
+            "alignment_left",
+            "keyword_postleitzahl",
+            "ocr_alignment_right",
+            "underline"
+          ],
+          "confidence": 0.83,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p0-plz",
+            "fieldType": "text",
+            "label": "Postleitzahl",
+            "iou": 0.972,
+            "centerInside": true,
+            "rect": {
+              "x": 190.0,
+              "y": 388.0,
+              "width": 300.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p0_0011",
+          "order": 11,
+          "rect": {
+            "x": 190.125,
+            "y": 421.5,
+            "width": 299.875,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": "Ort",
+          "cues": [
+            "alignment_left",
+            "keyword_ort",
+            "ocr_alignment_right",
+            "underline"
+          ],
+          "confidence": 0.83,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p0-ort",
+            "fieldType": "text",
+            "label": "Ort",
+            "iou": 0.946,
+            "centerInside": true,
+            "rect": {
+              "x": 190.0,
+              "y": 422.0,
+              "width": 300.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p0_0012",
+          "order": 12,
+          "rect": {
+            "x": 58.0,
+            "y": 425.5,
+            "width": 5.0,
+            "height": 5.375
+          },
+          "proposedType": "checkbox",
+          "labelText": "Ort",
+          "cues": [
+            "alignment_left",
+            "box",
+            "keyword_ort",
+            "small_square"
+          ],
+          "confidence": 0.83,
+          "inkCoverage": 0.195,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 1.0,
+            "containedShare": 0.132,
+            "containedText": "Ort"
+          },
+          "inventory": {
+            "role": "filledRegion",
+            "kind": "checkbox",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 5.0,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p0_0013",
+          "order": 13,
+          "rect": {
+            "x": 190.5,
+            "y": 502.25,
+            "width": 9.25,
+            "height": 9.25
+          },
+          "proposedType": "checkbox",
+          "labelText": "Geschlecht",
+          "cues": [
+            "alignment_left",
+            "box",
+            "ocr_alignment_right",
+            "small_square",
+            "whitespace"
+          ],
+          "confidence": 0.83,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p0-geschlecht-weiblich",
+            "fieldType": "checkbox",
+            "label": "weiblich",
+            "iou": 0.856,
+            "centerInside": true,
+            "rect": {
+              "x": 190.0,
+              "y": 502.0,
+              "width": 10.0,
+              "height": 10.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "checkbox",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 9.25,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p0_0014",
+          "order": 14,
+          "rect": {
+            "x": 300.25,
+            "y": 502.25,
+            "width": 9.375,
+            "height": 9.25
+          },
+          "proposedType": "checkbox",
+          "labelText": "weiblich",
+          "cues": [
+            "box",
+            "ocr_alignment_right",
+            "small_square",
+            "whitespace"
+          ],
+          "confidence": 0.83,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p0-geschlecht-maennlich",
+            "fieldType": "checkbox",
+            "label": "männlich",
+            "iou": 0.867,
+            "centerInside": true,
+            "rect": {
+              "x": 300.0,
+              "y": 502.0,
+              "width": 10.0,
+              "height": 10.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "checkbox",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 9.25,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p0_0015",
+          "order": 15,
+          "rect": {
+            "x": 410.375,
+            "y": 502.25,
+            "width": 9.375,
+            "height": 9.25
+          },
+          "proposedType": "checkbox",
+          "labelText": "männlich",
+          "cues": [
+            "box",
+            "ocr_alignment_right",
+            "small_square",
+            "whitespace"
+          ],
+          "confidence": 0.83,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p0-geschlecht-divers",
+            "fieldType": "checkbox",
+            "label": "divers",
+            "iou": 0.867,
+            "centerInside": true,
+            "rect": {
+              "x": 410.0,
+              "y": 502.0,
+              "width": 10.0,
+              "height": 10.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "checkbox",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 9.25,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p0_0016",
+          "order": 16,
+          "rect": {
+            "x": 190.125,
+            "y": 547.5,
+            "width": 299.875,
+            "height": 18.0
+          },
+          "proposedType": "date",
+          "labelText": "Datum",
+          "cues": [
+            "alignment_left",
+            "keyword_datum",
+            "ocr_alignment_right",
+            "underline"
+          ],
+          "confidence": 0.93,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p0-datum",
+            "fieldType": "date",
+            "label": "Datum",
+            "iou": 0.946,
+            "centerInside": true,
+            "rect": {
+              "x": 190.0,
+              "y": 548.0,
+              "width": 300.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p0_0017",
+          "order": 17,
+          "rect": {
+            "x": 190.125,
+            "y": 623.5,
+            "width": 299.875,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": null,
+          "cues": [
+            "alignment_left",
+            "underline"
+          ],
+          "confidence": 0.59,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p0-unterschrift",
+            "fieldType": "signature",
+            "label": "Unterschrift",
+            "iou": 0.6,
+            "centerInside": true,
+            "rect": {
+              "x": 190.0,
+              "y": 612.0,
+              "width": 300.0,
+              "height": 30.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "noLabelContext"
+            ]
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": "declared signature != proposed text"
+        },
+        {
+          "id": "s_p0_0018",
+          "order": 18,
+          "rect": {
+            "x": 56.875,
+            "y": 777.625,
+            "width": 481.625,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": "Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+          "cues": [
+            "alignment_left",
+            "label_below",
+            "underline"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.0,
+          "category": "undeclared_empty_region",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": null
+        }
+      ]
+    },
+    {
+      "pageIndex": 1,
+      "pageSizePt": {
+        "width": 595.28,
+        "height": 841.89
+      },
+      "rasterSize": {
+        "width": 1654,
+        "height": 2339
+      },
+      "declaredFieldCount": 10,
+      "candidateCount": 42,
+      "inventoryEntryCount": 37,
+      "inventoryFieldCandidateCount": 32,
+      "inventoryExclusionCount": 5,
+      "suggestionCount": 37,
+      "declaredFieldsWithoutSuggestion": [],
+      "suggestions": [
+        {
+          "id": "s_p1_0001",
+          "order": 1,
+          "rect": {
+            "x": 56.875,
+            "y": 43.5,
+            "width": 481.625,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": "Musteramt für Bürgerdienste",
+          "cues": [
+            "alignment_left",
+            "underline"
+          ],
+          "confidence": 0.59,
+          "inkCoverage": 0.056,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.196,
+            "containedShare": 1.0,
+            "containedText": "SYNTHETISCHES TESTDOKUMENT – kein amtliches Formular"
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0002",
+          "order": 2,
+          "rect": {
+            "x": 116.25,
+            "y": 45.75,
+            "width": 5.125,
+            "height": 4.625
+          },
+          "proposedType": "checkbox",
+          "labelText": "Musteramt für Bürgerdienste",
+          "cues": [
+            "alignment_left",
+            "box",
+            "small_square"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.275,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 1.0,
+            "containedShare": 0.017,
+            "containedText": "Musteramt für Bürgerdienste"
+          },
+          "inventory": {
+            "role": "filledRegion",
+            "kind": "checkbox",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 4.625,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0003",
+          "order": 3,
+          "rect": {
+            "x": 190.5,
+            "y": 152.25,
+            "width": 347.75,
+            "height": 75.625
+          },
+          "proposedType": "multiline",
+          "labelText": "Begründung",
+          "cues": [
+            "alignment_left",
+            "box",
+            "ocr_alignment_right",
+            "whitespace"
+          ],
+          "confidence": 0.83,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p1-grund",
+            "fieldType": "multiline",
+            "label": "Begründung",
+            "iou": 0.993,
+            "centerInside": true,
+            "rect": {
+              "x": 190.0,
+              "y": 152.0,
+              "width": 348.58,
+              "height": 76.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "multiline",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 75.625,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0004",
+          "order": 4,
+          "rect": {
+            "x": 56.875,
+            "y": 286.25,
+            "width": 59.375,
+            "height": 25.5
+          },
+          "proposedType": "text",
+          "labelText": "Position",
+          "cues": [
+            "alignment_left",
+            "whitespace"
+          ],
+          "confidence": 0.59,
+          "inkCoverage": 0.06,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.249,
+            "containedShare": 1.0,
+            "containedText": "Position"
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 25.5,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0005",
+          "order": 5,
+          "rect": {
+            "x": 56.875,
+            "y": 286.25,
+            "width": 481.625,
+            "height": 129.5
+          },
+          "proposedType": "multiline",
+          "labelText": "Position",
+          "cues": [
+            "alignment_left",
+            "box"
+          ],
+          "confidence": 0.59,
+          "inkCoverage": 0.041,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "p1-betrag-1",
+            "fieldType": "number",
+            "label": "Betrag 1",
+            "iou": 0.03,
+            "centerInside": false,
+            "rect": {
+              "x": 427.0,
+              "y": 316.0,
+              "width": 104.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.019,
+            "containedShare": 1.0,
+            "containedText": "1"
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "multiline",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 129.5,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0006",
+          "order": 6,
+          "rect": {
+            "x": 117.0,
+            "y": 286.25,
+            "width": 301.625,
+            "height": 25.5
+          },
+          "proposedType": "text",
+          "labelText": "Position",
+          "cues": [
+            "alignment_left",
+            "ocr_alignment_right",
+            "whitespace"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.012,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.052,
+            "containedShare": 1.0,
+            "containedText": "Leistung"
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 25.5,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0007",
+          "order": 7,
+          "rect": {
+            "x": 419.375,
+            "y": 286.25,
+            "width": 119.125,
+            "height": 25.5
+          },
+          "proposedType": "text",
+          "labelText": "Leistung",
+          "cues": [
+            "alignment_left",
+            "ocr_alignment_right",
+            "whitespace"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.027,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.107,
+            "containedShare": 1.0,
+            "containedText": "Betrag"
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 25.5,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0008",
+          "order": 8,
+          "rect": {
+            "x": 56.5,
+            "y": 293.75,
+            "width": 482.75,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": "Position",
+          "cues": [
+            "alignment_left",
+            "underline"
+          ],
+          "confidence": 0.59,
+          "inkCoverage": 0.036,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.046,
+            "containedShare": 1.0,
+            "containedText": "Leistung"
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0009",
+          "order": 9,
+          "rect": {
+            "x": 449.25,
+            "y": 297.0,
+            "width": 4.375,
+            "height": 5.0
+          },
+          "proposedType": "checkbox",
+          "labelText": "Leistung",
+          "cues": [
+            "box",
+            "ocr_alignment_right",
+            "small_square"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.363,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 1.0,
+            "containedShare": 0.067,
+            "containedText": "Betrag"
+          },
+          "inventory": {
+            "role": "filledRegion",
+            "kind": "checkbox",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 4.375,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0010",
+          "order": 10,
+          "rect": {
+            "x": 56.875,
+            "y": 312.125,
+            "width": 59.375,
+            "height": 25.5
+          },
+          "proposedType": "text",
+          "labelText": "1",
+          "cues": [
+            "alignment_left",
+            "whitespace"
+          ],
+          "confidence": 0.59,
+          "inkCoverage": 0.005,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.036,
+            "containedShare": 1.0,
+            "containedText": "1"
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 25.5,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0011",
+          "order": 11,
+          "rect": {
+            "x": 117.0,
+            "y": 312.125,
+            "width": 301.625,
+            "height": 25.5
+          },
+          "proposedType": "text",
+          "labelText": "1",
+          "cues": [
+            "alignment_left",
+            "ocr_alignment_right",
+            "whitespace"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.022,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.112,
+            "containedShare": 1.0,
+            "containedText": "Meldebescheinigung"
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 25.5,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0012",
+          "order": 12,
+          "rect": {
+            "x": 419.375,
+            "y": 312.125,
+            "width": 119.125,
+            "height": 25.5
+          },
+          "proposedType": "text",
+          "labelText": "Meldebescheinigung",
+          "cues": [
+            "alignment_left",
+            "ocr_alignment_right",
+            "whitespace"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.025,
+          "category": "duplicate_field",
+          "groundTruth": {
+            "fieldId": "p1-betrag-1",
+            "fieldType": "number",
+            "label": "Betrag 1",
+            "iou": 0.616,
+            "centerInside": true,
+            "rect": {
+              "x": 427.0,
+              "y": 316.0,
+              "width": 104.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 25.5,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0013",
+          "order": 13,
+          "rect": {
+            "x": 427.0,
+            "y": 314.625,
+            "width": 104.0,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": "Meldebescheinigung",
+          "cues": [
+            "alignment_left",
+            "ocr_alignment_right",
+            "underline"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p1-betrag-1",
+            "fieldType": "number",
+            "label": "Betrag 1",
+            "iou": 0.858,
+            "centerInside": true,
+            "rect": {
+              "x": 427.0,
+              "y": 316.0,
+              "width": 104.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": "declared number != proposed text"
+        },
+        {
+          "id": "s_p1_0014",
+          "order": 14,
+          "rect": {
+            "x": 56.5,
+            "y": 319.625,
+            "width": 482.75,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": "1",
+          "cues": [
+            "alignment_left",
+            "underline"
+          ],
+          "confidence": 0.59,
+          "inkCoverage": 0.034,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "p1-betrag-1",
+            "fieldType": "number",
+            "label": "Betrag 1",
+            "iou": 0.165,
+            "centerInside": false,
+            "rect": {
+              "x": 427.0,
+              "y": 316.0,
+              "width": 104.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.099,
+            "containedShare": 1.0,
+            "containedText": "1"
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0015",
+          "order": 15,
+          "rect": {
+            "x": 56.875,
+            "y": 338.375,
+            "width": 59.375,
+            "height": 25.25
+          },
+          "proposedType": "text",
+          "labelText": "2",
+          "cues": [
+            "alignment_left",
+            "whitespace"
+          ],
+          "confidence": 0.59,
+          "inkCoverage": 0.006,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.036,
+            "containedShare": 1.0,
+            "containedText": "2"
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 25.25,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0016",
+          "order": 16,
+          "rect": {
+            "x": 117.0,
+            "y": 338.375,
+            "width": 301.625,
+            "height": 25.25
+          },
+          "proposedType": "text",
+          "labelText": "2",
+          "cues": [
+            "alignment_left",
+            "ocr_alignment_right",
+            "whitespace"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.027,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.143,
+            "containedShare": 1.0,
+            "containedText": "Beglaubigung einer Kopie"
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 25.25,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0017",
+          "order": 17,
+          "rect": {
+            "x": 419.375,
+            "y": 338.375,
+            "width": 119.125,
+            "height": 25.25
+          },
+          "proposedType": "text",
+          "labelText": "Beglaubigung einer Kopie",
+          "cues": [
+            "alignment_left",
+            "ocr_alignment_right",
+            "whitespace"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.025,
+          "category": "duplicate_field",
+          "groundTruth": {
+            "fieldId": "p1-betrag-2",
+            "fieldType": "number",
+            "label": "Betrag 2",
+            "iou": 0.622,
+            "centerInside": true,
+            "rect": {
+              "x": 427.0,
+              "y": 342.0,
+              "width": 104.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 25.25,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0018",
+          "order": 18,
+          "rect": {
+            "x": 427.0,
+            "y": 340.5,
+            "width": 104.0,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": "Beglaubigung einer Kopie",
+          "cues": [
+            "alignment_left",
+            "ocr_alignment_right",
+            "underline"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p1-betrag-2",
+            "fieldType": "number",
+            "label": "Betrag 2",
+            "iou": 0.846,
+            "centerInside": true,
+            "rect": {
+              "x": 427.0,
+              "y": 342.0,
+              "width": 104.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": "declared number != proposed text"
+        },
+        {
+          "id": "s_p1_0019",
+          "order": 19,
+          "rect": {
+            "x": 56.5,
+            "y": 345.625,
+            "width": 482.75,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": "2",
+          "cues": [
+            "alignment_left",
+            "underline"
+          ],
+          "confidence": 0.59,
+          "inkCoverage": 0.038,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "p1-betrag-2",
+            "fieldType": "number",
+            "label": "Betrag 2",
+            "iou": 0.165,
+            "centerInside": false,
+            "rect": {
+              "x": 427.0,
+              "y": 342.0,
+              "width": 104.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.125,
+            "containedShare": 1.0,
+            "containedText": "2"
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0020",
+          "order": 20,
+          "rect": {
+            "x": 126.375,
+            "y": 347.75,
+            "width": 5.0,
+            "height": 4.75
+          },
+          "proposedType": "checkbox",
+          "labelText": "2",
+          "cues": [
+            "alignment_left",
+            "box",
+            "ocr_alignment_right",
+            "small_square"
+          ],
+          "confidence": 0.83,
+          "inkCoverage": 0.28,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 1.0,
+            "containedShare": 0.022,
+            "containedText": "Beglaubigung einer Kopie"
+          },
+          "inventory": {
+            "role": "filledRegion",
+            "kind": "checkbox",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 4.75,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0021",
+          "order": 21,
+          "rect": {
+            "x": 56.875,
+            "y": 364.375,
+            "width": 59.375,
+            "height": 25.125
+          },
+          "proposedType": "text",
+          "labelText": "3",
+          "cues": [
+            "alignment_left",
+            "whitespace"
+          ],
+          "confidence": 0.59,
+          "inkCoverage": 0.007,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.036,
+            "containedShare": 1.0,
+            "containedText": "3"
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 25.125,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0022",
+          "order": 22,
+          "rect": {
+            "x": 117.0,
+            "y": 364.375,
+            "width": 301.625,
+            "height": 25.125
+          },
+          "proposedType": "text",
+          "labelText": "3",
+          "cues": [
+            "alignment_left",
+            "ocr_alignment_right",
+            "whitespace"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.027,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.16,
+            "containedShare": 1.0,
+            "containedText": "Versand mit Rückumschlag"
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 25.125,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0023",
+          "order": 23,
+          "rect": {
+            "x": 419.375,
+            "y": 364.375,
+            "width": 119.125,
+            "height": 25.125
+          },
+          "proposedType": "text",
+          "labelText": "Versand mit Rückumschlag",
+          "cues": [
+            "alignment_left",
+            "ocr_alignment_right",
+            "whitespace"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.012,
+          "category": "duplicate_field",
+          "groundTruth": {
+            "fieldId": "p1-betrag-3",
+            "fieldType": "number",
+            "label": "Betrag 3",
+            "iou": 0.625,
+            "centerInside": true,
+            "rect": {
+              "x": 427.0,
+              "y": 368.0,
+              "width": 104.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "noLabelContext",
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 25.125,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0024",
+          "order": 24,
+          "rect": {
+            "x": 427.0,
+            "y": 366.875,
+            "width": 104.0,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": "Versand mit Rückumschlag",
+          "cues": [
+            "alignment_left",
+            "ocr_alignment_right",
+            "underline"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p1-betrag-3",
+            "fieldType": "number",
+            "label": "Betrag 3",
+            "iou": 0.882,
+            "centerInside": true,
+            "rect": {
+              "x": 427.0,
+              "y": 368.0,
+              "width": 104.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "noLabelContext",
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": "declared number != proposed text"
+        },
+        {
+          "id": "s_p1_0025",
+          "order": 25,
+          "rect": {
+            "x": 56.5,
+            "y": 371.5,
+            "width": 482.75,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": "3",
+          "cues": [
+            "alignment_left",
+            "underline"
+          ],
+          "confidence": 0.59,
+          "inkCoverage": 0.034,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "p1-betrag-3",
+            "fieldType": "number",
+            "label": "Betrag 3",
+            "iou": 0.167,
+            "centerInside": false,
+            "rect": {
+              "x": 427.0,
+              "y": 368.0,
+              "width": 104.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.139,
+            "containedShare": 1.0,
+            "containedText": "3"
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0026",
+          "order": 26,
+          "rect": {
+            "x": 56.875,
+            "y": 390.25,
+            "width": 59.375,
+            "height": 25.5
+          },
+          "proposedType": "text",
+          "labelText": "4",
+          "cues": [
+            "alignment_left",
+            "whitespace"
+          ],
+          "confidence": 0.59,
+          "inkCoverage": 0.006,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.036,
+            "containedShare": 1.0,
+            "containedText": "4"
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 25.5,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0027",
+          "order": 27,
+          "rect": {
+            "x": 117.0,
+            "y": 390.25,
+            "width": 301.625,
+            "height": 25.5
+          },
+          "proposedType": "text",
+          "labelText": "4",
+          "cues": [
+            "alignment_left",
+            "ocr_alignment_right",
+            "whitespace"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.008,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.043,
+            "containedShare": 1.0,
+            "containedText": "Summe"
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 25.5,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0028",
+          "order": 28,
+          "rect": {
+            "x": 419.375,
+            "y": 390.25,
+            "width": 119.125,
+            "height": 25.5
+          },
+          "proposedType": "number",
+          "labelText": "Summe",
+          "cues": [
+            "alignment_left",
+            "keyword_summe",
+            "numeric_context",
+            "ocr_alignment_right",
+            "whitespace"
+          ],
+          "confidence": 0.93,
+          "inkCoverage": 0.012,
+          "category": "duplicate_field",
+          "groundTruth": {
+            "fieldId": "p1-betrag-4",
+            "fieldType": "number",
+            "label": "Betrag 4",
+            "iou": 0.616,
+            "centerInside": true,
+            "rect": {
+              "x": 427.0,
+              "y": 394.0,
+              "width": 104.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "noLabelContext",
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 25.5,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0029",
+          "order": 29,
+          "rect": {
+            "x": 427.0,
+            "y": 392.75,
+            "width": 104.0,
+            "height": 18.0
+          },
+          "proposedType": "number",
+          "labelText": "Summe",
+          "cues": [
+            "alignment_left",
+            "keyword_summe",
+            "numeric_context",
+            "ocr_alignment_right",
+            "underline"
+          ],
+          "confidence": 0.93,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p1-betrag-4",
+            "fieldType": "number",
+            "label": "Betrag 4",
+            "iou": 0.87,
+            "centerInside": true,
+            "rect": {
+              "x": 427.0,
+              "y": 394.0,
+              "width": 104.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "noLabelContext",
+              "overlappingCandidates"
+            ]
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0030",
+          "order": 30,
+          "rect": {
+            "x": 190.5,
+            "y": 480.25,
+            "width": 9.25,
+            "height": 9.375
+          },
+          "proposedType": "checkbox",
+          "labelText": "Barzahlung",
+          "cues": [
+            "alignment_left",
+            "box",
+            "small_square",
+            "whitespace"
+          ],
+          "confidence": 0.83,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p1-zahlung-bar",
+            "fieldType": "checkbox",
+            "label": "Barzahlung",
+            "iou": 0.867,
+            "centerInside": true,
+            "rect": {
+              "x": 190.0,
+              "y": 480.0,
+              "width": 10.0,
+              "height": 10.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "checkbox",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 9.25,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0031",
+          "order": 31,
+          "rect": {
+            "x": 330.5,
+            "y": 480.25,
+            "width": 9.375,
+            "height": 9.375
+          },
+          "proposedType": "checkbox",
+          "labelText": "Barzahlung",
+          "cues": [
+            "alignment_left",
+            "box",
+            "ocr_alignment_right",
+            "small_square",
+            "whitespace"
+          ],
+          "confidence": 0.83,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p1-zahlung-ueberweisung",
+            "fieldType": "checkbox",
+            "label": "Überweisung",
+            "iou": 0.879,
+            "centerInside": true,
+            "rect": {
+              "x": 330.0,
+              "y": 480.0,
+              "width": 10.0,
+              "height": 10.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "checkbox",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 9.375,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0032",
+          "order": 32,
+          "rect": {
+            "x": 70.875,
+            "y": 532.125,
+            "width": 4.375,
+            "height": 5.375
+          },
+          "proposedType": "checkbox",
+          "labelText": "7. Ort, Datum und Unterschrift",
+          "cues": [
+            "alignment_left",
+            "box",
+            "keyword_datum",
+            "keyword_ort",
+            "keyword_unterschrift",
+            "small_square"
+          ],
+          "confidence": 0.83,
+          "inkCoverage": 0.178,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 1.0,
+            "containedShare": 0.011,
+            "containedText": "7. Ort, Datum und Unterschrift"
+          },
+          "inventory": {
+            "role": "filledRegion",
+            "kind": "checkbox",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 4.375,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0033",
+          "order": 33,
+          "rect": {
+            "x": 190.125,
+            "y": 553.625,
+            "width": 299.875,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": "Ort",
+          "cues": [
+            "alignment_left",
+            "keyword_ort",
+            "ocr_alignment_right",
+            "underline"
+          ],
+          "confidence": 0.83,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p1-ort",
+            "fieldType": "text",
+            "label": "Ort",
+            "iou": 0.959,
+            "centerInside": true,
+            "rect": {
+              "x": 190.0,
+              "y": 554.0,
+              "width": 300.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0034",
+          "order": 34,
+          "rect": {
+            "x": 58.0,
+            "y": 557.625,
+            "width": 5.0,
+            "height": 5.375
+          },
+          "proposedType": "checkbox",
+          "labelText": "Ort",
+          "cues": [
+            "alignment_left",
+            "box",
+            "keyword_ort",
+            "small_square"
+          ],
+          "confidence": 0.83,
+          "inkCoverage": 0.195,
+          "category": "printed_content",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 1.0,
+            "containedShare": 0.132,
+            "containedText": "Ort"
+          },
+          "inventory": {
+            "role": "filledRegion",
+            "kind": "checkbox",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 5.0,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0035",
+          "order": 35,
+          "rect": {
+            "x": 190.125,
+            "y": 587.5,
+            "width": 299.875,
+            "height": 18.0
+          },
+          "proposedType": "date",
+          "labelText": "Datum",
+          "cues": [
+            "alignment_left",
+            "keyword_datum",
+            "ocr_alignment_right",
+            "underline"
+          ],
+          "confidence": 0.93,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p1-datum",
+            "fieldType": "date",
+            "label": "Datum",
+            "iou": 0.946,
+            "centerInside": true,
+            "rect": {
+              "x": 190.0,
+              "y": 588.0,
+              "width": 300.0,
+              "height": 18.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": null
+        },
+        {
+          "id": "s_p1_0036",
+          "order": 36,
+          "rect": {
+            "x": 190.125,
+            "y": 637.5,
+            "width": 299.875,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": null,
+          "cues": [
+            "alignment_left",
+            "underline"
+          ],
+          "confidence": 0.59,
+          "inkCoverage": 0.0,
+          "category": "real_field",
+          "groundTruth": {
+            "fieldId": "p1-unterschrift",
+            "fieldType": "signature",
+            "label": "Unterschrift",
+            "iou": 0.6,
+            "centerInside": true,
+            "rect": {
+              "x": 190.0,
+              "y": 626.0,
+              "width": 300.0,
+              "height": 30.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": [
+              "noLabelContext"
+            ]
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": "declared signature != proposed text"
+        },
+        {
+          "id": "s_p1_0037",
+          "order": 37,
+          "rect": {
+            "x": 56.875,
+            "y": 777.625,
+            "width": 481.625,
+            "height": 18.0
+          },
+          "proposedType": "text",
+          "labelText": "Synthetisches Testdokument – kein amtliches Formular – keine personenbezogenen Daten",
+          "cues": [
+            "alignment_left",
+            "label_below",
+            "underline"
+          ],
+          "confidence": 0.71,
+          "inkCoverage": 0.0,
+          "category": "undeclared_empty_region",
+          "groundTruth": {
+            "fieldId": "",
+            "fieldType": "",
+            "label": "",
+            "iou": 0.0,
+            "centerInside": false,
+            "rect": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 0.0,
+              "height": 0.0
+            }
+          },
+          "printedContent": {
+            "insideShare": 0.0,
+            "containedShare": 0.0,
+            "containedText": null
+          },
+          "inventory": {
+            "role": "fieldCandidate",
+            "kind": "text",
+            "exclusionReason": null,
+            "reviewFlags": []
+          },
+          "minSidePt": 18.0,
+          "typeMismatch": null
+        }
+      ]
+    }
+  ]
+}

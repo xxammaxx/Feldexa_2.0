@@ -14,6 +14,7 @@ library;
 
 import 'package:feldexa_recognition/src/fillable_geometry.dart';
 import 'package:feldexa_recognition/src/geometry_detector.dart';
+import 'package:feldexa_recognition/src/suggestion_schema.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 DisplayRect _rect({required double width, required double height}) {
@@ -66,10 +67,33 @@ void main() {
   });
 
   group('signature', () {
-    test('has no derived minimum', () {
-      // `signature_area` already requires a large low-ink region, and the
-      // export only fits an image into the rect.
+    test('stays admitted by the filter although the export has a floor', () {
+      // The filter keeps every rect (default branch). The *export* floor is
+      // derived elsewhere: export-plan §3.3 pads 1.0 pt per side and blocks
+      // `signature_too_small` when min(width, height) ≤ 2.0 pt (`layout.dart`,
+      // `exportSignaturePaddingPt`), so a 1 x 1 signature proposal would fail
+      // at export time. Enforcing that floor here is a documented residual of
+      // this rule, not a decided contract minimum of the filter.
       expect(_admits('signature', width: 1, height: 1), isTrue);
+    });
+  });
+
+  group('schema coverage', () {
+    test('every proposed type except signature has its own bound', () {
+      // The filter branches on the type tokens. A renamed or newly added token
+      // in `SuggestionSchema.proposedTypes` would fall into `default: true`
+      // silently and the filter would stop guarding it; this pin holds the
+      // coupling, so a rename turns this test red.
+      final List<String> admittedAt1x1 = SuggestionSchema.proposedTypes
+          .where((String type) => _admits(type, width: 1, height: 1))
+          .toList();
+      expect(admittedAt1x1, <String>['signature']);
+    });
+
+    test('a type outside the schema list is admitted on purpose', () {
+      // "a new type is never silently dropped by this rule": an unknown type
+      // takes the default branch and stays visible to the user.
+      expect(_admits('future_type', width: 1, height: 1), isTrue);
     });
   });
 

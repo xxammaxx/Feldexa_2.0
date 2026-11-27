@@ -30,9 +30,12 @@
 # row of the fixture-declared field „Familienname“ (`fixtures.dart`,
 # `p0-familienname`, a real text field) into view and confirms that row only.
 #
-# Not covered, and deliberately not faked: a *filled* value. The flow asserts the
-# confirmed, not yet filled state of the named field before and after the
-# reload. The `FLD-001` observation of the earlier version belonged to the
+# Not covered, and deliberately not faked: a *filled* value. Before the reload
+# the flow asserts the named field only through the undo/durability signals
+# (`Rückgängig`, `Gespeichert um`) and the review row title; the confirmed,
+# not yet filled field state ("Feld Familienname, Typ Text, Seite 1, leer,
+# bestätigt") is asserted after the reload through the field overlay label.
+# The `FLD-001` observation of the earlier version belonged to the
 # glyph-interior candidate that #340 now filters out; filling a value and the
 # field geometry of the remaining candidates are *not* judged here. A
 # value-bearing leg is journaled as an open point in
