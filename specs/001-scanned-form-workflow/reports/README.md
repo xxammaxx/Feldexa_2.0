@@ -445,6 +445,8 @@ the git bundle and are not bundle-verifiable.
 | [2026-11-26-m7-integration.md](./2026-11-26-m7-integration.md) | `EMULATOR` (host checks `NONE`) | Integration evidence | PR #351 candidate `a297ffa`: owner decisions Q1-Q11 applied, T264A golden restored without touching it (evaluation 60/60), lazy 50-item list with the ratified 500 ms host bound, repository-root app suite fixed (#318); Maestro `export_journey.yaml` PASS with receipt `89506cad…`; corpus, usability and DEVICE/SC-004 explicitly deferred (Q9=B) |
 | [2026-11-26-t344-acroform-flattening.md](./2026-11-26-t344-acroform-flattening.md) | `EMULATOR` (host checks `NONE`) | Task evidence | Issue #344 part B: AcroForm fixture and flattening proof on `emulator-5554`; no physical device addressed; artifact bundle under `artifacts/2026-11-26-t344-acroform-final/` |
 
+| [2026-11-27-t102-export-plan-contract.md](./2026-11-27-t102-export-plan-contract.md) | `NONE` | Task evidence | T102 path reconciliation: the §2–§4 contract suite is `export_contract_models_test.dart` (38/38 focused, 121/121 package); superseded path recorded |
+| [2026-11-27-t113-preflight-ratified.md](./2026-11-27-t113-preflight-ratified.md) | `NONE` | Task evidence | T113 ratified preflight: unresolved suggestions counted and non-blocking, wired into plan build and the pre-export dialog; 38/38 focused, 121/121 package |
 New reports append a row here in the same change. Results are run outcomes, not
 approval.
 
