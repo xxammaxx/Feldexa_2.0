@@ -151,7 +151,10 @@ class HarnessTest(unittest.TestCase):
             "partial": sum(r.status == "PARTIAL" for r in report.rows),
             "not_run": sum(r.status == "NOT_RUN" for r in report.rows),
         }
-        self.assertEqual({"pass": 5, "partial": 1, "not_run": 7}, summary)
+        if shutil.which("mutool") is None:
+            self.assertEqual({"pass": 5, "partial": 1, "not_run": 7}, summary)
+        else:
+            self.assertEqual({"pass": 6, "partial": 0, "not_run": 7}, summary)
         self.assertEqual(0, report.exit_code())
 
     def test_interactive_control_scan_fails_on_acroform_bytes(self) -> None:
