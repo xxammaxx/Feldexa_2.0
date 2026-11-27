@@ -398,6 +398,35 @@ final class SimulatedBackend {
     return source;
   }
 
+  /// Stages an aggregate-owned source copy from raw bytes.
+  ///
+  /// The bytes are copied and hashed here, so the caller cannot alias the
+  /// original staged source. [pages] must carry the original aggregate's page
+  /// geometry: the raster adapter reads `source.pages`, so a placeholder
+  /// geometry would make analysis of a copied source fail with `PAGE-001`.
+  /// Used by the store adapter to give every document and template aggregate
+  /// its own encrypted source copy (`contracts/storage-format.md` §3.3;
+  /// `data-model.md` §3.10).
+  SimulatedStagedSource stageSourceBytes({
+    required String sourceId,
+    required String fixtureId,
+    required Uint8List bytes,
+    required List<PageGeometry> pages,
+    DateTime? importedAt,
+  }) {
+    final Uint8List owned = copyBytes(bytes);
+    final SimulatedStagedSource source = SimulatedStagedSource(
+      sourceId: sourceId,
+      fixtureId: fixtureId,
+      bytes: owned,
+      sha256: sha256Hex(owned),
+      pages: List<PageGeometry>.from(pages, growable: false),
+      importedAt: importedAt ?? context.nowUtc(),
+    );
+    _sources[sourceId] = source;
+    return source;
+  }
+
   /// Injects storage authentication damage into the next staged read-back.
   ///
   /// The stored bytes remain unchanged; the returned copy differs so the

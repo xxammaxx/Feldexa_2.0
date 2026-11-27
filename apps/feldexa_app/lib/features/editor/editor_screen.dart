@@ -109,6 +109,7 @@ import 'package:feldexa_app/features/export/export_preview.dart';
 import 'package:feldexa_app/features/export/export_progress.dart';
 import 'package:feldexa_app/features/fill/signature_png.dart';
 import 'package:feldexa_app/features/fill/signature_sheet.dart';
+import 'package:feldexa_app/features/templates/create_template.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_application/src/recognition/analyze_document.dart'
     as analysis;
@@ -119,6 +120,8 @@ import 'package:feldexa_application/src/review/confirm_suggestion.dart'
     as review;
 import 'package:feldexa_application/src/review/edit_field.dart' as edit;
 import 'package:feldexa_application/src/review/set_value.dart' as set_value;
+import 'package:feldexa_application/src/templates/create_template_from_document.dart'
+    as create_template;
 import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:feldexa_export/feldexa_export.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
@@ -2074,6 +2077,33 @@ class EditorScreenState extends State<EditorScreen> {
   /// edit while the route is on top. A returned field id is resolved against
   /// the live revision, selected, and opened for filling. „Weiter ausfüllen“
   /// simply returns to the unchanged editor.
+  /// FR-054: the one explicit "Als Vorlage speichern" flow (T115). Opened
+  /// only from the editor action; nothing here is invoked by import,
+  /// analysis, save, or export (FR-061). The reviewed snapshot's pages and
+  /// confirmed fields are passed to the T115 use case, which cannot carry
+  /// values or signatures (FR-056/FR-057), and success is reported only
+  /// after the store verifies the template (FR-106 pattern).
+  Future<void> _showCreateTemplateSheet(AppLocalizations l10n) async {
+    final core.RevisionContent? content = _content;
+    final LoadedDocument? loaded = _loadedDocument;
+    if (content == null || loaded == null) {
+      return;
+    }
+    await showCreateTemplateSheet(
+      context,
+      reviewed:
+          create_template.templateStructureReadiness(content) ==
+          create_template.TemplateStructureReadiness.reviewed,
+      initialTitle: loaded.meta.title,
+      onCreate: (String title) => create_template.createTemplateFromDocument(
+        store: widget.runtime.store,
+        title: title,
+        source: loaded.meta.source,
+        content: content,
+      ),
+    );
+  }
+
   Future<void> _showDocumentOverview() async {
     final core.RevisionContent? content = _content;
     if (content == null) {
@@ -2653,6 +2683,16 @@ class EditorScreenState extends State<EditorScreen> {
                   }
                 : null,
             icon: const Icon(Icons.picture_as_pdf_outlined),
+          ),
+          IconButton(
+            key: const ValueKey<String>(editorTemplateActionKey),
+            tooltip: l10n.saveAsTemplateAction,
+            onPressed: (_content == null || _loadedDocument == null)
+                ? null
+                : () {
+                    unawaited(_showCreateTemplateSheet(l10n));
+                  },
+            icon: const Icon(Icons.bookmark_add_outlined),
           ),
           IconButton(
             key: editorOverviewActionKey,

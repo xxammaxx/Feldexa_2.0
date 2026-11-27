@@ -666,49 +666,91 @@ void main() {
     },
   );
 
+  test('each aggregate owns a private source copy; deleting one owner never '
+      'touches another (§3.3)', () async {
+    final world = await SimulatedTestWorld.create();
+    final imported = await world.importFixture('sf-004');
+    final saved = await world.createSavedDocument(
+      imported,
+      title: 'Geteiltes Dokument',
+    );
+    final created = await world.storeAdapter.createTemplate(
+      CreateTemplateRequest(
+        title: 'Geteilte Vorlage',
+        source: world.sourceRefFor(imported),
+        pages: <Page>[Page(index: 0, geometry: imported.pages.first)],
+        fieldOrder: const <String>[],
+      ),
+    );
+
+    final String templateSourceId = world.backend
+        .template(created.id)!
+        .source
+        .id;
+    // Discriminating ownership: the template owns its own source identity,
+    // distinct from the import-staged original and from the document's.
+    expect(templateSourceId, isNot(imported.sourceId));
+    expect(
+      templateSourceId,
+      isNot(world.backend.document(saved.documentId)!.source.id),
+    );
+    expect(world.backend.stagedSource(templateSourceId), isNotNull);
+
+    final String documentTitle = world.backend
+        .document(saved.documentId)!
+        .title;
+    await world.storeAdapter.delete(
+      StoreKind.document,
+      saved.documentId,
+      DeleteConfirmation(title: documentTitle, acknowledged: true),
+    );
+    // Deleting the document removed exactly its own copy; the template's
+    // private copy is untouched and keeps it fully readable even though
+    // the import-staged original is gone.
+    expect(world.backend.stagedSource(templateSourceId), isNotNull);
+    final LoadedTemplate loaded = await world.storeAdapter.loadTemplate(
+      created.id,
+    );
+    expect(loaded.sourceBytes, orderedEquals(catalog.fixture('sf-004').bytes));
+
+    await world.storeAdapter.delete(
+      StoreKind.template,
+      created.id,
+      DeleteConfirmation(title: 'Geteilte Vorlage', acknowledged: true),
+    );
+    expect(world.backend.template(created.id), isNull);
+    // Every aggregate-owned copy is gone with its owner; no shared staged
+    // source survives any aggregate.
+    expect(world.backend.stagedSources, isEmpty);
+  });
+
   test(
-    'a shared source survives until its last document/template owner is gone',
+    'combined content + source bytes are capacity-checked together (§3.3)',
     () async {
       final world = await SimulatedTestWorld.create();
       final imported = await world.importFixture('sf-004');
-      final saved = await world.createSavedDocument(
-        imported,
-        title: 'Geteiltes Dokument',
-      );
-      final created = await world.storeAdapter.createTemplate(
-        CreateTemplateRequest(
-          title: 'Geteilte Vorlage',
-          source: world.sourceRefFor(imported),
-          pages: <Page>[Page(index: 0, geometry: imported.pages.first)],
-          fieldOrder: const <String>[],
+      // The source copy alone would fit; only content + copy together
+      // exceed the cap, so the combined check must block the creation.
+      world.backend.maxTotalBytes = world.backend.totalBytes + 400;
+      await expectLater(
+        world.storeAdapter.createTemplate(
+          CreateTemplateRequest(
+            title: 'Zu grosse Vorlage',
+            source: world.sourceRefFor(imported),
+            pages: <Page>[Page(index: 0, geometry: imported.pages.first)],
+            fieldOrder: const <String>[],
+          ),
         ),
+        throwsA(isA<StorageFullException>()),
       );
-
-      final String documentTitle = world.backend
-          .document(saved.documentId)!
-          .title;
-      await world.storeAdapter.delete(
-        StoreKind.document,
-        saved.documentId,
-        DeleteConfirmation(title: documentTitle, acknowledged: true),
-      );
-      // The template still owns the shared source, so it must remain readable.
-      expect(world.backend.stagedSource(imported.sourceId), isNotNull);
-      final LoadedTemplate loaded = await world.storeAdapter.loadTemplate(
-        created.id,
-      );
+      // No partial aggregate and no leaked source copy.
+      expect(world.backend.templates, isEmpty);
       expect(
-        loaded.sourceBytes,
-        orderedEquals(catalog.fixture('sf-004').bytes),
+        world.backend.stagedSources.keys.where(
+          (String id) => id != imported.sourceId,
+        ),
+        isEmpty,
       );
-
-      await world.storeAdapter.delete(
-        StoreKind.template,
-        created.id,
-        DeleteConfirmation(title: 'Geteilte Vorlage', acknowledged: true),
-      );
-      expect(world.backend.template(created.id), isNull);
-      expect(world.backend.stagedSource(imported.sourceId), isNull);
     },
   );
 

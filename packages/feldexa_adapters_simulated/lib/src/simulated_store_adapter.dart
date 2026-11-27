@@ -224,7 +224,15 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
       title: request.title,
       createdAt: now,
       updatedAt: now,
-      source: source,
+      source: _stageAggregateSourceCopy(
+        ownerKind: StoreKind.document,
+        ownerId: request.documentId,
+        original: source,
+        pages: request.initialRevision.content.pages
+            .map((Page page) => page.geometry)
+            .toList(),
+        extraCommittedBytes: canonicalBytes.length,
+      ),
       head: revision.id,
       lastDurableAt: now,
     )..revisions[revision.id] = revision;
@@ -458,7 +466,13 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
       title: request.title,
       createdAt: now,
       updatedAt: now,
-      source: source,
+      source: _stageAggregateSourceCopy(
+        ownerKind: StoreKind.template,
+        ownerId: templateId,
+        original: source,
+        pages: request.pages.map((Page page) => page.geometry).toList(),
+        extraCommittedBytes: canonicalBytes.length,
+      ),
       head: versionId,
       versions: <String, SimulatedTemplateVersionRecord>{
         versionId: SimulatedTemplateVersionRecord(
@@ -678,6 +692,42 @@ final class SimulatedSecureStoreAdapter implements SecureStorePort {
       throw SecurityException();
     }
     return source;
+  }
+
+  /// Stages a fresh, aggregate-owned copy of [original]'s bytes and returns
+  /// the copy's `SourceFileRef`.
+  ///
+  /// Every new document/template aggregate owns its own encrypted source
+  /// copy under its own identity (`contracts/storage-format.md` §3.3;
+  /// `data-model.md` §3.10). The copy is capacity-checked and hashed by the
+  /// backend; the original staged source is not aliased and stays owned by
+  /// its own lifecycle (the import path removes it only when unreferenced).
+  SourceFileRef _stageAggregateSourceCopy({
+    required StoreKind ownerKind,
+    required String ownerId,
+    required SourceFileRef original,
+    required List<PageGeometry> pages,
+    int extraCommittedBytes = 0,
+  }) {
+    // Combined capacity: the aggregate's committed bytes plus its own source
+    // copy must jointly fit, so content + source can never exceed the store
+    // cap one check at a time.
+    final Uint8List bytes = _verifiedSourceBytes(original);
+    _checkCapacity(bytes.length + extraCommittedBytes);
+    final SimulatedStagedSource copy = backend.stageSourceBytes(
+      sourceId: backend.context.newId(),
+      fixtureId: '${ownerKind.name}-$ownerId',
+      bytes: bytes,
+      pages: pages,
+    );
+    return SourceFileRef(
+      id: copy.sourceId,
+      sha256: copy.sha256,
+      sizeBytes: bytes.length,
+      pageCount: original.pageCount,
+      originalName: original.originalName,
+      importedAt: copy.importedAt,
+    );
   }
 
   Uint8List _verifiedSourceBytes(SourceFileRef source) {

@@ -1016,5 +1016,78 @@
   "actionCheckStorage": "Speicherplatz prüfen",
   "@actionCheckStorage": {
     "description": "§11 rule 5: storage-recovery action in an error dialog."
+  },
+  "saveAsTemplateAction": "Als Vorlage speichern",
+  "@saveAsTemplateAction": {
+    "description": "T115 FR-054: explicit editor app-bar action that saves the current reviewed document as a template; never automatic (FR-061)."
+  },
+  "createTemplateSheetTitle": "Vorlage erstellen",
+  "@createTemplateSheetTitle": {
+    "description": "T115: title of the Als-Vorlage-speichern sheet."
+  },
+  "createTemplateTitleLabel": "Titel der Vorlage",
+  "@createTemplateTitleLabel": {
+    "description": "T115: label of the template title input."
+  },
+  "createTemplateExclusionNotice": "Werte und Unterschriften werden nicht in die Vorlage übernommen.",
+  "@createTemplateExclusionNotice": {
+    "description": "T115 FR-057: notice that entered values and signatures are excluded from the saved template."
+  },
+  "createTemplateStructurePending": "Die Feldstruktur muss zuerst vollständig geprüft sein.",
+  "@createTemplateStructurePending": {
+    "description": "T115 FR-055: notice shown while the field structure is not fully reviewed."
+  },
+  "createTemplateConfirm": "Vorlage speichern",
+  "@createTemplateConfirm": {
+    "description": "T115: confirm action of the Als-Vorlage-speichern sheet."
+  },
+  "createTemplateSuccess": "Vorlage gespeichert.",
+  "@createTemplateSuccess": {
+    "description": "T115: content-free success notice after a verified template creation."
+  },
+  "createTemplateFailed": "Das Speichern der Vorlage ist fehlgeschlagen. Die Vorlage wurde nicht gespeichert.",
+  "@createTemplateFailed": {
+    "description": "T115 FR-106 pattern: content-free failure notice; no optimistic success."
+  },
+  "useTemplateSheetTitle": "Dokument aus Vorlage erstellen",
+  "@useTemplateSheetTitle": {
+    "description": "T117: title of the use-template sheet."
+  },
+  "useTemplateNotice": "Es wird ein neues, unabhängiges Dokument mit leeren Werten erstellt. Die Vorlage bleibt unverändert.",
+  "@useTemplateNotice": {
+    "description": "T117 FR-059/FR-060: notice that using a template creates an independent document and never mutates the template."
+  },
+  "useTemplateConfirm": "Dokument erstellen",
+  "@useTemplateConfirm": {
+    "description": "T117: confirm action of the use-template sheet."
+  },
+  "useTemplateFailed": "Das Erstellen des Dokuments ist fehlgeschlagen. Es wurde kein Dokument erstellt.",
+  "@useTemplateFailed": {
+    "description": "T117 FR-106 pattern: content-free failure notice; no optimistic success."
+  },
+  "templateEditorTitle": "Vorlage bearbeiten (nur Layout)",
+  "@templateEditorTitle": {
+    "description": "T116 FR-101/FR-102: title of the layout-only template editor."
+  },
+  "templateEditorLayoutOnlyNotice": "Diese Vorlage kann nur im Layout bearbeitet werden. Werte und Unterschriften können in einer Vorlage nicht erfasst werden.",
+  "@templateEditorLayoutOnlyNotice": {
+    "description": "T116 FR-102: notice that template editing is layout-only."
+  },
+  "templateEditorSaveVersion": "Als neue Version speichern",
+  "@templateEditorSaveVersion": {
+    "description": "T116/T117 FR-103: action that saves the edited layout as a new immutable template version."
+  },
+  "templateEditorVersionLabel": "Version {number}",
+  "@templateEditorVersionLabel": {
+    "description": "T117 FR-103: label of a template version with its display number.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "templateEditorMoveFieldHint": "Feld verschieben",
+  "@templateEditorMoveFieldHint": {
+    "description": "T116 FR-101: semantics hint for moving a layout field."
   }
 }

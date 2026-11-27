@@ -1,5 +1,10 @@
 // T148 German start surface and production import composition.
 //
+// The T117 template-versions use case has no public barrel file; this
+// consumer imports its stable source library deliberately, matching the
+// editor composition.
+// ignore_for_file: implementation_imports
+//
 // Owner: `apps/feldexa_app/lib/features/start/start_screen.dart` (T148).
 //
 // Normative sources:
@@ -31,6 +36,9 @@ import 'package:feldexa_app/features/editor/page_view.dart';
 import 'package:feldexa_app/features/start/import_error_mapper.dart';
 import 'package:feldexa_app/features/start/import_runtime.dart';
 import 'package:feldexa_app/features/start/stored_items.dart';
+import 'package:feldexa_app/features/templates/use_template.dart';
+import 'package:feldexa_application/src/templates/template_versions.dart'
+    as versions;
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:feldexa_ports/feldexa_ports.dart';
@@ -289,6 +297,93 @@ class _StartScreenState extends State<StartScreen> {
     await _reloadStoredItems();
   }
 
+  /// T117 FR-059: creates a new independent document from the tapped
+  /// template's latest version and opens it in the editor. The template
+  /// aggregate is never mutated (FR-060); the derived document pins the
+  /// loaded version (FR-104) with empty values and copied source pages
+  /// (FR-059). Success is verified by the T117 use case before the editor
+  /// opens; the list is refreshed BEFORE the editor route so
+  /// `_openStoredDocument` finds the new entry, and the runtime created for
+  /// ids/clock is disposed when nothing is navigated.
+  Future<void> _useStoredTemplate(String templateId) async {
+    final ImportRuntime? runtime = _runtime;
+    final SecureStorePort? store = runtime?.store;
+    if (runtime == null || store == null || _openingStored) {
+      return;
+    }
+    if (templateId.trim().isEmpty) {
+      // Programmer-error guard before any store call; no content is echoed.
+      return;
+    }
+    setState(() {
+      _openingStored = true;
+      _failure = null;
+    });
+    EditorRuntime? created;
+    Future<void> reset() async {
+      await created?.dispose();
+      created = null;
+      if (mounted) {
+        setState(() {
+          _openingStored = false;
+        });
+      }
+    }
+
+    final LoadedTemplate loaded;
+    try {
+      loaded = await store.loadTemplate(templateId);
+    } catch (_) {
+      // Content-free: an unreadable template keeps its list entry and opens
+      // nothing; the failure carries no template content.
+      await reset();
+      return;
+    }
+    if (!mounted) {
+      await reset();
+      return;
+    }
+    final versions.UseTemplateResult? result = await showUseTemplateSheet(
+      context,
+      templateTitle: loaded.template.meta.title,
+      versionNumber: loaded.template.meta.latestVersion.versionNumber,
+      onCreate: () async {
+        // One runtime per creation attempt; a superseded one is disposed
+        // before the next attempt and never leaked on the failure path.
+        await created?.dispose();
+        created = runtime.createEditorRuntime();
+        return versions.useTemplate(
+          store: store,
+          templateId: templateId,
+          documentId: created!.ids.newId(),
+          initialRevisionId: created!.ids.newId(),
+          initialKind: core.RevisionKind.explicit,
+          title: loaded.template.meta.title,
+          createdAt: created!.clock.nowUtc().toUtc(),
+          source: loaded.template.meta.source,
+        );
+      },
+    );
+    await created?.dispose();
+    created = null;
+    if (result == null || !result.isSuccess) {
+      await reset();
+      return;
+    }
+    if (!mounted) {
+      await reset();
+      return;
+    }
+    await _reloadStoredItems();
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _openingStored = false;
+    });
+    await _openStoredDocument(result.meta!.id);
+  }
+
   DocumentSummary? _findSummary(String id) {
     for (final DocumentSummary summary
         in _documents ?? const <DocumentSummary>[]) {
@@ -460,8 +555,9 @@ class _StartScreenState extends State<StartScreen> {
                     unawaited(_openStoredDocument(id));
                   },
                   onOpenTemplate: (String id) {
-                    // The T095 template group is visible. A template editor
-                    // route is outside T071A's authorized composition.
+                    // T117 FR-059: the one explicit "Vorlage verwenden"
+                    // flow; opening the layout editor stays T116.
+                    unawaited(_useStoredTemplate(id));
                   },
                 ),
         ),

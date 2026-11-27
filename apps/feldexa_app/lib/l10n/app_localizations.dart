@@ -1295,6 +1295,108 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Speicherplatz prüfen'**
   String get actionCheckStorage;
+
+  /// T115 FR-054: explicit editor app-bar action that saves the current reviewed document as a template; never automatic (FR-061).
+  ///
+  /// In de, this message translates to:
+  /// **'Als Vorlage speichern'**
+  String get saveAsTemplateAction;
+
+  /// T115: title of the Als-Vorlage-speichern sheet.
+  ///
+  /// In de, this message translates to:
+  /// **'Vorlage erstellen'**
+  String get createTemplateSheetTitle;
+
+  /// T115: label of the template title input.
+  ///
+  /// In de, this message translates to:
+  /// **'Titel der Vorlage'**
+  String get createTemplateTitleLabel;
+
+  /// T115 FR-057: notice that entered values and signatures are excluded from the saved template.
+  ///
+  /// In de, this message translates to:
+  /// **'Werte und Unterschriften werden nicht in die Vorlage übernommen.'**
+  String get createTemplateExclusionNotice;
+
+  /// T115 FR-055: notice shown while the field structure is not fully reviewed.
+  ///
+  /// In de, this message translates to:
+  /// **'Die Feldstruktur muss zuerst vollständig geprüft sein.'**
+  String get createTemplateStructurePending;
+
+  /// T115: confirm action of the Als-Vorlage-speichern sheet.
+  ///
+  /// In de, this message translates to:
+  /// **'Vorlage speichern'**
+  String get createTemplateConfirm;
+
+  /// T115: content-free success notice after a verified template creation.
+  ///
+  /// In de, this message translates to:
+  /// **'Vorlage gespeichert.'**
+  String get createTemplateSuccess;
+
+  /// T115 FR-106 pattern: content-free failure notice; no optimistic success.
+  ///
+  /// In de, this message translates to:
+  /// **'Das Speichern der Vorlage ist fehlgeschlagen. Die Vorlage wurde nicht gespeichert.'**
+  String get createTemplateFailed;
+
+  /// T117: title of the use-template sheet.
+  ///
+  /// In de, this message translates to:
+  /// **'Dokument aus Vorlage erstellen'**
+  String get useTemplateSheetTitle;
+
+  /// T117 FR-059/FR-060: notice that using a template creates an independent document and never mutates the template.
+  ///
+  /// In de, this message translates to:
+  /// **'Es wird ein neues, unabhängiges Dokument mit leeren Werten erstellt. Die Vorlage bleibt unverändert.'**
+  String get useTemplateNotice;
+
+  /// T117: confirm action of the use-template sheet.
+  ///
+  /// In de, this message translates to:
+  /// **'Dokument erstellen'**
+  String get useTemplateConfirm;
+
+  /// T117 FR-106 pattern: content-free failure notice; no optimistic success.
+  ///
+  /// In de, this message translates to:
+  /// **'Das Erstellen des Dokuments ist fehlgeschlagen. Es wurde kein Dokument erstellt.'**
+  String get useTemplateFailed;
+
+  /// T116 FR-101/FR-102: title of the layout-only template editor.
+  ///
+  /// In de, this message translates to:
+  /// **'Vorlage bearbeiten (nur Layout)'**
+  String get templateEditorTitle;
+
+  /// T116 FR-102: notice that template editing is layout-only.
+  ///
+  /// In de, this message translates to:
+  /// **'Diese Vorlage kann nur im Layout bearbeitet werden. Werte und Unterschriften können in einer Vorlage nicht erfasst werden.'**
+  String get templateEditorLayoutOnlyNotice;
+
+  /// T116/T117 FR-103: action that saves the edited layout as a new immutable template version.
+  ///
+  /// In de, this message translates to:
+  /// **'Als neue Version speichern'**
+  String get templateEditorSaveVersion;
+
+  /// T117 FR-103: label of a template version with its display number.
+  ///
+  /// In de, this message translates to:
+  /// **'Version {number}'**
+  String templateEditorVersionLabel(int number);
+
+  /// T116 FR-101: semantics hint for moving a layout field.
+  ///
+  /// In de, this message translates to:
+  /// **'Feld verschieben'**
+  String get templateEditorMoveFieldHint;
 }
 
 class _AppLocalizationsDelegate
