@@ -28,19 +28,41 @@ import 'package:feldexa_app/features/editor/page_failure.dart';
 import 'package:feldexa_app/features/editor/recognition_summary.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_core/feldexa_core.dart';
+import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'support/package_root.dart';
 
 /// Exact completeness-claim phrases that no user-facing surface may state
-/// or imply (error catalog §2; FR-085). Matched verbatim, case-sensitively.
+/// or imply (error catalog §2; FR-085). Matched case-insensitively so a
+/// sentence-initial capital cannot smuggle a claim through.
 const List<String> _forbiddenCompletenessClaims = <String>[
   'vollständig erkannt',
   'fehlerfrei',
   'fehlerlos erkannt',
   'vollständig automatisch erkannt',
 ];
+
+/// Standalone completeness claims with word boundaries (P3 fix). The
+/// legitimate forms „unvollständig“, „vollständigen Dokuments“ (IMP-006)
+/// and „nicht vollständig abgeschlossen“ do not match: `\bvollständig\b`
+/// requires a non-word character right after the bare adjective.
+final List<RegExp> _forbiddenClaimPatterns = <RegExp>[
+  RegExp(r'\bvollständig\s+(erkannt|geprüft|erfasst)\b', caseSensitive: false),
+  RegExp(r'\bist\s+vollständig\b', caseSensitive: false),
+  RegExp(r'\bvollständig\.\s*$'),
+];
+
+bool _claimsCompleteness(String text) {
+  final String lower = text.toLowerCase();
+  if (_forbiddenCompletenessClaims.any(lower.contains)) {
+    return true;
+  }
+  return _forbiddenClaimPatterns.any(
+    (RegExp pattern) => pattern.hasMatch(text),
+  );
+}
 
 Map<String, dynamic> _readArb() {
   return jsonDecode(
@@ -108,14 +130,35 @@ void main() {
   group('ARB and generated localizations carry no completeness claim', () {
     test('no ARB user-facing text states a completeness claim', () {
       for (final String text in _arbUserTexts()) {
-        for (final String forbidden in _forbiddenCompletenessClaims) {
-          expect(
-            text.contains(forbidden),
-            isFalse,
-            reason: 'ARB text claims completeness: "$text"',
-          );
-        }
+        expect(
+          _claimsCompleteness(text),
+          isFalse,
+          reason: 'ARB text claims completeness: "$text"',
+        );
       }
+    });
+
+    test('sentence-initial and standalone claims are caught too', () {
+      // The patterns must fail a future claim, including capitalized ones,
+      // while the legitimate forms stay allowed.
+      expect(_claimsCompleteness('Die Erkennung ist vollständig.'), isTrue);
+      expect(_claimsCompleteness('Vollständig erkannt: 12'), isTrue);
+      expect(_claimsCompleteness('Fehlerfrei.'), isTrue);
+      expect(_claimsCompleteness('Alle Felder vollständig geprüft.'), isTrue);
+      expect(
+        _claimsCompleteness(
+          'Ein Export des vollständigen Dokuments ist dadurch beeinträchtigt.',
+        ),
+        isFalse,
+        reason: 'IMP-006 legitimately speaks of the complete document',
+      );
+      expect(
+        _claimsCompleteness(
+          'Die Erkennung ist unvollständig, bis Sie alle Vorschläge geprüft '
+          'haben.',
+        ),
+        isFalse,
+      );
     });
 
     test('the generated German localization class states no claim', () {
@@ -123,11 +166,11 @@ void main() {
         '${packageRoot.path}/lib/l10n/app_localizations_de.dart',
       );
       final String source = generated.readAsStringSync();
-      for (final String forbidden in _forbiddenCompletenessClaims) {
+      for (final String line in source.split('\n')) {
         expect(
-          source.contains(forbidden),
+          _claimsCompleteness(line),
           isFalse,
-          reason: 'generated localization states "$forbidden"',
+          reason: 'generated localization line states a claim: "$line"',
         );
       }
     });
@@ -168,6 +211,21 @@ void main() {
       );
       expect(find.textContaining('Vorschläge'), findsWidgets);
       expect(find.textContaining('unsicher'), findsWidgets);
+      // P3 fix: the four rows are asserted verbatim, so a manual/adopted
+      // swap or a template mis-count cannot pass.
+      final AppLocalizations l10n = AppLocalizations.of(
+        tester.element(find.byType(RecognitionSummary)),
+      );
+      expect(find.text(l10n.recognitionSummaryManual(1)), findsOneWidget);
+      expect(find.text(l10n.recognitionSummaryAdopted(1)), findsOneWidget);
+      expect(find.text(l10n.recognitionSummaryTemplate(0)), findsOneWidget);
+      expect(
+        find.text(
+          '${l10n.recognitionSummaryOpen(2)} '
+          '${l10n.recognitionSummaryUncertain(1)}',
+        ),
+        findsOneWidget,
+      );
 
       for (final Text text in tester.widgetList<Text>(
         find.descendant(
@@ -179,13 +237,11 @@ void main() {
         if (rendered == null) {
           continue;
         }
-        for (final String forbidden in _forbiddenCompletenessClaims) {
-          expect(
-            rendered.contains(forbidden),
-            isFalse,
-            reason: 'summary renders completeness claim: "$rendered"',
-          );
-        }
+        expect(
+          _claimsCompleteness(rendered),
+          isFalse,
+          reason: 'summary renders completeness claim: "$rendered"',
+        );
       }
     });
 

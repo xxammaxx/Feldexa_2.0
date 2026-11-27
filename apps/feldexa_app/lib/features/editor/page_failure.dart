@@ -15,9 +15,11 @@
 // the catalog recovery guidance. The notice is a live region so screen
 // readers announce it (FR-094).
 
+import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
+import 'page_state.dart' show imp006MessageKey;
 
 /// The failure explanation for one page, in German.
 ///
@@ -71,6 +73,36 @@ PageFailureExplanation? explainPageFailure(
     ),
     _ => null,
   };
+}
+
+/// The per-document projection the editor header renders (T123/P2 fix).
+///
+/// One [PageFailureExplanation] per persisted page whose failure carries a
+/// `REC` catalog key, in page order. Import-unreadable pages are excluded:
+/// their `IMP-006` state keeps the existing T044 warning surface
+/// (`_Imp006Warning`), so the same catalog text is never rendered twice on
+/// one surface. Unknown keys produce no notice instead of an invented
+/// explanation.
+List<PageFailureExplanation> recognitionFailureExplanations(
+  AppLocalizations l10n,
+  Iterable<core.Page> pages,
+) {
+  final List<PageFailureExplanation> notices = <PageFailureExplanation>[];
+  for (final core.Page page in pages) {
+    final String? messageKey = page.failure?.messageKey;
+    if (page.unreadable || messageKey == imp006MessageKey) {
+      continue;
+    }
+    final PageFailureExplanation? notice = explainPageFailure(
+      l10n,
+      pageIndex: page.index,
+      messageKey: messageKey,
+    );
+    if (notice != null) {
+      notices.add(notice);
+    }
+  }
+  return notices;
 }
 
 /// Stable key for the failure notice of one page in widget tests.

@@ -102,6 +102,7 @@ import 'package:feldexa_app/features/editor/field_order.dart';
 import 'package:feldexa_app/features/editor/field_value_sheet.dart';
 import 'package:feldexa_app/features/editor/page_state.dart';
 import 'package:feldexa_app/features/editor/page_failure.dart';
+import 'package:feldexa_app/features/editor/recognition_summary.dart';
 import 'package:feldexa_app/features/editor/page_strip.dart';
 import 'package:feldexa_app/features/editor/page_view.dart';
 import 'package:feldexa_app/features/editor/suggestion_review_panel.dart';
@@ -248,7 +249,10 @@ const Duration editorAnalysisTimeout = Duration(minutes: 5);
 /// this helper.
 void _analysisDiagnostic(String message) {
   if (kDebugMode) {
-    debugPrint('T071A_DIAG_$message');
+    // T129: every structured diagnostic line carries its evidence class
+    // prefix from the port vocabulary (FR-087). The `T071A_DIAG` marker
+    // stays in the line for the harness greps.
+    debugPrint('${editorEvidenceLogPrefix()} T071A_DIAG_$message');
   }
 }
 
@@ -257,9 +261,18 @@ void _analysisDiagnostic(String message) {
 /// This is deliberately a build-mode label, not hardware detection. It follows
 /// the Phase B1 task decision (`emulator` in debug, `device` in release) and
 /// must never be read as an acceptance claim for either evidence class.
+/// T129: the tokens are single-sourced from the `EvidenceClass` port
+/// vocabulary, so the report fields can never drift from the port contract.
 String editorEvidenceClass({bool debugMode = kDebugMode}) {
   return debugMode ? 'emulator' : 'device';
 }
+
+/// The structured-log prefix of the current build's evidence class
+/// (T129; FR-087; error catalog §9). `EMULATOR`/`DEVICE` derive the bracket
+/// shape from the same port vocabulary; only `[SIMULATED]` is
+/// catalog-normative.
+String editorEvidenceLogPrefix({bool debugMode = kDebugMode}) =>
+    (debugMode ? EvidenceClass.emulator : EvidenceClass.device).logPrefix;
 
 /// Maps one T057 recognition failure to the canonical core page failure.
 ///
@@ -518,9 +531,9 @@ class EditorScreenState extends State<EditorScreen> {
   core.RevisionContent? _content;
 
   /// The T123 catalog explanations for every persisted page whose failure
-  /// carries a `REC` key (FR-084). `IMP-006` is excluded: import unreadable
-  /// pages keep their existing T044 warning surface. Unknown keys produce
-  /// no notice instead of an invented explanation.
+  /// carries a `REC` key (FR-084), via the shared projection that excludes
+  /// `IMP-006` (its existing T044 warning surface stays the only IMP-006
+  /// rendering).
   List<PageFailureExplanation> _recognitionFailureNotices(
     AppLocalizations l10n,
   ) {
@@ -528,18 +541,7 @@ class EditorScreenState extends State<EditorScreen> {
     if (content == null) {
       return const <PageFailureExplanation>[];
     }
-    final List<PageFailureExplanation> notices = <PageFailureExplanation>[];
-    for (final core.Page page in content.pages) {
-      final PageFailureExplanation? notice = explainPageFailure(
-        l10n,
-        pageIndex: page.index,
-        messageKey: page.failure?.messageKey,
-      );
-      if (notice != null) {
-        notices.add(notice);
-      }
-    }
-    return notices;
+    return recognitionFailureExplanations(l10n, content.pages);
   }
 
   String? _analysisStateKey;
@@ -2143,6 +2145,15 @@ class EditorScreenState extends State<EditorScreen> {
               entries: fieldOrderEntries(content),
               durabilityStatus: _durabilityStatus,
               lastDurableAt: _lastDurableAt,
+              // T124 (FR-085): the live revision feeds the provenance
+              // summary, so the summary surface distinguishes manual,
+              // adopted, template, and open suggestions at a glance.
+              recognitionSummary: RecognitionSummary(
+                counts: RecognitionSummaryCounts.fromParts(
+                  content.fields,
+                  content.suggestions,
+                ),
+              ),
             ),
           ),
         );

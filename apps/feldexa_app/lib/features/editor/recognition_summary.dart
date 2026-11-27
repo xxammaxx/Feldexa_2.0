@@ -20,6 +20,11 @@
 // provisional until every suggestion is reviewed.
 
 import 'package:feldexa_core/feldexa_core.dart';
+// T122: the summary's „unsicher“ sub-count uses the shared uncertainty
+// thresholds, so document view, review badge, and summary can never drift.
+import 'package:feldexa_ui/feldexa_ui.dart' show UncertaintyThresholds;
+// ignore_for_file: depend_on_referenced_packages
+
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
@@ -100,7 +105,7 @@ final class RecognitionSummaryCounts {
         continue;
       }
       open += 1;
-      if (suggestion.confidence < 0.50) {
+      if (suggestion.confidence < UncertaintyThresholds.uncertain) {
         openUncertain += 1;
       }
     }

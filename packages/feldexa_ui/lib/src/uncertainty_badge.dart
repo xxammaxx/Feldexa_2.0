@@ -40,17 +40,19 @@ abstract final class UncertaintyThresholds {
 /// The pill renders a dashed outline — the same visual language as the
 /// uncertain T071A overlay outline — with the caller-supplied localized
 /// label (for example `AppLocalizations.suggestionUncertain`, „unsicher“).
+/// The widget is gated: it renders the pill only when
+/// [UncertaintyThresholds.badgeRequired] holds for [confidence]; any other
+/// confidence renders nothing, so a caller cannot accidentally badge a
+/// confident field.
+///
 /// The [semanticsLabel] carries the explanatory semantics label required by
 /// `contracts/recognition-output.md` §3.4 for the sub-0.50 treatment; when
-/// omitted, the visible [label] is exposed instead, so the semantic node is
-/// never empty.
+/// omitted or blank, the visible [label] is exposed instead, so the
+/// semantic node is never empty.
 ///
-/// The badge is decorative-only semantics: one `Semantics` node exposes the
-/// combined label, the inner text is excluded, and assistive technology
-/// never announces the uncertainty twice. Like `ProvenanceBadge`, it is
-/// non-interactive and reserves no 48 × 48 dp touch target; it is however
-/// readable at 200 % text scale because the label wraps instead of
-/// truncating.
+/// The pill always reserves at least the 48 × 48 dp accessible minimum
+/// (T122 acceptance), and its label wraps at 200 % text scale instead of
+/// truncating. It is non-interactive: no tap handler, no gesture.
 ///
 /// When [key] is omitted, the badge uses the stable default
 /// `ValueKey('uncertainty-badge')`. Callers that render more than one badge
@@ -65,7 +67,7 @@ class UncertaintyBadge extends StatelessWidget {
   });
 
   /// The suggestion confidence on `0.0 … 1.0`; `null` for non-machine
-  /// fields. Purely informative: the badge is rendered only when
+  /// fields. The badge renders only when
   /// [UncertaintyThresholds.badgeRequired] holds for it.
   final double? confidence;
 
@@ -77,9 +79,12 @@ class UncertaintyBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!UncertaintyThresholds.badgeRequired(confidence)) {
+      return const SizedBox.shrink();
+    }
     final ThemeData theme = Theme.of(context);
     final String effectiveSemanticsLabel =
-        (semanticsLabel ?? label).trim().isEmpty ? label : semanticsLabel!;
+        semanticsLabel?.trim().isNotEmpty ?? false ? semanticsLabel! : label;
     return KeyedSubtree(
       key: key ?? const ValueKey<String>('uncertainty-badge'),
       child: Semantics(
@@ -89,13 +94,16 @@ class UncertaintyBadge extends StatelessWidget {
           foregroundPainter: _DashedPillBorderPainter(
             color: theme.colorScheme.error,
           ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            child: Text(
-              label,
-              style: theme.textTheme.labelSmall,
-              textAlign: TextAlign.center,
-              softWrap: true,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              child: Text(
+                label,
+                style: theme.textTheme.labelSmall,
+                textAlign: TextAlign.center,
+                softWrap: true,
+              ),
             ),
           ),
         ),

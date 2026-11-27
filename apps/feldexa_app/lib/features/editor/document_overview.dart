@@ -44,6 +44,7 @@ library;
 import 'package:feldexa_app/features/editor/durability_status.dart';
 import 'package:feldexa_app/features/editor/field_completion.dart';
 import 'package:feldexa_app/features/editor/field_order.dart';
+import 'package:feldexa_app/features/editor/recognition_summary.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
 import 'package:feldexa_core/feldexa_core.dart' as core;
 import 'package:flutter/material.dart';
@@ -176,6 +177,7 @@ class DocumentOverviewScreen extends StatelessWidget {
     required this.entries,
     required this.durabilityStatus,
     this.lastDurableAt,
+    this.recognitionSummary,
     super.key,
   });
 
@@ -187,6 +189,11 @@ class DocumentOverviewScreen extends StatelessWidget {
 
   /// The editor's caller-supplied durable time, if any.
   final DateTime? lastDurableAt;
+
+  /// The T124 provenance summary (FR-085) projected from the live
+  /// revision's confirmed fields and suggestions, or `null` when the caller
+  /// has no revision snapshot (then no summary card is rendered).
+  final RecognitionSummary? recognitionSummary;
 
   @override
   Widget build(BuildContext context) {
@@ -226,6 +233,12 @@ class DocumentOverviewScreen extends StatelessWidget {
                     key: documentOverviewCountsKey,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
+                  // T124 (FR-085): the provenance summary card sits directly
+                  // under the field count, visible in the summary surface.
+                  if (recognitionSummary != null) ...<Widget>[
+                    const SizedBox(height: 12),
+                    recognitionSummary!,
+                  ],
                   const SizedBox(height: 8),
                   FilledButton.icon(
                     key: documentOverviewContinueKey,

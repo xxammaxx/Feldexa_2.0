@@ -21,7 +21,9 @@
 
 // ignore_for_file: depend_on_referenced_packages
 
+import 'package:feldexa_app/main.dart';
 import 'package:feldexa_ui/feldexa_ui.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -37,6 +39,35 @@ Widget _host({required bool showBanner, required Widget child}) {
 }
 
 void main() {
+  group('the SIMULATED banner is mounted on the simulated shell (T129)', () {
+    testWidgets('FeldexaApp(simulatedShell: true) shows the global banner', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(FeldexaApp(simulatedShell: true));
+      await tester.pump();
+      // The persistent, non-dismissible banner sits above the surface.
+      expect(find.byType(SimulatedBanner), findsOneWidget);
+      expect(find.text(SimulatedEvidence.token), findsOneWidget);
+      expect(find.textContaining('Entwicklungsansicht'), findsOneWidget);
+    });
+
+    testWidgets('FeldexaApp(simulatedShell: false) shows no banner', (
+      WidgetTester tester,
+    ) async {
+      // Android shells never label themselves SIMULATED.
+      await tester.pumpWidget(const FeldexaApp(simulatedShell: false));
+      await tester.pump();
+      expect(find.byType(SimulatedBanner), findsNothing);
+    });
+
+    test('the shell default follows the platform evidence class', () {
+      // Production wiring: the Web build is the SIMULATED surface.
+      expect(kIsWeb, isFalse, reason: 'this run is the host-VM lane');
+      const FeldexaApp androidShell = FeldexaApp();
+      expect(androidShell.simulatedShell, isFalse);
+    });
+  });
+
   group('the SIMULATED banner keeps the exact catalog surface (§9)', () {
     testWidgets('token, context line, and semantics label are exact', (
       WidgetTester tester,

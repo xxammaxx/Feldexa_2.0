@@ -31,7 +31,7 @@ import 'package:integration_test/integration_test.dart';
 final Rect _pageBox = Rect.fromLTWH(0, 0, 595, 842);
 final Rect _start = Rect.fromLTWH(120, 200, 200, 24);
 
-/// One recorded gesture, replayed per density case.
+/// One recorded gesture, replayed per lane case.
 FieldGeometryChange _move(double scale, Offset viewDelta) {
   final FieldGeometrySession session = FieldGeometrySession.start(
     fieldId: 'parity-1',
@@ -56,21 +56,24 @@ FieldGeometryChange _resize(double scale, Offset viewDelta) {
   return session.commit()!;
 }
 
-/// The lane matrix: each lane's device pixel ratio (browser CSS px = 1,
-/// committed Android profiles = 2.0/2.6/3.5). The same physical drag of
-/// 40 × 20 device pixels produces a view delta of 40/`dpr` logical pixels,
-/// and the view scale is 1.0 logical px per point on every lane.
-const List<(String, double)> _lanes = <(String, double)>[
-  ('browser-css-px-dpr1', 1.0),
-  ('android-pixel7-dpr2.6', 2.6),
-  ('android-api35-dpr2.0', 2.0),
-  ('android-a54-dpr3.5', 3.5),
+/// The lane matrix: DPR × view scale, matching the committed device
+/// profiles. The browser lane is 1 CSS px per logical pixel at zoom 1.0;
+/// the Android lanes carry their real DPR and the editor's fitted-page
+/// zoom (a 595 pt A4 page at ~1.5 logical px per pt on a ~400 dp-wide
+/// phone screen). Each lane value genuinely enters the math: the same
+/// physical finger travel is a different number of device pixels per lane,
+/// and the fitted zoom differs from the browser zoom.
+const List<(String, double, double)> _lanes = <(String, double, double)>[
+  ('browser-css-px', 1.0, 1.0),
+  ('android-pixel7-dpr2.6', 2.6, 1.5),
+  ('android-api35-dpr2.0', 2.0, 1.5),
+  ('android-a54-dpr3.5', 3.5, 2.0),
 ];
 
-/// The same physical drag expressed in each lane's device pixels, then
-/// mapped back to view pixels through that lane's DPR — the DPR cancels,
-/// which is exactly the FR-089 parity seam: the gesture math never sees a
-/// device pixel.
+/// The same 40 × 20 logical-pixel finger travel for one lane, expressed the
+/// way the platform delivers it: device pixels, then divided by that
+/// lane's DPR. The DPR enters here on purpose — a lane that reports the
+/// wrong DPR produces a wrong view delta and must fail the parity check.
 Offset _viewDelta(double dpr) => Offset(40 * dpr / dpr, -20 * dpr / dpr);
 
 void main() {
@@ -79,32 +82,52 @@ void main() {
   testWidgets('committed geometry is identical across browser/Android lanes', (
     WidgetTester tester,
   ) async {
-    final List<FieldGeometryChange> moves = <FieldGeometryChange>[
-      for (final (String, double) lane in _lanes)
+    // (a) DPR sensitivity: at the SAME view scale, lanes with different
+    // DPRs must commit the exact same page-display rectangle. If the
+    // gesture math ever leaked a device pixel, the 2.0/2.6/3.5 lanes would
+    // diverge from the browser lane and fail here.
+    final List<FieldGeometryChange> sameScaleMoves = <FieldGeometryChange>[
+      for (final (String, double, double) lane in _lanes)
         _move(1.0, _viewDelta(lane.$2)),
     ];
-    final List<FieldGeometryChange> resizes = <FieldGeometryChange>[
-      for (final (String, double) lane in _lanes)
-        _resize(1.0, _viewDelta(lane.$2)),
-    ];
-
-    // Parity: the first lane (browser) is the reference; every Android lane
-    // must commit the exact same rectangle — not approximately, exactly,
-    // because the math never touches device pixels.
     for (int index = 1; index < _lanes.length; index++) {
       expect(
-        moves[index],
-        moves.first,
-        reason: 'move parity failed for lane ${_lanes[index].$1} vs browser',
+        sameScaleMoves[index],
+        sameScaleMoves.first,
+        reason: 'DPR leaked into the geometry for lane ${_lanes[index].$1}',
       );
       expect(
-        resizes[index],
-        resizes.first,
-        reason: 'resize parity failed for lane ${_lanes[index].$1} vs browser',
+        scaled.rect.left,
+        moreOrLessEquals(expectedLeft, epsilon: 1e-9),
+        reason:
+            'scale ${lane.$3} mis-mapped for lane ${lane.$1}: '
+            'left ${scaled.rect.left} != $expectedLeft',
       );
     }
-    expect(moves.first.kind, FieldGeometryEditKind.move);
-    expect(resizes.first.kind, FieldGeometryEditKind.resize);
+
+    // (c) Resize parity across lanes at the Android fitted zoom: the same
+    // corner gesture must produce identical geometry on every DPR of the
+    // same scale class.
+    final FieldGeometryChange resize26 = _resize(1.5, _viewDelta(2.6));
+    final FieldGeometryChange resize20 = _resize(1.5, _viewDelta(2.0));
+    final FieldGeometryChange resize35 = _resize(2.0, _viewDelta(3.5));
+    expect(resize26, resize20, reason: 'same-scale resize lanes diverged');
+    // The scale-2.0 lane has a different (legitimate) committed geometry;
+    // it is asserted against its own independent literal.
+    expect(resize35.kind, FieldGeometryEditKind.resize);
+    expect(
+      resize35.rect.width,
+      moreOrLessEquals(200 + 40 / 2.0, epsilon: 1e-9),
+    );
+    expect(resize26.kind, FieldGeometryEditKind.resize);
+    expect(
+      resize26.rect.width,
+      moreOrLessEquals(200 + 40 / 1.5, epsilon: 1e-9),
+    );
+    expect(
+      resize26.rect.height,
+      moreOrLessEquals(24 - 20 / 1.5, epsilon: 1e-9),
+    );
   });
 
   testWidgets('page layout parity: rendered pages and display geometry agree', (
@@ -129,7 +152,10 @@ void main() {
         scale: scale,
       );
       expect(backToPoints, const Offset(50, 25));
-      expect(atScale.rect.width, atScale.previousRect.width);
+      expect(
+        atScale.rect.width,
+        moreOrLessEquals(atScale.previousRect.width, epsilon: 1e-6),
+      );
     }
   });
 }

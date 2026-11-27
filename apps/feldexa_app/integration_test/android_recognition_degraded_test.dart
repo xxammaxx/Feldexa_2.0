@@ -166,23 +166,17 @@ void main() {
   testWidgets('degraded raster variants are deterministic (pixel hashes)', (
     WidgetTester tester,
   ) async {
-    // Pixel hashes, never screenshots: the same bytes on every lane.
+    // Pixel hashes, never screenshots: compared against the pinned
+    // literals, so a changed transformation fails here, not later.
     final Map<String, String> hashes = <String, String>{
       'baseline': _hash(baseline),
       'low-contrast': _hash(lowContrast),
       'skew-1px-per-40rows': _hash(skewed),
       'damaged-band': _hash(damaged),
     };
-    expect(
-      hashes.values.toSet().length,
-      4,
-      reason: 'every degraded variant must differ from the baseline',
-    );
-    expect(
-      _hash(_baselineBytes(widthPx, heightPx)),
-      hashes['baseline'],
-      reason: 'the baseline must regenerate identically',
-    );
+    // ignore: avoid_print
+    print('T126_HASHES $hashes');
+    expect(hashes, _expectedHashes);
   });
 
   testWidgets('low-contrast pages are measured and cap confidence', (
@@ -194,11 +188,33 @@ void main() {
       bytes: lowContrast,
     );
     final PhotometricQuality quality = PhotometricQuality.measure(raster);
-    // Measured, not assumed: the variant really lost contrast.
-    expect(quality.p95Luminance - quality.p05Luminance, lessThan(128));
+    final PhotometricQuality baselineQuality = PhotometricQuality.measure(
+      GrayRaster.fromGrayBytes(
+        width: widthPx,
+        height: heightPx,
+        bytes: baseline,
+      ),
+    );
+    // Measured, not assumed: the degraded variant has strictly less
+    // luminance spread than the baseline (p05/p95 are 255/255 on both —
+    // the sparse field is too small for percentiles — so the spread and
+    // the ink statistics carry the distinction).
+    expect(
+      quality.standardDeviation,
+      lessThan(baselineQuality.standardDeviation),
+    );
+    expect(quality.inkDensity, lessThan(baselineQuality.inkDensity));
 
-    final double lowConfidence = _confidenceFor(2, 0, Contrast.low);
+    // Measurement → model seam: the measured contrast class feeds the
+    // confidence model, so a PhotometricQuality regression changes the
+    // asserted confidence.
+    final Contrast measuredContrast =
+        quality.standardDeviation < baselineQuality.standardDeviation
+        ? Contrast.low
+        : Contrast.normal;
+    final double lowConfidence = _confidenceFor(2, 0, measuredContrast);
     final double normalConfidence = _confidenceFor(2, 0, Contrast.normal);
+    expect(measuredContrast, Contrast.low);
     expect(lowConfidence, lessThan(normalConfidence));
     // Honesty: two-decimal grid, never a certainty claim.
     expect((lowConfidence * 100).round() / 100, lowConfidence);
@@ -227,6 +243,10 @@ void main() {
     final double skewedConfidence = _confidenceFor(2, 3.0, Contrast.normal);
     final double baselineConfidence = _confidenceFor(2, 0, Contrast.normal);
     expect(skewedConfidence, lessThan(baselineConfidence));
+    // The >2.0° model predicate is the measured skew regime of a shear the
+    // deskew stage cannot fully invert; the exact raster-space skew
+    // estimator is owned by the T263 deskew seam and is not re-modeled
+    // here (documented boundary, see report §4).
   });
 
   testWidgets('damaged pages still attempt detection and stay fillable', (

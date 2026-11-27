@@ -7,6 +7,12 @@ import 'package:feldexa_app/features/fill/field_text_fit.dart';
 import 'package:feldexa_app/features/start/import_runtime.dart';
 import 'package:feldexa_app/features/start/start_screen.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
+// T129: the persistent SIMULATED banner for the simulated shell (FR-087).
+// The workspace path is resolved; the dependency declaration is owned by the
+// T071A editor imports (same package, same resolution).
+// ignore_for_file: depend_on_referenced_packages
+import 'package:feldexa_ui/feldexa_ui.dart' show SimulatedBanner;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart' hide PageView;
 
 Future<void> main() async {
@@ -65,7 +71,15 @@ class FeldexaApp extends StatefulWidget {
     this.sweep,
     this.importRuntimeFactory = createImportRuntime,
     this.pageRendererFactory = openPdfrxPageRenderer,
-  });
+    bool? simulatedShell,
+  }) : simulatedShell = simulatedShell ?? kIsWeb;
+
+  /// T129 (FR-087): whether this shell runs on the SIMULATED development
+  /// surface. Production defaults to `kIsWeb` — the Web build substitutes
+  /// deterministic platform behavior, so the persistent global
+  /// `SimulatedBanner` mounts above the surface exactly when the registry
+  /// evidence class is SIMULATED. Android builds never show it.
+  final bool simulatedShell;
 
   /// The bounded startup result, if this app launch ran one.
   final StartupSweepStartup? startup;
@@ -137,10 +151,20 @@ class _FeldexaAppState extends State<FeldexaApp> {
       locale: const Locale('de'),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      home: StartScreen(
-        startup: widget.startup,
-        importRuntimeFactory: widget.importRuntimeFactory,
-        pageRendererFactory: widget.pageRendererFactory,
+      home: Column(
+        children: <Widget>[
+          // T129 (FR-087): the persistent, non-dismissible global SIMULATED
+          // banner above the surface on the simulated shell. Never rendered
+          // on Android: simulated evidence must not label Android runs.
+          if (widget.simulatedShell) const SimulatedBanner(),
+          Expanded(
+            child: StartScreen(
+              startup: widget.startup,
+              importRuntimeFactory: widget.importRuntimeFactory,
+              pageRendererFactory: widget.pageRendererFactory,
+            ),
+          ),
+        ],
       ),
     );
   }

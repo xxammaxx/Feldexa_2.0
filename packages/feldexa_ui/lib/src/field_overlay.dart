@@ -16,6 +16,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 
+import 'uncertainty_badge.dart';
+
 /// Visual provenance of one field overlay.
 ///
 /// The values mirror the review treatment in
@@ -266,7 +268,9 @@ FieldOverlayStyle fieldOverlayStyle(FieldOverlayItem item) {
       final double? confidence = item.confidence;
       return FieldOverlayStyle(
         outlineColor: _machineOutlineColor,
-        dashed: confidence == null || confidence < 0.75,
+        // T122: one shared threshold pair (UncertaintyThresholds) keeps the
+        // overlay outlines, the review badge, and the summary in agreement.
+        dashed: confidence == null || confidence < UncertaintyThresholds.solid,
         strokeWidth: 1.5,
         uncertain: confidence == null || confidence < 0.50,
         conflicting: item.conflicting,

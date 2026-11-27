@@ -69,5 +69,46 @@ void main() {
         findsOneWidget,
       );
     });
+
+    testWidgets('falls back to the label when semanticsLabel is omitted', (
+      WidgetTester tester,
+    ) async {
+      // Regression (P1): the documented `semanticsLabel == null` default
+      // used to throw on the null-check operator.
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.light(),
+          home: const Scaffold(
+            body: UncertaintyBadge(confidence: 0.30, label: 'unsicher'),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      expect(
+        tester.getSemantics(find.byType(UncertaintyBadge)).label,
+        'unsicher',
+      );
+    });
+
+    testWidgets('reserves at least the 48 dp accessible minimum', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(_host(0.30));
+      final Size size = tester.getSize(find.byType(UncertaintyBadge));
+      expect(size.width, greaterThanOrEqualTo(48.0));
+      expect(size.height, greaterThanOrEqualTo(48.0));
+    });
+
+    testWidgets('renders nothing when the confidence is not uncertain', (
+      WidgetTester tester,
+    ) async {
+      // The widget is gated on the shared thresholds: a confident or
+      // non-machine item can never be badged by accident.
+      await tester.pumpWidget(_host(0.90));
+      // The widget node exists but renders nothing (zero-size, no text, no
+      // semantics label), so a confident item can never be badged.
+      expect(find.text('unsicher'), findsNothing);
+      expect(tester.getSize(find.byType(UncertaintyBadge)), Size.zero);
+    });
   });
 }
