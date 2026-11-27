@@ -3,10 +3,11 @@
 
 from __future__ import annotations
 
-import json
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import verify_artifact as va
 
@@ -17,12 +18,86 @@ ARTIFACT = (
     / "specs/001-scanned-form-workflow/reports/artifacts"
     / "2026-11-26-t344-export-proof-depth/export-artifact-1.pdf"
 )
+HAS_POPPLER = all(shutil.which(b) for b in ("pdfinfo", "pdftotext", "pdftoppm"))
 
 
 def rows(report: va.Report) -> dict[str, va.Row]:
     return {row.check: row for row in report.rows}
 
 
+class ParseTest(unittest.TestCase):
+    def test_per_page_sizes_and_rotation(self) -> None:
+        text = (
+            "Page    1 size:  595.28 x 841.89 pts (A4)\n"
+            "Page    1 rot:   0\n"
+            "Page    2 size:  841.89 x 595.28 pts (A4)\n"
+            "Page    2 rot:   90\n"
+        )
+        self.assertEqual(
+            [(595.28, 841.89, 0), (841.89, 595.28, 90)], va.parse_page_sizes(text, 2)
+        )
+
+    def test_single_size_fallback_reads_page_rot(self) -> None:
+        text = (
+            "Page size:       595.28 x 841.89 pts (A4)\n"
+            "Page rot:        90\n"
+        )
+        self.assertEqual([(595.28, 841.89, 90)] * 2, va.parse_page_sizes(text, 2))
+
+    def test_rotation_mismatch_is_detected(self) -> None:
+        ok, detail = va.sizes_equal([(595.0, 842.0, 0)], [(595.0, 842.0, 90)])
+        self.assertFalse(ok)
+        self.assertIn("rot 0", detail)
+
+    def test_size_boundary(self) -> None:
+        ok, _ = va.sizes_equal([(595.0, 842.0, 0)], [(595.01, 842.0, 0)])
+        self.assertTrue(ok)
+        ok, _ = va.sizes_equal([(595.0, 842.0, 0)], [(595.02, 842.0, 0)])
+        self.assertFalse(ok)
+
+
+class SourceIntegrityTest(unittest.TestCase):
+    def test_match_and_mismatch(self) -> None:
+        report = va.Report(source="s", artifact="a")
+        va.check_source_integrity(report, SOURCE, va.sha256(SOURCE))
+        self.assertEqual("PASS", rows(report)["source integrity"].status)
+        report = va.Report(source="s", artifact="a")
+        va.check_source_integrity(report, SOURCE, "0" * 64)
+        self.assertEqual("FAIL", rows(report)["source integrity"].status)
+
+
+class PrintabilityTest(unittest.TestCase):
+    def test_second_engine_runs_and_can_fail(self) -> None:
+        report = va.Report(source="s", artifact="a")
+        ok = mock.Mock(returncode=0, stdout="", stderr="")
+        fail = mock.Mock(returncode=1, stdout="", stderr="boom")
+        with mock.patch.object(va.shutil, "which", return_value="/usr/bin/tool"), \
+             mock.patch.object(va, "pdf_pages", return_value=1), \
+             mock.patch.object(va, "run", side_effect=[ok, fail]):
+            va.check_printability(report, ARTIFACT, 300)
+        self.assertEqual("FAIL", rows(report)["printability"].status)
+        report = va.Report(source="s", artifact="a")
+        with mock.patch.object(va.shutil, "which", return_value="/usr/bin/tool"), \
+             mock.patch.object(va, "pdf_pages", return_value=1), \
+             mock.patch.object(va, "run", side_effect=[ok, ok]):
+            va.check_printability(report, ARTIFACT, 300)
+        self.assertEqual("PASS", rows(report)["printability"].status)
+
+    def test_missing_second_engine_is_partial_not_pass(self) -> None:
+        report = va.Report(source="s", artifact="a")
+        ok = mock.Mock(returncode=0, stdout="", stderr="")
+
+        def which(name: str):
+            return "/usr/bin/pdftoppm" if name == "pdftoppm" else None
+
+        with mock.patch.object(va.shutil, "which", side_effect=which), \
+             mock.patch.object(va, "pdf_pages", return_value=1), \
+             mock.patch.object(va, "run", return_value=ok):
+            va.check_printability(report, ARTIFACT, 300)
+        self.assertEqual("PARTIAL", rows(report)["printability"].status)
+
+
+@unittest.skipUnless(HAS_POPPLER, "Poppler tools not on PATH")
 class HarnessTest(unittest.TestCase):
     def test_committed_pair_verifies_core_rows(self) -> None:
         self.assertTrue(SOURCE.is_file(), "fixture sf-001.pdf missing")
@@ -36,6 +111,7 @@ class HarnessTest(unittest.TestCase):
         self.assertEqual("PASS", by_check["no interactive controls"].status)
         self.assertEqual("PASS", by_check["text content"].status)
         self.assertEqual("PASS", by_check["source integrity"].status)
+        self.assertIn("NOT_RUN", by_check["no clipping"].status)
         self.assertNotEqual("FAIL", by_check["printability"].status)
         self.assertEqual(0, report.exit_code())
 
@@ -50,10 +126,13 @@ class HarnessTest(unittest.TestCase):
             temp.unlink()
         self.assertEqual("FAIL", rows(report)["no interactive controls"].status)
 
-    def test_missing_inputs_exit_two(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            missing = Path(tmp) / "nope.pdf"
-            self.assertEqual(2, va.main(["--source", str(missing), "--artifact", str(missing)]))
+    def test_expected_text_value_pass_and_fail(self) -> None:
+        report = va.Report(source="s", artifact="a")
+        va.check_text(report, ARTIFACT, {"fields": [{"value": "MUSTERSTADT"}]})
+        self.assertEqual("PASS", rows(report)["text content"].status)
+        report = va.Report(source="s", artifact="a")
+        va.check_text(report, ARTIFACT, {"fields": [{"value": "ZZZ-NOT-THERE"}]})
+        self.assertEqual("FAIL", rows(report)["text content"].status)
 
     def test_unreadable_artifact_fails_closed(self) -> None:
         with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as handle:
@@ -66,13 +145,12 @@ class HarnessTest(unittest.TestCase):
         self.assertEqual("FAIL", rows(report)["input readable"].status)
         self.assertEqual(1, report.exit_code())
 
-    def test_expected_text_value_pass_and_fail(self) -> None:
-        report = va.Report(source="s", artifact="a")
-        va.check_text(report, ARTIFACT, {"fields": [{"value": "MUSTERSTADT"}]})
-        self.assertEqual("PASS", rows(report)["text content"].status)
-        report = va.Report(source="s", artifact="a")
-        va.check_text(report, ARTIFACT, {"fields": [{"value": "ZZZ-NOT-THERE"}]})
-        self.assertEqual("FAIL", rows(report)["text content"].status)
+
+class UsageTest(unittest.TestCase):
+    def test_missing_inputs_exit_two(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            missing = Path(tmp) / "nope.pdf"
+            self.assertEqual(2, va.main(["--source", str(missing), "--artifact", str(missing)]))
 
 
 if __name__ == "__main__":

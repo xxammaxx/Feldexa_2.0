@@ -11,13 +11,13 @@ command.
 
 | §6 check | Tolerance / criterion | Tool | Member | Status |
 | --- | --- | --- | --- | --- |
-| Structural validity | must pass (`qpdf --check` external, PDFBox reload internal) | `qpdf --check` (absent) + PDFBox reload | V2 | **NOT_RUN** — `qpdf` absent on the evidence host; the PDFBox reload is V1 |
+| Structural validity | must pass (`qpdf --check` external, PDFBox reload internal) | `qpdf --check` (absent) + PDFBox reload (in-app) | V2 (qpdf), V3 (reload) | **NOT_RUN** — `qpdf` absent; the PDFBox reload runs only inside the Android export path |
 | Page count and order | exact | `pdfinfo`, page-by-page `pdftoppm` | V1 | covered by T105/T334 artifacts |
-| Page geometry | 0.01 pt | `pdfinfo` + `placement.py` geometry output | V1 | partial (geometry compare manual) |
+| Page geometry | 0.01 pt | `pdfinfo` + `verify_artifact.py` | V1 | automated (sizes and rotation from pdfinfo) |
 | Original appearance | pixel-identical outside overlays | `pdftoppm` + ImageMagick compare | V1 | used in T105 |
 | Value placement | ≤ 1 mm (2.835 pt) | `tools/pdf_verify/placement.py` | V1 | **PROVEN** (T344 B, 2.835 pt) |
 | Text content | exact after whitespace normalization | `pdftotext` | V1 | used in T105/T334 |
-| No clipping | zero clipped values | `pdftotext -bbox` + `placement.py` | V1 | partial (checkbox/signature rows V3) |
+| No clipping | zero clipped values | `pdftotext -bbox` + `placement.py` | V3 | **NOT_RUN** — measurement not implemented in the harness |
 | Checkbox states | exact | rendered-page comparison | V3 | T109 |
 | Signatures | present, aspect preserved | rendered-page comparison + store read-back | V3 | T109 |
 | No interactive controls | zero AcroForm fields | byte search `/AcroForm`, PDFBox | V1 | used in T334 |
@@ -34,8 +34,8 @@ command.
   placement (V1) + checkbox/signature rows (V3, T109).
 - `qpdf --check` remains absent; V2 rows stay `NOT_RUN` until it is available or
   the owner approves a substitute engine.
-- **Artifact isolation** maps to **SC-010** (failed export leaves no artifact), owned by
-  T108/T334; it is not part of SC-005/SC-006.
-- Executable harness: `tools/pdf_verify/verify_artifact.py` runs the V1 rows and the
-  Poppler half of V2; rows needing expectations or absent engines report `NOT_RUN`
-  with the reason.
+- **Artifact isolation** is an instance of **SC-010** (no false success, last saved state
+  intact), owned by T108/T334; it is not part of SC-005/SC-006.
+- Executable harness: `tools/pdf_verify/verify_artifact.py` runs the rows marked V1 above
+  and the Poppler half of printability. The no-clipping measurement and the masked
+  appearance comparison are not implemented and report `NOT_RUN` for that reason.

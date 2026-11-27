@@ -13,7 +13,8 @@ What it verifies without extra inputs
 * per-page MediaBox/CropBox/rotation equality within 0.01 pt,
 * absence of ``/AcroForm`` and ``/Widget`` in the artifact bytes,
 * text extraction and German glyph presence,
-* a 150/300 dpi render of each page (Poppler only; MuPDF is absent here),
+* a 150 dpi render of page 1 and 300 dpi renders of every page (Poppler; MuPDF
+  is executed when present and otherwise reported PARTIAL),
 * SHA-256 of the source file (unchanged).
 
 Rows that need ``--expectations FIELD_JSON`` (values, field rects, checkbox and
@@ -21,15 +22,16 @@ signature states, appearance masks):
 * text content against expected values,
 * value placement (delegated to ``placement.py`` semantics where a rect and a
   value word are supplied),
-* masking for the original-appearance comparison,
 * checkbox state and signature presence.
+The masked appearance comparison and the no-clipping measurement are NOT
+implemented; they report ``NOT_RUN`` with that reason (not with a missing input).
 
 Usage:
   verify_artifact.py --source SRC.pdf --artifact ART.pdf [--expectations F.json]
                      [--source-sha256 HEX] [--out report.json] [--print-dpi 300]
 
-Exit codes: 0 all executed rows PASS (rows may be NOT_RUN/UNAVAILABLE with a
-reason), 1 at least one row FAIL, 2 usage/input error.
+Exit codes: 0 no row FAILed (PARTIAL/NOT_RUN/UNAVAILABLE rows may be present and
+are listed in the JSON summary), 1 at least one row FAIL, 2 usage/input error.
 """
 
 from __future__ import annotations
@@ -82,22 +84,51 @@ def pdf_pages(path: Path) -> int:
     return int(match.group(1))
 
 
-def page_sizes(path: Path, pages: int) -> list[tuple[float, float, int]]:
-    """(width, height, rotation) per page in points, from pdfinfo."""
-    out = run(["pdfinfo", "-f", "1", "-l", str(pages), str(path)]).stdout
+def parse_page_sizes(text: str, pages: int) -> list[tuple[float, float, int]]:
+    """(width, height, rotation) per page parsed from pdfinfo text."""
     sizes: list[tuple[float, float, int]] = []
-    for match in re.finditer(
-        r"^Page\s+\d+\s+size:\s+([\d.]+)\s+x\s+([\d.]+)\s+pts(?:\s+\(rotated\s+(\d+))?",
-        out,
+    blocks = re.findall(
+        r"^Page\s+(\d+)\s+size:\s+([\d.]+)\s+x\s+([\d.]+)\s+pts.*$",
+        text,
         re.M,
-    ):
-        sizes.append((float(match.group(1)), float(match.group(2)), int(match.group(3) or 0)))
+    )
+    rotations = {
+        int(m.group(1)): int(m.group(2))
+        for m in re.finditer(r"^Page\s+(\d+)\s+rot:\s+(-?\d+)", text, re.M)
+    }
+    for page, width, height in blocks:
+        sizes.append((float(width), float(height), rotations.get(int(page), 0)))
     if not sizes:
-        # Single-size documents print only "Page size:".
-        single = re.search(r"^Page size:\s+([\d.]+)\s+x\s+([\d.]+)\s+pts", out, re.M)
+        single = re.search(r"^Page size:\s+([\d.]+)\s+x\s+([\d.]+)\s+pts", text, re.M)
+        rot = re.search(r"^Page rot:\s+(-?\d+)", text, re.M)
         if single:
-            sizes = [(float(single.group(1)), float(single.group(2)), 0)] * pages
+            sizes = [
+                (float(single.group(1)), float(single.group(2)), int(rot.group(1)) if rot else 0)
+            ] * pages
     return sizes
+
+
+def page_sizes(path: Path, pages: int) -> list[tuple[float, float, int]]:
+    out = run(["pdfinfo", "-f", "1", "-l", str(pages), str(path)]).stdout
+    return parse_page_sizes(out, pages)
+
+
+def sizes_equal(
+    src: list[tuple[float, float, int]], art: list[tuple[float, float, int]]
+) -> tuple[bool, str]:
+    if len(src) != len(art) or not src:
+        return False, f"parsed {len(src)} source and {len(art)} artifact page sizes"
+    for index, (a, b) in enumerate(zip(src, art), start=1):
+        if (
+            abs(a[0] - b[0]) > GEOMETRY_TOLERANCE_PT
+            or abs(a[1] - b[1]) > GEOMETRY_TOLERANCE_PT
+            or a[2] != b[2]
+        ):
+            return False, (
+                f"page {index}: source {a[0]:.2f}x{a[1]:.2f} rot {a[2]}, "
+                f"artifact {b[0]:.2f}x{b[1]:.2f} rot {b[2]}"
+            )
+    return True, ""
 
 
 def sha256(path: Path) -> str:
@@ -123,31 +154,18 @@ def check_geometry(report: Report, source: Path, artifact: Path) -> None:
         return
     src = page_sizes(source, source_pages)
     art = page_sizes(artifact, artifact_pages)
-    if len(src) != source_pages or len(art) != artifact_pages:
+    equal, detail = sizes_equal(src, art)
+    if equal:
         report.add(
             "page geometry",
-            "PARTIAL",
-            f"pdfinfo reported {len(src)}/{len(art)} page sizes for {source_pages} pages",
+            "PASS",
+            f"{source_pages} pages, sizes and rotations equal within "
+            f"{GEOMETRY_TOLERANCE_PT} pt (pdfinfo MediaBox/rot)",
         )
-        return
-    for index, (a, b) in enumerate(zip(src, art), start=1):
-        if (
-            abs(a[0] - b[0]) > GEOMETRY_TOLERANCE_PT
-            or abs(a[1] - b[1]) > GEOMETRY_TOLERANCE_PT
-            or a[2] != b[2]
-        ):
-            report.add(
-                "page geometry",
-                "FAIL",
-                f"page {index}: source {a[0]:.2f}x{a[1]:.2f} rot {a[2]}, "
-                f"artifact {b[0]:.2f}x{b[1]:.2f} rot {b[2]}",
-            )
-            return
-    report.add(
-        "page geometry",
-        "PASS",
-        f"{source_pages} pages, all sizes and rotations equal within {GEOMETRY_TOLERANCE_PT} pt",
-    )
+    elif len(src) != source_pages or len(art) != artifact_pages:
+        report.add("page geometry", "PARTIAL", detail)
+    else:
+        report.add("page geometry", "FAIL", detail)
 
 
 def check_page_count(report: Report, source: Path, artifact: Path) -> None:
@@ -155,27 +173,47 @@ def check_page_count(report: Report, source: Path, artifact: Path) -> None:
         report.add("page count and order", "UNAVAILABLE", "pdfinfo not on PATH")
         return
     a, b = pdf_pages(source), pdf_pages(artifact)
-    if a == b:
-        report.add("page count and order", "PASS", f"{a} pages in both documents")
-    else:
+    if a != b:
         report.add("page count and order", "FAIL", f"source {a} pages, artifact {b}")
+        return
+    src, art = page_sizes(source, a), page_sizes(artifact, b)
+    if [s[:2] for s in src] == [s[:2] for s in art]:
+        report.add(
+            "page count and order",
+            "PASS",
+            f"{a} pages; order proxy (page-size sequence) equal. Uniform-size pages "
+            "cannot prove order; a per-page content hash is not implemented",
+        )
+    else:
+        report.add(
+            "page count and order",
+            "FAIL",
+            "page-size sequence differs; page order or geometry changed",
+        )
 
 
 def check_interactive_controls(report: Report, artifact: Path) -> None:
     data = artifact.read_bytes()
     acroform = data.count(b"/AcroForm")
     widget = data.count(b"/Widget")
-    if acroform == 0 and widget == 0:
+    form_line = ""
+    if shutil.which("pdfinfo"):
+        info = run(["pdfinfo", str(artifact)]).stdout
+        match = re.search(r"^Form:\s+(.+)$", info, re.M)
+        form_line = match.group(1).strip() if match else ""
+    structural_says_none = form_line.lower() in {"none", ""}
+    if acroform == 0 and widget == 0 and structural_says_none:
         report.add(
             "no interactive controls",
             "PASS",
-            "no /AcroForm and no /Widget in the artifact bytes",
+            "no /AcroForm and no /Widget in the bytes; pdfinfo Form: none. "
+            "Byte scan is not a full structural parse",
         )
-    else:
+    elif acroform or widget or not structural_says_none:
         report.add(
             "no interactive controls",
             "FAIL",
-            f"artifact carries /AcroForm x{acroform}, /Widget x{widget}",
+            f"/AcroForm x{acroform}, /Widget x{widget}, pdfinfo Form: {form_line or 'absent'}",
         )
 
 
@@ -257,18 +295,30 @@ def check_printability(report: Report, artifact: Path, dpi: int) -> None:
                     f"Poppler failed on page {page} at {dpi} dpi: {proc.stderr.strip()[:160]}",
                 )
                 return
-    if shutil.which("mutool") is None:
-        report.add(
-            "printability",
-            "PARTIAL",
-            f"Poppler rendered all {pages} pages at {dpi} dpi; MuPDF absent, second engine NOT_RUN",
-        )
-    else:
-        report.add(
-            "printability",
-            "PASS",
-            f"Poppler and MuPDF rendered all {pages} pages at {dpi} dpi",
-        )
+        mutool = shutil.which("mutool")
+        if mutool is None:
+            report.add(
+                "printability",
+                "PARTIAL",
+                f"Poppler rendered all {pages} pages at {dpi} dpi; muPDF absent, "
+                "second engine NOT_RUN",
+            )
+            return
+        for page in range(1, pages + 1):
+            proc = run([mutool, "draw", "-r", str(dpi), "-o", f"{tmp}/m{page:03d}.png",
+                        str(artifact), str(page)], timeout=300)
+            if proc.returncode != 0:
+                report.add(
+                    "printability",
+                    "FAIL",
+                    f"MuPDF failed on page {page} at {dpi} dpi: {proc.stderr.strip()[:160]}",
+                )
+                return
+    report.add(
+        "printability",
+        "PASS",
+        f"Poppler and MuPDF rendered all {pages} pages at {dpi} dpi",
+    )
 
 
 def check_render(report: Report, artifact: Path) -> None:
@@ -289,7 +339,8 @@ def check_render(report: Report, artifact: Path) -> None:
     report.add(
         "original appearance",
         "NOT_RUN",
-        "page 1 renders; the masked pixel comparison needs --expectations masks",
+        "page 1 renders at 150 dpi; the masked pixel comparison is not implemented "
+        "(no ImageMagick compare wiring), so no appearance PASS is claimed",
     )
 
 
@@ -326,6 +377,15 @@ def check_placement(report: Report, artifact: Path, expectations: dict | None) -
     )
 
 
+def check_clipping(report: Report) -> None:
+    report.add(
+        "no clipping",
+        "NOT_RUN",
+        "not implemented: needs the pdftotext -bbox / ascender-tolerance measurement "
+        "from placement.py; no clipping PASS is claimed",
+    )
+
+
 def check_marks(report: Report, expectations: dict | None, kind: str) -> None:
     label = "checkbox states" if kind == "checkbox" else "signatures"
     if not expectations:
@@ -349,12 +409,12 @@ def build_report(
     report = Report(source=str(source), artifact=str(artifact))
     try:
         pdf_pages(source)
-    except (ValueError, subprocess.SubprocessError) as exc:
+    except (ValueError, OSError, subprocess.SubprocessError) as exc:
         report.add("input readable", "FAIL", f"source PDF unreadable: {exc}")
         return report
     try:
         pdf_pages(artifact)
-    except (ValueError, subprocess.SubprocessError) as exc:
+    except (ValueError, OSError, subprocess.SubprocessError) as exc:
         report.add("input readable", "FAIL", f"artifact not a readable PDF: {exc}")
         return report
     check_structural(report)
@@ -363,6 +423,7 @@ def build_report(
     check_interactive_controls(report, artifact)
     check_text(report, artifact, expectations)
     check_render(report, artifact)
+    check_clipping(report)
     check_marks(report, expectations, "checkbox")
     check_marks(report, expectations, "signature")
     check_placement(report, artifact, expectations)
