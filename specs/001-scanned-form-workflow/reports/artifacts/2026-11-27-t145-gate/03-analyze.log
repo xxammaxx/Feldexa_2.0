@@ -1,0 +1,11 @@
+Analyzing t048-records...                                       
+
+   info • The imported package 'crypto' isn't a dependency of the importing package. Try adding a dependency for 'crypto' in the 'pubspec.yaml' file • packages/feldexa_application/lib/src/templates/template_versions.dart:37:8 • depend_on_referenced_packages
+   info • The imported package 'feldexa_adapters_simulated' isn't a dependency of the importing package. Try adding a dependency for 'feldexa_adapters_simulated' in the 'pubspec.yaml' file • packages/feldexa_application/test/create_template_from_document_test.dart:12:8 • depend_on_referenced_packages
+   info • The imported package 'crypto' isn't a dependency of the importing package. Try adding a dependency for 'crypto' in the 'pubspec.yaml' file • packages/feldexa_application/test/create_template_from_document_test.dart:14:8 • depend_on_referenced_packages
+warning • Unused import: 'dart:convert'. Try removing the import directive • packages/feldexa_application/test/template_versions_test.dart:13:8 • unused_import
+   info • The imported package 'crypto' isn't a dependency of the importing package. Try adding a dependency for 'crypto' in the 'pubspec.yaml' file • packages/feldexa_application/test/template_versions_test.dart:16:8 • depend_on_referenced_packages
+   info • The imported package 'feldexa_adapters_simulated' isn't a dependency of the importing package. Try adding a dependency for 'feldexa_adapters_simulated' in the 'pubspec.yaml' file • packages/feldexa_application/test/template_versions_test.dart:17:8 • depend_on_referenced_packages
+   info • Use the null-aware marker '?' rather than a null check via an 'if'. Try using '?' • packages/feldexa_ports/lib/src/evidence.dart:283:5 • use_null_aware_elements
+
+7 issues found. (ran in 32.4s)

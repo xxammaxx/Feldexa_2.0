@@ -1,0 +1,11 @@
+/usr/bin/which: no vswhere.exe in (<home>/flutter/bin:<home>/flutter/bin:<home>/flutter/bin:<home>/flutter/bin:<home>/flutter/bin:<home>/flutter/bin:<home>/flutter/bin:<home>/flutter/bin:<home>/.local/bin:<home>/.opencode/bin:<home>/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl)
+
+
+No Visual Studio installation found with the requested Microsoft.VisualStudio.Component.VC.Tools.x86.x64 component.
+
+00:00 +0: loading <workspace>/apps/feldexa_app/test/german_release_audit_test.dart
+00:00 +0: release locale set is German-only
+00:00 +1: every translatable ARB value is German or allowlisted
+00:00 +2: SIMULATED is exact and allowlisted everywhere
+00:00 +3: All tests passed!
+T133_EXIT=0

@@ -1,0 +1,27 @@
+test_eol_crlf_files_are_checked_out_with_crlf (test_git_eol_normalization.GitEolNormalizationTest.test_eol_crlf_files_are_checked_out_with_crlf) ... ok
+test_eol_rule_files_store_lf_in_index (test_git_eol_normalization.GitEolNormalizationTest.test_eol_rule_files_store_lf_in_index) ... ok
+test_ls_files_eol_lists_tracked_files (test_git_eol_normalization.GitEolNormalizationTest.test_ls_files_eol_lists_tracked_files) ... ok
+test_text_files_store_lf_in_index (test_git_eol_normalization.GitEolNormalizationTest.test_text_files_store_lf_in_index) ... ok
+test_a_quoted_declaration_is_reported (test_mlkit_dart_dependency_absent.MlKitDartDependencyAbsentTest.test_a_quoted_declaration_is_reported)
+The file-reading scan picks up a quoted declaration (issue #323). ... ok
+test_no_dart_source_imports_an_mlkit_package (test_mlkit_dart_dependency_absent.MlKitDartDependencyAbsentTest.test_no_dart_source_imports_an_mlkit_package) ... ok
+test_no_pubspec_declares_an_mlkit_dart_package (test_mlkit_dart_dependency_absent.MlKitDartDependencyAbsentTest.test_no_pubspec_declares_an_mlkit_dart_package) ... ok
+test_the_key_pattern_accepts_quoted_dependency_keys (test_mlkit_dart_dependency_absent.MlKitDartDependencyAbsentTest.test_the_key_pattern_accepts_quoted_dependency_keys)
+Quoted keys count, an unrelated quoted key does not (issue #323). ... ok
+test_the_patterns_cover_divergent_spellings (test_mlkit_dart_dependency_absent.MlKitDartDependencyAbsentTest.test_the_patterns_cover_divergent_spellings)
+Both spellings count as the plugin, and unrelated names do not. ... ok
+test_the_scan_reaches_the_workspace (test_mlkit_dart_dependency_absent.MlKitDartDependencyAbsentTest.test_the_scan_reaches_the_workspace) ... ok
+test_every_index_link_resolves (test_report_index_completeness.ReportIndexCompletenessTest.test_every_index_link_resolves) ... ok
+test_every_report_is_indexed (test_report_index_completeness.ReportIndexCompletenessTest.test_every_report_is_indexed) ... ok
+test_readme_exists (test_report_index_completeness.ReportIndexCompletenessTest.test_readme_exists) ... ok
+test_checkbox_vocabulary (test_tasks_ledger_integrity.TasksLedgerIntegrityTest.test_checkbox_vocabulary) ... ok
+test_checked_rows_cite_existing_reports (test_tasks_ledger_integrity.TasksLedgerIntegrityTest.test_checked_rows_cite_existing_reports) ... ok
+test_checked_rows_resolve_or_are_superseded (test_tasks_ledger_integrity.TasksLedgerIntegrityTest.test_checked_rows_resolve_or_are_superseded) ... ok
+test_corrected_export_targets_exist (test_tasks_ledger_integrity.TasksLedgerIntegrityTest.test_corrected_export_targets_exist) ... ok
+test_stated_counts_match_the_rows (test_tasks_ledger_integrity.TasksLedgerIntegrityTest.test_stated_counts_match_the_rows) ... ok
+test_t104_names_the_delivered_service (test_tasks_ledger_integrity.TasksLedgerIntegrityTest.test_t104_names_the_delivered_service) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 9.718s
+
+OK

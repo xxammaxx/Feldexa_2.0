@@ -1,0 +1,1411 @@
+00:00 +0: loading <workspace>/apps/feldexa_app/test/acroform_fixture_catalog_test.dart
+00:00 +0: <workspace>/apps/feldexa_app/test/acroform_fixture_catalog_test.dart: (setUpAll)
+00:00 +0: <workspace>/apps/feldexa_app/test/acroform_fixture_catalog_test.dart: the request is synthetic, deterministic, and has no personal data
+00:00 +1: <workspace>/apps/feldexa_app/test/acroform_fixture_catalog_test.dart: the register holds exactly the AcroForm reference fixture
+00:00 +2: <workspace>/apps/feldexa_app/test/acroform_fixture_catalog_test.dart: the fixture is deliberately not part of the generated catalogue
+00:00 +3: <workspace>/apps/feldexa_app/test/android_backup_rules_test.dart: manifest disables backup and points at the extraction rules
+00:00 +4: <workspace>/apps/feldexa_app/test/android_backup_rules_test.dart: manifest disables backup and points at the extraction rules
+00:00 +5: <workspace>/apps/feldexa_app/test/android_backup_rules_test.dart: manifest disables backup and points at the extraction rules
+00:00 +6: <workspace>/apps/feldexa_app/test/acroform_fixture_catalog_test.dart: (tearDownAll)
+00:00 +6: <workspace>/apps/feldexa_app/test/android_backup_rules_test.dart: every transfer mode excludes every app data domain
+00:00 +7: <workspace>/apps/feldexa_app/test/android_backup_rules_test.dart: cross-platform transfer is not declared without an iOS identity
+00:00 +8: loading <workspace>/apps/feldexa_app/test/app_import_composition_test.dart
+00:34 +8: <workspace>/apps/feldexa_app/test/app_import_composition_test.dart: start surface renders the committed German catalog strings
+00:35 +9: <workspace>/apps/feldexa_app/test/app_smoke_test.dart: renders the Feldexa shell in German
+00:35 +10: <workspace>/apps/feldexa_app/test/app_import_composition_test.dart: accepted import opens the editor, lists every page, and reads the protected source for the imported documentId
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_UNSUPPORTED
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-unsupported
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=3:EXPECTED=3
+00:36 +11: <workspace>/apps/feldexa_app/test/app_import_composition_test.dart: a rejection shows catalog text without a code or navigation and creates no document
+00:36 +12: <workspace>/apps/feldexa_app/test/app_import_composition_test.dart: a cancelled picker returns to the start surface with no text
+00:36 +13: <workspace>/apps/feldexa_app/test/app_import_composition_test.dart: a partial source derives the IMP-006 warning and marks the affected page unreadable
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_UNSUPPORTED
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-unsupported
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+00:39 +14: <workspace>/apps/feldexa_app/test/checkbox_control_test.dart: renders unchecked and checked states with the caller label
+00:39 +15: <workspace>/apps/feldexa_app/test/checkbox_control_test.dart: tap toggles false to true to false, once per tap
+00:40 +16: <workspace>/apps/feldexa_app/test/checkbox_control_test.dart: hit region is at least 48 by 48 dp and edges toggle
+00:40 +17: <workspace>/apps/feldexa_app/test/checkbox_control_test.dart: drawn box stays smaller than the hit region
+00:40 +18: <workspace>/apps/feldexa_app/test/checkbox_control_test.dart: disabled and read-only controls neither toggle nor call back
+00:40 +19: <workspace>/apps/feldexa_app/test/checkbox_control_test.dart: two controls keep independent caller-owned values
+00:40 +20: <workspace>/apps/feldexa_app/test/checkbox_control_test.dart: renders a long label at 200 percent text scale
+00:40 +21: <workspace>/apps/feldexa_app/test/checkbox_control_test.dart: production source imports only the Flutter presentation framework
+00:50 +22: <workspace>/apps/feldexa_app/test/create_template_sheet_test.dart: shows the German exclusion notice and title input
+00:51 +23: <workspace>/apps/feldexa_app/test/create_template_sheet_test.dart: shows the German exclusion notice and title input
+00:51 +24: <workspace>/apps/feldexa_app/test/create_template_sheet_test.dart: shows the German exclusion notice and title input
+00:51 +25: <workspace>/apps/feldexa_app/test/delete_item_test.dart: result semantics confirm returns true exactly once
+00:51 +26: <workspace>/apps/feldexa_app/test/create_template_sheet_test.dart: confirm stays disabled while the structure is unreviewed and shows the pending notice (FR-055)
+00:51 +27: <workspace>/apps/feldexa_app/test/delete_item_test.dart: result semantics cancel returns false exactly once
+00:51 +28: <workspace>/apps/feldexa_app/test/create_template_sheet_test.dart: confirm calls the create action once with the trimmed title and closes after the verified success
+00:51 +29: <workspace>/apps/feldexa_app/test/create_template_sheet_test.dart: confirm calls the create action once with the trimmed title and closes after the verified success
+00:51 +30: <workspace>/apps/feldexa_app/test/create_template_sheet_test.dart: confirm calls the create action once with the trimmed title and closes after the verified success
+00:52 +31: <workspace>/apps/feldexa_app/test/delete_item_test.dart: confirm, cancel, and barrier keep the host and move only the dialog route
+00:52 +32: <workspace>/apps/feldexa_app/test/delete_item_test.dart: the title appears exactly once and the stable keys identify all controls
+00:52 +33: <workspace>/apps/feldexa_app/test/delete_item_test.dart: deletionConfirmationMessage returns the exact ARB sentence
+00:52 +34: <workspace>/apps/feldexa_app/test/delete_item_test.dart: 200 % text scale reflows at 280 logical pixels without overflow
+00:52 +35: <workspace>/apps/feldexa_app/test/delete_item_test.dart: production source is ASCII, German-free, and presentation-only
+00:53 +36: <workspace>/apps/feldexa_app/test/diagnostics_privacy_test.dart: descriptor declares the on-device scalar-only ring buffer
+00:53 +37: <workspace>/apps/feldexa_app/test/document_overview_test.dart: DocumentOverviewCounts counts total, filled, and blocking with T085 semantics
+00:53 +38: <workspace>/apps/feldexa_app/test/document_overview_test.dart: DocumentOverviewCounts counts total, filled, and blocking with T085 semantics
+00:53 +39: <workspace>/apps/feldexa_app/test/diagnostics_privacy_test.dart: the ring buffer is capped at its capacity
+00:53 +40: <workspace>/apps/feldexa_app/test/diagnostics_privacy_test.dart: the ring buffer is capped at its capacity
+00:53 +41: <workspace>/apps/feldexa_app/test/document_overview_test.dart: shows every T085 completion state and the count summary
+00:53 +42: <workspace>/apps/feldexa_app/test/document_overview_test.dart: shows every T085 completion state and the count summary
+00:53 +43: <workspace>/apps/feldexa_app/test/document_overview_test.dart: shows every T085 completion state and the count summary
+00:53 +44: <workspace>/apps/feldexa_app/test/document_overview_test.dart: shows every T085 completion state and the count summary
+00:55 +45: <workspace>/apps/feldexa_app/test/durability_status_test.dart: every durability state renders its exact ARB label and pinned icon
+00:56 +46: <workspace>/apps/feldexa_app/test/document_overview_test.dart: shows the same durability status and never checks unsaved work
+00:56 +47: <workspace>/apps/feldexa_app/test/document_overview_test.dart: shows the same durability status and never checks unsaved work
+00:56 +48: <workspace>/apps/feldexa_app/test/document_overview_test.dart: shows the same durability status and never checks unsaved work
+00:56 +49: <workspace>/apps/feldexa_app/test/document_overview_test.dart: shows the same durability status and never checks unsaved work
+00:56 +50: <workspace>/apps/feldexa_app/test/durability_status_test.dart: only clean and saved may show a durable check
+00:56 +51: <workspace>/apps/feldexa_app/test/document_overview_test.dart: continue returns to the editor without a field
+00:56 +52: <workspace>/apps/feldexa_app/test/durability_status_test.dart: one status semantic node carries the exact visible text
+00:56 +53: <workspace>/apps/feldexa_app/test/document_overview_test.dart: a field row returns the selected field id to continue filling
+00:56 +54: <workspace>/apps/feldexa_app/test/document_overview_test.dart: a field row returns the selected field id to continue filling
+00:56 +55: <workspace>/apps/feldexa_app/test/document_overview_test.dart: a field row returns the selected field id to continue filling
+00:57 +56: <workspace>/apps/feldexa_app/test/document_overview_test.dart: a field row returns the selected field id to continue filling
+00:57 +57: <workspace>/apps/feldexa_app/test/durability_status_test.dart: 200 percent scale reflows every status in a narrow width
+00:57 +58: <workspace>/apps/feldexa_app/test/document_overview_test.dart: lays out at 200 percent text scale without overflow
+00:57 +59: <workspace>/apps/feldexa_app/test/durability_status_test.dart: 200 percent scale reflows the PRIV-001 disclosure in a narrow width
+00:57 +60: <workspace>/apps/feldexa_app/test/durability_status_test.dart: production source stays presentation-only
+00:58 +61: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=2:UNCERTAIN=0
+00:59 +61: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: PageView overlay builder receives page, viewport rect, mapping
+T071A_DIAG_VIEW_OPEN_START
+00:59 +61: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=2:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_OK
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:ready
+00:59 +61: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: PageView overlay builder receives page, viewport rect, mapping
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+00:59 +62: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: loads, analyzes, and saves the first suggestion revision with symmetric conflicts
+01:00 +62: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+[EMULATOR] T071A_DIAG_LOAD_START
+01:00 +63: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+01:00 +63: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: an existing suggestion set is skipped without analysis or a write
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=1
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=1:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:00 +64: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+01:00 +64: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: a completed zero-suggestion run is durable across reopen
+[EMULATOR] T071A_DIAG_LOAD_START
+01:00 +64: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+T071A_DIAG_VIEW_OPEN_START
+01:00 +64: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: a completed zero-suggestion run is durable across reopen
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:00 +64: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:00 +64: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: a completed zero-suggestion run is durable across reopen
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=0:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=0:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_OK
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:ready
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:00 +65: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+01:00 +65: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: a partially unreadable first import still analyzes readable pages
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=2:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=2:SUGGESTIONS=0:STRIP=2
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=1:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=2:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_OK
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:ready
+01:00 +66: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+01:00 +66: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: divergent loaded geometry fails before analysis or save
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_LOAD_REJECT:IDENTITY=1:PAGES=1:GEOMETRY=0
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-reject
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:00 +67: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+01:00 +67: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: a loaded/source page-count mismatch fails before analysis
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_LOAD_REJECT:IDENTITY=1:PAGES=0:GEOMETRY=0
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-reject
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+01:01 +68: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+01:01 +68: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: same-size different rotation fails before analysis
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_LOAD_REJECT:IDENTITY=1:PAGES=1:GEOMETRY=0
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-reject
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:01 +69: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+01:01 +69: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: quantized geometry within 0.001 pt per edge is accepted
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_OK
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:ready
+01:01 +70: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: tapping a confirmed field selects it and opens its value sheet
+01:01 +70: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: a page failure is isolated while the healthy page is saved
+[EMULATOR] T071A_DIAG_LOAD_START
+01:01 +71: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: a page failure is isolated while the healthy page is saved
+T071A_DIAG_VIEW_OPEN_START
+01:01 +71: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: the value sheet lays out above the software keyboard
+[EMULATOR] T071A_DIAG_LOAD_START
+01:01 +71: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: a page failure is isolated while the healthy page is saved
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=2:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=2:SUGGESTIONS=0:STRIP=2
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=2:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=2:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=1:STATUS=failed:CATEGORY=rasterization:KEY=PAGE-001
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=2:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_OK
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:ready
+01:01 +71: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: the value sheet lays out above the software keyboard
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:01 +72: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: the value sheet lays out above the software keyboard
+01:01 +72: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: the viewer and strip stay available while analysis runs
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_OK
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:ready
+01:01 +73: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: the viewer and strip stay available while analysis runs
+01:01 +74: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: tapping a suggestion highlights it without a value sheet
+[EMULATOR] T071A_DIAG_LOAD_START
+01:01 +74: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: a save failure keeps the viewer and the in-memory result
+[EMULATOR] T071A_DIAG_LOAD_START
+01:01 +74: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: tapping a suggestion highlights it without a value sheet
+T071A_DIAG_VIEW_OPEN_START
+01:01 +74: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: a save failure keeps the viewer and the in-memory result
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:01 +74: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: tapping a suggestion highlights it without a value sheet
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=1
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=1:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:01 +74: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: a save failure keeps the viewer and the in-memory result
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_FAIL:CODE=SAVE-003
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=save-error
+01:01 +75: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: tapping a suggestion highlights it without a value sheet
+01:01 +75: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: the viewer receives the single protected load without a second store read
+[EMULATOR] T071A_DIAG_LOAD_START
+01:01 +76: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: the viewer receives the single protected load without a second store read
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:01 +76: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: a confirmed field keeps its tap where an unresolved suggestion overlaps
+[EMULATOR] T071A_DIAG_LOAD_START
+01:01 +76: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: the viewer receives the single protected load without a second store read
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_OK
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:ready
+01:01 +76: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: a confirmed field keeps its tap where an unresolved suggestion overlaps
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=1
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=1:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:01 +77: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: a confirmed field keeps its tap where an unresolved suggestion overlaps
+01:01 +77: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: a hung protected load becomes analysis-failed without a second read
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_FAIL:TYPE=timeout
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-timeout
+T071A_DIAG_VIEW_BYTES:PRESENT=0
+T071A_DIAG_VIEW_FAIL:CODE=sourceUnavailable
+01:02 +78: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: a confirmed field keeps its tap where an unresolved suggestion overlaps
+01:02 +78: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: a hung analysis becomes analysis-failed without losing loaded content
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+[EMULATOR] T071A_DIAG_ANALYSIS_FAIL:CODE=timeout
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=analysis-timeout
+01:02 +79: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: a hung analysis becomes analysis-failed without losing loaded content
+01:02 +80: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: an empty page still clears a stale selection
+01:02 +80: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: confirm, reject, and undo save with the advancing revision head
+[EMULATOR] T071A_DIAG_LOAD_START
+01:02 +80: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: an empty page still clears a stale selection
+[EMULATOR] T071A_DIAG_LOAD_START
+01:02 +80: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: confirm, reject, and undo save with the advancing revision head
+T071A_DIAG_VIEW_OPEN_START
+01:02 +80: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: an empty page still clears a stale selection
+T071A_DIAG_VIEW_OPEN_START
+01:02 +80: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: confirm, reject, and undo save with the advancing revision head
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=2
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=2:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:02 +80: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: an empty page still clears a stale selection
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:02 +81: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: confirm, reject, and undo save with the advancing revision head
+01:02 +81: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: invalid number input stays open and valid German is stored
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:02 +82: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: invalid number input stays open and valid German is stored
+01:02 +82: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: undo after an analysis apply keeps the analysis suggestions
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=1:UNREADABLE=0:SOURCE_BYTES=1:OCR=0
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=1:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=1:SUGGESTIONS=1:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_OK
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:ready
+01:02 +83: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: undo after an analysis apply keeps the analysis suggestions
+01:02 +83: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: impossible date keeps the sheet open and a real date saves
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:02 +84: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: impossible date keeps the sheet open and a real date saves
+01:02 +84: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: a review save failure keeps the viewer, panel, and prior revision
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=2
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=2:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:03 +85: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: impossible date keeps the sheet open and a real date saves
+01:03 +86: <workspace>/apps/feldexa_app/test/editor_analysis_test.dart: applyDocumentAnalysis leaves the base revision immutable on success
+01:03 +87: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: a verified save updates content, head, and durability status
+[EMULATOR] T071A_DIAG_LOAD_START
+01:03 +88: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: a verified save updates content, head, and durability status
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:03 +89: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: a verified save updates content, head, and durability status
+01:03 +90: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: a verified save updates content, head, and durability status
+01:03 +91: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: a verified save updates content, head, and durability status
+01:03 +92: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: a verified save updates content, head, and durability status
+01:03 +93: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: a verified save updates content, head, and durability status
+01:03 +94: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: a verified save updates content, head, and durability status
+01:03 +95: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: an overflowing value persists the FLD-001 flag and reopens in full
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:04 +96: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: a failed save keeps the sheet open and claims no saved state
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:05 +97: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: a readable stored document opens and the list reloads on return
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:05 +98: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: an unreadable stored document is not opened
+01:05 +99: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: 200 percent text scale composes editor and sheet without overflow
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:05 +100: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: field order sheet reorders in document order and saves one undo step
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:06 +101: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: a failed reorder save keeps the previous order untouched
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:06 +102: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: the per-field reorder action opens the field-order review
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:06 +103: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: next/previous move focus in field order while the value sheet stays open
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:06 +104: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: the export action is disabled until the document state is exportable
+01:06 +104: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: the page-order action sorts the order in one revision
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:07 +105: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: the export action is disabled until the document state is exportable
+01:07 +105: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: next from an untouched empty number adds no revision and focuses the next
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:07 +106: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: the export action is disabled until the document state is exportable
+01:07 +106: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: a checkbox target receives focus after next
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:07 +106: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: the export action is disabled until the document state is exportable
+[EMULATOR] T071A_DIAG_LOAD_START
+01:07 +107: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: the export action is disabled until the document state is exportable
+01:07 +107: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: a signature target receives focus after next
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:07 +108: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: the export action is disabled until the document state is exportable
+01:07 +108: <workspace>/apps/feldexa_app/test/editor_composition_test.dart: the overview shows completion and continues a field without losing values
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:07 +108: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: the export action is disabled until the document state is exportable
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:08 +109: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: the export action is disabled until the document state is exportable
+01:08 +110: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: the pre-export sheet shows the OD-1 information without blocking the export
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=1
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=1:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:08 +111: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: starting the export opens the preview of the verified artifact
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:09 +112: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: a blocking plan shows its catalog sentence and starts nothing
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:09 +113: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: a body drag previews, saves once, and commits the exact move
+01:09 +113: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: a failed export shows the catalog sentence and no preview
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:09 +114: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: a body drag previews, saves once, and commits the exact move
+01:09 +114: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: cancelling the pre-export sheet exports nothing
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:09 +115: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: a body drag previews, saves once, and commits the exact move
+01:09 +115: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: the plan is built from the live revision, not from the loaded snapshot
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=1
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=1:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:10 +115: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: a body drag previews, saves once, and commits the exact move
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:10 +116: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: a body drag previews, saves once, and commits the exact move
+01:10 +116: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: a blocking plan lists the field page and jumps to the field
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:11 +117: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: a blocking plan lists the field page and jumps to the field
+01:11 +118: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: a corner drag resizes from the opposite anchor with one save
+[EMULATOR] T071A_DIAG_LOAD_START
+01:11 +118: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: a failed export offers "Erneut versuchen" and exports again
+[EMULATOR] T071A_DIAG_LOAD_START
+01:11 +118: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: a corner drag resizes from the opposite anchor with one save
+T071A_DIAG_VIEW_OPEN_START
+01:11 +118: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: a failed export offers "Erneut versuchen" and exports again
+T071A_DIAG_VIEW_OPEN_START
+01:11 +118: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: a corner drag resizes from the opposite anchor with one save
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:11 +118: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: a failed export offers "Erneut versuchen" and exports again
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:11 +119: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: a failed export offers "Erneut versuchen" and exports again
+01:11 +119: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: undo restores the exact previous rectangle
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:11 +120: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: undo restores the exact previous rectangle
+01:11 +120: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: the progress surface shows the reported export phases
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:12 +121: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: undo restores the exact previous rectangle
+01:12 +121: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: the cancel action cancels the running export once and shows no error
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:12 +122: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: undo restores the exact previous rectangle
+01:12 +122: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: a render that finished after a claimed cancellation is discarded, not previewed
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:12 +123: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: a render that finished after a claimed cancellation is discarded, not previewed
+01:12 +123: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: a pointer cancel discards the preview and commits nothing
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+01:12 +124: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: a pointer cancel discards the preview and commits nothing
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:12 +124: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: a cancel before the render starts is refused and the export still completes
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:12 +125: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: a cancel before the render starts is refused and the export still completes
+01:12 +125: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: two fingers pan and zoom the page and never edit geometry
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:12 +126: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: two fingers pan and zoom the page and never edit geometry
+01:12 +126: <workspace>/apps/feldexa_app/test/editor_export_action_test.dart: an artifact of an export whose editor was disposed is deleted
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:12 +127: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: two fingers pan and zoom the page and never edit geometry
+01:14 +128: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: lifting one finger of a pinch does not re-arm the geometry claim
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:14 +129: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: the geometry preview stays visible until the commit resolves
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:14 +130: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: undo refuses a stale snapshot instead of dropping newer content
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=1
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=1:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:15 +131: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: undo after a value edit keeps the field and reverses only the value
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=1
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=1:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+01:15 +132: <workspace>/apps/feldexa_app/test/editor_geometry_test.dart: a drag outside the selected field still pans the page
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+03:22 +133: <workspace>/apps/feldexa_app/test/editor_runtime_recognition_execution_test.dart: the Android composition runs the raster stage off the UI isolate
+03:22 +134: <workspace>/apps/feldexa_app/test/editor_runtime_recognition_execution_test.dart: the target-selected editor runtime never resolves inline
+03:22 +135: <workspace>/apps/feldexa_app/test/editor_runtime_recognition_execution_test.dart: the fail-closed editor runtime never resolves inline
+03:23 +136: <workspace>/apps/feldexa_app/test/editor_review_panel_test.dart: renders grouped deterministic rows with German metadata
+03:24 +137: <workspace>/apps/feldexa_app/test/editor_sensitive_route_test.dart: entering the editor requests the editor route protection
+03:24 +138: <workspace>/apps/feldexa_app/test/editor_sensitive_route_test.dart: entering the editor requests the editor route protection
+03:24 +139: <workspace>/apps/feldexa_app/test/editor_sensitive_route_test.dart: entering the editor requests the editor route protection
+03:24 +140: <workspace>/apps/feldexa_app/test/editor_sensitive_route_test.dart: entering the editor requests the editor route protection
+03:24 +141: <workspace>/apps/feldexa_app/test/editor_sensitive_route_test.dart: entering the editor requests the editor route protection
+[EMULATOR] T071A_DIAG_LOAD_START
+03:24 +142: <workspace>/apps/feldexa_app/test/editor_sensitive_route_test.dart: entering the editor requests the editor route protection
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_UNSUPPORTED
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-unsupported
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+03:25 +143: <workspace>/apps/feldexa_app/test/editor_sensitive_route_test.dart: a not-applied protection keeps the editor usable and is never read as protected
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_UNSUPPORTED
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-unsupported
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+03:25 +144: <workspace>/apps/feldexa_app/test/editor_sensitive_route_test.dart: a failing sensitive route never blocks the editor
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_UNSUPPORTED
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-unsupported
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+03:25 +145: <workspace>/apps/feldexa_app/test/editor_sensitive_route_test.dart: leaving the editor clears the flag before the runtime is disposed
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_UNSUPPORTED
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:failed:REASON=load-unsupported
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+03:27 +146: <workspace>/apps/feldexa_app/test/evidence_separation_test.dart: report fields keep SIMULATED separate (FR-088) simulated evidence reports only its own class token
+03:27 +147: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:27 +148: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:27 +149: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:27 +150: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:27 +151: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:27 +152: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:27 +153: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:27 +154: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:27 +155: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:27 +156: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:27 +157: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:27 +158: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:27 +159: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:27 +160: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:27 +161: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+03:29 +162: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+03:29 +163: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+03:29 +164: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:29 +165: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:29 +166: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:29 +167: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:29 +168: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:29 +169: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:29 +170: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:29 +171: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:29 +172: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:29 +173: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:29 +174: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:29 +175: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:29 +176: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: drawing ink stores one asset and one bound revision
+03:31 +177: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: reopening shows the signed field and the read-back asset
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+03:32 +178: <workspace>/apps/feldexa_app/test/export_preview_test.dart: shows the page count, the size, and the four actions
+03:32 +178: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: undo restores the unsigned revision exactly
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+03:32 +179: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: undo restores the unsigned revision exactly
+03:32 +180: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: undo restores the unsigned revision exactly
+03:32 +181: <workspace>/apps/feldexa_app/test/export_preview_test.dart: each action is one delivery call for this artifact
+03:32 +181: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: a failed asset write saves no revision and stays open
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+03:33 +182: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: a failed asset write saves no revision and stays open
+03:33 +183: <workspace>/apps/feldexa_app/test/export_preview_test.dart: a cancelled hand-off is not an error
+03:33 +184: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: a failed revision save leaves the document unsigned
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+03:33 +185: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: a failed revision save leaves the document unsigned
+03:33 +186: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: a failed revision save leaves the document unsigned
+03:33 +187: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: a failed revision save leaves the document unsigned
+03:33 +188: <workspace>/apps/feldexa_app/test/export_preview_test.dart: a detached view deletes the artifact
+03:33 +188: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: two fields never share ink (no global signature state)
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+03:33 +189: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: two fields never share ink (no global signature state)
+03:33 +190: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: two fields never share ink (no global signature state)
+03:34 +191: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: two fields never share ink (no global signature state)
+03:35 +192: <workspace>/apps/feldexa_app/test/editor_signature_test.dart: the signature field is painted, movable, and resizable
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=1:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=1:SUGGESTIONS=0:STRIP=1
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:skipped:PERSISTED=1
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+03:36 +193: <workspace>/apps/feldexa_app/test/field_completion_test.dart: text and multiline values empty text is optional-empty
+03:36 +194: <workspace>/apps/feldexa_app/test/field_completion_test.dart: text and multiline values whitespace-only text is optional-empty
+03:36 +195: <workspace>/apps/feldexa_app/test/field_completion_test.dart: text and multiline values non-empty text is complete
+03:36 +196: <workspace>/apps/feldexa_app/test/field_completion_test.dart: text and multiline values empty multiline is optional-empty
+03:36 +197: <workspace>/apps/feldexa_app/test/field_completion_test.dart: text and multiline values whitespace and newline-only multiline is optional-empty
+03:36 +198: <workspace>/apps/feldexa_app/test/field_completion_test.dart: text and multiline values non-empty multiline is complete
+03:36 +199: <workspace>/apps/feldexa_app/test/field_completion_test.dart: non-text values an unchecked checkbox is complete
+03:36 +200: <workspace>/apps/feldexa_app/test/field_completion_test.dart: non-text values a checked checkbox is complete
+03:36 +201: <workspace>/apps/feldexa_app/test/field_completion_test.dart: non-text values a number value is complete
+03:36 +202: <workspace>/apps/feldexa_app/test/field_completion_test.dart: non-text values a date value is complete
+03:36 +203: <workspace>/apps/feldexa_app/test/field_completion_test.dart: non-text values a signature value is complete
+03:36 +204: <workspace>/apps/feldexa_app/test/field_completion_test.dart: non-text values a null value with ok validation is optional-empty
+03:36 +205: <workspace>/apps/feldexa_app/test/field_completion_test.dart: blocking validation error an error wins over a non-empty value
+03:36 +206: <workspace>/apps/feldexa_app/test/field_completion_test.dart: blocking validation error an error wins over a null value
+03:36 +207: <workspace>/apps/feldexa_app/test/field_completion_test.dart: blocking validation error an error wins over an unchecked checkbox
+03:36 +208: <workspace>/apps/feldexa_app/test/field_completion_test.dart: warning precedence a warning overrides a non-empty value
+03:36 +209: <workspace>/apps/feldexa_app/test/field_completion_test.dart: warning precedence a warning overrides a null value
+03:36 +210: <workspace>/apps/feldexa_app/test/field_completion_test.dart: warning precedence an empty optional text with a warning is warning, not empty
+03:36 +211: <workspace>/apps/feldexa_app/test/field_completion_test.dart: warning precedence a warning overrides an unchecked checkbox
+03:36 +212: <workspace>/apps/feldexa_app/test/field_completion_test.dart: incompatible content non-empty preserved text with ok validation is incompatible
+03:36 +213: <workspace>/apps/feldexa_app/test/field_completion_test.dart: incompatible content empty preserved text is still incompatible
+03:36 +214: <workspace>/apps/feldexa_app/test/field_completion_test.dart: incompatible content incompatible content wins over a warning
+03:36 +215: <workspace>/apps/feldexa_app/test/field_completion_test.dart: incompatible content a blocking error wins over incompatible content
+03:36 +216: <workspace>/apps/feldexa_app/test/field_completion_test.dart: extension semantics every state maps to the exact blocking and completion predicates
+03:36 +217: <workspace>/apps/feldexa_app/test/field_completion_test.dart: production source purity imports only the core model and writes no user-facing text
+03:42 +218: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +219: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +220: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +221: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +222: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +223: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +224: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +225: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +226: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +227: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +228: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +229: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +230: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +231: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +232: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +233: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +234: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +235: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +236: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +237: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +238: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +239: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +240: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +241: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +242: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:42 +243: <workspace>/apps/feldexa_app/test/field_controls_test.dart: text control the selected text field presents the text control
+03:43 +244: <workspace>/apps/feldexa_app/test/field_order_widget_test.dart: renders the current order with all required metadata
+03:43 +245: <workspace>/apps/feldexa_app/test/field_order_widget_test.dart: renders the current order with all required metadata
+03:44 +246: <workspace>/apps/feldexa_app/test/field_order_widget_test.dart: renders the current order with all required metadata
+03:44 +247: <workspace>/apps/feldexa_app/test/field_order_widget_test.dart: renders the current order with all required metadata
+03:44 +248: <workspace>/apps/feldexa_app/test/field_order_widget_test.dart: renders the current order with all required metadata
+03:44 +249: <workspace>/apps/feldexa_app/test/field_order_widget_test.dart: renders the current order with all required metadata
+03:44 +250: <workspace>/apps/feldexa_app/test/field_controls_test.dart: number control 1.234,56 is accepted and stored canonically
+03:44 +251: <workspace>/apps/feldexa_app/test/field_order_widget_test.dart: move actions report the exact field and respect boundaries
+03:44 +252: <workspace>/apps/feldexa_app/test/field_order_widget_test.dart: move actions report the exact field and respect boundaries
+03:45 +253: <workspace>/apps/feldexa_app/test/field_order_widget_test.dart: move actions report the exact field and respect boundaries
+03:45 +254: <workspace>/apps/feldexa_app/test/field_controls_test.dart: date control the selected date field presents the date control
+03:45 +255: <workspace>/apps/feldexa_app/test/field_order_widget_test.dart: busy disables every move action
+03:45 +256: <workspace>/apps/feldexa_app/test/field_controls_test.dart: date control 31.12.2025 is accepted and stored canonically
+03:45 +257: <workspace>/apps/feldexa_app/test/field_order_widget_test.dart: a row tap selects that field
+03:45 +258: <workspace>/apps/feldexa_app/test/field_controls_test.dart: date control an impossible calendar date is not accepted and not stored
+03:45 +259: <workspace>/apps/feldexa_app/test/field_controls_test.dart: date control an impossible calendar date is not accepted and not stored
+03:45 +260: <workspace>/apps/feldexa_app/test/field_order_widget_test.dart: composes at 200 % text scale without an overflow
+03:45 +261: <workspace>/apps/feldexa_app/test/field_controls_test.dart: date control a malformed date is not accepted and not stored
+03:45 +262: <workspace>/apps/feldexa_app/test/field_controls_test.dart: checkbox control the selected checkbox field presents the checkbox control
+03:45 +263: <workspace>/apps/feldexa_app/test/field_controls_test.dart: checkbox control toggling the checkbox updates the committed value
+03:47 +264: <workspace>/apps/feldexa_app/test/field_controls_test.dart: checkbox control toggling the checkbox twice commits the unchecked state
+03:47 +265: <workspace>/apps/feldexa_app/test/field_controls_test.dart: signature control signature editing opens the sheet and invents no value
+03:48 +266: <workspace>/apps/feldexa_app/test/field_controls_test.dart: signature control applying ink reports exactly one hint-bearing draft
+03:48 +267: <workspace>/apps/feldexa_app/test/field_controls_test.dart: signature control an empty apply stores nothing and keeps the sheet open
+03:48 +268: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: (setUpAll)
+03:48 +268: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: text longer than the field display region sets overflow
+03:50 +269: <workspace>/apps/feldexa_app/test/field_text_fit_test.dart: font metrics follow the export-plan §2.2 clamps font size is 0.6 × height clamped to 7.0 … 12.0 pt
+03:50 +270: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: the FLD-001 warning is visible immediately after the commit
+03:50 +271: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: the FLD-001 warning is visible immediately after the commit
+03:50 +272: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: the FLD-001 warning is visible immediately after the commit
+03:50 +273: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: the FLD-001 warning is visible immediately after the commit
+03:50 +274: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: the FLD-001 warning is visible immediately after the commit
+03:50 +275: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: the FLD-001 warning is visible immediately after the commit
+03:50 +276: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: the FLD-001 warning is visible immediately after the commit
+03:50 +277: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: the FLD-001 warning is visible immediately after the commit
+03:50 +278: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: the FLD-001 warning is visible immediately after the commit
+03:50 +279: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: the FLD-001 warning is visible immediately after the commit
+03:50 +280: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: the FLD-001 warning is visible immediately after the commit
+03:50 +281: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: the FLD-001 warning is visible immediately after the commit
+03:50 +282: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: the FLD-001 warning is visible immediately after the commit
+03:50 +283: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: the FLD-001 warning is visible immediately after the commit
+03:50 +284: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: the FLD-001 warning is visible immediately after the commit
+03:50 +285: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: the FLD-001 warning is visible immediately after the commit
+03:50 +286: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: a text that still fits commits without a warning and closes
+03:51 +287: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: a stored overflowing value reopens with warning and full text
+03:51 +288: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: saving the committed overflowing draft again commits nothing
+03:51 +289: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: shortening the overflowing draft clears the warning and closes
+03:51 +290: <workspace>/apps/feldexa_app/test/field_overflow_sheet_test.dart: multiline line counting drives the same flag
+03:51 +291: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: text over 10,000 runes is refused in the open sheet
+03:52 +292: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: text over 10,000 runes is refused in the open sheet
+03:52 +293: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: text over 10,000 runes is refused in the open sheet
+03:52 +294: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: text over 10,000 runes is refused in the open sheet
+03:52 +295: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: text over 10,000 runes is refused in the open sheet
+03:53 +296: <workspace>/apps/feldexa_app/test/font_bundle_test.dart: asset bundle contains assets/fonts/NotoSans-Regular.ttf
+03:53 +297: <workspace>/apps/feldexa_app/test/font_bundle_test.dart: asset bundle contains assets/fonts/NotoSans-Regular.ttf
+03:53 +298: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: multiline over 10,000 runes is refused in the open sheet
+03:53 +299: <workspace>/apps/feldexa_app/test/font_bundle_test.dart: asset bundle contains assets/fonts/NotoSans-Bold.ttf
+03:54 +300: <workspace>/apps/feldexa_app/test/font_bundle_test.dart: asset bundle contains assets/fonts/NotoSans-Bold.ttf
+03:54 +301: <workspace>/apps/feldexa_app/test/font_bundle_test.dart: asset bundle contains assets/fonts/NotoSans-Bold.ttf
+03:54 +302: <workspace>/apps/feldexa_app/test/font_bundle_test.dart: asset bundle contains assets/fonts/NotoSans-Bold.ttf
+03:54 +303: <workspace>/apps/feldexa_app/test/font_bundle_test.dart: asset bundle contains assets/fonts/NotoSans-Bold.ttf
+03:54 +304: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: a failed save keeps the sheet open and editable
+03:54 +305: <workspace>/apps/feldexa_app/test/font_bundle_test.dart: asset bundle contains the SIL OFL 1.1 text
+03:54 +306: <workspace>/apps/feldexa_app/test/font_bundle_test.dart: asset bundle contains the SIL OFL 1.1 text
+03:54 +307: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: the per-field reorder action commits and hands off
+03:54 +308: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: the reorder action keeps the sheet open on a failed commit
+03:54 +309: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: previous/next are disabled at the order boundaries
+03:55 +310: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: next commits once, moves focus, and keeps the sheet open
+03:55 +311: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: a failed next commit does not move to the next field
+03:55 +312: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: untouched empty number navigates without NUM-001 or a commit
+03:55 +313: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: untouched empty date navigates without DATE-001 or a commit
+03:55 +314: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: untouched checkbox navigates without a commit
+03:55 +315: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: untouched signature navigates without a commit
+03:55 +316: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: untouched text with an existing value adds no setValue
+03:55 +317: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: untouched incompatible text is not converted by navigation
+03:55 +318: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: unchanged text reorder opens the review without a commit
+03:55 +319: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: untouched number reorder opens the review, no commit
+03:56 +320: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: untouched date reorder opens the review, no commit
+03:56 +321: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: untouched checkbox reorder opens the review, no commit
+03:56 +322: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: untouched signature reorder opens the review, no commit
+03:56 +323: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: changed invalid number blocks next with NUM-001
+03:56 +324: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: changed invalid date blocks next with DATE-001
+03:56 +325: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: changed valid number commits once and then navigates
+03:56 +326: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: a vanished target re-enables the sheet after the commit
+03:56 +327: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: a checkbox control receives focus when the sheet opens
+03:56 +328: <workspace>/apps/feldexa_app/test/field_value_sheet_test.dart: a signature control receives focus when the sheet opens
+04:02 +329: <workspace>/apps/feldexa_app/test/font_metrics_bundle_test.dart: (setUpAll)
+04:02 +329: <workspace>/apps/feldexa_app/test/font_metrics_bundle_test.dart: metrics.json is a schema-v1 document for both weights
+04:02 +330: <workspace>/apps/feldexa_app/test/font_metrics_bundle_test.dart: metrics for assets/fonts/NotoSans-Regular.ttf match head/hhea/maxp/hmtx/cmap
+04:02 +331: <workspace>/apps/feldexa_app/test/german_strings_test.dart: (setUpAll)
+04:02 +332: <workspace>/apps/feldexa_app/test/german_strings_test.dart: (setUpAll)
+04:02 +333: <workspace>/apps/feldexa_app/test/german_strings_test.dart: (setUpAll)
+04:02 +334: <workspace>/apps/feldexa_app/test/german_strings_test.dart: (setUpAll)
+04:02 +335: <workspace>/apps/feldexa_app/test/german_strings_test.dart: (setUpAll)
+04:02 +336: <workspace>/apps/feldexa_app/test/german_strings_test.dart: (setUpAll)
+04:02 +337: <workspace>/apps/feldexa_app/test/german_strings_test.dart: (setUpAll)
+04:03 +337: <workspace>/apps/feldexa_app/test/german_strings_test.dart: ARB and corrected catalog agree on every coded message
+04:03 +338: <workspace>/apps/feldexa_app/test/german_strings_test.dart: catalog and ARB key mapping is complete in both directions
+04:03 +339: <workspace>/apps/feldexa_app/test/german_strings_test.dart: corrected IMP-007 and FLD-001 texts are preserved verbatim
+04:03 +340: <workspace>/apps/feldexa_app/test/german_strings_test.dart: PRIV-001 discloses aggregate isolation and the global reset exception
+04:03 +341: <workspace>/apps/feldexa_app/test/german_strings_test.dart: placeholder metadata is complete, typed, and German
+04:03 +342: <workspace>/apps/feldexa_app/test/german_strings_test.dart: generated localization code exposes every ARB key
+04:03 +343: <workspace>/apps/feldexa_app/test/german_strings_test.dart: start area, status, action, and deletion labels match the catalog
+04:03 +344: <workspace>/apps/feldexa_app/test/german_strings_test.dart: page analysis-state vocabulary matches §8, the ARB, and generated code
+04:03 +345: <workspace>/apps/feldexa_app/test/german_strings_test.dart: durability, privacy, export, and SIMULATED labels match the catalog
+04:03 +346: <workspace>/apps/feldexa_app/test/german_strings_test.dart: accessibility semantics use the catalog templates and German states
+04:03 +347: <workspace>/apps/feldexa_app/test/german_strings_test.dart: no untranslated English UI words remain; SIMULATED is allowlisted
+04:03 +348: <workspace>/apps/feldexa_app/test/german_strings_test.dart: (tearDownAll)
+04:04 +348: <workspace>/apps/feldexa_app/test/import_error_mapper_test.dart: catalog mapping maps every import and import-reachable storage code exactly
+04:04 +349: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +350: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +351: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +352: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +353: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +354: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +355: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +356: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +357: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +358: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +359: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +360: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +361: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +362: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +363: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +364: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +365: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +366: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +367: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +368: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +369: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:04 +370: <workspace>/apps/feldexa_app/test/import_cap_wording_test.dart: catalog, ARB, generated text, and mapper agree on IMP-007
+04:10 +371: <workspace>/apps/feldexa_app/test/l10n_scaffold_test.dart: German is the only supported release locale
+04:10 +372: <workspace>/apps/feldexa_app/test/l10n_scaffold_test.dart: l10n.yaml points at the German template and committed output
+04:11 +373: <workspace>/apps/feldexa_app/test/l10n_scaffold_test.dart: app_de.arb is the only ARB file and declares the de locale
+04:11 +374: <workspace>/apps/feldexa_app/test/import_semantics_test.dart: exact German catalog messages per failure class presents the pinned message and recovery for every import code
+04:11 +375: <workspace>/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+04:11 +376: <workspace>/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+04:11 +377: <workspace>/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+04:11 +378: <workspace>/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+04:11 +379: <workspace>/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+04:11 +380: <workspace>/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+04:11 +381: <workspace>/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+04:11 +382: <workspace>/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+04:11 +383: <workspace>/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+04:11 +384: <workspace>/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+04:11 +385: <workspace>/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+04:11 +386: <workspace>/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+04:11 +387: <workspace>/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+04:11 +388: <workspace>/apps/feldexa_app/test/l10n_scaffold_test.dart: web host declares German as the document language
+04:12 +389: <workspace>/apps/feldexa_app/test/overflow_warning_test.dart: visible false renders nothing and reserves no space
+04:12 +390: <workspace>/apps/feldexa_app/test/overflow_warning_test.dart: visible true renders the exact FLD-001 texts and one live region
+04:13 +391: <workspace>/apps/feldexa_app/test/overflow_warning_test.dart: FLD-001 and EXP-001 rows agree with the ARB and stop export
+04:13 +392: <workspace>/apps/feldexa_app/test/overflow_warning_test.dart: no dismiss control and a rebuild with visible false clears it
+04:13 +393: <workspace>/apps/feldexa_app/test/overflow_warning_test.dart: 200 percent scale reflows in a narrow width without overflow
+04:13 +394: <workspace>/apps/feldexa_app/test/overflow_warning_test.dart: production source stays presentation-only
+04:22 +395: <workspace>/apps/feldexa_app/test/page_state_test.dart: readable pages a pending page is readable with its reported display size
+04:22 +396: <workspace>/apps/feldexa_app/test/page_state_test.dart: readable pages running analysis is projected as analyzing
+04:22 +397: <workspace>/apps/feldexa_app/test/page_state_test.dart: readable pages complete analysis is projected as ready
+04:22 +398: <workspace>/apps/feldexa_app/test/page_state_test.dart: readable pages a failed analysis stays readable, renderable, and labeled
+04:22 +399: <workspace>/apps/feldexa_app/test/page_state_test.dart: readable pages a fully readable document succeeds without a warning
+04:22 +400: <workspace>/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder the placeholder page is unreadable and exposes no display size
+04:22 +401: <workspace>/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder an unreadable page hides even a real-looking reported size
+04:22 +402: <workspace>/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder an unreadable page may omit its reported size
+04:22 +403: <workspace>/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder an IMP-006 failure marks a page unreadable without the flag
+04:22 +404: <workspace>/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder the unreadable flag alone is sufficient
+04:22 +405: <workspace>/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder a persisted T040 placeholder JSON page is suppressed
+04:22 +406: <workspace>/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder a readable 1x1 page is treated as its reported size
+04:22 +407: <workspace>/apps/feldexa_app/test/page_state_test.dart: unreadable pages and the 1x1 placeholder pages are ordered and affected numbers are ascending and 1-based
+04:22 +408: <workspace>/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation a partially unreadable document succeeds with the warning
+04:22 +409: <workspace>/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation affected pages are listed in ascending order
+04:22 +410: <workspace>/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation a single affected page uses its 1-based number
+04:22 +411: <workspace>/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation warning text is catalog German without codes or paths
+04:22 +412: <workspace>/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation readable pages stay usable in a partial document
+04:22 +413: <workspace>/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation a partial document is not an error state
+04:22 +414: <workspace>/apps/feldexa_app/test/page_state_test.dart: IMP-006 warning presentation derived collections are immutable
+04:22 +415: <workspace>/apps/feldexa_app/test/page_state_test.dart: fully unreadable document all pages unreadable yields the explicit error state
+04:22 +416: <workspace>/apps/feldexa_app/test/page_state_test.dart: fully unreadable document a single unreadable page is a fully unreadable document
+04:22 +417: <workspace>/apps/feldexa_app/test/page_state_test.dart: fully unreadable document the error state exposes no renderable size and no warning
+04:22 +418: <workspace>/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects an empty page collection
+04:22 +419: <workspace>/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects duplicate page indices
+04:22 +420: <workspace>/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects non-contiguous page indices
+04:22 +421: <workspace>/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects a negative page index at construction
+04:22 +422: <workspace>/apps/feldexa_app/test/page_state_test.dart: input validation and privacy requires a failure key exactly for a failed analysis
+04:22 +423: <workspace>/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects a malformed failure key without echoing it
+04:22 +424: <workspace>/apps/feldexa_app/test/page_state_test.dart: input validation and privacy requires a reported size for a readable page
+04:22 +425: <workspace>/apps/feldexa_app/test/page_state_test.dart: input validation and privacy rejects a non-finite, zero, or negative display size
+04:22 +426: <workspace>/apps/feldexa_app/test/page_state_test.dart: input validation and privacy input and state toString omit geometry and content
+04:22 +427: <workspace>/apps/feldexa_app/test/page_state_test.dart: canonical Page compatibility every core analysis state maps to exactly one phase
+04:22 +428: <workspace>/apps/feldexa_app/test/page_state_test.dart: canonical Page compatibility a canonical unreadable page keeps its flag and failure key
+04:22 +429: <workspace>/apps/feldexa_app/test/page_strip_test.dart: PageStripController rejects an initial page outside the document
+04:22 +430: <workspace>/apps/feldexa_app/test/page_strip_test.dart: PageStripController selects pages, delegates scrolling, and clamps at boundaries
+04:22 +431: <workspace>/apps/feldexa_app/test/page_strip_test.dart: PageStripController changes selection before a viewport exists
+04:22 +432: <workspace>/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation lists every page in order with all analysis states
+04:23 +433: <workspace>/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation renders and navigates while every page is still pending
+04:24 +434: <workspace>/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation keeps the selected page visible when analysis updates
+04:24 +435: <workspace>/apps/feldexa_app/test/page_strip_test.dart: PageStrip full presentation rejects a page list that does not match the viewer
+04:24 +436: <workspace>/apps/feldexa_app/test/page_strip_test.dart: PageStrip semantics exposes one German button per page with state hints
+04:24 +437: <workspace>/apps/feldexa_app/test/page_strip_test.dart: PageStrip semantics updates the semantic hint when analysis progresses
+04:24 +438: <workspace>/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation collapses below 600 dp and navigates with labelled buttons
+04:24 +439: <workspace>/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation shows unreadable and uncertain markers in compact mode
+04:24 +440: <workspace>/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation stays usable at 200% text scaling in both presentations
+04:24 +441: <workspace>/apps/feldexa_app/test/page_strip_test.dart: PageStrip compact presentation uses the full strip at exactly 600 dp
+04:24 +442: <workspace>/apps/feldexa_app/test/page_strip_test.dart: PageStrip long documents builds lazily and reveals a distant selection
+04:25 +443: <workspace>/apps/feldexa_app/test/page_strip_test.dart: PageStrip long documents compact mode stays usable at page 100
+04:30 +444: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageViewLayout keeps original order, display sizes, and centered page boxes
+04:30 +445: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageViewLayout rejects an empty page list, a negative gap, and bad indices
+04:30 +446: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageViewLayout validates the page display size value itself
+04:30 +447: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageGeometry.displaySize input uses the exact display size for all four rotations
+04:30 +448: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageGeometry.displaySize input keeps mixed pages independent in document order
+04:30 +449: <workspace>/apps/feldexa_app/test/page_view_test.dart: view transform and hit testing maps view to display and back at every contract zoom level
+04:30 +450: <workspace>/apps/feldexa_app/test/page_view_test.dart: view transform and hit testing maps a display rectangle without changing its PDF geometry
+04:30 +451: <workspace>/apps/feldexa_app/test/page_view_test.dart: view transform and hit testing round-trips all rotations with non-zero CropBox offsets
+04:30 +452: <workspace>/apps/feldexa_app/test/page_view_test.dart: view transform and hit testing uses the contract pan and scale formula directly
+04:30 +453: <workspace>/apps/feldexa_app/test/page_view_test.dart: view transform and hit testing rejects zero-area rectangles
+04:30 +454: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageViewController fit width follows the widest page and the 0.5×–8× bounds
+04:30 +455: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageViewController fit page uses the tighter dimension ratio
+04:30 +456: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageViewController scrollToPage places the page top at the viewport top
+04:30 +457: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageViewController hit-tests page indices and rejects the inter-page gap
+04:30 +458: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageViewController does not depend on the device pixel ratio
+04:30 +459: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageViewController rejects invalid viewport and transform values
+04:30 +460: <workspace>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening caps an A3 page at 4096 px on the long edge
+04:30 +461: <workspace>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening does not downscale a small page below its DPR size
+04:30 +462: <workspace>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening raster cap leaves view and display mapping unchanged
+04:30 +463: <workspace>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening zoom-in fitWidth sanity check (passes before and after; not RED evidence)
+04:30 +464: <workspace>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening fitWidth clamps pan with the target scale after zoom-out (RED on a28fbf0)
+04:30 +465: <workspace>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects an overflowing accumulated page strip
+04:30 +466: <workspace>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects derived rectangle extents with opposite extreme endpoints
+04:30 +467: <workspace>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects far-edge overflow in pageRectInViewport (RED on 219539b)
+04:30 +468: <workspace>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects non-finite point and rectangle mapping paths
+04:30 +469: <workspace>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects viewToDisplay page-origin subtraction overflow
+04:30 +470: <workspace>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects a hostile derived page rectangle
+04:30 +471: <workspace>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects a public raster cap above the contract 4096
+04:30 +472: <workspace>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening enforces the minimum page extent and a finite floor
+04:30 +473: <workspace>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening keeps desiredScale finite for extreme finite inputs
+04:30 +474: <workspace>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening clamps raster scale to a positive minimum on underflow
+04:30 +475: <workspace>/apps/feldexa_app/test/page_view_test.dart: raster cap and hardening rejects an overflowing transformed rectangle
+04:30 +476: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageView widget renders every page in order with its original display size
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=3:EXPECTED=3
+04:31 +477: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageView widget reuses the opened document across rebuilds
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+04:31 +478: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageView widget keeps the mapping when the device pixel ratio changes
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+04:31 +479: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageView widget builds only pages intersecting the viewport
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=3:EXPECTED=3
+04:31 +480: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageView widget disposes the renderer when the viewer is removed
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+04:31 +481: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageView widget reopens on a source change and disposes the old renderer
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_OPEN_OK:PAGES=1:EXPECTED=1
+04:31 +482: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageView widget refuses a page-count mismatch without painting pages
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_PAGE_COUNT_MISMATCH:RENDERED=1:EXPECTED=2
+T071A_DIAG_VIEW_FAIL:CODE=pageCountMismatch
+04:31 +483: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageView widget reports an unavailable source with a content-free failure
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=0
+T071A_DIAG_VIEW_FAIL:CODE=sourceUnavailable
+04:31 +484: <workspace>/apps/feldexa_app/test/page_view_test.dart: PageView widget sanitizes a renderer exception
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_FAIL:CODE=unreadableSource
+04:33 +485: <workspace>/apps/feldexa_app/test/platform_registry_test.dart: compile-time selection dart:io selects the Android registry by default
+04:33 +486: <workspace>/apps/feldexa_app/test/platform_registry_test.dart: compile-time selection the unsupported target fails closed with PLT-001
+04:33 +487: <workspace>/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation accepts real Android adapters with EvidenceClass.none
+04:33 +488: <workspace>/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects one simulated adapter with SIM-001
+04:33 +489: <workspace>/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects an all-simulated adapter set with SIM-001
+04:33 +490: <workspace>/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects an environment-labelled adapter instead of mislabelling it
+04:33 +491: <workspace>/apps/feldexa_app/test/platform_registry_test.dart: Android registry evidence separation rejects a descriptor in the wrong capability slot
+04:33 +492: <workspace>/apps/feldexa_app/test/platform_registry_test.dart: Web registry evidence separation accepts simulated-only adapters and reports development mode
+04:33 +493: <workspace>/apps/feldexa_app/test/platform_registry_test.dart: Web registry evidence separation rejects an Android-labelled adapter instead of claiming it as Web
+04:33 +494: <workspace>/apps/feldexa_app/test/platform_registry_test.dart: release assertion accepts the real Android registry
+04:33 +495: <workspace>/apps/feldexa_app/test/platform_registry_test.dart: release assertion rejects a simulated Web registry with SIM-001
+04:33 +496: <workspace>/apps/feldexa_app/test/platform_registry_test.dart: release assertion inspects live descriptors when the registry metadata lies
+04:33 +497: <workspace>/apps/feldexa_app/test/platform_registry_test.dart: release assertion rejects a registry that only claims simulated capabilities
+04:33 +498: <workspace>/apps/feldexa_app/test/platform_registry_test.dart: Android dependency boundary registry sources never import the simulated adapter package
+04:33 +499: <workspace>/apps/feldexa_app/test/platform_registry_test.dart: Android dependency boundary registry sources never import the simulated adapter package
+04:33 +500: <workspace>/apps/feldexa_app/test/platform_registry_test.dart: Android dependency boundary registry sources never import the simulated adapter package
+04:33 +501: <workspace>/apps/feldexa_app/test/platform_registry_test.dart: Android dependency boundary registry sources never import the simulated adapter package
+04:33 +502: <workspace>/apps/feldexa_app/test/platform_registry_test.dart: Android dependency boundary registry sources never import the simulated adapter package
+04:34 +503: <workspace>/apps/feldexa_app/test/recognition_honesty_test.dart: the rendered US8 summary claims no completeness summary rows and note stay inside the honest vocabulary
+04:38 +504: <workspace>/apps/feldexa_app/test/recognition_honesty_test.dart: the rendered US8 summary claims no completeness rejected suggestions never count as open
+04:38 +505: <workspace>/apps/feldexa_app/test/recognition_honesty_test.dart: the rendered US8 summary claims no completeness the empty summary still disclaims completeness
+04:38 +506: <workspace>/apps/feldexa_app/test/recognition_honesty_test.dart: IMP-006 pages keep exactly one warning surface the projection excludes IMP-006 and unreadable pages
+04:38 +507: <workspace>/apps/feldexa_app/test/recognition_honesty_test.dart: IMP-006 pages keep exactly one warning surface a fully import-unreadable document produces no REC notices
+04:38 +508: <workspace>/apps/feldexa_app/test/recognition_honesty_test.dart: failed-page explanations never imply a complete document REC-002 explanation states the failure and the unchanged pages
+04:38 +509: <workspace>/apps/feldexa_app/test/recognition_honesty_test.dart: failed-page explanations never imply a complete document REC-003 explanation explains the unsupported structure
+04:38 +510: <workspace>/apps/feldexa_app/test/recognition_honesty_test.dart: failed-page explanations never imply a complete document unknown and null keys produce no invented explanation
+04:38 +511: <workspace>/apps/feldexa_app/test/recognition_honesty_test.dart: failed-page explanations never imply a complete document the failure notice renders message and recovery verbatim
+04:44 +512: <workspace>/apps/feldexa_app/test/review_conflict_sheet_test.dart: only symmetric conflicting candidates render conflict badges
+04:45 +513: <workspace>/apps/feldexa_app/test/review_conflict_sheet_test.dart: tapping a badge opens exactly the symmetric group
+04:45 +514: <workspace>/apps/feldexa_app/test/review_conflict_sheet_test.dart: confirming one candidate sends only that candidate and closes
+04:46 +515: <workspace>/apps/feldexa_app/test/review_conflict_sheet_test.dart: reopening from the second candidate rejects only that one
+04:46 +516: <workspace>/apps/feldexa_app/test/review_conflict_sheet_test.dart: resolved candidates show state without resolution actions
+04:46 +517: <workspace>/apps/feldexa_app/test/review_conflict_sheet_test.dart: busy disables the badge and the sheet resolution actions
+04:46 +518: <workspace>/apps/feldexa_app/test/review_degraded_test.dart: an uncertain page is marked and claims nothing more
+04:46 +519: <workspace>/apps/feldexa_app/test/review_degraded_test.dart: an uncertain page is marked and claims nothing more
+04:46 +520: <workspace>/apps/feldexa_app/test/review_degraded_test.dart: an uncertain page is marked and claims nothing more
+04:47 +521: <workspace>/apps/feldexa_app/test/review_degraded_test.dart: a low-confidence suggestion shows the uncertain badge
+04:47 +522: <workspace>/apps/feldexa_app/test/review_degraded_test.dart: a page without suggestions shows the empty state
+04:47 +523: <workspace>/apps/feldexa_app/test/review_degraded_test.dart: confirm, reject, and undo keep the degraded document usable
+04:47 +524: <workspace>/apps/feldexa_app/test/signature_png_test.dart: encodes a real PNG at the drawn size
+04:48 +525: <workspace>/apps/feldexa_app/test/signature_png_test.dart: encodes a real PNG at the drawn size
+04:49 +526: <workspace>/apps/feldexa_app/test/signature_png_test.dart: encodes a real PNG at the drawn size
+04:49 +527: <workspace>/apps/feldexa_app/test/signature_png_test.dart: never upscales and caps the long edge at 1024 px
+04:49 +528: <workspace>/apps/feldexa_app/test/signature_png_test.dart: paints only ink on a transparent background
+04:49 +529: <workspace>/apps/feldexa_app/test/signature_png_test.dart: is deterministic and independent per call
+04:49 +530: <workspace>/apps/feldexa_app/test/signature_png_test.dart: an unusable canvas yields no image
+04:49 +531: <workspace>/apps/feldexa_app/test/signature_png_test.dart: an empty draft stays a valid, fully transparent image
+04:49 +532: <workspace>/apps/feldexa_app/test/signature_png_test.dart: the derived asset digest equals package:crypto
+04:50 +533: <workspace>/apps/feldexa_app/test/signature_sheet_test.dart: draws two strokes and applies their captured geometry
+04:50 +534: <workspace>/apps/feldexa_app/test/signature_sheet_test.dart: draws two strokes and applies their captured geometry
+04:50 +535: <workspace>/apps/feldexa_app/test/signature_sheet_test.dart: draws two strokes and applies their captured geometry
+04:50 +536: <workspace>/apps/feldexa_app/test/signature_sheet_test.dart: draws two strokes and applies their captured geometry
+04:51 +537: <workspace>/apps/feldexa_app/test/signature_sheet_test.dart: draws two strokes and applies their captured geometry
+04:58 +538: <workspace>/apps/feldexa_app/test/signature_sheet_test.dart: undo removes only the last stroke and clear removes all ink
+05:02 +539: <workspace>/apps/feldexa_app/test/signature_sheet_test.dart: a tap produces exactly one one-point stroke at the tap
+05:02 +540: <workspace>/apps/feldexa_app/test/signature_sheet_test.dart: a small drag stays one stroke with clamped points
+05:02 +541: <workspace>/apps/feldexa_app/test/signature_sheet_test.dart: cancel never applies and apply reports exactly once
+05:02 +542: <workspace>/apps/feldexa_app/test/signature_sheet_test.dart: draft and stroke collections are unmodifiable snapshots
+05:02 +543: <workspace>/apps/feldexa_app/test/signature_sheet_test.dart: a fresh instance starts empty with no static ink
+05:03 +544: <workspace>/apps/feldexa_app/test/signature_sheet_test.dart: labels come from the caller and 200 percent scale reflows
+05:03 +545: <workspace>/apps/feldexa_app/test/signature_sheet_test.dart: production source imports only the Flutter presentation framework
+05:03 +546: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: order and platform seam export sweep precedes native recovery and contract reads
+05:03 +547: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: order and platform seam the platform selector has no native recovery without a runtime
+05:03 +548: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: key material unavailable aggregate SAVE-002 deletes nothing and is reported
+05:03 +549: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: key material unavailable global SAVE-008 deletes nothing and is reported
+05:03 +550: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: key material unavailable a native SAVE-008 still sweeps plaintext previews and skips reads
+05:03 +551: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback native fallback adoption survives later stamps that report false
+05:03 +552: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback SAVE-004 fallback surfaces the German guidance
+05:03 +553: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback corrupt head without a verified revision is degraded
+05:03 +554: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: corrupt head and recovery fallback a fallback without a verified revision is never success
+05:03 +555: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: storage exhaustion SAVE-001 is surfaced and the last durable state stays intact
+05:03 +556: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: storage exhaustion SAVE-005 schema-too-new surfaces the update guidance
+05:03 +557: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages stale entries are removed, fresh entries and aggregates are kept
+05:03 +558: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages session end removes every export preview regardless of age
+05:03 +559: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages session end reports a listing failure instead of false success
+05:03 +560: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: temporary and export-preview ages a deletion failure is surfaced, not swallowed
+05:03 +561: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: determinism and bound the documented bound is pinned and reached deterministically
+05:03 +562: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: determinism and bound identical inputs produce the same outcome
+05:03 +563: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: production io filesystem adapter lists only exports and reports staging as native-owned
+05:04 +564: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: production io filesystem adapter full sweep removes stale previews and keeps fresh ones
+05:04 +565: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: production io filesystem adapter a missing export directory is empty and is not created
+05:04 +566: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a symlinked export root is refused and deletes nothing outside
+05:04 +567: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a symlinked entry inside the root is refused, outside file kept
+05:04 +568: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures the adapter directly refuses a symlink entry deletion
+05:04 +569: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a regular old file inside the real root is still deleted
+05:04 +570: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures a rejected backslash name is a redacted cleanup failure
+05:04 +571: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: export boundary and inspection failures an uninspectable entry is a redacted cleanup failure
+05:04 +572: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a timed-out sweep performs no read or deletion after the stop
+05:04 +573: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation the bounded runner passes one absolute deadline into the run
+05:04 +574: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a native deadline stop prevents every later destructive pass
+05:04 +575: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation an already cancelled sweep still removes export previews first
+05:04 +576: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a native recovery timeout still removes stale previews first
+05:04 +577: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a failed preview removal is reported, never silent
+05:04 +578: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a throwing native recovery still removes stale previews first
+05:04 +579: <workspace>/apps/feldexa_app/test/startup_sweep_test.dart: bounded timeout and cooperative cancellation a timed-out production-shaped run still reports degraded
+05:05 +580: <workspace>/apps/feldexa_app/test/startup_wiring_test.dart: production composition the platform selector builds the real Android store and io adapter
+05:05 +581: <workspace>/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a hang becomes a bounded timeout, never a crash or success
+05:05 +582: <workspace>/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a thrown sweep becomes a degraded failure, never a crash
+05:05 +583: <workspace>/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a clean result stays complete
+05:05 +584: <workspace>/apps/feldexa_app/test/startup_wiring_test.dart: bounded startup runner a degraded result is not reported as success
+05:05 +585: <workspace>/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface renders the localized SAVE-004 guidance
+05:06 +586: <workspace>/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface keeps the plain shell when startup is absent
+05:06 +587: <workspace>/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface keeps the plain shell for a clean startup
+05:06 +588: <workspace>/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface a timed-out startup shows the ARB recovery notice
+05:06 +589: <workspace>/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface a thrown startup shows the ARB recovery notice
+05:06 +590: <workspace>/apps/feldexa_app/test/startup_wiring_test.dart: shell recovery notice surface a degraded result without notices shows the ARB notice
+05:06 +591: <workspace>/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring the shell sweeps export previews at session end
+05:06 +592: <workspace>/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring the shell also sweeps when the engine detaches
+05:06 +593: <workspace>/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring a transient inactive state does not sweep
+05:06 +594: <workspace>/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring the shell stops observing after it is disposed
+05:06 +595: <workspace>/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring only paused and detached are session-end states
+05:06 +596: <workspace>/apps/feldexa_app/test/startup_wiring_test.dart: session-end wiring session-end failure hook receives only a redacted category
+05:11 +597: <workspace>/apps/feldexa_app/test/stored_items_test.dart: DocumentSummary.fromStoredMeta readable with lastDurableAt equal to updatedAt is saved
+05:11 +598: <workspace>/apps/feldexa_app/test/stored_items_test.dart: DocumentSummary.fromStoredMeta readable with lastDurableAt after updatedAt is saved
+05:11 +599: <workspace>/apps/feldexa_app/test/stored_items_test.dart: DocumentSummary.fromStoredMeta readable with lastDurableAt before updatedAt is draft
+05:11 +600: <workspace>/apps/feldexa_app/test/stored_items_test.dart: DocumentSummary.fromStoredMeta readable without lastDurableAt is draft
+05:11 +601: <workspace>/apps/feldexa_app/test/stored_items_test.dart: DocumentSummary.fromStoredMeta unreadable wins over a durable timestamp
+05:11 +602: <workspace>/apps/feldexa_app/test/stored_items_test.dart: DocumentSummary.fromStoredMeta copies id, title, and UTC updatedAt unchanged
+05:11 +603: <workspace>/apps/feldexa_app/test/stored_items_test.dart: DocumentSummary.fromStoredMeta never infers exportReady from any StoredMeta fixture
+05:11 +604: <workspace>/apps/feldexa_app/test/stored_items_test.dart: DocumentSummary.fromStoredMeta a manually constructed exportReady summary keeps that status
+05:11 +605: <workspace>/apps/feldexa_app/test/stored_items_test.dart: renders exact group headings and keeps entries in their group
+05:12 +606: <workspace>/apps/feldexa_app/test/stored_list_50_test.dart: 50 stored items open within the ratified 500 ms budget
+05:12 +607: <workspace>/apps/feldexa_app/test/stored_list_50_test.dart: 50 stored items open within the ratified 500 ms budget
+05:12 +608: <workspace>/apps/feldexa_app/test/stored_list_50_test.dart: 50 stored items open within the ratified 500 ms budget
+05:12 +609: <workspace>/apps/feldexa_app/test/stored_items_test.dart: renders all four exact status labels with pinned icons
+05:12 +610: <workspace>/apps/feldexa_app/test/stored_list_50_test.dart: 50 stored items render lazily and the last stays reachable
+05:12 +611: <workspace>/apps/feldexa_app/test/stored_list_50_test.dart: 50 stored items render lazily and the last stays reachable
+05:12 +612: <workspace>/apps/feldexa_app/test/stored_list_50_test.dart: 50 stored items render lazily and the last stays reachable
+05:12 +613: <workspace>/apps/feldexa_app/test/stored_list_50_test.dart: 50 stored items render lazily and the last stays reachable
+05:12 +614: <workspace>/apps/feldexa_app/test/stored_list_50_test.dart: 50 stored items render lazily and the last stays reachable
+05:12 +615: <workspace>/apps/feldexa_app/test/stored_list_50_test.dart: 50 stored items render lazily and the last stays reachable
+05:12 +616: <workspace>/apps/feldexa_app/test/stored_list_50_test.dart: 50 stored items render lazily and the last stays reachable
+05:12 +617: <workspace>/apps/feldexa_app/test/stored_list_50_test.dart: 50 stored items render lazily and the last stays reachable
+05:12 +618: <workspace>/apps/feldexa_app/test/stored_items_test.dart: 200 percent text scale reflows at 280 logical pixels without overflow
+05:12 +619: <workspace>/apps/feldexa_app/test/stored_items_test.dart: 50 document entries render and the last is reachable
+05:13 +620: <workspace>/apps/feldexa_app/test/stored_items_test.dart: production source stays presentation-only with authorized imports
+05:14 +621: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+05:15 +622: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+05:15 +623: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+05:15 +624: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+05:15 +625: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+05:15 +626: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: (setUpAll)
+05:17 +626: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance catalog is a SIMULATED, deterministic fixture catalogue
+05:17 +627: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance catalogue contains the four editor forms and three failure fixtures
+05:17 +628: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-001 carries complete synthetic provenance
+05:17 +629: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-002 carries complete synthetic provenance
+05:17 +630: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-003 carries complete synthetic provenance
+05:17 +631: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-004 carries complete synthetic provenance
+05:17 +632: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-005 carries complete synthetic provenance
+05:17 +633: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-protected carries complete synthetic provenance
+05:17 +634: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-truncated carries complete synthetic provenance
+05:17 +635: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: catalog and provenance sf-not-a-pdf carries complete synthetic provenance
+05:17 +636: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures four valid forms cover every field type, rotation, and page-count need
+05:17 +637: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 PDF bytes, page geometry, and fixed metadata are valid
+05:17 +638: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 ground truth is unique, typed, and inside page bounds
+05:17 +639: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 expected OCR is sorted, bounded, and matches assertions
+05:17 +640: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 OCR labels support every ground-truth field
+05:17 +641: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-001 canonical, Web, and corpus copies are byte-identical
+05:18 +642: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-002 PDF bytes, page geometry, and fixed metadata are valid
+05:18 +643: <workspace>/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+05:18 +644: <workspace>/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+05:18 +645: <workspace>/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+05:18 +646: <workspace>/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+05:19 +647: <workspace>/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+05:19 +648: <workspace>/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+05:19 +649: <workspace>/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+05:19 +650: <workspace>/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+05:19 +651: <workspace>/apps/feldexa_app/test/text_control_test.dart: renders the caller label and initial value
+05:19 +652: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 canonical, Web, and corpus copies are byte-identical
+05:19 +653: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 canonical, Web, and corpus copies are byte-identical
+05:19 +654: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 canonical, Web, and corpus copies are byte-identical
+05:20 +655: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-003 canonical, Web, and corpus copies are byte-identical
+05:20 +656: <workspace>/apps/feldexa_app/test/text_control_test.dart: Enter commits once and then calls onNext
+05:22 +657: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-004 PDF bytes, page geometry, and fixed metadata are valid
+05:22 +658: <workspace>/apps/feldexa_app/test/text_control_test.dart: focus loss after an edit commits exactly once
+05:22 +659: <workspace>/apps/feldexa_app/test/text_control_test.dart: focus loss after an edit commits exactly once
+05:22 +660: <workspace>/apps/feldexa_app/test/text_control_test.dart: focus loss after an edit commits exactly once
+05:22 +661: <workspace>/apps/feldexa_app/test/text_control_test.dart: focus loss after an edit commits exactly once
+05:23 +662: <workspace>/apps/feldexa_app/test/text_control_test.dart: focus loss after an edit commits exactly once
+05:23 +663: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-005 PDF bytes, page geometry, and fixed metadata are valid
+05:23 +664: <workspace>/apps/feldexa_app/test/text_control_test.dart: multiline done action commits once and unfocuses
+05:23 +665: <workspace>/apps/feldexa_app/test/text_control_test.dart: multiline done action commits once and unfocuses
+05:23 +666: <workspace>/apps/feldexa_app/test/text_control_test.dart: multiline done action commits once and unfocuses
+05:23 +667: <workspace>/apps/feldexa_app/test/text_control_test.dart: multiline done action commits once and unfocuses
+05:24 +668: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-005 canonical, Web, and corpus copies are byte-identical
+05:24 +669: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-005 canonical, Web, and corpus copies are byte-identical
+05:24 +670: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-005 canonical, Web, and corpus copies are byte-identical
+05:24 +671: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-005 canonical, Web, and corpus copies are byte-identical
+05:24 +672: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-005 canonical, Web, and corpus copies are byte-identical
+05:24 +673: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-005 canonical, Web, and corpus copies are byte-identical
+05:24 +674: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-005 canonical, Web, and corpus copies are byte-identical
+05:24 +675: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-005 canonical, Web, and corpus copies are byte-identical
+05:24 +676: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: valid fixtures sf-005 canonical, Web, and corpus copies are byte-identical
+05:24 +677: <workspace>/apps/feldexa_app/test/text_control_test.dart: fires only injected callbacks for edits and submission
+05:24 +678: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: dev-only delivery policy pubspec declares fonts but never fixture assets
+05:24 +679: <workspace>/apps/feldexa_app/test/text_control_test.dart: production source imports no ARB, editor, or persistence module
+05:24 +680: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: dev-only delivery policy canonical and Web fixture trees are byte-identical
+05:26 +681: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: dev-only delivery policy the Web delivery mirror is outside Flutter asset directories
+05:26 +682: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: failure fixtures sf-protected is a genuine encrypted PDF for IMP-001
+05:26 +683: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: failure fixtures sf-truncated is a deterministic prefix without EOF for IMP-002
+05:26 +684: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: failure fixtures sf-not-a-pdf is text with a .pdf name for IMP-004
+05:26 +685: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: German content and synthetic marker OCR text exercises German characters and quotation marks
+05:26 +686: <workspace>/apps/feldexa_app/test/synthetic_fixtures_test.dart: (tearDownAll)
+05:26 +686: <workspace>/apps/feldexa_app/test/web_fill_browser_entry_test.dart: single-line input rejects line breaks and Enter commits
+05:27 +687: <workspace>/apps/feldexa_app/test/web_fill_browser_entry_test.dart: single-line input rejects line breaks and Enter commits
+05:27 +688: <workspace>/apps/feldexa_app/test/web_fill_browser_entry_test.dart: single-line input rejects line breaks and Enter commits
+05:27 +689: <workspace>/apps/feldexa_app/test/web_fill_browser_entry_test.dart: single-line input rejects line breaks and Enter commits
+05:27 +690: <workspace>/apps/feldexa_app/test/web_fill_browser_entry_test.dart: multiline input keeps line breaks
+05:27 +691: <workspace>/apps/feldexa_app/test/web_fill_browser_entry_test.dart: checkbox toggles once and never fires when read-only
+05:28 +692: <workspace>/apps/feldexa_app/test/web_review_browser_entry_test.dart: confirm, reject and undo report the exact suggestion
+05:29 +693: <workspace>/apps/feldexa_app/test/web_template_browser_entry_test.dart: template entry shows the exclusion notice and keeps confirm disabled while unreviewed
+05:29 +694: <workspace>/apps/feldexa_app/test/web_template_browser_entry_test.dart: template entry shows the exclusion notice and keeps confirm disabled while unreviewed
+05:30 +695: <workspace>/apps/feldexa_app/test/web_template_browser_entry_test.dart: create-template sheet has no overflow at 200 percent scale
+05:30 +696: <workspace>/apps/feldexa_app/test/web_template_browser_entry_test.dart: the layout-only template editor exposes no value or signature control (FR-102)
+05:33 +697: <workspace>/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: the SIMULATED banner is mounted on the simulated shell (T129) FeldexaApp(simulatedShell: true) shows the global banner
+05:34 +698: <workspace>/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: the SIMULATED banner is mounted on the simulated shell (T129) FeldexaApp(simulatedShell: true) shows the global banner
+05:34 +699: <workspace>/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: the SIMULATED banner is mounted on the simulated shell (T129) FeldexaApp(simulatedShell: true) shows the global banner
+05:34 +700: <workspace>/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: the SIMULATED banner is mounted on the simulated shell (T129) FeldexaApp(simulatedShell: true) shows the global banner
+05:34 +701: <workspace>/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: the SIMULATED banner is mounted on the simulated shell (T129) the banner stays mounted above the pushed editor route
+05:34 +702: <workspace>/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: the SIMULATED banner is mounted on the simulated shell (T129) FeldexaApp(simulatedShell: false) shows no banner
+05:34 +703: <workspace>/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: the SIMULATED banner is mounted on the simulated shell (T129) the shell default follows the platform evidence class
+05:34 +704: <workspace>/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: the SIMULATED banner keeps the exact catalog surface (§9) token, context line, and semantics label are exact
+05:34 +705: <workspace>/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: the SIMULATED banner keeps the exact catalog surface (§9) the banner descriptor denies Android verification
+05:34 +706: <workspace>/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: uncertainty presentation under the SIMULATED surface a low-confidence suggestion carries the uncertainty badge
+05:34 +707: <workspace>/apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart: uncertainty presentation under the SIMULATED surface a confident suggestion carries no uncertainty badge
+05:43 +708: All tests passed!
