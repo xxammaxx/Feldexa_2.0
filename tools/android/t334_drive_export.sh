@@ -929,8 +929,12 @@ read -r RECT_MARKERS_BEFORE RECT_MARKERS_AFTER <<<"$(awk -v boundary="$FLATTENIN
   END { printf "%d %d\n", before, after }' "$LOG")"
 [[ "$RECT_MARKERS_BEFORE" -eq 1 ]] ||
   fail "the log carries $RECT_MARKERS_BEFORE field rect markers before the flattening leg, expected exactly one (one confirmed field)"
-[[ "$RECT_MARKERS_AFTER" -eq 0 ]] ||
-  fail "the log carries $RECT_MARKERS_AFTER field rect markers after T334_ACROFORM_LEG_START; that leg confirms no field and draws no value"
+# The T109 mark leg runs after the flattening leg and confirms its own
+# „Familienname“ text field, so exactly one further T334_FIELD_RECT is expected
+# there; its checkbox/signature rects are T109_EXPECT markers and are consumed
+# by the T105 expectations helper.
+[[ "$RECT_MARKERS_AFTER" -eq 1 ]] ||
+  fail "the log carries $RECT_MARKERS_AFTER field rect markers after T334_ACROFORM_LEG_START, expected exactly one (the T109 text field)"
 DRAWN_LEGS="$(awk -v boundary="$FLATTENING_LEG_LINE" '
   match($0, /^T334_ARTIFACT_STORED:INDEX=[0-9]+/) {
     leg = substr($0, RSTART, RLENGTH)
