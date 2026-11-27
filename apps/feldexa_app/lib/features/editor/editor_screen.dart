@@ -101,6 +101,7 @@ import 'package:feldexa_app/features/editor/editor_runtime.dart';
 import 'package:feldexa_app/features/editor/field_order.dart';
 import 'package:feldexa_app/features/editor/field_value_sheet.dart';
 import 'package:feldexa_app/features/editor/page_state.dart';
+import 'package:feldexa_app/features/editor/page_failure.dart';
 import 'package:feldexa_app/features/editor/page_strip.dart';
 import 'package:feldexa_app/features/editor/page_view.dart';
 import 'package:feldexa_app/features/editor/suggestion_review_panel.dart';
@@ -515,6 +516,32 @@ class EditorScreenState extends State<EditorScreen> {
   PageStateResult? _pageStates;
   LoadedDocument? _loadedDocument;
   core.RevisionContent? _content;
+
+  /// The T123 catalog explanations for every persisted page whose failure
+  /// carries a `REC` key (FR-084). `IMP-006` is excluded: import unreadable
+  /// pages keep their existing T044 warning surface. Unknown keys produce
+  /// no notice instead of an invented explanation.
+  List<PageFailureExplanation> _recognitionFailureNotices(
+    AppLocalizations l10n,
+  ) {
+    final core.RevisionContent? content = _content;
+    if (content == null) {
+      return const <PageFailureExplanation>[];
+    }
+    final List<PageFailureExplanation> notices = <PageFailureExplanation>[];
+    for (final core.Page page in content.pages) {
+      final PageFailureExplanation? notice = explainPageFailure(
+        l10n,
+        pageIndex: page.index,
+        messageKey: page.failure?.messageKey,
+      );
+      if (notice != null) {
+        notices.add(notice);
+      }
+    }
+    return notices;
+  }
+
   String? _analysisStateKey;
   String? _analysisRunId;
   int? _analysisElapsedMs;
@@ -2772,6 +2799,24 @@ class EditorScreenState extends State<EditorScreen> {
                               children: <Widget>[
                                 if (warning != null)
                                   _Imp006Warning(warning: warning),
+                                // T123 (FR-084): every recognition failure
+                                // with a REC catalog key gets its exact
+                                // German catalog explanation and recovery
+                                // guidance here; `IMP-006` keeps its own
+                                // existing warning surface above.
+                                for (final PageFailureExplanation notice
+                                    in _recognitionFailureNotices(l10n))
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      8,
+                                      4,
+                                      8,
+                                      0,
+                                    ),
+                                    child: PageFailureNotice(
+                                      explanation: notice,
+                                    ),
+                                  ),
                                 if (_reviewPanelVisible)
                                   Padding(
                                     padding: const EdgeInsets.fromLTRB(
