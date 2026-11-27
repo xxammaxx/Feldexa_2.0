@@ -777,7 +777,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get createTemplateStructurePending =>
-      'Die Feldstruktur muss zuerst vollständig geprüft sein.';
+      'Die Feldstruktur muss zuerst geprüft sein.';
 
   @override
   String get createTemplateConfirm => 'Vorlage speichern';
@@ -820,4 +820,36 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get templateEditorMoveFieldHint => 'Feld verschieben';
+
+  @override
+  String get recognitionSummaryTitle => 'Vorschläge und Felder';
+
+  @override
+  String recognitionSummaryManual(int count) {
+    return 'Manuell erfasst: $count';
+  }
+
+  @override
+  String recognitionSummaryAdopted(int count) {
+    return 'Übernommene Vorschläge: $count';
+  }
+
+  @override
+  String recognitionSummaryTemplate(int count) {
+    return 'Aus Vorlage übernommen: $count';
+  }
+
+  @override
+  String recognitionSummaryOpen(int count) {
+    return 'Offene Vorschläge: $count';
+  }
+
+  @override
+  String recognitionSummaryUncertain(int count) {
+    return 'davon unsicher: $count';
+  }
+
+  @override
+  String get recognitionSummaryNote =>
+      'Die Erkennung ist unvollständig, bis Sie alle Vorschläge geprüft haben.';
 }

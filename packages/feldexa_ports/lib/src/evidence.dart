@@ -60,6 +60,21 @@ enum EvidenceClass {
   /// Whether this class is produced by an executing runtime.
   bool get isRuntime => this != none;
 
+  /// The structured-log prefix for this class (FR-087; error catalog §9).
+  ///
+  /// The catalog defines exactly one prefix: `[SIMULATED]` for
+  /// [EvidenceClass.simulated]. The other classes derive the same bracket
+  /// shape so a log line can never lose its class label, but only
+  /// `logPrefix == '[SIMULATED]'` is contract-normative.
+  String get logPrefix => '[$label]';
+
+  /// The exact report field line for this class (FR-087; error catalog §9).
+  ///
+  /// For simulated evidence this is exactly `evidenceClass: SIMULATED`, the
+  /// token the catalog requires in test and report output. The token is never
+  /// translated and never merged into an `EMULATOR`/`DEVICE` claim.
+  String get reportFieldLine => 'evidenceClass: $label';
+
   /// Parses a report token or enum name, case-insensitively.
   ///
   /// Throws [FormatException] for unknown values. The exception deliberately
@@ -254,6 +269,27 @@ final class CapabilityEvidence {
   @override
   int get hashCode =>
       Object.hash(evidenceClass, simulated, adapterId, simulatedReason);
+
+  /// The report fields this evidence contributes (FR-087/FR-088).
+  ///
+  /// `evidenceClass` carries only this result's own [EvidenceClass] token; a
+  /// simulated result therefore always reports `SIMULATED` and there is no
+  /// path that upgrades it into `EMULATOR` or `DEVICE`. The adapter id and
+  /// simulated reason are bounded machine tokens validated in the
+  /// constructor, so they are safe report metadata.
+  Map<String, Object?> toReportFields() => <String, Object?>{
+    'evidenceClass': evidenceClass.label,
+    'adapterId': adapterId,
+    if (simulatedReason != null) 'simulatedReason': simulatedReason!,
+  };
+
+  /// One structured-log line for this evidence (FR-087; error catalog §9).
+  ///
+  /// The line is prefixed with the class's [EvidenceClass.logPrefix], for
+  /// simulated evidence exactly `[SIMULATED]`. Callers pass a content-free
+  /// message; document content, OCR text, and field values must never enter
+  /// a log line.
+  String toLogLine(String message) => '${evidenceClass.logPrefix} $message';
 
   /// Redacted identity for logs.
   ///

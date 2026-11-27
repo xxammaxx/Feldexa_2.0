@@ -101,6 +101,8 @@ import 'package:feldexa_app/features/editor/editor_runtime.dart';
 import 'package:feldexa_app/features/editor/field_order.dart';
 import 'package:feldexa_app/features/editor/field_value_sheet.dart';
 import 'package:feldexa_app/features/editor/page_state.dart';
+import 'package:feldexa_app/features/editor/page_failure.dart';
+import 'package:feldexa_app/features/editor/recognition_summary.dart';
 import 'package:feldexa_app/features/editor/page_strip.dart';
 import 'package:feldexa_app/features/editor/page_view.dart';
 import 'package:feldexa_app/features/editor/suggestion_review_panel.dart';
@@ -127,7 +129,7 @@ import 'package:feldexa_export/feldexa_export.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:feldexa_recognition/src/page_analysis.dart' as recognition;
 import 'package:feldexa_ui/feldexa_ui.dart';
-import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode, kIsWeb;
 import 'package:flutter/material.dart' hide PageView;
 
 /// Stable key for a completed first analysis run whose revision was saved.
@@ -247,17 +249,39 @@ const Duration editorAnalysisTimeout = Duration(minutes: 5);
 /// this helper.
 void _analysisDiagnostic(String message) {
   if (kDebugMode) {
-    debugPrint('T071A_DIAG_$message');
+    // T129: every structured diagnostic line carries its evidence class
+    // prefix from the port vocabulary (FR-087). The `T071A_DIAG` marker
+    // stays in the line for the harness greps.
+    debugPrint('${editorEvidenceLogPrefix()} T071A_DIAG_$message');
   }
 }
 
-/// Evidence class written into a Phase A envelope for the current build mode.
+/// Evidence class written into a Phase A envelope for the current build.
 ///
-/// This is deliberately a build-mode label, not hardware detection. It follows
-/// the Phase B1 task decision (`emulator` in debug, `device` in release) and
-/// must never be read as an acceptance claim for either evidence class.
-String editorEvidenceClass({bool debugMode = kDebugMode}) {
-  return debugMode ? 'emulator' : 'device';
+/// The class comes from the `EvidenceClass` port vocabulary (T129, single
+/// source): the SIMULATED shell reports `simulated`, every Android build
+/// reports the Phase B1 build-mode label (`emulator` in debug, `device` in
+/// release). A label must never be read as an acceptance claim for either
+/// evidence class, and a simulated shell can never emit `emulator`/`device`.
+String editorEvidenceClass({bool debugMode = kDebugMode, bool? simulated}) {
+  final bool isSimulated = simulated ?? kIsWeb;
+  if (isSimulated) {
+    return EvidenceClass.simulated.label.toLowerCase();
+  }
+  return (debugMode ? EvidenceClass.emulator : EvidenceClass.device).label
+      .toLowerCase();
+}
+
+/// The structured-log prefix of the current build's evidence class
+/// (T129; FR-087; error catalog §9). A SIMULATED shell logs exactly
+/// `[SIMULATED]`, the one catalog-normative prefix; Android builds derive
+/// the same bracket shape from the port vocabulary.
+String editorEvidenceLogPrefix({bool debugMode = kDebugMode, bool? simulated}) {
+  final bool isSimulated = simulated ?? kIsWeb;
+  if (isSimulated) {
+    return EvidenceClass.simulated.logPrefix;
+  }
+  return (debugMode ? EvidenceClass.emulator : EvidenceClass.device).logPrefix;
 }
 
 /// Maps one T057 recognition failure to the canonical core page failure.
@@ -515,6 +539,21 @@ class EditorScreenState extends State<EditorScreen> {
   PageStateResult? _pageStates;
   LoadedDocument? _loadedDocument;
   core.RevisionContent? _content;
+
+  /// The T123 catalog explanations for every persisted page whose failure
+  /// carries a `REC` key (FR-084), via the shared projection that excludes
+  /// `IMP-006` (its existing T044 warning surface stays the only IMP-006
+  /// rendering).
+  List<PageFailureExplanation> _recognitionFailureNotices(
+    AppLocalizations l10n,
+  ) {
+    final core.RevisionContent? content = _content;
+    if (content == null) {
+      return const <PageFailureExplanation>[];
+    }
+    return recognitionFailureExplanations(l10n, content.pages);
+  }
+
   String? _analysisStateKey;
   String? _analysisRunId;
   int? _analysisElapsedMs;
@@ -2116,6 +2155,15 @@ class EditorScreenState extends State<EditorScreen> {
               entries: fieldOrderEntries(content),
               durabilityStatus: _durabilityStatus,
               lastDurableAt: _lastDurableAt,
+              // T124 (FR-085): the live revision feeds the provenance
+              // summary, so the summary surface distinguishes manual,
+              // adopted, template, and open suggestions at a glance.
+              recognitionSummary: RecognitionSummary(
+                counts: RecognitionSummaryCounts.fromParts(
+                  content.fields,
+                  content.suggestions,
+                ),
+              ),
             ),
           ),
         );
@@ -2772,6 +2820,24 @@ class EditorScreenState extends State<EditorScreen> {
                               children: <Widget>[
                                 if (warning != null)
                                   _Imp006Warning(warning: warning),
+                                // T123 (FR-084): every recognition failure
+                                // with a REC catalog key gets its exact
+                                // German catalog explanation and recovery
+                                // guidance here; `IMP-006` keeps its own
+                                // existing warning surface above.
+                                for (final PageFailureExplanation notice
+                                    in _recognitionFailureNotices(l10n))
+                                  Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      8,
+                                      4,
+                                      8,
+                                      0,
+                                    ),
+                                    child: PageFailureNotice(
+                                      explanation: notice,
+                                    ),
+                                  ),
                                 if (_reviewPanelVisible)
                                   Padding(
                                     padding: const EdgeInsets.fromLTRB(

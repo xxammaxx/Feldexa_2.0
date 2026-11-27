@@ -1323,7 +1323,7 @@ abstract class AppLocalizations {
   /// T115 FR-055: notice shown while the field structure is not fully reviewed.
   ///
   /// In de, this message translates to:
-  /// **'Die Feldstruktur muss zuerst vollständig geprüft sein.'**
+  /// **'Die Feldstruktur muss zuerst geprüft sein.'**
   String get createTemplateStructurePending;
 
   /// T115: confirm action of the Als-Vorlage-speichern sheet.
@@ -1397,6 +1397,48 @@ abstract class AppLocalizations {
   /// In de, this message translates to:
   /// **'Feld verschieben'**
   String get templateEditorMoveFieldHint;
+
+  /// T124 FR-085 document-summary title: names the surface without any completeness claim (error catalog §2).
+  ///
+  /// In de, this message translates to:
+  /// **'Vorschläge und Felder'**
+  String get recognitionSummaryTitle;
+
+  /// T124 FR-085 summary row: fields the user created manually.
+  ///
+  /// In de, this message translates to:
+  /// **'Manuell erfasst: {count}'**
+  String recognitionSummaryManual(int count);
+
+  /// T124 FR-085 summary row: suggestions confirmed by the user (recognition-output §7, provenance machine).
+  ///
+  /// In de, this message translates to:
+  /// **'Übernommene Vorschläge: {count}'**
+  String recognitionSummaryAdopted(int count);
+
+  /// T124 FR-085 summary row: fields inherited from a pinned template version (provenance template).
+  ///
+  /// In de, this message translates to:
+  /// **'Aus Vorlage übernommen: {count}'**
+  String recognitionSummaryTemplate(int count);
+
+  /// T124 FR-085 summary row: suggestions still awaiting a decision; wording uses „Vorschläge“, never a completeness claim (error catalog §2).
+  ///
+  /// In de, this message translates to:
+  /// **'Offene Vorschläge: {count}'**
+  String recognitionSummaryOpen(int count);
+
+  /// T124 FR-083 summary sub-count: open suggestions below the 0.50 uncertainty threshold.
+  ///
+  /// In de, this message translates to:
+  /// **'davon unsicher: {count}'**
+  String recognitionSummaryUncertain(int count);
+
+  /// T124 US8 scenario 5: mandatory no-completeness note on every summary surface (FR-085; error catalog §2).
+  ///
+  /// In de, this message translates to:
+  /// **'Die Erkennung ist unvollständig, bis Sie alle Vorschläge geprüft haben.'**
+  String get recognitionSummaryNote;
 }
 
 class _AppLocalizationsDelegate

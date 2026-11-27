@@ -1033,7 +1033,7 @@
   "@createTemplateExclusionNotice": {
     "description": "T115 FR-057: notice that entered values and signatures are excluded from the saved template."
   },
-  "createTemplateStructurePending": "Die Feldstruktur muss zuerst vollständig geprüft sein.",
+  "createTemplateStructurePending": "Die Feldstruktur muss zuerst geprüft sein.",
   "@createTemplateStructurePending": {
     "description": "T115 FR-055: notice shown while the field structure is not fully reviewed."
   },
@@ -1089,5 +1089,58 @@
   "templateEditorMoveFieldHint": "Feld verschieben",
   "@templateEditorMoveFieldHint": {
     "description": "T116 FR-101: semantics hint for moving a layout field."
+  },
+  "recognitionSummaryTitle": "Vorschläge und Felder",
+  "@recognitionSummaryTitle": {
+    "description": "T124 FR-085 document-summary title: names the surface without any completeness claim (error catalog §2)."
+  },
+  "recognitionSummaryManual": "Manuell erfasst: {count}",
+  "@recognitionSummaryManual": {
+    "description": "T124 FR-085 summary row: fields the user created manually.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recognitionSummaryAdopted": "Übernommene Vorschläge: {count}",
+  "@recognitionSummaryAdopted": {
+    "description": "T124 FR-085 summary row: suggestions confirmed by the user (recognition-output §7, provenance machine).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recognitionSummaryTemplate": "Aus Vorlage übernommen: {count}",
+  "@recognitionSummaryTemplate": {
+    "description": "T124 FR-085 summary row: fields inherited from a pinned template version (provenance template).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recognitionSummaryOpen": "Offene Vorschläge: {count}",
+  "@recognitionSummaryOpen": {
+    "description": "T124 FR-085 summary row: suggestions still awaiting a decision; wording uses „Vorschläge“, never a completeness claim (error catalog §2).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recognitionSummaryUncertain": "davon unsicher: {count}",
+  "@recognitionSummaryUncertain": {
+    "description": "T124 FR-083 summary sub-count: open suggestions below the 0.50 uncertainty threshold.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "recognitionSummaryNote": "Die Erkennung ist unvollständig, bis Sie alle Vorschläge geprüft haben.",
+  "@recognitionSummaryNote": {
+    "description": "T124 US8 scenario 5: mandatory no-completeness note on every summary surface (FR-085; error catalog §2)."
   }
 }
