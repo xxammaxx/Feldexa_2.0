@@ -8,6 +8,7 @@
 import 'dart:math';
 
 import 'package:feldexa_ports/feldexa_ports.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
 
 /// Android UTC wall clock (`ClockPort`).
@@ -68,14 +69,28 @@ final class AndroidIdClient implements IdPort {
 
 /// Content-free on-device diagnostics ring buffer (`DiagnosticsPort`).
 ///
-/// Only scalar values are retained; nested maps, lists, bytes, titles, paths,
-/// and OCR/field text are dropped rather than risking a content leak.
+/// Enforces the `contracts/ports.md` §2.9 whitelist fail-closed: only [Enum]
+/// values, non-negative integer counts/durations, [Duration] values, and
+/// string error codes in a stable machine grammar (catalog code `SAVE-003` or
+/// dotted token `storage.ioError`) are retained. Everything else — free text,
+/// titles, paths, OCR content, field values, signatures, bytes, `null`,
+/// booleans, doubles, nested maps, and lists — is dropped before the event is
+/// buffered. The buffer is size-capped and never transmitted.
 final class AndroidDiagnosticsClient implements DiagnosticsPort {
   AndroidDiagnosticsClient({this.capacity = 256}) {
     if (capacity < 1) {
       throw ArgumentError('capacity must be at least 1');
     }
   }
+
+  /// Catalog error code (`SAVE-003`) or dotted lower-camel machine token
+  /// (`storage.ioError`); free text, paths, and titles never match.
+  static final RegExp _errorCodePattern = RegExp(
+    r'^(?:[A-Z]{2,6}-[0-9]{3}|[a-z][a-zA-Z0-9]*(?:\.[a-z][a-zA-Z0-9]*)+)$',
+  );
+
+  /// Longest string scalar that may be a stable code, never prose.
+  static const int _maxCodeLength = 64;
 
   final int capacity;
   final List<Map<String, Object?>> _events = <Map<String, Object?>>[];
@@ -96,6 +111,11 @@ final class AndroidDiagnosticsClient implements DiagnosticsPort {
   @override
   CapabilityDescriptor get descriptor => _descriptor;
 
+  /// Retained events for verification in tests; content-free by construction.
+  @visibleForTesting
+  List<Map<String, Object?>> get debugEvents =>
+      List<Map<String, Object?>>.unmodifiable(_events);
+
   @override
   void event(
     String code, {
@@ -103,8 +123,8 @@ final class AndroidDiagnosticsClient implements DiagnosticsPort {
   }) {
     final Map<String, Object?> event = <String, Object?>{'code': code};
     for (final MapEntry<String, Object?> entry in scalarFields.entries) {
-      final Object? value = entry.value;
-      if (value == null || value is String || value is num || value is bool) {
+      final Object? value = _whitelistedScalar(entry.value);
+      if (value != null) {
         event[entry.key] = value;
       }
     }
@@ -113,6 +133,25 @@ final class AndroidDiagnosticsClient implements DiagnosticsPort {
     if (_events.length > capacity) {
       _events.removeRange(0, _events.length - capacity);
     }
+  }
+
+  /// Returns the whitelisted representation of a scalar, or `null` to drop it.
+  static Object? _whitelistedScalar(Object? value) {
+    if (value is Enum) {
+      return value.name;
+    }
+    if (value is int) {
+      return value < 0 ? null : value;
+    }
+    if (value is Duration) {
+      return value.inMilliseconds < 0 ? null : value.inMilliseconds;
+    }
+    if (value is String &&
+        value.length <= _maxCodeLength &&
+        _errorCodePattern.hasMatch(value)) {
+      return value;
+    }
+    return null;
   }
 
   @override

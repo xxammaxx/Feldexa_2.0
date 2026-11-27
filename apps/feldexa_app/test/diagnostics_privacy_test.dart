@@ -10,14 +10,19 @@
 //     — the production `AndroidDiagnosticsClient` ring buffer.
 //
 // The client is pure Dart (no platform channel), so the suite runs on the
-// host VM. It feeds content-like payloads that a caller could pass and asserts
-// what is actually retained. One characterization test documents that string
-// scalar fields are retained verbatim (see the finding note in the suite).
+// host VM. It feeds content-like payloads a buggy or malicious caller could
+// pass and inspects the retained events through the test-only `debugEvents`
+// accessor. The assertions pin the exclusion duty (§2.9 whitelist), not the
+// historical behavior: free strings, paths, titles, OCR text, and field
+// values must be gone; enums, counts, durations, and error codes survive.
 
 library;
 
 import 'package:feldexa_adapters_android/feldexa_adapters_android.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+/// Probe enum: a compile-time, content-free scalar that must survive.
+enum _Probe { retained }
 
 void main() {
   test('descriptor declares the on-device scalar-only ring buffer', () {
@@ -42,8 +47,10 @@ void main() {
         'signatureBytes': <int>[1, 2, 3],
       },
     );
+    final Map<String, Object?> event = client.debugEvents.single;
+    expect(event['code'], 'store.saveRevision');
     // Only the stable code and the timestamp survive.
-    expect(client.descriptor.adapterId, 'android.diagnostics.v1');
+    expect(event.keys, unorderedEquals(<String>['code', 'atUtc']));
   });
 
   test('the ring buffer is capped at its capacity', () {
@@ -53,46 +60,93 @@ void main() {
     for (int i = 0; i < 10; i++) {
       client.event('probe.count', scalarFields: <String, Object?>{'n': i});
     }
-    // The capacity constant is the only observable state of the client; the
-    // cap is enforced internally and verified by the constructor bound.
     expect(client.capacity, 4);
+    expect(client.debugEvents, hasLength(4));
+    expect(
+      client.debugEvents.map((Map<String, Object?> event) => event['n']),
+      <int>[6, 7, 8, 9],
+    );
   });
 
   test('clear() empties the on-device buffer without throwing', () async {
     final AndroidDiagnosticsClient client = AndroidDiagnosticsClient();
     client.event('probe.clear', scalarFields: <String, Object?>{'n': 1});
+    expect(client.debugEvents, hasLength(1));
     await client.clear();
+    expect(client.debugEvents, isEmpty);
     // A cleared buffer stays usable.
     client.event('probe.clear', scalarFields: <String, Object?>{'n': 2});
-    expect(client.descriptor.supportedFeatures, isNotEmpty);
+    expect(client.debugEvents, hasLength(1));
   });
 
-  test('CHARACTERIZATION: string scalar fields are retained verbatim, contradicting the class docs', () {
-    // FR-081 forbids file names and recognized text in diagnostics. The
-    // DiagnosticsPort doc places that duty on the caller, but the
-    // AndroidDiagnosticsClient class documentation claims titles and paths
-    // "are dropped rather than risking a content leak". The implementation
-    // accepts and retains every String verbatim in its buffer, so the
-    // documented defense does not exist. The buffer currently has no read
-    // accessor, so this suite cannot demonstrate an exposure channel; the
-    // finding is the docs/behavior mismatch, reported honestly, not fixed
-    // in this slice.
+  test('§2.9 whitelist discards free strings, paths, titles, and OCR text', () {
     final AndroidDiagnosticsClient client = AndroidDiagnosticsClient();
     const String path = '/data/data/de.feldexa.app/files/doc.pdf';
+    const String title = 'Familienname Mustermann';
     const String ocrText = 'Familienname: Mustermann';
-    // A contract-conformant implementation would reject or drop both
-    // values; the current one stores them. The acceptance (not throwing,
-    // not exposing anything itself) is what is observable here.
-    expect(
-      () => client.event(
-        'store.saveRevision',
-        scalarFields: <String, Object?>{
-          'path': path,
-          'ocrText': ocrText,
-          'count': 2,
-        },
-      ),
-      returnsNormally,
+    const String fieldValue = 'Mustermann';
+    const String signature = 'Muster';
+    const String bareTitle = 'mustermann';
+    client.event(
+      'store.saveRevision',
+      scalarFields: <String, Object?>{
+        // Content that FR-081 forbids: must not be retained under any key.
+        'path': path,
+        'title': title,
+        'ocrText': ocrText,
+        'fieldValue': fieldValue,
+        'signatureValue': signature,
+        'bareTitle': bareTitle,
+        // Non-whitelisted scalar types and nested payloads.
+        'nested': <String, Object?>{'titel': title},
+        'lines': <String>[ocrText],
+        'bytes': <int>[1, 2, 3],
+        'nothing': null,
+        'flag': true,
+        'ratio': 0.5,
+        'negative': -1,
+        // Whitelisted values that must survive.
+        'probe': _Probe.retained,
+        'pageCount': 2,
+        'duration': const Duration(milliseconds: 12),
+        'errorCode': 'SAVE-003',
+        'token': 'storage.ioError',
+      },
     );
+
+    final Map<String, Object?> event = client.debugEvents.single;
+    expect(
+      event.keys,
+      unorderedEquals(<String>[
+        'code',
+        'probe',
+        'pageCount',
+        'duration',
+        'errorCode',
+        'token',
+        'atUtc',
+      ]),
+    );
+    expect(event['probe'], 'retained');
+    expect(event['pageCount'], 2);
+    expect(event['duration'], 12);
+    expect(event['errorCode'], 'SAVE-003');
+    expect(event['token'], 'storage.ioError');
+
+    // No retained scalar may carry the smuggled content, under any key.
+    final String flattened = client.debugEvents.toString();
+    for (final String secret in <String>[
+      path,
+      title,
+      ocrText,
+      fieldValue,
+      signature,
+      bareTitle,
+    ]) {
+      expect(flattened, isNot(contains(secret)));
+    }
+    for (final Object? value in event.values) {
+      expect(value, isNot(anyOf(path, title, ocrText, fieldValue, signature)));
+    }
   });
 }
