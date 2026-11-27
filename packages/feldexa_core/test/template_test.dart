@@ -1566,8 +1566,72 @@ void main() {
     // verification) is the input the explicit "Als Vorlage speichern" action
     // feeds into a template save. These tests pin that the template-side
     // snapshot models keep the layout (FR-056) and cannot carry the filled
-    // part (FR-057), so a use case that passes the document shape through the
-    // template constructors cannot leak values or signatures by construction.
+    // part (FR-057). The last test drives a REAL filled `RevisionContent`
+    // with entered values and a captured signature (value + mark) through the
+    // save shape, so the exclusion is proven on the actual document model,
+    // not only on constructor echoes.
+    test('a real filled RevisionContent with a captured signature saves as a '
+        'layout-only template shape (FR-056, FR-057)', () {
+      final ConfirmedField textField = _field(order: 0, label: 'Familienname');
+      final ConfirmedField signatureField = _field(
+        order: 1,
+        type: FieldType.signature,
+        label: 'Unterschrift',
+      );
+      final String assetId = _uuid(61);
+      final DateTime capturedAt = _at(5);
+      final RevisionContent filled = RevisionContent(
+        pages: _pages(),
+        fields: <ConfirmedField>[textField, signatureField],
+        fieldOrder: <String>[textField.id, signatureField.id],
+        values: <String, FieldValue>{
+          textField.id: TextValue(text: 'Musterfrau', lastEditedAt: capturedAt),
+          signatureField.id: SignatureValue(
+            signatureAssetId: assetId,
+            lastEditedAt: capturedAt,
+          ),
+        },
+        signatures: <String, SignatureMark>{
+          signatureField.id: SignatureMark(
+            assetId: assetId,
+            fieldId: signatureField.id,
+            pageIndex: 0,
+            rect: signatureField.rect,
+            widthPx: 320,
+            heightPx: 160,
+            capturedAt: capturedAt,
+            sha256: _sha256,
+          ),
+        },
+        verification: <String, FieldVerification>{
+          textField.id: FieldVerification(
+            state: FieldVerificationState.confirmed,
+            reviewedAt: capturedAt,
+          ),
+        },
+      );
+      expect(filled.values, hasLength(2));
+      expect(filled.signatures, hasLength(1));
+
+      // The save shape takes only pages and confirmed fields; the filled
+      // part (values, signature value, signature mark, verification) is
+      // structurally dropped, and the signature asset id never enters the
+      // template payload.
+      final TemplateVersionContent saved = TemplateVersionContent(
+        pageSnapshot: filled.pages,
+        fieldSnapshot: filled.fields,
+        fieldOrder: filled.fieldOrder,
+      );
+      final String canonical = canonicalJsonEncode(saved.toJson());
+      expect(canonical.contains('Musterfrau'), isFalse);
+      expect(canonical.contains(assetId), isFalse);
+      expect(canonical.contains('signatureAssetId'), isFalse);
+      expect(
+        saved.fieldSnapshot.map((ConfirmedField field) => field.type),
+        contains(FieldType.signature),
+      );
+    });
+
     test('a filled document snapshot saves as pages plus field definitions '
         '(FR-056)', () {
       final ConfirmedField machineField = _field(
