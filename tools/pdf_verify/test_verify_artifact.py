@@ -56,6 +56,25 @@ class ParseTest(unittest.TestCase):
         self.assertFalse(ok)
 
 
+class GeometryFailureTest(unittest.TestCase):
+    def test_page_count_mismatch_fails(self) -> None:
+        report = va.Report(source="s", artifact="a")
+        with mock.patch.object(va.shutil, "which", return_value="/usr/bin/pdfinfo"), \
+             mock.patch.object(va, "pdf_pages", side_effect=[2, 1]):
+            va.check_geometry(report, SOURCE, ARTIFACT)
+        self.assertEqual("FAIL", rows(report)["page geometry"].status)
+
+    def test_truncated_parse_is_partial(self) -> None:
+        report = va.Report(source="s", artifact="a")
+        with mock.patch.object(va.shutil, "which", return_value="/usr/bin/pdfinfo"), \
+             mock.patch.object(va, "pdf_pages", return_value=2), \
+             mock.patch.object(
+                 va, "page_sizes", side_effect=[[(595.0, 842.0, 0)] * 2, [(595.0, 842.0, 0)]]
+             ):
+            va.check_geometry(report, SOURCE, ARTIFACT)
+        self.assertEqual("PARTIAL", rows(report)["page geometry"].status)
+
+
 class SourceIntegrityTest(unittest.TestCase):
     def test_match_and_mismatch(self) -> None:
         report = va.Report(source="s", artifact="a")
@@ -68,18 +87,31 @@ class SourceIntegrityTest(unittest.TestCase):
 
 class PrintabilityTest(unittest.TestCase):
     def test_second_engine_runs_and_can_fail(self) -> None:
+        def ok(cmd, timeout=120):
+            target = cmd[cmd.index("-o") + 1] if "-o" in cmd else f"{cmd[-1]}.png"
+            Path(target).write_bytes(b"png")
+            return mock.Mock(returncode=0, stdout="", stderr="")
+
+        def fail(cmd, timeout=120):
+            return mock.Mock(returncode=1, stdout="", stderr="boom")
+
+        state = {"n": 0}
+
+        def poppler_then_fail(cmd, timeout=120):
+            state["n"] += 1
+            return ok(cmd) if state["n"] == 1 else fail(cmd)
+
         report = va.Report(source="s", artifact="a")
-        ok = mock.Mock(returncode=0, stdout="", stderr="")
-        fail = mock.Mock(returncode=1, stdout="", stderr="boom")
         with mock.patch.object(va.shutil, "which", return_value="/usr/bin/tool"), \
              mock.patch.object(va, "pdf_pages", return_value=1), \
-             mock.patch.object(va, "run", side_effect=[ok, fail]):
+             mock.patch.object(va, "run", new=poppler_then_fail):
             va.check_printability(report, ARTIFACT, 300)
         self.assertEqual("FAIL", rows(report)["printability"].status)
+
         report = va.Report(source="s", artifact="a")
         with mock.patch.object(va.shutil, "which", return_value="/usr/bin/tool"), \
              mock.patch.object(va, "pdf_pages", return_value=1), \
-             mock.patch.object(va, "run", side_effect=[ok, ok]):
+             mock.patch.object(va, "run", new=ok):
             va.check_printability(report, ARTIFACT, 300)
         self.assertEqual("PASS", rows(report)["printability"].status)
 

@@ -10,7 +10,7 @@ never invents a PASS.
 What it verifies without extra inputs
 -------------------------------------
 * page count and page-size sequence (order proxy) against the source PDF,
-* per-page MediaBox/CropBox/rotation equality within 0.01 pt,
+* per-page MediaBox size and page rotation equality within 0.01 pt,
 * absence of ``/AcroForm`` and ``/Widget`` in the artifact bytes,
 * text extraction and German glyph presence,
 * a 150 dpi render of page 1 and 300 dpi renders of every page (Poppler; MuPDF
@@ -154,6 +154,13 @@ def check_geometry(report: Report, source: Path, artifact: Path) -> None:
         return
     src = page_sizes(source, source_pages)
     art = page_sizes(artifact, artifact_pages)
+    if len(src) != source_pages or len(art) != artifact_pages:
+        report.add(
+            "page geometry",
+            "PARTIAL",
+            f"pdfinfo reported {len(src)}/{len(art)} page sizes for {source_pages} pages",
+        )
+        return
     equal, detail = sizes_equal(src, art)
     if equal:
         report.add(
@@ -162,8 +169,6 @@ def check_geometry(report: Report, source: Path, artifact: Path) -> None:
             f"{source_pages} pages, sizes and rotations equal within "
             f"{GEOMETRY_TOLERANCE_PT} pt (pdfinfo MediaBox/rot)",
         )
-    elif len(src) != source_pages or len(art) != artifact_pages:
-        report.add("page geometry", "PARTIAL", detail)
     else:
         report.add("page geometry", "FAIL", detail)
 
@@ -201,6 +206,20 @@ def check_interactive_controls(report: Report, artifact: Path) -> None:
         info = run(["pdfinfo", str(artifact)]).stdout
         match = re.search(r"^Form:\s+(.+)$", info, re.M)
         form_line = match.group(1).strip() if match else ""
+    if not shutil.which("pdfinfo"):
+        if acroform == 0 and widget == 0:
+            report.add(
+                "no interactive controls",
+                "PARTIAL",
+                "byte scan found no /AcroForm or /Widget; pdfinfo unavailable, so no structural cross-check",
+            )
+        else:
+            report.add(
+                "no interactive controls",
+                "FAIL",
+                f"/AcroForm x{acroform}, /Widget x{widget}",
+            )
+        return
     structural_says_none = form_line.lower() in {"none", ""}
     if acroform == 0 and widget == 0 and structural_says_none:
         report.add(
@@ -305,8 +324,11 @@ def check_printability(report: Report, artifact: Path, dpi: int) -> None:
             )
             return
         for page in range(1, pages + 1):
-            proc = run([mutool, "draw", "-r", str(dpi), "-o", f"{tmp}/m{page:03d}.png",
-                        str(artifact), str(page)], timeout=300)
+            proc = run(
+                [mutool, "draw", "-r", str(dpi), "-o", f"{tmp}/m{page:03d}.png",
+                 str(artifact), str(page)],
+                timeout=300,
+            )
             if proc.returncode != 0:
                 report.add(
                     "printability",
@@ -314,6 +336,14 @@ def check_printability(report: Report, artifact: Path, dpi: int) -> None:
                     f"MuPDF failed on page {page} at {dpi} dpi: {proc.stderr.strip()[:160]}",
                 )
                 return
+        rendered = [p for p in Path(tmp).glob("*") if p.stat().st_size > 0]
+        if len(rendered) < 2 * pages:
+            report.add(
+                "printability",
+                "FAIL",
+                f"only {len(rendered)} non-empty renders for {pages} pages x 2 engines",
+            )
+            return
     report.add(
         "printability",
         "PASS",
@@ -412,6 +442,35 @@ def build_report(
     except (ValueError, OSError, subprocess.SubprocessError) as exc:
         report.add("input readable", "FAIL", f"source PDF unreadable: {exc}")
         return report
+    try:
+        pdf_pages(artifact)
+    except (ValueError, OSError, subprocess.SubprocessError) as exc:
+        report.add("input readable", "FAIL", f"artifact not a readable PDF: {exc}")
+        return report
+    def guarded(check: str, run_check) -> None:
+        try:
+            run_check()
+        except Exception as exc:  # noqa: BLE001 - a crashed row must not become a traceback
+            report.add(check, "FAIL", f"check crashed: {type(exc).__name__}: {exc}")
+
+    guarded("structural validity", lambda: check_structural(report))
+    guarded("page count and order", lambda: check_page_count(report, source, artifact))
+    guarded("page geometry", lambda: check_geometry(report, source, artifact))
+    guarded("no interactive controls", lambda: check_interactive_controls(report, artifact))
+    guarded("text content", lambda: check_text(report, artifact, expectations))
+    guarded("original appearance", lambda: check_render(report, artifact))
+    guarded("no clipping", lambda: check_clipping(report))
+    guarded("checkbox states", lambda: check_marks(report, expectations, "checkbox"))
+    guarded("signatures", lambda: check_marks(report, expectations, "signature"))
+    guarded("value placement", lambda: check_placement(report, artifact, expectations))
+    guarded("printability", lambda: check_printability(report, artifact, print_dpi))
+    guarded("source integrity", lambda: check_source_integrity(report, source, expected_sha))
+    report.add(
+        "artifact isolation",
+        "NOT_RUN",
+        "task-owned: a failed export must leave no artifact (T108/T334 driver)",
+    )
+    return report
     try:
         pdf_pages(artifact)
     except (ValueError, OSError, subprocess.SubprocessError) as exc:
