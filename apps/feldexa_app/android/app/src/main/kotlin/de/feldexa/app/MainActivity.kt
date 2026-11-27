@@ -244,6 +244,13 @@ class MainActivity : FlutterActivity(), SensitiveRouteHost {
             File(cacheDir, ExportArtifactStore.DIRECTORY_NAME).absoluteFile,
         )
         runCatching { exportArtifacts.ensureDirectory() }
+        if (isDebuggableBuild()) {
+            // T108 failure test: content-free counts of the session artifact
+            // directory and a real owner-write fault for the IO-failure leg.
+            ImportTestHooks.setArtifactDirectory(
+                File(cacheDir, ExportArtifactStore.DIRECTORY_NAME).absoluteFile,
+            )
+        }
         plugin.registerService(
             "export",
             PdfExportService(
