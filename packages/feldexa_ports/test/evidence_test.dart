@@ -248,6 +248,55 @@ void main() {
       );
     });
   });
+
+  group('T129 structured logs and report fields (FR-087, catalog §9)', () {
+    test('the simulated log prefix is exactly the catalog token', () {
+      expect(EvidenceClass.simulated.logPrefix, '[SIMULATED]');
+      expect(EvidenceClass.simulated.label, 'SIMULATED');
+    });
+
+    test('the simulated report field line is exactly the catalog token', () {
+      expect(
+        EvidenceClass.simulated.reportFieldLine,
+        'evidenceClass: SIMULATED',
+      );
+    });
+
+    test('every class reports its own token; no class merges into another', () {
+      for (final EvidenceClass value in EvidenceClass.values) {
+        expect(value.logPrefix, '[${value.label}]');
+        expect(value.reportFieldLine, 'evidenceClass: ${value.label}');
+        expect(EvidenceClass.parse(value.label), value);
+      }
+      expect(
+        EvidenceClass.simulated.label,
+        isNot(EvidenceClass.emulator.label),
+      );
+      expect(EvidenceClass.simulated.label, isNot(EvidenceClass.device.label));
+    });
+
+    test('simulated evidence reports evidenceClass SIMULATED only', () {
+      final Map<String, Object?> fields = CapabilityEvidence.simulated(
+        adapterId: 'web.sim.ocr.v1',
+        simulatedReason: 'fixture.deterministic',
+      ).toReportFields();
+      expect(fields['evidenceClass'], 'SIMULATED');
+      expect(fields.containsValue('EMULATOR'), isFalse);
+      expect(fields.containsValue('DEVICE'), isFalse);
+    });
+
+    test('structured log lines carry the class prefix', () {
+      final CapabilityEvidence evidence = CapabilityEvidence.simulated(
+        adapterId: 'web.sim.storage.v1',
+      );
+      expect(evidence.toLogLine('staged import'), '[SIMULATED] staged import');
+      expect(
+        CapabilityEvidence.android(adapterId: 'android.pdfbox.v1')
+            .toLogLine('export'),
+        isNot(startsWith('[SIMULATED]')),
+      );
+    });
+  });
 }
 
 void _expectSafeArgumentError(void Function() action, String forbidden) {
