@@ -45,8 +45,9 @@ Doku-Nachtrag.
   durch den separaten Pull+SHA-256-Vergleich oben geschlossen — beide Belege zusammen
   belegen Flow **und** installierte APK-Identität auf dem Kandidaten.
 - `bbae22d` ändert keinen kompilierten Produktcode (Kommentare, Test, YAML-Kommentar,
-  Doku/Artifacts); die installierte APK gilt damit für den PR-Head modulo der Docs-Commits
-  (Commit 2 fügt nur diesen Report und README-Zeilen hinzu).
+  Doku/Artifacts); der Doku-Commit `ce8fd20` (vierter Commit) fügt nur diesen Report und
+  die README-Zeilen hinzu; die installierte APK gilt damit für den PR-Head modulo der
+  Docs-Commits.
 
 ## 3. Host-Gates (Kandidat `bbae22d`)
 
@@ -76,3 +77,29 @@ Doku-Nachtrag.
 - Owner-Entscheidung zu #335 (Optionen A/B/C/D) steht aus — die Vorlage ist dafür der Input.
 - Die beiden Residuale (Signatur-Bilduntergrenze, multiline-Vertikalregel) sind dokumentiert,
   aber nicht als Filterverhalten umgesetzt (bewusst, §1).
+
+## 6. Korrektur 1 (2026-11-27, nach Review A/B auf `ce8fd20`)
+
+Reviews: `run-tscn02hu/reports/release/reviews/2026-11-27-pr359-full-a-ce8fd20.md`
+(Verdict „OK with notes“, kein P0/P1) und `…pr359-full-b-ce8fd20.md` (dito). Umgesetzte
+Findings:
+
+- **A-P2/B-P2 Typentabelle** (`2026-11-26-t335-decision.md`): `text` 35 → **33**, `date`
+  3 → **5** (kanonische Totals; die Real-Spalten 11/5 standen bereits richtig).
+- **A-P2/B-P2 Seitentabelle + Attribution** (`artifacts/2026-11-27-t335/suggestions.md`):
+  die defekte `## je Seite`-Tabelle (`None | 0 | {}`) ist aus den `pages`-Feldern des JSON
+  neu abgeleitet (18/37, inkl. Inventarspalten); die Kopfzeile sagt jetzt, dass das
+  Werkzeug nur das JSON schreibt und dieses MD eine Ableitung ist; die README-Zeile
+  begrenzt die Byte-Reproduktion auf das JSON.
+- **A-P3 Vertragsreferenz**: `fillable_geometry.dart` nennt für die multiline-Vertikalregel
+  jetzt §3.1 statt §3.1/§3.4; der „pinned by"-Claim im `admitsValueOfType`-Kommentar ist
+  auf das tatsächlich Gepinnte (Schema-Kopplung + 7.1/3.0/4.0-Zulassungskanten)
+  präzisiert.
+- **A-P3 Commit-Bezug**: dieser Report nennt `ce8fd20` (vierter Commit) als den
+  Doku-Commit statt „Commit 2".
+
+Gültigkeit der Gates: die Korrektur ändert nur Markdown und Kommentare in
+`fillable_geometry.dart` — kein kompiliertes Verhalten, die Flow-Datei ist unberührt;
+Receipt (`bbae22d`, Flow `84715a2d…`) und APK-Identität (`ff2a43ef…`) tragen weiter.
+Host-Gates nach der Korrektur erneut ausgeführt: Format/Analyse 0, Fokussuite
+`fillable_geometry_test.dart` grün, Paket-Suite 411/411 (Zahlen im Commit).

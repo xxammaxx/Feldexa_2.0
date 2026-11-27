@@ -69,8 +69,9 @@
 //
 // A second residual: for `multiline` only the baseline rule below is derived.
 // The normative vertical rule `lines.length × lineHeightPt ≤ rect.height − 3.0`
-// (`export-plan.md` §3.1/§3.4, implemented as the `EXP-001`/`too_many_lines`
-// check in `layout.dart`) is not derived here, so a multiline rect with
+// (`export-plan.md` §3.1 padding with the multiline block check, implemented as
+// the `EXP-001`/`too_many_lines` check in `layout.dart`) is not derived here, so
+// a multiline rect with
 // `7.1 ≤ height < 11.4` (one line at the 7.0 pt minimum font, 8.4 pt line
 // height, minus the 3.0 pt padding) passes this filter and can still block the
 // export. "A candidate that cannot is not offered" therefore holds for the
@@ -111,9 +112,10 @@ const double minCheckboxSidePt = 4;
 /// [proposedType] is one of `SuggestionSchema.proposedTypes`. Types without a
 /// derived minimum (today only `signature`) are always admitted, so a new type
 /// is never silently dropped by this rule. The known residuals — the
-/// `signature` image floor of `layout.dart` and the `multiline` vertical
-/// `too_many_lines` rule — are documented in the library header and pinned by
-/// `fillable_geometry_test.dart`; they are not enforced here.
+/// `signature` image floor of `layout.dart` and the multiline vertical
+/// `too_many_lines` rule — are documented in the library header but are not
+/// enforced here; `fillable_geometry_test.dart` pins the schema-token coupling
+/// and the 7.1/3.0/4.0 admission edges, not the residual edges.
 bool admitsValueOfType({
   required DisplayRect rect,
   required String proposedType,

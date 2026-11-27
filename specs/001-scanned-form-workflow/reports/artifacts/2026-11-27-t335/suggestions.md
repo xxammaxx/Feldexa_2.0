@@ -1,7 +1,8 @@
 # T335 — Vorschlagsinventar `sf-001` (Neumessung 2026-11-27, maschinenlesbar erzeugt)
 
-Erzeugt aus `suggestions.json` durch `tools/evaluation/t335_suggestion_inventory.dart`;
-diese Markdown-Datei ist eine Ableitung derselben Zahlen, keine zweite Quelle.
+Aus `suggestions.json` abgeleitet (das Werkzeug
+`tools/evaluation/t335_suggestion_inventory.dart` schreibt nur das JSON); diese
+Markdown-Datei ist eine Ableitung derselben Zahlen, keine zweite Quelle.
 
 - Basis: `origin/main` = `5aa93cf` (enthält `a12afc9`); Erstlauf-Stand: `../2026-11-26-t335/` (Basis `8196e04`)
 - Fixture: `sf-001` (2 Seiten, `apps/feldexa_app/assets/fixtures/sf-001.pdf`, SHA-256 `22c939cc…a038`)
@@ -44,12 +45,14 @@ Typfehler auf den echten Feldern: **7**
 | `s_p1_0029` | `p1-betrag-4` | `number` | `text` | None |
 | `s_p1_0036` | `p1-unterschrift` | `signature` | `text` | None |
 
+
 ## je Seite
 
-| Seite | Vorschläge | Kategorien |
-| --- | --- | --- |
-| None | 0 | {} |
-| None | 0 | {} |
+| Seite | deklarierte Felder | Kandidaten | Inventar (Feldkandidaten) | Inventar-Ausschlüsse | Vorschläge | Felder ohne Vorschlag |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | 13 | 22 | 19 (16) | 3 | **18** | [] |
+| 1 | 10 | 42 | 37 (32) | 5 | **37** | [] |
+
 
 ## Option A (nur `FieldInventory.fieldCandidates` anbieten)
 
