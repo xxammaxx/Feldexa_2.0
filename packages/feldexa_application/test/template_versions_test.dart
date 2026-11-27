@@ -10,7 +10,6 @@
 // derived document loadable (FR-060, the T119 base); failures report exact
 // catalog codes.
 
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart' as crypto;
