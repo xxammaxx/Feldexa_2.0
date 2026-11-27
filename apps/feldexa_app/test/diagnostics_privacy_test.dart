@@ -87,6 +87,12 @@ void main() {
     const String fieldValue = 'Mustermann';
     const String signature = 'Muster';
     const String bareTitle = 'mustermann';
+    const String documentName = 'document.pdf';
+    const String scanName = 'scan.jpg';
+    const String sourceName = 't115.pdf';
+    const String dottedPath = 'home.user.file';
+    const String personToken = 'max.mustermann';
+    final String tooLongToken = 'x.${List<String>.filled(63, 'a').join()}';
     client.event(
       'store.saveRevision',
       scalarFields: <String, Object?>{
@@ -97,6 +103,13 @@ void main() {
         'fieldValue': fieldValue,
         'signatureValue': signature,
         'bareTitle': bareTitle,
+        // File names and dotted paths never match the catalog-code lane.
+        'fileName': documentName,
+        'scanName': scanName,
+        'sourceName': sourceName,
+        'dottedPath': dottedPath,
+        'personToken': personToken,
+        'tooLongToken': tooLongToken,
         // Non-whitelisted scalar types and nested payloads.
         'nested': <String, Object?>{'titel': title},
         'lines': <String>[ocrText],
@@ -105,12 +118,13 @@ void main() {
         'flag': true,
         'ratio': 0.5,
         'negative': -1,
+        'negativeDuration': const Duration(milliseconds: -1),
         // Whitelisted values that must survive.
         'probe': _Probe.retained,
         'pageCount': 2,
         'duration': const Duration(milliseconds: 12),
         'errorCode': 'SAVE-003',
-        'token': 'storage.ioError',
+        'warningCode': 'IMP-005',
       },
     );
 
@@ -123,7 +137,7 @@ void main() {
         'pageCount',
         'duration',
         'errorCode',
-        'token',
+        'warningCode',
         'atUtc',
       ]),
     );
@@ -131,7 +145,7 @@ void main() {
     expect(event['pageCount'], 2);
     expect(event['duration'], 12);
     expect(event['errorCode'], 'SAVE-003');
-    expect(event['token'], 'storage.ioError');
+    expect(event['warningCode'], 'IMP-005');
 
     // No retained scalar may carry the smuggled content, under any key.
     final String flattened = client.debugEvents.toString();
@@ -142,11 +156,59 @@ void main() {
       fieldValue,
       signature,
       bareTitle,
+      documentName,
+      scanName,
+      sourceName,
+      dottedPath,
+      personToken,
+      tooLongToken,
     ]) {
       expect(flattened, isNot(contains(secret)));
     }
     for (final Object? value in event.values) {
       expect(value, isNot(anyOf(path, title, ocrText, fieldValue, signature)));
     }
+  });
+
+  test('event codes and field names are stable identifiers only', () {
+    final AndroidDiagnosticsClient client = AndroidDiagnosticsClient();
+    final String tooLongCode = 'save.${List<String>.filled(60, 'a').join()}';
+    for (final String contentCode in <String>[
+      '/data/data/de.feldexa.app/files/doc.pdf',
+      'document.pdf',
+      'scan.jpg',
+      't115.pdf',
+      'home.user.file',
+      'max.mustermann',
+      'Familienname Mustermann',
+      'unknownNamespace.event',
+      'save.completed.extra.deep.more',
+      tooLongCode,
+    ]) {
+      client.event(
+        contentCode,
+        scalarFields: <String, Object?>{'pageCount': 1},
+      );
+    }
+    expect(client.debugEvents, isEmpty);
+
+    // A stable single-segment code from a known namespace stays accepted.
+    client.event('probe', scalarFields: <String, Object?>{'pageCount': 1});
+    expect(client.debugEvents.single['code'], 'probe');
+    expect(client.debugEvents.single['pageCount'], 1);
+
+    client.clear();
+    client.event(
+      'save.completed',
+      scalarFields: <String, Object?>{
+        '/data/data/de.feldexa.app/files/doc.pdf': 1,
+        'document.pdf': 2,
+        'max.mustermann': 3,
+        'pageCount': 4,
+      },
+    );
+    final Map<String, Object?> event = client.debugEvents.single;
+    expect(event.keys, unorderedEquals(<String>['code', 'pageCount', 'atUtc']));
+    expect(event['pageCount'], 4);
   });
 }

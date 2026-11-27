@@ -69,13 +69,15 @@ final class AndroidIdClient implements IdPort {
 
 /// Content-free on-device diagnostics ring buffer (`DiagnosticsPort`).
 ///
-/// Enforces the `contracts/ports.md` §2.9 whitelist fail-closed: only [Enum]
-/// values, non-negative integer counts/durations, [Duration] values, and
-/// string error codes in a stable machine grammar (catalog code `SAVE-003` or
-/// dotted token `storage.ioError`) are retained. Everything else — free text,
-/// titles, paths, OCR content, field values, signatures, bytes, `null`,
-/// booleans, doubles, nested maps, and lists — is dropped before the event is
-/// buffered. The buffer is size-capped and never transmitted.
+/// Enforces the `contracts/ports.md` §2.9 whitelist fail-closed: an event is
+/// retained only under a stable event code in a known namespace; a field
+/// entry only under a stable single-segment field name; and a value only as an
+/// [Enum] name, non-negative integer count/duration, non-negative [Duration]
+/// (stored as milliseconds), or catalog error code (`SAVE-003`). Everything
+/// else — free text, file names, titles, paths, OCR content, field values,
+/// signatures, bytes, `null`, booleans, doubles, nested maps, and lists — is
+/// dropped before the event is buffered. The buffer is size-capped and never
+/// transmitted.
 final class AndroidDiagnosticsClient implements DiagnosticsPort {
   AndroidDiagnosticsClient({this.capacity = 256}) {
     if (capacity < 1) {
@@ -83,14 +85,76 @@ final class AndroidDiagnosticsClient implements DiagnosticsPort {
     }
   }
 
-  /// Catalog error code (`SAVE-003`) or dotted lower-camel machine token
-  /// (`storage.ioError`); free text, paths, and titles never match.
-  static final RegExp _errorCodePattern = RegExp(
-    r'^(?:[A-Z]{2,6}-[0-9]{3}|[a-z][a-zA-Z0-9]*(?:\.[a-z][a-zA-Z0-9]*)+)$',
+  /// Stable catalog error code (`SAVE-003`); free text, titles, paths, file
+  /// names, and dotted tokens never match this scalar lane.
+  static final RegExp _errorCodePattern = RegExp(r'^[A-Z]{2,6}-[0-9]{3}$');
+
+  /// Stable event-code namespaces accepted by this ring buffer. Unknown
+  /// namespaces are dropped fail-closed instead of becoming a free-text lane.
+  static const Set<String> _eventCodeNamespaces = <String>{
+    'app',
+    'analysis',
+    'delivery',
+    'diagnostics',
+    'editor',
+    'export',
+    'import',
+    'lifecycle',
+    'operation',
+    'probe',
+    'raster',
+    'recognition',
+    'review',
+    'save',
+    'store',
+    'template',
+  };
+
+  /// Dotted lower-camel event code (`save.completed`, `store.saveRevision`).
+  static final RegExp _eventCodePattern = RegExp(
+    r'^[a-z][a-zA-Z0-9]*(?:\.[a-z][a-zA-Z0-9]*){0,3}$',
   );
 
-  /// Longest string scalar that may be a stable code, never prose.
+  /// Single stable field name, never a path or a dotted file name.
+  static final RegExp _fieldNamePattern = RegExp(r'^[a-z][a-zA-Z0-9_]*$');
+
+  /// Longest diagnostic code, key, or string scalar, never prose.
   static const int _maxCodeLength = 64;
+
+  /// File-extension segments that mark a value as a file name or a path.
+  ///
+  /// Mirrors the `CapabilityEvidence` deny-list: a file name is not a stable
+  /// diagnostic code even when it is lowercase.
+  static const Set<String> _contentExtensionSegments = <String>{
+    'pdf',
+    'png',
+    'jpg',
+    'jpeg',
+    'gif',
+    'webp',
+    'heic',
+    'txt',
+    'json',
+    'xml',
+    'csv',
+    'doc',
+    'docx',
+    'eml',
+    'zip',
+    'fx1',
+  };
+
+  static bool _hasContentExtensionSegment(String value) =>
+      value.split('.').any(_contentExtensionSegments.contains);
+
+  static bool _isStableEventCode(String code) {
+    if (code.length > _maxCodeLength ||
+        !_eventCodePattern.hasMatch(code) ||
+        _hasContentExtensionSegment(code)) {
+      return false;
+    }
+    return _eventCodeNamespaces.contains(code.split('.').first);
+  }
 
   final int capacity;
   final List<Map<String, Object?>> _events = <Map<String, Object?>>[];
@@ -111,7 +175,7 @@ final class AndroidDiagnosticsClient implements DiagnosticsPort {
   @override
   CapabilityDescriptor get descriptor => _descriptor;
 
-  /// Retained events for verification in tests; content-free by construction.
+  /// Test-only read accessor for the retained, content-free events.
   @visibleForTesting
   List<Map<String, Object?>> get debugEvents =>
       List<Map<String, Object?>>.unmodifiable(_events);
@@ -121,11 +185,20 @@ final class AndroidDiagnosticsClient implements DiagnosticsPort {
     String code, {
     Map<String, Object?> scalarFields = const <String, Object?>{},
   }) {
+    if (!_isStableEventCode(code)) {
+      return; // Fail-closed: no event without a stable content-free code.
+    }
     final Map<String, Object?> event = <String, Object?>{'code': code};
     for (final MapEntry<String, Object?> entry in scalarFields.entries) {
+      final String key = entry.key;
+      if (key.length > _maxCodeLength ||
+          !_fieldNamePattern.hasMatch(key) ||
+          _hasContentExtensionSegment(key)) {
+        continue; // No free-form field names in the buffer.
+      }
       final Object? value = _whitelistedScalar(entry.value);
       if (value != null) {
-        event[entry.key] = value;
+        event[key] = value;
       }
     }
     event['atUtc'] = DateTime.now().toUtc().toIso8601String();
