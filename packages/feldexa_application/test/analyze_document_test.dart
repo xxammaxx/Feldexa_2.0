@@ -278,6 +278,21 @@ RasterAnalysis _stallsOnFirstFixturePage(GrayRaster raster) {
   return RasterAnalysis(raster);
 }
 
+/// Stalls only the fixture page whose ink sits at row 101.
+///
+/// The sibling of [_stallsOnFirstFixturePage]: page 1 of the two-page
+/// fixtures is `_underlinePage(top: 100)`, so a page-1 stall leaves page 0
+/// finished and lets the cancellation tests target the second page.
+RasterAnalysis _stallsOnSecondFixturePage(GrayRaster raster) {
+  if (raster.isInkAt(150, 101)) {
+    final int spinUntil = DateTime.now().millisecondsSinceEpoch + 3000;
+    while (DateTime.now().millisecondsSinceEpoch < spinUntil) {
+      // Busy worker: only the cancellation or the deadline can end it.
+    }
+  }
+  return RasterAnalysis(raster);
+}
+
 void main() {
   test(
     'an underline page with a Betrag label yields one typed suggestion',
@@ -1280,5 +1295,184 @@ void main() {
     );
     expect(shuffled.pages[0].canonicalJson(), forward.pages[0].canonicalJson());
     expect(shuffled.pages[1].canonicalJson(), forward.pages[1].canonicalJson());
+  });
+
+  test(
+    'a cancellation stops the in-flight page long before its deadline',
+    () async {
+      final Completer<void> cancellation = Completer<void>();
+      final _FakeRaster raster = _FakeRaster(
+        <int, _RasterSpec>{1: _underlinePage(top: 100)},
+        onRendered: (int pageIndex) {
+          Timer(const Duration(milliseconds: 100), () {
+            if (!cancellation.isCompleted) {
+              cancellation.complete();
+            }
+          });
+        },
+      );
+
+      final Stopwatch clock = Stopwatch()..start();
+      final DocumentAnalysisResult result = await AnalyzeDocument.run(
+        _request(raster: raster, pages: <DocumentAnalysisPage>[_page(1)]),
+        rasterAnalysis: _stallsOnSecondFixturePage,
+        pageDeadline: const Duration(seconds: 10),
+        cancellation: cancellation.future,
+      );
+      clock.stop();
+
+      // The page stays pending: no envelope, no failure, no timeout.
+      expect(result.cancelledPageIndexes, <int>[1]);
+      expect(result.timedOutPageIndexes, isEmpty);
+      expect(result.pages, isEmpty);
+      expect(result.isComplete, isFalse);
+      // A 3 s stall against a 10 s deadline: only the cancellation can end
+      // this page early.
+      expect(clock.elapsedMilliseconds, lessThan(2000));
+    },
+    timeout: const Timeout(Duration(seconds: 30)),
+  );
+
+  test(
+    'a cancellation of a later page leaves the finished page byte-identical',
+    () async {
+      final DocumentAnalysisResult baseline = await AnalyzeDocument.run(
+        _request(
+          raster: _FakeRaster(<int, _RasterSpec>{
+            0: _underlinePage(),
+            1: _underlinePage(top: 100),
+            2: _underlinePage(top: 100),
+          }),
+          pages: <DocumentAnalysisPage>[_page(0), _page(1), _page(2)],
+        ),
+        pageDeadline: const Duration(seconds: 30),
+      );
+
+      final Completer<void> cancellation = Completer<void>();
+      final _FakeRaster raster = _FakeRaster(
+        <int, _RasterSpec>{
+          0: _underlinePage(),
+          1: _underlinePage(top: 100),
+          2: _underlinePage(top: 100),
+        },
+        onRendered: (int pageIndex) {
+          if (pageIndex == 1) {
+            Timer(const Duration(milliseconds: 100), () {
+              if (!cancellation.isCompleted) {
+                cancellation.complete();
+              }
+            });
+          }
+        },
+      );
+
+      final Stopwatch clock = Stopwatch()..start();
+      final DocumentAnalysisResult result = await AnalyzeDocument.run(
+        _request(
+          raster: raster,
+          pages: <DocumentAnalysisPage>[_page(0), _page(1), _page(2)],
+        ),
+        rasterAnalysis: _stallsOnSecondFixturePage,
+        pageDeadline: const Duration(seconds: 10),
+        cancellation: cancellation.future,
+      );
+      clock.stop();
+
+      // The finished page is untouched; the cancelled page and the pages that
+      // were never started stay pending and are reported, never failed.
+      expect(result.cancelledPageIndexes, <int>[1, 2]);
+      expect(result.pages.single.pageIndex, 0);
+      expect(
+        result.pages.single.canonicalJson(),
+        baseline.pages[0].canonicalJson(),
+      );
+      expect(
+        raster.requests.map((RasterRequest request) => request.pageIndex),
+        <int>[0, 1],
+      );
+      expect(clock.elapsedMilliseconds, lessThan(2000));
+    },
+    timeout: const Timeout(Duration(seconds: 30)),
+  );
+
+  test(
+    'the inline execution observes cancellation at its checkpoints',
+    () async {
+      final DocumentAnalysisResult baseline = await AnalyzeDocument.run(
+        _request(
+          raster: _FakeRaster(<int, _RasterSpec>{
+            0: _underlinePage(),
+            1: _underlinePage(top: 100),
+          }),
+          pages: <DocumentAnalysisPage>[_page(0), _page(1)],
+        ),
+        execution: RecognitionExecution.inline,
+      );
+
+      final Completer<void> cancellation = Completer<void>();
+      final _FakeRaster raster = _FakeRaster(
+        <int, _RasterSpec>{0: _underlinePage(), 1: _underlinePage(top: 100)},
+        onRendered: (int pageIndex) {
+          if (pageIndex == 1) {
+            cancellation.complete();
+          }
+        },
+      );
+
+      final DocumentAnalysisResult result = await AnalyzeDocument.run(
+        _request(
+          raster: raster,
+          pages: <DocumentAnalysisPage>[_page(0), _page(1)],
+        ),
+        execution: RecognitionExecution.inline,
+        cancellation: cancellation.future,
+      );
+
+      // The single-isolate mode cannot preempt work, but the page boundary and
+      // the pre-stage checkpoint are observed: page 1 never dispatches its
+      // geometry stage, and page 0 keeps its baseline projection.
+      expect(result.cancelledPageIndexes, <int>[1]);
+      expect(result.pages.single.pageIndex, 0);
+      expect(
+        result.pages.single.canonicalJson(),
+        baseline.pages[0].canonicalJson(),
+      );
+    },
+  );
+
+  test('a never-completing cancellation signal changes no page', () async {
+    final Completer<void> cancellation = Completer<void>();
+    final _FakeRaster raster = _FakeRaster(<int, _RasterSpec>{
+      0: _underlinePage(),
+      1: _underlinePage(top: 100),
+    });
+    final List<DocumentAnalysisPage> pages = <DocumentAnalysisPage>[
+      _page(0),
+      _page(1),
+    ];
+
+    final DocumentAnalysisResult plain = await AnalyzeDocument.run(
+      _request(
+        raster: _FakeRaster(<int, _RasterSpec>{
+          0: _underlinePage(),
+          1: _underlinePage(top: 100),
+        }),
+        pages: pages,
+      ),
+    );
+    final DocumentAnalysisResult watched = await AnalyzeDocument.run(
+      _request(raster: raster, pages: pages),
+      cancellation: cancellation.future,
+    );
+
+    expect(watched.cancelledPageIndexes, isEmpty);
+    expect(watched.timedOutPageIndexes, isEmpty);
+    expect(watched.pages, hasLength(plain.pages.length));
+    for (int index = 0; index < plain.pages.length; index++) {
+      expect(
+        watched.pages[index].canonicalJson(),
+        plain.pages[index].canonicalJson(),
+      );
+    }
   });
 }

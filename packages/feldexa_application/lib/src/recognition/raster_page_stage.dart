@@ -175,6 +175,7 @@ final class RasterPageStageOutcome {
     required this.failureCategory,
     required this.discardedSuggestions,
     required this.timedOut,
+    required this.cancelled,
   });
 
   /// A complete outcome with the §5.2-ordered suggestion maps.
@@ -186,6 +187,7 @@ final class RasterPageStageOutcome {
       failureCategory: null,
       discardedSuggestions: 0,
       timedOut: false,
+      cancelled: false,
     );
   }
 
@@ -201,6 +203,7 @@ final class RasterPageStageOutcome {
          failureCategory: _checkedCategory(category),
          discardedSuggestions: discardedSuggestions,
          timedOut: false,
+         cancelled: false,
        );
 
   /// The `internal` failure of a page whose stage run outlived its deadline.
@@ -215,6 +218,22 @@ final class RasterPageStageOutcome {
         failureCategory: PageAnalysisFailure.internal,
         discardedSuggestions: 0,
         timedOut: true,
+        cancelled: false,
+      );
+
+  /// A cancelled outcome: no envelope, no failure, no partial suggestion.
+  ///
+  /// This is the existing cancelled-page category of `page_analysis.dart`
+  /// (REC-004): the caller keeps the page pending and never reports it as
+  /// failed. The worker was ended before it could return an outcome, so no
+  /// partial work survives.
+  RasterPageStageOutcome.cancelled()
+    : this._(
+        suggestions: const <Map<String, Object?>>[],
+        failureCategory: null,
+        discardedSuggestions: 0,
+        timedOut: false,
+        cancelled: true,
       );
 
   /// Section 2 suggestion maps; empty for a failed outcome.
@@ -229,8 +248,17 @@ final class RasterPageStageOutcome {
   /// Whether the per-page deadline, not the stage itself, ended this run.
   final bool timedOut;
 
+  /// Whether a caller cancellation, not the stage itself, ended this run.
+  final bool cancelled;
+
   /// Whether the stage produced no terminal suggestion set.
   bool get isFailed => failureCategory != null;
+
+  /// Whether a caller cancellation ended this run before any outcome.
+  ///
+  /// A cancelled run is neither complete nor failed: the page stays pending
+  /// (`recognition-output.md` §4, REC-004).
+  bool get isCancelled => cancelled;
 
   /// The §4 failure object for a failed outcome, or null when complete.
   PageAnalysisFailure? get failure {
@@ -248,7 +276,8 @@ final class RasterPageStageOutcome {
   String toString() =>
       'RasterPageStageOutcome(failureCategory: $failureCategory, '
       'suggestions: ${suggestions.length}, '
-      'discardedSuggestions: $discardedSuggestions, timedOut: $timedOut)';
+      'discardedSuggestions: $discardedSuggestions, timedOut: $timedOut, '
+      'cancelled: $cancelled)';
 }
 
 String _checkedCategory(String category) {
