@@ -346,7 +346,7 @@ def capture_print_preview(mode: str) -> None:
         drawn = any(
             "reportedDrawn=true" in block
             or "mVisible=true" in block
-            or "state=RESUMED" in block
+            or ("state=RESUMED" in block and "windows=" in block and "windows=[]" not in block)
             for block in print_blocks
         )
         if spooler and drawn:
@@ -357,6 +357,10 @@ def capture_print_preview(mode: str) -> None:
             timeout=30,
         )
         time.sleep(2)
+    if not spooler:
+        fail("no print-spooler/PrintActivity activity was found for the print preview")
+    if not drawn:
+        fail("the print-preview dialog never reported a drawn/resumed PrintActivity")
     (out / "print-preview-activities.txt").write_text(activity, encoding="utf-8")
     print_jobs = subprocess.run(
         [ADB, "-s", SERIAL, "shell", "dumpsys", "print"],
@@ -404,10 +408,6 @@ def capture_print_preview(mode: str) -> None:
         + "\n",
         encoding="utf-8",
     )
-    if not spooler:
-        fail("no print-spooler/PrintActivity activity was found for the print preview")
-    if not drawn:
-        fail("the print-preview dialog never reported a drawn/resumed PrintActivity")
     log("DRIVER: print preview activity and screenshot captured")
 
 

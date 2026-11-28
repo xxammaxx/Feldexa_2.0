@@ -7,7 +7,7 @@
 
 ## Result in one sentence
 
-The completion wave closes the three open lanes with honest status: the T110
+The completion wave records honest status for the three open lanes: the T110
 functional print checks pass on `emulator-5554` (artifact picked up at 12,029
 bytes, T105 harness 7 PASS / 0 FAIL / 6 NOT_RUN, Poppler vs MuPDF 0.41 % /
 0.47 % per page) while the visual preview proof is `NOT_PROVEN` — T110 stays

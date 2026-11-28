@@ -196,7 +196,8 @@ independence, template deletion).
 
 ## Artifacts
 
-T110 receipts and the preview screenshot live in
+T110 receipts, the named black preview frame and the failed-recapture log
+(`rerun-2026-11-28-emulator-5556.log`) live in
 `reports/artifacts/2026-11-27-t110-print/`; the picked-up PDF and engine
 renders were deleted by the driver after verification. No device data or host
 paths are stored (driver privacy check PASS).
