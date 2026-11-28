@@ -297,8 +297,21 @@ def capture_print_preview(mode: str) -> None:
             timeout=120,
         ).stdout
         spooler = "com.android.printspooler" in activity or "PrintActivity" in activity
-        if spooler:
+        # The spooler activity may exist before its frame is drawn; a screenshot
+        # taken then is a uniform black frame (measured 2026-11-28). Wait for a
+        # drawn/visible print activity and keep the screen awake first.
+        drawn = (
+            "reportedDrawn=true" in activity
+            or "mVisible=true" in activity
+            or "state=RESUMED" in activity
+        )
+        if spooler and drawn:
             break
+        subprocess.run(
+            [ADB, "-s", SERIAL, "shell", "input", "keyevent", "KEYCODE_WAKEUP"],
+            capture_output=True,
+            timeout=30,
+        )
         time.sleep(2)
     (out / "print-preview-activities.txt").write_text(activity, encoding="utf-8")
     print_jobs = subprocess.run(
@@ -317,6 +330,24 @@ def capture_print_preview(mode: str) -> None:
     screenshot.write_bytes(shot.stdout)
     if len(shot.stdout) < 10_000:
         fail("the print-preview screenshot is suspiciously small")
+    # A uniform frame is not a preview proof (the 2026-11-28 run captured the
+    # known 15,580-byte black frame before the spooler drew). ImageMagick is a
+    # declared tool of this driver; a missing tool or a single-colour image
+    # fails closed instead of shipping a black "beleg".
+    identify = shutil.which("identify")
+    if not identify:
+        fail("ImageMagick identify is required to validate the print-preview screenshot")
+    colors = subprocess.run(
+        [identify, "-format", "%k", str(screenshot)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    color_count = colors.stdout.strip()
+    if colors.returncode != 0 or not color_count.isdigit():
+        fail("could not read the print-preview screenshot colour count")
+    if int(color_count) <= 1:
+        fail("print-preview screenshot is a uniform frame, not a visual proof")
     (out / "print-preview-proof.txt").write_text(
         "print_activity_present="
         + ("1" if spooler else "0")

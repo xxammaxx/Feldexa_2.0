@@ -1,4 +1,0 @@
-head=a49efd1f2f8038c91b5fcbfa98d2c7c727838406
-tree=0df2f327cc64732c2721cc9dafb0f45ba067f90f
-branch=xxammaxx/t110-t146-drive
-subject=test(driver): add web integration driver entrypoint

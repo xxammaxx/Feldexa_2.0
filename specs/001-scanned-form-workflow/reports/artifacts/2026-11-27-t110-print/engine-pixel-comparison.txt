@@ -1,6 +1,0 @@
-pages=2
-dpi=300
-fuzz_percent=5
-max_diff_percent=2.0
-page=1 differing_pixels=35545 total_pixels=8703348 diff_percent=0.4084
-page=2 differing_pixels=41261 total_pixels=8703348 diff_percent=0.4741

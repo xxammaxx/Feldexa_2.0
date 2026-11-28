@@ -1,3 +1,0 @@
-print_activity_present=1
-screenshot_bytes=15580
-screenshot_sha256=c35bacdb98b522206335afa5b9baffd2e4e3352a40749bb747e469cd403af514
