@@ -15,6 +15,8 @@ import 'dart:typed_data';
 
 import 'package:feldexa_application/src/recognition/raster_page_stage.dart';
 import 'package:feldexa_application/src/recognition/raster_page_stage_runner.dart';
+import 'package:feldexa_application/src/recognition/raster_page_stage_runner_inline.dart'
+    as inline;
 import 'package:feldexa_recognition/src/page_analysis.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -132,6 +134,64 @@ void main() {
       expect(outcome.isFailed, isFalse);
     },
   );
+
+  test('a failing cancellation signal is observed, not a zone error', () async {
+    // The observer is bound before the spawn; a signal that fails immediately
+    // must yield the cancelled outcome and must not surface as an unhandled
+    // future error (a zone error would fail this test).
+    final RasterPageStageOutcome outcome = await runRasterPageStageOffIsolate(
+      _task(),
+      work: (RasterPageStageTask task) =>
+          RasterPageStageOutcome.complete(<Map<String, Object?>>[
+            <String, Object?>{'id': 's_never'},
+          ]),
+      cancellation: Future<void>.error(StateError('cancelled by caller')),
+    );
+
+    expect(outcome.isCancelled, isTrue);
+    expect(outcome.suggestions, isEmpty);
+    expect(outcome.isFailed, isFalse);
+    expect(outcome.timedOut, isFalse);
+  });
+
+  group('inline runner parity', () {
+    test('an already-failed signal yields the cancelled outcome', () async {
+      final RasterPageStageOutcome outcome = await inline
+          .runRasterPageStageOffIsolate(
+            _task(),
+            work: (RasterPageStageTask task) =>
+                RasterPageStageOutcome.complete(<Map<String, Object?>>[
+                  <String, Object?>{'id': 's_never'},
+                ]),
+            cancellation: Future<void>.error(StateError('cancelled by caller')),
+          );
+
+      expect(outcome.isCancelled, isTrue);
+      expect(outcome.suggestions, isEmpty);
+      expect(outcome.isFailed, isFalse);
+    });
+
+    test(
+      'a signal completing during the synchronous work drops the result',
+      () async {
+        final Completer<void> cancellation = Completer<void>();
+        final RasterPageStageOutcome outcome = await inline
+            .runRasterPageStageOffIsolate(
+              _task(),
+              work: (RasterPageStageTask task) {
+                cancellation.complete();
+                return RasterPageStageOutcome.complete(<Map<String, Object?>>[
+                  <String, Object?>{'id': 's_dropped'},
+                ]);
+              },
+              cancellation: cancellation.future,
+            );
+
+        expect(outcome.isCancelled, isTrue);
+        expect(outcome.suggestions, isEmpty);
+      },
+    );
+  });
 
   test('without a cancellation the projection is unchanged', () async {
     RasterPageStageOutcome work(RasterPageStageTask task) {

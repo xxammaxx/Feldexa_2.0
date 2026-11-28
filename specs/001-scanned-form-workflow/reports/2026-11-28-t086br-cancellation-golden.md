@@ -6,7 +6,7 @@
 | Result | `PASS` for the two delivered host checks (T086B-R point 5, golden consumption); point 9 stays `NOT_RUN` (device/emulator lane, §7) |
 | Tasks / issues | T086B-R `#270` — remainder point 5 plus the T264A golden-consumption proof |
 | Date / timezone | `2026-11-28 Europe/Berlin` |
-| Revision | base `56c76c1cffe1c94afd641edeb5426715b6cb7a69` (`origin/main` at start, fetched); worktree HEAD after the candidate commits is named in §2 |
+| Revision | base `56c76c1cffe1c94afd641edeb5426715b6cb7a69` (`origin/main` at start, fetched); candidate HEAD `11856c71530da3a2986525de0fc2351ce331deac` (2 commits; the review-correction commits follow and are docs/test-only) |
 | Worktree | `run-tscn02hu/worktrees/t086br-cancel-golden`, branch `xxammaxx/t086br-cancel-golden` |
 | Product-code changes | 4 recognition files, 2 test files, 1 new host checker and 1 new host test; no port, no schema, no envelope field, no detector, no typing change |
 | Golden / threshold changes | **none**. `tools/evaluation/goldens/field-inventory-baseline.v1.json` is unchanged and consumed read-only (`508ed9beed5a3844aa3ce101d378f7243b47e259cbcda72a412bbe6067f205e6`) |
@@ -50,8 +50,15 @@ p50/p95/memory — is explicitly **not** part of this slice and stays `NOT_RUN`
   - `7e43b821f1d5e2abcc9f5c5a6aed59a8ccb698bd` — point 5: cancellation
     observation in the VM runner, the inline runner, the stage outcome and
     `AnalyzeDocument`, plus the RED-first tests.
-  - the commit that carries this report — golden consumption: the checker, its
-    host test, this report and the README index row.
+  - `11856c71530da3a2986525de0fc2351ce331deac` — golden consumption: the
+    checker, its host test, this report and the README index row.
+  - Correction after the two independent reviews: the VM cancellation observer
+    is now bound **before** `Isolate.spawn` (a signal that fails during the
+    spawn await is observed, not surfaced as a zone error, and the spawn catch
+    reports `cancelled()` when the signal won), plus a failing-signal test and
+    two inline-runner cancellation tests (an already-failed signal and a signal
+    completing during the synchronous work). Focused runner + document suites:
+    46/46.
 - Build command: `flutter pub get` in the worktree (host, cached). No APK/AAB,
   no code generation, no golden and no threshold touched.
 

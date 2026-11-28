@@ -94,6 +94,30 @@ Future<RasterPageStageOutcome> runRasterPageStageOffIsolate(
   // the exit listener is registered before the worker can exit and the two
   // messages stay ordered per sender.
   final ReceivePort replies = ReceivePort();
+  final Completer<Object?> terminal = Completer<Object?>();
+  bool cancellationWon = false;
+  if (cancellation != null) {
+    // Bind the observer before the spawn await: a signal that completes (or
+    // fails) while the isolate is still being spawned must be observed here,
+    // otherwise Dart reports the unhandled error through the zone and the
+    // spawn catch would misreport it as an internal failure.
+    unawaited(
+      cancellation.then<void>(
+        (void _) {
+          cancellationWon = true;
+          if (!terminal.isCompleted) {
+            terminal.complete(const _Cancelled());
+          }
+        },
+        onError: (Object _) {
+          cancellationWon = true;
+          if (!terminal.isCompleted) {
+            terminal.complete(const _Cancelled());
+          }
+        },
+      ),
+    );
+  }
   final Isolate worker;
   try {
     worker = await Isolate.spawn<_RasterPageStageMessage>(
@@ -106,13 +130,15 @@ Future<RasterPageStageOutcome> runRasterPageStageOffIsolate(
     );
   } catch (_) {
     replies.close();
+    if (cancellationWon) {
+      return RasterPageStageOutcome.cancelled();
+    }
     return RasterPageStageOutcome.failed(
       category: PageAnalysisFailure.internal,
     );
   }
 
   final Completer<void> workerGone = Completer<void>();
-  final Completer<Object?> terminal = Completer<Object?>();
   final StreamSubscription<Object?> subscription = replies.listen(
     (Object? message) {
       if (message is RasterPageStageOutcome) {
@@ -144,27 +170,9 @@ Future<RasterPageStageOutcome> runRasterPageStageOffIsolate(
       terminal.complete(const _DeadlineElapsed());
     }
   });
-  if (cancellation != null) {
-    // The signal is a caller-side decision: it is observed in the calling
-    // isolate and translates into an immediate kill, so the worker never needs
-    // to poll anything. Both a value and an error complete the race, and the
-    // error is swallowed because it cannot change the page outcome.
-    unawaited(
-      cancellation.then<void>(
-        (void _) {
-          if (!terminal.isCompleted) {
-            terminal.complete(const _Cancelled());
-          }
-        },
-        onError: (Object _) {
-          if (!terminal.isCompleted) {
-            terminal.complete(const _Cancelled());
-          }
-        },
-      ),
-    );
-  }
-
+  // The signal observer was bound before the spawn: a caller-side decision
+  // translates into an immediate kill after the race, so the worker never
+  // needs to poll anything. Both a value and an error count as cancellation.
   try {
     final Object? message = await terminal.future;
     if (message is RasterPageStageOutcome) {
