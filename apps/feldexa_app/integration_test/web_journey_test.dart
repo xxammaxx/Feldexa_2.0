@@ -1,11 +1,9 @@
 // T128 Chrome editing journey (FR-086; US9 Independent Test) — entry test.
 //
-// EVIDENCE CLASS: NONE on this lane. The real Chrome journey run is
-// NOT_RUN: the browser lane on this host is blocked by the documented
-// Chrome-for-Testing hang
-// (`run-tscn02hu/reports/findings/2026-11-27-flutter-browser-lane-hang.md`,
-// T121 briefing). Per that finding and the T128 briefing, the browser run
-// was NOT retried and this file makes no browser claim. What is delivered
+// EVIDENCE CLASS: NONE on this lane; on `emulator-5554` the same file is
+// EMULATOR evidence. The real Chrome journey runs from the `test/`-rooted
+// mirror `test/web_journey_browser_entry_test.dart` (1/1 PASS on Chrome for
+// Testing 156, 2026-11-28). What is delivered
 // here is the host-VM entry test over the shipped editing-journey widgets:
 // the same seams the Chrome journey drives (banner, page display and
 // navigation, field selection, geometry move/resize, review decisions), so

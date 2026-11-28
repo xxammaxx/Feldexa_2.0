@@ -1,10 +1,10 @@
 // T132 browser/Android geometry parity (FR-089; CHK011) — Android-side lane.
 //
-// EVIDENCE CLASS: NONE on the host-VM lane (this run); on `emulator-5554`
-// the same file is EMULATOR evidence. The browser half of the parity check
-// is NOT_RUN (documented Chrome-for-Testing lane hang,
-// `run-tscn02hu/reports/findings/2026-11-27-flutter-browser-lane-hang.md`,
-// T121 briefing); no partial Playwright substitute was attempted.
+// EVIDENCE CLASS: NONE on the host-VM lane; on `emulator-5554` the same file
+// is EMULATOR evidence. The browser half of the parity check runs from the
+// `test/`-rooted mirror `test/geometry_parity_browser_entry_test.dart`
+// (2/2 PASS on Chrome for Testing 156, 2026-11-28). Byte-level parity of a
+// PDFium-rendered page stays NOT_RUN (documented).
 //
 // FR-089 parity seam, measured here: field geometry is computed in
 // page-display points, never in device pixels. The gesture contract maps a

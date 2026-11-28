@@ -391,6 +391,19 @@ sock.close()
 PY
 }
 
+fixture_server_serves_catalogue() {
+  # A reused server must answer a known committed fixture with 200 and the
+  # expected PDF magic; anything else is a foreign listener.
+  "$PYTHON_BIN" - "$FIXTURE_SERVER_PORT" <<'PY' >/dev/null 2>&1
+import sys, urllib.request
+port = int(sys.argv[1])
+url = f"http://127.0.0.1:{port}/fixtures/sf-001.pdf"
+with urllib.request.urlopen(url, timeout=2) as response:
+    body = response.read(5)
+    raise SystemExit(0 if response.status == 200 and body.startswith(b"%PDF-") else 1)
+PY
+}
+
 # The fixture-reading browser suites (`web_import_browser_entry_test.dart`,
 # `web_recognition_browser_entry_test.dart`) fetch `/fixtures/...` from the
 # loopback mirror over `dart:html.HttpRequest`. The Chrome lane has no dev
@@ -401,9 +414,17 @@ PY
 start_fixture_server() {
   FIXTURE_SERVER_PID=""
   if fixture_server_port_open; then
-    printf 'reusing the fixture server already listening on 127.0.0.1:%s\n' \
-      "$FIXTURE_SERVER_PORT"
-    return 0
+    # Do not adopt a foreign listener blindly: it must serve the committed
+    # fixture catalogue, otherwise a stale/other-worktree server would make
+    # the browser check green for the wrong root.
+    if fixture_server_serves_catalogue; then
+      printf 'reusing the fixture server already listening on 127.0.0.1:%s\n' \
+        "$FIXTURE_SERVER_PORT"
+      return 0
+    fi
+    printf 'port %s is in use but does not serve the committed fixture catalogue; stop the foreign listener\n' \
+      "$FIXTURE_SERVER_PORT" >&2
+    return 1
   fi
   "$DART_BIN" run tools/corpus/synthetic/serve_web_fixtures.dart \
     --root "$FIXTURE_SERVER_ROOT" --port "$FIXTURE_SERVER_PORT" \

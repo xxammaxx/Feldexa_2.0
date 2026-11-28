@@ -10,9 +10,12 @@
 // driver. `flutter test --platform chrome` cannot compile a test file outside
 // `test/` directly: its generated entrypoint imports
 // `org-dartlang-app:///../integration_test/...` and the browser test server
-// does not serve that path. The committed helper
-// `test/web_import_browser_entry_test.dart` is a relative symlink to this file,
-// so the browser runner compiles this exact journey. The working command is:
+// does not serve that path. The committed host/browser copy
+// `test/web_import_browser_entry_test.dart` carries the identical suite (the
+// T062 "no symlink" rule; `flutter_test_config.dart` refuses symlinked roots),
+// so the browser runner compiles the same journey from `test/`. The headless
+// browser lane was unblocked on 2026-11-28 (test bootstrap `kIsWeb` guard);
+// the working command is:
 //
 //   dart run tools/corpus/synthetic/serve_web_fixtures.dart \
 //     --root apps/feldexa_app/web --port 8765
@@ -128,19 +131,20 @@ void main() {
       final SimulatedFixtureCatalog catalog = await _loadCatalog();
 
       expect(catalog.catalogVersion, 'fixtures-1.1.0');
-      expect(catalog.fixtures, hasLength(7));
+      expect(catalog.fixtures, hasLength(8));
       expect(catalog.ids, <String>[
         'sf-001',
         'sf-002',
         'sf-003',
         'sf-004',
+        'sf-005',
         'sf-protected',
         'sf-truncated',
         'sf-not-a-pdf',
       ]);
       expect(
         catalog.fixtures.where((SimulatedFixture value) => value.isImportable),
-        hasLength(4),
+        hasLength(5),
       );
       expect(catalog.fixture('sf-003').pageCount, 5);
       expect(catalog.fixture('sf-003').role, SimulatedFixtureRole.geometry);

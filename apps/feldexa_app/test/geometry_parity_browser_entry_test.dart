@@ -17,9 +17,11 @@
 // the committed point rectangle for the same gesture must be identical on
 // the browser (CSS px, DPR 1) and on Android (DPR 2.0/2.6/3.5) lanes.
 //
-// This file proves exactly that: identical gestures at identical scales
-// commit byte-identical `FieldGeometryChange` rectangles across every
-// platform/density case, and a rendered page (the Android PDFium path) is
+// This file proves the point-space parity claim: per-lane device-pixel
+// gesture inputs are converted back through the lane DPR, and the committed
+// `FieldGeometryChange` rectangles match the independent point expectations
+// (quantization bounded to one device pixel). Byte-level parity of a
+// PDFium-rendered page is NOT_RUN; and a rendered page (the Android PDFium path) is
 // treated as the same page-display geometry contract as a browser page —
 // same committed display size, same layout rectangle, same gesture result.
 

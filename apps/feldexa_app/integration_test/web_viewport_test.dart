@@ -1,11 +1,10 @@
 // T131 viewport, responsive-layout, and accessibility-semantics test
 // (US9 scenario 5; FR-091; SC-015).
 //
-// EVIDENCE CLASS: NONE on the host-VM lane (this run). The equivalent
-// Chrome-browser viewport pass is NOT_RUN: the browser lane on this host is
-// blocked by the documented Chrome-for-Testing hang
-// (`run-tscn02hu/reports/findings/2026-11-27-flutter-browser-lane-hang.md`,
-// T121 briefing); it was not retried.
+// EVIDENCE CLASS: NONE on the host-VM lane; on `emulator-5554` the same file
+// is EMULATOR evidence. The Chrome-browser viewport pass runs from the
+// `test/`-rooted mirror `test/web_viewport_browser_entry_test.dart` (3/3 PASS
+// on Chrome for Testing 156, 2026-11-28; the T062 lane constraint).
 //
 // What is asserted, and only that, on the shipped widgets:
 //   * the header surfaces (`SimulatedBanner`, page-failure notice, review
