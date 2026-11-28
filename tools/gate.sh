@@ -84,7 +84,9 @@ Checks:
      *_test.dart present)
   5. app unit/widget tests (flutter test in apps/feldexa_app)
   6. SIMULATED app browser/interaction tests (flutter test --platform chrome
-     in apps/feldexa_app)
+     in apps/feldexa_app); the check starts the loopback fixture server
+     (tools/corpus/synthetic/serve_web_fixtures.dart, port 8765) for the
+     fixture-reading suites and stops it afterwards
   7. SIMULATED browser integration tests (integration_test/web_*_test.dart)
      via flutter drive with chromedriver and test_driver/integration_test.dart;
      non-browser integration tests are reported as NOT RUN because they belong
@@ -165,11 +167,17 @@ else
 fi
 
 CHROMEDRIVER_PID=""
+FIXTURE_SERVER_PID=""
 cleanup() {
   if [ -n "${CHROMEDRIVER_PID:-}" ] && kill -0 "$CHROMEDRIVER_PID" 2>/dev/null; then
     kill "$CHROMEDRIVER_PID" 2>/dev/null || true
     wait "$CHROMEDRIVER_PID" 2>/dev/null || true
   fi
+  if [ -n "${FIXTURE_SERVER_PID:-}" ] && kill -0 "$FIXTURE_SERVER_PID" 2>/dev/null; then
+    kill "$FIXTURE_SERVER_PID" 2>/dev/null || true
+    wait "$FIXTURE_SERVER_PID" 2>/dev/null || true
+  fi
+  FIXTURE_SERVER_PID=""
   if [ "${CLEANUP_RUN_DIR:-0}" -eq 1 ]; then
     rm -rf "$RUN_DIR"
   fi
@@ -369,12 +377,100 @@ check_app_unit_tests() {
   )
 }
 
+FIXTURE_SERVER_PORT=8765
+FIXTURE_SERVER_ROOT=apps/feldexa_app/web
+
+fixture_server_port_open() {
+  # `/dev/tcp` is a bash compile-time feature and is absent in some builds;
+  # probe with the python3 the gate already requires instead.
+  "$PYTHON_BIN" - "$FIXTURE_SERVER_PORT" <<'PY' >/dev/null 2>&1
+import socket, sys
+port = int(sys.argv[1])
+sock = socket.create_connection(("127.0.0.1", port), timeout=0.5)
+sock.close()
+PY
+}
+
+fixture_server_serves_catalogue() {
+  # A reused server must answer a known committed fixture with 200 and the
+  # expected PDF magic; anything else is a foreign listener.
+  "$PYTHON_BIN" - "$FIXTURE_SERVER_PORT" <<'PY' >/dev/null 2>&1
+import sys, urllib.request
+port = int(sys.argv[1])
+url = f"http://127.0.0.1:{port}/fixtures/sf-001.pdf"
+with urllib.request.urlopen(url, timeout=2) as response:
+    body = response.read(5)
+    raise SystemExit(0 if response.status == 200 and body.startswith(b"%PDF-") else 1)
+PY
+}
+
+# The fixture-reading browser suites (`web_import_browser_entry_test.dart`,
+# `web_recognition_browser_entry_test.dart`) fetch `/fixtures/...` from the
+# loopback mirror over `dart:html.HttpRequest`. The Chrome lane has no dev
+# server, so the browser check starts the committed static server for the
+# duration of the run; without it those suites fail on `ProgressEvent`
+# (2026-11-28 browser-lane report §4). The server serves the source tree, is
+# loopback-only, and is killed with the check (and by the EXIT trap).
+start_fixture_server() {
+  FIXTURE_SERVER_PID=""
+  if fixture_server_port_open; then
+    # Do not adopt a foreign listener blindly: it must serve the committed
+    # fixture catalogue, otherwise a stale/other-worktree server would make
+    # the browser check green for the wrong root.
+    if fixture_server_serves_catalogue; then
+      printf 'reusing the fixture server already listening on 127.0.0.1:%s\n' \
+        "$FIXTURE_SERVER_PORT"
+      return 0
+    fi
+    printf 'port %s is in use but does not serve the committed fixture catalogue; stop the foreign listener\n' \
+      "$FIXTURE_SERVER_PORT" >&2
+    return 1
+  fi
+  "$DART_BIN" run tools/corpus/synthetic/serve_web_fixtures.dart \
+    --root "$FIXTURE_SERVER_ROOT" --port "$FIXTURE_SERVER_PORT" \
+    >"$RUN_DIR/fixture-server.log" 2>&1 &
+  FIXTURE_SERVER_PID=$!
+  local i
+  for i in $(seq 1 80); do
+    if ! kill -0 "$FIXTURE_SERVER_PID" 2>/dev/null; then
+      cat "$RUN_DIR/fixture-server.log" >&2 2>/dev/null || true
+      FIXTURE_SERVER_PID=""
+      return 1
+    fi
+    if fixture_server_port_open; then
+      return 0
+    fi
+    sleep 0.25
+  done
+  cat "$RUN_DIR/fixture-server.log" >&2 2>/dev/null || true
+  kill "$FIXTURE_SERVER_PID" 2>/dev/null || true
+  wait "$FIXTURE_SERVER_PID" 2>/dev/null || true
+  FIXTURE_SERVER_PID=""
+  return 1
+}
+
+stop_fixture_server() {
+  if [ -n "${FIXTURE_SERVER_PID:-}" ] && kill -0 "$FIXTURE_SERVER_PID" 2>/dev/null; then
+    kill "$FIXTURE_SERVER_PID" 2>/dev/null || true
+    wait "$FIXTURE_SERVER_PID" 2>/dev/null || true
+  fi
+  FIXTURE_SERVER_PID=""
+}
+
 check_app_browser_tests() {
+  local rc=0
+  if ! start_fixture_server; then
+    printf 'fixture server did not become ready on 127.0.0.1:%s\n' \
+      "$FIXTURE_SERVER_PORT" >&2
+    return 1
+  fi
   (
     cd apps/feldexa_app || exit 1
     CHROME_EXECUTABLE="$CHROME_BIN" \
       "$FLUTTER_BIN" "${FLUTTER_FLAGS[@]}" test --no-pub --platform chrome
-  )
+  ) || rc=$?
+  stop_fixture_server
+  return "$rc"
 }
 
 BROWSER_INTEGRATION_FILES=()
