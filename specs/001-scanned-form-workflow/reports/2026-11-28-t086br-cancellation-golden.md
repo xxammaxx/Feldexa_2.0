@@ -6,7 +6,7 @@
 | Result | `PASS` for the two delivered host checks (T086B-R point 5, golden consumption); point 9 stays `NOT_RUN` (device/emulator lane, §7) |
 | Tasks / issues | T086B-R `#270` — remainder point 5 plus the T264A golden-consumption proof |
 | Date / timezone | `2026-11-28 Europe/Berlin` |
-| Revision | base `56c76c1cffe1c94afd641edeb5426715b6cb7a69` (`origin/main` at start, fetched); candidate HEAD `11856c71530da3a2986525de0fc2351ce331deac` (2 commits; the review-correction commits follow and are docs/test-only) |
+| Revision | base `56c76c1cffe1c94afd641edeb5426715b6cb7a69` (`origin/main` at start, fetched); candidate HEAD `11856c71530da3a2986525de0fc2351ce331deac` (2 commits); **final candidate HEAD after the review-correction commit `09eac0c`**: the correction changes the VM cancellation observer (product code) plus tests, report and README — the final statistics are 46/46 focused and 227/227 application |
 | Worktree | `run-tscn02hu/worktrees/t086br-cancel-golden`, branch `xxammaxx/t086br-cancel-golden` |
 | Product-code changes | 4 recognition files, 2 test files, 1 new host checker and 1 new host test; no port, no schema, no envelope field, no detector, no typing change |
 | Golden / threshold changes | **none**. `tools/evaluation/goldens/field-inventory-baseline.v1.json` is unchanged and consumed read-only (`508ed9beed5a3844aa3ce101d378f7243b47e259cbcda72a412bbe6067f205e6`) |
@@ -79,15 +79,15 @@ golden checker = dart run tools/evaluation/golden_consumption_check.dart
 | ---: | --- | ---: | --- | --- |
 | 1 | `dart format --output=none --set-exit-if-changed .` (repo root) | `0` | console: `Formatted 392 files (0 changed)` | `PASS` |
 | 2 | `flutter analyze --no-pub` (repo root) | `0` | console: `No issues found! (ran in 129.8s)` | `PASS` |
-| 3 | `flutter test packages/feldexa_application/test/raster_page_stage_runner_test.dart packages/feldexa_application/test/analyze_document_test.dart` | `0` | console: `+43: All tests passed!` | `PASS` |
-| 4 | `flutter test packages/feldexa_application/test` | `0` | console | `PASS` — 224/224 tests |
+| 3 | `flutter test packages/feldexa_application/test/raster_page_stage_runner_test.dart packages/feldexa_application/test/analyze_document_test.dart` | `0` | console: `+46: All tests passed!` (final, after the correction; the pre-correction candidate was 43/43) | `PASS` |
+| 4 | `flutter test packages/feldexa_application/test` | `0` | console | `PASS` — 227/227 tests (final, after the correction; 224/224 at `11856c7`) |
 | 5 | `flutter test packages/feldexa_recognition/test` | `0` | console | `PASS` — 411/411 tests |
 | 6 | `dart run tools/evaluation/golden_consumption_check.dart` | `0` | console: `consumed 508ed9be…f205e6`, `12 pages, 50 typed fields`, `projection EQUAL` | `PASS` |
 | 7 | `python3 -m unittest tools/evaluation/test_golden_consumption.py` | `0` | console: `Ran 9 tests … OK` | `PASS` |
 | 8 | `python3 -m unittest tools/evaluation/test_field_inventory_baseline.py` | `0` | console: `Ran 12 tests … OK` | `PASS` (unchanged producer gate) |
 | 9 | `python3 -m unittest discover -s tools/repo -p 'test_*.py'` | `0` | console: `Ran 19 tests … OK` | `PASS` |
 
-Check 3 includes the eight new tests: four runner-contract tests and four
+Check 3 includes the eleven new tests (final): nine runner-contract tests and four
 `AnalyzeDocument` page-loop tests. Checks 4 and 5 are the complete package
 suites required by the brief; check 8 re-runs the pre-existing producer gate to
 show this slice did not disturb it.
@@ -108,7 +108,7 @@ packages/feldexa_application/test/raster_page_stage_runner_test.dart: [E]
   Failed to load … (same missing runner API; no `isCancelled` on the outcome)
 ```
 
-After the minimal implementation the same command passes 43/43 (check 3). The
+After the minimal implementation the same command passes 46/46 (check 3, final; 43/43 at `11856c7`). The
 new behaviour:
 
 - **API parity.** `runRasterPageStageOffIsolate` accepts
@@ -225,7 +225,8 @@ Host-only code and tests (no binaries):
 - `packages/feldexa_application/lib/src/recognition/analyze_document.dart` —
   run-level watch, page boundary, cancelled outcome mapping.
 - `packages/feldexa_application/test/raster_page_stage_runner_test.dart` —
-  four runner tests.
+  nine runner tests (four initial plus the failing-signal and two inline
+  cancellation tests from the correction).
 - `packages/feldexa_application/test/analyze_document_test.dart` — four
   page-loop tests and one stall helper.
 - `tools/evaluation/golden_consumption_check.dart` — new read-only checker.
