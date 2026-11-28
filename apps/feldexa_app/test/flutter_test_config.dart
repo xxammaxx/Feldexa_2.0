@@ -122,8 +122,9 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   }
   // Browser lane: Flutter 3.47.7's web test harness runs with
   // `TestEnvironment.flutterTester()` and `ignorePlatformMessages = true`
-  // (`_test_selector_web.dart` / `testing.dart`), so
-  // `PlatformDispatcher._sendPlatformMessage` returns without a reply and
+  // (`_test_selector_web.dart` / `testing.dart`), so the engine dispatcher
+  // (`EnginePlatformDispatcher._sendPlatformMessage`) returns without a reply
+  // and
   // `rootBundle.loadString` never settles — even a served bundle would not
   // resolve it. The failure does not throw, so the catch in
   // `initializeFieldTextMeasure` cannot rescue it, and awaiting the table

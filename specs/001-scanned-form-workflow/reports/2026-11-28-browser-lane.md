@@ -165,7 +165,8 @@ block is gone — see §5.
 ## 5. Limitations and owner decisions
 
 1. **FLD-001 measurement is disabled on the browser lane.** The web test
-   platform serves no asset bundle, so `metrics.json` is unreachable there by
+   harness never resolves `rootBundle` asset loads
+   (`ignorePlatformMessages = true`), so `metrics.json` is unreachable there by
    construction. Browser suites must not assert overflow behaviour derived from
    that table; the host-VM lane keeps it.
 2. **Fixture-reading suites need the loopback server on the chrome lane.**
