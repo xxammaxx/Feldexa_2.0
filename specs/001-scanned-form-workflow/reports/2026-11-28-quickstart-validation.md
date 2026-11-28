@@ -10,7 +10,7 @@
 The executable quickstart scenarios pass on the lanes this host offers: the
 Chrome (`SIMULATED`) fill/review/watermark suites are green, the emulator
 import journey passes **8/8** including all five German rejection codes, the
-failure-injection pair passes **5/5**, and the export/print artifact passes the
+failure-injection pair passes **5/5** (executed; no retained log — `PARTIAL`, see §Environment), and the export/print artifact passes the
 T105 harness (**7 PASS / 0 FAIL / 6 NOT_RUN**) with Poppler and MuPDF agreeing
 within **0.41 %** and **0.47 %** of pixels per page; the `DEVICE`-only
 performance and recognition-evaluation sections are honestly `NOT_RUN`.
@@ -73,7 +73,7 @@ completed. Nine fixture files were pushed to `/data/local/tmp/t046-fixtures`
 ### §5 Import and source integrity (`EMULATOR`)
 
 `flutter test integration_test/android_import_test.dart -d emulator-5554` →
-**All tests passed, 8/8**:
+**All tests passed, 8/8** (executed; the later emulator loss left no retained log, so this sub-result is `PARTIAL` until a rerun retains one):
 
 | Assertion | Code |
 | --- | --- |

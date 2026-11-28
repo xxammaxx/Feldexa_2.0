@@ -37,7 +37,7 @@ assertions now execute in Chrome (**3/3**). The full gate completes with
 | --- | --- |
 | fixture | staged `sf-001.pdf`, 5,956 bytes, SHA-256 match on host and device |
 | journey | import → both pages analysed (`T110_ANALYSIS_READY:PAGES=2`) → `Familienname` confirmed → `Müller` saved (6 runes) → export verified (`T110_EXPORT_VERIFIED:PAGES=2:ALL_CHECKS_PASSED=1`) |
-| print UI | `T110_PRINT_REQUESTED`, print-spooler activity found (`print_activity_present=1`), screenshot 15,580 bytes (`c35bacdb…f514`), preview closed with BACK, `T110_PRINT_PREVIEW_OBSERVED`, `T110_PRINT_COMPLETED:DELIVERY_FAILED=0` |
+| print UI | `T110_PRINT_REQUESTED`, print-spooler activity found (`print_activity_present=1`; `dumpsys print` job „Feldexa Dokument"), preview closed with BACK, `T110_PRINT_PREVIEW_OBSERVED`, `T110_PRINT_COMPLETED:DELIVERY_FAILED=0`. **Visual preview proof NOT_PROVEN**: the captured `print-preview.png` is the known uniform 15,580-byte black frame (`c35bacdb…f514`, byte-identical to the four black frames documented in the T086 reconciliation) taken while `PrintActivity` still reported `INITIALIZING`/`reportedDrawn=false`; it is kept as a named black frame, not cited as a preview image |
 | artifact | `12,029` bytes, SHA-256 `05e37ee7…0379`, picked up through `run-as` while the preview was open |
 | harness | **7 PASS / 0 FAIL / 6 NOT_RUN / 0 UNAVAILABLE** (`qpdf`, page count/order, geometry, no interactive controls, text, printability, source integrity) |
 | two engines | Poppler vs MuPDF at 300 dpi: page 1 `35,545 / 8,703,348 px = 0.4084 %`, page 2 `41,261 / 8,703,348 px = 0.4741 %` (tolerance 5 % fuzz / 2 % max) |
@@ -46,13 +46,26 @@ assertions now execute in Chrome (**3/3**). The full gate completes with
 The six `NOT_RUN` harness rows are appearance/clipping/checkbox/signature/
 placement/artifact-isolation checks that need supplied expected values; they
 belong to the T109 artifact run and are not claimed here. The print claim is
-the system print preview and the verified artifact, not a completed physical
-print job.
+the system print activity/spooler job and the verified artifact, not a completed
+physical print job; the pixel-level preview remains NOT_PROVEN (§ environment).
 
 The wrapper process kept the Gradle daemon’s inherited stdout pipe open after
 the driver printed `DRIVER: PASS mode=print …`; it was stopped after the PASS
 line and the complete evidence set, which is why the shell job reports signal
 137. No test step was interrupted.
+
+**Environment and open status (2026-11-28, parent takeover).** A second, foreign
+OMP session on this host owns `emulator-5554` (`SpecKitWerkbank_QA_ATD`) and
+keeps respawning it; the standard AVD therefore ran as `emulator-5556` and the
+driver was hardened to bind the standard AVD by name (exactly one match, QEMU,
+API 35, boot completed; physical transports still never addressed). During the
+visual-preview rerun both emulators died under RAM pressure (23 GB host, ~1 GB
+free with two AVDs), so the recapture with `reportedDrawn=true` could not be
+completed. The capture guard was fixed and committed (wait for a drawn/resumed
+print activity, wake the screen, reject single-colour screenshots via
+ImageMagick `identify`). **T110 stays OPEN (PARTIAL): functional print/export
+checks PASS, the visual preview proof remains NOT_PROVEN until a rerun on a
+stable single-emulator host.**
 
 ## T146 — quickstart validation
 
