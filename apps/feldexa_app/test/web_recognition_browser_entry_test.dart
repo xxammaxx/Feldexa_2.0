@@ -377,19 +377,20 @@ void main() {
     final SimulatedFixtureCatalog catalog = await _loadCatalog();
 
     expect(catalog.catalogVersion, 'fixtures-1.1.0');
-    expect(catalog.fixtures, hasLength(7));
+    expect(catalog.fixtures, hasLength(8));
     expect(catalog.ids, <String>[
       'sf-001',
       'sf-002',
       'sf-003',
       'sf-004',
+      'sf-005',
       'sf-protected',
       'sf-truncated',
       'sf-not-a-pdf',
     ]);
     expect(
       catalog.fixtures.where((SimulatedFixture value) => value.isImportable),
-      hasLength(4),
+      hasLength(5),
     );
 
     final SimulatedFixture geometryFixture = catalog.fixture('sf-003');

@@ -11,6 +11,15 @@
 // harness first); the discriminating assertion for the lazy rendering is the
 // second case, which requires fewer than 50 entry widgets and an unbuilt
 // oldest entry.
+//
+// `@TestOn('vm')`: the gate's Chrome lane picks up every `test/*.dart` file.
+// This suite is a host-VM budget measurement (evidence NONE); under dartdevc
+// the same 500 ms bound is not comparable and was flaky (T145/browser-lane
+// report), so the suite is excluded from the browser lane by platform tag and
+// runs unchanged in the host-VM app test check.
+
+@TestOn('vm')
+library;
 
 import 'package:feldexa_app/features/start/stored_items.dart';
 import 'package:feldexa_app/l10n/app_localizations.dart';
