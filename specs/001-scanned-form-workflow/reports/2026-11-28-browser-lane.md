@@ -51,12 +51,14 @@ suspected the Chrome sandbox or a renderer start failure. Both are falsified:
    entrypoint's `main()` never appear — `main()` is never entered.
 5. **Why.** `apps/feldexa_app/test/flutter_test_config.dart` ran
    `await initializeFieldTextMeasure()` before `testMain()`. That awaits
-   `rootBundle.loadString('assets/fonts/metrics.json')`. The web test platform
-   serves **no assets**: `/assets/FontManifest.json` and
-   `/assets/assets/fonts/metrics.json` both answer `404`, and
-   `flutter_tools/lib/src/test/flutter_web_platform.dart` has no asset handler
-   (zero `asset` matches in the file). On that platform the load future never
-   settles — it does not throw, so the `try/catch` inside
+   `rootBundle.loadString('assets/fonts/metrics.json')`. The web test harness
+   runs with `TestEnvironment.flutterTester()` and
+   `ignorePlatformMessages = true` (`_test_selector_web.dart` /
+   `testing.dart`); `PlatformDispatcher._sendPlatformMessage` therefore
+   returns without a reply and `PlatformAssetBundle.load` waits forever — even
+   a served bundle would not resolve it (the 404 asset route exists but the
+   app never requests it; CDP showed no failed request). The load future never
+   settles and does not throw, so the `try/catch` inside
    `initializeFieldTextMeasure` cannot degrade it — and every test declaration
    is starved.
 
@@ -148,14 +150,17 @@ The 10 browser-check failures, per suite:
 
 | Suite | Failures | Cause |
 | --- | ---: | --- |
-| `test/web_import_browser_entry_test.dart` | 5 of 6 | fixture `HttpRequest` → `/assets/…` not served (`ProgressEvent`) |
-| `test/web_recognition_browser_entry_test.dart` | 4 of 4 | same asset cause |
-| `test/stored_list_50_test.dart` | 1 of 2 | the ratified **500 ms** host build/layout budget, measured in the browser lane. The suite declares itself "Evidence class: NONE (host widget test)"; the sibling lazy-rendering test passes in the browser |
+| `test/web_import_browser_entry_test.dart` | 5 of 6 | reads fixtures from the loopback server `http://127.0.0.1:8765/fixtures/…` (`dart:html.HttpRequest`); the server was not running for this gate invocation (`ProgressEvent`) |
+| `test/web_recognition_browser_entry_test.dart` | 4 of 4 | same missing loopback fixture server |
+| `test/stored_list_50_test.dart` | 1 of 2 | the ratified **500 ms** host build/layout budget under dartdevc — flaky in the browser lane: the same test passed in an earlier gate run and failed once after ~18 s. The suite declares itself "Evidence class: NONE (host widget test)" |
 
-The two asset suites need a served bundle (drive lane); `stored_list_50` is a
-host-budget test that the chrome lane picks up because the file carries no
-platform tag. Both are repository-structure decisions, not environment blocks —
-see §5.
+The two fixture suites only need the existing `test_web_fixtures.sh` server
+(`serve_web_fixtures.dart --root apps/feldexa_app/web --port 8765`) started
+before the chrome check — the gate does not start it; that is a repository
+robustness decision, not a drive-lane requirement. `stored_list_50` is a
+host-budget test the chrome lane picks up because the file carries no platform
+tag (flaky there). Both are repository-structure decisions, not environment
+blocks — see §5.
 
 ## 5. Limitations and owner decisions
 
@@ -163,10 +168,14 @@ see §5.
    platform serves no asset bundle, so `metrics.json` is unreachable there by
    construction. Browser suites must not assert overflow behaviour derived from
    that table; the host-VM lane keeps it.
-2. **Asset-reading suites cannot run on `flutter test --platform chrome`.**
-   `web_import` and `web_recognition` fail on `/assets/…` (`ProgressEvent`).
-   These suites need a served bundle, i.e. the `flutter drive` lane with a
-   `test_driver/integration_test.dart`, which this repository does not have.
+2. **Fixture-reading suites need the loopback server on the chrome lane.**
+   `web_import` and `web_recognition` read `http://127.0.0.1:8765/fixtures/…`
+   via `dart:html.HttpRequest`; the gate does not start
+   `tools/corpus/synthetic/serve_web_fixtures.dart` (the existing
+   `test_web_fixtures.sh` wrapper shows the way). Starting that server before
+   the chrome check should make them pass; the drive lane with
+   `test_driver/integration_test.dart` is only needed for the
+   `integration_test/` suites (T131/T132).
 3. **`integration_test/` suites cannot run in the chrome test lane.**
    `flutter test --platform chrome` roots suites at `<project>/test`; a path
    under `integration_test/` fails to compile (`Error when reading
@@ -206,7 +215,7 @@ regenerates every number above.
 
 ## 7. Reproducibility
 
-1. Start from base commit `a7da37d`.
+1. Start from the candidate commit `3ae912e` (the unguarded base `a7da37d` cannot reproduce steps 3–5).
 2. `cd apps/feldexa_app && flutter pub get`.
 3. Export `CHROME_EXECUTABLE=<repo-root>/tools/browser/chrome_launch.sh` (or any
    Chrome 137+ binary plus `--enable-unsafe-swiftshader`).

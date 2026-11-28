@@ -13,12 +13,13 @@
 # Chromium For Testing builds installed under ~/.cache/ms-playwright, newest
 # first. Every argument passed by Flutter is forwarded unchanged.
 #
-# Flags: --no-sandbox (no usable SUID sandbox for this checkout/binary),
+# Flag rationale (precautionary, not each one isolated as necessary — the
+# sandbox and WebGL hypotheses were falsified in the 2026-11-28 diagnosis):
+#        --no-sandbox (no usable SUID sandbox for this checkout/binary),
 #        --disable-dev-shm-usage (small /dev/shm in containers),
 #        --disable-gpu (no usable GPU in the headless lane),
-#        --enable-unsafe-swiftshader (Chrome 137+ refuses the automatic software
-#        WebGL fallback without it; Flutter's CanvasKit renderer then never
-#        produces a frame and the test suite never starts).
+#        --enable-unsafe-swiftshader (allows the software WebGL fallback on
+#        Chrome 137+; a real WebGL2 context alone did not fix the hang).
 #        --use-angle=swiftshader is kept for the older builds.
 set -u
 

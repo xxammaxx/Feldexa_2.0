@@ -120,12 +120,13 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
     // never fail a host test that does not care about overflow.
     await initializeFieldTextMeasure();
   }
-  // Browser lane: Flutter 3.47.7's `flutter test --platform chrome` serves no
-  // asset bundle at all (the web test platform has no `/assets/` route:
-  // `/assets/FontManifest.json` and `/assets/assets/fonts/metrics.json` both
-  // answer 404), and an unresolvable `rootBundle.loadString` on that platform
-  // never completes — it does not throw, so the catch in
-  // `initializeFieldTextMeasure` cannot rescue it. Awaiting the table there
+  // Browser lane: Flutter 3.47.7's web test harness runs with
+  // `TestEnvironment.flutterTester()` and `ignorePlatformMessages = true`
+  // (`_test_selector_web.dart` / `testing.dart`), so
+  // `PlatformDispatcher._sendPlatformMessage` returns without a reply and
+  // `rootBundle.loadString` never settles — even a served bundle would not
+  // resolve it. The failure does not throw, so the catch in
+  // `initializeFieldTextMeasure` cannot rescue it, and awaiting the table
   // kept every browser suite from reaching `testMain` (measured 2026-11-28:
   // suite loads, `main` never runs, `No tests ran` after the timeout). The
   // table is therefore unavailable on the browser lane by construction;
