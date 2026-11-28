@@ -116,9 +116,19 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   // host-only and the browser layer must keep its real bundle.
   if (!kIsWeb) {
     _installAppAssetFallback();
+    // A missing or unreadable table degrades to "no FLD-001 warning"; it must
+    // never fail a host test that does not care about overflow.
+    await initializeFieldTextMeasure();
   }
-  // A missing or unreadable table degrades to "no FLD-001 warning"; it must
-  // never fail a host test that does not care about overflow.
-  await initializeFieldTextMeasure();
+  // Browser lane: Flutter 3.47.7's `flutter test --platform chrome` serves no
+  // asset bundle at all (the web test platform has no `/assets/` route:
+  // `/assets/FontManifest.json` and `/assets/assets/fonts/metrics.json` both
+  // answer 404), and an unresolvable `rootBundle.loadString` on that platform
+  // never completes — it does not throw, so the catch in
+  // `initializeFieldTextMeasure` cannot rescue it. Awaiting the table there
+  // kept every browser suite from reaching `testMain` (measured 2026-11-28:
+  // suite loads, `main` never runs, `No tests ran` after the timeout). The
+  // table is therefore unavailable on the browser lane by construction;
+  // browser suites run with FLD-001 measurement disabled.
   await testMain();
 }

@@ -1,15 +1,14 @@
 // T127 `SIMULATED` uncertainty presentation (FR-086/FR-087; US8/US9).
 //
-// Evidence class: NONE (this run). This file composes the shipped
-// `SimulatedBanner` (T026/T047) and the T122 `UncertaintyBadge` and asserts
-// the presentation contract on the host VM. The actual Chrome run of the
-// web uncertainty presentation is NOT_RUN: the browser lane on this host is
-// blocked by the documented Chrome-for-Testing hang
-// (`run-tscn02hu/reports/findings/2026-11-27-flutter-browser-lane-hang.md`,
-// task T121 briefing). Per that finding the browser attempt was not
-// retried; a skipped or faked browser run is not evidence.
+// Evidence class: NONE on the host VM, SIMULATED in the browser lane. This
+// file composes the shipped `SimulatedBanner` (T026/T047) and the T122
+// `UncertaintyBadge` and asserts the presentation contract on both lanes.
+// The browser lane was unblocked on 2026-11-28
+// (`specs/001-scanned-form-workflow/reports/2026-11-28-browser-lane.md`); the
+// suite runs there with FLD-001 text-fit measurement disabled because the
+// Flutter web test platform serves no asset bundle.
 //
-// What is asserted, and only that, on the host VM:
+// What is asserted, and only that, on the host VM and in the browser lane:
 //   * the global banner shows the exact untranslated token `SIMULATED`,
 //     the German context line, and the complete semantics label from the
 //     error catalog §9;
@@ -86,10 +85,14 @@ void main() {
     });
 
     test('the shell default follows the platform evidence class', () {
-      // Production wiring: the Web build is the SIMULATED surface.
-      expect(kIsWeb, isFalse, reason: 'this run is the host-VM lane');
-      const FeldexaApp androidShell = FeldexaApp();
-      expect(androidShell.simulatedShell, isFalse);
+      // Production wiring: the Web build is the SIMULATED surface, the
+      // Android shell is not. `FeldexaApp` defaults to `kIsWeb`, so the same
+      // assertion holds on the host VM (false) and in the browser lane (true);
+      // it therefore no longer refuses either lane. An explicit override still
+      // wins, which is how the Android entrypoint keeps its unlabelled shell.
+      const FeldexaApp shell = FeldexaApp();
+      expect(shell.simulatedShell, equals(kIsWeb));
+      expect(const FeldexaApp(simulatedShell: false).simulatedShell, isFalse);
     });
   });
 
