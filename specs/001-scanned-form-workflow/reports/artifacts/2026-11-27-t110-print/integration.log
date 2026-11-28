@@ -1,0 +1,103 @@
+Resolving dependencies in `.`...
+Downloading packages...
+  archive 4.6.0 (4.7.1 available)
+  cross_file 0.3.5+5 (0.4.0 available)
+  cupertino_ui 1.1.6 (1.1.7 available)
+  flutter_riverpod 2.6.1 (3.5.0 available)
+  go_router 16.3.0 (18.1.4 available)
+  image 4.12.0 (4.13.1 available)
+  jni 1.1.2 (1.2.1 available)
+  jni_flutter 1.0.4+1 (1.1.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  material_ui 1.11.0 (1.11.1 available)
+  pdfium_dart 0.4.1 (0.4.4 available)
+  pdfium_flutter 0.4.1 (0.4.4 available)
+  pdfrx 2.12.0 (3.1.0 available)
+  pdfrx_engine 0.9.1 (0.9.6 available)
+  qr 3.0.3 (4.0.1 available)
+  riverpod 2.6.1 (3.5.0 available)
+  share_plus 12.0.2 (13.3.1 available)
+  share_plus_platform_interface 6.1.0 (7.2.0 available)
+  test_api 0.7.12 (0.7.15 available)
+  url_launcher_android 6.3.33 (6.3.35 available)
+  win32 5.15.0 (6.4.0 available)
+Got dependencies in `.`!
+21 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading apps/feldexa_app/integration_test/print_test.dart
+Running Gradle task 'assembleDebug'...                          
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:~/.gradle/wrapper/dists/gradle-9.3.1-all/9ot9r568e8zfvvd4mn8rbu1j0/gradle-9.3.1/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: Your app uses the following plugins that apply Kotlin Gradle Plugin (KGP): share_plus
+Future versions of Flutter will fail to build if your app uses plugins that apply KGP.
+
+Please check the changelogs of these plugins and upgrade to a version that supports Built-in Kotlin.
+If no such version exists, report the issue to the plugin. If necessary, here is a guide on filing
+an issue against a plugin: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers#report-incompatible-kotlin-gradle-plugin-usage-to-plugin-authors
+
+If you are a plugin author, please migrate your plugin to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
+warning: [options] source value 8 is obsolete and will be removed in a future release
+warning: [options] target value 8 is obsolete and will be removed in a future release
+warning: [options] To suppress warnings about obsolete options, use -Xlint:-options.
+3 warnings
+Running Gradle task 'assembleDebug'...                            484.1s
+✓ Built build/app/outputs/flutter-apk/app-debug.apk
+Installing build/app/outputs/flutter-apk/app-debug.apk...           3.2s
+00:00 +0: (setUpAll)
+T110_FIXTURE_READY:BYTES=5956:MATCH=1
+00:00 +0: the verified artifact prints and survives the preview cycle
+T110_IMPORT_ARMED
+[EMULATOR] T071A_DIAG_LOAD_START
+T071A_DIAG_RUNTIME_LOAD_START
+T071A_DIAG_VIEW_OPEN_START
+T071A_DIAG_RUNTIME_PDFRX_READY
+T110_EDITOR_READY
+T071A_DIAG_RUNTIME_LOAD_OK:PAGES=2:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_LOAD_OK:PAGES=2:BYTES=1:SUGGESTIONS=0
+[EMULATOR] T071A_DIAG_CONTENT_SET:PAGES=2:SUGGESTIONS=0:STRIP=2
+[EMULATOR] T071A_DIAG_ANALYSIS_START:PAGES=2:UNREADABLE=0:SOURCE_BYTES=1:OCR=1
+T071A_DIAG_RASTER_START:P=0:SCALE=2.7777777777777777:FORMAT=gray8
+T071A_DIAG_VIEW_BYTES:PRESENT=1
+T071A_DIAG_VIEW_INIT_START
+T071A_DIAG_VIEW_INIT_OK
+T071A_DIAG_VIEW_DOCUMENT_OPEN_OK:PAGES=2
+T071A_DIAG_VIEW_OPEN_OK:PAGES=2:EXPECTED=2
+T071A_DIAG_RASTER_OK:P=0:W=1654:H=2339
+T071A_DIAG_OCR_START:P=0
+T071A_DIAG_PAGE_RENDER_START:P=0:W=1080:H=1527
+T071A_DIAG_PAGE_RENDER_START:P=1:W=1080:H=1527
+T071A_DIAG_PAGE_RENDER_OK:P=0:W=1080:H=1527
+T071A_DIAG_PAGE_RENDER_OK:P=1:W=1080:H=1527
+T071A_DIAG_OCR_OK:P=0:BLOCKS=25
+T071A_DIAG_RASTER_START:P=1:SCALE=2.7777777777777777:FORMAT=gray8
+T071A_DIAG_RASTER_OK:P=1:W=1654:H=2339
+T071A_DIAG_OCR_START:P=1
+T071A_DIAG_OCR_OK:P=1:BLOCKS=28
+[EMULATOR] T071A_DIAG_ANALYSIS_RESULT:PAGES=2:CANCELLED=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=0:STATUS=complete:SUGGESTIONS=19:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_PAGE:P=1:STATUS=complete:SUGGESTIONS=40:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_APPLIED:PAGES=2:SUGGESTIONS=59:UNCERTAIN=0
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_START
+[EMULATOR] T071A_DIAG_ANALYSIS_SAVE_OK
+[EMULATOR] T071A_DIAG_ANALYSIS_STATE:ready
+T110_ANALYSIS_READY:PAGES=2
+T110_FIELD_CONFIRMED:PAGE=1
+T071A_DIAG_PAGE_RENDER_START:P=0:W=1563:H=2210
+T071A_DIAG_PAGE_RENDER_OK:P=0:W=1563:H=2210
+T110_VALUE_SAVED:RUNES=6
+T071A_DIAG_RUNTIME_LOAD_START
+T071A_DIAG_RUNTIME_PDFRX_READY
+T071A_DIAG_RUNTIME_LOAD_OK:PAGES=2:BYTES=1:SUGGESTIONS=59
+T110_EXPORT_VERIFIED:PAGES=2:ALL_CHECKS_PASSED=1
+T110_PRINT_REQUESTED
+T110_PRINT_PREVIEW_OBSERVED
+T110_PRINT_COMPLETED:DELIVERY_FAILED=0
+T110_ARTIFACT_STORED:PATH=/data/user/0/de.feldexa.app/code_cache/e2e/print-artifact.pdf:BYTES=12029:SHA256=05e37ee73802ccab174fd312e00642e9894190748f5e78b62c9be21faad00379
+T110_HOST_PICKUP_ACKED
+T110_ARTIFACT_DELETED_AFTER_PREVIEW_CLOSE:CODE=EXP-002
+T110_CLEANUP_DONE
+00:54 +1: (tearDownAll)
+00:56 +1: All tests passed!

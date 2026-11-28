@@ -29,6 +29,7 @@ import 'package:feldexa_adapters_simulated/feldexa_adapters_simulated.dart';
 import 'package:feldexa_core/feldexa_core.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 
 SimulatedBackend _backend() => SimulatedBackend(
   context: SimulatedAdapterContext(),
@@ -118,6 +119,10 @@ Future<StoredMeta> _createDocument(
 }
 
 void main() {
+  // Driven by flutter drive on the browser integration lane; the
+  // integration_test binding carries the result channel.
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
   test('a saved document survives a simulated reload and recovers without re-import', () async {
     final SimulatedBackend backend = _backend();
     final SimulatedFixture fixture = _fixture();

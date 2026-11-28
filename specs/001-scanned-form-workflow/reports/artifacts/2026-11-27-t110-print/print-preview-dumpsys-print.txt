@@ -1,0 +1,47 @@
+PRINT MANAGER STATE (dumpsys print)
+{
+  user_states={
+    user_id=0
+    installed_services={
+      component_name={
+        package_name=com.android.bips
+        class_name=com.android.bips.BuiltInPrintService
+      }
+      add_printers_activity=com.android.bips.ui.AddPrintersActivity
+      advanced_options_activity=com.android.bips.ui.MoreOptionsActivity
+    }
+    actives_services={
+      component_name={
+        package_name=com.android.bips
+        class_name=com.android.bips.BuiltInPrintService
+      }
+      is_destroyed=false
+      is_bound=false
+      has_discovery_session=false
+      has_active_print_jobs=false
+      is_discovering_printers=false
+    }
+    cached_print_jobs={
+      app_id=10209
+      print_job={
+        label=Feldexa Dokument
+        print_job_id=e3e04fd1-1029-4a9d-add9-7c59fd2682f6
+        state=1
+        creation_time=1795873221754
+        attributes={
+          color_mode=0
+          duplex_mode=0
+        }
+        is_canceling=false
+        has_advanced_options=false
+        progress=-1.0
+      }
+    }
+    print_spooler_state={
+      is_destroyed=false
+      is_bound=false
+      internal_state={
+      }
+    }
+  }
+}

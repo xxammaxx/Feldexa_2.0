@@ -521,6 +521,17 @@ collect_browser_integration_files() {
   done < <(cd "$ROOT_DIR/apps/feldexa_app" && find integration_test -type f -name '*_test.dart' 2>/dev/null | LC_ALL=C sort)
 }
 
+chromedriver_port_open() {
+  # `/dev/tcp` is a bash compile-time feature and is absent in some builds;
+  # probe with the python3 the gate already requires instead.
+  "$PYTHON_BIN" - 4444 <<'PY' >/dev/null 2>&1
+import socket, sys
+port = int(sys.argv[1])
+sock = socket.create_connection(("127.0.0.1", port), timeout=0.5)
+sock.close()
+PY
+}
+
 start_chromedriver() {
   "$CHROMEDRIVER_BIN" --port=4444 >"$RUN_DIR/chromedriver.log" 2>&1 &
   CHROMEDRIVER_PID=$!
@@ -529,7 +540,7 @@ start_chromedriver() {
     if ! kill -0 "$CHROMEDRIVER_PID" 2>/dev/null; then
       return 1
     fi
-    if (echo >/dev/tcp/127.0.0.1/4444) >/dev/null 2>&1; then
+    if chromedriver_port_open; then
       return 0
     fi
     sleep 0.5
@@ -616,11 +627,20 @@ elif [ -z "$CHROMEDRIVER_BIN" ]; then
 elif [ -z "$CHROME_BIN" ]; then
   unavailable "SIMULATED browser integration tests (Chrome/Chromium binary not found; ${#BROWSER_INTEGRATION_FILES[@]} web integration test(s) present)"
 elif start_chromedriver; then
-  for rel in "${BROWSER_INTEGRATION_FILES[@]}"; do
-    run_check "SIMULATED browser integration test: $rel" "SIMULATED" \
-      "07-integration-$(basename "$rel")" run_browser_integration_file "$rel"
-  done
-  stop_chromedriver
+  # The web import journey reads the committed fixture mirror over loopback
+  # (§7 web bootstrap), so the driver layer needs the same server the app
+  # browser check uses; without it those suites fail rather than skip.
+  if ! start_fixture_server; then
+    stop_chromedriver
+    unavailable "SIMULATED browser integration tests (fixture server did not become ready on 127.0.0.1:$FIXTURE_SERVER_PORT)"
+  else
+    for rel in "${BROWSER_INTEGRATION_FILES[@]}"; do
+      run_check "SIMULATED browser integration test: $rel" "SIMULATED" \
+        "07-integration-$(basename "$rel")" run_browser_integration_file "$rel"
+    done
+    stop_fixture_server
+    stop_chromedriver
+  fi
 else
   stop_chromedriver
   unavailable "SIMULATED browser integration tests (chromedriver failed to start; see $RUN_DIR/chromedriver.log)"

@@ -56,7 +56,7 @@ COMPUTE_SLOT = os.environ.get(
     "FELDEXA_COMPUTE_SLOT",
     str(Path.home() / ".pi/agent/skills/pi-maintainer/scripts/compute_slot.py"),
 )
-SERIAL = "emulator-5554"
+SERIAL = "emulator-5554"  # replaced by discover_emulator() at run time
 EXPECTED_AVD = "T025_Pixel7_API35_KVM_20261115"
 EXPECTED_API = "35"
 PACKAGE = "de.feldexa.app"
@@ -129,6 +129,42 @@ def adb_shell(*args: str, timeout: int = 120) -> str:
 def getprop(name: str) -> str:
     return adb_shell("getprop", name)
 
+def discover_emulator() -> str:
+    """Bind the standard AVD by name; tolerate other emulators on the host.
+
+    The 2026-11-28 host runs a foreign omp session that owns another AVD on
+    emulator-5554 and respawns it. Binding the expected AVD by name (exactly
+    one match, still QEMU, still the expected API) is the same target guarantee
+    without touching the foreign session; physical transports are never
+    addressed.
+    """
+    proc = subprocess.run([ADB, "devices"], capture_output=True, text=True, timeout=60)
+    transports = [
+        line.split()[0]
+        for line in proc.stdout.splitlines()[1:]
+        if len(line.split()) >= 2 and line.split()[1] == "device"
+    ]
+    matches: list[str] = []
+    for transport in transports:
+        if not re.fullmatch(r"emulator-\d+", transport):
+            continue
+        avd = subprocess.run(
+            [ADB, "-s", transport, "shell", "getprop", "ro.boot.qemu.avd_name"],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        ).stdout.replace("\r", "").strip()
+        if avd == EXPECTED_AVD:
+            matches.append(transport)
+    if not matches:
+        not_run(
+            f"no attached emulator runs the expected AVD {EXPECTED_AVD!r} "
+            f"(devices: {transports})"
+        )
+    if len(matches) > 1:
+        not_run(f"more than one emulator runs the expected AVD: {matches}")
+    return matches[0]
+
 
 def has_permit() -> bool:
     return os.environ.get("FELDEXA_DRIVER_PERMIT") == "1"
@@ -167,11 +203,11 @@ def verify_device() -> dict[str, str]:
             transports.append(parts[0])
     emulators = [t for t in transports if re.fullmatch(r"emulator-\d+", t)]
     if SERIAL not in emulators:
-        not_run(f"the expected emulator transport {SERIAL} is not attached (devices: {transports})")
-    if len(emulators) != 1:
-        not_run(f"expected exactly one emulator transport, found {emulators}")
+        not_run(f"the bound standard-AVD transport {SERIAL} is not attached (devices: {transports})")
+    other = [t for t in emulators if t != SERIAL]
     info = {
         "serial": SERIAL,
+        "other_emulators_not_addressed": ",".join(other) if other else "none",
         "avd": getprop("ro.boot.qemu.avd_name"),
         "qemu": getprop("ro.kernel.qemu"),
         "sdk": getprop("ro.build.version.sdk"),
@@ -296,10 +332,35 @@ def capture_print_preview(mode: str) -> None:
             text=True,
             timeout=120,
         ).stdout
-        spooler = "com.android.printspooler" in activity or "PrintActivity" in activity
-        if spooler:
+        blocks = activity.split("ActivityRecord{")
+        print_blocks = [
+            block
+            for block in blocks
+            if "com.android.printspooler" in block or "PrintActivity" in block
+        ]
+        spooler = bool(print_blocks)
+        # The spooler activity exists before its frame is drawn; a screenshot
+        # taken then is a uniform black frame (measured 2026-11-28). The
+        # main-activity record in the same dump satisfies the markers too, so
+        # the check must look inside the PrintActivity block only.
+        drawn = any(
+            "reportedDrawn=true" in block
+            or "mVisible=true" in block
+            or ("state=RESUMED" in block and "windows=" in block and "windows=[]" not in block)
+            for block in print_blocks
+        )
+        if spooler and drawn:
             break
+        subprocess.run(
+            [ADB, "-s", SERIAL, "shell", "input", "keyevent", "KEYCODE_WAKEUP"],
+            capture_output=True,
+            timeout=30,
+        )
         time.sleep(2)
+    if not spooler:
+        fail("no print-spooler/PrintActivity activity was found for the print preview")
+    if not drawn:
+        fail("the print-preview dialog never reported a drawn/resumed PrintActivity")
     (out / "print-preview-activities.txt").write_text(activity, encoding="utf-8")
     print_jobs = subprocess.run(
         [ADB, "-s", SERIAL, "shell", "dumpsys", "print"],
@@ -317,6 +378,24 @@ def capture_print_preview(mode: str) -> None:
     screenshot.write_bytes(shot.stdout)
     if len(shot.stdout) < 10_000:
         fail("the print-preview screenshot is suspiciously small")
+    # A uniform frame is not a preview proof (the 2026-11-28 run captured the
+    # known 15,580-byte black frame before the spooler drew). ImageMagick is a
+    # declared tool of this driver; a missing tool or a single-colour image
+    # fails closed instead of shipping a black "beleg".
+    identify = shutil.which("identify")
+    if not identify:
+        fail("ImageMagick identify is required to validate the print-preview screenshot")
+    colors = subprocess.run(
+        [identify, "-format", "%k", str(screenshot)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    color_count = colors.stdout.strip()
+    if colors.returncode != 0 or not color_count.isdigit():
+        fail("could not read the print-preview screenshot colour count")
+    if int(color_count) <= 1:
+        fail("print-preview screenshot is a uniform frame, not a visual proof")
     (out / "print-preview-proof.txt").write_text(
         "print_activity_present="
         + ("1" if spooler else "0")
@@ -329,8 +408,6 @@ def capture_print_preview(mode: str) -> None:
         + "\n",
         encoding="utf-8",
     )
-    if not spooler:
-        fail("no print-spooler/PrintActivity activity was found for the print preview")
     log("DRIVER: print preview activity and screenshot captured")
 
 
@@ -618,6 +695,8 @@ def main() -> int:
             f"evidence directory {out.relative_to(ROOT)} is not empty; "
             "set FELDEXA_DRIVER_ALLOW_OVERWRITE=1 to replace it"
         )
+    global SERIAL
+    SERIAL = discover_emulator()
     log(f"DRIVER: mode={args.mode} serial={SERIAL}")
     git = git_identity()
     device = verify_device()

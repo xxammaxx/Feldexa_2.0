@@ -51,6 +51,7 @@ import 'package:feldexa_core/feldexa_core.dart';
 import 'package:feldexa_ports/feldexa_ports.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
 
 /// Loopback base URL of the committed fixture mirror.
 const String _fixtureBaseUrl = String.fromEnvironment(
@@ -124,7 +125,11 @@ Future<SimulatedFixtureCatalog> _loadCatalog() async {
 }
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  // The browser integration lane runs this file through `flutter drive`
+  // (test_driver/integration_test.dart), whose result channel is served by
+  // the integration_test binding; a plain test binding would leave the
+  // driver without a verdict.
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   test(
     'loads the committed deterministic SIMULATED fixture catalogue',

@@ -11,7 +11,9 @@
 // export adapter and the app's export-plan model. The suite is VM-only by
 // construction (it reads and writes real PDF files through `dart:io`), so the
 // browser lane skips it (`flutter test --platform chrome` reports "No tests
-// were found") and its browser row stays NOT_RUN. The lane itself was unblocked
+// were found"). The browser path is covered by the sibling copy
+// `test/web_export_watermark_browser_test.dart` (Chrome 3/3, 2026-11-28); the
+// lane itself was unblocked
 // on 2026-11-28
 // (`specs/001-scanned-form-workflow/reports/2026-11-28-browser-lane.md`); the
 // host-VM run is the evidence for this task and makes no DEVICE or EMULATOR
