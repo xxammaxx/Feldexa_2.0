@@ -54,7 +54,7 @@ suspected the Chrome sandbox or a renderer start failure. Both are falsified:
    `rootBundle.loadString('assets/fonts/metrics.json')`. The web test harness
    runs with `TestEnvironment.flutterTester()` and
    `ignorePlatformMessages = true` (`_test_selector_web.dart` /
-   `testing.dart`); `PlatformDispatcher._sendPlatformMessage` therefore
+   `testing.dart`); `EnginePlatformDispatcher._sendPlatformMessage` therefore
    returns without a reply and `PlatformAssetBundle.load` waits forever — even
    a served bundle would not resolve it (the 404 asset route exists but the
    app never requests it; CDP showed no failed request). The load future never
@@ -208,7 +208,7 @@ block is gone — see §5.
 | Artifact | Path | Bytes | SHA-256 |
 | --- | --- | ---: | --- |
 | Chrome launcher shim (new) | `tools/browser/chrome_launch.sh` | 2083 | `87d6f467bc1903e2f0efdd91e437f6cb42333f87258722894f44a8fc45374af1` |
-| Test bootstrap, web-guarded metric load | `apps/feldexa_app/test/flutter_test_config.dart` | 5985 | `6c2b5769d573b8d58666c3a3d8d19e0a795a48f623618200f6a77e174331b557` |
+| Test bootstrap, web-guarded metric load (at evidence candidate `aa3878d`) | `apps/feldexa_app/test/flutter_test_config.dart` | 5985 | `6c2b5769d573b8d58666c3a3d8d19e0a795a48f623618200f6a77e174331b557` |
 | T127 suite, lane guard replaced | `apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart` | 7073 | `094d6cbd9bb04c85117c96ccd37b475aadf7f7981686d8a66c9ff4e1e7b08a11` |
 | T121 suite header | `apps/feldexa_app/test/web_template_browser_entry_test.dart` | 5906 | `9f6af70ab616ca8484a8e647c04311f2c7b7b0ed0b7e751b4f0c70c1bb091587` |
 | T111 suite header | `apps/feldexa_app/test/web_export_browser_entry_test.dart` | 12298 | `981c3e38d5fa83a4440c419e0ef60b89d784d429ba60e2f1f2e934b877b8f9fa` |
