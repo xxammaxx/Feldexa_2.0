@@ -44,6 +44,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
+import '../test/support/accessibility_thresholds.dart';
+
 const String _fixtureDir = '/data/local/tmp/t134-fixtures';
 const String _fixtureName = 'sf-001.pdf';
 const String _fixtureSha256 =
@@ -51,8 +53,6 @@ const String _fixtureSha256 =
 const int _fixtureSizeBytes = 5956;
 const String _fixtureDisplayName = 't134-a11y.pdf';
 
-const double _minContrastNormal = 4.5;
-const double _minContrastLarge = 3.0;
 const double _minTargetDp = 48.0;
 const double _scaleFactor = 2.0;
 
@@ -125,14 +125,6 @@ final class _ControlSample {
   final bool hasSemantics;
 }
 
-double _contrastRatio(Color a, Color b) {
-  final double la = a.computeLuminance();
-  final double lb = b.computeLuminance();
-  final double lighter = math.max(la, lb);
-  final double darker = math.min(la, lb);
-  return (lighter + 0.05) / (darker + 0.05);
-}
-
 Color _compositeOver(Color foreground, Color background) {
   final double alpha = foreground.a;
   if (alpha >= 1.0) {
@@ -200,14 +192,22 @@ List<_TextSample> _auditText(WidgetTester tester) {
         theme.colorScheme.onSurface;
     final Color background = _backgroundBehind(context, tester.element(finder));
     final double fontSize = style.fontSize ?? 14.0;
-    final double scaledSize = fontSize * _scaleFactor;
-    final bool bold =
-        (style.fontWeight ?? FontWeight.normal).value >= FontWeight.w600.value;
-    final bool large = scaledSize >= 18.0 || (bold && scaledSize >= 14.0);
-    final double required = large ? _minContrastLarge : _minContrastNormal;
+    final FontWeight weight = style.fontWeight ?? FontWeight.normal;
+    final bool bold = weight.value >= FontWeight.w600.value;
+    // WCAG large text is an unscaled property of the style (18 px, or 14 px
+    // bold). Scaling first would make every 200 % run large and never apply
+    // the 4.5:1 normal-text threshold.
+    final bool large = isLargeText(fontSize, weight);
+    final double required = requiredContrast(fontSize, weight);
     final Color flattened = _compositeOver(foreground, background);
-    final double ratio = _contrastRatio(flattened, background);
-    samples.add(_TextSample(data, scaledSize, bold, ratio, required));
+    final double ratio = contrastRatio(flattened, background);
+    samples.add(_TextSample(data, fontSize, bold, ratio, required));
+    if (large) {
+      _marker(
+        'LARGE:$fontSize:${bold ? 'bold' : 'regular'}:'
+        '${ratio.toStringAsFixed(3)}',
+      );
+    }
   }
   return samples;
 }
@@ -225,8 +225,51 @@ bool _insideButton(WidgetTester tester, Finder finder) {
   return inside;
 }
 
+/// Whether the control owns a labeled semantics node.
+///
+/// `tester.getSemantics` walks up to the first unmerged ancestor; the node is
+/// only accepted when its size is bounded by the control's own hit target
+/// (+56 px tolerance for merged children). That rejects the route/root node
+/// (which is screen-sized) and a control whose semantics were removed, and
+/// requires a label/tooltip/value plus a tap action for enabled controls.
+bool _controlHasOwnSemantics(WidgetTester tester, Finder finder) {
+  final Widget controlWidget = tester.widget(finder);
+  bool enabled;
+  if (controlWidget is IconButton) {
+    enabled = controlWidget.onPressed != null;
+  } else if (controlWidget is ButtonStyleButton) {
+    enabled = controlWidget.onPressed != null;
+  } else if (controlWidget is InkWell) {
+    enabled = controlWidget.onTap != null;
+  } else {
+    enabled = true;
+  }
+  final SemanticsNode node;
+  try {
+    node = tester.getSemantics(finder);
+  } on StateError {
+    return false;
+  } on FlutterError {
+    return false;
+  }
+  final Size control = tester.getSize(finder);
+  final Size nodeSize = node.rect.size;
+  final bool sizeBound =
+      nodeSize.width <= control.width + 56.0 &&
+      nodeSize.height <= control.height + 56.0;
+  final SemanticsData data = node.getSemanticsData();
+  final bool labeled =
+      data.label.trim().isNotEmpty ||
+      data.tooltip.trim().isNotEmpty ||
+      data.value.trim().isNotEmpty;
+  return sizeBound &&
+      labeled &&
+      (!enabled || data.hasAction(SemanticsAction.tap));
+}
+
 List<_ControlSample> _auditControls(WidgetTester tester) {
   final List<_ControlSample> samples = <_ControlSample>[];
+  final Set<RenderObject> measured = <RenderObject>{};
   final Finder controls = find.byWidgetPredicate(
     (Widget widget) =>
         widget is ButtonStyleButton ||
@@ -243,17 +286,17 @@ List<_ControlSample> _auditControls(WidgetTester tester) {
       // internal InkWell a second time.
       continue;
     }
-    final Size size = tester.getSize(finder);
-    bool hasSemantics = false;
-    try {
-      final SemanticsNode node = tester.getSemantics(finder);
-      hasSemantics = !node.isMergedIntoParent || node.label.isNotEmpty;
-    } on StateError {
-      hasSemantics = false;
-    } on FlutterError {
-      hasSemantics = false;
+    final RenderObject? renderObject = tester
+        .element(finder)
+        .findRenderObject();
+    if (renderObject != null && !measured.add(renderObject)) {
+      // M3 IconButton and its internal ButtonStyleButton share one render
+      // object; count the hit target once.
+      continue;
     }
+    final Size size = tester.getSize(finder);
     final Widget widget = tester.widget(finder);
+    final bool hasSemantics = _controlHasOwnSemantics(tester, finder);
     final String kind = widget is IconButton
         ? 'IconButton'
         : widget is ButtonStyleButton

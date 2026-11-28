@@ -8,20 +8,18 @@
 //     repository tree is not mounted, so the function records
 //     `MANIFEST_AUDIT:SKIPPED_ON_DEVICE` and returns without a false pass.
 //
-// It proves that the committed release manifest cannot carry debug or fixture
-// entries: the main manifest requests no network permission, only the
-// debug/profile overlays keep INTERNET for the Flutter tool, the release
-// overlay removes INTERNET, ACCESS_NETWORK_STATE, and the three ML Kit
-// DataTransport components, no manifest is debuggable or permits cleartext,
-// the debug-only import channel never appears in manifest declarations, and no
-// synthetic fixture directory is packaged as an asset. The committed checker's
-// own negative controls (`check_release_manifest.sh --self-test`) must pass on
-// the same tree.
+// The checks parse the XML rather than matching file substrings: each
+// `uses-permission`/component is identified by its `android:name` element and
+// its own `tools:node="remove"` attribute. A merge of the main manifest and the
+// release overlay is then simulated element by element, so a plain INTERNET
+// entry in the release overlay cannot be hidden by an unrelated remove entry.
 
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:xml/xml.dart';
+import 'package:yaml/yaml.dart';
 
 Directory? _repoRoot() {
   Directory current = Directory.current;
@@ -40,13 +38,91 @@ Directory? _repoRoot() {
   return null;
 }
 
-String _read(File file) => file.readAsStringSync();
+const String _androidName = 'android:name';
+const String _toolsNode = 'tools:node';
 
-void _expectAbsent(String text, String needle, String what) {
+String? _nameOf(XmlElement element) => element.getAttribute(_androidName);
+
+bool _removes(XmlElement element) =>
+    element.getAttribute(_toolsNode) == 'remove';
+
+List<XmlElement> _permissions(XmlDocument document) => document.rootElement
+    .findElements('uses-permission')
+    .toList(growable: false);
+
+Set<String> _permissionNames(XmlDocument document) =>
+    _permissions(document).map(_nameOf).whereType<String>().toSet();
+
+/// Simulates `tools:node="remove"`/normal merging of two source manifests.
+Set<String> _mergePermissionNames(XmlDocument main, XmlDocument release) {
+  final Set<String> effective = _permissionNames(main).toSet();
+  for (final XmlElement permission in _permissions(release)) {
+    final String? name = _nameOf(permission);
+    if (name == null) {
+      continue;
+    }
+    if (_removes(permission)) {
+      effective.remove(name);
+    } else {
+      effective.add(name);
+    }
+  }
+  return effective;
+}
+
+/// Component tag + `android:name` identities merged the same way.
+Set<String> _mergeComponents(XmlDocument main, XmlDocument release) {
+  Set<String> collect(XmlDocument document) {
+    final Set<String> names = <String>{};
+    for (final XmlElement element
+        in document.descendants.whereType<XmlElement>()) {
+      if (element.name.local != 'service' && element.name.local != 'receiver') {
+        continue;
+      }
+      final String? name = _nameOf(element);
+      if (name != null) {
+        names.add('${element.name.local}|$name');
+      }
+    }
+    return names;
+  }
+
+  final Set<String> effective = collect(main);
+  for (final XmlElement element
+      in release.descendants.whereType<XmlElement>()) {
+    if (element.name.local != 'service' && element.name.local != 'receiver') {
+      continue;
+    }
+    final String? name = _nameOf(element);
+    if (name == null) {
+      continue;
+    }
+    final String key = '${element.name.local}|$name';
+    if (_removes(element)) {
+      effective.remove(key);
+    } else {
+      effective.add(key);
+    }
+  }
+  return effective;
+}
+
+/// True when the release overlay contains exactly one [tag]/[name] element
+/// and that element removes the merged contribution.
+void _expectRemoval(XmlDocument release, String tag, String name) {
+  final List<XmlElement> matches = release.descendants
+      .whereType<XmlElement>()
+      .where((XmlElement e) => e.name.local == tag && _nameOf(e) == name)
+      .toList(growable: false);
   expect(
-    text.contains(needle),
-    isFalse,
-    reason: '$what must not contain $needle',
+    matches,
+    isNotEmpty,
+    reason: 'release overlay has no <$tag android:name="$name">',
+  );
+  expect(
+    matches.every(_removes),
+    isTrue,
+    reason: 'release overlay keeps a non-remove <$tag android:name="$name">',
   );
 }
 
@@ -59,92 +135,131 @@ void runReleaseManifestAudit({void Function(String)? marker}) {
     return;
   }
   final String base = '${root.path}/apps/feldexa_app/android/app/src';
-  final File mainManifest = File('$base/main/AndroidManifest.xml');
-  final File debugManifest = File('$base/debug/AndroidManifest.xml');
-  final File profileManifest = File('$base/profile/AndroidManifest.xml');
-  final File releaseManifest = File('$base/release/AndroidManifest.xml');
+  final File mainFile = File('$base/main/AndroidManifest.xml');
+  final File debugFile = File('$base/debug/AndroidManifest.xml');
+  final File profileFile = File('$base/profile/AndroidManifest.xml');
+  final File releaseFile = File('$base/release/AndroidManifest.xml');
   for (final File file in <File>[
-    mainManifest,
-    debugManifest,
-    profileManifest,
-    releaseManifest,
+    mainFile,
+    debugFile,
+    profileFile,
+    releaseFile,
   ]) {
     expect(file.existsSync(), isTrue, reason: 'missing ${file.path}');
   }
-  final String mainText = _read(mainManifest);
-  final String debugText = _read(debugManifest);
-  final String profileText = _read(profileManifest);
-  final String releaseText = _read(releaseManifest);
+  final XmlDocument main = XmlDocument.parse(mainFile.readAsStringSync());
+  final XmlDocument debug = XmlDocument.parse(debugFile.readAsStringSync());
+  final XmlDocument profile = XmlDocument.parse(profileFile.readAsStringSync());
+  final XmlDocument release = XmlDocument.parse(releaseFile.readAsStringSync());
 
   int checks = 0;
 
-  // Release capabilities: the main manifest has no network permission and the
-  // release overlay removes the ML Kit DataTransport contributions.
-  _expectAbsent(mainText, 'android.permission.INTERNET', 'main manifest');
-  _expectAbsent(
-    mainText,
-    'android.permission.ACCESS_NETWORK_STATE',
-    'main manifest',
-  );
-  checks += 2;
-  for (final String permission in <String>[
+  // Main manifest: no network permissions at all.
+  final Set<String> mainPermissions = _permissionNames(main);
+  for (final String forbidden in <String>[
     'android.permission.INTERNET',
     'android.permission.ACCESS_NETWORK_STATE',
   ]) {
     expect(
-      releaseText.contains(permission) &&
-          releaseText.contains('tools:node="remove"'),
-      isTrue,
-      reason: 'release overlay must remove $permission',
+      mainPermissions.contains(forbidden),
+      isFalse,
+      reason: 'main manifest must not declare $forbidden',
     );
     checks++;
   }
-  for (final String component in <String>[
+
+  // Release overlay removes each contribution as its own element; then the
+  // simulated merge must contain neither permission.
+  for (final String permission in <String>[
+    'android.permission.INTERNET',
+    'android.permission.ACCESS_NETWORK_STATE',
+  ]) {
+    _expectRemoval(release, 'uses-permission', permission);
+    checks++;
+  }
+  final Set<String> effectivePermissions = _mergePermissionNames(main, release);
+  for (final String forbidden in <String>[
+    'android.permission.INTERNET',
+    'android.permission.ACCESS_NETWORK_STATE',
+  ]) {
+    expect(
+      effectivePermissions.contains(forbidden),
+      isFalse,
+      reason: 'merged main+release manifest still declares $forbidden',
+    );
+    checks++;
+  }
+
+  // DataTransport components: explicit remove elements and an empty merged
+  // component set.
+  const List<String> transportComponents = <String>[
     'com.google.android.datatransport.runtime.backends.TransportBackendDiscovery',
     'com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService',
     'com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver',
-  ]) {
+  ];
+  for (final String component in transportComponents) {
+    final String tag =
+        component.endsWith('AlarmManagerSchedulerBroadcastReceiver')
+        ? 'receiver'
+        : 'service';
+    _expectRemoval(release, tag, component);
+    checks++;
+  }
+  final Set<String> mergedComponents = _mergeComponents(main, release);
+  for (final String component in transportComponents) {
     expect(
-      releaseText.contains(component) &&
-          releaseText.contains('tools:node="remove"'),
-      isTrue,
-      reason: 'release overlay must remove $component',
+      mergedComponents.where((String key) => key.endsWith('|$component')),
+      isEmpty,
+      reason: 'merged manifest still declares $component',
     );
     checks++;
   }
 
-  // Debug/fixture entries must never appear in the production or release
-  // manifest, and only the debug/profile overlays may carry INTERNET (the
-  // Flutter tool needs it for hot reload).
-  for (final String text in <String>[mainText, releaseText]) {
-    for (final String forbidden in <String>[
-      'android:debuggable="true"',
-      'android:usesCleartextTraffic="true"',
-      'de.feldexa/test',
-      'de.feldexa.test',
-      'assets/fixtures',
-    ]) {
-      _expectAbsent(text, forbidden, 'production/release manifest');
-      checks++;
+  // Debug/profile keep INTERNET for the Flutter tool; the production and
+  // release documents never become debuggable or permit cleartext, and never
+  // carry the debug import channel or a synthetic fixture path.
+  expect(_permissionNames(debug), contains('android.permission.INTERNET'));
+  expect(_permissionNames(profile), contains('android.permission.INTERNET'));
+  checks += 2;
+  for (final XmlDocument document in <XmlDocument>[main, release]) {
+    for (final XmlElement element
+        in document.descendants.whereType<XmlElement>()) {
+      for (final XmlAttribute attribute in element.attributes) {
+        final String local = attribute.name.local;
+        final String value = attribute.value;
+        if (local == 'debuggable') {
+          expect(value, isNot('true'), reason: 'debuggable manifest');
+          checks++;
+        }
+        if (local == 'usesCleartextTraffic') {
+          expect(value, isNot('true'), reason: 'cleartext traffic enabled');
+          checks++;
+        }
+        for (final String forbidden in <String>[
+          'de.feldexa/test',
+          'de.feldexa.test',
+          'assets/fixtures',
+        ]) {
+          expect(
+            value.contains(forbidden),
+            isFalse,
+            reason: 'manifest attribute carries $forbidden',
+          );
+          checks++;
+        }
+      }
     }
   }
-  expect(debugText.contains('android.permission.INTERNET'), isTrue);
-  expect(profileText.contains('android.permission.INTERNET'), isTrue);
-  checks += 2;
 
-  // Synthetic fixtures stay out of the packaged asset list. Comments in the
-  // pubspec explain the exclusion and are not asset entries.
+  // Synthetic fixtures stay out of the packaged asset list. Parse the YAML so
+  // comments and an inline `assets: [...]` list are handled correctly.
   final File pubspec = File('${root.path}/apps/feldexa_app/pubspec.yaml');
-  final String pubspecText = _read(pubspec);
-  final int assetsStart = pubspecText.indexOf('\n  assets:');
-  expect(assetsStart, greaterThanOrEqualTo(0));
-  final String assetsSection = pubspecText.substring(assetsStart);
-  final List<String> assetEntries = assetsSection
-      .split('\n')
-      .map((String line) => line.trim())
-      .where((String line) => line.startsWith('- '))
-      .map((String line) => line.substring(2).trim())
-      .toList();
+  final YamlMap pubspecYaml = loadYaml(pubspec.readAsStringSync()) as YamlMap;
+  final YamlMap flutter = pubspecYaml['flutter'] as YamlMap;
+  final Object? assets = flutter['assets'];
+  final List<String> assetEntries = assets is YamlList
+      ? assets.map((dynamic entry) => entry.toString()).toList(growable: false)
+      : const <String>[];
   expect(
     assetEntries.where((String entry) => entry.startsWith('assets/fixtures')),
     isEmpty,
@@ -169,6 +284,7 @@ void runReleaseManifestAudit({void Function(String)? marker}) {
 
   emit(
     'MANIFEST_AUDIT:PASS:checks=$checks:'
-    'releaseRemovals=5:debugInternet=1:fixtureAssets=0',
+    'releaseRemovals=5:effectiveNetworkPermissions=0:'
+    'effectiveDataTransport=0:fixtureAssets=0',
   );
 }

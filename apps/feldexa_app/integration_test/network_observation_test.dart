@@ -7,13 +7,19 @@
 //     app's own `/proc/self/net/tcp{,6}` table before startup and throughout a
 //     real import + first analysis (the ML Kit OCR path, plan.md risk table),
 //     and fails if the app UID owns any non-loopback outbound socket in
-//     ESTABLISHED/SYN_SENT/CLOSE_WAIT/FIN_WAIT. A recording `HttpOverrides`
-//     additionally fails closed on any Dart HTTP client creation.
+//     ESTABLISHED/SYN_SENT/SYN_RECV/CLOSE_WAIT. API 35 denies in-app table
+//     access, so the authoritative kernel read is the host driver
+//     `tools/android/t138_network_observe.sh` (~4 Hz); flows shorter than one
+//     sampling interval can be missed. A recording `HttpOverrides`
+//     additionally fails closed on any Dart HTTP client creation, and an
+//     app-UID loopback listener is the positive control that proves the table
+//     is observable in the same run.
 //   * `NONE` — the release-manifest audit is a host-side static check over the
 //     committed source manifests and the checked-in release overlay; it cannot
 //     run on the device (the device APK is the debug test build, which keeps
-//     INTERNET for the Flutter tool). Run this file on the host for that leg:
-//     `flutter test integration_test/network_observation_test.dart`.
+//     INTERNET for the Flutter tool). The host lane is the ordinary app suite:
+//     `flutter test test/release_manifest_audit_test.dart` (from
+//     `apps/feldexa_app`); this integration file's second test is device-only.
 //
 // Scope of the measurement: startup, import, encrypted staging, preflight, and
 // the first analysis/OCR. Export is a local PDFBox path already covered by the
@@ -254,6 +260,18 @@ void main() {
 
       await _armFixture();
 
+      // Positive control for the host observation: an app-UID loopback
+      // listener must be visible as a LISTEN row in the kernel table during the
+      // same run. Without it a zero-outbound result is indistinguishable from
+      // an unreadable table.
+      final ServerSocket positiveControl = await ServerSocket.bind(
+        InternetAddress.loopbackIPv4,
+        0,
+      );
+      _marker(
+        'POSITIVE_CONTROL:port=${positiveControl.port}:listening=1:uid=$uid',
+      );
+
       // Android 15 (API 35) denies the app UID any `/proc/net` access. The
       // kernel-table observation therefore belongs to the host driver
       // (`tools/android/t138_network_observe.sh`), which samples the same
@@ -346,6 +364,8 @@ void main() {
         0,
         reason: 'Dart created ${overrides.attempts} outbound HTTP client(s)',
       );
+      await positiveControl.close();
+      _marker('POSITIVE_CONTROL:closed=1');
       _marker('NETWORK_AUDIT_COMPLETE');
     },
   );
