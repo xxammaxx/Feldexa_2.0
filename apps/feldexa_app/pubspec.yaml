@@ -82,6 +82,11 @@ dev_dependencies:
   feldexa_adapters_simulated:
     path: ../../packages/feldexa_adapters_simulated
   crypto: 3.0.8
+  # T134/T138 host audits: real XML and YAML parsing for the manifest audit.
+  # Both are already in the reviewed lock graph (7.1.0 / 3.1.4); this only
+  # declares the direct test use.
+  xml: 7.1.0
+  yaml: 3.1.4
 
 flutter:
   # T005: gen-l10n generates lib/l10n/app_localizations*.dart from the German

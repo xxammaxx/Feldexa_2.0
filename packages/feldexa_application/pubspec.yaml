@@ -20,7 +20,15 @@ dependencies:
   # Existing T050-T057 recognition modules composed by the Phase A pipeline.
   feldexa_recognition:
     path: ../feldexa_recognition
+  # SHA-256 for the template-version snapshot and derived-document identity
+  # (`lib/src/templates/template_versions.dart`). Already in the reviewed lock
+  # graph (3.0.8); this only declares the direct use.
+  crypto: 3.0.8
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # Test-only coverage of the canonical SIMULATED template/version store; the
+  # package depends on core/export/ports only, so no cycle is introduced.
+  feldexa_adapters_simulated:
+    path: ../feldexa_adapters_simulated

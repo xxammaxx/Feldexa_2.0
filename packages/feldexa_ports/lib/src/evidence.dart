@@ -280,7 +280,7 @@ final class CapabilityEvidence {
   Map<String, Object?> toReportFields() => <String, Object?>{
     'evidenceClass': evidenceClass.label,
     'adapterId': adapterId,
-    if (simulatedReason != null) 'simulatedReason': simulatedReason!,
+    'simulatedReason': ?simulatedReason,
   };
 
   /// One structured-log line for this evidence (FR-087; error catalog §9).
