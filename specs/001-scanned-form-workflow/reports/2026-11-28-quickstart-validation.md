@@ -22,7 +22,7 @@ performance and recognition-evaluation sections are honestly `NOT_RUN`.
 | Host | Linux x86_64 (CachyOS, kernel 7.2.7), Flutter 3.47.7 stable |
 | Emulator | `emulator-5554`, AVD `T025_Pixel7_API35_KVM_20261115`, Pixel 7 / API 35 / x86_64, boot completed (release 15, `google/sdk_gphone64_x86_64/emu64xa:15/AE3A.240806.043/12960925:userdebug/dev-keys`) |
 | Browser | Chrome for Testing **156.0.8078.4** via `tools/browser/chrome_launch.sh`; `chromedriver` **156.0.8078.4` |
-| Fixtures | committed `fixtures-1.1.0`, 8 catalogue PDFs + `sf-not-a-pdf.pdf`; `sf-001.pdf` 5,956 bytes, SHA-256 `22c939cc…a038` |
+| Fixtures | committed `fixtures-1.1.0`, 8 catalogue fixtures (incl. the `sf-not-a-pdf.pdf` negative) plus `sf-acroform-001.pdf` = 9 PDFs in `assets/fixtures/`; `sf-001.pdf` 5,956 bytes, SHA-256 `22c939cc…a038` |
 | Host PDF tools | `qpdf`, `pdfinfo`, `pdftoppm`, `pdftotext`, `mutool`, `compare`, `identify` present (the T110 driver fails closed on a missing tool) |
 
 ## Scenario results
@@ -68,7 +68,7 @@ click-through claim is made here.
 
 PASS: exactly one emulator transport (`emulator-5554`), QEMU, API 35, boot
 completed. Nine fixture files were pushed to `/data/local/tmp/t046-fixtures`
-(8 catalogue PDFs plus the not-a-PDF negative fixture), mode 755/644.
+(9 PDFs in `assets/fixtures/`: the 8 catalogue fixtures incl. the not-a-PDF negative, plus `sf-acroform-001.pdf`), mode 755/644.
 
 ### §5 Import and source integrity (`EMULATOR`)
 

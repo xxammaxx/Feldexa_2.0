@@ -53,7 +53,7 @@ selects; it is a local tool and is not committed.
   `integration_test` results; a suite that never reports fails the check.
 - The check starts the loopback fixture server (`127.0.0.1:8765`) around the
   drive runs, because the web import journey fetches the committed fixture
-  mirror. It reuses a listener only if it serves the committed catalogue.
+  mirror. It reuses a listener only if it answers `/fixtures/sf-001.pdf` with `%PDF-` (a liveness check, not a catalogue-identity check).
 - Chromedriver readiness uses a `python3` socket connect instead of `/dev/tcp`
   (this bash build has no `/dev/tcp`; the old probe reported a live
   chromedriver as dead and made check 7 `UNAVAILABLE`).
