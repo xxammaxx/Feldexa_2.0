@@ -7,12 +7,14 @@
 
 ## Result in one sentence
 
-The completion wave closes the three open lanes: the T110 print run passes on
-`emulator-5554` (real print-spooler preview, artifact picked up at 12,029
+The completion wave closes the three open lanes with honest status: the T110
+functional print checks pass on `emulator-5554` (artifact picked up at 12,029
 bytes, T105 harness 7 PASS / 0 FAIL / 6 NOT_RUN, Poppler vs MuPDF 0.41 % /
-0.47 % per page), the T146 quickstart scenarios pass wherever this host offers
-the lane (Chrome fill/review/watermark suites, emulator import 8/8,
-failure-injection 5/5) with the corpus-inventory and `DEVICE` gaps recorded,
+0.47 % per page) while the visual preview proof is `NOT_PROVEN` — T110 stays
+**OPEN/PARTIAL**; the T146 quickstart scenarios pass wherever this host offers
+the lane (Chrome fill/review/watermark suites; emulator import 8/8 and
+failure-injection 5/5 executed without retained logs — `PARTIAL`) with the
+corpus-inventory and `DEVICE` gaps recorded,
 the T145 drive layer is built and all four `integration_test/web_*` suites run
 through `flutter drive` in Chrome, and the T111 watermark/determinism
 assertions now execute in Chrome (**3/3**). The full gate completes with
@@ -31,7 +33,7 @@ assertions now execute in Chrome (**3/3**). The full gate completes with
 ## T110 — Android print preview and two-engine printability (SC-005; CHK019)
 
 `python3 tools/android/t108_t110_drive.py print` re-executes itself under
-`compute_slot.py --wait --resource build --resource emulator` and passed:
+`compute_slot.py --wait --resource build --resource emulator` and passed functionally (visual preview NOT_PROVEN → OPEN/PARTIAL):
 
 | Step | Evidence |
 | --- | --- |
@@ -77,10 +79,10 @@ Full scenario table with numbers and evidence classes:
 | §1–2 tools/fixtures | PASS for toolchain and synthetic fixtures; `tools/corpus/manifest.json` absent, so the 20-form real corpus and `tools/corpus/verify.sh` stay `NOT_RUN` |
 | §3 web journey (`SIMULATED`) | Chrome: fill **3/3**, review **2/2**, watermark/determinism **3/3** in this slice; journey 1/1 and viewport 3/3 cited from `2026-11-28-browser-complete.md` |
 | §4 emulator setup | PASS — one transport, QEMU, API 35, boot completed; nine fixture files staged |
-| §5 import (`EMULATOR`) | **8/8 PASS** — single/five-page/mixed geometry plus `IMP-001`, `IMP-002`, `IMP-004`, `IMP-005`, `IMP-006` |
+| §5 import (`EMULATOR`) | **8/8 executed, PARTIAL** (no retained log) — single/five-page/mixed geometry plus `IMP-001`, `IMP-002`, `IMP-004`, `IMP-005`, `IMP-006` |
 | §6 journey up to export (`EMULATOR`) | PASS via T110; autosave/force-stop sub-steps cited from T092–T101 and not rerun (PARTIAL section) |
 | §7 export artifact | PASS — harness 7/0/6 and two-engine comparison above |
-| §8 failure injection | **5/5 PASS** — `SAVE-001` blocked save and untouched objects (2), passwordless open (1, EMULATOR), key-loss isolation and `SAVE-008` (2, SIMULATED seams) |
+| §8 failure injection | **5/5 executed, PARTIAL** (no retained log) — `SAVE-001` blocked save and untouched objects (2), passwordless open (1, EMULATOR), key-loss isolation and `SAVE-008` (2, SIMULATED seams) |
 | §9 offline/privacy | not rerun; cited T138 zero-outbound observation and 139-check manifest audit |
 | §10 performance (`DEVICE`) | `NOT_RUN` — no A54-class device; no emulator timing cited as SC-004 |
 | §11 recognition evaluation (`DEVICE`) | `NOT_RUN` — no scored corpus run, no threshold change |

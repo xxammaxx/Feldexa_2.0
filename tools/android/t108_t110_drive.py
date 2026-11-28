@@ -332,14 +332,22 @@ def capture_print_preview(mode: str) -> None:
             text=True,
             timeout=120,
         ).stdout
-        spooler = "com.android.printspooler" in activity or "PrintActivity" in activity
-        # The spooler activity may exist before its frame is drawn; a screenshot
-        # taken then is a uniform black frame (measured 2026-11-28). Wait for a
-        # drawn/visible print activity and keep the screen awake first.
-        drawn = (
-            "reportedDrawn=true" in activity
-            or "mVisible=true" in activity
-            or "state=RESUMED" in activity
+        blocks = activity.split("ActivityRecord{")
+        print_blocks = [
+            block
+            for block in blocks
+            if "com.android.printspooler" in block or "PrintActivity" in block
+        ]
+        spooler = bool(print_blocks)
+        # The spooler activity exists before its frame is drawn; a screenshot
+        # taken then is a uniform black frame (measured 2026-11-28). The
+        # main-activity record in the same dump satisfies the markers too, so
+        # the check must look inside the PrintActivity block only.
+        drawn = any(
+            "reportedDrawn=true" in block
+            or "mVisible=true" in block
+            or "state=RESUMED" in block
+            for block in print_blocks
         )
         if spooler and drawn:
             break
@@ -398,6 +406,8 @@ def capture_print_preview(mode: str) -> None:
     )
     if not spooler:
         fail("no print-spooler/PrintActivity activity was found for the print preview")
+    if not drawn:
+        fail("the print-preview dialog never reported a drawn/resumed PrintActivity")
     log("DRIVER: print preview activity and screenshot captured")
 
 
