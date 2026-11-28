@@ -1,0 +1,9 @@
+serial=emulator-5554
+avd=T025_Pixel7_API35_KVM_20261115
+qemu=1
+sdk=35
+boot_completed=1
+fingerprint=google/sdk_gphone64_x86_64/emu64xa:15/AE3A.240806.043/12960925:userdebug/dev-keys
+release=15
+abi=x86_64
+non_emulator_transports_addressed=none
