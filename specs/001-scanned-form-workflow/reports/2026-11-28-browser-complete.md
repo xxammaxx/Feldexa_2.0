@@ -29,9 +29,11 @@ Host-VM (`NONE`) und in Chrome (`SIMULATED`); die ursprünglichen
    Bash-Build hat keine Net-Redirections (`/dev/tcp: No such file or directory`) — der
    Server lief, die Erkennung nie, der Check meldete falsch „not ready". Ersatz:
    `python3`-Socket-Connect (der Gate setzt python3 ohnehin voraus). Ein bereits
-   lauschender Port wird nur übernommen, wenn er die committete Fixture-Katalogdatei
-   mit `%PDF-`-Magic beantwortet (`fixture_server_serves_catalogue`), sonst FAIL — kein
-   stilles Adoptieren eines fremden Listeners.
+   lauschender Port wird nur übernommen, wenn er `/fixtures/sf-001.pdf` mit
+   `%PDF-`-Magic beantwortet (`fixture_server_serves_catalogue` — eine
+   Fixture-Liveness-, keine Katalog-Identitaetspruefung; ein Fremd-Worktree mit
+   derselben Fixture bestuende sie), sonst FAIL — kein stilles Adoptieren eines
+   ungeprüften Listeners.
 3. **`stored_list_50_test.dart`**: `@TestOn('vm')` — die 500-ms-Host-Budgetmessung
    (Evidenzklasse NONE) wurde vom Chrome-Lane-Pickup flaky erfasst; sie läuft
    unverändert im Host-VM-Check.
@@ -62,8 +64,8 @@ Der Chrome-Lauf selbst: **72 passed / 4 skipped / 0 failed** (alle `test/*_test.
 
 **Einordnung**: Es gibt keinen FAIL und keine UNAVAILABLE mehr; die einzige Lücke ist
 die geplante Drive-Layer (`test_driver/integration_test.dart` + chromedriver) für die
-`integration_test/web_*`-Suiten — eine dokumentierte Owner-/Struktur-Entscheidung, kein
-Umgebungsblocker. **T145 bleibt deshalb offen (`PARTIAL`)**: der Gate-Lauf endet mit
+`integration_test/web_*`-Suiten — eine offene Owner-/Struktur-Entscheidung (nicht
+dokumentiert entschieden), kein Umgebungsblocker. **T145 bleibt deshalb offen (`PARTIAL`)**: der Gate-Lauf endet mit
 Exit 3 (`GATE INCOMPLETE`, 1 ABSENT-Layer), `tools/gate.sh` erklärt die Escape-Hatches
 ausdrücklich für ungültig bei der finalen Abnahme, und `2026-11-12-local-gate.md` wird
 erst bei einem vollständigen Lauf geschrieben. Der Analyzer-Pflicht-Check ist grün und

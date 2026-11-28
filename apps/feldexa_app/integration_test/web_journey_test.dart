@@ -6,8 +6,8 @@
 // Testing 156, 2026-11-28). What is delivered
 // here is the host-VM entry test over the shipped editing-journey widgets:
 // the same seams the Chrome journey drives (banner, page display and
-// navigation, field selection, geometry move/resize, review decisions), so
-// the unblocked browser lane only has to substitute the platform.
+// navigation, field selection, geometry move/resize, review decisions); the
+// Chrome run itself happens in the test/ mirror.
 //
 // Journey steps covered here, in order, on the shipped widgets:
 //   1. open — the SIMULATED banner labels the development surface;

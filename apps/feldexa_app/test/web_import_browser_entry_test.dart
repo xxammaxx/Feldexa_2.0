@@ -5,14 +5,14 @@
 // proves the browser import journey and its SIMULATED labels; it is not
 // Android runtime evidence (FR-086/FR-087/FR-088).
 //
-// The file lives under `integration_test/` because T047 owns that path, but it
-// is a `flutter_test` browser test rather than an `integration_test` device
-// driver. `flutter test --platform chrome` cannot compile a test file outside
-// `test/` directly: its generated entrypoint imports
-// `org-dartlang-app:///../integration_test/...` and the browser test server
-// does not serve that path. The committed helper
-// `test/web_import_browser_entry_test.dart` is a relative symlink to this file,
-// so the browser runner compiles this exact journey. The working command is:
+// This file is the host/browser copy of the T047 journey (the row path
+// `integration_test/web_import_test.dart` hosts the same suite for the device
+// lanes). It lives under `test/` because `flutter test --platform chrome`
+// cannot compile a test file outside `test/` directly (the generated
+// entrypoint imports `org-dartlang-app:///../integration_test/...` and the
+// browser test server does not serve that path); the T062 lane constraint
+// keeps a real copy instead of a symlink (`.specify/init-options.json` sets
+// `allow_symlinks: false`). The working command is:
 //
 //   dart run tools/corpus/synthetic/serve_web_fixtures.dart \
 //     --root apps/feldexa_app/web --port 8765

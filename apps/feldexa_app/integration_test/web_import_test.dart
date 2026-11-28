@@ -12,8 +12,9 @@
 // `org-dartlang-app:///../integration_test/...` and the browser test server
 // does not serve that path. The committed host/browser copy
 // `test/web_import_browser_entry_test.dart` carries the identical suite (the
-// T062 "no symlink" rule; `flutter_test_config.dart` refuses symlinked roots),
-// so the browser runner compiles the same journey from `test/`. The headless
+// T062 "no symlink" rule; `.specify/init-options.json` sets
+// `allow_symlinks: false`), so the browser runner compiles the same journey
+// from `test/`. The headless
 // browser lane was unblocked on 2026-11-28 (test bootstrap `kIsWeb` guard);
 // the working command is:
 //
