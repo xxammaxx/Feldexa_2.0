@@ -116,9 +116,21 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   // host-only and the browser layer must keep its real bundle.
   if (!kIsWeb) {
     _installAppAssetFallback();
+    // A missing or unreadable table degrades to "no FLD-001 warning"; it must
+    // never fail a host test that does not care about overflow.
+    await initializeFieldTextMeasure();
   }
-  // A missing or unreadable table degrades to "no FLD-001 warning"; it must
-  // never fail a host test that does not care about overflow.
-  await initializeFieldTextMeasure();
+  // Browser lane: Flutter 3.47.7's web test harness runs with
+  // `TestEnvironment.flutterTester()` and `ignorePlatformMessages = true`
+  // (`_test_selector_web.dart` / `testing.dart`), so the engine dispatcher
+  // (`EnginePlatformDispatcher._sendPlatformMessage`) returns without a reply
+  // and
+  // `rootBundle.loadString` never settles — even a served bundle would not
+  // resolve it. The failure does not throw, so the catch in
+  // `initializeFieldTextMeasure` cannot rescue it, and awaiting the table
+  // kept every browser suite from reaching `testMain` (measured 2026-11-28:
+  // suite loads, `main` never runs, `No tests ran` after the timeout). The
+  // table is therefore unavailable on the browser lane by construction;
+  // browser suites run with FLD-001 measurement disabled.
   await testMain();
 }

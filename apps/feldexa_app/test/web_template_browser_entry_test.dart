@@ -2,12 +2,12 @@
 // FR-086/FR-087).
 //
 // Pattern: `test/web_review_browser_entry_test.dart` (PR #356). The suite is
-// platform-agnostic and runs on the host VM (evidence class NONE); when
-// Chrome is available it also runs in the browser lane. The browser run of
-// this slice is NOT_RUN: every bounded Chrome attempt hangs at test
-// execution on this host
-// (`run-tscn02hu/reports/findings/2026-11-27-flutter-browser-lane-hang.md`,
-// 6 documented attempts). No browser PASS is claimed.
+// platform-agnostic: it runs on the host VM (evidence class NONE) and, with
+// Chrome available, in the browser lane (evidence class SIMULATED). The lane
+// was unblocked on 2026-11-28
+// (`specs/001-scanned-form-workflow/reports/2026-11-28-browser-lane.md`); the
+// suite runs there with FLD-001 text-fit measurement disabled because the
+// Flutter web test platform serves no asset bundle.
 //
 // The suite exercises the real template-entry surfaces: the "Als Vorlage
 // speichern" sheet with its exclusion notice and disabled confirm while the
