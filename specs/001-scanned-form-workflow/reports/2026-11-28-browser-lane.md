@@ -1,7 +1,7 @@
 # Browser-Lane entsperrt: Ursache, Fix und Suite-Belege (T072/T087/T101/T111/T121/T127, T131/T132 abgegrenzt)
 
 **Date**: 2026-11-28 02:40 Europe/Berlin · **Branch**: `xxammaxx/browser-lane` ·
-**Base**: `a7da37d` (current `origin/main`, merge of PR #374) · **Role**: build
+**Base**: `2017df7` (current `origin/main` at rebase time); candidate `aa3878d` (code `abcd808`) · **Role**: build
 (worker) · **Evidence classes**: `SIMULATED` (Chrome browser lane), host checks
 (`NONE` provenance: bootstrap, formatter, analyzer, gate mechanics). This report
 makes no Android, `EMULATOR`, or `DEVICE` claim and no SC-004/005/006 claim.
@@ -12,8 +12,8 @@ makes no Android, `EMULATOR`, or `DEVICE` claim and no SC-004/005/006 claim.
 compiles, boots and connects, but the app's test bootstrap awaited
 `initializeFieldTextMeasure()`, whose `rootBundle` load of
 `assets/fonts/metrics.json` **never completes and never throws** on the web test
-platform (that platform serves no asset bundle at all); guarding the load with
-`kIsWeb` unblocks the lane, and T072 (2/2), T087 (3/3), T101 (3/3), T121 (3/3)
+platform (the harness runs with `ignorePlatformMessages = true`, so even a served
+bundle would not resolve it); guarding the load with `kIsWeb` unblocks the lane, and T072 (2/2), T087 (3/3), T101 (3/3), T121 (3/3)
 and T127 (8/8) now pass in Chrome, while T111 stays `NOT_RUN` because its suite
 is `@TestOn('vm')` and T131/T132 stay `NOT_RUN` because Chrome test roots are
 `<project>/test` and no chromedriver/`test_driver` exists.
@@ -115,11 +115,11 @@ browser check):
 
 | Suite | Tests | Outcome |
 | --- | ---: | --- |
-| `test/web_import_browser_entry_test.dart` | 6 | **FAIL 1/6** — the suite loads fixtures over `HttpRequest`; `/assets/…` is not served, so five tests fail on `ProgressEvent` |
-| `test/web_recognition_browser_entry_test.dart` | 4 | **FAIL 0/4** — same asset cause |
+| `test/web_import_browser_entry_test.dart` | 6 | **FAIL 1/6** — the suite reads fixtures from the loopback server `127.0.0.1:8765`; the server was not running for this gate invocation, so five tests fail on `ProgressEvent` |
+| `test/web_recognition_browser_entry_test.dart` | 4 | **FAIL 0/4** — same missing loopback fixture server |
 | `test/web_fixtures_browser_test.dart` | 4 | all self-skip (`Skip: requires the fixture server: …`) |
 | `test/release_manifest_audit_test.dart` | 1 | skipped by the chrome lane after the `@TestOn('vm')` fix; runs in gate check 5 |
-| `test/stored_list_50_test.dart` | 2 | **FAIL 1/2** — the 500 ms host build/layout budget does not hold under dartdevc; the lazy-rendering test passes |
+| `test/stored_list_50_test.dart` | 2 | **FAIL 1/2** — flaky in the browser lane: the same 500 ms host-budget test passed in an earlier gate run and failed once after ~18 s under dartdevc; the lazy-rendering test passes |
 
 Wall times include the per-file dartdevc build (about 30-40 s of each run).
 
@@ -159,8 +159,8 @@ The two fixture suites only need the existing `test_web_fixtures.sh` server
 before the chrome check — the gate does not start it; that is a repository
 robustness decision, not a drive-lane requirement. `stored_list_50` is a
 host-budget test the chrome lane picks up because the file carries no platform
-tag (flaky there). Both are repository-structure decisions, not environment
-blocks — see §5.
+tag (flaky there). Both are repository-structure decisions — the environment
+block is gone — see §5.
 
 ## 5. Limitations and owner decisions
 
@@ -186,14 +186,17 @@ blocks — see §5.
 4. **`stored_list_50_test.dart` runs outside its declared evidence class.**
    Its header calls it a host widget test with a host build/layout bound
    (500 ms, OD-4/Q10=A), but the file has no platform tag, so the chrome lane
-   runs it and the budget does not hold under dartdevc. Either tag the file
+   runs it and the budget was flaky there under dartdevc (passed once, failed
+   once after ~18 s). Either tag the file
    `@TestOn('vm')` or skip only the budget test with `kIsWeb`; the lazy-rendering
    assertion is valid on both lanes and passes.
 5. **Owner decisions required** — the environment-side block is gone; what
    remains is repository structure:
-   - move asset-reading browser suites to the drive lane (add
-     `test_driver/integration_test.dart` and provision `chromedriver`), or keep
-     them out of the chrome test lane by an explicit, documented mechanism;
+   - start the existing loopback fixture server (`test_web_fixtures.sh`) for the
+     fixture-reading suites in the chrome check, or keep them out of it by an
+     explicit, documented mechanism; the drive lane
+     (`test_driver/integration_test.dart` + `chromedriver`) is only for the
+     `integration_test/` mirrors;
    - decide T131/T132: `test/`-rooted mirror or chromedriver lane.
 6. No `EMULATOR` or `DEVICE` run is part of this report. T128 (Chrome editing
    journey with the fixture server) remains a separate slice, as the brief
@@ -203,19 +206,20 @@ blocks — see §5.
 
 | Artifact | Path | Bytes | SHA-256 |
 | --- | --- | ---: | --- |
-| Chrome launcher shim (new) | `tools/browser/chrome_launch.sh` | 1999 | `da52b4ea860429a79cb428c4853c861b49d37166ce832392d3acecf3b020e1c1` |
-| Test bootstrap, web-guarded metric load | `apps/feldexa_app/test/flutter_test_config.dart` | 5950 | `2fe3067aca4f148f926d11a1dd141d723819d393d35b0effdc8777c513b368f7` |
+| Chrome launcher shim (new) | `tools/browser/chrome_launch.sh` | 2083 | `87d6f467bc1903e2f0efdd91e437f6cb42333f87258722894f44a8fc45374af1` |
+| Test bootstrap, web-guarded metric load | `apps/feldexa_app/test/flutter_test_config.dart` | 5985 | `6c2b5769d573b8d58666c3a3d8d19e0a795a48f623618200f6a77e174331b557` |
 | T127 suite, lane guard replaced | `apps/feldexa_app/test/web_uncertainty_browser_entry_test.dart` | 7073 | `094d6cbd9bb04c85117c96ccd37b475aadf7f7981686d8a66c9ff4e1e7b08a11` |
 | T121 suite header | `apps/feldexa_app/test/web_template_browser_entry_test.dart` | 5906 | `9f6af70ab616ca8484a8e647c04311f2c7b7b0ed0b7e751b4f0c70c1bb091587` |
 | T111 suite header | `apps/feldexa_app/test/web_export_browser_entry_test.dart` | 12298 | `981c3e38d5fa83a4440c419e0ef60b89d784d429ba60e2f1f2e934b877b8f9fa` |
 | T138 manifest audit, `@TestOn('vm')` added | `apps/feldexa_app/test/release_manifest_audit_test.dart` | 890 | `c8c0e87459d5af77c30c253ad9aceef1e95d82a1b51c7f09aaa331cdf7c467d5` |
 
 Run logs are host-local and not retained in the candidate commit; §7
-regenerates every number above.
+regenerates every number above. The evidence was produced at candidate
+`aa3878d` (code `abcd808`); all later commits in this PR are report/docs-only.
 
 ## 7. Reproducibility
 
-1. Start from the candidate commit `3ae912e` (the unguarded base `a7da37d` cannot reproduce steps 3–5).
+1. Start from the candidate commit `aa3878d` (code commit `abcd808`; the unguarded base cannot reproduce steps 3–5).
 2. `cd apps/feldexa_app && flutter pub get`.
 3. Export `CHROME_EXECUTABLE=<repo-root>/tools/browser/chrome_launch.sh` (or any
    Chrome 137+ binary plus `--enable-unsafe-swiftshader`).
