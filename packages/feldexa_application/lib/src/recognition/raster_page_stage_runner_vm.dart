@@ -16,10 +16,14 @@
 /// [PageAnalysisFailure.internal] outcome, so a spawn failure degrades to a
 /// failed page instead of an unhandled error or a silently completed one.
 ///
-/// The stage entry is synchronous and cannot observe a caller-side token, so
-/// [deadline] is the backstop that bounds a page: when it elapses the worker is
-/// killed with [Isolate.immediate] and joined before this future completes, so
-/// no zombie isolate and no partial suggestion survives the page.
+/// The stage entry is synchronous and cannot observe a caller-side token, so a
+/// page is bounded twice: the optional [cancellation] signal ends the worker as
+/// soon as it completes, and [deadline] remains the fail-closed backstop for a
+/// page nothing cancels. Either way the worker is killed with
+/// [Isolate.immediate] and joined before this future completes, so no zombie
+/// isolate and no partial suggestion survives the page. A cancelled page
+/// returns [RasterPageStageOutcome.cancelled] - the existing cancelled-page
+/// category (REC-004), never a failure.
 library;
 
 import 'dart:async';
@@ -41,6 +45,11 @@ final class _RasterPageStageMessage {
 /// Marks a stage run that outlived [defaultPageAnalysisDeadline].
 final class _DeadlineElapsed {
   const _DeadlineElapsed();
+}
+
+/// Marks a stage run ended by the caller's cancellation signal.
+final class _Cancelled {
+  const _Cancelled();
 }
 
 /// Worker isolate entry point.
@@ -68,12 +77,18 @@ void _rasterPageStageWorker(_RasterPageStageMessage message) {
 /// its own fault-injection seams into it, a test substitutes it to observe the
 /// worker. [deadline] bounds this one page's run; when it elapses the worker is
 /// killed immediately and joined, and the result is
-/// [RasterPageStageOutcome.timedOut]. The worker isolate is always terminated
-/// and joined before this future completes.
+/// [RasterPageStageOutcome.timedOut]. When [cancellation] completes - and it
+/// therefore does not have to wait for [deadline] - the worker is killed just
+/// as immediately and the result is [RasterPageStageOutcome.cancelled], a
+/// content-free outcome that is neither complete nor failed. A signal that
+/// fails counts as a cancellation, so a broken signal can never pin a page to
+/// its deadline. The worker isolate is always terminated and joined before this
+/// future completes.
 Future<RasterPageStageOutcome> runRasterPageStageOffIsolate(
   RasterPageStageTask task, {
   RasterPageStageWork work = runRasterPageStage,
   Duration deadline = defaultPageAnalysisDeadline,
+  Future<void>? cancellation,
 }) async {
   // One port carries both the outcome and the spawn-level exit notification, so
   // the exit listener is registered before the worker can exit and the two
@@ -129,6 +144,26 @@ Future<RasterPageStageOutcome> runRasterPageStageOffIsolate(
       terminal.complete(const _DeadlineElapsed());
     }
   });
+  if (cancellation != null) {
+    // The signal is a caller-side decision: it is observed in the calling
+    // isolate and translates into an immediate kill, so the worker never needs
+    // to poll anything. Both a value and an error complete the race, and the
+    // error is swallowed because it cannot change the page outcome.
+    unawaited(
+      cancellation.then<void>(
+        (void _) {
+          if (!terminal.isCompleted) {
+            terminal.complete(const _Cancelled());
+          }
+        },
+        onError: (Object _) {
+          if (!terminal.isCompleted) {
+            terminal.complete(const _Cancelled());
+          }
+        },
+      ),
+    );
+  }
 
   try {
     final Object? message = await terminal.future;
@@ -137,6 +172,9 @@ Future<RasterPageStageOutcome> runRasterPageStageOffIsolate(
     }
     if (message is _DeadlineElapsed) {
       return RasterPageStageOutcome.timedOut();
+    }
+    if (message is _Cancelled) {
+      return RasterPageStageOutcome.cancelled();
     }
     return RasterPageStageOutcome.failed(
       category: PageAnalysisFailure.internal,

@@ -1,13 +1,15 @@
 // T086B-R (#270) worker-isolate execution of the bytes-level raster stage.
 //
 // Evidence class: NONE. These are host-VM tests of the runner contract. They
-// show that the stage work executes on a worker isolate and that the deadline
-// backstop ends a stalled worker; they measure no performance and they are not
-// EMULATOR or DEVICE evidence.
+// show that the stage work executes on a worker isolate, that the deadline
+// backstop ends a stalled worker, and that a caller cancellation ends it
+// earlier without a partial outcome; they measure no performance and they are
+// not EMULATOR or DEVICE evidence.
 
 @TestOn('vm')
 library;
 
+import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
 
@@ -76,4 +78,100 @@ void main() {
       expect(clock.elapsedMilliseconds, lessThan(2000));
     },
   );
+
+  test(
+    'a cancellation ends a stalled worker well before the deadline',
+    () async {
+      final Completer<void> cancellation = Completer<void>();
+      Timer(const Duration(milliseconds: 150), cancellation.complete);
+      final Stopwatch clock = Stopwatch()..start();
+      final RasterPageStageOutcome outcome = await runRasterPageStageOffIsolate(
+        _task(),
+        work: (RasterPageStageTask task) {
+          final int until = DateTime.now().millisecondsSinceEpoch + 3000;
+          while (DateTime.now().millisecondsSinceEpoch < until) {
+            // Worker stalled on purpose; the cancellation must end it.
+          }
+          return RasterPageStageOutcome.complete(<Map<String, Object?>>[
+            <String, Object?>{'id': 's_partial'},
+          ]);
+        },
+        cancellation: cancellation.future,
+        deadline: const Duration(seconds: 10),
+      );
+      clock.stop();
+
+      // The cancellation is content-free: no envelope, no partial suggestion,
+      // no failure, and no timeout. It is the existing cancelled-page category
+      // (REC-004), never a page failure.
+      expect(outcome.isCancelled, isTrue);
+      expect(outcome.isFailed, isFalse);
+      expect(outcome.timedOut, isFalse);
+      expect(outcome.failure, isNull);
+      expect(outcome.suggestions, isEmpty);
+      // The 3 s stall is not awaited and the 10 s deadline is not reached.
+      expect(clock.elapsedMilliseconds, lessThan(2000));
+    },
+    timeout: const Timeout(Duration(seconds: 30)),
+  );
+
+  test(
+    'a cancellation completed before the call spawns no observed outcome',
+    () async {
+      final RasterPageStageOutcome outcome = await runRasterPageStageOffIsolate(
+        _task(),
+        work: (RasterPageStageTask task) =>
+            RasterPageStageOutcome.complete(<Map<String, Object?>>[
+              <String, Object?>{'id': 's_stale'},
+            ]),
+        cancellation: Future<void>.value(),
+      );
+
+      expect(outcome.isCancelled, isTrue);
+      expect(outcome.suggestions, isEmpty);
+      expect(outcome.isFailed, isFalse);
+    },
+  );
+
+  test('without a cancellation the projection is unchanged', () async {
+    RasterPageStageOutcome work(RasterPageStageTask task) {
+      return RasterPageStageOutcome.complete(<Map<String, Object?>>[
+        <String, Object?>{'id': 's_p0_0001', 'pageIndex': 0},
+      ]);
+    }
+
+    final RasterPageStageOutcome plain = await runRasterPageStageOffIsolate(
+      _task(),
+      work: work,
+    );
+    // A signal that never completes must be indistinguishable from no signal.
+    final RasterPageStageOutcome watched = await runRasterPageStageOffIsolate(
+      _task(),
+      work: work,
+      cancellation: Completer<void>().future,
+    );
+
+    expect(watched.isCancelled, isFalse);
+    expect(watched.isFailed, isFalse);
+    expect(watched.suggestions, plain.suggestions);
+  });
+
+  test('a never-firing signal leaves the deadline backstop intact', () async {
+    final RasterPageStageOutcome outcome = await runRasterPageStageOffIsolate(
+      _task(),
+      work: (RasterPageStageTask task) {
+        final int until = DateTime.now().millisecondsSinceEpoch + 3000;
+        while (DateTime.now().millisecondsSinceEpoch < until) {
+          // Only the deadline can end this worker.
+        }
+        return RasterPageStageOutcome.complete(<Map<String, Object?>>[]);
+      },
+      cancellation: Completer<void>().future,
+      deadline: const Duration(milliseconds: 150),
+    );
+
+    expect(outcome.timedOut, isTrue);
+    expect(outcome.isCancelled, isFalse);
+    expect(outcome.isFailed, isTrue);
+  });
 }

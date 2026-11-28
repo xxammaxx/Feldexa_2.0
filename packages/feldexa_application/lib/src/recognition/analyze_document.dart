@@ -79,16 +79,20 @@
 ///    page: at the page boundary before any work, again after render and OCR
 ///    before the geometry/typing stage is dispatched, and every
 ///    `_cancellationScanlineStride` scanlines while the rendered raster is
-///    converted to tight bytes. It cannot stop the stage itself: the token is a
-///    caller-side decision no worker isolate can observe, so an off-isolate page
-///    is bounded by `defaultPageAnalysisDeadline` instead. A cancelled page
-///    produces no terminal envelope and is reported separately, never as
-///    failed (contract §4).
+///    converted to tight bytes. The synchronous predicate cannot stop the
+///    stage itself, so a caller can additionally pass one run-level
+///    cancellation future: it is observed by the off-isolate runner, which
+///    kills and joins the worker as soon as it completes instead of waiting
+///    for `defaultPageAnalysisDeadline`; the inline mode observes it at its
+///    checkpoints. A cancelled page produces no terminal envelope and is
+///    reported separately, never as failed (contract §4). Remaining pages are
+///    not started once the signal has completed.
 ///  * No label text, OCR text, file name, or path is logged. The use case has
 ///    no `print`, `dart:developer`, I/O, persistence, randomness, or locale
 ///    dependency.
 library;
 
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:feldexa_core/feldexa_core.dart';
@@ -319,8 +323,17 @@ abstract final class AnalyzeDocument {
   /// removes work, it never rewrites a completed result.
   ///
   /// The token is a caller-side decision. It is not a message channel: a worker
-  /// isolate cannot observe it, so an off-isolate page run is bounded by the
-  /// per-page deadline instead of by these checkpoints.
+  /// isolate cannot observe it, so the page-level checkpoints only bound the
+  /// calling-isolate work.
+  ///
+  /// [cancellation] is the run-level cancellation signal. When it completes,
+  /// the in-flight page's worker is killed and joined immediately - without
+  /// waiting for [pageDeadline] - and the page is reported cancelled: no
+  /// envelope, no partial suggestion, no failure (REC-004). Pages that have not
+  /// started are not started and are reported cancelled as well. An already
+  /// finished page keeps its envelope. In [RecognitionExecution.inline] the
+  /// signal is observed at the page checkpoints only, because a single isolate
+  /// cannot preempt running work.
   ///
   /// [geometryDetection] defaults to the production [GeometryDetector.detect]
   /// and [rasterAnalysis] defaults to `RasterAnalysis.new`; both exist only to
@@ -342,11 +355,18 @@ abstract final class AnalyzeDocument {
   static Future<DocumentAnalysisResult> run(
     DocumentAnalysisRequest request, {
     PageCancellation? isCancelled,
+    Future<void>? cancellation,
     GeometryDetection geometryDetection = GeometryDetector.detect,
     RasterAnalysisBuilder rasterAnalysis = RasterAnalysis.new,
     RecognitionExecution execution = RecognitionExecution.offIsolate,
     Duration pageDeadline = defaultPageAnalysisDeadline,
   }) async {
+    final _CancellationWatch watch = _CancellationWatch(cancellation);
+    if (watch.signal != null) {
+      // An already-completed signal must win the first page boundary, before
+      // any render work.
+      await watch.settle();
+    }
     final List<DocumentAnalysisPage> ordered =
         List<DocumentAnalysisPage>.of(request.pages)..sort(
           (DocumentAnalysisPage a, DocumentAnalysisPage b) =>
@@ -357,7 +377,8 @@ abstract final class AnalyzeDocument {
     final List<int> timedOut = <int>[];
     final Stopwatch clock = Stopwatch()..start();
     for (final DocumentAnalysisPage page in ordered) {
-      if (isCancelled != null && isCancelled(page.pageIndex)) {
+      if (watch.requested ||
+          (isCancelled != null && isCancelled(page.pageIndex))) {
         cancelled.add(page.pageIndex);
         continue;
       }
@@ -367,6 +388,7 @@ abstract final class AnalyzeDocument {
               request,
               page,
               isCancelled,
+              watch,
               geometryDetection,
               rasterAnalysis,
               execution,
@@ -395,6 +417,7 @@ abstract final class AnalyzeDocument {
     DocumentAnalysisRequest request,
     DocumentAnalysisPage page,
     PageCancellation? isCancelled,
+    _CancellationWatch watch,
     GeometryDetection geometryDetection,
     RasterAnalysisBuilder rasterAnalysis,
     RecognitionExecution execution,
@@ -438,7 +461,8 @@ abstract final class AnalyzeDocument {
       );
       ocrMs = _elapsed(clock, ocrStart);
 
-      if (isCancelled != null && isCancelled(page.pageIndex)) {
+      if (watch.requested ||
+          (isCancelled != null && isCancelled(page.pageIndex))) {
         // The page was cancelled during render or OCR; skipping the
         // geometry/typing stage keeps the synchronous detector off this page.
         throw const _PageCancelled();
@@ -471,7 +495,13 @@ abstract final class AnalyzeDocument {
           task,
           work: work,
           deadline: pageDeadline,
+          cancellation: watch.signal,
         );
+      }
+      if (outcome.isCancelled) {
+        // The runner ended the worker as soon as the caller cancelled; the
+        // page stays pending and produces no partial suggestion.
+        throw const _PageCancelled();
       }
       timedOut = outcome.timedOut;
       if (outcome.isFailed) {
@@ -794,4 +824,34 @@ final class _OcrStage {
 /// (`recognition-output.md` §4, REC-004).
 final class _PageCancelled implements Exception {
   const _PageCancelled();
+}
+
+/// Observes one run-level cancellation signal without awaiting it.
+///
+/// The signal is a caller-side future; the page loop must be able to ask
+/// "already requested?" at a boundary without blocking on an unfinished
+/// future, so the observer records the first completion (value or error) in
+/// [requested]. [settle] yields one microtask so a signal that was already
+/// completed before the run started is visible at the first boundary.
+final class _CancellationWatch {
+  _CancellationWatch(this.signal) {
+    final Future<void>? source = signal;
+    if (source != null) {
+      unawaited(
+        source.then<void>(
+          (void _) => requested = true,
+          onError: (Object _) => requested = true,
+        ),
+      );
+    }
+  }
+
+  /// The raw signal handed to the off-isolate runner, or null.
+  final Future<void>? signal;
+
+  /// Whether the signal completed (value or error).
+  bool requested = false;
+
+  /// Yields one microtask so a completed signal is observed.
+  Future<void> settle() => Future<void>.microtask(() {});
 }
