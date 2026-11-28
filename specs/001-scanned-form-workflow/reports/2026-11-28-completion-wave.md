@@ -25,7 +25,7 @@ assertions now execute in Chrome (**3/3**). The full gate completes with
 | Host | Linux x86_64 (CachyOS), Flutter 3.47.7 stable, Dart 3.13 |
 | Emulator | `emulator-5554`, AVD `T025_Pixel7_API35_KVM_20261115`, Pixel 7 / API 35 / x86_64 / 4 GB, boot completed; started for this slice and stopped after the device runs |
 | Browser | Chrome for Testing **156.0.8078.4** via `tools/browser/chrome_launch.sh`; `chromedriver` **156.0.8078.4** (Chrome-for-Testing `linux64` build, local, not committed) |
-| Fixtures | committed `fixtures-1.1.0`, 8 PDFs + `sf-not-a-pdf.pdf`; `sf-001.pdf` 5,956 bytes, SHA-256 `22c939cc…a038` |
+| Fixtures | committed `fixtures-1.1.0`, 9 PDFs in `assets/fixtures/` (the 8 catalogue fixtures incl. the `sf-not-a-pdf.pdf` negative, plus `sf-acroform-001.pdf`); `sf-001.pdf` 5,956 bytes, SHA-256 `22c939cc…a038` |
 | Host temp | gate ran with `TMPDIR=/home/xxammaxx/fdgate` because the worktree path exceeds Chrome's 108-byte Unix-socket limit under `$PWD/build/tmpdir`; the short temp path does not change any product path |
 
 ## T110 — Android print preview and two-engine printability (SC-005; CHK019)
@@ -145,8 +145,10 @@ exit **0** (`GATE PASSED`).
 
 - `DEVICE` work (A54 performance, five first-time users, scored recognition
   evaluation) stays `NOT_RUN`; no threshold changed.
-- The T110 harness value/appearance rows stay `NOT_RUN`; the print proof is a
-  system print preview plus the verified artifact, not a physical print job.
+- The T110 harness value/appearance rows stay `NOT_RUN`; the print claim is the
+  system print **activity/spooler job** plus the verified artifact, not a
+  completed physical print job. The pixel preview itself is `NOT_PROVEN` (the
+  captured frame is the known uniform black frame); T110 stays OPEN/PARTIAL.
 - The real 20-form corpus is absent (`tools/corpus/manifest.json` missing);
   only the synthetic catalogue is validated.
 - Gate browser lanes are `SIMULATED`; the emulator/device integration tests are
@@ -161,9 +163,11 @@ the T111 browser entry, T110 receipts (`print-preview-proof.txt`,
 `print-preview-dumpsys-print.txt`, `print-preview-activities.txt`,
 `print-preview.png`, `harness-report.json`, `harness-console.txt`,
 `engine-pixel-comparison.txt`, `integration.log`, `markers.txt`, `device.txt`,
-`git.txt`, `readme-note.txt`), and the three reports. The picked-up PDF and
-engine renders were deleted by the driver after verification. Gate logs stay in
-`/tmp/feldexa-gate-final`.
+`git.txt`, `readme-note.txt`, plus `rerun-2026-11-28-emulator-5556.log` with the
+failed recapture attempt), and the three reports. `print-preview.png` is the
+known uniform black frame (SHA `c35bacdb…f514`), kept and named as such — not a
+visual preview proof. The picked-up PDF and engine renders were deleted by the
+driver after verification. Gate logs stay in `/tmp/feldexa-gate-final`.
 
 ## Reproducibility
 

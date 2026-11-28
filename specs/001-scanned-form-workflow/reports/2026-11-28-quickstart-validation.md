@@ -125,8 +125,10 @@ engines were rendered at 300 dpi: Poppler vs MuPDF differ in **35,545 /
 8,703,348 px (0.4084 %)** on page 1 and **41,261 / 8,703,348 px (0.4741 %)**
 on page 2, inside the 5 % fuzz / 2 % max-difference tolerance. The Android
 print preview was observed as a real print-spooler activity
-(`print_activity_present=1`), the screenshot is 15,580 bytes, and closing the
-preview deleted the artifact (`EXP-002`).
+(`print_activity_present=1`); the captured 15,580-byte screenshot is the known
+uniform black frame (SHA `c35bacdb…f514`) taken while `PrintActivity` reported
+`INITIALIZING`, so the pixel-level preview is `NOT_PROVEN` (T110 stays
+OPEN/PARTIAL); closing the preview deleted the artifact (`EXP-002`).
 
 ### §8 Failure injection (`EMULATOR` device run, `SIMULATED` seams)
 
@@ -188,8 +190,9 @@ independence, template deletion).
 - The T110 harness leaves six value/appearance rows `NOT_RUN` because the
   print run does not supply expected values; those rows were covered for the
   T109 artifact earlier and are not claimed here.
-- The print preview is proven by the system print-spooler activity and a
-  screenshot, not by a completed physical print job.
+- The print preview is proven by the system print-spooler activity and its
+  job state, not by a completed physical print job and not by the captured
+  (uniform black) screenshot; the pixel-level preview is `NOT_PROVEN`.
 
 ## Artifacts
 
